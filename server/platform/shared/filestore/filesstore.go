@@ -67,15 +67,22 @@ type FileBackendSettings struct {
 	AmazonS3UploadPartSizeBytes        int64
 	AmazonS3StorageClass               string
 	AzureStorageAccount                string
+	AzureAuthMode                      string
 	AzureAccessKey                     string
 	AzureContainer                     string
 	AzurePathPrefix                    string
+	AzureCloud                         string
 	AzureEndpoint                      string
 	AzureSSL                           bool
 	AzureRequestTimeoutMilliseconds    int64
+	AzurePresignExpiresSeconds         int64
+	// AllowedUntrustedInternalConnections carries the value of the
+	// ServiceSettings.AllowedUntrustedInternalConnections config setting, used
+	// by the Azure custom-cloud backend.
+	AllowedUntrustedInternalConnections string
 }
 
-func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool) FileBackendSettings {
+func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool, allowedUntrustedInternalConnections string) FileBackendSettings {
 	if *fileSettings.DriverName == model.ImageDriverLocal {
 		return FileBackendSettings{
 			DriverName: *fileSettings.DriverName,
@@ -84,15 +91,18 @@ func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableCo
 	}
 	if *fileSettings.DriverName == model.ImageDriverAzure {
 		return FileBackendSettings{
-			DriverName:                      *fileSettings.DriverName,
-			AzureStorageAccount:             *fileSettings.AzureStorageAccount,
-			AzureAccessKey:                  *fileSettings.AzureAccessKey,
-			AzureContainer:                  *fileSettings.AzureContainer,
-			AzurePathPrefix:                 *fileSettings.AzurePathPrefix,
-			AzureEndpoint:                   *fileSettings.AzureEndpoint,
-			AzureSSL:                        fileSettings.AzureSSL == nil || *fileSettings.AzureSSL,
-			AzureRequestTimeoutMilliseconds: *fileSettings.AzureRequestTimeoutMilliseconds,
-			SkipVerify:                      skipVerify,
+			DriverName:                          *fileSettings.DriverName,
+			AzureStorageAccount:                 *fileSettings.AzureStorageAccount,
+			AzureAuthMode:                       *fileSettings.AzureAuthMode,
+			AzureAccessKey:                      *fileSettings.AzureAccessKey,
+			AzureContainer:                      *fileSettings.AzureContainer,
+			AzurePathPrefix:                     *fileSettings.AzurePathPrefix,
+			AzureCloud:                          *fileSettings.AzureCloud,
+			AzureEndpoint:                       *fileSettings.AzureEndpoint,
+			AzureSSL:                            fileSettings.AzureSSL == nil || *fileSettings.AzureSSL,
+			AzureRequestTimeoutMilliseconds:     *fileSettings.AzureRequestTimeoutMilliseconds,
+			SkipVerify:                          skipVerify,
+			AllowedUntrustedInternalConnections: allowedUntrustedInternalConnections,
 		}
 	}
 	return FileBackendSettings{
@@ -114,7 +124,7 @@ func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableCo
 	}
 }
 
-func NewExportFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool) FileBackendSettings {
+func NewExportFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool, allowedUntrustedInternalConnections string) FileBackendSettings {
 	if *fileSettings.ExportDriverName == model.ImageDriverLocal {
 		return FileBackendSettings{
 			DriverName: *fileSettings.ExportDriverName,
@@ -123,15 +133,19 @@ func NewExportFileBackendSettingsFromConfig(fileSettings *model.FileSettings, en
 	}
 	if *fileSettings.ExportDriverName == model.ImageDriverAzure {
 		return FileBackendSettings{
-			DriverName:                      *fileSettings.ExportDriverName,
-			AzureStorageAccount:             *fileSettings.ExportAzureStorageAccount,
-			AzureAccessKey:                  *fileSettings.ExportAzureAccessKey,
-			AzureContainer:                  *fileSettings.ExportAzureContainer,
-			AzurePathPrefix:                 *fileSettings.ExportAzurePathPrefix,
-			AzureEndpoint:                   *fileSettings.ExportAzureEndpoint,
-			AzureSSL:                        fileSettings.ExportAzureSSL == nil || *fileSettings.ExportAzureSSL,
-			AzureRequestTimeoutMilliseconds: *fileSettings.ExportAzureRequestTimeoutMilliseconds,
-			SkipVerify:                      skipVerify,
+			DriverName:                          *fileSettings.ExportDriverName,
+			AzureStorageAccount:                 *fileSettings.ExportAzureStorageAccount,
+			AzureAuthMode:                       *fileSettings.ExportAzureAuthMode,
+			AzureAccessKey:                      *fileSettings.ExportAzureAccessKey,
+			AzureContainer:                      *fileSettings.ExportAzureContainer,
+			AzurePathPrefix:                     *fileSettings.ExportAzurePathPrefix,
+			AzureCloud:                          *fileSettings.ExportAzureCloud,
+			AzureEndpoint:                       *fileSettings.ExportAzureEndpoint,
+			AzureSSL:                            fileSettings.ExportAzureSSL == nil || *fileSettings.ExportAzureSSL,
+			AzureRequestTimeoutMilliseconds:     *fileSettings.ExportAzureRequestTimeoutMilliseconds,
+			AzurePresignExpiresSeconds:          *fileSettings.ExportAzurePresignExpiresSeconds,
+			SkipVerify:                          skipVerify,
+			AllowedUntrustedInternalConnections: allowedUntrustedInternalConnections,
 		}
 	}
 	return FileBackendSettings{
@@ -174,7 +188,11 @@ func (settings *FileBackendSettings) CheckMandatoryAzureFields() error {
 	if settings.AzureContainer == "" {
 		return errors.New("missing azure container setting")
 	}
-	if settings.AzureAccessKey == "" {
+	// AzureAccessKey is only meaningful for shared-key auth. Default credential
+	// reads identity from the host environment (managed identity / workload
+	// identity / service principal env vars / az login), so an empty access key
+	// is the expected configuration in that mode.
+	if settings.AzureAuthMode == model.AzureAuthModeSharedKey && settings.AzureAccessKey == "" {
 		return errors.New("missing azure access key setting")
 	}
 	return nil

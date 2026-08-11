@@ -3,9 +3,17 @@
 
 import React from 'react';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 import Completed from './onboarding_tasklist_completed';
+
+const isDesktopAppMock = jest.mocked(UserAgent.isDesktopApp);
+
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isDesktopApp: jest.fn(() => false),
+}));
 
 jest.mock('mattermost-redux/actions/admin', () => ({
     ...jest.requireActual('mattermost-redux/actions/admin'),
@@ -66,5 +74,18 @@ describe('components/onboarding_tasklist/onboarding_tasklist_completed.tsx', () 
         // calls the dissmiss function on click
         await userEvent.click(noThanksLink[0]);
         expect(dismissMockFn).toHaveBeenCalledTimes(1);
+    });
+
+    test('displays download apps link when not in desktop app', () => {
+        isDesktopAppMock.mockReturnValue(false);
+        const {container} = renderWithContext(<Completed {...props}/>, initialState);
+        expect(container.querySelectorAll('.download-apps')).toHaveLength(1);
+    });
+
+    test('hides download apps link when in desktop app', () => {
+        isDesktopAppMock.mockReturnValue(true);
+        const {container} = renderWithContext(<Completed {...props}/>, initialState);
+        expect(container.querySelectorAll('.download-apps')).toHaveLength(0);
+        isDesktopAppMock.mockReturnValue(false);
     });
 });

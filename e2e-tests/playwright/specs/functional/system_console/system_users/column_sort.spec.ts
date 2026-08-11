@@ -53,7 +53,7 @@ test.describe('System Console - Users table sorting', () => {
             }
             expect(emails.length).toBeGreaterThan(3);
 
-            const sorted = [...emails].sort((a, b) => a.localeCompare(b));
+            const sorted = [...emails].sort((a, b) => a.localeCompare(b, undefined, {ignorePunctuation: true}));
             if (sortDirection === 'descending') {
                 sorted.reverse();
             }
@@ -81,7 +81,7 @@ test.describe('System Console - Users table sorting', () => {
             }
             expect(emails.length).toBeGreaterThan(3);
 
-            const sorted = [...emails].sort((a, b) => a.localeCompare(b));
+            const sorted = [...emails].sort((a, b) => a.localeCompare(b, undefined, {ignorePunctuation: true}));
             if (reversedDirection === 'descending') {
                 sorted.reverse();
             }

@@ -60,7 +60,7 @@ export type Props = {
         canUserDirectMessage: (userId: string, otherUserId: string) => Promise<ActionResult<{can_dm: boolean}>>;
     };
     focusOriginElement: string;
-}
+};
 
 type State = {
     values: OptionValue[];
@@ -69,7 +69,7 @@ type State = {
     saving: boolean;
     loadingUsers: boolean;
     directMessageCapabilityCache: Record<string, boolean>;
-}
+};
 
 export default class MoreDirectChannels extends React.PureComponent<Props, State> {
     searchTimeoutId: any;

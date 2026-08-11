@@ -58,8 +58,8 @@ test('MM-T5799b LDAP sync - User removed with == operator (auto-add true)', asyn
     // Sync: user has qualifying attribute → gets auto-added.
     // Capture exact job ID so we poll the right job, not the most-recent row
     // (which may belong to a concurrent shard's sync job under PW_WORKERS >= 2).
-    const __syncJob5799b1 = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob5799b1);
+    const syncJob5799b1 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob5799b1);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, user2.id, channel2.id), {
@@ -73,8 +73,8 @@ test('MM-T5799b LDAP sync - User removed with == operator (auto-add true)', asyn
     await updateUserAttributes(adminClient, user2.id, {Department: 'Sales'});
 
     // Sync: user no longer qualifies → gets removed.
-    const __syncJob5799b2 = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob5799b2);
+    const syncJob5799b2 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob5799b2);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, user2.id, channel2.id), {

@@ -11,11 +11,11 @@ import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControl
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {hasUsableAttributes} from 'components/admin_console/access_control/editors/shared';
+import {excludeSessionAttributes, hasUsableAttributes} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import ChannelList from 'components/admin_console/access_control/policy_details/channel_list';
 import ChannelSelectorModal from 'components/channel_selector_modal';
@@ -107,6 +107,7 @@ export default function TeamPolicyEditor({
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [backClicked, setBackClicked] = useState(false);
+    const [hasMaskedRows, setHasMaskedRows] = useState(false);
 
     const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
 
@@ -122,7 +123,7 @@ export default function TeamPolicyEditor({
     useEffect(() => {
         abacActions.getAccessControlFields('', 100).then((result) => {
             if (result.data) {
-                setAutocompleteResult(result.data);
+                setAutocompleteResult(excludeSessionAttributes(result.data));
             }
             setAttributesLoaded(true);
         }).catch(() => {
@@ -262,7 +263,7 @@ export default function TeamPolicyEditor({
             setSaveChangesPanelState(SAVE_RESULT_ERROR);
             return false;
         }
-        if (expression.includes('== ""') || expression.includes("== ''") || expression.includes('in []')) {
+        if (expression.includes('== ""') || expression.includes("== ''")) {
             setFormError(formatMessage({id: 'team_settings.policy_editor.error.incomplete_rule', defaultMessage: 'Please complete all attribute rules with a value'}));
             setSaveChangesPanelState(SAVE_RESULT_ERROR);
             return false;
@@ -510,6 +511,23 @@ export default function TeamPolicyEditor({
                         </p>
                     </div>
                 </div>
+                {hasMaskedRows && (
+                    <div className='TeamPolicyEditor__masked-values-warning'>
+                        <SectionNotice
+                            type='warning'
+                            title={
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.masked_values_warning.title'
+                                    defaultMessage='This policy contains restricted values'
+                                />
+                            }
+                            text={formatMessage({
+                                id: 'admin.access_control.policy.edit_policy.masked_values_warning.text',
+                                defaultMessage: 'Some rules include attribute values you cannot see. Editing or deleting these rules may change who has access in ways you cannot fully anticipate.',
+                            })}
+                        />
+                    </div>
+                )}
                 <TableEditor
                     value={expression}
                     onChange={handleExpressionChange}
@@ -527,6 +545,7 @@ export default function TeamPolicyEditor({
                     // nothing to be excluded from in advisory mode, so the
                     // warning is misleading.
                     validateExpressionAgainstRequester={hasPrivateChannelInScope() ? abacActions.validateExpressionAgainstRequester : undefined}
+                    onMaskedStateChange={setHasMaskedRows}
                 />
             </div>
 
@@ -604,7 +623,7 @@ export default function TeamPolicyEditor({
                                     {hasChannels() ? (
                                         <FormattedMessage
                                             id='admin.access_control.policy.edit_policy.delete_policy.subtitle.has_resources'
-                                            defaultMessage='Remove all assigned resources (eg. Channels) to be able to delete this policy'
+                                            defaultMessage='Remove all assigned resources (eg. Channels and Teams) to be able to delete this policy'
                                         />
                                     ) : (
                                         <FormattedMessage
@@ -617,7 +636,7 @@ export default function TeamPolicyEditor({
                             <Button
                                 variant='destructive'
                                 onClick={() => setShowDeleteModal(true)}
-                                disabled={hasChannels()}
+                                disabled={hasChannels() || hasMaskedRows}
                             >
                                 <FormattedMessage
                                     id='admin.access_control.policy.edit_policy.delete_policy.delete'
@@ -689,12 +708,14 @@ export default function TeamPolicyEditor({
                         </div>
                     }
                 >
-                    <p>
-                        <FormattedMessage
-                            id='team_settings.policy_editor.delete_confirmation.body'
-                            defaultMessage='This action cannot be undone.'
-                        />
-                    </p>
+                    <>
+                        <p>
+                            <FormattedMessage
+                                id='team_settings.policy_editor.delete_confirmation.body'
+                                defaultMessage='This action cannot be undone.'
+                            />
+                        </p>
+                    </>
                 </GenericModal>
             )}
 

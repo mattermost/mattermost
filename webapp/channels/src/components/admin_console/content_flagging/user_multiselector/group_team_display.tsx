@@ -13,7 +13,7 @@ type GroupTeamDisplayProps = {
     item: Group | Team;
     variant: 'group' | 'team';
     displayMode?: 'list' | 'chip';
-}
+};
 
 // Helper function to check if an option is a team
 const isTeam = (option: Group | Team): option is Team => {

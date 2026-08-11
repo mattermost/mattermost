@@ -6310,10 +6310,6 @@
     "translation": "채널 유형의 갯수를 가져올 수 없습니다."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "채널 갯수를 가져올 수 없습니다."
-  },
-  {
     "id": "app.channel.get_member_count.app_error",
     "translation": "채널 구성원 수를 가져올 수 없습니다."
   },
@@ -7266,14 +7262,6 @@
     "translation": "새로운 체험판 라이선스를 적용하는데 실패하였습니다. 이 Mattermost 인스턴스에는 이전에 적용된 체험판 라이센스를 유지합니다. 체험 기간을 연장하시려면 [저희 영업 팀에 연락해주세요](https://mattermost.com/contact-us/)."
   },
   {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "아마존 S3 버킷이 가용한 상태인지 확인하고, 버킷 권한을 확인해주세요."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "S3와 연결할 수 없습니다. 아마존 S3 연결을 위한 인가 매개변수와 인증 설정을 확인하세요."
-  },
-  {
     "id": "api.file.file_reader.app_error",
     "translation": "파일 뷰어가 없습니다."
   },
@@ -7634,10 +7622,6 @@
     "translation": "평가판을 시작할 수 있는지 확인할 수 없습니다"
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "파일 저장소 설정에 설정되지 않은 값이 있습니다."
-  },
-  {
     "id": "api.error_set_first_admin_visit_marketplace_status",
     "translation": "스토어에 초기 관리자 마켓플레이스 방문 상태를 저장하는 동안 오류가 발생했습니다."
   },
@@ -7944,10 +7928,6 @@
   {
     "id": "api.custom_profile_attributes.invalid_field_patch",
     "translation": "잘못된 사용자 지정 프로필 속성 필드 패치"
-  },
-  {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "라이선스는 사용자 지정 프로필 속성을 지원하지 않습니다."
   },
   {
     "id": "api.custom_status.set_custom_statuses.emoji_not_found",
@@ -8670,68 +8650,8 @@
     "translation": "그룹 이름이 고유하지 않음"
   },
   {
-    "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "사용자 지정 프로필 속성 그룹의 필드 수를 계산할 수 없습니다."
-  },
-  {
-    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "사용자 지정 프로필 속성 그룹을 등록할 수 없습니다."
-  },
-  {
-    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "사용자에 대한 사용자 지정 프로필 속성 값을 삭제할 수 없습니다."
-  },
-  {
-    "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "사용자 지정 프로필 속성 필드를 가져올 수 없습니다."
-  },
-  {
-    "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "사용자 지정 프로필 속성 필드 제한에 도달했습니다."
-  },
-  {
-    "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "사용자 지정 프로필 속성 값을 가져올 수 없습니다."
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
     "translation": "속성 필드를 사용자 지정 프로필 속성 필드로 변환할 수 없습니다."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "사용자 지정 프로필 속성 필드를 삭제할 수 없습니다."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "관리자가 관리하는 사용자 지정 프로필 속성 필드의 값을 업데이트할 수 없습니다."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "동기화된 사용자 지정 프로필 속성 필드의 값을 업데이트할 수 없습니다."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "사용자 지정 프로필 속성 필드를 찾을 수 없습니다."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "사용자 지정 프로필 속성 필드를 업데이트할 수 없습니다."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "사용자 지정 프로필 속성 필드를 업데이트할 수 없습니다."
-  },
-  {
-    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
-    "translation": "잘못된 속성 값입니다: {{.AttributeName}} ({{.Reason}})."
-  },
-  {
-    "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "사용자 지정 프로필 속성 필드를 검색할 수 없습니다."
-  },
-  {
-    "id": "app.custom_profile_attributes.validate_value.app_error",
-    "translation": "속성 값 유효성 검사 실패"
   },
   {
     "id": "app.delete_scheduled_post.delete_error",

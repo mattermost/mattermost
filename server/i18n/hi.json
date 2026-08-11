@@ -3396,14 +3396,6 @@
     "translation": "फ़ाइल अपलोड करने में असमर्थ. गलत चैनल आईडी: {{.channelId}}"
   },
   {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "सुनिश्चित करें कि आपका Amazon S3 बकेट उपलब्ध है, और अपनी बकेट अनुमतियों को सत्यापित करें।"
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "S3 से कनेक्ट करने में असमर्थ। अपने Amazon S3 कनेक्शन प्राधिकरण मापदंडों और प्रमाणीकरण सेटिंग्स को सत्यापित करें।"
-  },
-  {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} के लिए नया नोटिफिकेशन",
@@ -3799,7 +3791,10 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} पहले से ही चैनल में है।"
+    "translation": {
+      "one": "{{.User}} पहले से ही चैनल में है।",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite.success",
@@ -5327,10 +5322,6 @@
   {
     "id": "app.channel.get_channels.get.app_error",
     "translation": "चैनल प्राप्त करने में असमर्थ।"
-  },
-  {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "चैनल की गिनती प्राप्त करने में असमर्थ।"
   },
   {
     "id": "app.channel.get_by_scheme.app_error",

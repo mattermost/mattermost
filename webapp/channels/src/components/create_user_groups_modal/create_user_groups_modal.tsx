@@ -28,7 +28,7 @@ export type Props = {
         openModal: <P>(modalData: ModalData<P>) => void;
     };
     intl: IntlShape;
-}
+};
 
 type State = {
     show: boolean;
@@ -42,7 +42,7 @@ type State = {
     showUnknownError: boolean;
     saving: boolean;
     saved: boolean;
-}
+};
 
 export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {

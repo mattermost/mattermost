@@ -109,7 +109,7 @@ export type State = {
     error: JSX.Element | string;
     adding: boolean;
     image: string;
-    orientationStyles: { transform: string; transformOrigin: string };
+    orientationStyles: {transform: string; transformOrigin: string};
     pictureFile: File | null | string;
 };
 

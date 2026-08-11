@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
 
-import {SimpleUser} from '../../autocomplete/helpers';
+import type {SimpleUser} from '../../autocomplete/helpers';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import {getAdminAccount} from '@/support/env';
 import {newTestPassword} from '@/utils';
-import {ChainableT} from '@/types';
+import type {ChainableT} from '@/types';
 
 const admin = getAdminAccount();
 

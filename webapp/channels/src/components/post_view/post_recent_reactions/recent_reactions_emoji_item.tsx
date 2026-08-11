@@ -13,7 +13,7 @@ type Props = {
     emoji: Emoji;
     onItemClick: (emoji: Emoji) => void;
     order?: number;
-}
+};
 const EmojiItem = ({emoji, onItemClick, order}: Props) => {
     const {formatMessage} = useIntl();
 

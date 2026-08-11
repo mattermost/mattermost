@@ -645,3 +645,69 @@ func TestSanitizeProfile(t *testing.T) {
 		require.Empty(t, user.Props[UserPropsKeyRemoteEmail])
 	})
 }
+
+func TestIsValidUserAuthService(t *testing.T) {
+	valid := []string{
+		UserAuthServiceEmail,
+		UserAuthServiceGitlab,
+		UserAuthServiceLdap,
+		UserAuthServiceSaml,
+		ServiceGoogle,
+		ServiceOffice365,
+		ServiceOpenid,
+	}
+	for _, s := range valid {
+		t.Run("valid/"+s, func(t *testing.T) {
+			require.True(t, IsValidUserAuthService(s))
+		})
+	}
+
+	invalid := []string{"", "not-a-real-service", UserAuthServiceMagicLink, "EMAIL"}
+	for _, s := range invalid {
+		t.Run("invalid/"+s, func(t *testing.T) {
+			require.False(t, IsValidUserAuthService(s))
+		})
+	}
+}
+
+func TestUserAuthIsValid(t *testing.T) {
+	authData := "test@test.com"
+
+	tests := []struct {
+		name     string
+		userAuth UserAuth
+		expected bool
+	}{
+		{
+			name:     "email auth with nil auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceEmail},
+			expected: true,
+		},
+		{
+			name:     "email auth with auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceEmail, AuthData: &authData},
+			expected: false,
+		},
+		{
+			name:     "sso auth with auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceSaml, AuthData: &authData},
+			expected: true,
+		},
+		{
+			name:     "sso auth with nil auth data",
+			userAuth: UserAuth{AuthService: UserAuthServiceSaml},
+			expected: false,
+		},
+		{
+			name:     "unknown auth service",
+			userAuth: UserAuth{AuthService: "not-a-real-service", AuthData: &authData},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.expected, tt.userAuth.IsValid())
+		})
+	}
+}

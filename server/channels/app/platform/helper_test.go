@@ -60,6 +60,10 @@ func (ms *mockSuite) HasPermissionToReadChannel(rctx request.CTX, userID string,
 	return true, true
 }
 
+func (ms *mockSuite) HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool {
+	return true
+}
+
 func (ms *mockSuite) HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
 	return true
 }

@@ -1,6 +1,12 @@
+.select-attribute-mui-menu {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
 .field-selector-menu-button {
     width: 100%;
-    height: 40px;
+    height: auto;
+    min-height: 40px;
     justify-content: start;
     border: none;
     font-weight: normal;
@@ -25,12 +31,27 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
+
+    // The attribute selector renders its icon and label as direct button
+    // children (no inner wrapper), so the label needs min-width: 0 to shrink
+    // within the flex button and truncate instead of overflowing the column.
+    // Spacing from the icon comes from the button's own gap.
+    &__label {
+        overflow: hidden;
+        min-width: 0;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 }
 
 .value-selector-menu-button {
+    // Chips wrap onto new lines within the fixed-width Values cell so the
+    // table never expands horizontally past the modal. The row grows
+    // vertically to fit however many values are added.
     &__multi-values-container {
         display: flex;
         overflow: hidden;
+        min-width: 0;
         flex-grow: 1;
         flex-wrap: wrap;
         gap: 2px;
@@ -39,8 +60,36 @@
     &__inner-wrapper {
         display: flex;
         width: 100%;
+        min-width: 0;
         align-items: center;
         justify-content: space-between;
+    }
+}
+
+.attribute-selector-platform-icon {
+    display: inline-flex;
+    align-items: center;
+}
+
+.attribute-selector-label {
+    display: flex;
+    flex-direction: column;
+    padding: 2px 0;
+    gap: 4px;
+
+    &__display-name {
+        color: var(--menu-item-text-color, rgba(var(--center-channel-color-rgb), 1));
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+    }
+
+    &__unique-name {
+        color: var(--menu-item-text-color, rgba(var(--center-channel-color-rgb), 1));
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 16px;
+        opacity: 0.75;
     }
 }
 
@@ -50,6 +99,7 @@
     .select__multi-value {
         display: flex;
         height: 24px;
+        flex: 0 0 auto;
         align-items: center;
         border-radius: 4px;
         margin: 2px;
@@ -64,9 +114,21 @@
     .select__multi-value__remove {
         padding: 0 4px;
         cursor: pointer;
-        
+
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.16);
+        }
+    }
+
+    .select__multi-value--masked {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        cursor: default;
+        user-select: none;
+
+        .select__multi-value__label {
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-family: monospace;
+            letter-spacing: 1px;
         }
     }
 

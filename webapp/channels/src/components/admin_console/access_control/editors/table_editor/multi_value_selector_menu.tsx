@@ -12,6 +12,8 @@ import * as Menu from 'components/menu';
 
 import './selector_menus.scss';
 
+import MaskedChip from './masked_chip';
+
 // MultiValueSelector handles selection of multiple values (operator 'in')
 const MultiValueSelector = ({
     values,
@@ -20,6 +22,7 @@ const MultiValueSelector = ({
     options = [],
     allowCreateValue = false,
     placeholder,
+    hasMaskedValues = false,
 }: {
     values: string[];
     disabled: boolean;
@@ -27,6 +30,7 @@ const MultiValueSelector = ({
     options?: PropertyFieldOption[];
     allowCreateValue?: boolean;
     placeholder?: string;
+    hasMaskedValues?: boolean;
 }) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
@@ -92,6 +96,15 @@ const MultiValueSelector = ({
     // Memoize cell contents to prevent unnecessary re-renders
     const cellContents = useMemo(() => {
         if (values.length === 0) {
+            // When no visible values exist but the row has masked ones, show only the masked chip.
+            if (hasMaskedValues) {
+                return (
+                    <div className='value-selector-menu-button__multi-values-container'>
+                        <MaskedChip/>
+                    </div>
+                );
+            }
+
             let visualPlaceholderText = defaultMultiPlaceholder;
             if (actualAllowCreateForMenu && options.length === 0) {
                 visualPlaceholderText = defaultCreatePlaceholder;
@@ -131,9 +144,10 @@ const MultiValueSelector = ({
                         )}
                     </div>
                 ))}
+                {hasMaskedValues && <MaskedChip/>}
             </div>
         );
-    }, [values, disabled]);
+    }, [values, disabled, hasMaskedValues]);
 
     return (
         <div className='values-editor'>

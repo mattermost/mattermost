@@ -206,7 +206,7 @@ func (s *SqlViewStore) UpdateSortOrder(viewID, channelID string, newIndex int64)
 	}
 
 	now := model.GetMillis()
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to begin transaction for UpdateSortOrder")
 	}

@@ -24,11 +24,11 @@ type Props = {
     updatePermissions: (permissions: PermissionToUpdate[]) => void;
     readOnly?: boolean;
     isLicensedForCloud: boolean;
-}
+};
 
 type State = {
     visibleSections: Record<string, boolean>;
-}
+};
 
 // the actual permissions correlating to these values are of the format `sysconsole_(read|write)_name(.subsection.name)`
 const sectionsList: SystemSection[] = [

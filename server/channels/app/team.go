@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"image"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -163,11 +162,12 @@ func (a *App) CreateTeamWithUser(rctx request.CTX, team *model.Team, userID stri
 }
 
 func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
-	oldTeam, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{Sanitized: true})
+	updatedTeam, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{Sanitized: true})
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
 		var domErr *teams.DomainError
+		var nameErr *teams.NameOccupiedError
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
@@ -178,58 +178,19 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 			return nil, appErr
 		case errors.As(err, &domErr):
 			return nil, model.NewAppError("UpdateTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]any{"Domain": domErr.Domain}, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &nameErr):
+			errbody := fmt.Sprintf("team with name %s already exists", nameErr.Name)
+			return nil, model.NewAppError("UpdateTeam", "app.team.rename_team.name_occupied", nil, errbody, http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("UpdateTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
-	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam); appErr != nil {
 		return nil, appErr
 	}
 
-	return oldTeam, nil
-}
-
-// RenameTeam is used to rename the team Name and the DisplayName fields
-func (a *App) RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError) {
-	// check if name is occupied
-	_, errnf := a.GetTeamByName(newTeamName)
-
-	// "-" can be used as a newTeamName if only DisplayName change is wanted
-	if errnf == nil && newTeamName != "-" {
-		errbody := fmt.Sprintf("team with name %s already exists", newTeamName)
-		return nil, model.NewAppError("RenameTeam", "app.team.rename_team.name_occupied", nil, errbody, http.StatusBadRequest)
-	}
-
-	if newTeamName != "-" {
-		team.Name = newTeamName
-	}
-
-	if newDisplayName != "" {
-		team.DisplayName = newDisplayName
-	}
-
-	newTeam, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{})
-	if err != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		var domErr *teams.DomainError
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("RenameTeam", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("RenameTeam", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		case errors.As(err, &appErr):
-			return nil, appErr
-		case errors.As(err, &domErr):
-			return nil, model.NewAppError("RenameTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]any{"Domain": domErr.Domain}, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("RenameTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-	}
-
-	return newTeam, nil
+	return updatedTeam, nil
 }
 
 func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) {
@@ -304,6 +265,19 @@ func (a *App) UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite 
 }
 
 func (a *App) PatchTeam(teamID string, patch *model.TeamPatch) (*model.Team, *model.AppError) {
+	if patch.GroupConstrained != nil && *patch.GroupConstrained {
+		// Group sync and ABAC are mutually exclusive on a team; block enabling
+		// group sync while a team membership policy is attached. The assign
+		// side enforces the converse in ValidateTeamEligibilityForAccessControl.
+		existing, appErr := a.GetTeam(teamID)
+		if appErr != nil {
+			return nil, appErr
+		}
+		if existing.PolicyEnforced {
+			return nil, model.NewAppError("PatchTeam", "api.team.update.group_constrained.policy_exists", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	team, err := a.ch.srv.teamService.PatchTeam(teamID, patch)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -464,6 +438,10 @@ func (a *App) updateTeamMemberRolesInternal(rctx request.CTX, teamID string, use
 
 	if member.SchemeGuest && member.SchemeUser {
 		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if member.SchemeGuest && member.SchemeAdmin {
+		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.guest_and_admin.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if prevSchemeGuestValue != member.SchemeGuest {
@@ -693,6 +671,10 @@ func (a *App) AddUserToTeamWithToken(rctx request.CTX, userID string, token *mod
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.invalid_invitation_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if emailFromToken := tokenData["email"]; emailFromToken != "" && !strings.EqualFold(emailFromToken, user.Email) {
+		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.bad_token_email_data.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	teamMember, appErr := a.JoinUserToTeam(rctx, team, user, "")
 	if appErr != nil {
 		return nil, nil, appErr
@@ -772,6 +754,49 @@ func (a *App) AddUserToTeamByInviteId(rctx request.CTX, inviteId string, userID 
 
 func (a *App) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
 	preSaveHook := func(tm *model.TeamMember) (*model.TeamMember, error) {
+		// On public teams the ABAC policy is advisory: join proceeds without the PDP.
+		// Only private teams gate strictly. Key on AllowOpenInvite alone (not
+		// team.Type): the privacy update path flips AllowOpenInvite without syncing
+		// team.Type, so Type can't be trusted as a privacy signal here.
+		if !team.AllowOpenInvite {
+			// Strict mode. ABAC enforcement runs before the plugin hook so a denied
+			// join never reaches plugin code, and fails closed on every error path.
+			if ok, appErr := a.TeamAccessControlled(rctx, team.Id); appErr != nil {
+				return nil, appErr
+			} else if ok {
+				acs := a.Srv().Channels().AccessControl
+				if acs == nil {
+					// The team is policy-governed but the PDP is unavailable. Fail
+					// closed with the generic denial rather than admit an unevaluated
+					// join — never a silent allow.
+					return nil, model.NewAppError("JoinUserToTeam", "api.team.add_user.to.team.rejected", nil, "", http.StatusForbidden)
+				}
+
+				// BuildAccessControlSubject is channel-coupled: its last arg resolves a
+				// channel-scoped role. Team membership evaluates identity attributes only,
+				// so pass an empty channelID and attach no scoped role.
+				s, buildErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles, "")
+				if buildErr != nil {
+					return nil, model.NewAppError("JoinUserToTeam", "api.team.add_user.to.team.abac_subject_build_failed.app_error", nil,
+						fmt.Sprintf("failed to build subject: %v, user_id: %s, team_id: %s", buildErr, user.Id, team.Id), http.StatusInternalServerError)
+				}
+
+				decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+					Subject: *s,
+					Resource: model.Resource{
+						Type: model.AccessControlPolicyTypeTeam,
+						ID:   team.Id,
+					},
+					Action: model.AccessControlPolicyActionMembership,
+				})
+				if evalErr != nil {
+					return nil, evalErr
+				} else if !decision.Decision {
+					return nil, model.NewAppError("JoinUserToTeam", "api.team.add_user.to.team.rejected", nil, "", http.StatusForbidden)
+				}
+			}
+		}
+
 		var rejectionReason string
 		pluginContext := pluginContext(rctx)
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
@@ -898,6 +923,50 @@ func (a *App) GetTeams(teamIDs []string) ([]*model.Team, *model.AppError) {
 	}
 
 	return teams, nil
+}
+
+// TeamMembershipAccessControlEnabled reports whether attribute-based team
+// membership is fully switched on: the TeamMembershipAccessControl feature flag,
+// an Enterprise Advanced license, and the ABAC config setting. It gates every
+// team membership ABAC surface — the join gate, directory hiding, and the
+// governed-team listing — so they activate together and stay dark otherwise.
+func (a *App) TeamMembershipAccessControlEnabled() bool {
+	if !a.Config().FeatureFlags.TeamMembershipAccessControl {
+		return false
+	}
+	if l := a.License(); !model.MinimumEnterpriseAdvancedLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return false
+	}
+	return true
+}
+
+// TeamAccessControlled reports whether the team enforces an ABAC membership
+// policy. Mirrors ChannelAccessControlled, with one addition: it also gates on
+// the TeamMembershipAccessControl feature flag so team enforcement can ship
+// dark and roll out independently of channel ABAC (which is GA on the umbrella
+// flag). When the flag, license, or config is off it returns (false, nil) and
+// no team join is ever ABAC-evaluated. A hydration error returns (false, err)
+// — fail-closed, never a silent (false, nil).
+func (a *App) TeamAccessControlled(rctx request.CTX, teamID string) (bool, *model.AppError) {
+	if !a.TeamMembershipAccessControlEnabled() {
+		return false, nil
+	}
+
+	team, err := a.Srv().Store().Team().Get(teamID)
+	var nfErr *store.ErrNotFound
+	if err != nil && !errors.As(err, &nfErr) {
+		return false, model.NewAppError("TeamAccessControlled", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	} else if errors.As(err, &nfErr) {
+		return false, nil
+	}
+
+	if appErr := a.HydrateTeamPolicyActions(rctx, team); appErr != nil {
+		// Fail-closed: a hydration error must not silently downgrade an
+		// ABAC-controlled team to "unrestricted" for the join gate.
+		return false, appErr
+	}
+
+	return team.HasMembershipPolicyAction(), nil
 }
 
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
@@ -1280,12 +1349,46 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		}
 	}
 
+	// A policy-driven removal (the membership sync calls in with an empty
+	// requestorId on an ABAC-governed team) cascades to channel membership.
+	// Group-sync removal also passes "", but group-constrained teams cannot be
+	// ABAC-governed, so PolicyEnforced disambiguates. Emit a removal record plus
+	// a per-channel cascade record referencing it; an ordinary or non-policy
+	// leave records nothing here.
+	policyDriven := team.PolicyEnforced && requestorId == ""
+	var cascadeParentEventID string
+	if policyDriven {
+		cascadeParentEventID = model.NewId()
+	}
+
 	for _, channel := range channelList {
 		if !channel.IsGroupOrDirect() {
 			a.invalidateCacheForChannelMembers(channel.Id)
-			if nErr = a.Srv().Store().Channel().RemoveMember(rctx, channel.Id, user.Id); nErr != nil {
-				return model.NewAppError("LeaveTeam", "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			if appErr := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); appErr != nil {
+				return appErr
 			}
+			if policyDriven {
+				rec := a.MakeAuditRecord(rctx, model.AuditEventTeamCascadedChannelRemoval, model.AuditStatusSuccess)
+				model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
+				model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
+				model.AddEventParameterToAuditRec(rec, "channel_id", channel.Id)
+				model.AddEventParameterToAuditRec(rec, "parent_event_id", cascadeParentEventID)
+				a.LogAuditRec(rctx, rec, nil)
+			}
+		}
+	}
+
+	// Space backing channels are excluded from GetChannels, so their membership rows survive a
+	// plain team leave and keep authorizing space-scoped WebSocket delivery to a former member.
+	// Remove them explicitly.
+	spaceChannels, sErr := a.Srv().Store().Channel().GetTeamSpaceChannelsForUser(team.Id, user.Id)
+	if sErr != nil {
+		return model.NewAppError("LeaveTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
+	}
+	for _, channel := range spaceChannels {
+		a.invalidateCacheForChannelMembers(channel.Id)
+		if appErr := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); appErr != nil {
+			return appErr
 		}
 	}
 
@@ -1312,8 +1415,20 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		}
 	}
 
-	if err := a.ch.srv.teamService.RemoveTeamMember(rctx, teamMember); err != nil {
-		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	removeErr := a.ch.srv.teamService.RemoveTeamMember(rctx, teamMember)
+	if policyDriven {
+		auditStatus := model.AuditStatusSuccess
+		if removeErr != nil {
+			auditStatus = model.AuditStatusFail
+		}
+		rec := a.MakeAuditRecord(rctx, model.AuditEventTeamMembershipRemoved, auditStatus)
+		model.AddEventParameterToAuditRec(rec, "event_id", cascadeParentEventID)
+		model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
+		model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
+		a.LogAuditRec(rctx, rec, nil)
+	}
+	if removeErr != nil {
+		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(removeErr)
 	}
 
 	if err := a.postProcessTeamMemberLeave(rctx, teamMember, requestorId); err != nil {
@@ -1415,6 +1530,48 @@ func (a *App) prepareInviteNewUsersToTeam(teamID, senderId string, channelIds []
 	return user, team, channels, nil
 }
 
+func (a *App) IsDeactivatedUserEmail(email string) (bool, *model.AppError) {
+	existingUser, appErr := a.GetUserByEmail(email)
+	if appErr != nil {
+		if appErr.Id == MissingAccountError {
+			return false, nil
+		}
+		return false, appErr
+	}
+	return existingUser.DeleteAt != 0, nil
+}
+
+// CheckForDeactivatedInvites returns an error if any email belongs to a
+// deactivated account. where identifies the caller in the returned AppError.
+func (a *App) CheckForDeactivatedInvites(where string, emailList []string) *model.AppError {
+	var deactivatedEmailList []string
+	for _, email := range emailList {
+		deactivated, userErr := a.IsDeactivatedUserEmail(email)
+		if userErr != nil {
+			return userErr
+		}
+		if deactivated {
+			deactivatedEmailList = append(deactivatedEmailList, email)
+		}
+	}
+
+	if len(deactivatedEmailList) > 0 {
+		s := strings.Join(deactivatedEmailList, ", ")
+		return model.NewAppError(where, "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// isPreSetUsernameAvailable reports whether a username pre-set on an invite is not
+// already taken by an existing user or group.
+func (a *App) isPreSetUsernameAvailable(username string) bool {
+	if _, err := a.GetUserByUsername(username); err == nil {
+		return false
+	}
+	return a.isUniqueToGroupNames(username) == nil
+}
+
 func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableEmailInvitations {
 		return nil, model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -1430,18 +1587,99 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 	if err != nil {
 		return nil, err
 	}
-	allowedDomains := a.ch.srv.teamService.GetAllowedDomains(user, team)
+
+	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
+	senderProfileImage, _, imageErr := a.GetProfileImage(user)
+	if imageErr != nil {
+		rctx.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(imageErr))
+	}
+
+	inviteData := email.InviteEmailData{
+		Team:               team,
+		Channels:           channels,
+		SenderName:         user.GetDisplayName(nameFormat),
+		SenderUserID:       user.Id,
+		SenderProfileImage: senderProfileImage,
+		SiteURL:            a.GetSiteURL(),
+		Message:            memberInvite.Message,
+		ErrorWhenNotSent:   true,
+		IsSystemAdmin:      user.IsSystemAdmin(),
+		IsFirstAdmin:       a.UserIsFirstAdmin(rctx, user),
+	}
+
+	return a.sendInviteNewUsersToTeamGracefully(rctx, memberInvite, inviteData, a.ch.srv.teamService.GetAllowedDomains(user, team), reminderInterval)
+}
+
+func (a *App) InviteNewUsersToTeamGracefullyForLocal(rctx request.CTX, memberInvite *model.MemberInvite, team *model.Team, channels []*model.Channel) ([]*model.EmailInviteWithError, *model.AppError) {
+	inviteData := email.InviteEmailData{
+		Team:             team,
+		Channels:         channels,
+		SenderName:       "Administrator",
+		SenderUserID:     "mmctl " + model.NewId(),
+		SiteURL:          a.GetSiteURL(),
+		Message:          memberInvite.Message,
+		ErrorWhenNotSent: len(channels) > 0,
+		IsSystemAdmin:    true,
+	}
+	allowedDomains := []string{team.AllowedDomains, *a.Config().TeamSettings.RestrictCreationToDomains}
+
+	return a.sendInviteNewUsersToTeamGracefully(rctx, memberInvite, inviteData, allowedDomains, "")
+}
+
+func (a *App) validateAndNormalizeMemberInviteProfiles(memberInvite *model.MemberInvite) *model.AppError {
+	if len(memberInvite.Profiles) == 0 {
+		return nil
+	}
+
+	if !model.MinimumEnterpriseLicense(a.License()) {
+		return model.NewAppError("InviteNewUsersToTeamGracefully", "api.team.invite_members.profiles_license.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *a.Config().TeamSettings.LockProfileFieldsForEmailUsers == model.TeamSettingsLockProfileFieldsNone {
+		return model.NewAppError("InviteNewUsersToTeamGracefully", "api.team.invite_members.profiles_disabled.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if appErr := memberInvite.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	for _, profile := range memberInvite.Profiles {
+		profile.Email = model.NormalizeEmail(profile.Email)
+		profile.Username = model.NormalizeUsername(profile.Username)
+	}
+
+	return nil
+}
+
+func (a *App) sendInviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *model.MemberInvite, inviteData email.InviteEmailData, allowedDomains []string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError) {
+	if appErr := a.validateAndNormalizeMemberInviteProfiles(memberInvite); appErr != nil {
+		return nil, appErr
+	}
+
+	profilesByEmail := make(map[string]*model.MemberInviteProfile, len(memberInvite.Profiles))
+	for _, profile := range memberInvite.Profiles {
+		profilesByEmail[model.NormalizeEmail(profile.Email)] = profile
+	}
+
 	var inviteListWithErrors []*model.EmailInviteWithError
 	var goodEmails []string
-	for _, email := range emailList {
+	for _, invitedEmail := range memberInvite.Emails {
+		invitedEmail = model.NormalizeEmail(invitedEmail)
 		invite := &model.EmailInviteWithError{
-			Email: email,
+			Email: invitedEmail,
 			Error: nil,
 		}
-		if !teams.IsEmailAddressAllowed(email, allowedDomains) {
-			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
+		if !teams.IsEmailAddressAllowed(invitedEmail, allowedDomains) {
+			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": invitedEmail}, "", http.StatusBadRequest)
+		} else if deactivated, userErr := a.IsDeactivatedUserEmail(invitedEmail); userErr != nil {
+			invite.Error = userErr
+		} else if deactivated {
+			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": invitedEmail}, "", http.StatusBadRequest)
+		} else if profile := profilesByEmail[invitedEmail]; profile != nil && !a.isPreSetUsernameAvailable(profile.Username) {
+			// Catch taken usernames at invite time so the invitee doesn't dead-end at signup.
+			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.username_taken.app_error", map[string]any{"Username": profile.Username}, "", http.StatusBadRequest)
 		} else {
-			goodEmails = append(goodEmails, email)
+			goodEmails = append(goodEmails, invitedEmail)
 		}
 		inviteListWithErrors = append(inviteListWithErrors, invite)
 	}
@@ -1452,20 +1690,16 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 	}
 
 	if len(goodEmails) > 0 {
-		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-		senderProfileImage, _, err := a.GetProfileImage(user)
-		if err != nil {
-			rctx.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.Err(err))
-		}
-
-		userIsFirstAdmin := a.UserIsFirstAdmin(rctx, user)
+		inviteData.Invites = goodEmails
+		inviteData.Profiles = profilesByEmail
+		inviteData.ReminderData = reminderData
 		var eErr error
 		var invitesWithErrors2 []*model.EmailInviteWithError
-		if len(channels) > 0 {
-			invitesWithErrors2, eErr = a.Srv().EmailService.SendInviteEmailsToTeamAndChannels(rctx, team, channels, user.GetDisplayName(nameFormat), user.Id, senderProfileImage, goodEmails, a.GetSiteURL(), reminderData, memberInvite.Message, true, user.IsSystemAdmin(), userIsFirstAdmin)
+		if len(inviteData.Channels) > 0 {
+			invitesWithErrors2, eErr = a.Srv().EmailService.SendInviteEmailsToTeamAndChannels(rctx, inviteData)
 			inviteListWithErrors = append(inviteListWithErrors, invitesWithErrors2...)
 		} else {
-			eErr = a.Srv().EmailService.SendInviteEmails(rctx, team, user.GetDisplayName(nameFormat), user.Id, goodEmails, a.GetSiteURL(), reminderData, true, user.IsSystemAdmin(), userIsFirstAdmin)
+			eErr = a.Srv().EmailService.SendInviteEmails(rctx, inviteData)
 		}
 		if eErr != nil {
 			switch {
@@ -1480,11 +1714,11 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 					}
 				}
 			case errors.Is(eErr, email.NoRateLimiterError):
-				return nil, model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", user.Id, team.Id), http.StatusInternalServerError)
+				return nil, model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s", inviteData.SenderUserID, inviteData.Team.Id), http.StatusInternalServerError)
 			case errors.Is(eErr, email.SetupRateLimiterError):
-				return nil, model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", user.Id, team.Id, eErr), http.StatusInternalServerError)
+				return nil, model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", inviteData.SenderUserID, inviteData.Team.Id, eErr), http.StatusInternalServerError)
 			default:
-				return nil, model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", user.Id, team.Id, eErr), http.StatusRequestEntityTooLarge)
+				return nil, model.NewAppError("InviteNewUsersToTeamGracefully", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("user_id=%s, team_id=%s, error=%v", inviteData.SenderUserID, inviteData.Team.Id, eErr), http.StatusRequestEntityTooLarge)
 			}
 		}
 	}
@@ -1492,7 +1726,7 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 	return inviteListWithErrors, nil
 }
 
-func (a *App) prepareInviteGuestsToChannels(teamID string, guestsInvite *model.GuestsInvite, senderId string) (*model.User, *model.Team, []*model.Channel, *model.AppError) {
+func (a *App) prepareInviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvite *model.GuestsInvite, senderId string) (*model.User, *model.Team, []*model.Channel, *model.AppError) {
 	if err := guestsInvite.IsValid(); err != nil {
 		return nil, nil, nil, err
 	}
@@ -1546,13 +1780,24 @@ func (a *App) prepareInviteGuestsToChannels(teamID string, guestsInvite *model.G
 	}
 	team := teamChanResult.Data
 
+	// Channels come straight from Store().Channel().GetChannelsByIds and
+	// thus haven't traversed the App.GetChannel hydration seam. Hydrate
+	// the action map explicitly so the policy check below can distinguish
+	// a membership policy from a permission-only one.
+	if appErr := a.HydrateChannelsPolicyActions(rctx, channels); appErr != nil {
+		return nil, nil, nil, appErr
+	}
+
 	for _, channel := range channels {
 		if channel.TeamId != teamID {
 			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "api.team.invite_guests.channel_in_invalid_team.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		// Check if the channel has access control policy enforcement
-		if channel.PolicyEnforced {
+		// Reject guest invites only when the channel's policy controls
+		// membership. Permission-only policies (e.g. file upload
+		// restrictions) do not gate joins and so must not block guest
+		// invites.
+		if channel.HasMembershipPolicyAction() {
 			return nil, nil, nil, model.NewAppError("prepareInviteGuestsToChannels", "api.team.invite_guests.policy_enforced_channel.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -1565,7 +1810,7 @@ func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, 
 		return nil, model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	user, team, channels, err := a.prepareInviteGuestsToChannels(teamID, guestsInvite, senderId)
+	user, team, channels, err := a.prepareInviteGuestsToChannels(rctx, teamID, guestsInvite, senderId)
 	if err != nil {
 		return nil, err
 	}
@@ -1579,6 +1824,10 @@ func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, 
 		}
 		if !users.CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
 			invite.Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
+		} else if deactivated, userErr := a.IsDeactivatedUserEmail(email); userErr != nil {
+			invite.Error = userErr
+		} else if deactivated {
+			invite.Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
 		} else {
 			goodEmails = append(goodEmails, email)
 		}
@@ -1647,8 +1896,20 @@ func (a *App) InviteNewUsersToTeam(rctx request.CTX, emailList []string, teamID,
 		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 	}
 
+	if err = a.CheckForDeactivatedInvites("InviteNewUsersToTeam", emailList); err != nil {
+		return err
+	}
+
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-	eErr := a.Srv().EmailService.SendInviteEmails(rctx, team, user.GetDisplayName(nameFormat), user.Id, emailList, a.GetSiteURL(), nil, false, user.IsSystemAdmin(), a.UserIsFirstAdmin(rctx, user))
+	eErr := a.Srv().EmailService.SendInviteEmails(rctx, email.InviteEmailData{
+		Team:          team,
+		SenderName:    user.GetDisplayName(nameFormat),
+		SenderUserID:  user.Id,
+		Invites:       emailList,
+		SiteURL:       a.GetSiteURL(),
+		IsSystemAdmin: user.IsSystemAdmin(),
+		IsFirstAdmin:  a.UserIsFirstAdmin(rctx, user),
+	})
 	if eErr != nil {
 		switch {
 		case errors.Is(eErr, email.NoRateLimiterError):
@@ -1668,7 +1929,7 @@ func (a *App) InviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvi
 		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	user, team, channels, err := a.prepareInviteGuestsToChannels(teamID, guestsInvite, senderId)
+	user, team, channels, err := a.prepareInviteGuestsToChannels(rctx, teamID, guestsInvite, senderId)
 	if err != nil {
 		return err
 	}
@@ -1683,6 +1944,10 @@ func (a *App) InviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvi
 	if len(invalidEmailList) > 0 {
 		s := strings.Join(invalidEmailList, ", ")
 		return model.NewAppError("InviteGuestsToChannels", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
+	}
+
+	if err = a.CheckForDeactivatedInvites("InviteGuestsToChannels", guestsInvite.Emails); err != nil {
+		return err
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
@@ -1813,6 +2078,18 @@ func (a *App) PermanentDeleteTeam(rctx request.CTX, team *model.Team) *model.App
 		}
 	}
 
+	// Space backing channels are excluded from GetTeamChannels, so tear them down explicitly to
+	// avoid leaving hidden channels, members, and posts behind with a dead TeamId.
+	spaceChannels, spaceErr := a.Srv().Store().Channel().GetTeamSpaceChannels(team.Id)
+	if spaceErr != nil {
+		return model.NewAppError("PermanentDeleteTeam", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(spaceErr)
+	}
+	for _, ch := range spaceChannels {
+		if err := a.PermanentDeleteChannel(rctx, ch); err != nil {
+			rctx.Logger().Warn("Error permanently deleting space channel during team deletion", mlog.String("channel_id", ch.Id), mlog.String("team_id", team.Id), mlog.Err(err))
+		}
+	}
+
 	if err := a.Srv().Store().Team().RemoveAllMembersByTeam(team.Id); err != nil {
 		return model.NewAppError("PermanentDeleteTeam", "app.team.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1824,6 +2101,8 @@ func (a *App) PermanentDeleteTeam(rctx request.CTX, team *model.Team) *model.App
 	if err := a.Srv().Store().Team().PermanentDelete(team.Id); err != nil {
 		return model.NewAppError("PermanentDeleteTeam", "app.team.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.cleanupTeamAccessControlPolicy(rctx, team, "delete")
 
 	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
 		return appErr
@@ -1857,11 +2136,72 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 		}
 	}
 
+	a.cleanupTeamAccessControlPolicy(request.EmptyContext(a.Log()), team, "archive")
+
 	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
 		return appErr
 	}
 
 	return nil
+}
+
+// cleanupTeamAccessControlPolicy removes the team-scope ABAC policy row, if
+// any, for a team being archived or permanently deleted. Mirrors
+// cleanupChannelAccessControlPolicy: an orphaned policy row would still be
+// picked up by the sync worker and surface in policy-enforced searches.
+// Failures are logged but never returned — deleting/archiving a team must not
+// be blocked by an ABAC cleanup error.
+//
+// We deliberately do not gate on team.PolicyEnforced: that flag is derived
+// from the AccessControlPolicies table and can be stale, which would cause us
+// to skip cleanup and leave an orphan. DeletePolicy is a no-op when no row
+// exists, so calling it unconditionally is safe. When the enterprise service
+// is unavailable or reports the op unsupported, we fall back to deleting the
+// row directly through the store.
+func (a *App) cleanupTeamAccessControlPolicy(rctx request.CTX, team *model.Team, trigger string) {
+	if team == nil || team.Id == "" {
+		return
+	}
+
+	// Emit an audit record only when the team has an active policy. Callers
+	// fetch the team just before this call so PolicyEnforced is current.
+	// The unconditional delete below still runs regardless (see function doc).
+	var auditRec *model.AuditRecord
+	if team.PolicyEnforced {
+		auditRec = a.MakeAuditRecord(rctx, model.AuditEventDeleteTeamAccessPolicy, model.AuditStatusFail)
+		defer a.LogAuditRec(rctx, auditRec, nil)
+		model.AddEventParameterToAuditRec(auditRec, "team_id", team.Id)
+		model.AddEventParameterToAuditRec(auditRec, "trigger", trigger)
+	}
+
+	useStoreFallback := false
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		useStoreFallback = true
+	} else if appErr := acs.DeletePolicy(rctx, team.Id); appErr != nil {
+		switch appErr.StatusCode {
+		case http.StatusNotImplemented, http.StatusNotAcceptable:
+			useStoreFallback = true
+		default:
+			rctx.Logger().Warn("Failed to delete team ABAC policy during team delete/archive",
+				mlog.String("team_id", team.Id),
+				mlog.Err(appErr),
+			)
+		}
+	} else if auditRec != nil {
+		auditRec.Success()
+	}
+
+	if useStoreFallback {
+		if err := a.Srv().Store().AccessControlPolicy().Delete(rctx, team.Id); err != nil {
+			rctx.Logger().Warn("Failed to delete team ABAC policy during team delete/archive",
+				mlog.String("team_id", team.Id),
+				mlog.Err(err),
+			)
+		} else if auditRec != nil {
+			auditRec.Success()
+		}
+	}
 }
 
 func (a *App) RestoreTeam(teamID string) *model.AppError {
@@ -2032,8 +2372,10 @@ func (a *App) SetTeamIconFromMultiPartFile(rctx request.CTX, teamID string, file
 }
 
 func (a *App) SetTeamIconFromFile(rctx request.CTX, team *model.Team, file io.ReadSeeker) *model.AppError {
-	// Decode image into Image object
-	img, format, err := image.Decode(file)
+	// Decode image into Image object using the shared decoder so team icons
+	// are subject to the same concurrency and resolution safeguards as other
+	// user-uploaded images.
+	img, format, err := a.ch.imgDecoder.Decode(file)
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}

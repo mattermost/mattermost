@@ -29,6 +29,8 @@ jest.mock('mattermost-redux/actions/posts', () => ({
     pinPost: (...args: any[]) => ({type: 'MOCK_PIN_POST', args}),
     unpinPost: (...args: any[]) => ({type: 'MOCK_UNPIN_POST', args}),
     receivedNewPost: (...args: any[]) => ({type: 'MOCK_RECEIVED_NEW_POST', args}),
+    setUnreadPost: (...args: any[]) => ({type: 'MOCK_SET_UNREAD_POST', args}),
+    getPosts: (...args: any[]) => ({type: 'MOCK_GET_POSTS', args}),
 }));
 
 jest.mock('actions/emoji_actions', () => ({
@@ -431,6 +433,92 @@ describe('Actions.Posts', () => {
             {isGettingMore: false, type: 'SEARCH_FILES_REQUEST'},
             {data: {firstInaccessiblePostTime: 0, searchType: 'files'}, type: 'RECEIVED_SEARCH_TRUNCATION_INFO'},
         ]);
+    });
+
+    describe('markMostRecentPostInChannelAsUnread', () => {
+        const systemPost = {id: 'system_post_id', channel_id: 'unread_channel_id', type: Posts.POST_TYPES.ADD_TO_CHANNEL, create_at: 3000} as Post;
+        const regularPost = {id: 'regular_post_id', channel_id: 'unread_channel_id', type: '', create_at: 2000} as Post;
+        const joinPost = {id: 'join_post_id', channel_id: 'unread_channel_id', type: Posts.POST_TYPES.JOIN_CHANNEL, create_at: 1000} as Post;
+
+        const stateWithPosts = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                posts: {
+                    ...initialState.entities.posts,
+                    posts: {
+                        [systemPost.id]: systemPost,
+                        [regularPost.id]: regularPost,
+                        [joinPost.id]: joinPost,
+                    },
+                    postsInChannel: {
+                        unread_channel_id: [
+                            {order: [systemPost.id, regularPost.id, joinPost.id], recent: true},
+                        ],
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        test('marks the most recent non-system post as unread when the latest post is a system message', async () => {
+            const testStore = mockStore(stateWithPosts);
+
+            await testStore.dispatch(Actions.markMostRecentPostInChannelAsUnread('unread_channel_id'));
+
+            expect(testStore.getActions().some((action) => action.type === 'MOCK_GET_POSTS')).toBe(false);
+            const setUnreadAction = testStore.getActions().find((action) => action.type === 'MOCK_SET_UNREAD_POST');
+            expect(setUnreadAction).toBeDefined();
+            expect(setUnreadAction!.args).toEqual(['current_user_id', regularPost.id]);
+        });
+
+        test('fetches posts when the channel is loaded but contains only system messages', async () => {
+            const systemOnlyState = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    posts: {
+                        ...initialState.entities.posts,
+                        posts: {
+                            [systemPost.id]: systemPost,
+                            [joinPost.id]: joinPost,
+                        },
+                        postsInChannel: {
+                            unread_channel_id: [
+                                {order: [systemPost.id, joinPost.id], recent: true},
+                            ],
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+            const testStore = mockStore(systemOnlyState);
+
+            await testStore.dispatch(Actions.markMostRecentPostInChannelAsUnread('unread_channel_id'));
+
+            const actions = testStore.getActions();
+            expect(actions.some((action) => action.type === 'MOCK_GET_POSTS')).toBe(true);
+            expect(actions.some((action) => action.type === 'MOCK_SET_UNREAD_POST')).toBe(false);
+        });
+
+        test('fetches posts when none are loaded and does not mark a system post as unread', async () => {
+            const emptyState = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    posts: {
+                        ...initialState.entities.posts,
+                        posts: {},
+                        postsInChannel: {},
+                    },
+                },
+            } as unknown as GlobalState;
+            const testStore = mockStore(emptyState);
+
+            await testStore.dispatch(Actions.markMostRecentPostInChannelAsUnread('unread_channel_id'));
+
+            const actions = testStore.getActions();
+            expect(actions.some((action) => action.type === 'MOCK_GET_POSTS')).toBe(true);
+            expect(actions.some((action) => action.type === 'MOCK_SET_UNREAD_POST')).toBe(false);
+        });
     });
 
     describe('createPost', () => {

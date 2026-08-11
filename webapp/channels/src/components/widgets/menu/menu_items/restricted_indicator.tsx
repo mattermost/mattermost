@@ -33,7 +33,7 @@ type Props = {
     ctaExtraContent?: ReactNode;
     clickCallback?: () => void;
     customSecondaryButtonInModal?: {msg: string; action: () => void};
-}
+};
 
 function capitalizeFirstLetter(s: string) {
     return s?.charAt(0)?.toUpperCase() + s?.slice(1);

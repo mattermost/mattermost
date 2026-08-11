@@ -212,6 +212,59 @@ func (s *OpensearchInterfaceTestSuite) TestSyncBulkIndexChannels() {
 	})
 }
 
+// TestNoIndexesGracefulHandling verifies that write and search operations
+// return nil/empty (not an error) when no indexes exist yet. This covers the
+// state before any reindex has run: the index templates are present but the
+// actual indexes have never been created.
+func (s *OpensearchInterfaceTestSuite) TestNoIndexesGracefulHandling() {
+	// SetupTest already calls PurgeIndexes, so there are no indexes at this point.
+	impl := s.CommonTestSuite.ESImpl
+	rctx := s.th.Context
+
+	s.Run("BackfillPostsChannelType", func() {
+		appErr := impl.BackfillPostsChannelType(rctx, []string{"channel1", "channel2"}, "O")
+		s.Nil(appErr)
+	})
+
+	s.Run("DeleteChannelPosts", func() {
+		appErr := impl.DeleteChannelPosts(rctx, s.th.BasicChannel.Id)
+		s.Nil(appErr)
+	})
+
+	s.Run("DeleteUserPosts", func() {
+		appErr := impl.DeleteUserPosts(rctx, s.th.BasicUser.Id)
+		s.Nil(appErr)
+	})
+
+	s.Run("UpdatePostsChannelTypeByChannelId", func() {
+		appErr := impl.UpdatePostsChannelTypeByChannelId(rctx, s.th.BasicChannel.Id, "O")
+		s.Nil(appErr)
+	})
+
+	s.Run("SearchFiles", func() {
+		channels := model.ChannelList{s.th.BasicChannel}
+		params := model.ParseSearchParams("test", 0)
+		fileIDs, appErr := impl.SearchFiles(channels, params, 0, 20)
+		s.Nil(appErr)
+		s.Empty(fileIDs)
+	})
+
+	s.Run("DeletePostFiles", func() {
+		appErr := impl.DeletePostFiles(rctx, s.th.BasicPost.Id)
+		s.Nil(appErr)
+	})
+
+	s.Run("DeleteUserFiles", func() {
+		appErr := impl.DeleteUserFiles(rctx, s.th.BasicUser.Id)
+		s.Nil(appErr)
+	})
+
+	s.Run("DeleteFilesBatch", func() {
+		appErr := impl.DeleteFilesBatch(rctx, model.GetMillis(), 1000)
+		s.Nil(appErr)
+	})
+}
+
 func (s *OpensearchInterfaceTestSuite) TestTemplateCreationClientError() {
 	s.Run("Should handle error with CausedBy information from opensearch", func() {
 		// Invalid template request that will trigger an error with caused_by

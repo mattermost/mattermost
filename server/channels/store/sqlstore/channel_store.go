@@ -43,6 +43,28 @@ var messageChannelTypes = []model.ChannelType{
 	model.ChannelTypeGroup,
 }
 
+// nonMessageBackingChannelTypes is the deny-list for queries that filter by channel ID or
+// team+user rather than by type, so the messageChannelTypes allow-list does not apply to them.
+// A backing channel type must be added here when it writes real posts to the backing channel;
+// otherwise TotalMsgCount grows and the channel generates unread badges and push notifications
+// in the chat UI. Backing channel types that never write posts are already invisible in these
+// queries without an explicit filter and do not need to be listed here.
+var nonMessageBackingChannelTypes = []model.ChannelType{
+	model.ChannelTypeSpace,
+}
+
+// nonMessageBackingChannelTypesNotIn returns a "NOT IN (...)" SQL clause and its args for use
+// in raw SQL queries, keeping those callers in sync with the deny-list.
+func nonMessageBackingChannelTypesNotIn() (string, []any) {
+	placeholders := make([]string, len(nonMessageBackingChannelTypes))
+	args := make([]any, len(nonMessageBackingChannelTypes))
+	for i, t := range nonMessageBackingChannelTypes {
+		placeholders[i] = "?"
+		args[i] = string(t)
+	}
+	return "NOT IN (" + strings.Join(placeholders, ",") + ")", args
+}
+
 // teamMessageChannelTypes is messageChannelTypes minus direct channels, used
 // for team-scoped queries where direct channels don't belong.
 var teamMessageChannelTypes = []model.ChannelType{
@@ -158,6 +180,7 @@ func channelSliceColumns(isSelect bool, prefix ...string) []string {
 		p + "LastRootPostAt",
 		p + "BannerInfo",
 		p + "DefaultCategoryName",
+		p + "Discoverable",
 	}
 
 	if isSelect {
@@ -165,8 +188,8 @@ func channelSliceColumns(isSelect bool, prefix ...string) []string {
 			p = "Channels."
 		}
 
-		columns = append(columns, fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %sId) AS PolicyEnforced", p))
-		columns = append(columns, fmt.Sprintf("COALESCE((SELECT acp.Active FROM AccessControlPolicies acp WHERE acp.ID = %sId AND acp.Active = TRUE LIMIT 1), false) AS PolicyIsActive", p))
+		columns = append(columns, fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %sId AND acp.Type = 'channel') AS PolicyEnforced", p))
+		columns = append(columns, fmt.Sprintf("COALESCE((SELECT acp.Active FROM AccessControlPolicies acp WHERE acp.ID = %sId AND acp.Type = 'channel' AND acp.Active = TRUE LIMIT 1), false) AS PolicyIsActive", p))
 	}
 
 	return columns
@@ -196,6 +219,7 @@ func channelToSlice(channel *model.Channel) []any {
 		channel.LastRootPostAt,
 		channel.BannerInfo,
 		channel.DefaultCategoryName,
+		channel.Discoverable,
 	}
 }
 
@@ -630,7 +654,7 @@ func (s SqlChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChann
 	}
 
 	var newChannel *model.Channel
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -694,7 +718,7 @@ func (s SqlChannelStore) SaveDirectChannel(rctx request.CTX, directChannel *mode
 		return nil, store.NewErrInvalidInput("Channel", "Type", directChannel.Type)
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -737,7 +761,7 @@ func (s SqlChannelStore) SaveBoardChannel(rctx request.CTX, channel *model.Chann
 		return nil, nil, store.NewErrInvalidInput("View", "nil", "view is required for board channels")
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -772,7 +796,8 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 		return nil, err // we just pass through the error as-is for now.
 	}
 
-	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup && maxChannelsPerTeam >= 0 {
+	// Space channels are exempt from the per-team channel limit.
+	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup && channel.Type != model.ChannelTypeSpace && maxChannelsPerTeam >= 0 {
 		var count int64
 		if err := transaction.Get(&count, "SELECT COUNT(0) FROM Channels WHERE TeamId = ? AND DeleteAt = 0 AND (Type = ? OR Type = ?)", channel.TeamId, model.ChannelTypeOpen, model.ChannelTypePrivate); err != nil {
 			return nil, errors.Wrapf(err, "save_channel_count: teamId=%s", channel.TeamId)
@@ -818,7 +843,7 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 
 // Update writes the updated channel to the database.
 func (s SqlChannelStore) Update(rctx request.CTX, channel *model.Channel) (_ *model.Channel, err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -872,7 +897,8 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 			LastRootPostAt=:LastRootPostAt,
 		    BannerInfo=:BannerInfo,
 			DefaultCategoryName=:DefaultCategoryName,
-			AutoTranslation=:AutoTranslation
+			AutoTranslation=:AutoTranslation,
+			Discoverable=:Discoverable
 		WHERE Id=:Id`, channel)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
@@ -992,6 +1018,27 @@ func (s SqlChannelStore) GetBoardChannel(id string) (*model.Channel, error) {
 	return &ch, nil
 }
 
+// GetChannelOfType fetches a channel by ID, requiring it to be of the given type. Unlike Get(),
+// it resolves opaque backing channel types (e.g. space) that Get() excludes; callers that need
+// such a channel ask for it by its exact type.
+func (s SqlChannelStore) GetChannelOfType(rctx request.CTX, id string, channelType model.ChannelType) (*model.Channel, error) {
+	ch := model.Channel{}
+	query := s.tableSelectQuery.Where(sq.And{
+		sq.Eq{"Id": id},
+		sq.Eq{"Type": channelType},
+	})
+
+	err := s.DBXFromContext(rctx.Context()).GetBuilder(&ch, query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Channel", id)
+		}
+		return nil, errors.Wrapf(err, "failed to find channel with id = %s and type = %s", id, channelType)
+	}
+
+	return &ch, nil
+}
+
 //nolint:unparam
 func (s SqlChannelStore) GetMany(ids []string, allowFromCache bool) (model.ChannelList, error) {
 	query := s.getQueryBuilder().
@@ -1033,7 +1080,7 @@ func (s SqlChannelStore) Restore(channelId string, time int64) error {
 func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64) (err error) {
 	defer s.InvalidateChannel(channelId)
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "SetDeleteAt: begin_transaction")
 	}
@@ -1077,7 +1124,7 @@ func (s SqlChannelStore) setDeleteAtT(transaction *sqlxTxWrapper, channelId stri
 
 // PermanentDeleteByTeam removes all channels for the given team from the database.
 func (s SqlChannelStore) PermanentDeleteByTeam(teamId string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "PermanentDeleteByTeam: begin_transaction")
 	}
@@ -1114,7 +1161,7 @@ func (s SqlChannelStore) permanentDeleteByTeamtT(transaction *sqlxTxWrapper, tea
 
 // PermanentDelete removes the given channel from the database.
 func (s SqlChannelStore) PermanentDelete(rctx request.CTX, channelId string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "PermanentDelete: begin_transaction")
 	}
@@ -1537,6 +1584,49 @@ func (s SqlChannelStore) GetTeamChannels(teamId string) (model.ChannelList, erro
 	return data, nil
 }
 
+// GetTeamSpaceChannels returns all space (S) channels for a team, including archived ones, so
+// team teardown can remove them. GetTeamChannels/GetAll exclude spaces, hence this dedicated
+// enumerator. Returns an empty list (not ErrNotFound) when the team has no spaces. It reads from
+// the primary because its callers (team teardown, member cleanup) act on the result destructively
+// and must not miss a just-created space due to replica lag.
+func (s SqlChannelStore) GetTeamSpaceChannels(teamId string) (model.ChannelList, error) {
+	data := model.ChannelList{}
+	query := s.tableSelectQuery.Where(sq.And{
+		sq.Eq{"TeamId": teamId},
+		sq.Eq{"Type": model.ChannelTypeSpace},
+	}).OrderBy("Id")
+
+	if err := s.GetMaster().SelectBuilder(&data, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to find space Channels with teamId=%s", teamId)
+	}
+
+	return data, nil
+}
+
+// GetTeamSpaceChannelsForUser returns the team's space (S) channels, including archived ones,
+// that the user is a member of. Space memberships are excluded from GetChannels and
+// GetChannelMembersForUser, hence this dedicated lookup. It reads from the primary because its
+// callers (team leave, guest eviction) act on the result destructively and must not miss a
+// just-created membership due to replica lag.
+func (s SqlChannelStore) GetTeamSpaceChannelsForUser(teamId string, userId string) (model.ChannelList, error) {
+	data := model.ChannelList{}
+	query := s.getQueryBuilder().
+		Select(channelSliceColumns(true, "Channels")...).
+		From("Channels").
+		InnerJoin("ChannelMembers ON (Channels.Id = ChannelMembers.ChannelId)").
+		Where(sq.And{
+			sq.Eq{"Channels.TeamId": teamId},
+			sq.Eq{"Channels.Type": model.ChannelTypeSpace},
+			sq.Eq{"ChannelMembers.UserId": userId},
+		}).OrderBy("Channels.Id")
+
+	if err := s.GetMaster().SelectBuilder(&data, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to find space Channels with teamId=%s and userId=%s", teamId, userId)
+	}
+
+	return data, nil
+}
+
 func (s SqlChannelStore) GetByNamesIncludeDeleted(teamId string, names []string, allowFromCache bool) ([]*model.Channel, error) {
 	return s.getByNames(teamId, names, allowFromCache, true)
 }
@@ -1841,7 +1931,7 @@ func (s SqlChannelStore) saveMultipleMembers(members []*model.ChannelMember) (_ 
 		defaultTeamRolesByChannel[defaultRoles.Id] = defaultRoles
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -1909,7 +1999,7 @@ func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) (
 
 	var transaction *sqlxTxWrapper
 
-	if transaction, err = s.GetMaster().Beginx(); err != nil {
+	if transaction, err = s.GetMaster().Begin(); err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
@@ -1968,7 +2058,7 @@ func (s SqlChannelStore) UpdateMember(rctx request.CTX, member *model.ChannelMem
 }
 
 func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props map[string]string) (_ *model.ChannelMember, err error) {
-	tx, err := s.GetMaster().Beginx()
+	tx, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -2051,7 +2141,7 @@ func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channe
 		Set("LastUpdateAt", model.GetMillis()).
 		Where(whereClause)
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -2155,7 +2245,9 @@ func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(_ request.CTX, ch
 		Where(sq.Eq{
 			"ChannelMembers.ChannelId": channelIDs,
 			"ChannelMembers.UserId":    userID,
-		})
+		}).
+		// Space backing channels are internal and carry no chat read-state.
+		Where(sq.NotEq{"Channels.Type": nonMessageBackingChannelTypes})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -2228,7 +2320,9 @@ func (s SqlChannelStore) GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, 
 		Where(sq.Eq{
 			"Channels.TeamId":       teamID,
 			"ChannelMembers.UserId": userID,
-		})
+		}).
+		// Space backing channels are internal and carry no chat read-state.
+		Where(sq.NotEq{"Channels.Type": nonMessageBackingChannelTypes})
 
 	var channels []struct {
 		Id            string
@@ -2462,7 +2556,7 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId st
 	}
 	defer deferClose(rows, &err)
 
-	scanner := func(rows *sql.Rows) (string, string, error) {
+	scanner := func(rows rowScanner) (string, string, error) {
 		var cm allChannelMember
 		err = rows.Scan(
 			&cm.ChannelId, &cm.Roles, &cm.SchemeGuest, &cm.SchemeUser,
@@ -2504,7 +2598,7 @@ func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[stri
 		defaults[channelID] = 0
 	}
 
-	scanner := func(rows *sql.Rows) (string, int64, error) {
+	scanner := func(rows rowScanner) (string, int64, error) {
 		var channelID string
 		var count int64
 		err := rows.Scan(&channelID, &count)
@@ -3141,6 +3235,7 @@ func (s SqlChannelStore) AnalyticsCountAll(teamId string) (map[model.ChannelType
 	if teamId != "" {
 		query = query.Where(sq.Eq{"TeamId": teamId})
 	}
+	query = query.Where(sq.NotEq{"Type": nonMessageBackingChannelTypes})
 
 	sqlStr, args, err := query.ToSql()
 	if err != nil {
@@ -3153,7 +3248,7 @@ func (s SqlChannelStore) AnalyticsCountAll(teamId string) (map[model.ChannelType
 	}
 	defer rows.Close()
 
-	scanner := func(rows *sql.Rows) (model.ChannelType, int64, error) {
+	scanner := func(rows rowScanner) (model.ChannelType, int64, error) {
 		var channelType model.ChannelType
 		var count int64
 		err := rows.Scan(&channelType, &count)
@@ -3172,6 +3267,7 @@ func (s SqlChannelStore) GetMembersForUser(teamID string, userID string) (model.
 				sq.Eq{"Teams.Id": ""},
 				sq.Eq{"Teams.Id": nil},
 			},
+			sq.NotEq{"Channels.Type": nonMessageBackingChannelTypes},
 		}).ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "GetMembersForUser_ToSql teamID=%s userID=%s", teamID, userID)
@@ -3189,7 +3285,10 @@ func (s SqlChannelStore) GetMembersForUser(teamID string, userID string) (model.
 func (s SqlChannelStore) GetMembersForUserWithPagination(userId string, page, perPage int) (model.ChannelMembersWithTeamData, error) {
 	dbMembers := channelMemberWithTeamWithSchemeRolesList{}
 	offset := page * perPage
-	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? ORDER BY ChannelId ASC Limit ? Offset ?", userId, perPage, offset)
+	notInClause, notInArgs := nonMessageBackingChannelTypesNotIn()
+	queryArgs := append([]any{userId}, notInArgs...)
+	queryArgs = append(queryArgs, perPage, offset)
+	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND Channels.Type "+notInClause+" ORDER BY ChannelId ASC Limit ? Offset ?", queryArgs...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers data with and userId=%s", userId)
 	}
@@ -3199,7 +3298,10 @@ func (s SqlChannelStore) GetMembersForUserWithPagination(userId string, page, pe
 
 func (s SqlChannelStore) GetMembersForUserWithCursorPagination(userId string, perPage int, fromChannelID string) (model.ChannelMembersWithTeamData, error) {
 	dbMembers := channelMemberWithTeamWithSchemeRolesList{}
-	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND ChannelId > ? ORDER BY ChannelId ASC Limit ?", userId, fromChannelID, perPage)
+	notInClause, notInArgs := nonMessageBackingChannelTypesNotIn()
+	queryArgs := append([]any{userId, fromChannelID}, notInArgs...)
+	queryArgs = append(queryArgs, perPage)
+	err := s.GetReplica().Select(&dbMembers, channelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.UserId = ? AND ChannelId > ? AND Channels.Type "+notInClause+" ORDER BY ChannelId ASC Limit ?", queryArgs...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find ChannelMembers data with and userId=%s", userId)
 	}
@@ -3257,6 +3359,9 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 			From("ChannelMembers").
 			Where(sq.Eq{"UserId": userID})))
 	} else {
+		// Non-guests see public channels, private channels they're a member of, and
+		// discoverable private channels (subject to a post-query ABAC visibility filter
+		// applied at the app layer for policy-enforced channels).
 		query = query.Where(sq.Or{
 			sq.NotEq{"c.Type": model.ChannelTypePrivate},
 			sq.And{
@@ -3264,6 +3369,10 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 				sq.Expr("c.Id IN (?)", sq.Select("ChannelId").
 					From("ChannelMembers").
 					Where(sq.Eq{"UserId": userID})),
+			},
+			sq.And{
+				sq.Eq{"c.Type": model.ChannelTypePrivate},
+				sq.Eq{"c.Discoverable": true},
 			},
 		})
 	}
@@ -3308,11 +3417,18 @@ func (s SqlChannelStore) buildAutocompleteInTeamQuery(teamID, userID, term strin
 	if isGuest {
 		query = query.Where(sq.Expr("c.Id IN (?)", memberSubQuery))
 	} else {
+		// Non-guests see public channels, private channels they're a member of, and
+		// discoverable private channels (subject to a post-query ABAC visibility filter
+		// applied at the app layer for policy-enforced channels).
 		query = query.Where(sq.Or{
 			sq.NotEq{"c.Type": model.ChannelTypePrivate},
 			sq.And{
 				sq.Eq{"c.Type": model.ChannelTypePrivate},
 				sq.Expr("c.Id IN (?)", memberSubQuery),
+			},
+			sq.And{
+				sq.Eq{"c.Type": model.ChannelTypePrivate},
+				sq.Eq{"c.Discoverable": true},
 			},
 		})
 	}
@@ -3954,7 +4070,7 @@ func (s SqlChannelStore) GetMembersInfoByChannelIds(channelIDs []string) (map[st
 
 func (s SqlChannelStore) GetChannelsByScheme(schemeId string, offset int, limit int) (model.ChannelList, error) {
 	channels := model.ChannelList{}
-	query := s.tableSelectQuery.Where(sq.Eq{"SchemeId": schemeId}).OrderBy("DisplayName").Limit(uint64(limit)).Offset(uint64(offset))
+	query := s.tableSelectQuery.Where(sq.Eq{"SchemeId": schemeId}).Where(sq.NotEq{"Type": nonMessageBackingChannelTypes}).OrderBy("DisplayName").Limit(uint64(limit)).Offset(uint64(offset))
 
 	if err := s.GetReplica().SelectBuilder(&channels, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Channels with schemeId=%s", schemeId)
@@ -3970,7 +4086,7 @@ func (s SqlChannelStore) GetChannelsByScheme(schemeId string, offset int, limit 
 func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId string) (_ map[string]string, err error) {
 	var transaction *sqlxTxWrapper
 
-	if transaction, err = s.GetMaster().Beginx(); err != nil {
+	if transaction, err = s.GetMaster().Begin(); err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
@@ -4064,7 +4180,7 @@ func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId 
 }
 
 func (s SqlChannelStore) ResetAllChannelSchemes() (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -4098,7 +4214,7 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() (err error) {
 	for {
 		var transaction *sqlxTxWrapper
 
-		if transaction, err = s.GetMaster().Beginx(); err != nil {
+		if transaction, err = s.GetMaster().Begin(); err != nil {
 			return errors.Wrap(err, "begin_transaction")
 		}
 
@@ -4230,7 +4346,10 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 	if !includeArchivedChannel {
 		q += " AND Channels.DeleteAt = 0"
 	}
-	err := s.GetReplica().Select(&members, q, userId, teamId)
+	notInClause, notInArgs := nonMessageBackingChannelTypesNotIn()
+	q += " AND Channels.Type " + notInClause
+	queryArgs := append([]any{userId, teamId}, notInArgs...)
+	err := s.GetReplica().Select(&members, q, queryArgs...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Channels for export")
 	}
@@ -4432,7 +4551,7 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 		return nil, errors.Wrap(err, "get_team_for_channel_nested_tosql")
 	}
 	query, args, err := s.getQueryBuilder().
-		Select(teamSliceColumns()...).
+		Select(teamSliceColumns(true)...).
 		From("Teams").Where(sq.Expr("Id = ("+nestedQ+")", nestedArgs...)).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "get_team_for_channel_tosql")

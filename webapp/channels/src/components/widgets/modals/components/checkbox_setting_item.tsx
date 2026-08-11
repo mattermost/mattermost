@@ -10,7 +10,7 @@ import BaseSettingItem from './base_setting_item';
 export type FieldsetCheckbox = {
     dataTestId?: string;
     name: string;
-}
+};
 
 type Props = BaseSettingItemProps & {
     inputFieldData: FieldsetCheckbox;
@@ -23,7 +23,7 @@ type Props = BaseSettingItemProps & {
     handleChange: (e: boolean) => void;
     className?: string;
     descriptionAboveContent?: boolean;
-}
+};
 
 export default function CheckboxSettingItem({
     title,

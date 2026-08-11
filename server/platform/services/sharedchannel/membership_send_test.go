@@ -15,7 +15,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
-func setupSendTest(t *testing.T, enableMemberSync bool) (*Service, *mocks.Store, *mocks.ChannelMemberHistoryStore, *mocks.SharedChannelStore, *mocks.UserStore, *mocks.RemoteClusterStore) {
+func setupSendTest(t *testing.T) (*Service, *mocks.Store, *mocks.ChannelMemberHistoryStore, *mocks.SharedChannelStore, *mocks.UserStore, *mocks.RemoteClusterStore) {
 	t.Helper()
 
 	mockServer := &MockServerIface{}
@@ -44,29 +44,13 @@ func setupSendTest(t *testing.T, enableMemberSync bool) (*Service, *mocks.Store,
 
 	mockConfig := model.Config{}
 	mockConfig.SetDefaults()
-	mockConfig.FeatureFlags.EnableSharedChannelsMemberSync = enableMemberSync
 	mockServer.On("Config").Return(&mockConfig)
 
 	return scs, mockStore, mockCMHStore, mockSharedChannelStore, mockUserStore, mockRCStore
 }
 
-func TestFetchMembershipsForSync_FeatureFlagDisabled(t *testing.T) {
-	scs, _, _, _, _, _ := setupSendTest(t, false)
-
-	sd := &syncData{
-		task:  syncTask{channelID: model.NewId()},
-		rc:    &model.RemoteCluster{RemoteId: model.NewId()},
-		scr:   &model.SharedChannelRemote{LastMembersSyncAt: 0},
-		users: make(map[string]*model.User),
-	}
-
-	err := scs.fetchMembershipsForSync(sd)
-	require.NoError(t, err)
-	assert.Empty(t, sd.membershipChanges, "should not fetch when feature flag disabled")
-}
-
 func TestFetchMembershipsForSync_NoChanges(t *testing.T) {
-	scs, _, mockCMHStore, _, _, _ := setupSendTest(t, true)
+	scs, _, mockCMHStore, _, _, _ := setupSendTest(t)
 
 	channelID := model.NewId()
 	mockCMHStore.On("GetMembershipChanges", channelID, int64(0), mock.AnythingOfType("int")).
@@ -86,7 +70,7 @@ func TestFetchMembershipsForSync_NoChanges(t *testing.T) {
 }
 
 func TestFetchMembershipsForSync_DeduplicatesJoinLeaveRejoin(t *testing.T) {
-	scs, _, mockCMHStore, mockSCStore, mockUserStore, _ := setupSendTest(t, true)
+	scs, _, mockCMHStore, mockSCStore, mockUserStore, _ := setupSendTest(t)
 
 	channelID := model.NewId()
 	remoteID := model.NewId()
@@ -128,7 +112,7 @@ func TestFetchMembershipsForSync_DeduplicatesJoinLeaveRejoin(t *testing.T) {
 }
 
 func TestFetchMembershipsForSync_DeduplicatesJoinThenLeave(t *testing.T) {
-	scs, _, mockCMHStore, _, mockUserStore, _ := setupSendTest(t, true)
+	scs, _, mockCMHStore, _, mockUserStore, _ := setupSendTest(t)
 
 	channelID := model.NewId()
 	remoteID := model.NewId()
@@ -160,7 +144,7 @@ func TestFetchMembershipsForSync_DeduplicatesJoinThenLeave(t *testing.T) {
 }
 
 func TestFetchMembershipsForSync_MultipleUsers(t *testing.T) {
-	scs, _, mockCMHStore, mockSCStore, mockUserStore, _ := setupSendTest(t, true)
+	scs, _, mockCMHStore, mockSCStore, mockUserStore, _ := setupSendTest(t)
 
 	channelID := model.NewId()
 	remoteID := model.NewId()
@@ -221,7 +205,7 @@ func TestFetchMembershipsForSync_MultipleUsers(t *testing.T) {
 }
 
 func TestFetchMembershipsForSync_SetsRepeatWhenLimitHit(t *testing.T) {
-	scs, _, mockCMHStore, mockSCStore, mockUserStore, _ := setupSendTest(t, true)
+	scs, _, mockCMHStore, mockSCStore, mockUserStore, _ := setupSendTest(t)
 
 	channelID := model.NewId()
 	remoteID := model.NewId()
@@ -260,7 +244,7 @@ func TestFetchMembershipsForSync_SetsRepeatWhenLimitHit(t *testing.T) {
 }
 
 func TestFetchMembershipsForSync_CursorFromSCR(t *testing.T) {
-	scs, _, mockCMHStore, _, _, _ := setupSendTest(t, true)
+	scs, _, mockCMHStore, _, _, _ := setupSendTest(t)
 
 	channelID := model.NewId()
 	remoteID := model.NewId()
@@ -282,7 +266,7 @@ func TestFetchMembershipsForSync_CursorFromSCR(t *testing.T) {
 }
 
 func TestFetchMembershipsForSync_RepeatedTimestampsAtBoundary(t *testing.T) {
-	scs, _, mockCMHStore, mockSCStore, mockUserStore, _ := setupSendTest(t, true)
+	scs, _, mockCMHStore, mockSCStore, mockUserStore, _ := setupSendTest(t)
 
 	channelID := model.NewId()
 	remoteID := model.NewId()
@@ -363,7 +347,7 @@ func TestFetchMembershipsForSync_RepeatedTimestampsAtBoundary(t *testing.T) {
 }
 
 func TestFetchMembershipsForSync_SkipsUsersFromTargetRemote(t *testing.T) {
-	scs, _, mockCMHStore, mockSCStore, mockUserStore, _ := setupSendTest(t, true)
+	scs, _, mockCMHStore, mockSCStore, mockUserStore, _ := setupSendTest(t)
 
 	channelID := model.NewId()
 	remoteID := model.NewId()

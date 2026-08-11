@@ -15,21 +15,23 @@ on:
     - cron: "0 5 * * 1" # Monday 5am UTC (~1am ET)
   push:
     branches:
-      - 'release-*'
+      - "release-*"
   workflow_dispatch: # Allow manual trigger for urgent FIPS/binary verification
 
 permissions:
   contents: read
 
 jobs:
-  go:
-    name: Compute Go Version
+  buildenv:
+    name: Build Environment
     runs-on: ubuntu-22.04
     outputs:
       version: ${{ steps.calculate.outputs.GO_VERSION }}
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Calculate version
         id: calculate
         working-directory: server/
@@ -37,15 +39,17 @@ jobs:
 
   test-postgres-binary:
     name: Postgres with binary parameters
-    needs: go
+    needs: buildenv
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
     with:
       name: Postgres with binary parameters
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
       drivername: postgres
       logsartifact: postgres-binary-server-test-logs
-      go-version: ${{ needs.go.outputs.version }}
+      go-version: ${{ needs.buildenv.outputs.version }}
       fips-enabled: false
       # Unsharded run on a single 8-core runner: fullyparallel=true causes
       # resource exhaustion (too many server instances, WebSocket hubs, and
@@ -54,28 +58,39 @@ jobs:
 
   test-postgres-normal-fips:
     name: Postgres FIPS
-    needs: go
+    needs: buildenv
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
       name: Postgres FIPS
       datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: postgres-server-fips-test-logs
-      go-version: ${{ needs.go.outputs.version }}
+      go-version: ${{ needs.buildenv.outputs.version }}
       fips-enabled: true
       # Unsharded run on a single 8-core runner: see note on test-postgres-binary.
       fullyparallel: false
 
   test-mmctl-fips:
     name: Run mmctl tests (FIPS)
-    needs: go
+    needs: buildenv
+    permissions:
+      contents: read
+      actions: write
     uses: ./.github/workflows/mmctl-test-template.yml
-    secrets: inherit
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      MM_E2E_ZEPHYR_API_KEY: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
     with:
       name: mmctl
       datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: mmctl-fips-test-logs
-      go-version: ${{ needs.go.outputs.version }}
+      go-version: ${{ needs.buildenv.outputs.version }}
       fips-enabled: true

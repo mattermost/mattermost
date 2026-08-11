@@ -6360,10 +6360,6 @@
     "translation": "Nepodařilo se získat kanály pro daná id."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Nepodařilo se získat počet kanálů."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Nepodařilo se získat kanály pro dané schéma."
   },
@@ -7716,14 +7712,6 @@
     "translation": "Funkce konceptů je zakázána."
   },
   {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Nelze se připojit k S3. Zkontrolujte vaše autorizační parametry a nastavení autentifikace pro připojení k Amazon S3."
-  },
-  {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Nastavení úložiště souborů obsahuje nevyplněné hodnoty."
-  },
-  {
     "id": "api.getUsersForReporting.invalid_active_filter",
     "translation": "Nelze skrýt zároveň aktivní i neaktivní uživatele."
   },
@@ -7994,10 +7982,6 @@
   {
     "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
     "translation": "Nepodařilo se získat přihlašovací údaje s uvedenou konfigurací připojení."
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Ujistěte se, že váš Amazon S3 bucket je dostupný, a ověřte oprávnění k vašemu bucketu."
   },
   {
     "id": "api.custom_groups.license_error",
@@ -10016,38 +10000,6 @@
     "translation": "Nelze vytvořit adresář pro obrázky vlastních emoji"
   },
   {
-    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Nepodařilo se obnovit přílohy souborů k příspěvku"
-  },
-  {
-    "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Nepodařilo se získat pole vlastního atributu profilu"
-  },
-  {
-    "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "Byl dosažen limit polí vlastních atributů profilu"
-  },
-  {
-    "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Nepodařilo se získat hodnoty vlastních atributů profilu"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Nepodařilo se smazat pole vlastního atributu profilu"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "Pole vlastního atributu profilu nebylo nalezeno"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Nepodařilo se aktualizovat pole vlastního atributu profilu"
-  },
-  {
-    "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Nepodařilo se vyhledat pole vlastních atributů profilu"
-  },
-  {
     "id": "app.file_info.delete_for_post_ids.app_error",
     "translation": "Nepodařilo se odstranit požadované soubory z databáze"
   },
@@ -10108,10 +10060,6 @@
     "translation": "Neplatná hodnota vlastnosti: {{.FieldName}} ({{.Reason}})."
   },
   {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "Vaše licence nepodporuje vlastní atributy profilu."
-  },
-  {
     "id": "api.file.zip_file_reader.app_error",
     "translation": "Nelze získat čtečku souborů ZIP."
   },
@@ -10146,14 +10094,6 @@
   {
     "id": "api.context.get_session.app_error",
     "translation": "Relace nebyla nalezena."
-  },
-  {
-    "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Nelze spočítat počet polí pro skupinu vlastního atributu profilu"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Nelze provést vložení nebo aktualizaci polí vlastního atributu profilu"
   },
   {
     "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
@@ -10224,20 +10164,8 @@
     "translation": "Nelze převést pole vlastnosti na pole vlastního atributu profilu"
   },
   {
-    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
-    "translation": "Neplatné atributy hodnoty vlastnosti: {{.AttributeName}} ({{.Reason}})."
-  },
-  {
-    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Nelze smazat hodnoty atributu vlastního profilu pro uživatele"
-  },
-  {
     "id": "ent.ldap.cpa_field_mapping.list_error",
     "translation": "Nepodařilo se načíst pole CPA"
-  },
-  {
-    "id": "app.custom_profile_attributes.validate_value.app_error",
-    "translation": "Nepodařilo se ověřit hodnotu vlastnosti"
   },
   {
     "id": "ent.ldap.update_cpa.empty_attribute",
@@ -10368,10 +10296,6 @@
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} by měl být předponou IndexPrefix {{.IndexPrefix}}."
   },
   {
-    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Nelze aktualizovat hodnotu pro synchronizované pole vlastního atributu profilu"
-  },
-  {
     "id": "api.access_control_policy.get_channels.limit.app_error",
     "translation": "Limit pro získání kanálů není platný."
   },
@@ -10462,10 +10386,6 @@
   {
     "id": "app.cloud.preview_modal_data_parse_error",
     "translation": "Nepodařilo se zpracovat data pro náhledové okno"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Nelze upravit hodnotu pole Custom Profile spravovaného administrátorem"
   },
   {
     "id": "app.group.create_syncable_memberships.error",

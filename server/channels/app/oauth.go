@@ -285,6 +285,10 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(rctx request.CTX, userID string
 		return nil, err
 	}
 
+	if user.DeleteAt != 0 {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
+	}
+
 	session, err := a.newSession(rctx, oauthApp, user)
 	if err != nil {
 		return nil, err
@@ -406,6 +410,10 @@ func (a *App) handleRefreshTokenGrant(rctx request.CTX, oauthApp *model.OAuthApp
 	user, nErr := a.Srv().Store().User().Get(context.Background(), accessData.UserId)
 	if nErr != nil {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
+	}
+
+	if user.DeleteAt != 0 {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
 	}
 
 	audience := accessData.Audience // Default to existing audience
@@ -535,6 +543,8 @@ func (a *App) newSessionUpdateToken(rctx request.CTX, app *model.OAuthApp, acces
 	if err := a.Srv().Store().Session().Remove(accessData.Token); err != nil {
 		rctx.Logger().Warn("error removing access data token from session", mlog.Err(err))
 	}
+	// Clear the cache so the old token stops being accepted immediately.
+	a.ClearSessionCacheForUser(user.Id)
 
 	session, err := a.newSession(rctx, app, user)
 	if err != nil {
@@ -1199,6 +1209,10 @@ func (a *App) SwitchEmailToOAuth(rctx request.CTX, w http.ResponseWriter, r *htt
 func (a *App) SwitchOAuthToEmail(rctx request.CTX, email, password, requesterId string) (string, *model.AppError) {
 	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("oauthToEmail", "api.user.oauth_to_email.not_available.app_error", nil, "", http.StatusForbidden)
+	}
+
+	if rctx.Session().IsOAuth {
+		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.oauth_to_email.integration_session.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if !*a.Config().EmailSettings.EnableSignUpWithEmail {

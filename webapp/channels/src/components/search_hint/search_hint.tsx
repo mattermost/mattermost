@@ -30,7 +30,7 @@ type Props = {
     onElementBlur?: () => void;
     onElementFocus?: () => void;
     searchType?: 'files' | 'messages' | '';
-}
+};
 
 const SearchHint = (props: Props): JSX.Element => {
     const handleOnOptionHover = (optionIndex: number) => {

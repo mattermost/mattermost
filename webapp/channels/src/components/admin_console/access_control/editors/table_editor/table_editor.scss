@@ -6,6 +6,11 @@
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
         border-collapse: collapse;
+
+        // Fixed layout keeps columns at their declared widths so long value
+        // lists wrap within the Values cell instead of stretching the table
+        // beyond the modal width.
+        table-layout: fixed;
     }
 
     th {
@@ -41,14 +46,25 @@
         }
     }
 
+    &__value-error {
+        margin-top: 4px;
+        color: var(--error-text);
+        font-size: 12px;
+    }
+
     &__row-remove {
         border: none;
         background: none;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         cursor: pointer;
-        
-        &:hover {
+
+        &:hover:not(:disabled) {
             color: var(--error-text);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
         }
     }
 

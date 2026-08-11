@@ -4,13 +4,38 @@
 package sqlstore
 
 import (
-	"database/sql"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/require"
 )
+
+func TestNeutralizeNonWordHyphens(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"compound word kept", "t-shirt", "t-shirt"},
+		{"multiple hyphens kept", "a-b-c", "a-b-c"},
+		{"digits kept", "covid-19", "covid-19"},
+		{"unicode letters kept", "café-au-lait", "café-au-lait"},
+		{"NFD combining mark before hyphen kept", "café-au-lait", "café-au-lait"},
+		{"leading hyphen neutralized", "-5", " 5"},
+		{"trailing hyphen neutralized", "foo-", "foo "},
+		{"standalone hyphen neutralized", "-", " "},
+		{"hyphen between spaces neutralized", "a - b", "a   b"},
+		{"repeated bare hyphens neutralized", "--", "  "},
+		{"empty string", "", ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.expected, neutralizeNonWordHyphens(tc.input))
+		})
+	}
+}
 
 func TestChunkSlice(t *testing.T) {
 	if enableFullyParallelTests {
@@ -214,7 +239,7 @@ func TestScanRowsIntoMap(t *testing.T) {
 			defer rows.Close()
 
 			// Create scanner function
-			scanner := func(rows *sql.Rows) (string, int, error) {
+			scanner := func(rows rowScanner) (string, int, error) {
 				var key string
 				var value int
 				return key, value, rows.Scan(&key, &value)
@@ -253,7 +278,7 @@ func TestScanRowsIntoMap(t *testing.T) {
 			defer rows.Close()
 
 			// Create scanner function
-			scanner := func(rows *sql.Rows) (string, int, error) {
+			scanner := func(rows rowScanner) (string, int, error) {
 				var key string
 				var value int
 				return key, value, rows.Scan(&key, &value)
@@ -293,7 +318,7 @@ func TestScanRowsIntoMap(t *testing.T) {
 			defer rows.Close()
 
 			// Create scanner function
-			scanner := func(rows *sql.Rows) (string, int, error) {
+			scanner := func(rows rowScanner) (string, int, error) {
 				var key string
 				var value int
 				return key, value, rows.Scan(&key, &value)

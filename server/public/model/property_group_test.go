@@ -129,4 +129,22 @@ func TestPropertyGroupPreSave(t *testing.T) {
 		pg.PreSave()
 		assert.Equal(t, PropertyGroupVersionV2, pg.Version)
 	})
+
+	t.Run("defaults schema_version to 1 when zero", func(t *testing.T) {
+		pg := &PropertyGroup{Name: "test_group"}
+		pg.PreSave()
+		assert.Equal(t, 1, pg.SchemaVersion)
+	})
+
+	t.Run("defaults schema_version to 1 when negative", func(t *testing.T) {
+		pg := &PropertyGroup{Name: "test_group", SchemaVersion: -5}
+		pg.PreSave()
+		assert.Equal(t, 1, pg.SchemaVersion)
+	})
+
+	t.Run("does not overwrite existing schema_version", func(t *testing.T) {
+		pg := &PropertyGroup{Name: "test_group", SchemaVersion: 3}
+		pg.PreSave()
+		assert.Equal(t, 3, pg.SchemaVersion)
+	})
 }

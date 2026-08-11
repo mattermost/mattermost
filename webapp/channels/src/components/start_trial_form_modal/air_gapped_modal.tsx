@@ -14,7 +14,7 @@ import './air_gapped_modal.scss';
 
 type Props = {
     onClose?: () => void;
-}
+};
 
 function AirGappedModal({onClose}: Props) {
     const {formatMessage} = useIntl();

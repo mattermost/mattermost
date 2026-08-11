@@ -166,7 +166,7 @@ func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (_ *model.G
 		return nil, err
 	}
 
-	txn, err := s.GetMaster().Beginx()
+	txn, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -1289,6 +1289,8 @@ func (s *SqlGroupStore) ChannelMembersToRemove(channelID *string) ([]*model.Chan
 		Join("Channels ON Channels.Id = ChannelMembers.ChannelId").
 		LeftJoin("Bots ON Bots.UserId = ChannelMembers.UserId").
 		Where(sq.Eq{"Channels.DeleteAt": 0, "Channels.GroupConstrained": true, "Bots.UserId": nil}).
+		// Only public/private channels support group sync; never treat other channel members as removable.
+		Where(sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeOpen, model.ChannelTypePrivate}}).
 		Where(whereStmt)
 
 	if channelID != nil {
@@ -1952,7 +1954,7 @@ func (s *SqlGroupStore) UpsertMembers(groupID string, userIDs []string) (_ []*mo
 		return members, nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}

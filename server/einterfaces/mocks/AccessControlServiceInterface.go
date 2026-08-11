@@ -257,6 +257,68 @@ func (_m *AccessControlServiceInterface) GetPolicyRuleAttributes(rctx request.CT
 	return r0, r1
 }
 
+// GetTeamMembersToRemove provides a mock function with given fields: rctx, teamID
+func (_m *AccessControlServiceInterface) GetTeamMembersToRemove(rctx request.CTX, teamID string) ([]*model.TeamMember, *model.AppError) {
+	ret := _m.Called(rctx, teamID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTeamMembersToRemove")
+	}
+
+	var r0 []*model.TeamMember
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]*model.TeamMember, *model.AppError)); ok {
+		return rf(rctx, teamID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) []*model.TeamMember); ok {
+		r0 = rf(rctx, teamID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.TeamMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
+		r1 = rf(rctx, teamID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// HasMaskedValuesForCaller provides a mock function with given fields: rctx, expression, resolver
+func (_m *AccessControlServiceInterface) HasMaskedValuesForCaller(rctx request.CTX, expression string, resolver model.MaskingFieldResolver) (bool, *model.AppError) {
+	ret := _m.Called(rctx, expression, resolver)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasMaskedValuesForCaller")
+	}
+
+	var r0 bool
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.MaskingFieldResolver) (bool, *model.AppError)); ok {
+		return rf(rctx, expression, resolver)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.MaskingFieldResolver) bool); ok {
+		r0 = rf(rctx, expression, resolver)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, model.MaskingFieldResolver) *model.AppError); ok {
+		r1 = rf(rctx, expression, resolver)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // Init provides a mock function with given fields: rctx
 func (_m *AccessControlServiceInterface) Init(rctx request.CTX) *model.AppError {
 	ret := _m.Called(rctx)
@@ -275,6 +337,73 @@ func (_m *AccessControlServiceInterface) Init(rctx request.CTX) *model.AppError 
 	}
 
 	return r0
+}
+
+// MaskExpressionForCaller provides a mock function with given fields: rctx, expression, resolver
+func (_m *AccessControlServiceInterface) MaskExpressionForCaller(rctx request.CTX, expression string, resolver model.MaskingFieldResolver) (string, bool, *model.AppError) {
+	ret := _m.Called(rctx, expression, resolver)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MaskExpressionForCaller")
+	}
+
+	var r0 string
+	var r1 bool
+	var r2 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.MaskingFieldResolver) (string, bool, *model.AppError)); ok {
+		return rf(rctx, expression, resolver)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.MaskingFieldResolver) string); ok {
+		r0 = rf(rctx, expression, resolver)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, model.MaskingFieldResolver) bool); ok {
+		r1 = rf(rctx, expression, resolver)
+	} else {
+		r1 = ret.Get(1).(bool)
+	}
+
+	if rf, ok := ret.Get(2).(func(request.CTX, string, model.MaskingFieldResolver) *model.AppError); ok {
+		r2 = rf(rctx, expression, resolver)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
+		}
+	}
+
+	return r0, r1, r2
+}
+
+// MergeExpressionWithMaskedValuesCanonical provides a mock function with given fields: rctx, submittedExpr, storedExpr, resolver
+func (_m *AccessControlServiceInterface) MergeExpressionWithMaskedValuesCanonical(rctx request.CTX, submittedExpr string, storedExpr string, resolver model.MaskingFieldResolver) (string, *model.AppError) {
+	ret := _m.Called(rctx, submittedExpr, storedExpr, resolver)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MergeExpressionWithMaskedValuesCanonical")
+	}
+
+	var r0 string
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, model.MaskingFieldResolver) (string, *model.AppError)); ok {
+		return rf(rctx, submittedExpr, storedExpr, resolver)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, model.MaskingFieldResolver) string); ok {
+		r0 = rf(rctx, submittedExpr, storedExpr, resolver)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, model.MaskingFieldResolver) *model.AppError); ok {
+		r1 = rf(rctx, submittedExpr, storedExpr, resolver)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // NormalizePolicy provides a mock function with given fields: rctx, policy
@@ -307,6 +436,11 @@ func (_m *AccessControlServiceInterface) NormalizePolicy(rctx request.CTX, polic
 	}
 
 	return r0, r1
+}
+
+// OnPropertyFieldOptionsChanged provides a mock function with given fields: rctx, fieldID
+func (_m *AccessControlServiceInterface) OnPropertyFieldOptionsChanged(rctx request.CTX, fieldID string) {
+	_m.Called(rctx, fieldID)
 }
 
 // QueryUsersForExpression provides a mock function with given fields: rctx, expression, opts
@@ -417,6 +551,58 @@ func (_m *AccessControlServiceInterface) SavePolicy(rctx request.CTX, policy *mo
 	}
 
 	return r0, r1
+}
+
+// SimulatePolicyForUsers provides a mock function with given fields: rctx, params
+func (_m *AccessControlServiceInterface) SimulatePolicyForUsers(rctx request.CTX, params model.PolicySimulationByUsersParams) (*model.PolicySimulationResponse, *model.AppError) {
+	ret := _m.Called(rctx, params)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SimulatePolicyForUsers")
+	}
+
+	var r0 *model.PolicySimulationResponse
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, model.PolicySimulationByUsersParams) (*model.PolicySimulationResponse, *model.AppError)); ok {
+		return rf(rctx, params)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, model.PolicySimulationByUsersParams) *model.PolicySimulationResponse); ok {
+		r0 = rf(rctx, params)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PolicySimulationResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, model.PolicySimulationByUsersParams) *model.AppError); ok {
+		r1 = rf(rctx, params)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// ValidateExpressionValuesForCaller provides a mock function with given fields: rctx, expression, resolver
+func (_m *AccessControlServiceInterface) ValidateExpressionValuesForCaller(rctx request.CTX, expression string, resolver model.MaskingFieldResolver) *model.AppError {
+	ret := _m.Called(rctx, expression, resolver)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ValidateExpressionValuesForCaller")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.MaskingFieldResolver) *model.AppError); ok {
+		r0 = rf(rctx, expression, resolver)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // NewAccessControlServiceInterface creates a new instance of AccessControlServiceInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

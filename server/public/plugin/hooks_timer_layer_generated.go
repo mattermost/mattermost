@@ -122,6 +122,13 @@ func (hooks *hooksTimerLayer) MessagesWillBeConsumed(posts []*model.Post) []*mod
 	return _returnsA
 }
 
+func (hooks *hooksTimerLayer) MessagesWillBeConsumedWithContext(c *Context, posts []*model.Post) []*model.Post {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.MessagesWillBeConsumedWithContext(c, posts)
+	hooks.recordTime(startTime, "MessagesWillBeConsumedWithContext", true)
+	return _returnsA
+}
+
 func (hooks *hooksTimerLayer) MessageHasBeenDeleted(c *Context, post *model.Post) {
 	startTime := timePkg.Now()
 	hooks.hooksImpl.MessageHasBeenDeleted(c, post)
@@ -334,6 +341,34 @@ func (hooks *hooksTimerLayer) OnSAMLLogin(c *Context, user *model.User, assertio
 	_returnsA := hooks.hooksImpl.OnSAMLLogin(c, user, assertion)
 	hooks.recordTime(startTime, "OnSAMLLogin", _returnsA == nil)
 	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) ChannelWillBeUpdated(c *Context, newChannel, oldChannel *model.Channel) (*model.Channel, string) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.ChannelWillBeUpdated(c, newChannel, oldChannel)
+	hooks.recordTime(startTime, "ChannelWillBeUpdated", true)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) ChannelWillBeRestored(c *Context, channel *model.Channel) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.ChannelWillBeRestored(c, channel)
+	hooks.recordTime(startTime, "ChannelWillBeRestored", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) ScheduledPostWillBeCreated(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.ScheduledPostWillBeCreated(c, scheduledPost)
+	hooks.recordTime(startTime, "ScheduledPostWillBeCreated", true)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) DraftWillBeUpserted(c *Context, draft *model.Draft) (*model.Draft, string) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.DraftWillBeUpserted(c, draft)
+	hooks.recordTime(startTime, "DraftWillBeUpserted", true)
+	return _returnsA, _returnsB
 }
 
 func (hooks *hooksTimerLayer) OnDeactivateWithRPCErr() (error, error) {
@@ -593,4 +628,32 @@ func (hooks *hooksTimerLayer) OnSAMLLoginWithRPCErr(c *Context, user *model.User
 	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnSAMLLoginWithRPCErr(c, user, assertion)
 	hooks.recordTime(startTime, "OnSAMLLoginWithRPCErr", _returnsRPCErr == nil && _returnsA == nil)
 	return _returnsA, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) ChannelWillBeUpdatedWithRPCErr(c *Context, newChannel, oldChannel *model.Channel) (*model.Channel, string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.ChannelWillBeUpdatedWithRPCErr(c, newChannel, oldChannel)
+	hooks.recordTime(startTime, "ChannelWillBeUpdatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) ChannelWillBeRestoredWithRPCErr(c *Context, channel *model.Channel) (string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.ChannelWillBeRestoredWithRPCErr(c, channel)
+	hooks.recordTime(startTime, "ChannelWillBeRestoredWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) ScheduledPostWillBeCreatedWithRPCErr(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.ScheduledPostWillBeCreatedWithRPCErr(c, scheduledPost)
+	hooks.recordTime(startTime, "ScheduledPostWillBeCreatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) DraftWillBeUpsertedWithRPCErr(c *Context, draft *model.Draft) (*model.Draft, string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.DraftWillBeUpsertedWithRPCErr(c, draft)
+	hooks.recordTime(startTime, "DraftWillBeUpsertedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
 }

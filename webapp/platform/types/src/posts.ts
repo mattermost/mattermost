@@ -57,13 +57,13 @@ export type PostAcknowledgement = {
     post_id: Post['id'];
     user_id: UserProfile['id'];
     acknowledged_at: number;
-}
+};
 
 export type PostPriorityMetadata = {
-    priority: PostPriority|'';
+    priority: PostPriority | '';
     requested_ack?: boolean;
     persistent_notifications?: boolean;
-}
+};
 
 export type PostTranslation = {
     object?: {
@@ -135,7 +135,7 @@ export type PostList = {
 
 export type PaginatedPostList = PostList & {
     has_next: boolean;
-}
+};
 
 export type PostSearchResults = PostList & {
     matches: RelationOneToOne<Post, string[]>;
@@ -179,7 +179,7 @@ export declare type OpenGraphMetadataImage = {
     type?: string;
     height?: number;
     width?: number;
-}
+};
 
 export declare type OpenGraphMetadata = {
     type?: string;
@@ -217,16 +217,16 @@ export type PostAnalytics = {
     post_id: string;
     user_actual_id: string;
     root_id: string;
-    priority?: PostPriority|'';
+    priority?: PostPriority | '';
     requested_ack?: boolean;
     persistent_notifications?: boolean;
-}
+};
 export type ActivityEntry = {
     postType: Post['type'];
     actorId: string[];
     userIds: string[];
     usernames: string[];
-}
+};
 
 export type PostInfo = {
     channel_id: string;
@@ -237,11 +237,11 @@ export type PostInfo = {
     team_type: TeamType;
     team_display_name: string;
     has_joined_team: boolean;
-}
+};
 
 export type NotificationStatus = 'error' | 'not_sent' | 'unsupported' | 'success';
 export type NotificationResult = {
     status: NotificationStatus;
     reason?: string;
     data?: string;
-}
+};

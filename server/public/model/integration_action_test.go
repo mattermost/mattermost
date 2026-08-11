@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"io"
 	"math/big"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -1674,5 +1675,1097 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		}
 		effective := element.EffectiveDateTimeConfig()
 		assert.True(t, effective.ManualTimeEntry, "deprecated field alone should enable manual entry after EffectiveDateTimeConfig")
+	})
+}
+
+func TestPost_PostActionPreserveState(t *testing.T) {
+	t.Run("top-level post", func(t *testing.T) {
+		p := &Post{
+			Id:           "postid",
+			IsPinned:     true,
+			HasReactions: true,
+			Props:        StringInterface{PostPropsFromWebhook: "true", "other": "x"},
+		}
+		state := p.PostActionPreserveState()
+		assert.Equal(t, "true", state.Retain[PostPropsFromWebhook])
+		assert.Contains(t, state.Remove, PostPropsOverrideUsername)
+		assert.Contains(t, state.Remove, PostPropsOverrideIconURL)
+		assert.Equal(t, "true", state.OriginalProps[PostPropsFromWebhook])
+		assert.Equal(t, "x", state.OriginalProps["other"])
+		assert.True(t, state.OriginalIsPinned)
+		assert.True(t, state.OriginalHasReactions)
+		assert.Equal(t, "postid", state.RootPostId)
+	})
+
+	t.Run("thread reply uses root id", func(t *testing.T) {
+		p := &Post{Id: "replyid", RootId: "rootid"}
+		assert.Equal(t, "rootid", p.PostActionPreserveState().RootPostId)
+	})
+
+	t.Run("original props snapshot", func(t *testing.T) {
+		p := &Post{Props: StringInterface{"k": "v"}}
+		state := p.PostActionPreserveState()
+		p.Props["k"] = "mutated"
+		p.Props["new"] = "y"
+		assert.Equal(t, "v", state.OriginalProps["k"])
+		assert.NotContains(t, state.OriginalProps, "new")
+	})
+}
+
+func TestNormalizePostActionIntegrationFormat(t *testing.T) {
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationFormat(""))
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationFormat("  "))
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationFormat("ATTACHMENT"))
+	assert.Equal(t, PostActionIntegrationFormatMmBlock, NormalizePostActionIntegrationFormat("mm_block"))
+	assert.Equal(t, PostActionIntegrationFormatBlock, NormalizePostActionIntegrationFormat("block"))
+	assert.Equal(t, PostActionIntegrationFormatCard, NormalizePostActionIntegrationFormat("card"))
+	assert.Equal(t, PostActionIntegrationFormatAppsBinding, NormalizePostActionIntegrationFormat("apps_binding"))
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationFormat("unknown-thing"))
+}
+
+func TestValidateActionQuery(t *testing.T) {
+	t.Run("nil map is valid", func(t *testing.T) {
+		assert.NoError(t, ValidateActionQuery(nil))
+	})
+
+	t.Run("empty map is valid", func(t *testing.T) {
+		assert.NoError(t, ValidateActionQuery(map[string]string{}))
+	})
+
+	t.Run("within bounds is valid", func(t *testing.T) {
+		ctx := map[string]string{
+			"alpha": "one",
+			"beta":  "two",
+		}
+		assert.NoError(t, ValidateActionQuery(ctx))
+	})
+
+	t.Run("exceeds MaxActionQueryEntries", func(t *testing.T) {
+		ctx := make(map[string]string, MaxActionQueryEntries+1)
+		for i := range MaxActionQueryEntries + 1 {
+			ctx[strconv.Itoa(i)] = "v"
+		}
+		err := ValidateActionQuery(ctx)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "exceeds maximum")
+	})
+
+	t.Run("key length exactly MaxActionQueryKeyLength is allowed", func(t *testing.T) {
+		ctx := map[string]string{
+			strings.Repeat("k", MaxActionQueryKeyLength): "value",
+		}
+		assert.NoError(t, ValidateActionQuery(ctx))
+	})
+
+	t.Run("key length MaxActionQueryKeyLength+1 is rejected", func(t *testing.T) {
+		ctx := map[string]string{
+			strings.Repeat("k", MaxActionQueryKeyLength+1): "value",
+		}
+		err := ValidateActionQuery(ctx)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "key exceeds")
+	})
+
+	t.Run("value length exactly MaxActionQueryValueLength is allowed", func(t *testing.T) {
+		ctx := map[string]string{
+			"key": strings.Repeat("v", MaxActionQueryValueLength),
+		}
+		assert.NoError(t, ValidateActionQuery(ctx))
+	})
+
+	t.Run("value length MaxActionQueryValueLength+1 is rejected", func(t *testing.T) {
+		ctx := map[string]string{
+			"key": strings.Repeat("v", MaxActionQueryValueLength+1),
+		}
+		err := ValidateActionQuery(ctx)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "value for")
+	})
+
+	t.Run("multiple violations triggers an error", func(t *testing.T) {
+		// Too many entries AND every value is over-length. First detected
+		// violation wins; only assert that an error is returned.
+		ctx := make(map[string]string, MaxActionQueryEntries+1)
+		for i := range MaxActionQueryEntries + 1 {
+			ctx[strconv.Itoa(i)] = strings.Repeat("v", MaxActionQueryValueLength+1)
+		}
+		err := ValidateActionQuery(ctx)
+		require.Error(t, err)
+	})
+}
+
+func mmBlocksExternalEntry(url string, context map[string]any) map[string]any {
+	entry := map[string]any{
+		"type": MmBlocksActionTypeExternal,
+		"url":  url,
+	}
+	if context != nil {
+		entry["context"] = context
+	}
+	return entry
+}
+
+func mmBlocksOpenURLEntry(url string, query map[string]any) map[string]any {
+	entry := map[string]any{
+		"type": MmBlocksActionTypeOpenURL,
+		"url":  url,
+	}
+	if query != nil {
+		entry["query"] = query
+	}
+	return entry
+}
+
+// ensureMmBlocksReferenceActions adds mm_blocks buttons so each mm_blocks_actions key is referenced.
+func ensureMmBlocksReferenceActions(p *Post) {
+	actions, ok := coerceToStringAnyMap(p.GetProp(PostPropsMmBlocksActions))
+	if !ok {
+		return
+	}
+	blocks := make([]any, 0, len(actions))
+	for id := range actions {
+		blocks = append(blocks, map[string]any{
+			"type": "button", "text": "Btn", "action_id": id,
+		})
+	}
+	p.AddProp(PostPropsMmBlocks, blocks)
+}
+
+func TestGetMmBlocksActionSpec(t *testing.T) {
+	t.Run("prop absent returns nil", func(t *testing.T) {
+		p := &Post{}
+		assert.Nil(t, p.GetMmBlocksActionSpec("btn1"))
+	})
+
+	t.Run("empty action id returns nil", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+		assert.Nil(t, p.GetMmBlocksActionSpec(""))
+	})
+
+	t.Run("id not found returns nil", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+		assert.Nil(t, p.GetMmBlocksActionSpec("missing"))
+	})
+
+	t.Run("external entry returns spec with url and context", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("http://example.com/hook", map[string]any{"k": "v"}),
+		})
+		got := p.GetMmBlocksActionSpec("btn1")
+		require.NotNil(t, got)
+		assert.Equal(t, MmBlocksActionTypeExternal, got.Type)
+		assert.Equal(t, "http://example.com/hook", got.URL)
+		assert.Equal(t, "v", got.Context["k"])
+	})
+
+	t.Run("entry missing type returns nil", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": map[string]any{"url": "http://example.com/hook"},
+		})
+		assert.Nil(t, p.GetMmBlocksActionSpec("btn1"))
+	})
+
+	t.Run("entry with unknown type returns nil", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": map[string]any{
+				"type": "bogus",
+				"url":  "http://example.com/hook",
+			},
+		})
+		assert.Nil(t, p.GetMmBlocksActionSpec("btn1"))
+	})
+
+	t.Run("wrong-shape prop returns nil", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, "not-a-map")
+		assert.Nil(t, p.GetMmBlocksActionSpec("btn1"))
+	})
+
+	t.Run("entry value not an object returns nil", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": "not-an-object",
+		})
+		assert.Nil(t, p.GetMmBlocksActionSpec("btn1"))
+	})
+}
+
+func TestValidateMmBlocksActions(t *testing.T) {
+	t.Run("absent prop returns no error", func(t *testing.T) {
+		p := &Post{}
+		assert.NoError(t, ValidateMmBlocksActions(p))
+	})
+
+	t.Run("string prop is rejected (cookie transport not yet supported)", func(t *testing.T) {
+		// The cookie-transport PR will add proper validation for
+		// encrypted-string payloads. Until then, any string value is
+		// rejected so an integration session cannot bypass the
+		// alphanumeric-key, URL, and bounds checks by simply storing a
+		// raw string at the prop key.
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, "encrypted-cookie-blob")
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must be a map")
+	})
+
+	t.Run("valid external entries return no error", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("http://example.com/hook", nil),
+			"btn2": mmBlocksExternalEntry("/plugins/myplugin/action", nil),
+			"btn3": mmBlocksExternalEntry("plugins/myplugin/action", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		assert.NoError(t, ValidateMmBlocksActions(p))
+	})
+
+	t.Run("exceeding MaxMmBlocksActionsPerPost returns error", func(t *testing.T) {
+		actions := make(map[string]any, MaxMmBlocksActionsPerPost+1)
+		for i := range MaxMmBlocksActionsPerPost + 1 {
+			actions["btn"+strconv.Itoa(i)] = mmBlocksExternalEntry("http://example.com/hook", nil)
+		}
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, actions)
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "exceeds maximum")
+	})
+
+	t.Run("action id with hyphen is allowed", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"foo-bar": mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		assert.NoError(t, ValidateMmBlocksActions(p))
+	})
+
+	t.Run("action id at MaxMmBlocksActionKeyLength is allowed", func(t *testing.T) {
+		key := strings.Repeat("a", MaxMmBlocksActionKeyLength)
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			key: mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		assert.NoError(t, ValidateMmBlocksActions(p))
+	})
+
+	t.Run("action id over MaxMmBlocksActionKeyLength is rejected", func(t *testing.T) {
+		key := strings.Repeat("a", MaxMmBlocksActionKeyLength+1)
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			key: mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "exceeds")
+	})
+
+	t.Run("action id with underscore is allowed", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"foo_bar": mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		assert.NoError(t, ValidateMmBlocksActions(p))
+	})
+
+	t.Run("action id with space is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"FOO bar": mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "underscores, or hyphens")
+	})
+
+	t.Run("empty URL is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "non-empty URL")
+	})
+
+	t.Run("path traversal in /plugins/ URL is rejected", func(t *testing.T) {
+		// Defense-in-depth: a `..` segment in a /plugins/ URL can escape the
+		// plugin namespace at request time. Bot-authored mm_blocks specs are
+		// the origin point so we reject at save.
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("/plugins/../../../etc/passwd", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "path traversal")
+	})
+
+	t.Run("trailing /.. in /plugins/ URL is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("/plugins/myplugin/..", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "path traversal")
+	})
+
+	t.Run("percent-encoded traversal in /plugins/ URL is rejected", func(t *testing.T) {
+		// doPluginRequest decodes the path via url.Parse before path.Clean,
+		// so an encoded "%2e%2e%2f" would otherwise route to a different
+		// plugin than the validator thinks it's protecting. Validator must
+		// decode symmetrically to catch this at save time.
+		for _, encoded := range []string{
+			"/plugins/innocent/%2e%2e%2f/target/handler",
+			"/plugins/innocent/%2E%2E%2F/target/handler",
+			"/plugins/innocent/..%2f/target/handler",
+			"/plugins/innocent/%2e%2e/",
+			"/plugins/innocent/%2e%2e",
+		} {
+			p := &Post{}
+			p.AddProp(PostPropsMmBlocksActions, map[string]any{
+				"btn1": mmBlocksExternalEntry(encoded, nil),
+			})
+			ensureMmBlocksReferenceActions(p)
+			err := ValidateMmBlocksActions(p)
+			require.Error(t, err, "url=%q must be rejected", encoded)
+			assert.Contains(t, err.Error(), "path traversal", "url=%q", encoded)
+		}
+	})
+
+	t.Run("entry missing type is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": map[string]any{"url": "http://example.com/hook"},
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid type or shape")
+	})
+
+	t.Run("entry with unknown type is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": map[string]any{
+				"type": "bogus",
+				"url":  "http://example.com/hook",
+			},
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid type or shape")
+	})
+
+	t.Run("entry value not an object is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": "not-an-object",
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must be an object")
+	})
+
+	t.Run("javascript URL is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("javascript://alert(1)", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "valid integration URL")
+	})
+
+	t.Run("http URL is accepted", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("http://legit.com", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		assert.NoError(t, ValidateMmBlocksActions(p))
+	})
+
+	t.Run("/plugins/ URL is accepted", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("/plugins/foo", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		assert.NoError(t, ValidateMmBlocksActions(p))
+	})
+
+	t.Run("wrong-shape raw prop is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, []string{"not-a-map"})
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must be a map")
+	})
+
+	t.Run("static query exceeding entry cap is rejected", func(t *testing.T) {
+		query := make(map[string]any, MaxActionQueryEntries+1)
+		for i := range MaxActionQueryEntries + 1 {
+			query["k"+strconv.Itoa(i)] = "v"
+		}
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": map[string]any{
+				"type":  MmBlocksActionTypeExternal,
+				"url":   "http://example.com/hook",
+				"query": query,
+			},
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "static query")
+	})
+
+	t.Run("static query value exceeding length cap is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": map[string]any{
+				"type":  MmBlocksActionTypeExternal,
+				"url":   "http://example.com/hook",
+				"query": map[string]any{"k": strings.Repeat("a", MaxActionQueryValueLength+1)},
+			},
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "static query")
+	})
+
+	t.Run("static context exceeding entry cap is rejected", func(t *testing.T) {
+		ctx := make(map[string]any, MaxActionQueryEntries+1)
+		for i := range MaxActionQueryEntries + 1 {
+			ctx["k"+strconv.Itoa(i)] = "v"
+		}
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": map[string]any{
+				"type":    MmBlocksActionTypeExternal,
+				"url":     "http://example.com/hook",
+				"context": ctx,
+			},
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "context exceeds maximum")
+	})
+
+	t.Run("static context key exceeding length cap is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": map[string]any{
+				"type":    MmBlocksActionTypeExternal,
+				"url":     "http://example.com/hook",
+				"context": map[string]any{strings.Repeat("a", MaxActionQueryKeyLength+1): "v"},
+			},
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "context key exceeds")
+	})
+
+	t.Run("orphan mm_blocks_actions entry is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocks, []any{
+			map[string]any{"type": "button", "text": "Go", "action_id": "needed"},
+		})
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"needed": mmBlocksExternalEntry("http://example.com/hook", nil),
+			"unused": mmBlocksExternalEntry("http://example.com/other", nil),
+		})
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not referenced")
+	})
+
+	t.Run("missing mm_blocks_actions entry is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocks, []any{
+			map[string]any{"type": "button", "text": "Go", "action_id": "needed"},
+		})
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"other": mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "missing entry")
+	})
+
+	t.Run("mm_blocks_actions without interactive references is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must only define actions referenced")
+	})
+
+	t.Run("interactive control without mm_blocks_actions is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocks, []any{
+			map[string]any{"type": "button", "text": "Go", "action_id": "act"},
+		})
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "requires mm_blocks_actions")
+	})
+
+	t.Run("valid openURL entries return no error", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("https://example.com/page", nil),
+			"open2": mmBlocksOpenURLEntry("/team/channels/town-square", map[string]any{"q": "1"}),
+		})
+		ensureMmBlocksReferenceActions(p)
+		assert.NoError(t, ValidateMmBlocksActions(p))
+	})
+
+	t.Run("openURL empty URL is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "non-empty URL")
+	})
+
+	t.Run("openURL javascript URL is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("javascript://alert(1)", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "http or https")
+	})
+
+	t.Run("openURL protocol-relative URL is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("//evil.example/phish", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "protocol-relative")
+	})
+
+	t.Run("openURL path traversal is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("/team/../admin", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "path traversal")
+	})
+
+	t.Run("openURL /plugins/ path is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("/plugins/myplugin/handler", nil),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "plugin paths are not allowed")
+	})
+
+	t.Run("openURL static query exceeding entry cap is rejected", func(t *testing.T) {
+		query := make(map[string]any, MaxActionQueryEntries+1)
+		for i := range MaxActionQueryEntries + 1 {
+			query["k"+strconv.Itoa(i)] = "v"
+		}
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"open1": mmBlocksOpenURLEntry("https://example.com", query),
+		})
+		ensureMmBlocksReferenceActions(p)
+		err := ValidateMmBlocksActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "static query")
+	})
+}
+
+func TestStripActionIntegrations_MmBlocksActions(t *testing.T) {
+	t.Run("strips mm_blocks_actions prop", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+		p.StripActionIntegrations()
+		assert.Nil(t, p.GetProp(PostPropsMmBlocksActions))
+	})
+
+	t.Run("post without mm_blocks_actions prop does not panic", func(t *testing.T) {
+		p := &Post{}
+		assert.NotPanics(t, func() {
+			p.StripActionIntegrations()
+		})
+		assert.Nil(t, p.GetProp(PostPropsMmBlocksActions))
+	})
+
+	t.Run("post with both attachments and mm_blocks_actions cleans both", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsAttachments, []*MessageAttachment{
+			{
+				Actions: []*PostAction{
+					{
+						Id:          "a1",
+						Name:        "Button",
+						Type:        PostActionTypeButton,
+						Integration: &PostActionIntegration{URL: "http://example.com/hook"},
+					},
+				},
+			},
+		})
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+
+		p.StripActionIntegrations()
+
+		// mm_blocks_actions prop should be removed entirely.
+		assert.Nil(t, p.GetProp(PostPropsMmBlocksActions))
+
+		// Attachment actions should remain but with nil Integration.
+		attachments := p.Attachments()
+		require.Len(t, attachments, 1)
+		require.Len(t, attachments[0].Actions, 1)
+		assert.Nil(t, attachments[0].Actions[0].Integration)
+	})
+}
+
+func TestGetAction_MmBlocksFallback(t *testing.T) {
+	t.Run("returns attachment action when present", func(t *testing.T) {
+		attachmentAction := &PostAction{
+			Id:          "a1",
+			Name:        "Attach Button",
+			Type:        PostActionTypeButton,
+			Integration: &PostActionIntegration{URL: "http://example.com/attach"},
+		}
+		p := &Post{}
+		p.AddProp(PostPropsAttachments, []*MessageAttachment{
+			{Actions: []*PostAction{attachmentAction}},
+		})
+
+		got := p.GetAction("a1")
+		require.NotNil(t, got)
+		assert.Same(t, attachmentAction, got)
+	})
+
+	t.Run("synthesizes PostAction from mm_blocks_actions when no attachment match", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("http://example.com/hook", map[string]any{"k": "v"}),
+		})
+
+		got := p.GetAction("btn1")
+		require.NotNil(t, got)
+		assert.Equal(t, "btn1", got.Id)
+		assert.Equal(t, PostActionTypeButton, got.Type)
+		require.NotNil(t, got.Integration)
+		assert.Equal(t, "http://example.com/hook", got.Integration.URL)
+		assert.Equal(t, "v", got.Integration.Context["k"])
+	})
+
+	t.Run("synthesized URL pre-merges spec static query", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": map[string]any{
+				"type":  MmBlocksActionTypeExternal,
+				"url":   "http://example.com/hook",
+				"query": map[string]any{"source": "fleet-status"},
+			},
+		})
+
+		got := p.GetAction("btn1")
+		require.NotNil(t, got)
+		require.NotNil(t, got.Integration)
+		assert.Equal(t, "http://example.com/hook?source=fleet-status", got.Integration.URL)
+	})
+
+	t.Run("synthesized URL preserves existing query and adds spec static query", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": map[string]any{
+				"type":  MmBlocksActionTypeExternal,
+				"url":   "http://example.com/hook?team=alpha",
+				"query": map[string]any{"source": "fleet-status"},
+			},
+		})
+
+		got := p.GetAction("btn1")
+		require.NotNil(t, got)
+		require.NotNil(t, got.Integration)
+		// url.Values.Encode() sorts keys alphabetically.
+		assert.Contains(t, got.Integration.URL, "source=fleet-status")
+		assert.Contains(t, got.Integration.URL, "team=alpha")
+	})
+
+	t.Run("attachment wins when id matches both attachment and mm_blocks action", func(t *testing.T) {
+		attachmentAction := &PostAction{
+			Id:          "btn1",
+			Name:        "Attach Button",
+			Type:        PostActionTypeButton,
+			Integration: &PostActionIntegration{URL: "http://example.com/attach"},
+		}
+		p := &Post{}
+		p.AddProp(PostPropsAttachments, []*MessageAttachment{
+			{Actions: []*PostAction{attachmentAction}},
+		})
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": mmBlocksExternalEntry("http://example.com/inline", nil),
+		})
+
+		got := p.GetAction("btn1")
+		require.NotNil(t, got)
+		assert.Same(t, attachmentAction, got)
+		assert.Equal(t, "http://example.com/attach", got.Integration.URL)
+	})
+
+	t.Run("returns nil when id matches neither", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsAttachments, []*MessageAttachment{
+			{Actions: []*PostAction{{Id: "other", Name: "X", Type: PostActionTypeButton, Integration: &PostActionIntegration{URL: "http://example.com"}}}},
+		})
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"something": mmBlocksExternalEntry("http://example.com/hook", nil),
+		})
+
+		assert.Nil(t, p.GetAction("missing"))
+	})
+
+	t.Run("returns nil when spec URL is unparseable and static query merge fails", func(t *testing.T) {
+		// Defense-in-depth: ValidateMmBlocksActions should reject this at
+		// save time, but if a malformed URL slips through, GetAction must
+		// not silently fire the bare URL with the static query dropped.
+		p := &Post{}
+		p.AddProp(PostPropsMmBlocksActions, map[string]any{
+			"btn1": map[string]any{
+				"type":  MmBlocksActionTypeExternal,
+				"url":   "http://example.com/%%%bad",
+				"query": map[string]any{"source": "fleet"},
+			},
+		})
+
+		assert.Nil(t, p.GetAction("btn1"))
+	})
+}
+
+func TestMmBlocksContextMap(t *testing.T) {
+	t.Run("empty string returns nil", func(t *testing.T) {
+		assert.Nil(t, MmBlocksContextMap(""))
+	})
+
+	t.Run("valid JSON object string is parsed into a map", func(t *testing.T) {
+		got := MmBlocksContextMap(`{"k":"v","n":1}`)
+		require.NotNil(t, got)
+		assert.Equal(t, "v", got["k"])
+		// JSON numbers decode to float64.
+		assert.Equal(t, float64(1), got["n"])
+	})
+
+	t.Run("non-JSON string is wrapped under context key", func(t *testing.T) {
+		got := MmBlocksContextMap("hello world")
+		require.NotNil(t, got)
+		assert.Equal(t, "hello world", got["context"])
+	})
+
+	t.Run("JSON null falls back to wrap (m is nil after unmarshal)", func(t *testing.T) {
+		got := MmBlocksContextMap("null")
+		require.NotNil(t, got)
+		assert.Equal(t, "null", got["context"])
+	})
+
+	t.Run("JSON array falls back to wrap (target type mismatch)", func(t *testing.T) {
+		got := MmBlocksContextMap("[1,2,3]")
+		require.NotNil(t, got)
+		assert.Equal(t, "[1,2,3]", got["context"])
+	})
+
+	t.Run("JSON number falls back to wrap (target type mismatch)", func(t *testing.T) {
+		got := MmBlocksContextMap("42")
+		require.NotNil(t, got)
+		assert.Equal(t, "42", got["context"])
+	})
+
+	t.Run("malformed JSON falls back to wrap", func(t *testing.T) {
+		got := MmBlocksContextMap(`{"unclosed":`)
+		require.NotNil(t, got)
+		assert.Equal(t, `{"unclosed":`, got["context"])
+	})
+}
+
+func TestDialogElementFileValidation(t *testing.T) {
+	validFileId := NewId()
+	validFileId2 := NewId()
+	validFileId3 := NewId()
+
+	tests := map[string]struct {
+		element *DialogElement
+		wantErr string
+	}{
+		"valid file element with allow_multiple=false and single default ID": {
+			element: &DialogElement{
+				DisplayName:   "File Upload",
+				Name:          "file_element",
+				Type:          "file",
+				AllowMultiple: false,
+				Default:       validFileId,
+			},
+			wantErr: "",
+		},
+
+		"valid file element with allow_multiple=true and multiple comma-separated IDs": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default:       validFileId + "," + validFileId2 + "," + validFileId3,
+			},
+			wantErr: "",
+		},
+
+		"allow_multiple=false with multiple default IDs returns error": {
+			element: &DialogElement{
+				DisplayName:   "Single File Upload",
+				Name:          "single_file_element",
+				Type:          "file",
+				AllowMultiple: false,
+				Default:       validFileId + "," + validFileId2,
+			},
+			wantErr: "default may not contain more than one file ID when allow_multiple is false",
+		},
+
+		"invalid-format file ID in default returns error": {
+			element: &DialogElement{
+				DisplayName:   "File Upload",
+				Name:          "file_element",
+				Type:          "file",
+				AllowMultiple: false,
+				Default:       "invalid-id-format",
+			},
+			wantErr: "is not a valid ID",
+		},
+
+		"more than MaxDialogFileIds (10) default IDs returns error": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default: NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," +
+					NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," + NewId(),
+			},
+			wantErr: "default may not contain more than 10 file IDs",
+		},
+
+		"file element with Options set returns error": {
+			element: &DialogElement{
+				DisplayName: "File Upload",
+				Name:        "file_element",
+				Type:        "file",
+				Options: []*PostActionOptions{
+					{Text: "Option 1", Value: "opt1"},
+				},
+			},
+			wantErr: "file elements cannot have options",
+		},
+
+		"file element with DataSource set returns error": {
+			element: &DialogElement{
+				DisplayName: "File Upload",
+				Name:        "file_element",
+				Type:        "file",
+				DataSource:  "users",
+			},
+			wantErr: "file elements cannot have a data source",
+		},
+
+		"allow_multiple=true on non-file element returns error": {
+			element: &DialogElement{
+				DisplayName:   "Text Element",
+				Name:          "text_element",
+				Type:          "text",
+				AllowMultiple: true,
+			},
+			wantErr: "allow_multiple can only be used with file elements",
+		},
+
+		"placeholder exceeding DialogElementFileMaxLength returns error": {
+			element: &DialogElement{
+				DisplayName: "File Upload",
+				Name:        "file_element",
+				Type:        "file",
+				Placeholder: strings.Repeat("x", DialogElementFileMaxLength+1),
+			},
+			wantErr: "Placeholder cannot be longer than 300 characters",
+		},
+
+		"empty default passes validation": {
+			element: &DialogElement{
+				DisplayName:   "File Upload",
+				Name:          "file_element",
+				Type:          "file",
+				AllowMultiple: false,
+				Default:       "",
+			},
+			wantErr: "",
+		},
+
+		"multiple file IDs with spaces around commas passes": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default:       validFileId + " , " + validFileId2 + " , " + validFileId3,
+			},
+			wantErr: "",
+		},
+
+		"placeholder at exactly DialogElementFileMaxLength passes": {
+			element: &DialogElement{
+				DisplayName: "File Upload",
+				Name:        "file_element",
+				Type:        "file",
+				Placeholder: strings.Repeat("x", DialogElementFileMaxLength),
+			},
+			wantErr: "",
+		},
+
+		"exactly MaxDialogFileIds (10) default IDs passes": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default: NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," +
+					NewId() + "," + NewId() + "," + NewId() + "," + NewId() + "," + NewId(),
+			},
+			wantErr: "",
+		},
+
+		"empty strings in comma-separated list are skipped": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default:       "," + validFileId + ",,",
+			},
+			wantErr: "",
+		},
+
+		"mixed valid and invalid IDs returns error": {
+			element: &DialogElement{
+				DisplayName:   "Multi File Upload",
+				Name:          "multi_file_element",
+				Type:          "file",
+				AllowMultiple: true,
+				Default:       validFileId + ",invalid-id-format",
+			},
+			wantErr: "is not a valid ID",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := tc.element.IsValid()
+			if tc.wantErr == "" {
+				assert.NoError(t, err, name)
+			} else {
+				assert.ErrorContains(t, err, tc.wantErr, name)
+			}
+		})
+	}
+}
+
+func TestDialogElementIsValid_ActionButton(t *testing.T) {
+	t.Run("should pass validation with valid action_button element", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Action Button",
+			Name:        "action_button_element",
+			Type:        "action_button",
+			ActionButton: &DialogActionButton{
+				URL: "https://example.com/action",
+			},
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should fail when ActionButton config is nil", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Action Button",
+			Name:         "action_button_element",
+			Type:         "action_button",
+			ActionButton: nil,
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "action_button configuration")
+	})
+
+	t.Run("should fail when ActionButton URL is empty", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Action Button",
+			Name:        "action_button_element",
+			Type:        "action_button",
+			ActionButton: &DialogActionButton{
+				URL: "",
+			},
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "non-empty URL")
+	})
+
+	t.Run("should fail when ActionButton URL is invalid", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Action Button",
+			Name:        "action_button_element",
+			Type:        "action_button",
+			ActionButton: &DialogActionButton{
+				URL: "not-a-url",
+			},
+		}
+		err := element.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid action_button URL")
 	})
 }

@@ -47,29 +47,29 @@ export type Props = {
         getMembers: (
             id: string,
             page?: number,
-            perPage?: number
+            perPage?: number,
         ) => Promise<ActionResult>;
         getGroupStats: (id: string) => Promise<ActionResult>;
         getGroupSyncables: (
             id: string,
-            syncableType: SyncableType
+            syncableType: SyncableType,
         ) => Promise<ActionResult>;
         link: (
             id: string,
             syncableID: string,
             syncableType: SyncableType,
-            patch: SyncablePatch
+            patch: SyncablePatch,
         ) => Promise<ActionResult>;
         unlink: (
             id: string,
             syncableID: string,
-            syncableType: SyncableType
+            syncableType: SyncableType,
         ) => Promise<ActionResult>;
         patchGroupSyncable: (
             id: string,
             syncableID: string,
             syncableType: SyncableType,
-            patch: Partial<SyncablePatch>
+            patch: Partial<SyncablePatch>,
         ) => Promise<ActionResult>;
         patchGroup: (id: string, patch: GroupPatch) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => {
@@ -312,7 +312,7 @@ export class GroupDetails extends React.PureComponent<Props, State> {
 
     onChangeRoles = (id: string, type: string, schemeAdmin: boolean) => {
         const {
-            rolesToChange = {},
+            rolesToChange: prevRolesToChange = {},
             groupTeams = [],
             groupChannels = [],
         } = this.state;
@@ -321,7 +321,7 @@ export class GroupDetails extends React.PureComponent<Props, State> {
         let stateKey;
 
         const key = `${id}/${type}`;
-        rolesToChange[key] = schemeAdmin;
+        const rolesToChange = {...prevRolesToChange, [key]: schemeAdmin};
 
         if (
             this.syncableTypeFromEntryType(type) === SyncableType.Team
@@ -335,12 +335,14 @@ export class GroupDetails extends React.PureComponent<Props, State> {
             stateKey = 'groupChannels';
         }
 
+        // Items in listToUpdate may originate from the (deep-frozen) Redux store,
+        // so produce a new object instead of mutating scheme_admin in place.
         const updatedItems = listToUpdate.map((item) => {
             if (getId(item) === id) {
-                item.scheme_admin = schemeAdmin;
+                return {...item, scheme_admin: schemeAdmin};
             }
             return item;
-        }); // clone list of objects
+        });
 
         this.setState({
             saveNeeded: true,

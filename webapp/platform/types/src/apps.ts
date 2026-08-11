@@ -29,19 +29,19 @@ export type AppManifest = {
     description?: string;
     requested_permissions?: Permission[];
     requested_locations?: Locations[];
-}
+};
 
 export type AppModalState = {
     form: AppForm;
     call: AppCallRequest;
-}
+};
 
-export type AppCommandFormMap = { [location: string]: AppForm }
+export type AppCommandFormMap = {[location: string]: AppForm};
 
 export type BindingsInfo = {
     bindings: AppBinding[];
     forms: AppCommandFormMap;
-}
+};
 
 export type AppsState = {
     main: BindingsInfo;
@@ -203,7 +203,7 @@ export type AppCallResponse<Res = unknown> = {
 export type AppMetadataForClient = {
     bot_user_id: string;
     bot_username: string;
-}
+};
 
 export type AppContext = {
     app_id: string;
@@ -223,13 +223,14 @@ export type AppContextProps = {
     [name: string]: string;
 };
 
-export type AppExpandLevel = ''
-| 'none'
-| 'summary'
-| '+summary'
-| 'all'
-| '+all'
-| 'id';
+export type AppExpandLevel =
+    '' |
+    'none' |
+    'summary' |
+    '+summary' |
+    'all' |
+    '+all' |
+    'id';
 
 export type AppExpand = {
     app?: AppExpandLevel;
@@ -409,7 +410,7 @@ function isAppFormValue(v: unknown): v is AppFormValue {
     return isAppSelectOption(v);
 }
 
-export type AppFormValues = { [name: string]: AppFormValue };
+export type AppFormValues = {[name: string]: AppFormValue};
 
 export type AppSelectOption = {
     label: string;
@@ -475,6 +476,9 @@ export type AppField = {
     multiselect?: boolean;
     lookup?: AppCall;
 
+    // File props
+    allow_multiple?: boolean;
+
     // Text props
     subtype?: string;
     min_length?: number;
@@ -491,6 +495,10 @@ export type AppField = {
 
     /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
     time_interval?: number;
+
+    // Action button props
+    action_button_url?: string;
+    action_button_context?: Record<string, string>;
 };
 
 /**
@@ -570,6 +578,10 @@ function isAppField(v: unknown): v is AppField {
         return false;
     }
 
+    if (field.allow_multiple !== undefined && typeof field.allow_multiple !== 'boolean') {
+        return false;
+    }
+
     if (field.lookup !== undefined && !isAppCall(field.lookup)) {
         return false;
     }
@@ -637,6 +649,20 @@ function isAppField(v: unknown): v is AppField {
         return false;
     }
 
+    // Validate action button fields
+    if (field.action_button_url !== undefined && typeof field.action_button_url !== 'string') {
+        return false;
+    }
+
+    if (field.action_button_context !== undefined) {
+        if (typeof field.action_button_context !== 'object' || field.action_button_context === null) {
+            return false;
+        }
+        if (!Object.values(field.action_button_context).every((value) => typeof value === 'string')) {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -646,11 +672,11 @@ export type AutocompleteSuggestion = {
     description?: string;
     hint?: string;
     iconData?: string;
-}
+};
 
 export type AutocompleteSuggestionWithComplete = AutocompleteSuggestion & {
     complete: string;
-}
+};
 
 export type AutocompleteElement = AppField;
 export type AutocompleteStaticSelect = AutocompleteElement & {
@@ -667,8 +693,8 @@ export type FormResponseData = {
     errors?: {
         [field: string]: string;
     };
-}
+};
 
 export type AppLookupResponse = {
     items: AppSelectOption[];
-}
+};

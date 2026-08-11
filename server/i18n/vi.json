@@ -7010,18 +7010,6 @@
     "translation": "Cài đặt email có giá trị chưa được đặt."
   },
   {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Không thể kết nối với S3. Xác minh các tham số ủy quyền kết nối Amazon S3 và cài đặt xác thực của bạn."
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Đảm bảo bộ chứa Amazon S3 của bạn có sẵn và xác minh quyền của bộ chứa."
-  },
-  {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Cài đặt lưu trữ tệp có giá trị chưa được đặt."
-  },
-  {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "Không thể tải tập tin lên. ID kênh không chính xác: {{.channelId}}"
   },
@@ -8416,10 +8404,6 @@
   {
     "id": "app.channel.count_urgent_posts_since.app_error",
     "translation": "Không thể đếm các bài viết khẩn cấp kể từ ngày nhất định."
-  },
-  {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Không thể lấy được số lượng kênh."
   },
   {
     "id": "app.channel.get_channels_by_ids.app_error",

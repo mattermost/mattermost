@@ -21,7 +21,7 @@ type Props = {
     onSave: (allowedIPRange: AllowedIPRange, oldIPRange?: AllowedIPRange) => void;
     existingRange?: AllowedIPRange;
     currentIP?: string;
-}
+};
 
 export default function IPFilteringAddOrEditModal({onExited, onSave, existingRange, currentIP}: Props) {
     const {formatMessage} = useIntl();

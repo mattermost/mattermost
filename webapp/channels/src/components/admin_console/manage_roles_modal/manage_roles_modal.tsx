@@ -32,7 +32,7 @@ export type Props = {
     actions: {
         updateUserRoles: (userId: string, roles: string) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     show: boolean;
@@ -42,7 +42,7 @@ type State = {
     hasPostAllPublicRole: boolean;
     hasUserAccessTokenRole: boolean;
     isSystemAdmin: boolean;
-}
+};
 
 function getStateFromProps(props: Props): State {
     const roles = props.user && props.user.roles ? props.user.roles : '';
@@ -346,6 +346,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                 dialogClassName='a11y__modal manage-teams'
                 role='none'
                 aria-labelledby='manageRolesModalLabel'
+                id='manageRolesModal'
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title

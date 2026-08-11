@@ -15,7 +15,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/pb33f/libopenapi"
+	v3high "github.com/pb33f/libopenapi/datamodel/high/v3"
 	"github.com/pkg/errors"
 	"github.com/sajari/fuzzy"
 	"golang.org/x/tools/go/analysis"
@@ -30,7 +31,10 @@ var (
 
 	specFile         string
 	groupSplitRegexp = regexp.MustCompile(`{([a-z_]*):([a-z_]*)\|([a-z_]*)}`)
-	IgnoredCases     = []string{"websocket:websocket", "api/v4/remotecluster"}
+	// Excludes | so group-alternation patterns like {type:a|b} are left intact for splitHandlerByGroup.
+	pathParamConstraintRegex = regexp.MustCompile(`\{([^:}]+):[^|}]+\}`)
+	openAPIParamRegex        = regexp.MustCompile(`\{[^}]+\}`)
+	IgnoredCases             = []string{"{websocket}", "api/v4/remotecluster"}
 )
 
 func init() {
@@ -57,9 +61,45 @@ func stringInSlice(str string, slice []string, partial bool) bool {
 	return false
 }
 
-// cleanRegexp removes parts of URL path regexp to be compatible with OpenAPI paths
+// cleanRegexp strips regex constraints from Go router path parameters so they
+// can be matched against OpenAPI path templates.
+// e.g., "/users/{user_id:[0-9]+}" → "/users/{user_id}"
 func cleanRegexp(s string) string {
-	return strings.ReplaceAll(s, ":[A-Za-z0-9]+", "")
+	return pathParamConstraintRegex.ReplaceAllString(s, "{$1}")
+}
+
+// matchesTemplate returns true if the OpenAPI specPath template matches handlerPath.
+// Spec path parameters (e.g., {foo}) match any single non-slash segment, mirroring
+// the behavior of kin-openapi's Paths.Find().
+func matchesTemplate(specPath, handlerPath string) bool {
+	specParts := strings.Split(strings.Trim(specPath, "/"), "/")
+	handlerParts := strings.Split(strings.Trim(handlerPath, "/"), "/")
+	if len(specParts) != len(handlerParts) {
+		return false
+	}
+	for i, specPart := range specParts {
+		if openAPIParamRegex.MatchString(specPart) {
+			continue
+		}
+		if specPart != handlerParts[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// findPathItem returns the path item matching handlerPath in the spec.
+// It first tries exact key lookup, then falls back to template matching.
+func findPathItem(paths *v3high.Paths, handlerPath string) *v3high.PathItem {
+	if item := paths.PathItems.GetOrZero(handlerPath); item != nil {
+		return item
+	}
+	for specPath, item := range paths.PathItems.FromOldest() {
+		if matchesTemplate(specPath, handlerPath) {
+			return item
+		}
+	}
+	return nil
 }
 
 // splitHandlerByGroup checks if URL path regexp contains named groups, and splits them in separate paths to be compatible with OpenAPI paths
@@ -74,8 +114,31 @@ func splitHandlerByGroup(str string) []string {
 	return []string{strings.Replace(str, group, part1, 1), strings.Replace(str, group, part2, 1)}
 }
 
+// getOperation returns the operation for the given HTTP method on a path item, or nil if not defined.
+func getOperation(pathItem *v3high.PathItem, method string) *v3high.Operation {
+	switch strings.ToUpper(method) {
+	case http.MethodGet:
+		return pathItem.Get
+	case http.MethodPost:
+		return pathItem.Post
+	case http.MethodPut:
+		return pathItem.Put
+	case http.MethodDelete:
+		return pathItem.Delete
+	case http.MethodPatch:
+		return pathItem.Patch
+	case http.MethodHead:
+		return pathItem.Head
+	case http.MethodOptions:
+		return pathItem.Options
+	case http.MethodTrace:
+		return pathItem.Trace
+	}
+	return nil
+}
+
 // processRouterInit checks that all Init functions defined in `names` are properly documented
-func processRouterInit(pass *analysis.Pass, names []string, routerPrefixes map[string]string, swagger *openapi3.T, cm *fuzzy.Model) {
+func processRouterInit(pass *analysis.Pass, names []string, routerPrefixes map[string]string, paths *v3high.Paths, cm *fuzzy.Model) {
 	for _, file := range pass.Files {
 		ast.Inspect(file, func(n ast.Node) bool {
 			decl, ok := n.(*ast.FuncDecl)
@@ -103,14 +166,14 @@ func processRouterInit(pass *analysis.Pass, names []string, routerPrefixes map[s
 					handler = "/" + handler
 				}
 				for _, h := range splitHandlerByGroup(handler) {
-					if path := swagger.Paths.Find(h); path == nil {
+					pathItem := findPathItem(paths, h)
+					if pathItem == nil {
 						suffix := ""
 						if suggestions := cm.Suggestions(h, false); len(suggestions) > 0 {
 							suffix = fmt.Sprintf(" (maybe you meant: %v)", suggestions)
 						}
 						pass.Reportf(aexpr.Pos(), "Cannot find %v method: %v in OpenAPI 3 spec.%s", h, method, suffix)
-
-					} else if path.GetOperation(method) == nil {
+					} else if getOperation(pathItem, method) == nil {
 						pass.Reportf(aexpr.Pos(), "Handler %v is defined with method %s, but it's not in the spec", h, method)
 					}
 				}
@@ -224,21 +287,29 @@ func run(pass *analysis.Pass) (any, error) {
 	if _, err := os.Stat(specFile); err != nil {
 		return nil, errors.Wrapf(err, "spec file does not exist")
 	}
-	swagger, err := openapi3.NewLoader().LoadFromFile(specFile)
+	data, err := os.ReadFile(specFile)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Unable to read spec file")
+	}
+	doc, err := libopenapi.NewDocument(data)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to parse spec file. Expected OpenAPI3 format.")
+	}
+	model, err := doc.BuildV3Model()
+	if err != nil {
+		return nil, errors.Wrapf(err, "Unable to build OpenAPI3 model")
 	}
 
 	initFunctions, routerPrefixes := validateComments(pass)
 
 	var swaggerPaths []string
-	for p := range swagger.Paths.Map() {
+	for p := range model.Model.Paths.PathItems.KeysFromOldest() {
 		swaggerPaths = append(swaggerPaths, p)
 	}
-	model := fuzzy.NewModel()
-	model.Train(swaggerPaths)
+	fuzzyModel := fuzzy.NewModel()
+	fuzzyModel.Train(swaggerPaths)
 
-	processRouterInit(pass, initFunctions, routerPrefixes, swagger, model)
+	processRouterInit(pass, initFunctions, routerPrefixes, model.Model.Paths, fuzzyModel)
 
 	return nil, nil
 }

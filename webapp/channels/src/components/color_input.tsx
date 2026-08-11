@@ -122,23 +122,21 @@ const ColorInput = ({
                 disabled={isDisabled}
                 data-testid='color-inputColorValue'
             />
-            {!isDisabled &&
-                <span
-                    id={`${id}-squareColorIcon`}
-                    className='input-group-addon color-pad'
-                    onClick={togglePicker}
-                    data-testid='color-togglerButton'
-                >
-                    <i
-                        id={`${id}-squareColorIconValue`}
-                        className='color-icon'
-                        data-testid='color-icon'
-                        style={{
-                            backgroundColor: valueFromState,
-                        }}
-                    />
-                </span>
-            }
+            <span
+                id={`${id}-squareColorIcon`}
+                className={`input-group-addon color-pad${isDisabled ? ' color-pad--disabled' : ''}`}
+                onClick={isDisabled ? undefined : togglePicker}
+                data-testid='color-togglerButton'
+            >
+                <i
+                    id={`${id}-squareColorIconValue`}
+                    className='color-icon'
+                    data-testid='color-icon'
+                    style={{
+                        backgroundColor: valueFromState,
+                    }}
+                />
+            </span>
             {isOpened && (
                 <div
                     className='color-popover'

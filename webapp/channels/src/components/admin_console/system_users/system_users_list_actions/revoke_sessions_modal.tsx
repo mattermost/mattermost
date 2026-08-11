@@ -19,7 +19,7 @@ type Props = {
     currentUser: UserProfile;
     onExited: () => void;
     onError: (error: ServerError) => void;
-}
+};
 
 export default function RevokeSessionsModal({user, currentUser, onExited, onError}: Props) {
     const dispatch = useDispatch();

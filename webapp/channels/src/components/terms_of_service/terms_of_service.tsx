@@ -37,7 +37,7 @@ export interface TermsOfServiceProps extends RouteComponentProps {
         getTermsOfService: () => Promise<ActionResult<ReduxTermsOfService>>;
         updateMyTermsOfServiceStatus: (
             termsOfServiceId: string,
-            accepted: boolean
+            accepted: boolean,
         ) => Promise<ActionResult>;
     };
     emojiMap: EmojiMap;

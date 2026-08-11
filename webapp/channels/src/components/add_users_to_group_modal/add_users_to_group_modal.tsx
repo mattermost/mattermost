@@ -26,7 +26,7 @@ export type Props = {
         addUsersToGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
-}
+};
 
 const AddUsersToGroupModal = (props: Props) => {
     const [show, setShow] = useState(true);

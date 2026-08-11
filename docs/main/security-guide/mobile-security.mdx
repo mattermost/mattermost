@@ -1,0 +1,98 @@
+---
+title: "Mobile Security"
+---
+Mattermost mobile is built with a robust security framework to protect user data and prevent unauthorized access. The Mattermost Mobile app's comprehensive security framework ensures that user data remains protected against unauthorized access.
+
+Continuous compliance through [secure SDLC practices and proactive vulnerability management](/deployment-guide/mobile/mobile-security-features#security-compliance) further reinforces the platform’s resilience.
+
+## Mobile Device Management (MDM)
+
+Mattermost supports the ability for an EMM provider to push Mattermost Mobile apps to EMM-enrolled devices. This approach is recommended for organizations that typically use EMM solutions to deploy Mobile apps to meet security and compliance policies. Learn more about [deploying Mattermost mobile using an EMM provider](/deployment-guide/mobile/deploy-mobile-apps-using-emm-provider).
+
+### Remote wipe capability
+
+Administrators can remotely wipe Mattermost data from mobile devices in case of loss or theft. This capability prevents unauthorized access to sensitive information by ensuring that data is erased from compromised devices.
+
+### Compliance policies
+
+Mattermost can be integrated with mobile device management solutions to enforce compliance policies. These policies ensure that mobile devices accessing the application adhere to security standards, such as encryption, password complexity, and device integrity. Learm more about [compliance with Mattermost](/administration-guide/compliance-with-mattermost).
+
+### Mobile access platforms
+
+Mattermost mobile applications can be operated under the protection of mobile access platforms like [Hypori](https://www.hypori.com/). These platforms provide an additional layer of security by creating a virtualized environment for mobile applications, ensuring that sensitive data is isolated from the device's operating system. This approach enhances data protection and minimizes the risk of data leakage or unauthorized access.
+
+## Microsoft Intune Mobile Application Management (MAM)
+
+Mattermost supports Microsoft Intune Mobile Application Management (MAM) to enforce app-level data protection on **iOS** devices without requiring full device enrollment in a mobile device management (MDM) solution. Intune MAM applies security policies directly to the Mattermost mobile app based on user identity, enabling organizations to protect corporate or mission-sensitive data on Bring Your Own Device (BYOD) and mixed-use devices while preserving user privacy.
+
+Intune MAM for Mattermost is currently supported on iOS only. For Android deployments, we recommend using **Android Enterprise work profiles** as an alternative approach until Mattermost adds support for Intune MAM on Android.
+
+Intune MAM enforcement is applied per Mattermost workspace and is evaluated continuously at runtime. If a device becomes non-compliant or enrollment fails, access to protected content is blocked automatically. This approach allows organizations to extend zero-trust and data loss prevention (DLP) controls to mobile users without assuming ownership of the underlying device.
+
+Learn more about the [security capabilities enabled through Intune MAM](/deployment-guide/mobile/mobile-security-features#microsoft-intune-mobile-application-management-mam)).
+
+## Jailbreak and root detection
+
+Jailbreaking or rooting a device disables many built-in security measures, making the device prone to malware and unauthorized access. This protection enables Mattermost administrators to deny access from any mobile device that appears to have been tampered with or is running a non-standard version of the operating system. Additionally, a rooted device may stop checking for software updates and security patches, and it might not be able to install them because the kernel is no longer properly signed.
+
+By detecting such devices, Mattermost ensures that only secure, uncompromised devices can access sensitive data. When enabled by the system admin, this proactive measure ensures the underlying mobile platform operates reliably and performs the expected kernel and operating system security protections before sending any customer data to the Mattermost application, and minimizes risk in environments where personal device security cannot be guaranteed. Learn more about Mattermost [mobile jailbreak and root detection](/deployment-guide/mobile/mobile-security-features#jailbreak-and-root-detection).
+
+## Biometric authentication
+
+Native biometric authentication ensures only the authorized device owner can access the Mattermost application. By utilizing hardware-level security, biometrics significantly enhance data protection, especially in cases of lost or stolen devices. This advanced security measure is far more robust and user-friendly compared to traditional passwords, adding a resilient layer of protection against unauthorized access.
+
+Administrators can mandate biometric authentication each time users attempt to open the Mattermost application, further safeguarding customer data and mitigating risks. Learn more about Mattermost [mobile biometric authentication](/deployment-guide/mobile/mobile-security-features#biometric-authentication), and the [user workflows in which users must authenticate](/administration-guide/configure/environment-configuration-settings#enable-biometric-authentication), when biometric authentication is enabled.
+
+## Screenshot and screen recording prevention
+
+Preventing screenshots and screen recordings protects sensitive information from being inadvertently or maliciously shared. This control is essential in ensuring that confidential communications and data remain within the secure confines of the app. By blocking unauthorized screen captures, Mattermost significantly reduces the risk of data leakage via visual content by preventing users from taking screenshots or recording their screens on the mobile device. This feature ensures that users can not intentionally or inadvertently capture an image of any information shared in Mattermost. Learn more about Mattermost [mobile screenshot and screen recording prevention](/deployment-guide/mobile/mobile-security-features#screenshot-and-screen-recording-prevention).
+
+## App sandboxing and secure data storage
+
+Sandboxing is a critical defense that isolates the application’s data from other apps—even if malicious software is present on the device. This isolation helps maintain user privacy and data integrity by ensuring that only Mattermost has access to its stored data. Learn more about Mattermost [mobile app sandboxing and secure data storage](/deployment-guide/mobile/mobile-security-features#mobile-data-isolation).
+
+Learn more about how Mattermost leverages robust sandboxing mechanisms on both iOS and Android to [securely store files](/deployment-guide/mobile/secure-mobile-file-storage) in its cache folder within the application container, ensuring isolation from unauthorized third-party apps.
+
+## Push notification message visibility
+
+Push notifications are a convenient way to stay updated, but they can also pose security risks if sensitive information is displayed. Mattermost provides options to [control the visibility of message content in push notifications](/administration-guide/configure/push-notification-server-configuration-settings#id-only-push-notifications), ensuring that sensitive information is not inadvertently exposed through locked mobile screens and via relay servers from Apple and Google when sending notifications to iOS or Android mobile apps.
+
+## Disable downloads
+
+Environments with strict data loss prevention (DLP) policies or where sensitive information must not be stored on mobile devices can benefit from disabling file uploads and downloads on mobile devices.
+
+Disabling file uploads adds an additional layer of security by reducing the risk of malware or malicious files being introduced into the system, ensuring tighter control over sensitive corporate data, and preventing accidental leaks from unsecure mobile networks.
+
+Similarly, by disabling downloads, Mattermost ensures that files cannot be saved locally on the device, reducing the risk of unauthorized access or data leakage. Learn more about [disabling mobile uploads](/administration-guide/configure/site-configuration-settings#allow-file-downloads-on-mobile) and [disabling mobile downloads](/administration-guide/configure/site-configuration-settings#allow-file-uploads-on-mobile) in the Mattermost mobile app.
+
+## Secure file preview
+
+For organizations requiring even stricter control over file access on mobile devices, Mattermost provides secure file preview capabilities from Mattermost v10.11. This advanced security feature allows administrators to prevent file downloads, previews, and sharing for most file types while still enabling in-app viewing of essential content such as PDFs, videos, and images.
+
+When secure file preview is enabled, files are stored temporarily in the app's cache and cannot be exported or shared externally. This approach provides a balance between security and usability, ensuring that users can view necessary content without creating potential data leakage pathways.
+
+Additionally, administrators can control link navigation within PDF files when secure file preview mode is active, allowing links to open in the device browser or supported applications as needed.
+
+Learn more about [enabling secure file preview on mobile](/administration-guide/configure/environment-configuration-settings#enable-secure-file-preview-on-mobile) and [allow PDF link navigation on mobile](/administration-guide/configure/environment-configuration-settings#allow-pdf-link-navigation-on-mobile) in the Mattermost mobile app.
+
+## Mobile watermarking
+
+Mobile watermarking is an experimental Enterprise Advanced capability available from Mattermost v11.7 onward that helps organizations identify the source and timing of mobile screenshots or shared screen captures. When enabled by a system admin, authenticated Mattermost mobile sessions display a visible watermark overlay that includes the user's username, the server domain, and the current date and time. This supports data loss prevention (DLP) workflows by attributing any image taken of the Mattermost mobile app to a specific user, server, and point in time.
+
+The mobile watermark is a visual overlay only. It does not prevent screenshots, screen recordings, file exports, or content sharing through other means, and it is not a substitute for screen capture prevention or other mobile security controls. Mobile watermarking is disabled by default.
+
+Learn more about Mattermost [mobile watermarking](/deployment-guide/mobile/mobile-security-features#mobile-watermarking) and how to [enable the experimental Mobile Watermark setting](/administration-guide/configure/experimental-configuration-settings#enable-mobile-watermark).
+
+## Burn-on-read messages
+
+Burn-on-read messages reduce the window of exposure for sensitive content by automatically deleting messages after they are revealed. This approach supports secure, time-bound communication by ensuring that sensitive information doesn't persist on the device longer than necessary.
+
+Administrators can enable burn-on-read messaging and set the burn-on-read duration to align with organizational policies. Learn more about [sending burn-on-read messages](/end-user-guide/collaborate/send-messages#send-burn-on-read-messages) and [enabling burn-on-read messages](/administration-guide/configure/site-configuration-settings#enable-burn-on-read-messages).
+
+## Mobile Ephemeral Mode
+
+Mobile applications typically cache messages, files, and attachments indefinitely. Without data-age controls or a device-side deletion mechanism, a lost or stolen device retains all cached content — and MDM remote wipe cannot help when the device is offline. Mobile Ephemeral Mode addresses this by giving administrators timer-based controls that run on-device, independently of server connectivity, ensuring data is removed based on elapsed time rather than device reachability.
+
+Administrators can configure the maximum age of cached content and how long data persists after a device goes offline. A server-initiated wipe triggered by access revocation removes all data, including credentials, as soon as the device receives the command. Learn more about [Mobile Ephemeral Mode](/deployment-guide/mobile/mobile-security-features#mobile-ephemeral-mode).
+
+[Book a live demo](https://mattermost.com/request-demo/) or [talk to a Mattermost expert](https://mattermost.com/contact-sales/) to explore tailored solutions for your organization's secure collaboration needs. Or try Mattermost yourself with a [1-hour preview](https://mattermost.com/sign-up/) for instant access to a live sandbox environment.

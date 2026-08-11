@@ -6312,10 +6312,6 @@
     "translation": "Немагчыма атрымаць каналы."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Немагчыма атрымаць колькасць каналаў."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Немагчыма атрымаць каналы для дадзенай схемы."
   },
@@ -6454,14 +6450,6 @@
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "Немагчыма загрузіць файл. Няправільны ідэнтыфікатар канала: {{.channelId}}"
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Пераканайцеся, што ваш бакет Amazon S3 даступны, і праверце дазволы на доступ да яго."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Немагчыма падключыцца да S3. Праверце параметры аўтарызацыі і налады аўтэнтыфікацыі для падключэння да Amazon S3."
   },
   {
     "id": "api.file.test_connection.app_error",
@@ -8218,10 +8206,6 @@
   {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "Параметры OnlyThreads і OnlyTotals для getThreadsForUser узаемавыключальныя"
-  },
-  {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Налады сховішча файлаў маюць не зададзеныя значэнні."
   },
   {
     "id": "api.file.test_connection_email_settings_nil.app_error",
@@ -9992,38 +9976,6 @@
     "translation": "Не атрымалася стварыць каталог для выяваў нестандартных эмодзі"
   },
   {
-    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Немагчыма зарэгістраваць групу ўласцівасцей \"Атрыбуты карыстальніцкага профілю\""
-  },
-  {
-    "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Немагчыма атрымаць поле \"Атрыбут карыстальніцкага профілю\""
-  },
-  {
-    "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "Дасягнуты ліміт поля \"Атрыбуты карыстальніцкага профілю\""
-  },
-  {
-    "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Немагчыма атрымаць значэнні атрыбутаў карыстальніцкага профілю"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Немагчыма выдаліць поле \"Атрыбут карыстальніцкага профілю\""
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "Поле \"Атрыбут карыстальніцкага профілю\" не знойдзена"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Немагчыма абнавіць поле \"Атрыбут карыстальніцкага профілю\""
-  },
-  {
-    "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Немагчыма шукаць палі \"Атрыбуты карыстальніцкага профілю\""
-  },
-  {
     "id": "app.file_info.delete_for_post_ids.app_error",
     "translation": "Не атрымалася выдаліць запытаныя файлы з базы дадзеных"
   },
@@ -10084,10 +10036,6 @@
     "translation": "Няправільнае значэнне ўласцівасці: {{.FieldName}} ({{.Reason}})."
   },
   {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "Ваша ліцэнзія не падтрымлівае атрыбуты карыстальніцкага профілю."
-  },
-  {
     "id": "api.command.execute_command.deleted.error",
     "translation": "Немагчыма выканаць каманду ў выдаленым канале."
   },
@@ -10118,14 +10066,6 @@
   {
     "id": "api.context.get_session.app_error",
     "translation": "Сеанс не знойдзены."
-  },
-  {
-    "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Немагчыма падлічыць колькасць палёў для групы атрыбутаў карыстальніцкага профілю"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Немагчыма дадаць/абнавіць палі атрыбутаў карыстальніцкага профілю"
   },
   {
     "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
@@ -10196,10 +10136,6 @@
     "translation": "Немагчыма пераўтварыць поле ўласцівасці ў поле атрыбута карыстальніцкага профілю"
   },
   {
-    "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
-    "translation": "Няправільныя атрыбуты значэнняў уласцівасцей: {{.AttributeName}} ({{.Reason}})."
-  },
-  {
     "id": "model.access_policy.is_valid.id.app_error",
     "translation": "Няправільны ідэнтыфікатар палітыкі."
   },
@@ -10242,14 +10178,6 @@
   {
     "id": "model.config.is_valid.elastic_search.incorrect_search_prefix.app_error",
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} павінен быць прэфіксам IndexPrefix {{.IndexPrefix}}."
-  },
-  {
-    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Немагчыма выдаліць значэнні атрыбутаў карыстальніцкага профілю для карыстальніка"
-  },
-  {
-    "id": "app.custom_profile_attributes.validate_value.app_error",
-    "translation": "Не атрымалася праверыць значэнне ўласцівасці"
   },
   {
     "id": "ent.ldap.cpa_field_mapping.list_error",
@@ -10338,10 +10266,6 @@
   {
     "id": "model.config.is_valid.report_a_problem_mail.missing.app_error",
     "translation": "Адрас электроннай пошты для паведамлення пра праблему абавязковы."
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Немагчыма абнавіць значэнне для сінхранізаванага поля атрыбута карыстальніцкага профілю"
   },
   {
     "id": "api.access_control_policy.get_channels.limit.app_error",
@@ -10648,10 +10572,6 @@
     "translation": "У вас няма дазволу кіраваць гэтай палітыкай кантролю доступу."
   },
   {
-    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Немагчыма абнавіць значэнне для поля карыстальніцкага атрыбута профілю, кіраванага адміністратарам"
-  },
-  {
     "id": "model.config.is_valid.client_side_cert_enable.app_error",
     "translation": "Аўтэнтыфікацыя на аснове сертыфікатаў была выдалена. Каб працягнуць, адключыце ClientSideCertEnable."
   },
@@ -10838,10 +10758,6 @@
   {
     "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
     "translation": "Карыстальнік, створаны ШІ, павінен быць стваральнікам паведамлення або ботам."
-  },
-  {
-    "id": "app.custom_profile_attributes.patch_field.app_error",
-    "translation": "Немагчыма абнавіць поле карыстальніцкага атрыбута профілю"
   },
   {
     "id": "app.post.rewrite.agent_call_failed",

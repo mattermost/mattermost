@@ -1458,7 +1458,218 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 		require.Contains(t, appErr.Id, "client_id_mismatch")
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
+
+	t.Run("RefreshToken_InvalidatesOldTokenInCache", func(t *testing.T) {
+		oapp := createConfidentialOAuthApp("TestCacheInvalidation")
+		code := getAuthorizationCode(oapp, "")
+
+		// Get initial access token (newSession adds it to the session cache).
+		initialResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			oapp.Id,
+			model.AccessTokenGrantType,
+			oapp.CallbackUrls[0],
+			code,
+			oapp.ClientSecret,
+			"",
+			"",
+			"",
+		)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, initialResp.AccessToken)
+		require.NotEmpty(t, initialResp.RefreshToken)
+
+		oldToken := initialResp.AccessToken
+
+		// Confirm the old session is reachable (from cache or DB).
+		_, appErr = th.App.GetSession(oldToken)
+		require.Nil(t, appErr, "old token should be valid before refresh")
+
+		// Rotate the token.
+		newResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			oapp.Id,
+			model.RefreshTokenGrantType,
+			oapp.CallbackUrls[0],
+			"",
+			oapp.ClientSecret,
+			initialResp.RefreshToken,
+			"",
+			"",
+		)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, newResp.AccessToken)
+		require.NotEqual(t, oldToken, newResp.AccessToken)
+
+		// The old token must be rejected immediately, the session cache must
+		// have been cleared so the removed DB row is not masked.
+		_, appErr = th.App.GetSession(oldToken)
+		require.NotNil(t, appErr, "old token must be invalid after refresh")
+
+		// The new token must still be accepted.
+		_, appErr = th.App.GetSession(newResp.AccessToken)
+		require.Nil(t, appErr, "new token must remain valid after refresh")
+	})
 }
+
+func TestOAuthRefreshTokenGrantRejectsDeactivatedUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	oapp := &model.OAuthApp{
+		Name:         "RefreshGrantDeactivated_" + model.NewRandomString(10),
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: model.NewId(),
+	}
+	oapp, appErr := th.App.CreateOAuthApp(oapp)
+	require.Nil(t, appErr)
+
+	user := th.CreateUser(t)
+
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.AuthCodeResponseType,
+		ClientId:     oapp.Id,
+		RedirectURI:  oapp.CallbackUrls[0],
+		Scope:        "user",
+		State:        "test_state",
+	}
+
+	redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, user.Id, authRequest)
+	require.Nil(t, appErr)
+
+	uri, parseErr := url.Parse(redirectURL)
+	require.NoError(t, parseErr)
+	code := uri.Query().Get("code")
+	require.NotEmpty(t, code)
+
+	tokenResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+		th.Context,
+		oapp.Id,
+		model.AccessTokenGrantType,
+		oapp.CallbackUrls[0],
+		code,
+		oapp.ClientSecret,
+		"",
+		"",
+		"",
+	)
+	require.Nil(t, appErr)
+	require.NotEmpty(t, tokenResp.AccessToken)
+	require.NotEmpty(t, tokenResp.RefreshToken)
+
+	require.NoError(t, th.App.Srv().Store().Session().Remove(tokenResp.AccessToken))
+
+	_, appErr = th.App.UpdateActive(th.Context, user, false)
+	require.Nil(t, appErr)
+
+	refreshResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+		th.Context,
+		oapp.Id,
+		model.RefreshTokenGrantType,
+		oapp.CallbackUrls[0],
+		"",
+		oapp.ClientSecret,
+		tokenResp.RefreshToken,
+		"",
+		"",
+	)
+	require.NotNil(t, appErr, "refresh token grant must fail for an inactive user")
+	require.Nil(t, refreshResp)
+}
+
+func TestOAuthImplicitGrantRejectsDeactivatedUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	oapp := &model.OAuthApp{
+		Name:         "ImplicitGrantDeactivated_" + model.NewRandomString(10),
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: model.NewId(),
+	}
+	oapp, appErr := th.App.CreateOAuthApp(oapp)
+	require.Nil(t, appErr)
+
+	user := th.CreateUser(t)
+
+	_, appErr = th.App.UpdateActive(th.Context, user, false)
+	require.Nil(t, appErr)
+
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.ImplicitResponseType,
+		ClientId:     oapp.Id,
+		RedirectURI:  oapp.CallbackUrls[0],
+		Scope:        "user",
+		State:        "test_state",
+	}
+
+	session, appErr := th.App.GetOAuthAccessTokenForImplicitFlow(th.Context, user.Id, authRequest)
+	require.NotNil(t, appErr, "implicit grant must fail for an inactive user")
+	require.Nil(t, session)
+
+	accessData, sErr := th.App.Srv().Store().OAuth().GetAccessDataByUserForApp(user.Id, oapp.Id)
+	require.NoError(t, sErr)
+	require.Empty(t, accessData, "no access data may be persisted for an inactive user")
+}
+
+func TestSwitchOAuthToEmail(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	setupOAuthUser := func(t *testing.T) *model.User {
+		t.Helper()
+
+		authData := model.NewId()
+		_, err := th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &authData, th.BasicUser.Email, true)
+		require.NoError(t, err)
+		th.App.InvalidateCacheForUser(th.BasicUser.Id)
+
+		user, appErr := th.App.GetUser(th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.UserAuthServiceGitlab, user.AuthService)
+
+		return user
+	}
+
+	t.Run("rejects integration session", func(t *testing.T) {
+		user := setupOAuthUser(t)
+
+		rctx := th.Context.WithSession(&model.Session{UserId: user.Id, Id: model.NewId(), IsOAuth: true})
+
+		_, appErr := th.App.SwitchOAuthToEmail(rctx, user.Email, model.NewTestPassword(), user.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.user.oauth_to_email.integration_session.app_error", appErr.Id)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+
+		user, appErr = th.App.GetUser(user.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.UserAuthServiceGitlab, user.AuthService)
+	})
+
+	t.Run("allows regular session", func(t *testing.T) {
+		user := setupOAuthUser(t)
+
+		rctx := th.Context.WithSession(&model.Session{UserId: user.Id, Id: model.NewId()})
+
+		link, appErr := th.App.SwitchOAuthToEmail(rctx, user.Email, model.NewTestPassword(), user.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "/login?extra=signin_change", link)
+
+		user, appErr = th.App.GetUser(user.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, user.AuthService)
+	})
+}
+
 func TestParseOAuthStateTokenExtra(t *testing.T) {
 	t.Run("valid token with normal values", func(t *testing.T) {
 		email, action, cookie, err := parseOAuthStateTokenExtra("user@example.com:email_to_sso:randomcookie123")

@@ -5,22 +5,30 @@ package app
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
+
+// shortCPUProfileDuration keeps GenerateSupportPacket calls fast in tests
+// that don't care about the CPU profile's contents.
+var shortCPUProfileDuration = model.NewPointer(100 * time.Millisecond)
 
 func TestGenerateSupportPacket(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -85,7 +93,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	t.Run("generate Support Packet with logs", func(t *testing.T) {
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: true,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        true,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -94,7 +103,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	t.Run("generate Support Packet without logs", func(t *testing.T) {
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
 		})
 
 		rFileNames := getFileNames(t, fileDatas)
@@ -108,7 +118,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		t.Cleanup(genMockLogFiles)
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: true,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        true,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -142,6 +153,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		mockStore.On("TotalMasterDbConnections").Return(30)
 		mockStore.On("TotalReadDbConnections").Return(20)
 		mockStore.On("TotalSearchDbConnections").Return(10)
+		mockStore.On("GetInternalMasterDB").Return((*sql.DB)(nil))
+		mockStore.On("GetDiagnostics", mock.Anything).Return(&store.DatabaseDiagnostics{}, nil)
 		mockStore.On("GetSchemaDefinition").Return(&model.SupportPacketDatabaseSchema{
 			Tables: []model.DatabaseTable{},
 		}, nil)
@@ -153,7 +166,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		th.App.Srv().SetStore(&mockStore)
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -194,7 +208,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -210,8 +225,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs:   false,
-			PluginPackets: []string{pluginID},
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
+			PluginPackets:      []string{pluginID},
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -227,7 +243,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -250,7 +267,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
 		})
 
 		found := false

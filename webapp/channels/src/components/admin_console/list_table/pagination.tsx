@@ -8,10 +8,10 @@ import type {TableMeta} from './list_table';
 
 interface Props
     extends Pick<TableMeta,
-    | 'onPreviousPageClick'
-    | 'onNextPageClick'
-    | 'disablePrevPage'
-    | 'disableNextPage'
+    'onPreviousPageClick' |
+    'onNextPageClick' |
+    'disablePrevPage' |
+    'disableNextPage'
     > {
     isLoading?: boolean;
 }

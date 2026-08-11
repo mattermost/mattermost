@@ -87,3 +87,13 @@ func (s LocalCacheWebhookStore) PermanentDeleteIncomingByChannel(channelId strin
 	s.ClearCaches()
 	return nil
 }
+
+func (s LocalCacheWebhookStore) UpdateIncomingLastUsed(webhookID string, lastUsed int64) error {
+	err := s.WebhookStore.UpdateIncomingLastUsed(webhookID, lastUsed)
+	if err != nil {
+		return err
+	}
+
+	s.InvalidateWebhookCache(webhookID)
+	return nil
+}

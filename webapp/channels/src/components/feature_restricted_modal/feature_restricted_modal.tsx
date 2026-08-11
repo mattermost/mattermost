@@ -35,10 +35,10 @@ type FeatureRestrictedModalProps = {
     messageAdminPostTrial?: string;
     titleEndUser?: string;
     messageEndUser?: string;
-    customSecondaryButton?: { msg: string; action: () => void };
+    customSecondaryButton?: {msg: string; action: () => void};
     feature?: string;
     minimumPlanRequiredForFeature?: string;
-}
+};
 
 const FeatureRestrictedModal = ({
     titleAdminPreTrial,

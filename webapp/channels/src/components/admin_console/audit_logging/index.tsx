@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ComponentType} from 'react';
 import React from 'react';
 import {useIntl} from 'react-intl';
 
@@ -64,24 +63,8 @@ const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => 
         uploadAuditCertificate(file, successCallback, errorCallback);
     };
 
-    const withTooltip = <P extends object>(Component: ComponentType<P>, tooltipText: string): React.FC<P> => {
-        if (disabled || installationStatus === 'stable') {
-            return (props: P) => <Component {...props}/>;
-        }
-
-        return (props: P) => (
-            <WithTooltip title={tooltipText}>
-                <div>
-                    <Component {...props}/>
-                </div>
-            </WithTooltip>
-        );
-    };
-
+    const disableTooltip = disabled || installationStatus === 'stable';
     const tooltipText = formatMessage({id: 'admin.audit_logging_experimental.certificate.tooltip', defaultMessage: 'A previous update is still in progress. Please wait.'});
-
-    const WrappedRemoveFileSetting = withTooltip(RemoveFileSetting, tooltipText);
-    const WrappedFileUploadSetting = withTooltip(FileUploadSetting, tooltipText);
 
     if (fileValue) {
         const removeFile = (id: string, callback: () => void) => {
@@ -100,17 +83,22 @@ const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => 
             removeAction(successCallback, errorCallback);
         };
         return (
-            <WrappedRemoveFileSetting
-                id={id}
-                label={label}
-                helpText={formatMessage({id: 'admin.audit_logging_experimental.certificate.remove_help_text', defaultMessage: 'Remove the certificate used for audit logging encryption.'})}
-                removeButtonText={formatMessage({id: 'admin.audit_logging_experimental.certificate.remove_button', defaultMessage: 'Remove Certificate'})}
-                removingText={formatMessage({id: 'admin.audit_logging_experimental.certificate.removing', defaultMessage: 'Removing Certificate...'})}
-                fileName={fileValue}
-                onSubmit={removeFile}
-                disabled={disabled || installationStatus !== 'stable'}
-                setByEnv={setByEnv}
-            />
+            <WithConditionalTooltip
+                disableTooltip={disableTooltip}
+                tooltipText={tooltipText}
+            >
+                <RemoveFileSetting
+                    id={id}
+                    label={label}
+                    helpText={formatMessage({id: 'admin.audit_logging_experimental.certificate.remove_help_text', defaultMessage: 'Remove the certificate used for audit logging encryption.'})}
+                    removeButtonText={formatMessage({id: 'admin.audit_logging_experimental.certificate.remove_button', defaultMessage: 'Remove Certificate'})}
+                    removingText={formatMessage({id: 'admin.audit_logging_experimental.certificate.removing', defaultMessage: 'Removing Certificate...'})}
+                    fileName={fileValue}
+                    onSubmit={removeFile}
+                    disabled={disabled || installationStatus !== 'stable'}
+                    setByEnv={setByEnv}
+                />
+            </WithConditionalTooltip>
         );
     }
 
@@ -133,17 +121,42 @@ const AuditLoggingCertificateUploadSetting: React.FC<Props> = (props: Props) => 
     };
 
     return (
-        <WrappedFileUploadSetting
-            id={id}
-            label={label}
-            helpText={helpText}
-            uploadingText={formatMessage({id: 'admin.audit_logging_experimental.certificate.uploading', defaultMessage: 'Uploading Certificate...'})}
-            disabled={disabled || installationStatus !== 'stable'}
-            fileType={'.crt,.cer,.cert,.pem'}
-            onSubmit={uploadFile}
-            error={fileError || undefined} //now passes local error state
-        />
+        <WithConditionalTooltip
+            disableTooltip={disableTooltip}
+            tooltipText={tooltipText}
+        >
+            <FileUploadSetting
+                id={id}
+                label={label}
+                helpText={helpText}
+                uploadingText={formatMessage({id: 'admin.audit_logging_experimental.certificate.uploading', defaultMessage: 'Uploading Certificate...'})}
+                disabled={disabled || installationStatus !== 'stable'}
+                fileType={'.crt,.cer,.cert,.pem'}
+                onSubmit={uploadFile}
+                error={fileError || undefined} //now passes local error state
+            />
+        </WithConditionalTooltip>
     );
 };
+
+interface WithConditionalTooltipProps {
+    children: React.ReactNode;
+    disableTooltip: boolean;
+    tooltipText: string;
+}
+
+function WithConditionalTooltip({children, disableTooltip, tooltipText}: WithConditionalTooltipProps) {
+    if (disableTooltip) {
+        return children;
+    }
+
+    return (
+        <WithTooltip title={tooltipText}>
+            <div>
+                {children}
+            </div>
+        </WithTooltip>
+    );
+}
 
 export default AuditLoggingCertificateUploadSetting;

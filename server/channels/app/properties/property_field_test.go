@@ -1570,4 +1570,20 @@ func TestOptionsChanged(t *testing.T) {
 		updated := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "disabled": true}]}`)
 		assert.True(t, optionsChanged(old, updated))
 	})
+
+	t.Run("non-[]any option slice returns nil (treated as no options)", func(t *testing.T) {
+		// Producers in this codebase normalize attrs["options"] to []any of
+		// map[string]any (see EnsureOptionIDs, AccessControlAttributeValidationHook.
+		// sanitizeAndValidateOptions). If a non-canonical shape ever sneaks in,
+		// asOptionSlice returns nil, which makes optionsChanged report "changed"
+		// against any populated side — the safe failure mode that surfaces the
+		// contract violation instead of silently passing.
+		dbForm := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}]}`)
+		nonCanonical := model.StringInterface{
+			model.PropertyFieldAttributeOptions: model.PropertyOptions[*model.CustomProfileAttributesSelectOption]{
+				{ID: optID1, Name: "A"},
+			},
+		}
+		assert.True(t, optionsChanged(dbForm, nonCanonical))
+	})
 }

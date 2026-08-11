@@ -53,9 +53,7 @@ test.describe('Permission Policies - Create Policy', () => {
         await expect(systemConsolePage.page.getByText('Permissions evaluation order', {exact: false})).toBeVisible();
     });
 
-    test('MM-T5806 create policy form shows role dropdown defaulting to Members and system administrators', async ({
-        pw,
-    }) => {
+    test('MM-T5806 create policy form shows role dropdown defaulting to Members', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient} = await pw.initSetup();
         await ensureUserAttributes(adminClient);
@@ -71,10 +69,17 @@ test.describe('Permission Policies - Create Policy', () => {
             systemConsolePage.page.getByText('Select a role from the predefined list of system roles'),
         ).toBeVisible();
 
-        // * The dropdown button is visible and shows the default role (system_user = "Members and system administrators")
+        // * The dropdown button is visible and shows the default role
+        //   (system_user). The label was shortened from "Members and
+        //   system administrators" to just "Members" in the UX pass;
+        //   the "system admins fall back when no admin-specific rule
+        //   exists" semantics moved into the role's description copy.
+        //   Use an exact-text matcher so a regression to the longer
+        //   "Members and system administrators" label fails the test
+        //   instead of silently passing the substring check.
         const roleButton = systemConsolePage.page.locator('#pp-role-selector-btn');
         await expect(roleButton).toBeVisible();
-        await expect(roleButton).toContainText('Members and system administrators');
+        await expect(roleButton).toHaveText('Members');
     });
 
     test('MM-T5807 admin can change role selection to System administrators via dropdown', async ({pw}) => {

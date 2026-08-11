@@ -9,7 +9,7 @@ type Props = {
     loading?: React.ReactNode;
     progress?: number;
     containerClass?: string;
-}
+};
 
 const LoadingImagePreview: React.FC<Props> = ({
     loading,

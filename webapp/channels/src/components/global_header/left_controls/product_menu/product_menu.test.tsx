@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TopLevelProducts} from 'utils/constants';
 import * as productUtils from 'utils/products';
 import {TestHelper} from 'utils/test_helper';
@@ -148,6 +148,43 @@ describe('components/global/product_switcher', () => {
         expect(container).toMatchSnapshot();
     });
 
+    it('hides a team-scoped product when there is no current team', () => {
+        const state = {
+            ...baseState,
+            views: {...baseState.views, productMenu: {switcherOpen: true}},
+        };
+
+        const globalProduct = TestHelper.makeProduct('Boards');
+        const teamScopedProduct = {...TestHelper.makeProduct('Spaces'), switcherLinkURL: '/spaces', isTeamScoped: true};
+        jest.spyOn(productUtils, 'useProducts').mockReturnValue([globalProduct, teamScopedProduct]);
+
+        renderWithContext(<ProductMenu/>, state);
+
+        expect(screen.getByText('Boards')).toBeInTheDocument();
+        expect(screen.queryByText('Spaces')).not.toBeInTheDocument();
+        expect(screen.getAllByRole('menuitem')).toHaveLength(2);
+    });
+
+    it('shows a team-scoped product with a team-prefixed destination when there is a current team', () => {
+        const team = TestHelper.getTeamMock({id: 'team1', name: 'myteam'});
+        const state = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                teams: {currentTeamId: 'team1', teams: {team1: team}},
+            },
+            views: {...baseState.views, productMenu: {switcherOpen: true}},
+        };
+
+        const teamScopedProduct = {...TestHelper.makeProduct('Spaces'), switcherLinkURL: '/spaces', isTeamScoped: true};
+        jest.spyOn(productUtils, 'useProducts').mockReturnValue([teamScopedProduct]);
+
+        const {container} = renderWithContext(<ProductMenu/>, state);
+
+        expect(screen.getByText('Spaces')).toBeInTheDocument();
+        expect(container.querySelector('#product-menu-item-Spaces')).toHaveAttribute('href', '/myteam/spaces');
+    });
+
     it('should have an active button state when the switcher menu is open', () => {
         const state = {
             ...baseState,
@@ -282,6 +319,170 @@ describe('components/global/product_switcher', () => {
 
         expect(screen.getByTestId('product-branding')).toBeInTheDocument();
         expect(screen.queryByTestId('product-branding-free-edition')).not.toBeInTheDocument();
+    });
+
+    it('renders registered ProductSwitcherMenuItems that are not hidden', () => {
+        const action = jest.fn();
+        const state = {
+            ...baseState,
+            views: {...baseState.views, productMenu: {switcherOpen: true}},
+            plugins: {
+                components: {
+                    ProductSwitcherMenuItem: [
+                        {id: 'item-1', pluginId: 'test-plugin', text: 'My Plugin Item', icon: 'globe', action},
+                    ],
+                },
+            },
+        };
+
+        renderWithContext(<ProductMenu/>, state);
+
+        expect(screen.getByText('My Plugin Item')).toBeInTheDocument();
+    });
+
+    it('hides ProductSwitcherMenuItems where isHidden returns true', () => {
+        const state = {
+            ...baseState,
+            views: {...baseState.views, productMenu: {switcherOpen: true}},
+            plugins: {
+                components: {
+                    ProductSwitcherMenuItem: [
+                        {
+                            id: 'item-1',
+                            pluginId: 'test-plugin',
+                            text: 'Hidden Item',
+                            icon: 'globe',
+                            action: jest.fn(),
+                            isHidden: () => true,
+                        },
+                    ],
+                },
+            },
+        };
+
+        renderWithContext(<ProductMenu/>, state);
+
+        expect(screen.queryByText('Hidden Item')).not.toBeInTheDocument();
+    });
+
+    it('passes full Redux state to isHidden', () => {
+        const isHidden = jest.fn(() => false);
+        const state = {
+            ...baseState,
+            views: {...baseState.views, productMenu: {switcherOpen: true}},
+            plugins: {
+                components: {
+                    ProductSwitcherMenuItem: [
+                        {id: 'item-1', pluginId: 'test-plugin', text: 'Gated Item', icon: 'globe', action: jest.fn(), isHidden},
+                    ],
+                },
+            },
+        };
+
+        renderWithContext(<ProductMenu/>, state);
+
+        expect(screen.getByText('Gated Item')).toBeInTheDocument();
+        expect(isHidden).toHaveBeenCalledWith(
+            expect.objectContaining({
+                entities: expect.any(Object),
+                plugins: expect.any(Object),
+            }),
+        );
+    });
+
+    it('renders no separator when all items are hidden by isHidden', () => {
+        const state = {
+            ...baseState,
+            views: {...baseState.views, productMenu: {switcherOpen: true}},
+            plugins: {
+                components: {
+                    ProductSwitcherMenuItem: [
+                        {
+                            id: 'item-1',
+                            pluginId: 'test-plugin',
+                            text: 'Hidden Item',
+                            icon: 'globe',
+                            action: jest.fn(),
+                            isHidden: () => true,
+                        },
+                    ],
+                },
+            },
+        };
+
+        renderWithContext(<ProductMenu/>, state);
+
+        expect(screen.queryByRole('separator')).toBeNull();
+    });
+
+    it('hides ProductSwitcherMenuItems where isHidden throws', () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const state = {
+            ...baseState,
+            views: {...baseState.views, productMenu: {switcherOpen: true}},
+            plugins: {
+                components: {
+                    ProductSwitcherMenuItem: [
+                        {
+                            id: 'item-1',
+                            pluginId: 'test-plugin',
+                            text: 'Throwing Item',
+                            icon: 'globe',
+                            action: jest.fn(),
+                            isHidden: () => {
+                                throw new Error('test error');
+                            },
+                        },
+                    ],
+                },
+            },
+        };
+
+        renderWithContext(<ProductMenu/>, state);
+
+        expect(screen.queryByText('Throwing Item')).not.toBeInTheDocument();
+        consoleSpy.mockRestore();
+    });
+
+    it('calls action and closes menu on item click', async () => {
+        const action = jest.fn();
+        const state = {
+            ...baseState,
+            views: {...baseState.views, productMenu: {switcherOpen: true}},
+            plugins: {
+                components: {
+                    ProductSwitcherMenuItem: [
+                        {id: 'item-1', pluginId: 'test-plugin', text: 'Clickable Item', icon: 'globe', action},
+                    ],
+                },
+            },
+        };
+
+        renderWithContext(<ProductMenu/>, state);
+
+        const item = screen.getByText('Clickable Item');
+        await userEvent.click(item);
+
+        expect(action).toHaveBeenCalledTimes(1);
+        await waitFor(() => expect(screen.queryByText('Clickable Item')).not.toBeInTheDocument());
+    });
+
+    it('should match snapshot with a registered ProductSwitcherMenuItem', () => {
+        const state = {
+            ...baseState,
+            views: {...baseState.views, productMenu: {switcherOpen: true}},
+            plugins: {
+                components: {
+                    ProductSwitcherMenuItem: [
+                        {id: 'item-1', pluginId: 'test-plugin', text: 'Create Encrypted Channel', icon: 'shield-outline', action: jest.fn()},
+                    ],
+                },
+            },
+        };
+
+        const {container} = renderWithContext(<ProductMenu/>, state);
+
+        expect(container).toMatchSnapshot();
     });
 
     it('should match snapshot for Entry license', () => {

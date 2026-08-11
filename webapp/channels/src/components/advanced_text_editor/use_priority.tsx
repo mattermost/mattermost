@@ -29,7 +29,7 @@ const usePriority = (
     draft: PostDraft,
     channelId: string,
     rootId: string,
-    handleDraftChange: ((draft: PostDraft, options: { instant?: boolean; show?: boolean }) => void),
+    handleDraftChange: ((draft: PostDraft, options: {instant?: boolean; show?: boolean}) => void),
     focusTextbox: (keepFocus?: boolean) => void,
     shouldShowPreview: boolean,
     showIndividualCloseButton = true,

@@ -22,7 +22,7 @@ type Props = {
 
     // The configured duration in minutes for BoR messages
     durationMinutes: number;
-}
+};
 
 const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes}: Props) => {
     const {formatMessage} = useIntl();

@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import UserDetail from '../user_detail';
 
 import {ColumnToggleMenu, DateRangeMenu, FilterMenu, FilterPopover} from './menus';
 import {ManageRolesModal, ResetPasswordModal, UpdateEmailModal} from './modals';
-import {UsersTable} from './users_table';
+import {UsersTable, waitForUsersReportResponse} from './users_table';
 
 import {ConfirmModal} from '@/ui/components/system_console/base_modal';
 
@@ -71,7 +72,7 @@ export default class Users {
 
         // Modals
         this.confirmModal = new ConfirmModal(this.page.locator('#confirmModal'));
-        this.manageRolesModal = new ManageRolesModal(this.page.locator('.manage-teams'));
+        this.manageRolesModal = new ManageRolesModal(this.page.locator('#manageRolesModal'));
         this.resetPasswordModal = new ResetPasswordModal(this.page.locator('#resetPasswordModal'));
         this.updateEmailModal = new UpdateEmailModal(this.page.locator('#resetEmailModal'));
 
@@ -90,15 +91,15 @@ export default class Users {
 
         this.columnToggleMenu = new ColumnToggleMenu(this.page.locator('#systemUsersColumnTogglerMenu'));
         this.filterPopover = new FilterPopover(this.page.locator('#systemUsersFilterPopover'));
-        this.roleFilterMenu = new FilterMenu(this.page.locator('.DropDown__menu'));
-        this.statusFilterMenu = new FilterMenu(this.page.locator('.DropDown__menu'));
+        this.roleFilterMenu = new FilterMenu(this.page.getByTestId('dropdownMenu').first());
+        this.statusFilterMenu = new FilterMenu(this.page.getByTestId('dropdownMenu').first());
         this.dateRangeMenu = new DateRangeMenu(this.page.locator('#systemUsersDateRangeSelectorMenu'));
 
-        const footer = container.locator('.adminConsoleListTabletOptionalFoot');
-        this.paginationInfo = footer.locator('span').first();
+        const footer = container.getByTestId('listTableFoot');
+        this.paginationInfo = footer.getByTestId('listTableFoot-paginationInfo');
         this.previousPageButton = footer.getByRole('button', {name: 'Go to previous page'});
         this.nextPageButton = footer.getByRole('button', {name: 'Go to next page'});
-        this.rowsPerPageSelector = footer.locator('.adminConsoleListTablePageSize .react-select');
+        this.rowsPerPageSelector = footer.getByTestId('listTableFoot-pageSize').getByRole('combobox');
     }
 
     async toBeVisible() {
@@ -117,8 +118,11 @@ export default class Users {
      * Search for users by typing in the search input
      */
     async searchUsers(searchTerm: string) {
+        const responsePromise = waitForUsersReportResponse(this.page);
         await this.searchInput.fill(searchTerm);
-        await this.isLoadingComplete();
+        // SystemUsersSearch debounces dispatch by 500ms before fetching.
+        await responsePromise;
+        await expect(this.usersTable.getColumnHeader('User details')).toBeEnabled();
     }
 
     /**

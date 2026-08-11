@@ -146,6 +146,7 @@ exports[`components/TeamMembersModal should match snapshot 1`] = `
                               >
                                 <div
                                   class="loading-screen"
+                                  data-testid="loading-screen"
                                   style="position: relative;"
                                 >
                                   <div

@@ -1,16 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {UserAccessToken, UserProfile} from '@mattermost/types/users';
+import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 import authenticator from 'authenticator';
-
 
 import {getRandomId, newTestPassword} from '../../utils';
 import {getAdminAccount} from '../env';
 
 import {buildQueryString} from './helpers';
 
-import {ChainableT} from '@/types';
+import type {ChainableT} from '@/types';
 
 // *****************************************************************************
 // Users

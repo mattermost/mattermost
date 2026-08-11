@@ -5,11 +5,13 @@ import * as monaco from 'monaco-editor';
 import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import type {AccessControlTestResult} from '@mattermost/types/access_control';
+import type {AccessControlTestResult, CELExpressionError} from '@mattermost/types/access_control';
+import {SESSION_ATTRIBUTES_OBJECT_TYPE, USER_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {MonacoLanguageProvider} from './language_provider';
 
@@ -25,6 +27,7 @@ const MONACO_EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions 
     extraEditorClassName: 'policyEditor',
     language: POLICY_LANGUAGE,
     automaticLayout: true,
+    fixedOverflowWidgets: true,
     minimap: {enabled: false},
     lineNumbers: 'off',
     scrollBeyondLastLine: false,
@@ -67,7 +70,57 @@ const MONACO_EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions 
     contextmenu: false,
 };
 
-interface CELEditorProps {
+type CELUserAttribute = {
+    attribute: string;
+    values: string[];
+
+    // 'session' marks a user.session.* attribute; 'user' marks a user.* /
+    // user.attributes.* attribute. Always populated by toCELEditorAttributes.
+    objectType?: string;
+
+    // Native user attributes (e.g. user.email) complete directly off `user.`
+    // rather than under `user.attributes.`.
+    isNative?: boolean;
+};
+
+// Builds the Monaco autocomplete schema. CPA/user attributes are offered under
+// user.attributes.*; enabled session attributes (objectType 'session') are
+// offered under user.session.* — the session bucket only appears when present.
+// Native attributes (isNative) complete directly off user.* (e.g. user.email).
+export function buildCELSchemas(userAttributes: CELUserAttribute[]): Record<string, string[]> {
+    const cleanNames = (attrs: CELUserAttribute[]) => attrs.
+        map((attr) => attr.attribute).
+        filter((name) => !name.includes(' ') && name.trim() !== '');
+    const sessionAttrNames = cleanNames(userAttributes.filter((attr) => attr.objectType === SESSION_ATTRIBUTES_OBJECT_TYPE));
+    const userAttrs = userAttributes.filter((attr) => !attr.objectType || attr.objectType === USER_OBJECT_TYPE);
+    const nativeNames = cleanNames(userAttrs.filter((attr) => attr.isNative));
+    const cpaNames = cleanNames(userAttrs.filter((attr) => !attr.isNative));
+
+    const schemas: Record<string, string[]> = {
+        user: ['attributes', ...(sessionAttrNames.length ? ['session'] : []), ...nativeNames],
+        'user.attributes': cpaNames,
+        ...(sessionAttrNames.length ? {'user.session': sessionAttrNames} : {}),
+    };
+
+    // createat exposes the youngerThanDays member helper.
+    if (nativeNames.includes('createat')) {
+        schemas['user.createat'] = ['youngerThanDays'];
+    }
+
+    return schemas;
+}
+
+/** Optional overrides for the editor's network calls, used by plugins consuming window.Components.AccessControlCELEditor. */
+export interface CELEditorActions {
+
+    /** Overrides Client4.checkAccessControlExpression. */
+    checkExpression?: (expression: string) => Promise<CELExpressionError[]>;
+
+    /** Overrides the searchUsersForExpression thunk backing the built-in TestResultsModal. */
+    searchUsers?: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
+}
+
+export interface CELEditorProps {
     value: string;
     onChange: (value: string) => void;
     onValidate?: (isValid: boolean) => void;
@@ -76,10 +129,24 @@ interface CELEditorProps {
     channelId?: string;
     teamId?: string;
     disabled?: boolean;
-    userAttributes: Array<{
-        attribute: string;
-        values: string[];
-    }>;
+    userAttributes: CELUserAttribute[];
+
+    /**
+     * When provided, the built-in expression-only TestResultsModal is
+     * suppressed and the test button forwards its click to the parent.
+     * The parent is responsible for rendering its own results modal —
+     * used by the permission-rule editor so its dual-lane simulation
+     * modal (SimulateAccessModal) can replace the legacy
+     * membership-only one without changing the button's layout.
+     */
+    onTestClick?: () => void;
+
+    /** Optional label override for the test button. Lets the
+     *  permission-rule editor render "Simulate rules" instead of the
+     *  default "Test access rule" copy. */
+    testButtonLabel?: React.ReactNode;
+    hasMaskedRows?: boolean;
+    actions?: CELEditorActions;
 }
 
 // TODO: this is just a sample schema for the editor, we need to get the actual schema from the server
@@ -94,6 +161,10 @@ function CELEditor({
     teamId,
     disabled = false,
     userAttributes,
+    onTestClick,
+    testButtonLabel,
+    hasMaskedRows = false,
+    actions,
 }: CELEditorProps): JSX.Element {
     const intl = useIntl();
     const [editorState, setEditorState] = useState({
@@ -108,12 +179,9 @@ function CELEditor({
         isWaitingForValidation: false,
     });
 
-    const schemas = {
-        user: ['attributes'],
-        'user.attributes': userAttributes.
-            map((attr) => attr.attribute).
-            filter((attr) => !attr.includes(' ') && attr.trim() !== ''),
-    };
+    const schemas = buildCELSchemas(userAttributes);
+
+    const injectedCheckExpression = actions?.checkExpression;
 
     const editorRef = useRef(null);
     const monacoRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -153,7 +221,12 @@ function CELEditor({
         setEditorState((prev) => ({...prev, isValidating: true, isWaitingForValidation: false}));
 
         try {
-            const errors = await Client4.checkAccessControlExpression(expression, channelId, teamId);
+            let errors: CELExpressionError[];
+            if (injectedCheckExpression) {
+                errors = await injectedCheckExpression(expression);
+            } else {
+                errors = await Client4.checkAccessControlExpression(expression, channelId, teamId);
+            }
             const isValid = errors.length === 0;
             setEditorState((prev) => ({
                 ...prev,
@@ -173,7 +246,7 @@ function CELEditor({
             }));
             onValidate?.(false);
         }
-    }, [onValidate]);
+    }, [onValidate, injectedCheckExpression, channelId, teamId]);
 
     // Update the validateSyntax ref whenever it changes
     useEffect(() => {
@@ -257,12 +330,12 @@ function CELEditor({
         };
     }, []); // Only run once on mount
 
-    // Update the editor's readOnly state when disabled prop changes
+    // Update the editor's readOnly state when disabled or hasMaskedRows changes
     useEffect(() => {
         if (monacoRef.current) {
-            monacoRef.current.updateOptions({readOnly: disabled});
+            monacoRef.current.updateOptions({readOnly: disabled || hasMaskedRows});
         }
-    }, [disabled]);
+    }, [disabled, hasMaskedRows]);
 
     // Helper function to determine current validation state
     const getValidationState = useCallback(() => {
@@ -338,6 +411,19 @@ function CELEditor({
         <div className={`cel-editor ${className}`}>
             <MonacoLanguageProvider schemas={schemas}/>
 
+            {hasMaskedRows && (
+                <div
+                    className='cel-editor__masked-banner'
+                    role='alert'
+                >
+                    <i className='icon icon-alert-outline'/>
+                    <FormattedMessage
+                        id='admin.access_control.cel.masked_values_banner'
+                        defaultMessage='This expression contains restricted values. Switch to Simple mode to edit the values you have access to.'
+                    />
+                </div>
+            )}
+
             <div
                 className='cel-editor__container'
                 data-status-color={editorState.statusBarColor}
@@ -393,17 +479,35 @@ function CELEditor({
                     </div>
                 </div>
                 <TestButton
-                    onClick={() => setEditorState((prev) => ({...prev, showTestResults: true}))}
-                    disabled={disabled || !editorState.expression || !editorState.isValid || editorState.isValidating}
+                    onClick={onTestClick ?? (() => setEditorState((prev) => ({...prev, showTestResults: true})))}
+                    label={testButtonLabel}
+                    disabled={disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
+                    disabledTooltip={
+                        hasMaskedRows ?
+                            intl.formatMessage({
+                                id: 'admin.access_control.cel_editor.masked_values_tooltip',
+                                defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
+                            }) :
+                            undefined
+                    }
                 />
             </div>
-            {editorState.showTestResults && (
+            {/* Built-in expression-only modal. Suppressed when the
+              * parent provided an `onTestClick` override (used by the
+              * permission-rule editor, which renders its own dual-lane
+              * SimulateAccessModal). */}
+            {!onTestClick && editorState.showTestResults && (
                 <TestResultsModal
                     onExited={() => setEditorState((prev) => ({...prev, showTestResults: false}))}
                     isStacked={true}
                     actions={{
                         openModal: () => {},
                         searchUsers: (term: string, after: string, limit: number) => {
+                            if (actions?.searchUsers) {
+                                // Wrap in a thunk so TestResultsModal can dispatch it unchanged.
+                                const search = actions.searchUsers;
+                                return () => search(editorState.expression, term, after, limit);
+                            }
                             return searchUsersForExpression(editorState.expression, term, after, limit, channelId, teamId);
                         },
                     }}

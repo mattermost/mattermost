@@ -14,7 +14,7 @@
  */
 
 import authenticator from 'authenticator';
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import {

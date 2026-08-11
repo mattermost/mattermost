@@ -127,7 +127,7 @@ export function getPlugins(): ActionFuncAsync<ClientPluginManifest[]> {
 }
 
 // loadedPlugins tracks which plugins have been added as script tags to the page
-const loadedPlugins: { [key: string]: PluginManifest } = {};
+const loadedPlugins: {[key: string]: PluginManifest} = {};
 
 // describePlugin takes a manifest and spits out a string suitable for console.log messages.
 const describePlugin = (manifest: PluginManifest): string => (
@@ -257,7 +257,7 @@ export async function loadPluginsIfNecessary(): Promise<void> {
         return;
     }
 
-    const oldManifests = store.getState().plugins.plugins as { [key: string]: PluginManifest };
+    const oldManifests = store.getState().plugins.plugins as {[key: string]: PluginManifest};
 
     const {error} = await store.dispatch(getPlugins());
     if (error) {
@@ -265,7 +265,7 @@ export async function loadPluginsIfNecessary(): Promise<void> {
         return;
     }
 
-    const newManifests = store.getState().plugins.plugins as { [key: string]: PluginManifest };
+    const newManifests = store.getState().plugins.plugins as {[key: string]: PluginManifest};
 
     // Get new plugins and update existing plugins if version changed
     Object.values(newManifests).forEach((newManifest: PluginManifest) => {

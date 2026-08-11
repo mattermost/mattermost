@@ -15,14 +15,14 @@ export type FieldsetRadio = {
         key: string;
         value: string;
     }>;
-}
+};
 
 type Props = BaseSettingItemProps & {
     className?: string;
     inputFieldData: FieldsetRadio;
     inputFieldValue: string;
     handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}
+};
 
 function RadioSettingItem({
     title,

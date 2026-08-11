@@ -69,6 +69,15 @@ exports[`components/integrations/InstalledIncomingWebhook should match snapshot 
           Created by creator on Friday, August 11, 2017
         </span>
       </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__last-used"
+        >
+          Never used
+        </span>
+      </div>
     </div>
   </div>
 </div>

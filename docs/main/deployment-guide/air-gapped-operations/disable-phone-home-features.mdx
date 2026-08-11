@@ -1,0 +1,36 @@
+---
+title: Configure for Air-Gapped Operation
+sidebar_position: 3
+description: Server settings that depend on internet access and should be disabled or adjusted for an air-gapped deployment.
+---
+
+<EditionAvailability tiers="free,professional,enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted,air-gapped" />
+
+# Configure for Air-Gapped Operation
+
+After successful deployment, you'll need to configure Mattermost for air-gapped operation. The following sections describe features that rely on internet access and offer recommendations for settings.
+
+## Mobile push notifications
+
+Mattermost can use mobile push notifications to notify users of new messages and activity. These notifications require a server component to be deployed to send the notifications to mobile devices. By default, Mattermost uses the public push notification service, which isn't available in an air-gapped environment. We recommend disabling push notifications in **System Console > Environment > [Push Notification Server](/administration-guide/configure/environment-configuration-settings#push-notification-server)**.
+
+## Email
+
+Unless you've set up an internal air-gapped email service, we recommend disabling email invitations and email verification from **System Console > Authentication > Signup**.
+
+## Website link previews
+
+Website link previews require a connection to the internet to fetch the content of the links. We recommend [disabling website link previews](/administration-guide/configure/site-configuration-settings#enable-website-link-previews) in **System Console > Site Configuration > Posts**.
+
+## GIF picker
+
+The GIF picker relies on a third-party service which has a dependency on external internet access. You can disable it in **System Console > Integrations > GIF**.
+
+## Notices
+
+[In-product notices](/administration-guide/manage/in-product-notices) require internet access to periodically inform administrators and end users of new product improvements, features, and releases. You can disable notices in **System Console > Site Configuration > Notices**.
+
+## Telemetry
+
+To avoid log errors, we recommend disabling [telemetry-related features](/administration-guide/manage/telemetry), including the security update check, and error and diagnostics reporting features.

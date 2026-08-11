@@ -38,6 +38,7 @@ var excludedPluginHooks = []string{
 	"MessageWillBePosted",
 	"MessageWillBeUpdated",
 	"MessagesWillBeConsumed",
+	"MessagesWillBeConsumedWithContext",
 	"OnActivate",
 	"PluginHTTP",
 	"ServeHTTP",
@@ -391,7 +392,7 @@ func (g *hooksRPCClient) {{.Name}}WithRPCErr{{funcStyle .Params}} {{funcStyleApp
 		_err = g.client.Call("Plugin.{{.Name}}", _args, _returns)
 		if _err != nil {
 			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
 			_returns = &{{.Name | obscure}}Returns{}
 			g.log.Debug("RPC call {{.Name}} to plugin failed.", mlog.Err(_err))
 		}
@@ -412,7 +413,7 @@ func (s *hooksRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Na
 }
 {{end}}
 
-// HooksWithRPCErr provides a WithRPCErr variant for every generated hook. The last error return
+// HooksWithRPCErrGenerated provides a WithRPCErr variant for every generated hook. The last error return
 // is always the RPC transport error — if non-nil, the plugin's other return values are zero. For
 // hooks whose base signature already returns error, the tuple is (originalReturns..., rpcErr)
 // where the final slot is always transport.
@@ -421,8 +422,8 @@ func (s *hooksRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Na
 // indistinguishable from a successful invocation that returned zeros. Callers MUST gate on
 // supervisor.Implements(<HookID>) (or use Environment.RunMultiPluginHookWithRPCErr, which gates
 // by the iteration's hook ID — note that any *WithRPCErr method called on the closure's
-// HooksWithRPCErr is independently subject to its own implemented-gate).
-type HooksWithRPCErr interface {
+// HooksWithRPCErrGenerated is independently subject to its own implemented-gate).
+type HooksWithRPCErrGenerated interface {
 	{{range .HooksMethods}}
 	{{.Name}}WithRPCErr{{funcStyle .Params}} {{funcStyleAppendErr .Return}}
 	{{end}}
@@ -646,7 +647,7 @@ func generatePluginTimerLayer(info *PluginInterfaceInfo) {
 
 	// Prepare template params. The timer layer wraps the full Hooks interface, so
 	// HooksMethods includes excluded hooks too. *WithRPCErr companions only exist
-	// for non-excluded hooks (see HooksWithRPCErr in client_rpc_generated.go), so the
+	// for non-excluded hooks (see HooksWithRPCErrGenerated in client_rpc_generated.go), so the
 	// excluded subset is filtered into HooksMethodsRPCErr for that loop.
 	excluded := func(name string) bool { return slices.Contains(excludedPluginHooks, name) }
 	templateParams := HooksTemplateParams{}

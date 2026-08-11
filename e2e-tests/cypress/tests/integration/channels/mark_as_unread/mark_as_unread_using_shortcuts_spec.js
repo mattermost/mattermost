@@ -14,7 +14,6 @@ import {verifyPostNextToNewMessageSeparator, switchToChannel, showCursor} from '
 
 import {beRead, beUnread} from '@/support/assertions';
 
-
 describe('Mark as Unread', () => {
     let testUser;
 

@@ -16,13 +16,13 @@ type Props = {
     show: boolean;
     metadata?: OpenGraphMetadata;
     youtubeReferrerPolicy?: boolean;
-}
+};
 
 type State = {
     playing: boolean;
     useMaxResThumbnail: boolean;
     prevLink: string;
-}
+};
 
 type YouTubeThumbnailProps = {
     play: () => void;

@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getAdminAccount, User} from './env';
+import type {User} from './env';
+import {getAdminAccount} from './env';
 
-import {ChainableT, ResponseT} from '@/types';
-
+import type {ChainableT, ResponseT} from '@/types';
 
 // *****************************************************************************
 // Read more:
@@ -17,7 +17,7 @@ import {ChainableT, ResponseT} from '@/types';
 // https://api.mattermost.com/#tag/commands
 // *****************************************************************************
 
-type CypressResponseBody = Cypress.Response<unknown>
+type CypressResponseBody = Cypress.Response<unknown>;
 function apiCreateCommand(command: Record<string, unknown> = {}): Cypress.Chainable<{data: CypressResponseBody['body']; status: CypressResponseBody['status']}> {
     const options = {
         url: '/api/v4/commands',

@@ -31,7 +31,7 @@ type Props = {
     };
     onExited: () => void;
     isChannelAutotranslated: boolean;
-}
+};
 
 const RestorePostModal = ({post, postHeader, actions, onExited, isChannelAutotranslated}: Props) => {
     const {formatMessage, locale} = useIntl();

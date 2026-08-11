@@ -32,10 +32,17 @@ const (
 	PropertyGroupVersionV2 = 2
 )
 
+// AccessControlPropertyGroupSchemaVersion is the current schema version for
+// the access_control group's field definitions. Increment this constant
+// whenever the shape of access_control fields (attrs, types, options) changes
+// in a way that consumers need to detect.
+const AccessControlPropertyGroupSchemaVersion = 1
+
 type PropertyGroup struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Version int    `json:"version"`
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	Version       int    `json:"version"`
+	SchemaVersion int    `json:"schema_version"`
 }
 
 func (pg *PropertyGroup) IsPSAv1() bool {
@@ -53,6 +60,10 @@ func (pg *PropertyGroup) PreSave() {
 
 	if pg.Version == 0 {
 		pg.Version = PropertyGroupVersionV1
+	}
+
+	if pg.SchemaVersion <= 0 {
+		pg.SchemaVersion = 1
 	}
 }
 

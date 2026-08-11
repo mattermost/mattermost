@@ -600,10 +600,10 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 	pluginFile, err := os.CreateTemp(os.TempDir(), "plugin_config_*.json")
 	s.Require().NoError(err)
 
-	_, err = tmpFile.Write([]byte(configFilePayload))
+	_, err = tmpFile.WriteString(configFilePayload)
 	s.Require().NoError(err)
 
-	_, err = pluginFile.Write([]byte(configFilePluginPayload))
+	_, err = pluginFile.WriteString(configFilePluginPayload)
 	s.Require().NoError(err)
 
 	defer func() {

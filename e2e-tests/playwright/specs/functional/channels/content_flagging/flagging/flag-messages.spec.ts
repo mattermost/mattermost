@@ -13,7 +13,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 const FLAG_REASON_CLASSIFICATION_MISMATCH: string = 'Classification Mismatch';
 const FLAG_REASON_CLASSIFICATION_MISMATCH_ALT: string = 'Classification mismatch';
 const FLAG_COMMENT: string = 'This message contains misclassified data';
-const SYSTEM_MESSAGE = (username: string): string =>
+const systemMessageForUser = (username: string): string =>
     `The message from @${username} has been quarantined for review. You will be notified once it is reviewed by a Reviewer.`;
 
 // Helper to login and navigate to channel
@@ -115,7 +115,7 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
     const flaggedPost = await channelsPage.centerView.getPostById(postId);
     await flaggedPost.toContainText('(message deleted)');
     const systemMessage = await channelsPage.getLastPost();
-    await expect(systemMessage.body).toContainText(SYSTEM_MESSAGE(user.username));
+    await expect(systemMessage.body).toContainText(systemMessageForUser(user.username));
 });
 
 /**
@@ -166,7 +166,7 @@ test('Verify Post is not hidden after flagging if HideFlaggedContent is false', 
     const originaltext = await channelsPage.centerView.getPostById(postId);
     await expect(originaltext.body).toContainText(message);
     const systemMessage = await channelsPage.getLastPost();
-    await expect(systemMessage.body).toContainText(SYSTEM_MESSAGE(user.username));
+    await expect(systemMessage.body).toContainText(systemMessageForUser(user.username));
 });
 
 /**
@@ -204,7 +204,9 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
     await adminClient.addToTeam(team.id, secondUserID);
     const channels = await adminClient.getMyChannels(team.id);
     const townSquare = channels.find((channel) => channel.name === 'town-square');
-    if (!townSquare) throw new Error('Town Square channel not found');
+    if (!townSquare) {
+        throw new Error('Town Square channel not found');
+    }
 
     const message = `Post by @${user.username}, is flagged once`;
     const postToBeflagged = await adminClient.createPost({
@@ -261,7 +263,9 @@ test('Verify user cannot flag a message that was previously retained', async ({p
     await adminClient.addToTeam(team.id, secondUserID);
     const channels = await adminClient.getMyChannels(team.id);
     const townSquare = channels.find((channel) => channel.name === 'town-square');
-    if (!townSquare) throw new Error('Town Square channel not found');
+    if (!townSquare) {
+        throw new Error('Town Square channel not found');
+    }
 
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
@@ -487,7 +491,9 @@ test('Verify message is removed from channel if the reviewer removed the message
 
     const channels = await adminClient.getMyChannels(team.id);
     const townSquare = channels.find((channel) => channel.name === 'town-square');
-    if (!townSquare) throw new Error('Town Square channel not found');
+    if (!townSquare) {
+        throw new Error('Town Square channel not found');
+    }
 
     const message = `Post by @${user.username}, is flagged once`;
     const postToBeflagged = await adminClient.createPost({

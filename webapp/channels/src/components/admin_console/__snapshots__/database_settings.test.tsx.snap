@@ -11,6 +11,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Database
       </div>

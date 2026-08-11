@@ -62,7 +62,7 @@ describe('Messaging', () => {
             // * Emoji reaction is added to the post
             cy.get(`#${postId}_message`).within(() => {
                 cy.findByLabelText('reactions').should('exist');
-            cy.findByLabelText('You reacted with :upside_down_face:. Click to remove.').should('exist');
+                cy.findByLabelText('You reacted with :upside_down_face:. Click to remove.').should('exist');
             });
 
             // * Reaction appears in recently used section of emoji picker
@@ -102,8 +102,8 @@ describe('Messaging', () => {
                 // * Two reactions are added to the message in the expanded RHS
                 cy.get(`#rhsPost_${postId}`).within(() => {
                     cy.findByLabelText('reactions').should('be.visible');
-            cy.findByLabelText('You reacted with :smiley:. Click to remove.').should('be.visible');
-            cy.findByLabelText('You reacted with :upside_down_face:. Click to remove.').should('be.visible');
+                    cy.findByLabelText('You reacted with :smiley:. Click to remove.').should('be.visible');
+                    cy.findByLabelText('You reacted with :upside_down_face:. Click to remove.').should('be.visible');
                 });
 
                 // # Close RHS

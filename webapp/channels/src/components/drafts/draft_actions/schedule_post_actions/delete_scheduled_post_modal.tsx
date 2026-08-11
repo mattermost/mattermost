@@ -11,7 +11,7 @@ type Props = {
     channelDisplayName?: string;
     onConfirm: () => Promise<{error?: string}>;
     onExited: () => void;
-}
+};
 
 export default function DeleteScheduledPostModal({
     channelDisplayName,

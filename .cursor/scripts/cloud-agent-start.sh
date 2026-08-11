@@ -34,6 +34,21 @@ ensure_docker_socket_access() {
   fi
 }
 
+docker_login_if_configured() {
+  if [ -z "${DOCKERHUB_USERNAME:-}" ] || [ -z "${DOCKERHUB_TOKEN:-}" ]; then
+    log "Docker Hub credentials not configured; anonymous pulls may hit rate limits."
+    return 0
+  fi
+
+  log "Logging in to Docker Hub as ${DOCKERHUB_USERNAME}."
+  if echo "${DOCKERHUB_TOKEN}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin >/tmp/docker-login.log 2>&1; then
+    log "Docker Hub login succeeded."
+  else
+    log "Docker Hub login failed; see /tmp/docker-login.log."
+    tail -n 20 /tmp/docker-login.log >&2 || true
+  fi
+}
+
 if [ -f /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]; then
   sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 >/dev/null 2>&1 || \
     log "Could not relax AppArmor user namespace restriction; openldap-based tests may need a larger host profile."
@@ -44,6 +59,7 @@ ensure_docker_socket_access
 if docker info >/dev/null 2>&1; then
   log "Docker is already running."
   docker compose version
+  docker_login_if_configured
   exit 0
 fi
 
@@ -64,6 +80,7 @@ for _ in {1..60}; do
     log "Docker is ready."
     docker version
     docker compose version
+    docker_login_if_configured
     exit 0
   fi
 

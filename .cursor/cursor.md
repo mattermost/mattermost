@@ -5,7 +5,7 @@ These instructions apply to Cursor Cloud Agents after `.cursor/scripts/cloud-age
 ## Environment
 
 - Docker must be available. If `docker info` fails, inspect `/tmp/docker-service-start.log` and `/tmp/dockerd.log`; do not assume a snapshot will provide Docker.
-- The image includes Go, Node/npm, Docker Compose, AWS CLI v2, and `agent-browser`.
+- The image includes Go, Node/npm, Docker Compose, and AWS CLI v2.
 - Cursor should provide `mattermost/enterprise` through the multi-repo environment. The expected layout is sibling repositories, such as `/agent/repos/mattermost` and `/agent/repos/enterprise`; this matches `server/Makefile`'s default `../../enterprise` path.
 
 ## Running Mattermost
@@ -58,7 +58,8 @@ The Mattermost server is expected at `http://localhost:8065`. The webapp dev ser
   ```
 
 - When the server starts and `MM_LICENSE` is present in the environment, the server applies that license automatically. If `MM_LICENSE` is not set, starting the server automatically applies an Entry license, which provides nearly all functionality needed for development.
-- `ENABLED_DOCKER_SERVICES='postgres redis'` avoids optional local-dev services such as Prometheus, Grafana, Loki, Minio, Azurite, and OpenLDAP. This is useful in Cloud when Docker Hub rate limits block the default `make start-docker` dependency set.
+- When `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` are configured as Cloud Agent secrets, `cloud-agent-start.sh` logs in to Docker Hub and the full default `make start-docker` dependency set can be used without trimming services.
+- `ENABLED_DOCKER_SERVICES='postgres redis'` avoids optional local-dev services such as Prometheus, Grafana, Loki, Minio, Azurite, and OpenLDAP. Use this fallback when Docker Hub credentials are unavailable and anonymous pulls hit rate limits.
 - If the first-user signup UI is flaky but the server is already healthy, seed local state with `mmctl` and then log in through the browser:
 
   ```bash
@@ -80,17 +81,9 @@ The Mattermost server is expected at `http://localhost:8065`. The webapp dev ser
 - Playwright dependencies are installed with `cd e2e-tests/playwright && npm ci`.
 - For full Playwright compose flows, use the existing `e2e-tests` Makefile and scripts. Docker Compose is available in the Cloud Agent image.
 
-## Browser Screenshots
+## Browser Verification
 
-Use `agent-browser` for browser automation and screenshots. If the CLI is missing or browsers are unavailable, run:
-
-```bash
-npm install -g agent-browser@0.27.0
-agent-browser install
-```
-
-- Chrome is available in the Cloud image, and `agent-browser skills get core --full` is a quick check that the CLI and bundled skills are working.
-Prefer verifying UI changes against the running local Mattermost instance before opening or updating a PR.
+Use the `computerUse` subagent's desktop (Chrome is preinstalled) for browser automation and screenshots. Prefer verifying UI changes against the running local Mattermost instance before opening or updating a PR.
 
 ## AWS And PR Artifacts
 

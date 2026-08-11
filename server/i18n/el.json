@@ -669,7 +669,10 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "Ο χρήστης {{.User}} είναι ήδη στο κανάλι."
+    "translation": {
+      "one": "Ο χρήστης {{.User}} είναι ήδη στο κανάλι.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite.success",
@@ -2295,14 +2298,6 @@
   {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "Δεν είναι δυνατή η μεταφόρτωση του αρχείου. Εσφαλμένο αναγνωριστικό καναλιού: {{.channelId}}"
-  },
-  {
-    "id": "api.file.test_connection_s3_bucket_does_not_exist.app_error",
-    "translation": "Βεβαιωθείτε ότι ο Amazon S3 bucket είναι διαθέσιμος και επαληθεύστε τα δικαιώματα του."
-  },
-  {
-    "id": "api.file.test_connection_s3_auth.app_error",
-    "translation": "Δεν είναι δυνατή η σύνδεση στο S3. Επαληθεύστε τις παραμέτρους εξουσιοδότησης σύνδεσης και τις ρυθμίσεις ελέγχου ταυτότητας για το Amazon S3."
   },
   {
     "id": "api.file.read_file.reading_local.app_error",

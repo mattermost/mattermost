@@ -1223,6 +1223,55 @@ func TestFileRemoveFile(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, has)
 	})
+
+	t.Run("reject invalid relative path", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		baseDir := filepath.Dir(path)
+		parentDir := filepath.Dir(baseDir)
+		outsideFile := filepath.Join(parentDir, "invalid-target-file")
+
+		err = os.WriteFile(outsideFile, []byte("outside"), 0600)
+		require.NoError(t, err)
+		defer os.Remove(outsideFile)
+
+		relativePath, err := filepath.Rel(baseDir, outsideFile)
+		require.NoError(t, err)
+
+		err = fs.RemoveFile(relativePath)
+		require.Error(t, err)
+
+		_, statErr := os.Stat(outsideFile)
+		require.NoError(t, statErr)
+	})
+
+	t.Run("remove valid relative file", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		nestedDir := filepath.Join(filepath.Dir(path), "certs")
+		err = os.MkdirAll(nestedDir, 0700)
+		require.NoError(t, err)
+
+		filename := filepath.Join("certs", "valid-cert.pem")
+		err = fs.SetFile(filename, []byte("cert-data"))
+		require.NoError(t, err)
+
+		err = fs.RemoveFile(filename)
+		require.NoError(t, err)
+
+		_, statErr := os.Stat(filepath.Join(filepath.Dir(path), filename))
+		require.ErrorIs(t, statErr, os.ErrNotExist)
+	})
 }
 
 func TestFileStoreString(t *testing.T) {

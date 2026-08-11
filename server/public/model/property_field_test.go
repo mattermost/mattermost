@@ -723,8 +723,8 @@ func TestPropertyField_IsValid(t *testing.T) {
 			require.NoError(t, pf.IsValid())
 		})
 
-		t.Run("non-protected field with admin or member field permission is valid", func(t *testing.T) {
-			for _, level := range []PermissionLevel{PermissionLevelSysadmin, PermissionLevelMember} {
+		t.Run("non-protected field with non-none field permission is valid", func(t *testing.T) {
+			for _, level := range []PermissionLevel{PermissionLevelSysadmin, PermissionLevelMember, PermissionLevelAdmin} {
 				pf := baseField()
 				pf.Protected = false
 				pf.PermissionField = new(level)
@@ -759,22 +759,15 @@ func TestPropertyField_IsValid(t *testing.T) {
 			require.Error(t, pf.IsValid())
 		})
 
-		t.Run("protected field with field=admin is invalid", func(t *testing.T) {
-			pf := baseField()
-			pf.Protected = true
-			pf.PermissionField = new(PermissionLevelSysadmin)
-			pf.PermissionValues = new(PermissionLevelMember)
-			pf.PermissionOptions = new(PermissionLevelMember)
-			require.Error(t, pf.IsValid())
-		})
-
-		t.Run("protected field with field=member is invalid", func(t *testing.T) {
-			pf := baseField()
-			pf.Protected = true
-			pf.PermissionField = new(PermissionLevelMember)
-			pf.PermissionValues = new(PermissionLevelMember)
-			pf.PermissionOptions = new(PermissionLevelMember)
-			require.Error(t, pf.IsValid())
+		t.Run("protected field with non-none field permission is invalid", func(t *testing.T) {
+			for _, level := range []PermissionLevel{PermissionLevelSysadmin, PermissionLevelMember, PermissionLevelAdmin} {
+				pf := baseField()
+				pf.Protected = true
+				pf.PermissionField = new(level)
+				pf.PermissionValues = new(PermissionLevelMember)
+				pf.PermissionOptions = new(PermissionLevelMember)
+				require.Error(t, pf.IsValid(), "should be invalid with field permission %s", level)
+			}
 		})
 
 		t.Run("invalid permission_field value is rejected", func(t *testing.T) {
@@ -795,6 +788,46 @@ func TestPropertyField_IsValid(t *testing.T) {
 			pf.PermissionField = new(PermissionLevelMember)
 			pf.PermissionValues = new(PermissionLevelMember)
 			pf.PermissionOptions = new(PermissionLevel("bogus"))
+			require.Error(t, pf.IsValid())
+		})
+	})
+
+	t.Run("admin permission level", func(t *testing.T) {
+		baseField := func(target PropertyFieldTargetLevel) *PropertyField {
+			pf := &PropertyField{
+				ID:         NewId(),
+				GroupID:    NewId(),
+				Name:       "test field",
+				Type:       PropertyFieldTypeText,
+				ObjectType: PropertyFieldObjectTypePost,
+				TargetType: string(target),
+				CreateAt:   GetMillis(),
+				UpdateAt:   GetMillis(),
+			}
+			if target != PropertyFieldTargetLevelSystem {
+				pf.TargetID = NewId()
+			}
+			return pf
+		}
+
+		for _, target := range []PropertyFieldTargetLevel{
+			PropertyFieldTargetLevelSystem,
+			PropertyFieldTargetLevelTeam,
+			PropertyFieldTargetLevelChannel,
+		} {
+			t.Run("admin is valid on "+string(target)+" target", func(t *testing.T) {
+				pf := baseField(target)
+				pf.PermissionField = new(PermissionLevelAdmin)
+				pf.PermissionValues = new(PermissionLevelAdmin)
+				pf.PermissionOptions = new(PermissionLevelAdmin)
+				require.NoError(t, pf.IsValid())
+			})
+		}
+
+		t.Run("PSAv1 field rejects admin permission level", func(t *testing.T) {
+			pf := baseField(PropertyFieldTargetLevelChannel)
+			pf.ObjectType = ""
+			pf.PermissionField = new(PermissionLevelAdmin)
 			require.Error(t, pf.IsValid())
 		})
 	})
@@ -1212,6 +1245,229 @@ func TestPropertyFieldSearchCursor_IsValid(t *testing.T) {
 		}
 		assert.Error(t, cursor.IsValid())
 	})
+
+	t.Run("valid cursor with UpdateAt only", func(t *testing.T) {
+		cursor := PropertyFieldSearchCursor{
+			PropertyFieldID: NewId(),
+			UpdateAt:        GetMillis(),
+		}
+		assert.NoError(t, cursor.IsValid())
+	})
+
+	t.Run("both CreateAt and UpdateAt set is invalid", func(t *testing.T) {
+		cursor := PropertyFieldSearchCursor{
+			PropertyFieldID: NewId(),
+			CreateAt:        1,
+			UpdateAt:        1,
+		}
+		err := cursor.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "exactly one")
+	})
+
+	t.Run("invalid PropertyFieldID with UpdateAt set", func(t *testing.T) {
+		cursor := PropertyFieldSearchCursor{
+			PropertyFieldID: "invalid",
+			UpdateAt:        GetMillis(),
+		}
+		assert.Error(t, cursor.IsValid())
+	})
+
+	t.Run("ID set but neither CreateAt nor UpdateAt is invalid", func(t *testing.T) {
+		// The cursor is non-empty but cannot be paginated against either
+		// ordering — IsValid must reject it rather than fall through to a
+		// silent miss in the store.
+		cursor := PropertyFieldSearchCursor{
+			PropertyFieldID: NewId(),
+		}
+		err := cursor.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "exactly one")
+	})
+
+	t.Run("IsEmpty returns true when UpdateAt is also zero", func(t *testing.T) {
+		cursor := PropertyFieldSearchCursor{}
+		assert.True(t, cursor.IsEmpty())
+	})
+
+	t.Run("IsEmpty returns false when UpdateAt is set", func(t *testing.T) {
+		cursor := PropertyFieldSearchCursor{UpdateAt: 1}
+		assert.False(t, cursor.IsEmpty())
+	})
+}
+
+func TestPropertyFieldSearchOpts_IsValid(t *testing.T) {
+	validID := NewId()
+
+	t.Run("zero-value opts is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("ObjectType alone is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{ObjectType: PropertyFieldObjectTypeChannel}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("ObjectTypes alone is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{ObjectTypes: []string{PropertyFieldObjectTypeChannel, PropertyFieldObjectTypeSystem}}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("ObjectType and ObjectTypes both set is invalid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			ObjectType:  PropertyFieldObjectTypeChannel,
+			ObjectTypes: []string{PropertyFieldObjectTypeChannel},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "mutually exclusive")
+	})
+
+	t.Run("ObjectTypes containing an invalid value mentions that value", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			ObjectTypes: []string{PropertyFieldObjectTypeChannel, "garbage"},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "garbage")
+	})
+
+	t.Run("legacy ObjectType containing an invalid value is rejected", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{ObjectType: "garbage"}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "garbage")
+	})
+
+	t.Run("ChannelID combined with TargetType is invalid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			ChannelID:  validID,
+			TeamID:     NewId(),
+			TargetType: "channel",
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "channel_id/team_id")
+	})
+
+	t.Run("TeamID combined with TargetIDs is invalid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			TeamID:    NewId(),
+			TargetIDs: []string{NewId()},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "channel_id/team_id")
+	})
+
+	t.Run("ChannelID without TeamID is valid (DM/GM scope)", func(t *testing.T) {
+		// DM/GM channels have no parent team. IsValid must not reject
+		// them; the store layer handles the system → channel hierarchy
+		// when TeamID is empty.
+		opts := PropertyFieldSearchOpts{ChannelID: NewId()}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("TeamID alone is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{TeamID: NewId()}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("ChannelID + TeamID is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{ChannelID: NewId(), TeamID: NewId()}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("TargetType + TargetIDs is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			TargetType: string(PropertyFieldTargetLevelChannel),
+			TargetIDs:  []string{NewId(), NewId()},
+		}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("SinceUpdateAt negative is valid (treated as no filter)", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{SinceUpdateAt: -1}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("SinceUpdateAt zero is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{SinceUpdateAt: 0}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("SinceUpdateAt positive is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{SinceUpdateAt: 123}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("delegates to Cursor.IsValid - invalid cursor surfaces", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			Cursor: PropertyFieldSearchCursor{
+				PropertyFieldID: NewId(),
+				CreateAt:        1,
+				UpdateAt:        1,
+			},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "exactly one")
+	})
+
+	t.Run("delegates to Cursor.IsValid - empty cursor is fine", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			TeamID: NewId(),
+			Cursor: PropertyFieldSearchCursor{},
+		}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("cursor key must match active ordering: delta mode requires UpdateAt", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			SinceUpdateAt: 100,
+			Cursor: PropertyFieldSearchCursor{
+				PropertyFieldID: validID,
+				CreateAt:        1,
+			},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cursor_update_at")
+	})
+
+	t.Run("cursor key must match active ordering: directory mode requires CreateAt", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			Cursor: PropertyFieldSearchCursor{
+				PropertyFieldID: validID,
+				UpdateAt:        1,
+			},
+		}
+		err := opts.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cursor_create_at")
+	})
+
+	t.Run("cursor key match: delta + UpdateAt is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			SinceUpdateAt: 100,
+			Cursor: PropertyFieldSearchCursor{
+				PropertyFieldID: validID,
+				UpdateAt:        50,
+			},
+		}
+		assert.NoError(t, opts.IsValid())
+	})
+
+	t.Run("cursor key match: directory + CreateAt is valid", func(t *testing.T) {
+		opts := PropertyFieldSearchOpts{
+			Cursor: PropertyFieldSearchCursor{
+				PropertyFieldID: validID,
+				CreateAt:        50,
+			},
+		}
+		assert.NoError(t, opts.IsValid())
+	})
 }
 
 func TestPluginPropertyOption(t *testing.T) {
@@ -1419,6 +1675,23 @@ func TestPluginPropertyOption(t *testing.T) {
 		assert.Equal(t, "Option 2", newOptions[1].GetName())
 		assert.Equal(t, "low", newOptions[1].GetValue("priority"))
 	})
+}
+
+func TestPropertyFieldType_SupportsOptions(t *testing.T) {
+	cases := map[PropertyFieldType]bool{
+		PropertyFieldTypeSelect:      true,
+		PropertyFieldTypeMultiselect: true,
+		PropertyFieldTypeRank:        true,
+		PropertyFieldTypeText:        false,
+		PropertyFieldTypeDate:        false,
+		PropertyFieldTypeUser:        false,
+		PropertyFieldTypeMultiuser:   false,
+		PropertyFieldType("bogus"):   false,
+	}
+
+	for fieldType, expected := range cases {
+		assert.Equal(t, expected, fieldType.SupportsOptions(), "SupportsOptions for %q", fieldType)
+	}
 }
 
 func TestPropertyField_EnsureOptionIDs(t *testing.T) {

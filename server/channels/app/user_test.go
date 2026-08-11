@@ -11,6 +11,7 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -475,6 +476,73 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 
 	_, appErr = th.App.UpdateActive(th.Context, th.BasicUser, true)
 	require.Nil(t, appErr)
+}
+
+func TestUserDeactivationRevokesOAuthAccessTokens(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	oapp := &model.OAuthApp{
+		Name:         "DeactivationCleanup_" + model.NewRandomString(10),
+		CreatorId:    th.BasicUser2.Id,
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://example.com/callback"},
+		ClientSecret: model.NewId(),
+	}
+	oapp, appErr := th.App.CreateOAuthApp(oapp)
+	require.Nil(t, appErr)
+
+	user := th.CreateUser(t)
+
+	authRequest := &model.AuthorizeRequest{
+		ResponseType: model.AuthCodeResponseType,
+		ClientId:     oapp.Id,
+		RedirectURI:  oapp.CallbackUrls[0],
+		Scope:        "user",
+		State:        "test_state",
+	}
+
+	redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, user.Id, authRequest)
+	require.Nil(t, appErr)
+
+	uri, parseErr := url.Parse(redirectURL)
+	require.NoError(t, parseErr)
+	code := uri.Query().Get("code")
+	require.NotEmpty(t, code)
+
+	tokenResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+		th.Context,
+		oapp.Id,
+		model.AccessTokenGrantType,
+		oapp.CallbackUrls[0],
+		code,
+		oapp.ClientSecret,
+		"",
+		"",
+		"",
+	)
+	require.Nil(t, appErr)
+	require.NotEmpty(t, tokenResp.AccessToken)
+	require.NotEmpty(t, tokenResp.RefreshToken)
+
+	require.NoError(t, th.App.Srv().Store().Session().Remove(tokenResp.AccessToken))
+
+	preDeactivation, sErr := th.App.Srv().Store().OAuth().GetAccessDataByUserForApp(user.Id, oapp.Id)
+	require.NoError(t, sErr)
+	require.NotEmpty(t, preDeactivation)
+
+	_, appErr = th.App.UpdateActive(th.Context, user, false)
+	require.Nil(t, appErr)
+
+	postDeactivation, sErr := th.App.Srv().Store().OAuth().GetAccessDataByUserForApp(user.Id, oapp.Id)
+	require.NoError(t, sErr)
+	require.Empty(t, postDeactivation, "oauth access tokens for an inactive user must be removed")
+
+	_, sErr = th.App.Srv().Store().OAuth().GetAccessDataByRefreshToken(tokenResp.RefreshToken)
+	require.Error(t, sErr, "refresh token row for an inactive user must be removed")
 }
 
 func TestUpdateOAuthUserAttrs(t *testing.T) {
@@ -1173,6 +1241,68 @@ func TestCreateUserWithToken(t *testing.T) {
 		assert.Len(t, members, 2)
 	})
 
+	t.Run("token profile fields override client-supplied user data", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
+		presetUsername := "preset" + model.NewId()
+		// The client-supplied payload simulates a tampered signup request.
+		u := model.User{Email: invitationEmail, Username: "tampered" + model.NewId(), FirstName: "Tampered", LastName: "Values", Password: model.NewTestPassword(), AuthService: ""}
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{
+				"teamId":     th.BasicTeam.Id,
+				"email":      invitationEmail,
+				"username":   presetUsername,
+				"first_name": "Dave",
+				"last_name":  "Roberts",
+			}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		newUser, err := th.App.CreateUserWithToken(th.Context, &u, token)
+		require.Nil(t, err, "Should create the user. err=%v", err)
+		require.Equal(t, presetUsername, newUser.Username, "The username must be the pre-set one")
+		require.Equal(t, "Dave", newUser.FirstName, "The first name must be the pre-set one")
+		require.Equal(t, "Roberts", newUser.LastName, "The last name must be the pre-set one")
+	})
+
+	t.Run("token username is lowercased", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
+		presetUsername := "preset" + model.NewId()
+		u := model.User{Email: invitationEmail, Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{
+				"teamId":   th.BasicTeam.Id,
+				"email":    invitationEmail,
+				"username": strings.ToUpper(presetUsername),
+			}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		newUser, err := th.App.CreateUserWithToken(th.Context, &u, token)
+		require.Nil(t, err, "Should create the user. err=%v", err)
+		require.Equal(t, presetUsername, newUser.Username)
+	})
+
+	t.Run("token with taken username fails with username_exists", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
+		u := model.User{Email: invitationEmail, Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{
+				"teamId":   th.BasicTeam.Id,
+				"email":    invitationEmail,
+				"username": th.BasicUser.Username,
+			}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		defer func() {
+			appErr := th.App.DeleteToken(token)
+			require.Nil(t, appErr)
+		}()
+		_, err := th.App.CreateUserWithToken(th.Context, &u, token)
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.save.username_exists.app_error", err.Id)
+	})
+
 	t.Run("valid guest request", func(t *testing.T) {
 		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
 		token := model.NewToken(
@@ -1737,6 +1867,38 @@ func TestPasswordChangeSessionTermination(t *testing.T) {
 	})
 }
 
+func TestUpdateUserAuthRevokesExistingSessions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	session1, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+	})
+	require.Nil(t, err)
+
+	session2, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+	})
+	require.Nil(t, err)
+
+	authData := model.NewId()
+	_, err = th.App.UpdateUserAuth(th.Context, th.BasicUser.Id, &model.UserAuth{
+		AuthService: model.UserAuthServiceGitlab,
+		AuthData:    &authData,
+	})
+	require.Nil(t, err)
+
+	session1, err = th.App.GetSession(session1.Token)
+	require.NotNil(t, err, "session1 should have been revoked after UpdateUserAuth")
+	require.Nil(t, session1)
+
+	session2, err = th.App.GetSession(session2.Token)
+	require.NotNil(t, err, "session2 should have been revoked after UpdateUserAuth")
+	require.Nil(t, session2)
+}
+
 func TestGetViewUsersRestrictions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -2011,6 +2173,18 @@ func TestPromoteGuestToUser(t *testing.T) {
 func TestDemoteUserToGuest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
+
+	t.Run("Must reject bot user", func(t *testing.T) {
+		bot := th.CreateBot(t)
+		user, err := th.App.GetUser(bot.UserId)
+		require.Nil(t, err)
+		require.True(t, user.IsBot)
+
+		appErr := th.App.DemoteUserToGuest(th.Context, user)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.user.demote_user_to_guest.bot_not_allowed.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
 
 	t.Run("Must invalidate channel stats cache when demoting a user", func(t *testing.T) {
 		user := th.CreateUser(t)

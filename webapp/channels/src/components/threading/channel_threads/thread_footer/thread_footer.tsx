@@ -42,7 +42,7 @@ function ThreadFooter({
     const currentTeamId = useSelector(getCurrentTeamId);
     const currentUserId = useSelector(getCurrentUserId);
     const post = useSelector((state: GlobalState) => getPost(state, threadId));
-    const getThreadOrSynthetic = useMemo(makeGetThreadOrSynthetic, [post.id]);
+    const getThreadOrSynthetic = useMemo(() => makeGetThreadOrSynthetic(), []);
     const thread = useSelector((state: GlobalState) => getThreadOrSynthetic(state, post));
 
     useEffect(() => {
@@ -83,7 +83,10 @@ function ThreadFooter({
     }
 
     return (
-        <div className='ThreadFooter'>
+        <div
+            className='ThreadFooter'
+            data-testid='thread-footer'
+        >
             {!isFollowing || threadIsSynthetic(thread) || !thread.unread_replies ? (
                 <div className='indicator'/>
             ) : (
@@ -116,6 +119,7 @@ function ThreadFooter({
                 <Button
                     onClick={handleReply}
                     className='ReplyButton separated'
+                    data-testid='thread-footer-reply-button'
                     prepend={
                         <span className='icon'>
                             <i className='icon-reply-outline'/>
