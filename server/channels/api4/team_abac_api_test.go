@@ -253,6 +253,86 @@ func TestGetTeamAccessControlPolicy(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
+	t.Run("resolves imported parent policies into parent_policies for the banner", func(t *testing.T) {
+		m := enableTeamABAC(t, th)
+
+		// Team child policy that imports a system-level parent policy.
+		parentID := model.NewId()
+		teamPolicy := saveTeamMembershipPolicy(t, th, th.BasicTeam.Id)
+		teamPolicy.Imports = []string{parentID}
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, teamPolicy)
+		require.NoError(t, err)
+
+		// The stored parent carries assignment metadata (scope, child_ids) that spans
+		// other teams — the response must not leak any of it.
+		parentPolicy := &model.AccessControlPolicy{
+			ID:       parentID,
+			Type:     model.AccessControlPolicyTypeParent,
+			Name:     "Engineering",
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Scope:    model.AccessControlPolicyScopeTeam,
+			ScopeID:  model.NewId(),
+			Props:    map[string]any{"child_ids": []string{model.NewId(), model.NewId()}},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: `user.attributes.Department == "Engineering"`},
+			},
+		}
+
+		m.On("GetPolicy", mock.AnythingOfType("*request.Context"), th.BasicTeam.Id).Return(teamPolicy, nil)
+		m.On("GetPolicy", mock.AnythingOfType("*request.Context"), parentID).Return(parentPolicy, nil)
+
+		// AttributeValueMasking is on by default, so the handler masks parent
+		// expressions through the PDP. Pass them through unchanged here.
+		m.On("MaskExpressionForCaller", mock.Anything, mock.Anything, mock.Anything).
+			Return(`user.attributes.Department == "Engineering"`, false, (*model.AppError)(nil))
+
+		assertBanner := func(t *testing.T, client *model.Client4) {
+			t.Helper()
+			resp, err := getPolicy(t, client, th.BasicTeam.Id)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			require.Equal(t, http.StatusOK, resp.StatusCode)
+
+			var body struct {
+				Policy         *model.AccessControlPolicy   `json:"policy"`
+				Enforced       bool                         `json:"enforced"`
+				ParentPolicies []*model.AccessControlPolicy `json:"parent_policies"`
+			}
+			require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+			require.Len(t, body.ParentPolicies, 1)
+			got := body.ParentPolicies[0]
+			require.Equal(t, parentID, got.ID)
+			require.Equal(t, "Engineering", got.Name)
+			require.Len(t, got.Rules, 1)
+			require.Equal(t, `user.attributes.Department == "Engineering"`, got.Rules[0].Expression)
+
+			// Assignment metadata must be stripped.
+			require.Empty(t, got.Scope)
+			require.Empty(t, got.ScopeID)
+			require.Nil(t, got.Props)
+		}
+
+		// System admin gets the resolved parent — the pre-existing behavior.
+		t.Run("system admin", func(t *testing.T) {
+			assertBanner(t, th.SystemAdminClient)
+		})
+
+		// Team admin gets the SAME banner data, without needing to fetch the parent
+		// policy directly (which requires ManageSystem). This is the MM-70056 fix.
+		t.Run("team admin", func(t *testing.T) {
+			th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+			defer th.RemovePermissionFromRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+			th.LinkUserToTeam(t, th.TeamAdminUser, th.BasicTeam)
+			th.UpdateUserToTeamAdmin(t, th.TeamAdminUser, th.BasicTeam)
+			th.LoginTeamAdmin(t)
+			defer th.LoginBasic(t)
+
+			assertBanner(t, th.Client)
+		})
+	})
+
 	t.Run("disabled flag hides a policy row created while dark", func(t *testing.T) {
 		enableTeamABAC(t, th)
 		// A child policy persisted while the feature was on must not leak through

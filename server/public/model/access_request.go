@@ -215,11 +215,49 @@ type AccessRequest struct {
 	Context  map[string]any `json:"context,omitempty"`
 }
 
-// The PDP evaluates the request and returns an AccessDecision.
-// The Decision field is a boolean indicating whether the request is allowed or not.
+// AccessDecisionContextKeyReason is the AuthZEN decision-context key under
+// which the PDP reports an AccessDecisionReason.
+const AccessDecisionContextKeyReason = "reason"
+
+// AccessDecisionReason enumerates the well-known reasons the PDP reports in
+// the decision context.
+type AccessDecisionReason string
+
+// AccessDecisionReasonNoPolicy marks an allow as vacuous: no policy governs
+// the request, so callers may apply their own defaults instead of treating the
+// allow as an explicit grant.
+const AccessDecisionReasonNoPolicy AccessDecisionReason = "no_policy"
+
+// AccessDecision is the PDP's answer to an AccessRequest. It follows the
+// OpenID AuthZEN evaluation response: a boolean Decision plus an optional
+// Context carrying additional detail.
 type AccessDecision struct {
 	Decision bool           `json:"decision"`
 	Context  map[string]any `json:"context,omitempty"`
+}
+
+// NewNoPolicyAccessDecision returns the vacuous allow for a request no policy
+// governs.
+func NewNoPolicyAccessDecision() AccessDecision {
+	return AccessDecision{
+		Decision: true,
+		Context:  map[string]any{AccessDecisionContextKeyReason: string(AccessDecisionReasonNoPolicy)},
+	}
+}
+
+// Reason returns the well-known reason recorded in the decision context, or
+// the empty reason when the context carries none.
+func (d AccessDecision) Reason() AccessDecisionReason {
+	reason, _ := d.Context[AccessDecisionContextKeyReason].(string)
+	return AccessDecisionReason(reason)
+}
+
+// IsNoPolicy reports whether the request is unregulated: no policy governs it,
+// so the caller may apply its own defaults. A denial is never treated as a
+// no-policy fallback, however it is labelled, so a contradictory response
+// (decision false carrying the no_policy reason) stays a deny.
+func (d AccessDecision) IsNoPolicy() bool {
+	return d.Decision && d.Reason() == AccessDecisionReasonNoPolicy
 }
 
 type QueryExpressionParams struct {
