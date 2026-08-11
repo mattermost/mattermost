@@ -2285,26 +2285,36 @@ func (a *App) AddGroupChannelMembers(rctx request.CTX, channel *model.Channel, u
 // groupChannelMemberHasSystemPost reports whether a join/add system message already
 // exists for userID in the group channel (used to avoid duplicate repair posts).
 func (a *App) groupChannelMemberHasSystemPost(rctx request.CTX, channelID, userID string) (bool, *model.AppError) {
-	postList, nErr := a.Srv().Store().Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 100}, false, map[string]bool{})
-	if nErr != nil {
-		return false, model.NewAppError("groupChannelMemberHasSystemPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-	}
+	const perPage = 100
+	for page := 0; ; page++ {
+		postList, nErr := a.Srv().Store().Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId:        channelID,
+			Page:             page,
+			PerPage:          perPage,
+			SkipFetchThreads: true,
+		}, false, map[string]bool{})
+		if nErr != nil {
+			return false, model.NewAppError("groupChannelMemberHasSystemPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
 
-	for _, postID := range postList.Order {
-		post := postList.Posts[postID]
-		switch post.Type {
-		case model.PostTypeAddToChannel, model.PostTypeAddGuestToChannel:
-			if post.GetProp(model.PostPropsAddedUserId) == userID {
-				return true, nil
-			}
-		case model.PostTypeJoinChannel, model.PostTypeGuestJoinChannel:
-			if post.UserId == userID {
-				return true, nil
+		for _, postID := range postList.Order {
+			post := postList.Posts[postID]
+			switch post.Type {
+			case model.PostTypeAddToChannel, model.PostTypeAddGuestToChannel:
+				if post.GetProp(model.PostPropsAddedUserId) == userID {
+					return true, nil
+				}
+			case model.PostTypeJoinChannel, model.PostTypeGuestJoinChannel:
+				if post.UserId == userID {
+					return true, nil
+				}
 			}
 		}
-	}
 
-	return false, nil
+		if len(postList.Order) < perPage {
+			return false, nil
+		}
+	}
 }
 
 func (a *App) compensateMutableGroupChannelMemberAdds(rctx request.CTX, userIDs, postIDs []string, removerUserID string, channel *model.Channel) {

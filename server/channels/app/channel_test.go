@@ -1431,6 +1431,51 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 		require.Equal(t, 1, addPosts)
 		require.Zero(t, otherMemberAddPosts)
 	})
+
+	t.Run("idempotent retry finds buried add system post beyond first page", func(t *testing.T) {
+		buriedUser := th.CreateUser(t)
+		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddChannelMember(th.Context, buriedUser.Id, channel, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+
+		// Push the join/add system post past the first GetPosts page (100).
+		baseTime := model.GetMillis()
+		for i := range 101 {
+			_, nErr := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: channel.Id,
+				Message:   "filler",
+				CreateAt:  baseTime + int64(i) + 1,
+			})
+			require.NoError(t, nErr)
+		}
+
+		_, appErr = th.App.AddChannelMember(th.Context, buriedUser.Id, channel, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+
+		var addPosts int
+		for page := 0; ; page++ {
+			postList, nErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{
+				ChannelId:        channel.Id,
+				Page:             page,
+				PerPage:          100,
+				SkipFetchThreads: true,
+			}, false, map[string]bool{})
+			require.NoError(t, nErr)
+			for _, postID := range postList.Order {
+				post := postList.Posts[postID]
+				if post.Type == model.PostTypeAddToChannel && post.GetProp(model.PostPropsAddedUserId) == buriedUser.Id {
+					addPosts++
+				}
+			}
+			if len(postList.Order) < 100 {
+				break
+			}
+		}
+		require.Equal(t, 1, addPosts)
+	})
 }
 
 func TestAddGroupChannelMembersRollsBackPostsOnLaterFailure(t *testing.T) {
