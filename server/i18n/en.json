@@ -2629,6 +2629,10 @@
     "translation": "Invalid test type: {{.TestType}}"
   },
   {
+    "id": "api.ldap.test.reenter_password",
+    "translation": "The AD/LDAP server, port, connection security, or bind username has changed. Please re-enter the bind password to test the connection."
+  },
+  {
     "id": "api.ldap_group.not_found",
     "translation": "ldap group not found"
   },
