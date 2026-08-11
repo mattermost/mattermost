@@ -499,7 +499,7 @@ describe('GlobalAttributesTable', () => {
             deletePropertyField.mockReset();
         });
 
-        function renderTable(fields: PropertyField[]) {
+        function renderTable(fields: PropertyField[], state: DeepPartial<GlobalState> = getBaseState()) {
             getPropertyFields.mockResolvedValueOnce(fields).mockResolvedValue([]);
 
             renderWithContext(
@@ -507,8 +507,25 @@ describe('GlobalAttributesTable', () => {
                     <GlobalAttributesTable/>
                     <ModalController/>
                 </div>,
-                getBaseState(),
+                state,
             );
+        }
+
+        // A plugin-owned row is server-protected only while its plugin is still
+        // installed, so these tests have to state which plugins the admin console
+        // believes are installed. Without this the row reads as orphaned.
+        function getStateWithInstalledPlugin(pluginId: string): DeepPartial<GlobalState> {
+            const state = getBaseState();
+            state.entities!.admin = {
+                pluginStatuses: {[pluginId]: {id: pluginId}},
+            } as EntitiesPartial['admin'];
+            return state;
+        }
+
+        const PLUGIN_ID = 'com.acme.plugin';
+
+        function makePluginOwnedField() {
+            return makeField({attrs: {display_name: 'Department', source_plugin_id: PLUGIN_ID, protected: true}});
         }
 
         async function openDeleteModal(fieldId = 'field-1') {
@@ -624,8 +641,8 @@ describe('GlobalAttributesTable', () => {
             expect(liveRegion).toBeInTheDocument();
         });
 
-        it('keeps Delete disabled with a reason on a plugin-owned row', async () => {
-            renderTable([makeField({attrs: {display_name: 'Department', source_plugin_id: 'com.acme.plugin', protected: true}})]);
+        it('keeps Delete disabled with a reason on a plugin-owned row while the plugin is installed', async () => {
+            renderTable([makePluginOwnedField()], getStateWithInstalledPlugin(PLUGIN_ID));
 
             await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
 
@@ -640,6 +657,42 @@ describe('GlobalAttributesTable', () => {
             // * No modal, no API call — the disabled item is inert, not just styled as disabled
             expect(screen.queryByRole('heading', {name: /delete department attribute/i})).not.toBeInTheDocument();
             expect(deletePropertyField).not.toHaveBeenCalled();
+        });
+
+        it('re-enables Delete on a plugin-owned row once the plugin is uninstalled, so the leftover can be cleaned up', async () => {
+            deletePropertyField.mockResolvedValue({status: 'OK'});
+
+            // No plugin statuses at all: the source plugin is gone, which is what the
+            // server itself keys the delete allowance off (checkFieldDeleteAccess)
+            renderTable([makePluginOwnedField()]);
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+
+            const del = screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Delete attribute'));
+            expect(del!).not.toHaveAttribute('aria-disabled', 'true');
+            expect(del!).not.toHaveTextContent('Plugin-managed');
+
+            await userEvent.click(del!);
+
+            // * The confirmation names the plugin the leftover came from, since an
+            // uninstalled plugin is otherwise invisible to the admin
+            expect(await screen.findByRole('heading', {name: /delete department attribute/i})).toBeInTheDocument();
+            expect(screen.getByText(/was created by the plugin "com\.acme\.plugin", which is no longer installed/i)).toBeInTheDocument();
+
+            await userEvent.click(await screen.findByRole('button', {name: /^delete$/i}));
+
+            await waitFor(() => {
+                expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-1');
+            });
+        });
+
+        it('omits the plugin explanation for an ordinary attribute', async () => {
+            renderTable([makeField({attrs: {display_name: 'Department'}})]);
+
+            await openDeleteModal();
+
+            expect(await screen.findByText(/permanently remove its definition/i)).toBeInTheDocument();
+            expect(screen.queryByText(/no longer installed/i)).not.toBeInTheDocument();
         });
     });
 

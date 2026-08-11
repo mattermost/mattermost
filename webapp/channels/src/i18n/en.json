@@ -1494,6 +1494,7 @@
   "admin.global_attributes.confirm.delete.body": "Deleting this attribute will permanently remove its definition. This action cannot be undone.",
   "admin.global_attributes.confirm.delete.error.generic": "An error occurred while deleting this attribute. Please try again.",
   "admin.global_attributes.confirm.delete.error.has_dependents": "This attribute can't be deleted because other attributes are still linked to it. Remove those links first, then try again.",
+  "admin.global_attributes.confirm.delete.orphaned_body": "This attribute was created by the plugin \"{pluginId}\", which is no longer installed.",
   "admin.global_attributes.confirm.delete.title": "Delete {name} attribute",
   "admin.global_attributes.new_attribute": "New attribute",
   "admin.global_attributes.subtitle": "Define an attribute once, then choose which resources can use it.",

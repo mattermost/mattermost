@@ -33,6 +33,7 @@ import {
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
 } from 'components/admin_console/classification_markings/utils';
 import AlertBanner from 'components/alert_banner';
+import {useIsFieldOrphaned} from 'components/common/hooks/use_field_orphaned';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 
@@ -221,9 +222,13 @@ function ActionsCell({field, isClassificationRow, isMobileView, onDeleteError}: 
     const promptDelete = useGlobalAttributeFieldDelete();
     const menuId = `global-attribute-actions-${field.id}`;
 
-    // Plugin-owned fields are server-protected; deleting them would 4xx anyway,
-    // so the item stays disabled with a reason instead of offering a dead action.
-    const isPluginOwned = getSourceKind(field) === 'plugin';
+    // A plugin-owned field is server-protected only while its plugin is installed,
+    // so the item stays disabled with a reason rather than offering a dead action.
+    // Once the plugin is uninstalled the server allows the delete (see
+    // checkFieldDeleteAccess in server/channels/app/properties/access_control.go) —
+    // that is how an admin cleans up what the plugin left behind.
+    const isOrphaned = useIsFieldOrphaned(field);
+    const isPluginManaged = getSourceKind(field) === 'plugin' && !isOrphaned;
 
     const handleConfirmed = useCallback(async () => {
         onDeleteError(null);
@@ -303,14 +308,18 @@ function ActionsCell({field, isClassificationRow, isMobileView, onDeleteError}: 
             />
             <Menu.Item
                 id={`${menuId}-delete`}
-                disabled={isPluginOwned}
+                disabled={isPluginManaged}
                 isDestructive={true}
                 leadingElement={<TrashCanOutlineIcon size={18}/>}
-                onClick={isPluginOwned ? undefined : () => promptDelete(getDisplayName(field), handleConfirmed)}
+                onClick={isPluginManaged ? undefined : () => promptDelete(
+                    getDisplayName(field),
+                    handleConfirmed,
+                    isOrphaned ? {sourcePluginId: field.attrs?.source_plugin_id as string | undefined} : undefined,
+                )}
                 labels={(
                     <>
                         <span><FormattedMessage {...actionsLabels.delete}/></span>
-                        {isPluginOwned && <span><FormattedMessage {...actionsLabels.pluginManaged}/></span>}
+                        {isPluginManaged && <span><FormattedMessage {...actionsLabels.pluginManaged}/></span>}
                     </>
                 )}
             />

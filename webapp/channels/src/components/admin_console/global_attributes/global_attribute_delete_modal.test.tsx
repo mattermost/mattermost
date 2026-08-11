@@ -41,4 +41,28 @@ describe('GlobalAttributeDeleteModal', () => {
 
         expect(props.onConfirm).not.toHaveBeenCalled();
     });
+
+    describe('orphaned attribute', () => {
+        it('names the uninstalled plugin the attribute was left behind by', () => {
+            renderModal({isOrphaned: true, sourcePluginId: 'com.acme.plugin'});
+
+            expect(screen.getByText(/was created by the plugin "com\.acme\.plugin", which is no longer installed/i)).toBeInTheDocument();
+
+            // * The standard warning is kept alongside it rather than replaced — an
+            // orphaned attribute is just as permanently deleted as any other
+            expect(screen.getByText(/permanently remove its definition/i)).toBeInTheDocument();
+        });
+
+        it('falls back to "unknown" when the source plugin id is missing', () => {
+            renderModal({isOrphaned: true});
+
+            expect(screen.getByText(/was created by the plugin "unknown"/i)).toBeInTheDocument();
+        });
+
+        it('says nothing about plugins for an ordinary attribute', () => {
+            renderModal();
+
+            expect(screen.queryByText(/no longer installed/i)).not.toBeInTheDocument();
+        });
+    });
 });
