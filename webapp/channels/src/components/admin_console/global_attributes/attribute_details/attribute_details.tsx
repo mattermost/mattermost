@@ -415,7 +415,6 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             >
                                                 <FormattedMessage {...messages.uniqueNamePrefix}/>
                                             </span>
-                                            {' '}
                                             {isEditingName ? (
                                                 <input
                                                     type='text'

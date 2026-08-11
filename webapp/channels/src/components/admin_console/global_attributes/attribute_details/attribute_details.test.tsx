@@ -46,7 +46,8 @@ describe('AttributeDetails', () => {
 
     it('renders the empty auto-slug caption as a dash, not the _copy sentinel', () => {
         renderComponent();
-        expect(screen.getByTestId('attributeUniqueNameCaption')).toHaveTextContent('Unique name: —');
+        expect(screen.getByTestId('attributeUniqueNameCaption')).toHaveTextContent('Unique name:');
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('—');
     });
 
     it('updates the auto-slug caption live as the display name is typed', async () => {
@@ -54,7 +55,7 @@ describe('AttributeDetails', () => {
 
         await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
 
-        expect(screen.getByTestId('attributeUniqueNameCaption')).toHaveTextContent('Unique name: my_attribute');
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute');
     });
 
     it('shows an inline error for an auto-slugged reserved word without clicking Edit, and disables Save', async () => {
@@ -62,7 +63,7 @@ describe('AttributeDetails', () => {
 
         await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'For');
 
-        expect(screen.getByTestId('attributeUniqueNameCaption')).toHaveTextContent('Unique name: for');
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('for');
         expect(screen.getByTestId('attributeUniqueNameError')).toHaveTextContent('reserved word');
         expect(screen.getByTestId('saveSetting')).toBeDisabled();
     });
@@ -500,7 +501,7 @@ describe('AttributeDetails', () => {
 
         await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), '!!!');
 
-        expect(screen.getByTestId('attributeUniqueNameCaption')).toHaveTextContent('Unique name: —');
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('—');
         expect(screen.getByTestId('attributeUniqueNameEmptyWarning')).toHaveTextContent("Couldn't generate a unique name");
         expect(screen.getByTestId('saveSetting')).toBeDisabled();
     });
