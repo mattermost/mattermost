@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func TestCreateBot(t *testing.T) {
@@ -680,9 +681,34 @@ func TestPermanentDeleteBotDeletesAccessTokens(t *testing.T) {
 	})
 	require.Nil(t, err)
 
-	session, err := th.App.GetSession(token1.Token)
+	// Each token gets a backing session so we can verify the sessions are
+	// deleted alongside the tokens.
+	session1, err := th.App.GetSession(token1.Token)
 	require.Nil(t, err)
-	require.NotEmpty(t, session.Id)
+	require.NotEmpty(t, session1.Id)
+
+	session2, err := th.App.GetSession(token2.Token)
+	require.Nil(t, err)
+	require.NotEmpty(t, session2.Id)
+
+	// A second bot whose tokens/sessions must survive, proving the deletion is
+	// scoped to the deleted bot's user ID.
+	otherBot, err := th.App.CreateBot(th.Context, &model.Bot{
+		Username:    "other_token_bot",
+		Description: "an unrelated bot",
+		OwnerId:     th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+
+	otherToken, err := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{
+		UserId:      otherBot.UserId,
+		Description: "keep me",
+	})
+	require.Nil(t, err)
+
+	otherSession, err := th.App.GetSession(otherToken.Token)
+	require.Nil(t, err)
+	require.NotEmpty(t, otherSession.Id)
 
 	tokens, err := th.App.GetUserAccessTokensForUser(bot.UserId, 0, 100)
 	require.Nil(t, err)
@@ -695,12 +721,25 @@ func TestPermanentDeleteBotDeletesAccessTokens(t *testing.T) {
 	require.Empty(t, tokens, "bot access tokens should be deleted with the bot")
 
 	_, err = th.App.GetUserAccessToken(token1.Id, false)
-	require.NotNil(t, err)
+	require.NotNil(t, err, "token 1 should be deleted with the bot")
+	require.Equal(t, "app.user_access_token.get_by_user.app_error", err.Id)
 	_, err = th.App.GetUserAccessToken(token2.Id, false)
-	require.NotNil(t, err)
+	require.NotNil(t, err, "token 2 should be deleted with the bot")
+	require.Equal(t, "app.user_access_token.get_by_user.app_error", err.Id)
 
-	_, nErr := th.App.Srv().Store().Session().Get(th.Context, session.Id)
-	require.Error(t, nErr, "sessions backed by the bot's access tokens should be deleted")
+	var nfErr *store.ErrNotFound
+	_, nErr := th.App.Srv().Store().Session().Get(th.Context, session1.Id)
+	require.ErrorAs(t, nErr, &nfErr, "session backed by the bot's first token should be deleted")
+	_, nErr = th.App.Srv().Store().Session().Get(th.Context, session2.Id)
+	require.ErrorAs(t, nErr, &nfErr, "session backed by the bot's second token should be deleted")
+
+	// The unrelated bot's credentials must be untouched.
+	otherTokens, err := th.App.GetUserAccessTokensForUser(otherBot.UserId, 0, 100)
+	require.Nil(t, err)
+	require.Len(t, otherTokens, 1, "an unrelated bot's tokens must not be deleted")
+
+	_, nErr = th.App.Srv().Store().Session().Get(th.Context, otherSession.Id)
+	require.NoError(t, nErr, "an unrelated bot's session must survive")
 }
 
 func TestDisableUserBots(t *testing.T) {
