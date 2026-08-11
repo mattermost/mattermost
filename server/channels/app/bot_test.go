@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -722,10 +723,10 @@ func TestPermanentDeleteBotDeletesAccessTokens(t *testing.T) {
 
 	_, err = th.App.GetUserAccessToken(token1.Id, false)
 	require.NotNil(t, err, "token 1 should be deleted with the bot")
-	require.Equal(t, "app.user_access_token.get_by_user.app_error", err.Id)
+	require.Equal(t, http.StatusNotFound, err.StatusCode)
 	_, err = th.App.GetUserAccessToken(token2.Id, false)
 	require.NotNil(t, err, "token 2 should be deleted with the bot")
-	require.Equal(t, "app.user_access_token.get_by_user.app_error", err.Id)
+	require.Equal(t, http.StatusNotFound, err.StatusCode)
 
 	var nfErr *store.ErrNotFound
 	_, nErr := th.App.Srv().Store().Session().Get(th.Context, session1.Id)
