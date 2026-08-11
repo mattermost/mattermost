@@ -41,7 +41,7 @@ func searchPropertyValue(t *testing.T, th *TestHelper, postId, fieldName string)
 	groupId, err := th.App.ContentFlaggingGroupId()
 	require.Nil(t, err)
 
-	mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+	mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
 	require.Nil(t, appErr)
 
 	values, appErr2 := th.App.SearchPropertyValues(th.Context, groupId, model.PropertyValueSearchOpts{
@@ -193,7 +193,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify status was updated to assigned
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusAssigned+`"`, string(statusValue.Value))
 
@@ -201,7 +201,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
 		require.Nil(t, appErr)
 
 		reviewerValues, err := th.App.SearchPropertyValues(rctx, groupId, model.PropertyValueSearchOpts{
@@ -228,7 +228,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify status remains assigned
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusAssigned+`"`, string(statusValue.Value))
 
@@ -236,7 +236,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
 		require.Nil(t, appErr)
 
 		reviewerValues, err := th.App.SearchPropertyValues(rctx, groupId, model.PropertyValueSearchOpts{
@@ -272,7 +272,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify status remains assigned
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusAssigned+`"`, string(statusValue.Value))
 
@@ -280,7 +280,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
 		require.Nil(t, appErr)
 
 		reviewerValues, err := th.App.SearchPropertyValues(rctx, groupId, model.PropertyValueSearchOpts{
@@ -302,7 +302,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify status was updated to assigned
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusAssigned+`"`, string(statusValue.Value))
 
@@ -310,7 +310,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
 		require.Nil(t, appErr)
 
 		reviewerValues, err := th.App.SearchPropertyValues(rctx, groupId, model.PropertyValueSearchOpts{
@@ -338,7 +338,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 
 		// Set the status to Assigned
@@ -349,7 +349,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 
-		statusValue, appErr = th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr = th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusAssigned+`"`, string(statusValue.Value))
 
@@ -361,7 +361,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 
-		statusValue, appErr = th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr = th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusRemoved+`"`, string(statusValue.Value))
 
@@ -373,7 +373,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 
-		statusValue, appErr = th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr = th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusRetained+`"`, string(statusValue.Value))
 	})
@@ -1085,7 +1085,7 @@ func TestFlagPost(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
 		require.Nil(t, appErr)
 
 		// Check status property
@@ -1270,7 +1270,7 @@ func TestFlagPost(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
 		require.Nil(t, appErr)
 
 		commentValues, err := th.App.SearchPropertyValues(rctx, groupId, model.PropertyValueSearchOpts{
@@ -1304,7 +1304,7 @@ func TestFlagPost(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
 		require.Nil(t, appErr)
 
 		timeValues, err := th.App.SearchPropertyValues(rctx, groupId, model.PropertyValueSearchOpts{
@@ -1636,7 +1636,7 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
 		require.Nil(t, appErr)
 
 		flaggedPostIdField, ok := mappedFields[contentFlaggingPropertyNameFlaggedPostId]
@@ -1661,7 +1661,7 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
 		require.Nil(t, appErr)
 
 		flaggedPostIdField, ok := mappedFields[contentFlaggingPropertyNameFlaggedPostId]
@@ -1695,7 +1695,7 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
 		require.Nil(t, appErr)
 
 		flaggedPostIdField, ok := mappedFields[contentFlaggingPropertyNameFlaggedPostId]
@@ -1720,7 +1720,7 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
 		require.Nil(t, appErr)
 
 		flaggedPostIdField, ok := mappedFields[contentFlaggingPropertyNameFlaggedPostId]
@@ -2267,7 +2267,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Greater(t, updatedPost.DeleteAt, int64(0))
 
 		// Verify status was updated to removed
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusRemoved+`"`, string(statusValue.Value))
 
@@ -2275,7 +2275,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
 		require.Nil(t, appErr)
 
 		// Check actor user property
@@ -2349,7 +2349,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify status was updated to removed
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusRemoved+`"`, string(statusValue.Value))
 	})
@@ -2361,7 +2361,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
@@ -2385,7 +2385,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
@@ -2428,7 +2428,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
 		require.Nil(t, appErr)
 
 		commentValues, err := th.App.SearchPropertyValues(rctx, groupId, model.PropertyValueSearchOpts{
@@ -2456,7 +2456,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupId)
 		require.Nil(t, appErr)
 
 		commentValues, err := th.App.SearchPropertyValues(rctx, groupId, model.PropertyValueSearchOpts{
@@ -2525,7 +2525,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		}, 5*time.Second, 200*time.Millisecond)
 
 		// Verify post was deleted and status updated
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusRemoved+`"`, string(statusValue.Value))
 
@@ -2566,7 +2566,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		}, 5*time.Second, 200*time.Millisecond)
 
 		// Verify status was updated
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(editedPost.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, editedPost.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 
 		// Verify statusValue.Value is a string
@@ -2612,7 +2612,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify status was updated to removed
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(deletedPost.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, deletedPost.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 
 		// Verify statusValue.Value is a string
@@ -2848,7 +2848,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 		require.Equal(t, int64(0), updatedPost.DeleteAt)
 
 		// Verify status was updated to retained
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusRetained+`"`, string(statusValue.Value))
 
@@ -2912,7 +2912,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 		require.Equal(t, int64(0), restoredPost.DeleteAt)
 
 		// Verify status was updated to retained
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusRetained+`"`, string(statusValue.Value))
 	})
@@ -2935,7 +2935,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify status was updated to retained
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusRetained+`"`, string(statusValue.Value))
 	})
@@ -2947,7 +2947,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
@@ -2971,7 +2971,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 		groupId, err := th.App.ContentFlaggingGroupId()
 		require.Nil(t, err)
 
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
@@ -3089,7 +3089,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 		}, 5*time.Second, 200*time.Millisecond)
 
 		// Verify post was retained
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(post.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, post.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusRetained+`"`, string(statusValue.Value))
 
@@ -3136,7 +3136,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 		}, 5*time.Second, 200*time.Millisecond)
 
 		// Verify status was updated to retained
-		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(editedPost.Id, ContentFlaggingPropertyNameStatus)
+		statusValue, appErr := th.App.GetPostContentFlaggingPropertyValue(th.Context, editedPost.Id, ContentFlaggingPropertyNameStatus)
 		require.Nil(t, appErr)
 
 		var stringValue string

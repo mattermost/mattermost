@@ -242,7 +242,7 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generat
 	if gErr != nil {
 		return out, gErr
 	}
-	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupID)
+	mappedFields, appErr := a.GetContentFlaggingMappedFields(rctx, groupID)
 	if appErr != nil {
 		return out, appErr
 	}
@@ -267,7 +267,7 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generat
 	out.ReporterComment = decodePropertyString(rctx, byName, contentFlaggingPropertyNameReportingComment)
 	out.ReportTimestamp = decodePropertyInt64(rctx, byName, contentFlaggingPropertyNameReportingTime)
 
-	contentFlaggingManaged, appErr := a.GetPostContentFlaggingPropertyValue(post.Id, contentFlaggingPropertyManageByContentFlagging)
+	contentFlaggingManaged, appErr := a.GetPostContentFlaggingPropertyValue(rctx, post.Id, contentFlaggingPropertyManageByContentFlagging)
 	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 		return out, appErr
 	}

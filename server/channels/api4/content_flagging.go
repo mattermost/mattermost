@@ -86,7 +86,7 @@ func requireFlaggedPost(c *Context, postId string) {
 		return
 	}
 
-	_, appErr := c.App.GetPostContentFlaggingPropertyValue(postId, app.ContentFlaggingPropertyNameStatus)
+	_, appErr := c.App.GetPostContentFlaggingPropertyValue(c.AppContext, postId, app.ContentFlaggingPropertyNameStatus)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -246,7 +246,7 @@ func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	mappedFields, appErr := c.App.GetContentFlaggingMappedFields(groupId)
+	mappedFields, appErr := c.App.GetContentFlaggingMappedFields(c.AppContext, groupId)
 	if appErr != nil {
 		c.Err = appErr
 		return
