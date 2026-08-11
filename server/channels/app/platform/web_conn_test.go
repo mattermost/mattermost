@@ -271,9 +271,11 @@ func TestWebConnShouldSendEventToGuest(t *testing.T) {
 		return msg
 	}
 
-	propertyEvent := func(objectType string, targetID any) *model.WebSocketEvent {
+	propertyEvent := func(objectType any, targetID any) *model.WebSocketEvent {
 		msg := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, "", "", "", nil, "")
-		msg.Add("object_type", objectType)
+		if objectType != nil {
+			msg.Add("object_type", objectType)
+		}
 		if targetID != nil {
 			msg.Add("target_id", targetID)
 		}
@@ -317,6 +319,12 @@ func TestWebConnShouldSendEventToGuest(t *testing.T) {
 		} {
 			assert.True(t, newGuestConn(false).ShouldSendEventToGuest(propertyEvent(objectType, model.NewId())), objectType)
 		}
+	})
+
+	t.Run("property values updated is not sent when object_type is missing or malformed", func(t *testing.T) {
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(nil, targetUserID)))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent("", targetUserID)))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(42, targetUserID)))
 	})
 
 	t.Run("unrelated events are unaffected", func(t *testing.T) {

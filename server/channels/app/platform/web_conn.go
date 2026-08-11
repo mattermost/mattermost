@@ -871,7 +871,12 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 		}
 		userID = id
 	case model.WebsocketEventPropertyValuesUpdated:
-		if objectType, _ := msg.GetData()["object_type"].(string); objectType != model.PropertyFieldObjectTypeUser {
+		objectType, ok := msg.GetData()["object_type"].(string)
+		if !ok || objectType == "" {
+			wc.Platform.logger.Debug("webhub.shouldSendEvent: object_type not found in message", mlog.Any("object_type", msg.GetData()["object_type"]))
+			return false
+		}
+		if objectType != model.PropertyFieldObjectTypeUser {
 			return true
 		}
 		id, ok := msg.GetData()["target_id"].(string)
