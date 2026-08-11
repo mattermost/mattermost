@@ -209,15 +209,6 @@ func extractCmdF(command *cobra.Command, args []string) error {
 	}
 	sort.Strings(baseFileList)
 
-	enterpriseDirUsable := false
-	if enterpriseDir != "" {
-		if stat, err := os.Stat(enterpriseDir); err == nil && stat.IsDir() {
-			if entries, readErr := os.ReadDir(enterpriseDir); readErr == nil && len(entries) > 0 {
-				enterpriseDirUsable = true
-			}
-		}
-	}
-
 	for _, translationKey := range i18nStringsList {
 		if _, hasKey := idx[translationKey]; !hasKey {
 			resultMap[translationKey] = Translation{Id: translationKey, Translation: ""}
@@ -226,12 +217,6 @@ func extractCmdF(command *cobra.Command, args []string) error {
 
 	for _, translationKey := range baseFileList {
 		if _, hasKey := i18nStrings[translationKey]; !hasKey {
-			// Contributor mode runs without enterprise sources in many OSS-only
-			// environments. In that case, preserve existing base-file keys so the
-			// extractor does not delete enterprise translations it cannot see.
-			if contributorMode && !enterpriseDirUsable {
-				continue
-			}
 			if contributorMode && strings.HasPrefix(translationKey, enterpriseKeyPrefix) {
 				continue
 			}
