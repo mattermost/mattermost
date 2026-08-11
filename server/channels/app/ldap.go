@@ -65,7 +65,6 @@ func (a *App) checkLdapTestBindPassword(where string, settings model.LdapSetting
 	if ldapConnectionSettingChanged(settings.LdapServer, savedSettings.LdapServer) ||
 		ldapConnectionSettingChanged(settings.LdapPort, savedSettings.LdapPort) ||
 		ldapConnectionSettingChanged(settings.ConnectionSecurity, savedSettings.ConnectionSecurity) ||
-		ldapConnectionSettingChanged(settings.SkipCertificateVerification, savedSettings.SkipCertificateVerification) ||
 		ldapConnectionSettingChanged(settings.BindUsername, savedSettings.BindUsername) {
 		return model.NewAppError(where, "api.ldap.test.reenter_password", nil, "", http.StatusBadRequest)
 	}

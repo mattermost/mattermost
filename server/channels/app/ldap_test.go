@@ -50,6 +50,50 @@ func TestCheckLdapTestBindPassword(t *testing.T) {
 		require.Nil(t, th.App.checkLdapTestBindPassword("TestLdapConnection", model.LdapSettings{}))
 	})
 
+	t.Run("only skip certificate verification changed and no password submitted", func(t *testing.T) {
+		settings := savedSettings()
+		settings.SkipCertificateVerification = model.NewPointer(true)
+
+		require.Nil(t, th.App.checkLdapTestBindPassword("TestLdapConnection", settings))
+	})
+
+	t.Run("only skip certificate verification changed and masked password submitted", func(t *testing.T) {
+		settings := savedSettings()
+		settings.SkipCertificateVerification = model.NewPointer(true)
+		settings.BindPassword = model.NewPointer(model.FakeSetting)
+
+		require.Nil(t, th.App.checkLdapTestBindPassword("TestLdapConnection", settings))
+	})
+
+	t.Run("skip certificate verification submitted as false while connection security is empty", func(t *testing.T) {
+		th2 := Setup(t)
+
+		th2.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.LdapServer = model.NewPointer("ldap.example.com")
+			cfg.LdapSettings.LdapPort = model.NewPointer(389)
+			cfg.LdapSettings.ConnectionSecurity = model.NewPointer("")
+			cfg.LdapSettings.SkipCertificateVerification = model.NewPointer(true)
+			cfg.LdapSettings.BindUsername = model.NewPointer("cn=admin,dc=example,dc=com")
+			cfg.LdapSettings.BindPassword = model.NewPointer("saved-password")
+		})
+
+		settings := model.LdapSettings{
+			LdapServer:                  model.NewPointer("ldap.example.com"),
+			LdapPort:                    model.NewPointer(389),
+			ConnectionSecurity:          model.NewPointer(""),
+			SkipCertificateVerification: model.NewPointer(false),
+			BindUsername:                model.NewPointer("cn=admin,dc=example,dc=com"),
+			BindPassword:                model.NewPointer(model.FakeSetting),
+		}
+
+		require.Nil(t, th2.App.checkLdapTestBindPassword("TestLdapConnection", settings))
+
+		settings.LdapServer = model.NewPointer("attacker.example.com")
+		appErr := th2.App.checkLdapTestBindPassword("TestLdapConnection", settings)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.ldap.test.reenter_password", appErr.Id)
+	})
+
 	t.Run("no saved bind password", func(t *testing.T) {
 		th2 := Setup(t)
 
@@ -72,9 +116,6 @@ func TestCheckLdapTestBindPassword(t *testing.T) {
 		},
 		"connection security changed": func(settings *model.LdapSettings) {
 			settings.ConnectionSecurity = model.NewPointer("")
-		},
-		"skip certificate verification changed": func(settings *model.LdapSettings) {
-			settings.SkipCertificateVerification = model.NewPointer(true)
 		},
 		"bind username changed": func(settings *model.LdapSettings) {
 			settings.BindUsername = model.NewPointer("cn=other,dc=example,dc=com")
@@ -144,6 +185,24 @@ func TestTestLdapConnectionBindPasswordGuard(t *testing.T) {
 			LdapPort:     model.NewPointer(389),
 			BindUsername: model.NewPointer("cn=admin,dc=example,dc=com"),
 			BindPassword: model.NewPointer(model.FakeSetting),
+		}
+
+		appErr := th.App.TestLdapConnection(th.Context, settings)
+		require.NotNil(t, appErr)
+		require.NotEqual(t, "api.ldap.test.reenter_password", appErr.Id)
+
+		_, appErr = th.App.TestLdapDiagnostics(th.Context, model.LdapDiagnosticTestTypeFilters, settings)
+		require.NotNil(t, appErr)
+		require.NotEqual(t, "api.ldap.test.reenter_password", appErr.Id)
+	})
+
+	t.Run("passes the guard when only skip certificate verification changed", func(t *testing.T) {
+		settings := model.LdapSettings{
+			LdapServer:                  model.NewPointer("ldap.example.com"),
+			LdapPort:                    model.NewPointer(389),
+			BindUsername:                model.NewPointer("cn=admin,dc=example,dc=com"),
+			SkipCertificateVerification: model.NewPointer(!model.SafeDereference(th.App.Config().LdapSettings.SkipCertificateVerification)),
+			BindPassword:                model.NewPointer(model.FakeSetting),
 		}
 
 		appErr := th.App.TestLdapConnection(th.Context, settings)
