@@ -10,11 +10,11 @@ import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {render, renderWithContext} from 'tests/react_testing_utils';
 import {Preferences} from 'utils/constants';
 
-import {getBestImage, getIsLargeImage, getScaledImageDimensions, PostAttachmentOpenGraphImage, PostAttachmentOpenGraphBody} from './post_attachment_opengraph';
 import {
     OPEN_GRAPH_MAX_IMAGE_WIDTH,
     OPEN_GRAPH_THUMBNAIL_SIZE,
 } from './constants';
+import {getBestImage, getIsLargeImage, getScaledImageDimensions, PostAttachmentOpenGraphImage, PostAttachmentOpenGraphBody} from './post_attachment_opengraph';
 
 import PostAttachmentOpenGraph from './index';
 

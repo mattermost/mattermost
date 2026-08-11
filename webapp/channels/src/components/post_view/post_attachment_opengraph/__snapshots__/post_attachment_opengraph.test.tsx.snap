@@ -8,6 +8,7 @@ exports[`PostAttachmentOpenGraph should match snapshot 1`] = `
     location="post_attachment_opengraph"
     rel="noopener noreferrer"
     role="link"
+    style="--open-graph-thumbnail-size: 80px; --open-graph-max-image-width: 392px; --open-graph-max-image-height: 240px;"
     target="_blank"
     title="Mattermost | Open Source Collaboration for Developers"
   >
@@ -38,52 +39,45 @@ exports[`PostAttachmentOpenGraph should match snapshot 1`] = `
         style="transition-property: height; transition-duration: 250ms; transition-timing-function: ease; width: 100%; height: auto; overflow: visible;"
       >
         <div>
-          <button
-            class="preview-toggle style--none"
-          >
-            <svg
-              fill="currentColor"
-              height="18"
-              version="1.1"
-              viewBox="0 0 24 24"
-              width="18"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M7,10L12,15L17,10H7Z"
-              />
-            </svg>
-          </button>
           <div
-            class="image-loading__container undefined"
-            style="max-width: 392px;"
+            class="file-preview__button"
           >
-            <div
-              style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
+            <figure
+              class="image-loaded-container"
             >
               <div
-                class="file__image-loading"
+                class="image-loading__container"
               >
-                <span
-                  class="LoadingSpinner"
-                  data-testid="loadingSpinner"
-                  id="loadingSpinner"
+                <div
+                  style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
                 >
-                  <span
-                    class="fa fa-spinner fa-fw fa-pulse spinner"
-                    title="Loading Icon"
-                  />
-                </span>
-                <span
-                  class="loader-percent"
+                  <div
+                    class="file__image-loading"
+                  >
+                    <span
+                      class="LoadingSpinner"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        class="fa fa-spinner fa-fw fa-pulse spinner"
+                        title="Loading Icon"
+                      />
+                    </span>
+                    <span
+                      class="loader-percent"
+                    />
+                  </div>
+                </div>
+                <img
+                  class="image-loading__placeholder"
+                  height="205.14666666666668"
+                  role="presentation"
+                  src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22392%22%20height%3D%22205.14666666666668%22%20viewBox%3D%220%200%20392%20205.14666666666668%22%2F%3E"
+                  width="392"
                 />
               </div>
-            </div>
-            <svg
-              style="max-height: 205.14666666666668px; max-width: 392px; vertical-align: middle;"
-              viewBox="0 0 392 205.14666666666668"
-              xmlns="http://www.w3.org/2000/svg"
-            />
+            </figure>
           </div>
           <div
             class="file-preview__button"
@@ -101,6 +95,22 @@ exports[`PostAttachmentOpenGraph should match snapshot 1`] = `
               />
             </figure>
           </div>
+          <button
+            class="preview-toggle style--none"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M7,10L12,15L17,10H7Z"
+              />
+            </svg>
+          </button>
         </div>
       </div>
     </div>
@@ -161,52 +171,45 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
       style="transition-property: height; transition-duration: 250ms; transition-timing-function: ease; width: 100%; height: auto; overflow: visible;"
     >
       <div>
-        <button
-          class="preview-toggle style--none"
-        >
-          <svg
-            fill="currentColor"
-            height="18"
-            version="1.1"
-            viewBox="0 0 24 24"
-            width="18"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M7,10L12,15L17,10H7Z"
-            />
-          </svg>
-        </button>
         <div
-          class="image-loading__container undefined"
-          style="max-width: 392px;"
+          class="file-preview__button"
         >
-          <div
-            style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
+          <figure
+            class="image-loaded-container"
           >
             <div
-              class="file__image-loading"
+              class="image-loading__container"
             >
-              <span
-                class="LoadingSpinner"
-                data-testid="loadingSpinner"
-                id="loadingSpinner"
+              <div
+                style="position: absolute; top: 50%; transform: translate(-50%, -50%); left: 50%;"
               >
-                <span
-                  class="fa fa-spinner fa-fw fa-pulse spinner"
-                  title="Loading Icon"
-                />
-              </span>
-              <span
-                class="loader-percent"
+                <div
+                  class="file__image-loading"
+                >
+                  <span
+                    class="LoadingSpinner"
+                    data-testid="loadingSpinner"
+                    id="loadingSpinner"
+                  >
+                    <span
+                      class="fa fa-spinner fa-fw fa-pulse spinner"
+                      title="Loading Icon"
+                    />
+                  </span>
+                  <span
+                    class="loader-percent"
+                  />
+                </div>
+              </div>
+              <img
+                class="image-loading__placeholder"
+                height="205.14666666666668"
+                role="presentation"
+                src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22392%22%20height%3D%22205.14666666666668%22%20viewBox%3D%220%200%20392%20205.14666666666668%22%2F%3E"
+                width="392"
               />
             </div>
-          </div>
-          <svg
-            style="max-height: 205.14666666666668px; max-width: 392px; vertical-align: middle;"
-            viewBox="0 0 392 205.14666666666668"
-            xmlns="http://www.w3.org/2000/svg"
-          />
+          </figure>
         </div>
         <div
           class="file-preview__button"
@@ -224,6 +227,22 @@ exports[`PostAttachmentOpenGraphImage should match snapshot 1`] = `
             />
           </figure>
         </div>
+        <button
+          class="preview-toggle style--none"
+        >
+          <svg
+            fill="currentColor"
+            height="18"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M7,10L12,15L17,10H7Z"
+            />
+          </svg>
+        </button>
       </div>
     </div>
   </div>
