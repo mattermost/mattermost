@@ -1260,6 +1260,22 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 		require.Contains(t, appErr.DetailedError, channelB.Id)
 	})
 
+	t.Run("rejects when resulting membership collides with archived group channel", func(t *testing.T) {
+		channelA, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		channelB, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id, user3.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotEqual(t, channelA.Id, channelB.Id)
+
+		appErr = th.App.DeleteChannel(th.Context, channelB, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddChannelMember(th.Context, user3.Id, channelA, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.channel.add_user_to_group.already_exists.app_error", appErr.Id)
+		require.Contains(t, appErr.DetailedError, channelB.Id)
+	})
+
 	t.Run("rejects when max members exceeded", func(t *testing.T) {
 		users := []*model.User{th.BasicUser, user1, user2, user3, user4}
 		for range model.ChannelGroupMaxUsers - len(users) {
@@ -1299,7 +1315,7 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 		// Leave one slot free so single adds would pass individually, but a
 		// two-user batch must fail collective validation before any mutation.
 		userIDs := make([]string, 0, model.ChannelGroupMaxUsers-1)
-		for i := 0; i < model.ChannelGroupMaxUsers-1; i++ {
+		for i := range model.ChannelGroupMaxUsers - 1 {
 			userIDs = append(userIDs, users[i].Id)
 		}
 		channel, appErr := th.App.CreateGroupChannel(th.Context, userIDs, th.BasicUser.Id)
@@ -1336,6 +1352,13 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 		require.Nil(t, getErr)
 		require.Equal(t, originalName, persisted.Name)
 		require.Equal(t, int64(0), persisted.DeleteAt)
+
+		postList, nErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 100}, false, map[string]bool{})
+		require.NoError(t, nErr)
+		for _, postID := range postList.Order {
+			post := postList.Posts[postID]
+			require.False(t, post.Type == model.PostTypeAddToChannel && post.GetProp(model.PostPropsAddedUserId) == user3.Id)
+		}
 	})
 
 	t.Run("retries complete post and identity when member already exists", func(t *testing.T) {
@@ -1362,30 +1385,93 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 		expectedName := model.GetGroupNameFromUserIds([]string{th.BasicUser.Id, user1.Id, user4.Id, retryUser.Id})
 		require.Equal(t, expectedName, updated.Name)
 
-		postList, nErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 10}, false, map[string]bool{})
+		postList, nErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 100}, false, map[string]bool{})
 		require.NoError(t, nErr)
 
 		var addPosts int
+		var otherMemberAddPosts int
 		for _, postID := range postList.Order {
 			post := postList.Posts[postID]
-			if post.Type == model.PostTypeAddToChannel && post.GetProp(model.PostPropsAddedUserId) == retryUser.Id {
+			if post.Type != model.PostTypeAddToChannel {
+				continue
+			}
+			addedID := post.GetProp(model.PostPropsAddedUserId)
+			if addedID == retryUser.Id {
 				addPosts++
+			}
+			if addedID == user1.Id || addedID == user4.Id {
+				otherMemberAddPosts++
 			}
 		}
 		require.Equal(t, 1, addPosts)
+		require.Zero(t, otherMemberAddPosts)
 
 		// Idempotent retry after a completed add must not create another system post.
 		_, appErr = th.App.AddChannelMember(th.Context, retryUser.Id, channel, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
 		require.Nil(t, appErr)
 
-		postList, nErr = th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 10}, false, map[string]bool{})
+		postList, nErr = th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 100}, false, map[string]bool{})
 		require.NoError(t, nErr)
 
 		addPosts = 0
+		otherMemberAddPosts = 0
 		for _, postID := range postList.Order {
 			post := postList.Posts[postID]
-			if post.Type == model.PostTypeAddToChannel && post.GetProp(model.PostPropsAddedUserId) == retryUser.Id {
+			if post.Type != model.PostTypeAddToChannel {
+				continue
+			}
+			addedID := post.GetProp(model.PostPropsAddedUserId)
+			if addedID == retryUser.Id {
 				addPosts++
+			}
+			if addedID == user1.Id || addedID == user4.Id {
+				otherMemberAddPosts++
+			}
+		}
+		require.Equal(t, 1, addPosts)
+		require.Zero(t, otherMemberAddPosts)
+	})
+
+	t.Run("idempotent retry finds buried add system post beyond first page", func(t *testing.T) {
+		buriedUser := th.CreateUser(t)
+		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddChannelMember(th.Context, buriedUser.Id, channel, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+
+		// Push the join/add system post past the first GetPosts page (100).
+		baseTime := model.GetMillis()
+		for i := range 101 {
+			_, nErr := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: channel.Id,
+				Message:   "filler",
+				CreateAt:  baseTime + int64(i) + 1,
+			})
+			require.NoError(t, nErr)
+		}
+
+		_, appErr = th.App.AddChannelMember(th.Context, buriedUser.Id, channel, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+		require.Nil(t, appErr)
+
+		var addPosts int
+		for page := 0; ; page++ {
+			postList, nErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{
+				ChannelId:        channel.Id,
+				Page:             page,
+				PerPage:          100,
+				SkipFetchThreads: true,
+			}, false, map[string]bool{})
+			require.NoError(t, nErr)
+			for _, postID := range postList.Order {
+				post := postList.Posts[postID]
+				if post.Type == model.PostTypeAddToChannel && post.GetProp(model.PostPropsAddedUserId) == buriedUser.Id {
+					addPosts++
+				}
+			}
+			if len(postList.Order) < 100 {
+				break
 			}
 		}
 		require.Equal(t, 1, addPosts)
@@ -1577,6 +1663,75 @@ func TestRemoveChannelMemberFromGroupChannel(t *testing.T) {
 		require.Nil(t, getErr)
 		require.Equal(t, originalName, persisted.Name)
 	})
+}
+
+func TestAddGroupChannelMembersRollsBackPostsOnLaterFailure(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.EnableMutableGroupMessages = true
+	}).InitBasic(t)
+
+	user1 := th.CreateUser(t)
+	user2 := th.CreateUser(t)
+	extra1 := th.CreateUser(t)
+	extra2 := th.CreateUser(t)
+
+	channel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, user1.Id, user2.Id}, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	originalName := channel.Name
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+		`
+		package main
+
+		import (
+			"sync/atomic"
+
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		var addPostCount int32
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			if post.Type == model.PostTypeAddToChannel {
+				if atomic.AddInt32(&addPostCount, 1) > 1 {
+					return nil, "reject second add post"
+				}
+			}
+			return nil, ""
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+	}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	_, appErr = th.App.AddGroupChannelMembers(th.Context, channel, []string{extra1.Id, extra2.Id}, ChannelMemberOpts{UserRequestorID: th.BasicUser.Id})
+	require.NotNil(t, appErr)
+
+	_, memberErr := th.App.GetChannelMember(th.Context, channel.Id, extra1.Id)
+	require.NotNil(t, memberErr)
+	_, memberErr = th.App.GetChannelMember(th.Context, channel.Id, extra2.Id)
+	require.NotNil(t, memberErr)
+
+	persisted, getErr := th.App.GetChannel(th.Context, channel.Id)
+	require.Nil(t, getErr)
+	require.Equal(t, originalName, persisted.Name)
+
+	postList, nErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 100}, false, map[string]bool{})
+	require.NoError(t, nErr)
+	for _, postID := range postList.Order {
+		post := postList.Posts[postID]
+		require.NotEqual(t, model.PostTypeAddToChannel, post.Type)
+	}
 }
 
 func TestAppUpdateChannelScheme(t *testing.T) {
