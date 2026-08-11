@@ -2484,6 +2484,26 @@ func (s *SupportSettings) isValid() *AppError {
 		return newNonNegativeNumberAppError("SupportSettings.CustomTermsOfServiceReAcceptancePeriod")
 	}
 
+	if s.ReportAProblemType != nil {
+		if *s.ReportAProblemType == SupportSettingsReportAProblemTypeMail {
+			if s.ReportAProblemMail == nil {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_mail.missing.app_error", nil, "", http.StatusBadRequest)
+			}
+			if !IsValidEmail(*s.ReportAProblemMail) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_mail.invalid.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+		if *s.ReportAProblemType == SupportSettingsReportAProblemTypeLink {
+			if s.ReportAProblemLink == nil {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.missing.app_error", nil, "", http.StatusBadRequest)
+			}
+
+			if !IsValidHTTPURL(*s.ReportAProblemLink) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.invalid.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -4552,26 +4572,6 @@ func (o *Config) IsValid() *AppError {
 
 	if appErr := o.ConnectedWorkspacesSettings.isValid(); appErr != nil {
 		return appErr
-	}
-
-	if o.SupportSettings.ReportAProblemType != nil {
-		if *o.SupportSettings.ReportAProblemType == SupportSettingsReportAProblemTypeMail {
-			if o.SupportSettings.ReportAProblemMail == nil {
-				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_mail.missing.app_error", nil, "", http.StatusBadRequest)
-			}
-			if !IsValidEmail(*o.SupportSettings.ReportAProblemMail) {
-				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_mail.invalid.app_error", nil, "", http.StatusBadRequest)
-			}
-		}
-		if *o.SupportSettings.ReportAProblemType == SupportSettingsReportAProblemTypeLink {
-			if o.SupportSettings.ReportAProblemLink == nil {
-				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.missing.app_error", nil, "", http.StatusBadRequest)
-			}
-
-			if !IsValidHTTPURL(*o.SupportSettings.ReportAProblemLink) {
-				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.invalid.app_error", nil, "", http.StatusBadRequest)
-			}
-		}
 	}
 
 	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {

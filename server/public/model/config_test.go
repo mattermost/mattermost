@@ -149,6 +149,48 @@ func TestSupportSettingsIsValid(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.non_negative_number.app_error", appErr.Id)
 	})
+
+	t.Run("report a problem mail requires valid email", func(t *testing.T) {
+		settings := &SupportSettings{
+			ReportAProblemType: new(string(SupportSettingsReportAProblemTypeMail)),
+			ReportAProblemMail: nil,
+		}
+		settings.SetDefaults()
+		settings.ReportAProblemMail = nil
+
+		appErr := settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.report_a_problem_mail.missing.app_error", appErr.Id)
+
+		settings.ReportAProblemMail = new("invalid")
+		appErr = settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.report_a_problem_mail.invalid.app_error", appErr.Id)
+
+		settings.ReportAProblemMail = new("valid@email.com")
+		require.Nil(t, settings.isValid())
+	})
+
+	t.Run("report a problem link requires valid url", func(t *testing.T) {
+		settings := &SupportSettings{
+			ReportAProblemType: new(string(SupportSettingsReportAProblemTypeLink)),
+			ReportAProblemLink: nil,
+		}
+		settings.SetDefaults()
+		settings.ReportAProblemLink = nil
+
+		appErr := settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.report_a_problem_link.missing.app_error", appErr.Id)
+
+		settings.ReportAProblemLink = new("invalid")
+		appErr = settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.report_a_problem_link.invalid.app_error", appErr.Id)
+
+		settings.ReportAProblemLink = new("http://valid.com")
+		require.Nil(t, settings.isValid())
+	})
 }
 
 func TestAnnouncementSettingsIsValid(t *testing.T) {
