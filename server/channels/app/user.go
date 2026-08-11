@@ -539,6 +539,7 @@ func (a *App) AddUserToTeamByInviteIfNeeded(rctx request.CTX, user *model.User, 
 	return nil
 }
 
+// TODO: Migrate this compatibility wrapper to accept request.CTX.
 func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 	user, err := a.ch.srv.userService.GetUser(request.EmptyContext(a.Log()), userID)
 	if err != nil {
