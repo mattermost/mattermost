@@ -361,7 +361,7 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 	// added and exit quickly.  Not needed for DMs where teamId is empty.
 	if channel != nil && channel.TeamId != "" {
 		// add user to team
-		if err := scs.app.AddUserToTeamByTeamId(request.EmptyContext(scs.server.Log()), channel.TeamId, userSaved); err != nil {
+		if err := scs.app.AddUserToTeamByTeamId(rctx, channel.TeamId, userSaved); err != nil {
 			return nil, fmt.Errorf("error adding sync user to Team: %w", err)
 		}
 		// add user to channel

@@ -2262,14 +2262,14 @@ func (us SqlUserStore) PromoteGuestToUser(rctx request.CTX, userId string) (err 
 	return nil
 }
 
-func (us SqlUserStore) DemoteUserToGuest(userID string) (_ *model.User, err error) {
+func (us SqlUserStore) DemoteUserToGuest(rctx request.CTX, userID string) (_ *model.User, err error) {
 	transaction, err := us.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	user, err := us.Get(request.EmptyContext(us.logger), userID)
+	user, err := us.Get(rctx, userID)
 	if err != nil {
 		return nil, err
 	}

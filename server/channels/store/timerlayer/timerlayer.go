@@ -13374,10 +13374,10 @@ func (s *TimerLayerUserStore) DecrementFailedPasswordAttempts(userID string) err
 	return err
 }
 
-func (s *TimerLayerUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
+func (s *TimerLayerUserStore) DemoteUserToGuest(rctx request.CTX, userID string) (*model.User, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.DemoteUserToGuest(userID)
+	result, err := s.UserStore.DemoteUserToGuest(rctx, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

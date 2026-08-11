@@ -373,9 +373,9 @@ func (_m *UserStore) DecrementFailedPasswordAttempts(userID string) error {
 	return r0
 }
 
-// DemoteUserToGuest provides a mock function with given fields: userID
-func (_m *UserStore) DemoteUserToGuest(userID string) (*model.User, error) {
-	ret := _m.Called(userID)
+// DemoteUserToGuest provides a mock function with given fields: rctx, userID
+func (_m *UserStore) DemoteUserToGuest(rctx request.CTX, userID string) (*model.User, error) {
+	ret := _m.Called(rctx, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DemoteUserToGuest")
@@ -383,19 +383,19 @@ func (_m *UserStore) DemoteUserToGuest(userID string) (*model.User, error) {
 
 	var r0 *model.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (*model.User, error)); ok {
-		return rf(userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.User, error)); ok {
+		return rf(rctx, userID)
 	}
-	if rf, ok := ret.Get(0).(func(string) *model.User); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.User); ok {
+		r0 = rf(rctx, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userID)
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -6122,7 +6122,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
-		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
+		updatedUser, err := ss.User().DemoteUserToGuest(rctx, user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
@@ -6166,7 +6166,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
-		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
+		updatedUser, err := ss.User().DemoteUserToGuest(rctx, user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
@@ -6195,7 +6195,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, user.Id)) }()
 
-		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
+		updatedUser, err := ss.User().DemoteUserToGuest(rctx, user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 	})
@@ -6218,7 +6218,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
 		require.NoError(t, nErr)
 
-		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
+		updatedUser, err := ss.User().DemoteUserToGuest(rctx, user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
@@ -6256,7 +6256,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
-		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
+		updatedUser, err := ss.User().DemoteUserToGuest(rctx, user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
@@ -6299,7 +6299,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
-		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
+		updatedUser, err := ss.User().DemoteUserToGuest(rctx, user.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
@@ -6363,7 +6363,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user2.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
-		updatedUser, err := ss.User().DemoteUserToGuest(user1.Id)
+		updatedUser, err := ss.User().DemoteUserToGuest(rctx, user1.Id)
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 

@@ -256,7 +256,7 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !trialRequest.IsLegacy() {
 		appErr = c.App.Channels().RequestTrialLicenseWithExtraFields(c.AppContext, c.AppContext.Session().UserId, trialRequest)
 	} else {
-		appErr = c.App.Channels().RequestTrialLicense(c.AppContext.Session().UserId, trialRequest.Users, trialRequest.TermsAccepted, trialRequest.ReceiveEmailsAccepted)
+		appErr = c.App.Channels().RequestTrialLicense(c.AppContext, c.AppContext.Session().UserId, trialRequest.Users, trialRequest.TermsAccepted, trialRequest.ReceiveEmailsAccepted)
 	}
 
 	if appErr != nil {

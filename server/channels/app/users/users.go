@@ -271,6 +271,6 @@ func (us *UserService) PromoteGuestToUser(rctx request.CTX, user *model.User) er
 	return us.store.PromoteGuestToUser(rctx, user.Id)
 }
 
-func (us *UserService) DemoteUserToGuest(user *model.User) (*model.User, error) {
-	return us.store.DemoteUserToGuest(user.Id)
+func (us *UserService) DemoteUserToGuest(rctx request.CTX, user *model.User) (*model.User, error) {
+	return us.store.DemoteUserToGuest(rctx, user.Id)
 }

@@ -16966,11 +16966,11 @@ func (s *RetryLayerUserStore) DecrementFailedPasswordAttempts(userID string) err
 
 }
 
-func (s *RetryLayerUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
+func (s *RetryLayerUserStore) DemoteUserToGuest(rctx request.CTX, userID string) (*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.DemoteUserToGuest(userID)
+		result, err := s.UserStore.DemoteUserToGuest(rctx, userID)
 		if err == nil {
 			return result, nil
 		}

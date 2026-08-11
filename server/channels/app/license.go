@@ -60,7 +60,7 @@ func (ch *Channels) RequestTrialLicenseWithExtraFields(rctx request.CTX, request
 }
 
 // Deprecated: Use RequestTrialLicenseWithExtraFields instead. This function remains to support the Plugin API.
-func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
+func (ch *Channels) RequestTrialLicense(rctx request.CTX, requesterID string, users int, termsAccepted bool, receiveEmailsAccepted bool) *model.AppError {
 	if !termsAccepted {
 		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request.terms-not-accepted", nil, "", http.StatusBadRequest)
 	}
@@ -69,7 +69,7 @@ func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAcce
 		return model.NewAppError("RequestTrialLicense", "api.license.request-trial.bad-request", nil, "", http.StatusBadRequest)
 	}
 
-	requester, err := ch.srv.userService.GetUser(request.EmptyContext(ch.srv.Log()), requesterID)
+	requester, err := ch.srv.userService.GetUser(rctx, requesterID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
