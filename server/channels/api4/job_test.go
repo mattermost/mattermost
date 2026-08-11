@@ -272,8 +272,6 @@ func TestGetJobsByType(t *testing.T) {
 	_, _, err = th.SystemManagerClient.GetJobsByType(context.Background(), model.JobTypeElasticsearchPostIndexing, 0, 60)
 	require.NoError(t, err)
 
-	// These types are broadcast to admins via job_updated and refetched by the
-	// webapp, so a missing read-permission mapping turns into a recurring 400.
 	_, _, err = th.SystemAdminClient.GetJobsByType(context.Background(), model.JobTypePostPersistentNotifications, 0, 60)
 	require.NoError(t, err)
 
