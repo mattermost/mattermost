@@ -18,8 +18,8 @@ func (ch *Channels) License() *model.License {
 	return ch.srv.License()
 }
 
-func (ch *Channels) RequestTrialLicenseWithExtraFields(requesterID string, trialRequest *model.TrialLicenseRequest) *model.AppError {
-	requester, err := ch.srv.userService.GetUser(request.EmptyContext(ch.srv.Log()), requesterID)
+func (ch *Channels) RequestTrialLicenseWithExtraFields(rctx request.CTX, requesterID string, trialRequest *model.TrialLicenseRequest) *model.AppError {
+	requester, err := ch.srv.userService.GetUser(rctx, requesterID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
