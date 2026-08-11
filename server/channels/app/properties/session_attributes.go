@@ -4,6 +4,7 @@
 package properties
 
 import (
+	"context"
 	"net/http"
 	"reflect"
 
@@ -32,8 +33,18 @@ func (h *SessionAttributesHook) manages(groupID string) bool {
 	return groupID == h.groupID
 }
 
+type sessionAttributesSystemCallerKey struct{}
+
+func sessionAttributesSystemCallerContext(rctx request.CTX) request.CTX {
+	return rctx.WithContext(context.WithValue(rctx.Context(), sessionAttributesSystemCallerKey{}, true))
+}
+
 func isSystemCaller(rctx request.CTX) bool {
-	return rctx == nil
+	if rctx == nil {
+		return false
+	}
+	isSystemCaller, _ := rctx.Context().Value(sessionAttributesSystemCallerKey{}).(bool)
+	return isSystemCaller
 }
 
 func (h *SessionAttributesHook) PreCreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
