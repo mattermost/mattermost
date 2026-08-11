@@ -289,7 +289,7 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	propertyValues, appErr := c.App.GetPostContentFlaggingPropertyValues(postId)
+	propertyValues, appErr := c.App.GetPostContentFlaggingPropertyValues(c.AppContext, postId)
 	if appErr != nil {
 		c.Err = appErr
 		return

@@ -233,7 +233,7 @@ func buildPostYAML(post *model.Post, channel *model.Channel, team *model.Team, a
 func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generatedByUserID, actorComment, pendingAction string) (model.FlaggedPostReportContentReview, *model.AppError) {
 	out := model.FlaggedPostReportContentReview{}
 
-	values, appErr := a.GetPostContentFlaggingPropertyValues(post.Id)
+	values, appErr := a.GetPostContentFlaggingPropertyValues(rctx, post.Id)
 	if appErr != nil {
 		return out, appErr
 	}

@@ -546,13 +546,12 @@ func (a *App) IsUserTeamContentReviewer(userId, teamId string) (bool, *model.App
 	return slices.Contains(reviewers, userId), nil
 }
 
-func (a *App) GetPostContentFlaggingPropertyValues(postId string) ([]*model.PropertyValue, *model.AppError) {
+func (a *App) GetPostContentFlaggingPropertyValues(rctx request.CTX, postId string) ([]*model.PropertyValue, *model.AppError) {
 	groupId, err := a.ContentFlaggingGroupId()
 	if err != nil {
 		return nil, model.NewAppError("GetPostContentFlaggingPropertyValues", "app.data_spillage.get_group.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	rctx := request.EmptyContext(a.Log())
 	propertyValues, appErr := a.SearchPropertyValues(rctx, groupId, model.PropertyValueSearchOpts{TargetIDs: []string{postId}, PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES})
 	if appErr != nil {
 		return nil, model.NewAppError("GetPostContentFlaggingPropertyValues", "app.data_spillage.search_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
@@ -1271,7 +1270,7 @@ func (a *App) getReporterUserId(rctx request.CTX, flaggedPostId, contentFlagging
 		return "", model.NewAppError("getReporterUserId", "app.data_spillage.missing_reporting_user_id_field.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	propertyValues, appErr := a.GetPostContentFlaggingPropertyValues(flaggedPostId)
+	propertyValues, appErr := a.GetPostContentFlaggingPropertyValues(rctx, flaggedPostId)
 	if appErr != nil {
 		return "", appErr
 	}
