@@ -493,9 +493,11 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	})
 
 	t.Run("with an invalid token type", func(t *testing.T) {
+		accessToken := model.NewId()
+
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			err := json.NewEncoder(w).Encode(&model.AccessResponse{
-				AccessToken: model.NewId(),
+				AccessToken: accessToken,
 				TokenType:   "",
 			})
 			require.NoError(t, err)
@@ -511,6 +513,59 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		_, _, _, err := th.App.AuthorizeOAuthUser(th.Context, &httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.user.authorize_oauth_user.bad_token.app_error", err.Id)
+		assert.NotContains(t, err.DetailedError, accessToken)
+		assert.NotContains(t, err.Error(), accessToken)
+		assert.Contains(t, err.DetailedError, `"access_token":"[REDACTED]"`)
+	})
+
+	t.Run("with a JSON error token response containing a token", func(t *testing.T) {
+		accessToken := model.NewId()
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusTeapot)
+			_, err := w.Write([]byte(`{"access_token": "` + accessToken + `", "error": "teapot"}`))
+			require.NoError(t, err)
+		}))
+		defer server.Close()
+
+		th := setup(t, true, true, true, server.URL)
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+		state := makeState(makeToken(th, cookie))
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(th.Context, &httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.bad_response.app_error", err.Id)
+		assert.NotContains(t, err.DetailedError, accessToken)
+		assert.NotContains(t, err.Error(), accessToken)
+		assert.Contains(t, err.DetailedError, "status_code=418")
+		assert.Contains(t, err.DetailedError, "teapot")
+	})
+
+	t.Run("with a form encoded token response", func(t *testing.T) {
+		accessToken := model.NewId()
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+			_, err := w.Write([]byte("access_token=" + accessToken + "&token_type=bearer&scope=read"))
+			require.NoError(t, err)
+		}))
+		defer server.Close()
+
+		th := setup(t, true, true, true, server.URL)
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+		state := makeState(makeToken(th, cookie))
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(th.Context, &httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.bad_response.app_error", err.Id)
+		assert.NotContains(t, err.DetailedError, accessToken)
+		assert.NotContains(t, err.Error(), accessToken)
+		assert.Contains(t, err.DetailedError, "access_token=[REDACTED]")
+		assert.Contains(t, err.DetailedError, "scope=read")
 	})
 
 	t.Run("with an empty token response", func(t *testing.T) {
@@ -2087,4 +2142,93 @@ func TestLoginByIntune_TokenValidationFailure(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 
 	mockIntune.AssertExpectations(t)
+}
+
+func TestRedactOAuthTokenResponse(t *testing.T) {
+	testCases := []struct {
+		Description string
+		Body        string
+		Expected    string
+	}{
+		{
+			"empty body",
+			"",
+			"",
+		},
+		{
+			"body without any token",
+			`{"error":"invalid_grant","error_description":"code expired"}`,
+			`{"error":"invalid_grant","error_description":"code expired"}`,
+		},
+		{
+			"json access token",
+			`{"access_token":"abcd1234","token_type":"bearer"}`,
+			`{"access_token":"[REDACTED]","token_type":"bearer"}`,
+		},
+		{
+			"json access token with whitespace",
+			`{"access_token" : "abcd1234"}`,
+			`{"access_token" : "[REDACTED]"}`,
+		},
+		{
+			"json access token with mixed case key",
+			`{"Access_Token":"abcd1234"}`,
+			`{"Access_Token":"[REDACTED]"}`,
+		},
+		{
+			"json refresh and id tokens",
+			`{"access_token":"a","refresh_token":"b","id_token":"c","expires_in":3600}`,
+			`{"access_token":"[REDACTED]","refresh_token":"[REDACTED]","id_token":"[REDACTED]","expires_in":3600}`,
+		},
+		{
+			"form encoded tokens",
+			"access_token=abcd1234&scope=read&refresh_token=efgh5678",
+			"access_token=[REDACTED]&scope=read&refresh_token=[REDACTED]",
+		},
+		{
+			"truncated json body",
+			`{"access_token":"abcd1234`,
+			`{"access_token":"[REDACTED]`,
+		},
+		{
+			"json access token containing an escaped quote",
+			`{"access_token":"abc\"def","token_type":"bearer"}`,
+			`{"access_token":"[REDACTED]","token_type":"bearer"}`,
+		},
+		{
+			"json access token ending with an escaped backslash",
+			`{"access_token":"abc\\","token_type":"bearer"}`,
+			`{"access_token":"[REDACTED]","token_type":"bearer"}`,
+		},
+		{
+			"json access token containing escaped quotes and backslashes",
+			`{"refresh_token":"a\\b\"c\\\"d","expires_in":3600}`,
+			`{"refresh_token":"[REDACTED]","expires_in":3600}`,
+		},
+		{
+			"truncated json body ending with a lone backslash",
+			`{"access_token":"abcd1234\`,
+			`{"access_token":"[REDACTED]\`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Description, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, redactOAuthTokenResponse(tc.Body))
+		})
+	}
+
+	t.Run("no part of a token value survives redaction", func(t *testing.T) {
+		for _, body := range []string{
+			`{"access_token":"abc\"def","token_type":"bearer"}`,
+			`{"access_token":"abc\\","token_type":"bearer"}`,
+			`{"refresh_token":"a\\b\"c\\\"def","expires_in":3600}`,
+			`{"id_token":"abc\"def"}`,
+			"access_token=abc%22def&scope=read",
+		} {
+			actual := redactOAuthTokenResponse(body)
+			assert.NotContains(t, actual, "abc")
+			assert.NotContains(t, actual, "def")
+		}
+	})
 }

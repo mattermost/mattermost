@@ -1259,3 +1259,131 @@ func TestHandleContextErrorZeroStatusCode(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, response.Code)
 	})
 }
+
+func TestTokenDigest(t *testing.T) {
+	token := model.NewId()
+	digest := tokenDigest(token)
+
+	assert.NotEmpty(t, digest)
+	assert.NotContains(t, digest, token)
+	assert.Equal(t, digest, tokenDigest(token), "should be stable for the same input")
+	assert.NotEqual(t, digest, tokenDigest(model.NewId()), "should differ for different inputs")
+	assert.Equal(t, "<none>", tokenDigest(""))
+}
+
+func TestHandlerServeDoesNotLogRawToken(t *testing.T) {
+	newHandler := func(th *TestHelper) Handler {
+		web := New(th.Server)
+
+		return Handler{
+			Srv:            web.srv,
+			HandleFunc:     handlerForCSRFToken,
+			RequireSession: true,
+			TrustRequester: false,
+			RequireMfa:     false,
+			IsStatic:       false,
+		}
+	}
+
+	newSession := func(t *testing.T, th *TestHelper, isOAuth bool) *model.Session {
+		session := &model.Session{
+			UserId:   th.BasicUser.Id,
+			CreateAt: model.GetMillis(),
+			Roles:    model.SystemUserRoleId,
+			IsOAuth:  isOAuth,
+		}
+		session.GenerateCSRF()
+		th.App.SetSessionExpireInHours(session, 24)
+
+		session, appErr := th.App.CreateSession(th.Context, session)
+		require.Nil(t, appErr)
+
+		return session
+	}
+
+	captureLogs := func(t *testing.T, th *TestHelper) *mlog.Buffer {
+		buffer := &mlog.Buffer{}
+		require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
+
+		return buffer
+	}
+
+	t.Run("expired or unknown session token", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		buffer := captureLogs(t, th)
+
+		token := model.NewId()
+		handler := newHandler(th)
+
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		request.AddCookie(&http.Cookie{Name: model.SessionCookieToken, Value: token})
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		require.Equal(t, http.StatusUnauthorized, response.Code)
+		require.NoError(t, th.TestLogger.Flush())
+
+		logs := buffer.String()
+		assert.NotContains(t, logs, token)
+		assert.Contains(t, logs, tokenDigest(token))
+	})
+
+	t.Run("session token provided in the query string", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		buffer := captureLogs(t, th)
+
+		session := newSession(t, th, false)
+		handler := newHandler(th)
+
+		request := httptest.NewRequest("GET", "/api/v4/test?access_token="+session.Token, nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		require.Equal(t, http.StatusUnauthorized, response.Code)
+		require.NoError(t, th.TestLogger.Flush())
+
+		logs := buffer.String()
+		assert.NotContains(t, logs, session.Token)
+		assert.Contains(t, logs, tokenDigest(session.Token))
+	})
+
+	t.Run("failed CSRF check", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		buffer := captureLogs(t, th)
+
+		session := newSession(t, th, false)
+		handler := newHandler(th)
+
+		request := httptest.NewRequest("POST", "/api/v4/test", nil)
+		request.AddCookie(&http.Cookie{Name: model.SessionCookieToken, Value: session.Token})
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		require.Equal(t, http.StatusUnauthorized, response.Code)
+		require.NoError(t, th.TestLogger.Flush())
+
+		logs := buffer.String()
+		assert.NotContains(t, logs, session.Token)
+		assert.Contains(t, logs, "Appears to be a CSRF attempt")
+		assert.Contains(t, logs, tokenDigest(session.Token))
+	})
+
+	t.Run("valid session is served without logging the token", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		buffer := captureLogs(t, th)
+
+		session := newSession(t, th, false)
+		handler := newHandler(th)
+
+		request := httptest.NewRequest("POST", "/api/v4/test", nil)
+		request.AddCookie(&http.Cookie{Name: model.SessionCookieToken, Value: session.Token})
+		request.Header.Set(model.HeaderCsrfToken, session.GetCSRF())
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		require.Equal(t, http.StatusOK, response.Code)
+		require.NoError(t, th.TestLogger.Flush())
+
+		assert.NotContains(t, buffer.String(), session.Token)
+	})
+}

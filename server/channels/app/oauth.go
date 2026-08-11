@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -33,6 +34,20 @@ const (
 	CookieOAuth              = "MMOAUTH"
 	OpenIDScope              = "openid"
 )
+
+const oauthTokenRedacted = "[REDACTED]"
+
+var (
+	oauthJSONTokenPattern = regexp.MustCompile(`(?i)("(?:access|refresh|id)_token"\s*:\s*")((?:\\.|[^"\\])*)`)
+	oauthFormTokenPattern = regexp.MustCompile(`(?i)((?:access|refresh|id)_token=)([^&\s]+)`)
+)
+
+// redactOAuthTokenResponse masks token values in a token endpoint response body so it can be used in error details.
+func redactOAuthTokenResponse(body string) string {
+	redacted := oauthJSONTokenPattern.ReplaceAllString(body, `${1}`+oauthTokenRedacted)
+
+	return oauthFormTokenPattern.ReplaceAllString(redacted, `${1}`+oauthTokenRedacted)
+}
 
 func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
 	// Public method for plugin API - always generates secrets for backward compatibility
@@ -1112,15 +1127,15 @@ func (a *App) AuthorizeOAuthUser(rctx request.CTX, w http.ResponseWriter, r *htt
 	var ar *model.AccessResponse
 	err = json.NewDecoder(tee).Decode(&ar)
 	if err != nil || resp.StatusCode != http.StatusOK {
-		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, fmt.Sprintf("response_body=%s, status_code=%d, error=%v", buf.String(), resp.StatusCode, err), http.StatusInternalServerError).Wrap(err)
+		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, fmt.Sprintf("response_body=%s, status_code=%d, error=%v", redactOAuthTokenResponse(buf.String()), resp.StatusCode, err), http.StatusInternalServerError).Wrap(err)
 	}
 
 	if strings.ToLower(ar.TokenType) != model.AccessTokenType {
-		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType+", response_body="+buf.String(), http.StatusInternalServerError)
+		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType+", response_body="+redactOAuthTokenResponse(buf.String()), http.StatusInternalServerError)
 	}
 
 	if ar.AccessToken == "" {
-		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "response_body="+buf.String(), http.StatusInternalServerError)
+		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "response_body="+redactOAuthTokenResponse(buf.String()), http.StatusInternalServerError)
 	}
 
 	p = url.Values{}
