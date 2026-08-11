@@ -613,8 +613,6 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Recorded only when a body is actually returned, so ETag-matched polling does not
-	// inflate the delivery log.
 	c.App.RecordPostDelivery(c.AppContext, c.AppContext.Session().UserId, post, model.DeliveryMechanismProduct)
 
 	w.Header().Set(model.HeaderEtagServer, post.Etag())

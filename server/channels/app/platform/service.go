@@ -137,8 +137,6 @@ type PlatformService struct {
 	// logRootPathOverride overrides MM_LOG_PATH for log root path validation.
 	logRootPathOverride string
 
-	// postDeliveryRecorder is used by the websocket hub to audit log post deliveries to the
-	// connections it owns.
 	postDeliveryRecorder func(marker *model.PostDeliveryMarker, userID string)
 }
 

@@ -406,8 +406,8 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
-	// MessageWillBePosted ran before the post had an ID (it is assigned on Save), so record
-	// the plugin delivery here, now that rpost carries the persisted ID.
+	// MessageWillBePosted ran before the post had an ID, so this is recorded here, now that
+	// rpost carries the one assigned by Save.
 	a.RecordPostDeliveryToPlugins(rctx, willBePostedPluginIDs, rpost)
 
 	// Update the mapping from pending post id to the actual post id, for any clients that
@@ -3062,8 +3062,8 @@ func (a *App) applyPostsWillBeConsumedHook(rctx request.CTX, posts map[string]*m
 		rebuildPostsSlice()
 	}
 
-	// The manifest callback only fires for plugins that implement the hook, so this collects
-	// exactly the plugins that received the post content.
+	// RunMultiHook only invokes plugins that implement the hook, so the callback firing is
+	// itself the evidence that the plugin received the post content.
 	trackPluginDelivery := a.deliveryTrackingEnabled()
 	consumerIDs := make(map[string]struct{})
 

@@ -166,8 +166,6 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		return appErr
 	}
 
-	// One record per user, not per device: a push accepted for any of the user's sessions has
-	// put the post content on their endpoint.
 	recordDelivery := true
 
 	for _, session := range sessions {

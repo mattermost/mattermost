@@ -21,9 +21,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-// emailNotificationContentsType returns the effective email-notification contents type. The
-// system setting only applies under the licensed EmailNotificationContents feature;
-// otherwise full content is always sent.
 func (a *App) emailNotificationContentsType() string {
 	if license := a.Srv().License(); license != nil && *license.Features.EmailNotificationContents {
 		return *a.Config().EmailSettings.EmailNotificationContentsType
@@ -273,7 +270,6 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 			return
 		}
 
-		// A generic email carries no post content, so it is not a delivery.
 		if a.emailNotificationContentsType() == model.EmailNotificationContentsFull {
 			a.RecordPostDelivery(rctx, user.Id, post, model.DeliveryMechanismEmail)
 		}

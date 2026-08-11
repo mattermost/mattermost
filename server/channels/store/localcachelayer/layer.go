@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru/v2"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -80,6 +82,8 @@ const (
 
 	DeliveryTrackingCacheSize = 100
 
+	DeliveryTrackingChannelCacheSize = 20000
+
 	ReadReceiptCacheSize = 50000
 
 	TemporaryPostCacheSize    = 10000
@@ -152,7 +156,7 @@ type LocalCacheStore struct {
 	contentFlagging      LocalCacheContentFlaggingStore
 	contentFlaggingCache cache.Cache
 
-	deliveryTracking      LocalCacheDeliveryTrackingStore
+	deliveryTracking      *LocalCacheDeliveryTrackingStore
 	deliveryTrackingCache cache.Cache
 
 	readReceipt                     LocalCacheReadReceiptStore
@@ -444,7 +448,19 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
-	localCacheStore.deliveryTracking = LocalCacheDeliveryTrackingStore{DeliveryTrackingStore: baseStore.DeliveryTracking(), rootStore: &localCacheStore}
+	var trackedChannels, trackableChannels *lru.Cache[string, bool]
+	if trackedChannels, err = lru.New[string, bool](DeliveryTrackingChannelCacheSize); err != nil {
+		return
+	}
+	if trackableChannels, err = lru.New[string, bool](DeliveryTrackingChannelCacheSize); err != nil {
+		return
+	}
+	localCacheStore.deliveryTracking = &LocalCacheDeliveryTrackingStore{
+		DeliveryTrackingStore: baseStore.DeliveryTracking(),
+		rootStore:             &localCacheStore,
+		trackedChannels:       trackedChannels,
+		trackableChannels:     trackableChannels,
+	}
 
 	// Read Receipts
 	if localCacheStore.readReceiptCache, err = cacheProvider.NewCache(&cache.CacheOptions{

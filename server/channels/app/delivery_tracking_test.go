@@ -168,7 +168,7 @@ func TestDeliveryTrackingEnabled(t *testing.T) {
 	})
 }
 
-func TestTrackedPost(t *testing.T) {
+func TestShouldTrackPost(t *testing.T) {
 	testCases := []struct {
 		name     string
 		post     *model.Post
@@ -179,11 +179,12 @@ func TestTrackedPost(t *testing.T) {
 		{"regular post", &model.Post{Id: model.NewId()}, true},
 		{"system message", &model.Post{Id: model.NewId(), Type: model.PostTypeJoinChannel}, false},
 		{"burn on read", &model.Post{Id: model.NewId(), Type: model.PostTypeBurnOnRead}, false},
+		{"ephemeral", &model.Post{Id: model.NewId(), Type: model.PostTypeEphemeral}, false},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			require.Equal(t, tc.expected, trackedPost(tc.post))
+			require.Equal(t, tc.expected, shouldTrackPost(tc.post))
 		})
 	}
 }
@@ -438,6 +439,79 @@ func TestSanitizePostMetadataForUserRecordsPreviewDelivery(t *testing.T) {
 	require.Equal(t, model.DeliveryMechanismPermalinkPreview, meta[model.PostDeliveryKeyMechanism])
 	require.Equal(t, containing.Id, meta[model.PostDeliveryKeyViaPostID])
 	require.Equal(t, containingChannel.Id, meta[model.PostDeliveryKeyViaChannelID])
+}
+
+// TestCreatePostWithPermalinkRecordsPreviewForAuthor pins that posting a permalink records the
+// poster as having seen the previewed post: CreatePost sanitizes the new post for its own author,
+// which is where the preview embed is resolved for them.
+func TestCreatePostWithPermalinkRecordsPreviewForAuthor(t *testing.T) {
+	th := setupDeliveryTracking(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+		*cfg.ServiceSettings.EnablePermalinkPreviews = true
+	})
+
+	// Authored by BasicUser2 so the poster is not the previewed post's author.
+	previewed, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "previewed message",
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	th.Context.Session().UserId = th.BasicUser.Id
+	link := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, previewed.Id)
+
+	capture := startDeliveryAuditCapture(t, th)
+	containing, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   link,
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+	require.NotNil(t, containing.GetPreviewPost(), "the permalink preview must be embedded for this test to be meaningful")
+
+	var previewRecord map[string]any
+	for _, rec := range capture.records() {
+		meta := auditMeta(t, rec)
+		if meta[model.PostDeliveryKeyMechanism] != model.DeliveryMechanismPermalinkPreview {
+			continue
+		}
+		require.Equal(t, th.BasicUser.Id, auditActorUserID(t, rec))
+		previewRecord = meta
+		break
+	}
+
+	require.NotNil(t, previewRecord, "expected the poster to be recorded for the previewed post")
+	require.Equal(t, previewed.Id, previewRecord[model.PostDeliveryKeyPostID])
+	require.Equal(t, th.BasicChannel.Id, previewRecord[model.PostDeliveryKeyChannelID])
+	require.Equal(t, containing.Id, previewRecord[model.PostDeliveryKeyViaPostID])
+	require.Equal(t, th.BasicChannel.Id, previewRecord[model.PostDeliveryKeyViaChannelID])
+}
+
+// TestShouldTrackChannelIsAllocationFree guards the hot path: once the channel eligibility memo is
+// warm, the per-delivery check must not allocate.
+func TestShouldTrackChannelIsAllocationFree(t *testing.T) {
+	th := setupDeliveryTracking(t)
+
+	t.Run("all channels", func(t *testing.T) {
+		require.True(t, th.App.shouldTrackChannel(th.Context, th.BasicChannel.Id))
+
+		allocs := testing.AllocsPerRun(200, func() {
+			th.App.shouldTrackChannel(th.Context, th.BasicChannel.Id)
+		})
+		require.Zero(t, allocs)
+	})
+
+	t.Run("explicit channel list", func(t *testing.T) {
+		trackOnlyChannels(t, th, th.BasicChannel.Id)
+		require.True(t, th.App.shouldTrackChannel(th.Context, th.BasicChannel.Id))
+
+		allocs := testing.AllocsPerRun(200, func() {
+			th.App.shouldTrackChannel(th.Context, th.BasicChannel.Id)
+		})
+		require.Zero(t, allocs)
+	})
 }
 
 func TestRecordBroadcastDelivery(t *testing.T) {

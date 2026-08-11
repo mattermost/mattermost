@@ -10,9 +10,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-// DefMaxQueueSize is the depth of the audit engine's in-memory queue. It is sized for the
-// post delivery audit stream, which emits one record per post per recipient and can burst
-// far above the volume of the other audit levels.
+// DefMaxQueueSize is sized for the post delivery audit stream, which emits one record per post
+// per recipient and so bursts far above the volume of the other audit levels.
 const DefMaxQueueSize = 10000
 
 type Audit struct {

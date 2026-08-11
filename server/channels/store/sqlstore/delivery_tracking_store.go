@@ -6,8 +6,10 @@ package sqlstore
 import (
 	"slices"
 
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -74,4 +76,40 @@ func (s *SqlDeliveryTrackingStore) GetTrackedChannelIDs(rctx request.CTX) ([]str
 	}
 
 	return channelIDs, nil
+}
+
+func (s *SqlDeliveryTrackingStore) IsChannelTracked(rctx request.CTX, channelID string) (bool, error) {
+	query := s.getQueryBuilder().
+		Select("1").
+		From("PostDeliveryTrackingChannels").
+		Where(sq.Eq{"ChannelId": channelID}).
+		Limit(1)
+
+	var exists []int
+	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&exists, query); err != nil {
+		return false, errors.Wrapf(err, "SqlDeliveryTrackingStore.IsChannelTracked failed for channel_id=%s", channelID)
+	}
+
+	return len(exists) > 0, nil
+}
+
+func (s *SqlDeliveryTrackingStore) IsChannelTrackable(rctx request.CTX, channelID string) (bool, error) {
+	// Only the type is selected: the callers need one bit, and hydrating the whole channel
+	// would be far more expensive on a path that runs per recorded delivery.
+	query := s.getQueryBuilder().
+		Select("Type").
+		From("Channels").
+		Where(sq.Eq{"Id": channelID}).
+		Limit(1)
+
+	var types []model.ChannelType
+	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&types, query); err != nil {
+		return false, errors.Wrapf(err, "SqlDeliveryTrackingStore.IsChannelTrackable failed for channel_id=%s", channelID)
+	}
+
+	if len(types) == 0 {
+		return false, nil
+	}
+
+	return types[0] != model.ChannelTypeDirect && types[0] != model.ChannelTypeGroup, nil
 }

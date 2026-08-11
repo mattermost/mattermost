@@ -4209,6 +4209,38 @@ func (s *TimerLayerDeliveryTrackingStore) GetTrackedChannelIDs(rctx request.CTX)
 	return result, err
 }
 
+func (s *TimerLayerDeliveryTrackingStore) IsChannelTrackable(rctx request.CTX, channelID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.DeliveryTrackingStore.IsChannelTrackable(rctx, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DeliveryTrackingStore.IsChannelTrackable", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDeliveryTrackingStore) IsChannelTracked(rctx request.CTX, channelID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.DeliveryTrackingStore.IsChannelTracked(rctx, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DeliveryTrackingStore.IsChannelTracked", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerDeliveryTrackingStore) SaveTrackedChannelIDs(rctx request.CTX, channelIDs []string) error {
 	start := time.Now()
 

@@ -49,6 +49,62 @@ func (_m *DeliveryTrackingStore) GetTrackedChannelIDs(rctx request.CTX) ([]strin
 	return r0, r1
 }
 
+// IsChannelTrackable provides a mock function with given fields: rctx, channelID
+func (_m *DeliveryTrackingStore) IsChannelTrackable(rctx request.CTX, channelID string) (bool, error) {
+	ret := _m.Called(rctx, channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsChannelTrackable")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (bool, error)); ok {
+		return rf(rctx, channelID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) bool); ok {
+		r0 = rf(rctx, channelID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// IsChannelTracked provides a mock function with given fields: rctx, channelID
+func (_m *DeliveryTrackingStore) IsChannelTracked(rctx request.CTX, channelID string) (bool, error) {
+	ret := _m.Called(rctx, channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsChannelTracked")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (bool, error)); ok {
+		return rf(rctx, channelID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) bool); ok {
+		r0 = rf(rctx, channelID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SaveTrackedChannelIDs provides a mock function with given fields: rctx, channelIDs
 func (_m *DeliveryTrackingStore) SaveTrackedChannelIDs(rctx request.CTX, channelIDs []string) error {
 	ret := _m.Called(rctx, channelIDs)
