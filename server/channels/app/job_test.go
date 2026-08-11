@@ -706,26 +706,6 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 			Type:     model.JobTypeMessageExport,
 			CreateAt: 1001,
 		},
-		{
-			Id:       model.NewId(),
-			Type:     model.JobTypeLastAccessiblePost,
-			CreateAt: 1002,
-		},
-		{
-			Id:       model.NewId(),
-			Type:     model.JobTypeLastAccessibleFile,
-			CreateAt: 1003,
-		},
-		{
-			Id:       model.NewId(),
-			Type:     model.JobTypeRefreshMaterializedViews,
-			CreateAt: 1004,
-		},
-		{
-			Id:       model.NewId(),
-			Type:     model.JobTypeScheduledRecap,
-			CreateAt: 1005,
-		},
 	}
 	testCases := []struct {
 		Job                model.Job
@@ -738,22 +718,6 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 		{
 			Job:                jobs[1],
 			PermissionRequired: model.PermissionReadComplianceExportJob,
-		},
-		{
-			Job:                jobs[2],
-			PermissionRequired: model.PermissionReadJobs,
-		},
-		{
-			Job:                jobs[3],
-			PermissionRequired: model.PermissionReadJobs,
-		},
-		{
-			Job:                jobs[4],
-			PermissionRequired: model.PermissionReadJobs,
-		},
-		{
-			Job:                jobs[5],
-			PermissionRequired: model.PermissionReadJobs,
 		},
 	}
 
@@ -797,7 +761,7 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
 
-	role.Permissions = append(role.Permissions, model.PermissionReadComplianceExportJob.Id, model.PermissionReadJobs.Id)
+	role.Permissions = append(role.Permissions, model.PermissionReadComplianceExportJob.Id)
 
 	_, err = th.App.UpdateRole(role)
 	require.Nil(t, err)

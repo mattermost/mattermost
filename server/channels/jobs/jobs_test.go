@@ -785,10 +785,6 @@ func TestPublishJobStatus(t *testing.T) {
 			{"elasticsearch aggregation", model.JobTypeElasticsearchPostAggregation, model.PermissionReadElasticsearchPostAggregationJob},
 			{"ldap sync", model.JobTypeLdapSync, model.PermissionReadLdapSyncJob},
 			{"generic jobs", model.JobTypeExportProcess, model.PermissionReadJobs},
-			{"last accessible post", model.JobTypeLastAccessiblePost, model.PermissionReadJobs},
-			{"last accessible file", model.JobTypeLastAccessibleFile, model.PermissionReadJobs},
-			{"refresh materialized views", model.JobTypeRefreshMaterializedViews, model.PermissionReadJobs},
-			{"scheduled recap", model.JobTypeScheduledRecap, model.PermissionReadJobs},
 			{"access control sync", model.JobTypeAccessControlSync, model.PermissionManageSystem},
 			{"access control team sync", model.JobTypeAccessControlTeamSync, model.PermissionManageTeamAccessRules},
 		}
