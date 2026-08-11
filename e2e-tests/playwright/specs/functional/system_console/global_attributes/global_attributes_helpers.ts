@@ -8,7 +8,7 @@ import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 export const GLOBAL_ATTRIBUTES_ADMIN_PATH = '/admin_console/system_attributes/manage_attributes';
 
-// Canonical values: webapp/channels/src/components/admin_console/global_attributes/global_attributes_table.tsx
+// Canonical values: webapp/channels/src/components/admin_console/global_attributes/constants.ts
 // (cross-package import not feasible between e2e-tests and webapp)
 const PROPERTY_GROUP = 'access_control';
 const OBJECT_TYPE = 'template';
