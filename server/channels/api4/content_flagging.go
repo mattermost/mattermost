@@ -288,6 +288,11 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
+		return
+	}
+
 	userId := c.AppContext.Session().UserId
 	requireTeamContentReviewer(c, userId, channel.TeamId)
 	if c.Err != nil {
@@ -338,6 +343,11 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
 		return
 	}
 
@@ -445,6 +455,11 @@ func keepRemoveFlaggedPostChecks(c *Context, r *http.Request) (*model.FlagConten
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return nil, "", nil
+	}
+
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
 		return nil, "", nil
 	}
 
@@ -591,6 +606,11 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
 		return
 	}
 

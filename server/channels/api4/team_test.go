@@ -591,6 +591,33 @@ func TestGetTeam(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("Content reviewer should not be able to get a team via a DM or GM flagged post", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		contentReviewClient := th.CreateClient()
+		_, _, err := contentReviewClient.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+
+		flagRequest := model.FlagContentRequest{
+			Reason:  "Classification mismatch",
+			Comment: "This is sensitive content",
+		}
+
+		// These posts are flagged through the app layer because the API rejects DM and
+		// GM posts outright. This covers posts flagged before that restriction existed.
+		for _, post := range []*model.Post{createDmPost(t, th, contentReviewClient), createGmPost(t, th, contentReviewClient)} {
+			appErr = th.App.FlagPost(th.Context, post, "", th.BasicUser.Id, flagRequest)
+			require.Nil(t, appErr)
+
+			_, resp, err := contentReviewClient.GetTeamAsContentReviewer(context.Background(), th.BasicTeam.Id, "", post.Id)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+			CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+		}
+	})
 }
 
 func TestGetTeamSanitization(t *testing.T) {
