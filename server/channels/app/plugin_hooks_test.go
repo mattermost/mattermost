@@ -30,8 +30,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) (func(), []string, []error) {
@@ -492,6 +494,27 @@ func TestHookMessageHasBeenDeleted(t *testing.T) {
 	require.Nil(t, err)
 }
 
+// spyFileBackend delegates to the wrapped FileBackend while recording the
+// paths passed to WriteFile.
+type spyFileBackend struct {
+	filestore.FileBackend
+	mut          sync.Mutex
+	writtenPaths []string
+}
+
+func (b *spyFileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
+	b.mut.Lock()
+	b.writtenPaths = append(b.writtenPaths, path)
+	b.mut.Unlock()
+	return b.FileBackend.WriteFile(fr, path)
+}
+
+func (b *spyFileBackend) WrittenPaths() []string {
+	b.mut.Lock()
+	defer b.mut.Unlock()
+	return append([]string{}, b.writtenPaths...)
+}
+
 func TestHookFileWillBeUploaded(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("rejected", func(t *testing.T) {
@@ -763,6 +786,78 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		require.Nil(t, appErr)
 
 		mockAPI.AssertCalled(t, "LogDebug", "connection_id="+connectionID)
+	})
+
+	t.Run("scan-only plugin does not write a temporary file", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		var mockAPI plugintest.API
+		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"io"
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
+				return nil, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		defer tearDown()
+
+		// Wrap the file backend to record every WriteFile call made while
+		// uploading through an upload session.
+		service := th.App.Srv().Platform()
+		origBackend := service.FileBackend()
+		spy := &spyFileBackend{FileBackend: origBackend}
+		require.NoError(t, platform.SetFileStore(spy)(service))
+		defer func() {
+			require.NoError(t, platform.SetFileStore(origBackend)(service))
+		}()
+
+		data := []byte("inputfile")
+		us := &model.UploadSession{
+			Id:        model.NewId(),
+			Type:      model.UploadTypeAttachment,
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Filename:  "testhook.txt",
+			FileSize:  int64(len(data)),
+		}
+		us, appErr := th.App.CreateUploadSession(th.Context, us)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, us)
+
+		info, appErr := th.App.UploadData(th.Context, us, bytes.NewReader(data))
+		require.Nil(t, appErr)
+		require.NotNil(t, info)
+
+		fileReader, appErr := th.App.FileReader(info.Path)
+		require.Nil(t, appErr)
+		var resultBuf bytes.Buffer
+		_, err := io.Copy(&resultBuf, fileReader)
+		require.NoError(t, err)
+		require.Equal(t, string(data), resultBuf.String())
+
+		// The plugin left the upload untouched, so the only write must be the
+		// upload itself: no ".tmp" replacement file should ever be written.
+		// Writing an empty replacement file breaks S3-compatible backends
+		// that reject empty uploads of unknown size (MM issue #37323).
+		require.Equal(t, []string{us.Path}, spy.WrittenPaths())
 	})
 }
 
