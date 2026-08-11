@@ -53,6 +53,54 @@ func TestCollectMmBlockActionIDs(t *testing.T) {
 		ids := CollectMmBlockActionIDs(blocks)
 		assert.Equal(t, map[string]struct{}{"inset": {}}, ids)
 	})
+
+	t.Run("select data_source_action and onChange", func(t *testing.T) {
+		blocks := []any{
+			map[string]any{
+				"type":               "select",
+				"name":               "pick",
+				"label":              "Pick",
+				"data_source":        "dynamic",
+				"data_source_action": "mock_lookup",
+				"onChange":           "mock_refresh",
+			},
+		}
+		ids := CollectMmBlockActionIDs(blocks)
+		assert.Equal(t, map[string]struct{}{"mock_lookup": {}, "mock_refresh": {}}, ids)
+	})
+
+	t.Run("form input onChange", func(t *testing.T) {
+		blocks := []any{
+			map[string]any{"type": "text_input", "name": "title", "label": "Title", "onChange": "refresh_title"},
+			map[string]any{"type": "bool_input", "name": "notify", "label": "Notify", "onChange": "refresh_bool"},
+			map[string]any{"type": "date_input", "name": "due", "label": "Due", "onChange": "refresh_date"},
+			map[string]any{"type": "datetime_input", "name": "when", "label": "When", "onChange": "refresh_datetime"},
+			map[string]any{"type": "file_input", "name": "files", "label": "Files", "onChange": "refresh_file"},
+			map[string]any{"type": "date_input", "name": "disabled", "label": "X", "disabled": true, "onChange": "ignored"},
+		}
+		ids := CollectMmBlockActionIDs(blocks)
+		assert.Equal(t, map[string]struct{}{
+			"refresh_title":    {},
+			"refresh_bool":     {},
+			"refresh_date":     {},
+			"refresh_datetime": {},
+			"refresh_file":     {},
+		}, ids)
+	})
+
+	t.Run("disabled select does not reference actions", func(t *testing.T) {
+		blocks := []any{
+			map[string]any{
+				"type":               "select",
+				"name":               "pick",
+				"label":              "Pick",
+				"disabled":           true,
+				"data_source_action": "mock_lookup",
+			},
+		}
+		ids := CollectMmBlockActionIDs(blocks)
+		assert.Empty(t, ids)
+	})
 }
 
 func TestSubsetMmBlocksActions(t *testing.T) {
@@ -98,28 +146,124 @@ func TestCollectMmactionIDsFromText(t *testing.T) {
 }
 
 func TestCollectBlockKitActionIDs(t *testing.T) {
-	blocks := []any{
-		map[string]any{
-			"type": "section",
-			"text": map[string]any{"type": "mrkdwn", "text": "[Go](mmaction://md1)"},
-			"accessory": map[string]any{
-				"type": "button", "text": map[string]any{"type": "plain_text", "text": "Btn"},
-				"action_id": "acc1",
-			},
-		},
-		map[string]any{
-			"type": "actions",
-			"elements": []any{
-				map[string]any{
-					"type":      "button",
-					"text":      map[string]any{"type": "plain_text", "text": "OK"},
-					"action_id": "row1",
+	t.Run("section accessory and actions row", func(t *testing.T) {
+		blocks := []any{
+			map[string]any{
+				"type": "section",
+				"text": map[string]any{"type": "mrkdwn", "text": "[Go](mmaction://md1)"},
+				"accessory": map[string]any{
+					"type": "button", "text": map[string]any{"type": "plain_text", "text": "Btn"},
+					"action_id": "acc1",
 				},
 			},
-		},
-	}
-	ids := CollectBlockKitActionIDs(blocks)
-	assert.Equal(t, map[string]struct{}{"md1": {}, "acc1": {}, "row1": {}}, ids)
+			map[string]any{
+				"type": "actions",
+				"elements": []any{
+					map[string]any{
+						"type":      "button",
+						"text":      map[string]any{"type": "plain_text", "text": "OK"},
+						"action_id": "row1",
+					},
+					map[string]any{
+						"type":      "datepicker",
+						"action_id": "day1",
+					},
+				},
+			},
+		}
+		ids := CollectBlockKitActionIDs(blocks)
+		assert.Equal(t, map[string]struct{}{"md1": {}, "acc1": {}, "row1": {}, "day1": {}}, ids)
+	})
+
+	t.Run("input block with dispatch_action collects element action_id", func(t *testing.T) {
+		blocks := []any{
+			map[string]any{
+				"type":            "input",
+				"dispatch_action": true,
+				"label":           map[string]any{"type": "plain_text", "text": "Due"},
+				"element": map[string]any{
+					"type":      "datepicker",
+					"action_id": "due",
+				},
+			},
+			map[string]any{
+				"type":            "input",
+				"dispatch_action": true,
+				"label":           map[string]any{"type": "plain_text", "text": "When"},
+				"element": map[string]any{
+					"type":      "datetimepicker",
+					"action_id": "when",
+				},
+			},
+			map[string]any{
+				"type":            "input",
+				"dispatch_action": true,
+				"label":           map[string]any{"type": "plain_text", "text": "Files"},
+				"element": map[string]any{
+					"type":      "file_input",
+					"action_id": "files",
+				},
+			},
+			map[string]any{
+				"type":  "input",
+				"label": map[string]any{"type": "plain_text", "text": "Title"},
+				"element": map[string]any{
+					"type":      "plain_text_input",
+					"action_id": "title_no_dispatch",
+				},
+			},
+		}
+		ids := CollectBlockKitActionIDs(blocks)
+		assert.Equal(t, map[string]struct{}{"due": {}, "when": {}, "files": {}}, ids)
+	})
+
+	t.Run("actions row collects all supported interactive element types", func(t *testing.T) {
+		types := []string{
+			"radio_buttons",
+			"checkboxes",
+			"overflow",
+			"users_select",
+			"multi_users_select",
+			"channels_select",
+			"multi_channels_select",
+			"conversations_select",
+			"multi_conversations_select",
+			"external_select",
+			"multi_external_select",
+			"static_select",
+			"multi_static_select",
+		}
+		elements := make([]any, 0, len(types))
+		want := map[string]struct{}{}
+		for _, typ := range types {
+			id := typ + "_id"
+			elements = append(elements, map[string]any{
+				"type":      typ,
+				"action_id": id,
+			})
+			want[id] = struct{}{}
+		}
+		blocks := []any{
+			map[string]any{
+				"type":     "actions",
+				"elements": elements,
+			},
+		}
+		ids := CollectBlockKitActionIDs(blocks)
+		assert.Equal(t, want, ids)
+
+		actions := make(map[string]any, len(want))
+		for id := range want {
+			actions[id] = map[string]any{"type": "external", "url": "http://example.com/" + id}
+		}
+		post := &Post{
+			Props: map[string]any{
+				PostPropsBlockKitBlocks:  blocks,
+				PostPropsMmBlocksActions: actions,
+			},
+		}
+		require.NoError(t, ValidateInteractiveActionsForWebhook(post))
+	})
 }
 
 func TestCollectAdaptiveCardActionIDs(t *testing.T) {

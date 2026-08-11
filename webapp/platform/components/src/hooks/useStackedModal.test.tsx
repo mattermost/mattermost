@@ -4,7 +4,7 @@
 import {act, render, screen} from '@testing-library/react';
 import React, {useState} from 'react';
 
-import {useStackedModal} from './useStackedModal';
+import {useIsStackedModal, useStackedModal} from './useStackedModal';
 
 import {GenericModal} from '../generic_modal/generic_modal';
 import {wrapIntl} from '../testUtils';
@@ -12,6 +12,46 @@ import {wrapIntl} from '../testUtils';
 // Z-index constants from the hook implementation
 const BASE_MODAL_Z_INDEX = 1050;
 const Z_INDEX_INCREMENT = 10;
+
+function ProbeIsStacked({onResult}: {onResult: (value: boolean) => void}) {
+    const isStacked = useIsStackedModal();
+    onResult(isStacked);
+    return null;
+}
+
+describe('useIsStackedModal', () => {
+    afterEach(() => {
+        document.querySelectorAll('.modal-backdrop').forEach((el) => el.remove());
+    });
+
+    test('returns false when no backdrop exists at mount', () => {
+        let result: boolean | undefined;
+        render(
+            <ProbeIsStacked
+                onResult={(value) => {
+                    result = value;
+                }}
+            />,
+        );
+        expect(result).toBe(false);
+    });
+
+    test('returns true when a backdrop exists at mount', () => {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop';
+        document.body.appendChild(backdrop);
+
+        let result: boolean | undefined;
+        render(
+            <ProbeIsStacked
+                onResult={(value) => {
+                    result = value;
+                }}
+            />,
+        );
+        expect(result).toBe(true);
+    });
+});
 
 // The mock below installs two `.modal-backdrop` elements, so a stacked
 // modal rendered under it sits at stacking depth 2.
@@ -337,6 +377,7 @@ describe('useStackedModal - multi-level stacking (integration)', () => {
 
     const topBackdrop = (): HTMLElement => {
         const backdrops = document.querySelectorAll<HTMLElement>('.modal-backdrop');
+        expect(backdrops.length).toBeGreaterThan(0);
         return backdrops[backdrops.length - 1];
     };
 

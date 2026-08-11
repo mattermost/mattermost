@@ -15,10 +15,12 @@ import React, {useMemo} from 'react';
 import type {MmBlock} from '@mattermost/types/mm_blocks';
 import type {PostImage} from '@mattermost/types/posts';
 
-import {MmBlocksImagesMetadataContext, MmBlocksInlineMarkdownActionsContext, MmBlocksInteractionsDisabledContext} from './context';
+import {MmBlocksHandlersContext, MmBlocksImagesMetadataContext, MmBlocksInlineMarkdownActionsContext, MmBlocksInteractionsDisabledContext} from './context';
 import type {MmBlocksInlineMarkdownActions} from './context';
+import {MmBlocksForm} from './form';
+import type {MmBlocksFormErrors, MmBlocksFormErrorsChange} from './form';
 import {ContainerBlock} from './layout_blocks';
-import type {ActionHandler} from './types';
+import type {ActionHandler, LookupHandler} from './types';
 
 import './block_renderer.scss';
 
@@ -26,6 +28,7 @@ type BlockRendererProps = {
     blocks: MmBlock[];
     postId: string;
     onAction: ActionHandler;
+    onLookup?: LookupHandler;
 
     /** Optional `post.metadata.images` for dimension hints / SVG handling. */
     imagesMetadata?: Record<string, PostImage>;
@@ -35,31 +38,69 @@ type BlockRendererProps = {
 
     /** Preview/read-only surfaces: show controls but block all action dispatch. */
     interactionsDisabled?: boolean;
+
+    /**
+     * When false, do not wrap children in MmBlocksForm (parent already provides form context).
+     * Defaults to true.
+     */
+    provideForm?: boolean;
+
+    /** Field-level integration errors (keys match input `name`). Used when provideForm is true. */
+    formErrors: MmBlocksFormErrors;
+    onFormErrorsChange: MmBlocksFormErrorsChange;
 };
 
-export const BlockRenderer = ({blocks, postId, onAction, imagesMetadata, inlineMarkdownActions, interactionsDisabled = false}: BlockRendererProps) => {
+export const BlockRenderer = ({
+    blocks,
+    postId,
+    onAction,
+    onLookup,
+    imagesMetadata,
+    inlineMarkdownActions,
+    interactionsDisabled = false,
+    provideForm = true,
+    formErrors,
+    onFormErrorsChange,
+}: BlockRendererProps) => {
     const metadataValue = useMemo(() => imagesMetadata, [imagesMetadata]);
     const inlineMarkdownActionsValue = useMemo(
         () => inlineMarkdownActions ?? {},
         [inlineMarkdownActions],
     );
+    const handlersValue = useMemo(
+        () => ({onAction, onLookup}),
+        [onAction, onLookup],
+    );
+
+    const content = (
+        <div
+            className='mm-blocks'
+            role='group'
+        >
+            <ContainerBlock
+                block={{
+                    type: 'container',
+                    content: blocks,
+                }}
+                postId={postId}
+            />
+        </div>
+    );
+
     return (
         <MmBlocksImagesMetadataContext.Provider value={metadataValue}>
             <MmBlocksInlineMarkdownActionsContext.Provider value={inlineMarkdownActionsValue}>
                 <MmBlocksInteractionsDisabledContext.Provider value={interactionsDisabled}>
-                    <div
-                        className='mm-blocks'
-                        role='group'
-                    >
-                        <ContainerBlock
-                            block={{
-                                type: 'container',
-                                content: blocks,
-                            }}
-                            postId={postId}
-                            onAction={onAction}
-                        />
-                    </div>
+                    <MmBlocksHandlersContext.Provider value={handlersValue}>
+                        {provideForm ? (
+                            <MmBlocksForm
+                                errors={formErrors}
+                                onErrorsChange={onFormErrorsChange}
+                            >
+                                {content}
+                            </MmBlocksForm>
+                        ) : content}
+                    </MmBlocksHandlersContext.Provider>
                 </MmBlocksInteractionsDisabledContext.Provider>
             </MmBlocksInlineMarkdownActionsContext.Provider>
         </MmBlocksImagesMetadataContext.Provider>

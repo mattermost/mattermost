@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {parseISO, isValid, addDays, addWeeks, addMonths, addHours, addMinutes, addSeconds, startOfDay} from 'date-fns';
-import {defineMessage} from 'react-intl';
+import {defineMessages} from 'react-intl';
 
 import type {DialogElement} from '@mattermost/types/integrations';
 
@@ -18,6 +18,61 @@ type DialogError = {
     defaultMessage: string;
     values?: any;
 };
+
+const messages = defineMessages({
+    badFormat: {
+        id: 'interactive_dialog.error.bad_format',
+        defaultMessage: 'Invalid date format',
+    },
+    badDateFormat: {
+        id: 'interactive_dialog.error.bad_date_format',
+        defaultMessage: 'Date field must be in YYYY-MM-DD format',
+    },
+    badDatetimeFormat: {
+        id: 'interactive_dialog.error.bad_datetime_format',
+        defaultMessage: 'DateTime field must be in YYYY-MM-DDTHH:mm:ssZ or YYYY-MM-DDTHH:mm:ss+HH:MM format',
+    },
+    beforeMinDate: {
+        id: 'interactive_dialog.error.before_min_date',
+        defaultMessage: 'Selected time is before the minimum allowed date.',
+    },
+    afterMaxDate: {
+        id: 'interactive_dialog.error.after_max_date',
+        defaultMessage: 'Selected time is after the maximum allowed date.',
+    },
+    required: {
+        id: 'interactive_dialog.error.required',
+        defaultMessage: 'This field is required.',
+    },
+    tooShort: {
+        id: 'interactive_dialog.error.too_short',
+        defaultMessage: 'Minimum input length is {minLength}.',
+    },
+    tooLong: {
+        id: 'interactive_dialog.error.too_long',
+        defaultMessage: 'Maximum input length is {maxLength}.',
+    },
+    badEmail: {
+        id: 'interactive_dialog.error.bad_email',
+        defaultMessage: 'Must be a valid email address.',
+    },
+    badNumber: {
+        id: 'interactive_dialog.error.bad_number',
+        defaultMessage: 'Must be a number.',
+    },
+    badUrl: {
+        id: 'interactive_dialog.error.bad_url',
+        defaultMessage: 'URL must include http:// or https://.',
+    },
+    invalidOption: {
+        id: 'interactive_dialog.error.invalid_option',
+        defaultMessage: 'Must be a valid option',
+    },
+    invalidFile: {
+        id: 'interactive_dialog.error.invalid_file',
+        defaultMessage: 'Invalid file upload.',
+    },
+});
 
 /**
  * Resolves a min_date/max_date bound string to a Date.
@@ -57,55 +112,56 @@ function resolveBoundToDate(value: string): Date | null {
 }
 
 /**
- * Validates date/datetime field values for format and range constraints
+ * Validates date/datetime field values for format and range constraints.
+ * `fieldType` is `date` / `datetime` (dialog) or treated the same for mm_blocks date_input / datetime_input.
  */
-function validateDateTimeValue(value: string, elem: DialogElement): DialogError | null {
+export function checkDateTimeFieldValue(
+    value: string,
+    fieldType: 'date' | 'datetime',
+    bounds?: {
+        min_date?: string;
+        max_date?: string;
+        datetime_config?: {min_date?: string; max_date?: string};
+    },
+): DialogError | null {
     const parsedDate = parseISO(value);
     if (!isValid(parsedDate)) {
-        return defineMessage({
-            id: 'interactive_dialog.error.bad_format',
-            defaultMessage: 'Invalid date format',
-        });
+        return messages.badFormat;
     }
 
-    const isDateField = elem.type === 'date';
-    if (isDateField) {
+    if (fieldType === 'date') {
         if (!DATE_FORMAT_PATTERN.test(value)) {
-            return defineMessage({
-                id: 'interactive_dialog.error.bad_date_format',
-                defaultMessage: 'Date field must be in YYYY-MM-DD format',
-            });
+            return messages.badDateFormat;
         }
     } else if (!DATETIME_FORMAT_PATTERN.test(value)) {
-        return defineMessage({
-            id: 'interactive_dialog.error.bad_datetime_format',
-            defaultMessage: 'DateTime field must be in YYYY-MM-DDTHH:mm:ssZ or YYYY-MM-DDTHH:mm:ss+HH:MM format',
-        });
+        return messages.badDatetimeFormat;
     }
 
-    // Range validation against min_date / max_date (datetime_config takes precedence over legacy fields)
-    const effectiveMinDate = elem.datetime_config?.min_date ?? elem.min_date;
-    const effectiveMaxDate = elem.datetime_config?.max_date ?? elem.max_date;
+    const effectiveMinDate = bounds?.datetime_config?.min_date ?? bounds?.min_date;
+    const effectiveMaxDate = bounds?.datetime_config?.max_date ?? bounds?.max_date;
     if (effectiveMinDate) {
         const minDate = resolveBoundToDate(effectiveMinDate);
         if (minDate && parsedDate < minDate) {
-            return defineMessage({
-                id: 'interactive_dialog.error.before_min_date',
-                defaultMessage: 'Selected time is before the minimum allowed date.',
-            });
+            return messages.beforeMinDate;
         }
     }
     if (effectiveMaxDate) {
         const maxDate = resolveBoundToDate(effectiveMaxDate);
         if (maxDate && parsedDate > maxDate) {
-            return defineMessage({
-                id: 'interactive_dialog.error.after_max_date',
-                defaultMessage: 'Selected time is after the maximum allowed date.',
-            });
+            return messages.afterMaxDate;
         }
     }
 
     return null;
+}
+
+function validateDateTimeValue(value: string, elem: DialogElement): DialogError | null {
+    const fieldType = elem.type === 'date' ? 'date' : 'datetime';
+    return checkDateTimeFieldValue(value, fieldType, {
+        min_date: elem.min_date,
+        max_date: elem.max_date,
+        datetime_config: elem.datetime_config,
+    });
 }
 
 export function checkDialogElementForError(elem: DialogElement, value: any): DialogError | undefined | null {
@@ -115,7 +171,10 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
 
     // Check if value is empty (handles arrays for multiselect)
     let isEmpty;
-    if (value === 0) {
+    if (typeof value === 'boolean') {
+        // Explicit false is a valid bool value, not "empty".
+        isEmpty = false;
+    } else if (value === 0) {
         isEmpty = false;
     } else if (Array.isArray(value)) {
         isEmpty = value.length === 0;
@@ -124,59 +183,48 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
     }
 
     if (isEmpty && !elem.optional) {
-        return defineMessage({
-            id: 'interactive_dialog.error.required',
-            defaultMessage: 'This field is required.',
-        });
+        return messages.required;
     }
 
     const type = elem.type;
 
     if (type === 'text' || type === 'textarea') {
-        if (value && value.length < elem.min_length) {
-            return defineMessage({
-                id: 'interactive_dialog.error.too_short',
+        if (value && elem.min_length !== undefined && value.length < elem.min_length) {
+            return {
+                ...messages.tooShort,
+                values: {minLength: elem.min_length},
+            };
+        }
 
-                // minLength provided by InteractiveDialog
-                // eslint-disable-next-line formatjs/enforce-placeholders
-                defaultMessage: 'Minimum input length is {minLength}.',
-            });
+        if (value && elem.max_length !== undefined && elem.max_length > 0 && value.length > elem.max_length) {
+            return {
+                ...messages.tooLong,
+                values: {maxLength: elem.max_length},
+            };
         }
 
         if (elem.subtype === 'email') {
             if (value && !value.includes('@')) {
-                return defineMessage({
-                    id: 'interactive_dialog.error.bad_email',
-                    defaultMessage: 'Must be a valid email address.',
-                });
+                return messages.badEmail;
             }
         }
 
         if (elem.subtype === 'number') {
             if (value && isNaN(value)) {
-                return defineMessage({
-                    id: 'interactive_dialog.error.bad_number',
-                    defaultMessage: 'Must be a number.',
-                });
+                return messages.badNumber;
             }
         }
 
         if (elem.subtype === 'url') {
             if (value && !value.includes('http://') && !value.includes('https://')) {
-                return defineMessage({
-                    id: 'interactive_dialog.error.bad_url',
-                    defaultMessage: 'URL must include http:// or https://.',
-                });
+                return messages.badUrl;
             }
         }
     } else if (type === 'radio') {
         const options = elem.options;
 
         if (typeof value !== 'undefined' && Array.isArray(options) && !options.some((e) => e.value === value)) {
-            return defineMessage({
-                id: 'interactive_dialog.error.invalid_option',
-                defaultMessage: 'Must be a valid option',
-            });
+            return messages.invalidOption;
         }
     } else if (type === 'date' || type === 'datetime') {
         // Validate date/datetime format and range constraints
@@ -195,10 +243,7 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
             return null;
         }
         if (value && typeof value !== 'string') {
-            return defineMessage({
-                id: 'interactive_dialog.error.invalid_file',
-                defaultMessage: 'Invalid file upload.',
-            });
+            return messages.invalidFile;
         }
     }
 

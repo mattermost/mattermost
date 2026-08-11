@@ -9,6 +9,16 @@ const Z_INDEX_INCREMENT = 10; // Increment for each stacked modal level
 
 // No options needed since delayMs is not used by any consumers
 
+/**
+ * Captures at mount whether a `.modal-backdrop` already exists (another modal
+ * is open beneath this one). SSR-safe: returns false when `document` is unavailable.
+ */
+export function useIsStackedModal(): boolean {
+    return useRef(
+        typeof document !== 'undefined' && document.querySelectorAll('.modal-backdrop').length > 0,
+    ).current;
+}
+
 type StackedModalResult = {
 
     /**
@@ -103,7 +113,6 @@ export function useStackedModal(
             // Settings → Simulate access → Decision details), where the
             // deepest modal shared the middle modal's z-index and its
             // backdrop landed *below* that modal, leaving it undimmed.
-            //
             // Scope the lookup to this modal's own container so a second,
             // independent stack rendered elsewhere in the document can't
             // be counted as part of this stack (which would over-count the

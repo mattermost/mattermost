@@ -259,106 +259,6 @@ func TestDoPostActionCookieHandling(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("mm_blocks cookie without channel read permission returns forbidden", func(t *testing.T) {
-		client2 := th.CreateClient()
-		th.LoginBasic2WithClient(t, client2)
-		privateChannel := th.CreateChannelWithClient(t, client2, model.ChannelTypePrivate)
-		mmActionID := "mm_blocks_act"
-
-		post := &model.Post{
-			Id:        model.NewId(),
-			Type:      model.PostTypeEphemeral,
-			UserId:    th.BasicUser2.Id,
-			ChannelId: privateChannel.Id,
-			CreateAt:  model.GetMillis(),
-			UpdateAt:  model.GetMillis(),
-			Props: map[string]any{
-				model.PostPropsMmBlocksActions: map[string]any{
-					mmActionID: map[string]any{
-						"type": model.MmBlocksActionTypeExternal,
-						"url":  server.URL,
-					},
-				},
-			},
-		}
-		post = model.AddPostActionCookies(post, secret)
-		cookie, ok := post.GetProp(model.PostPropsMmBlocksActions).(string)
-		require.True(t, ok)
-		require.NotEmpty(t, cookie)
-
-		resp, err := th.Client.DoPostActionWithCookie(context.Background(), post.Id, mmActionID, "", cookie, nil, model.PostActionIntegrationFormatMmBlock)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
-
-	t.Run("mm_blocks cookie rejected when feature flag is disabled", func(t *testing.T) {
-		th.ConfigStore.SetReadOnlyFF(false)
-		defer th.ConfigStore.SetReadOnlyFF(true)
-
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = false })
-		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MmBlocksEnabled = true })
-
-		mmActionID := "mm_blocks_act"
-		post := &model.Post{
-			Id:        model.NewId(),
-			Type:      model.PostTypeEphemeral,
-			UserId:    th.BasicUser.Id,
-			ChannelId: th.BasicChannel.Id,
-			CreateAt:  model.GetMillis(),
-			UpdateAt:  model.GetMillis(),
-			Props: map[string]any{
-				model.PostPropsMmBlocks: []any{
-					map[string]any{"type": "button", "text": "Go", "action_id": mmActionID},
-				},
-				model.PostPropsMmBlocksActions: map[string]any{
-					mmActionID: map[string]any{
-						"type": model.MmBlocksActionTypeExternal,
-						"url":  server.URL,
-					},
-				},
-			},
-		}
-		model.AddMmBlocksActionCookies(post, secret)
-		cookie, ok := post.GetProp(model.PostPropsMmBlocksActions).(string)
-		require.True(t, ok)
-		require.NotEmpty(t, cookie)
-
-		resp, err := th.Client.DoPostActionWithCookie(context.Background(), post.Id, mmActionID, "", cookie, nil, model.PostActionIntegrationFormatMmBlock)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
-
-	t.Run("mm_blocks cookie allows action when user can read channel", func(t *testing.T) {
-		mmActionID := "mm_blocks_act"
-		post := &model.Post{
-			Id:        model.NewId(),
-			Type:      model.PostTypeEphemeral,
-			UserId:    th.BasicUser.Id,
-			ChannelId: th.BasicChannel.Id,
-			CreateAt:  model.GetMillis(),
-			UpdateAt:  model.GetMillis(),
-			Props: map[string]any{
-				model.PostPropsMmBlocksActions: map[string]any{
-					mmActionID: map[string]any{
-						"type": model.MmBlocksActionTypeExternal,
-						"url":  server.URL,
-						"context": map[string]any{
-							"test-key": "test-value",
-						},
-					},
-				},
-			},
-		}
-		post = model.AddPostActionCookies(post, secret)
-		cookie, ok := post.GetProp(model.PostPropsMmBlocksActions).(string)
-		require.True(t, ok)
-		require.NotEmpty(t, cookie)
-
-		resp, err := th.Client.DoPostActionWithCookie(context.Background(), post.Id, mmActionID, "", cookie, nil, model.PostActionIntegrationFormatMmBlock)
-		require.NoError(t, err)
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-	})
-
 	t.Run("without cookie requires read post permission", func(t *testing.T) {
 		client2 := th.CreateClient()
 		th.LoginBasic2WithClient(t, client2)
@@ -1261,20 +1161,8 @@ func TestDoPostActionCookieChannelAuthorization(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("non-member cannot act on the private mm_blocks post without a cookie", func(t *testing.T) {
-		resp, err := nonMember.DoPostActionWithCookie(context.Background(), privateMmPost.Id, privateMmActionID, "", "", nil, model.PostActionIntegrationFormatMmBlock)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
-
 	t.Run("a cookie from a readable channel cannot authorize a different post", func(t *testing.T) {
 		resp, err := nonMember.DoPostActionWithCookie(context.Background(), privatePost.Id, privateActionID, "", readableCookie, nil, "")
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
-
-	t.Run("an mm_blocks cookie from a readable channel cannot authorize a different post", func(t *testing.T) {
-		resp, err := nonMember.DoPostActionWithCookie(context.Background(), privateMmPost.Id, privateMmActionID, "", readableMmCookie, nil, model.PostActionIntegrationFormatMmBlock)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -1290,14 +1178,44 @@ func TestDoPostActionCookieChannelAuthorization(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
+	t.Run("non-member cannot act on the private mm_blocks post without a cookie", func(t *testing.T) {
+		_, apiResp, err := nonMember.DoBlockAction(context.Background(), model.DoBlockActionRequest{
+			Context:           model.BlockActionContextPost,
+			PostId:            privateMmPost.Id,
+			ActionId:          privateMmActionID,
+			IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, apiResp)
+	})
+
+	t.Run("an mm_blocks cookie from a readable channel cannot authorize a different post", func(t *testing.T) {
+		_, apiResp, err := nonMember.DoBlockAction(context.Background(), model.DoBlockActionRequest{
+			Context:           model.BlockActionContextPost,
+			PostId:            privateMmPost.Id,
+			ActionId:          privateMmActionID,
+			Cookie:            readableMmCookie,
+			IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, apiResp)
+	})
+
 	t.Run("a member can still act on mm_blocks using the post's own cookie", func(t *testing.T) {
 		legitMmCookie, ok := privateMmPost.GetProp(model.PostPropsMmBlocksActions).(string)
 		require.True(t, ok)
 		require.NotEmpty(t, legitMmCookie)
 
-		resp, err := th.Client.DoPostActionWithCookie(context.Background(), privateMmPost.Id, privateMmActionID, "", legitMmCookie, nil, model.PostActionIntegrationFormatMmBlock)
+		resp, apiResp, err := th.Client.DoBlockAction(context.Background(), model.DoBlockActionRequest{
+			Context:           model.BlockActionContextPost,
+			PostId:            privateMmPost.Id,
+			ActionId:          privateMmActionID,
+			Cookie:            legitMmCookie,
+			IntegrationFormat: model.PostActionIntegrationFormatMmBlock,
+		})
 		require.NoError(t, err)
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		CheckOKStatus(t, apiResp)
+		require.NotNil(t, resp)
 	})
 }
 

@@ -24,6 +24,10 @@ export async function isWebhookTestServerReachable(
 /**
  * POST /setup on the webhook sidecar so it can call back into Mattermost (dialogs, OAuth, etc.).
  * Required before routes that use `baseUrl` / admin credentials.
+ *
+ * Playwright always posts /setup via the host-mapped webhook URL. The `webhookBaseUrl` stored
+ * in the sidecar (used when baking dialog/integration callback URLs) must be the address
+ * Mattermost can reach — `webhookInternalUrl` under Testcontainers.
  */
 export async function setupWebhookTestServer(
     request: APIRequestContext,
@@ -31,11 +35,15 @@ export async function setupWebhookTestServer(
         mattermostBaseUrl: string;
         adminUsername: string;
         adminPassword: string;
+        /** Host URL Playwright uses to reach the sidecar. Defaults to testConfig.webhookBaseUrl. */
+        webhookSetupUrl?: string;
+        /** URL Mattermost uses in dialog/action callbacks. Defaults to webhookInternalUrl. */
         webhookBaseUrl?: string;
     },
 ): Promise<void> {
-    const webhookBaseUrl = opts.webhookBaseUrl ?? testConfig.webhookBaseUrl;
-    const res = await request.post(`${webhookBaseUrl}/setup`, {
+    const webhookSetupUrl = opts.webhookSetupUrl ?? testConfig.webhookBaseUrl;
+    const webhookBaseUrl = opts.webhookBaseUrl ?? testConfig.webhookInternalUrl;
+    const res = await request.post(`${webhookSetupUrl}/setup`, {
         headers: {'Content-Type': 'application/json'},
         data: {
             baseUrl: opts.mattermostBaseUrl,

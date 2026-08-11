@@ -5,6 +5,8 @@ import React from 'react';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
+import {MmBlocksHandlersContext} from './context';
+import {MmBlocksForm} from './form';
 import {BlockSwitch, ContainerBlock} from './layout_blocks';
 
 jest.mock('components/markdown', () => ({
@@ -14,6 +16,19 @@ jest.mock('components/markdown', () => ({
     )),
 }));
 
+function renderBlocks(ui: React.ReactElement, onAction: jest.Mock) {
+    return renderWithContext(
+        <MmBlocksHandlersContext.Provider value={{onAction}}>
+            <MmBlocksForm
+                errors={{}}
+                onErrorsChange={jest.fn()}
+            >
+                {ui}
+            </MmBlocksForm>
+        </MmBlocksHandlersContext.Provider>,
+    );
+}
+
 describe('BlockSwitch', () => {
     const onAction = jest.fn();
 
@@ -22,29 +37,29 @@ describe('BlockSwitch', () => {
     });
 
     it('returns null for unknown block types', () => {
-        const {container} = renderWithContext(
+        const {container} = renderBlocks(
             <BlockSwitch
                 block={{type: 'future_block'} as never}
                 postId='post-1'
-                onAction={onAction}
             />,
+            onAction,
         );
-        expect(container).toBeEmptyDOMElement();
+        expect(container.firstElementChild).toBeEmptyDOMElement();
     });
 
     it('renders a button block', () => {
-        renderWithContext(
+        renderBlocks(
             <BlockSwitch
                 block={{type: 'button', text: 'Go', action_id: 'go'}}
                 postId='post-1'
-                onAction={onAction}
             />,
+            onAction,
         );
         expect(screen.getByRole('button', {name: 'Go'})).toBeInTheDocument();
     });
 
     it('renders column_set with column content', () => {
-        const {container} = renderWithContext(
+        const {container} = renderBlocks(
             <BlockSwitch
                 block={{
                     type: 'column_set',
@@ -62,8 +77,8 @@ describe('BlockSwitch', () => {
                     ],
                 }}
                 postId='post-1'
-                onAction={onAction}
             />,
+            onAction,
         );
 
         expect(container.querySelector('.mm-blocks-column-set')).toBeInTheDocument();
@@ -72,7 +87,7 @@ describe('BlockSwitch', () => {
     });
 
     it('applies column_set gap class (defaults to medium)', () => {
-        const {container} = renderWithContext(
+        const {container} = renderBlocks(
             <BlockSwitch
                 block={{
                     type: 'column_set',
@@ -82,15 +97,15 @@ describe('BlockSwitch', () => {
                     ],
                 }}
                 postId='post-1'
-                onAction={onAction}
             />,
+            onAction,
         );
 
         expect(container.querySelector('.mm-blocks-column-set--gap-medium')).toBeInTheDocument();
     });
 
     it('applies column_set gap class from block gap', () => {
-        const {container} = renderWithContext(
+        const {container} = renderBlocks(
             <BlockSwitch
                 block={{
                     type: 'column_set',
@@ -101,8 +116,8 @@ describe('BlockSwitch', () => {
                     ],
                 }}
                 postId='post-1'
-                onAction={onAction}
             />,
+            onAction,
         );
 
         expect(container.querySelector('.mm-blocks-column-set--gap-none')).toBeInTheDocument();
@@ -110,7 +125,7 @@ describe('BlockSwitch', () => {
     });
 
     it('defaults collapsible to collapsed when collapsed is omitted', () => {
-        renderWithContext(
+        renderBlocks(
             <BlockSwitch
                 block={{
                     type: 'collapsible',
@@ -118,8 +133,8 @@ describe('BlockSwitch', () => {
                     content: [{type: 'text', text: 'Hidden body'}],
                 }}
                 postId='post-collapse-default'
-                onAction={onAction}
             />,
+            onAction,
         );
 
         expect(screen.getByRole('button', {expanded: false})).toBeInTheDocument();
@@ -128,7 +143,7 @@ describe('BlockSwitch', () => {
 
     it('toggles collapsible content on header click', async () => {
         const user = userEvent.setup();
-        renderWithContext(
+        renderBlocks(
             <BlockSwitch
                 block={{
                     type: 'collapsible',
@@ -137,8 +152,8 @@ describe('BlockSwitch', () => {
                     content: [{type: 'text', text: 'Hidden body'}],
                 }}
                 postId='post-collapse'
-                onAction={onAction}
             />,
+            onAction,
         );
 
         const toggle = screen.getByRole('button', {expanded: false});
@@ -155,7 +170,7 @@ describe('BlockSwitch', () => {
 
     it('does not toggle collapsible when clicking an interactive header element', async () => {
         const user = userEvent.setup();
-        renderWithContext(
+        renderBlocks(
             <BlockSwitch
                 block={{
                     type: 'collapsible',
@@ -164,15 +179,15 @@ describe('BlockSwitch', () => {
                     content: [{type: 'text', text: 'Hidden body'}],
                 }}
                 postId='post-collapse-action'
-                onAction={onAction}
             />,
+            onAction,
         );
 
         await user.click(screen.getByRole('button', {name: 'Header action'}));
 
         expect(screen.getByRole('button', {expanded: false})).toBeInTheDocument();
         expect(document.getElementById('mm-blocks-collapsible-content-post-collapse-action')).toHaveAttribute('aria-hidden', 'true');
-        expect(onAction).toHaveBeenCalledWith('header_action', undefined, undefined, undefined);
+        expect(onAction).toHaveBeenCalledWith('header_action', undefined, undefined, undefined, undefined);
     });
 });
 
@@ -184,18 +199,18 @@ describe('ContainerBlock', () => {
     });
 
     it('returns null when content is empty', () => {
-        const {container} = renderWithContext(
+        const {container} = renderBlocks(
             <ContainerBlock
                 block={{type: 'container', content: []}}
                 postId='post-1'
-                onAction={onAction}
             />,
+            onAction,
         );
-        expect(container).toBeEmptyDOMElement();
+        expect(container.firstElementChild).toBeEmptyDOMElement();
     });
 
     it('applies horizontal flow class and row divider orientation', () => {
-        const {container} = renderWithContext(
+        const {container} = renderBlocks(
             <ContainerBlock
                 block={{
                     type: 'container',
@@ -207,8 +222,8 @@ describe('ContainerBlock', () => {
                     ],
                 }}
                 postId='post-1'
-                onAction={onAction}
             />,
+            onAction,
         );
 
         expect(container.querySelector('.mm-blocks-container--flow-horizontal')).toBeInTheDocument();
@@ -216,7 +231,7 @@ describe('ContainerBlock', () => {
     });
 
     it('applies accent border and semantic accent on bordered accent containers', () => {
-        const {container} = renderWithContext(
+        const {container} = renderBlocks(
             <ContainerBlock
                 block={{
                     type: 'container',
@@ -225,8 +240,8 @@ describe('ContainerBlock', () => {
                     content: [{type: 'text', text: 'Inside accent'}],
                 }}
                 postId='post-1'
-                onAction={onAction}
             />,
+            onAction,
         );
 
         const accentContainer = container.querySelector(
@@ -237,7 +252,7 @@ describe('ContainerBlock', () => {
     });
 
     it('uses custom hex accent as inline border color', () => {
-        const {container} = renderWithContext(
+        const {container} = renderBlocks(
             <ContainerBlock
                 block={{
                     type: 'container',
@@ -245,8 +260,8 @@ describe('ContainerBlock', () => {
                     content: [{type: 'text', text: 'Custom color'}],
                 }}
                 postId='post-1'
-                onAction={onAction}
             />,
+            onAction,
         );
 
         const inner = container.querySelector('.mm-blocks-container--accent-custom') as HTMLElement;
@@ -254,15 +269,15 @@ describe('ContainerBlock', () => {
     });
 
     it('uses max-height-none by default without a scroll region', () => {
-        const {container} = renderWithContext(
+        const {container} = renderBlocks(
             <ContainerBlock
                 block={{
                     type: 'container',
                     content: [{type: 'text', text: 'No cap'}],
                 }}
                 postId='post-1'
-                onAction={onAction}
             />,
+            onAction,
         );
 
         expect(container.querySelector('.mm-blocks-container--max-height-none')).toBeInTheDocument();
@@ -270,7 +285,7 @@ describe('ContainerBlock', () => {
     });
 
     it('adds scroll region when max_height is set', () => {
-        renderWithContext(
+        renderBlocks(
             <ContainerBlock
                 block={{
                     type: 'container',
@@ -278,8 +293,8 @@ describe('ContainerBlock', () => {
                     content: [{type: 'text', text: 'Scroll me'}],
                 }}
                 postId='post-1'
-                onAction={onAction}
             />,
+            onAction,
         );
 
         expect(screen.getByRole('region', {name: 'Scrollable content'})).toBeInTheDocument();

@@ -171,10 +171,16 @@ describe('Interactive Dialogs', () => {
         cy.shouldNotRunOnCloudEdition();
         cy.shouldHavePluginUploadEnabled();
 
-        // # Set plugin settings
+        // # Set plugin settings (demo plugin requires GIF picker + public links)
         const newSettings = {
             PluginSettings: {
                 Enable: true,
+            },
+            ServiceSettings: {
+                EnableGifPicker: true,
+            },
+            FileSettings: {
+                EnablePublicLink: true,
             },
         };
         cy.apiUpdateConfig(newSettings);
@@ -197,59 +203,54 @@ describe('Interactive Dialogs', () => {
 
         // * Check that the apps form modal from the plugin opens up
         cy.get('#appsModal').should('be.visible').within(() => {
-            // * Verify that the body is visible
-            cy.get('.modal-body').should('be.visible').children('.form-group').each(($elForm, index) => {
-                const element = demoPluginDialogElements[index];
+            // Legacy dialogs render via BlocksDialogShell/mm_blocks, so fields are nested
+            // under .mm-blocks-* wrappers (not direct .form-group children of .modal-body).
+            const fieldSelector = '.mm-blocks-text-input, .mm-blocks-select-input, .mm-blocks-bool-input';
+            cy.get('.modal-body').should('be.visible').within(() => {
+                cy.get(fieldSelector).should('have.length', demoPluginDialogElements.length).each(($elForm, index) => {
+                    const element = demoPluginDialogElements[index];
 
-                // Skip if element is undefined (more DOM elements than expected)
-                if (!element) {
-                    return;
-                }
+                    // * Verify that when the element comes into view the proper display name is showing
+                    cy.wrap($elForm).find('label').first().scrollIntoView().should('be.visible').and('contain', element.display_name);
 
-                // * Verify that when the element comes into view the proper display name is showing
-                cy.wrap($elForm).find('label').first().scrollIntoView().should('be.visible').and('contain', element.display_name);
+                    if (element.name.includes('someboolean')) {
+                        // * Verify that the checkbox for a boolean element is visible
+                        cy.wrap($elForm).find('.checkbox').should('be.visible').within(() => {
+                            // * Verify that if the element default is true, it should be checked, and vice versa.
+                            let checked = true;
+                            if (element.default === 'true') {
+                                cy.get('input[type="checkbox"]').
+                                    should('be.visible').
+                                    and('be.checked');
+                            } else {
+                                cy.get('input[type="checkbox"]').
+                                    should('be.visible').
+                                    and('not.be.checked');
+                                checked = false;
+                            }
 
-                if (element.name.includes('someboolean')) {
-                    // * Verify that the checkbox for a boolean element is visible
-                    cy.wrap($elForm).find('.checkbox').should('be.visible').within(() => {
-                        // * Verify that if the element default is true, it should be checked, and vice versa.
-                        let checked = true;
-                        if (element.default === 'true') {
-                            cy.get(`#${element.name}`).
-                                should('be.visible').
-                                and('be.checked');
-                        } else {
-                            cy.get(`#${element.name}`).
-                                should('be.visible').
-                                not('be.checked');
-                            checked = false;
-                        }
+                            // * Verify that the checkbox has the proper text.
+                            cy.get('span').should('have.text', element.placeholder);
 
-                        // * Verify that the checkbox has the proper text.
-                        cy.get('span').should('have.text', element.placeholder);
-
-                        // # Click on the checkbox.
-                        if (checked === false) {
-                            cy.get(`#${element.name}`).check();
-                        }
-                    });
-                } else if (element.name === 'someemail') {
-                    cy.get(`#${element.name}`).scrollIntoView().clear().type('test@test.com');
-                } else if (element.name === 'somepassword') {
-                    cy.get(`#${element.name}`).scrollIntoView().clear().type('test');
-                } else if (element.name === 'somenumber') {
-                    cy.get(`#${element.name}`).scrollIntoView().clear().type('42');
-                } else if (element.name === 'someoptionselector') {
-                    // Click the dropdown
-                    cy.wrap($elForm).find('[id^=\'MultiInput_\']').click();
-
-                    // Break out of the .within() scope to find options that are portaled to body
-                    cy.document().then((doc) => {
-                        cy.wrap(doc).find('.react-select__option').first().click();
-                    });
-                } else if (element.name === 'someradiooptionselector') {
-                    cy.wrap($elForm).find('input').first().click();
-                }
+                            // # Click on the checkbox.
+                            if (checked === false) {
+                                cy.get('input[type="checkbox"]').check();
+                            }
+                        });
+                    } else if (element.name === 'someemail') {
+                        cy.get('input').scrollIntoView().clear().type('test@test.com');
+                    } else if (element.name === 'somepassword') {
+                        cy.get('input').scrollIntoView().clear().type('test');
+                    } else if (element.name === 'somenumber') {
+                        cy.get('input').scrollIntoView().clear().type('42');
+                    } else if (element.name === 'someoptionselector') {
+                        // Static selects use AutocompleteSelector (not react-select MultiInput_).
+                        cy.wrap($elForm).find('input').first().scrollIntoView().click();
+                        cy.get('#suggestionList').should('be.visible').children().first().click({force: true});
+                    } else if (element.name === 'someradiooptionselector') {
+                        cy.wrap($elForm).find('input').first().click();
+                    }
+                });
             });
 
             // # Submit the form of the interactive dialog.

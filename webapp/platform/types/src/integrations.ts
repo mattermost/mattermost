@@ -148,8 +148,38 @@ export type IntegrationsState = {
 
 export type OpenDialogRequest = {
     trigger_id: string;
-    url: string;
-    dialog: Dialog;
+    url?: string;
+    dialog?: Dialog;
+    block_dialog?: BlockDialog;
+};
+
+/** Blocks-mode dialog payload (counterpart to legacy Dialog). */
+export type BlockDialogButton = {
+    label?: string;
+
+    /** Action id that must exist in block_dialog.actions. */
+    action?: string;
+};
+
+export type BlockDialog = {
+    title: string;
+    icon_url?: string;
+    state?: string;
+
+    /** When set, renders a footer submit button (default label "Submit"). */
+    submit?: BlockDialogButton;
+
+    /**
+     * When set, renders a footer cancel button (default label "Cancel"); header X also invokes it.
+     * Cancel notification is via cancel.action — BlockDialog has no notify_on_cancel.
+     */
+    cancel?: BlockDialogButton;
+
+    /** mm_blocks body; may be empty for chrome-only dialogs. */
+    blocks?: unknown[];
+
+    /** Encrypted cookie string after server processing / on WS. */
+    actions?: string;
 };
 
 export type Dialog = {
@@ -172,7 +202,7 @@ export type DialogSubmission = {
     channel_id: string;
     team_id: string;
     submission: {
-        [x: string]: string | string[];
+        [x: string]: string | string[] | boolean | number | null;
     };
     cancelled: boolean;
     type?: string;

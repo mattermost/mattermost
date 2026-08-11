@@ -65,27 +65,31 @@ describe('Interactive Dialog - Apps Form', () => {
             });
 
             // * Verify that the body contains the boolean element
-            cy.get('.modal-body').should('be.visible').children('.form-group').should('have.length', 1).each(($elForm, index) => {
-                const element = simpleDialog.dialog.elements[index];
-                expect(element.name).to.equal('boolean_input');
+            // Legacy dialogs render via BlocksDialogShell/mm_blocks, so fields are nested
+            // under .mm-blocks-* wrappers (not direct .form-group children of .modal-body).
+            cy.get('.modal-body').should('be.visible').within(() => {
+                cy.get('.mm-blocks-bool-input').should('have.length', 1).each(($elForm, index) => {
+                    const element = simpleDialog.dialog.elements[index];
+                    expect(element.name).to.equal('boolean_input');
 
-                cy.wrap($elForm).within(() => {
-                    // Verify the label text includes display name
-                    cy.get('label').first().scrollIntoView().should('be.visible').and('contain', element.display_name);
+                    cy.wrap($elForm).within(() => {
+                        // Verify the label text includes display name
+                        cy.get('label').first().scrollIntoView().should('be.visible').and('contain', element.display_name);
 
-                    // Verify the checkbox structure
-                    cy.get('.checkbox').should('be.visible').within(() => {
-                        cy.get('input[type=\'checkbox\']').
-                            should('be.visible').
-                            and('be.checked');
+                        // Verify the checkbox structure
+                        cy.get('.checkbox').should('be.visible').within(() => {
+                            cy.get('input[type=\'checkbox\']').
+                                should('be.visible').
+                                and('be.checked');
 
-                        cy.get('span').should('have.text', element.placeholder);
+                            cy.get('span').should('have.text', element.placeholder);
+                        });
+
+                        // Verify help text if present
+                        if (element.help_text) {
+                            cy.get('.help-text').should('be.visible').and('contain', element.help_text);
+                        }
                     });
-
-                    // Verify help text if present
-                    if (element.help_text) {
-                        cy.get('.help-text').should('be.visible').and('contain', element.help_text);
-                    }
                 });
             });
 

@@ -18,6 +18,19 @@ import * as TIMEOUTS from '@/fixtures/timeouts';
 
 let createdCommand;
 
+// Legacy dialogs render via BlocksDialogShell/mm_blocks. Field wrappers are
+// .mm-blocks-*-input (not direct .form-group children of .modal-body).
+// Static single-selects use AutocompleteSelector (#suggestionList), not MultiInput_/react-select.
+const FIELD_SELECTOR = '.mm-blocks-text-input, .mm-blocks-select-input';
+
+function selectStaticOption(fieldLabel, optionText) {
+    cy.contains('.mm-blocks-select-input', fieldLabel).within(() => {
+        cy.get('input').first().click();
+    });
+    cy.wait(TIMEOUTS.HALF_SEC);
+    cy.get('#suggestionList').should('be.visible').contains(optionText).click({force: true});
+}
+
 describe('Interactive Dialog - Field Refresh', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();
@@ -68,21 +81,14 @@ describe('Interactive Dialog - Field Refresh', () => {
                 // * Verify initial field refresh dialog fields are present in new order
                 cy.contains('Project Name').should('be.visible');
                 cy.contains('Project Type').should('be.visible');
-                cy.get('.form-group').should('have.length', 2); // project_name + project_type
+                cy.get(FIELD_SELECTOR).should('have.length', 2); // project_name + project_type
             });
 
             // # Enter project name first
             cy.get('input[placeholder*="project name"]').type('Web App Project');
 
             // # Trigger field refresh by changing project type (refresh: true field)
-            cy.get('.form-group').contains('Project Type').parent().within(() => {
-                cy.get('[id^=\'MultiInput_\']').click();
-            });
-
-            cy.wait(TIMEOUTS.HALF_SEC);
-            cy.document().then((doc) => {
-                cy.wrap(doc).find('.react-select__option').contains('Web Application').click();
-            });
+            selectStaticOption('Project Type', 'Web Application');
 
             // * Wait for field refresh to complete
             cy.wait(TIMEOUTS.ONE_SEC);
@@ -99,12 +105,12 @@ describe('Interactive Dialog - Field Refresh', () => {
                 // * Project name value should be preserved
                 cy.get('input[placeholder*="project name"]').should('have.value', 'Web App Project');
 
-                // * Selection should be made
-                cy.get('.react-select__single-value').should('contain', 'Web Application');
+                // * Selection should be made (AutocompleteSelector shows text in the input)
+                cy.contains('.mm-blocks-select-input', 'Project Type').find('input').should('have.value', 'Web Application');
 
                 // * New framework field should appear for web application
                 cy.contains('Framework').should('be.visible');
-                cy.get('.form-group').should('have.length', 3); // project_name + project_type + framework
+                cy.get(FIELD_SELECTOR).should('have.length', 3); // project_name + project_type + framework
             });
 
             closeAppsFormModal();
@@ -120,32 +126,20 @@ describe('Interactive Dialog - Field Refresh', () => {
             cy.get('input[placeholder*="project name"]').type('My Test Project');
 
             // # Trigger refresh by selecting project type
-            cy.get('.form-group').contains('Project Type').parent().within(() => {
-                cy.get('[id^=\'MultiInput_\']').click();
-            });
-            cy.wait(TIMEOUTS.HALF_SEC);
-            cy.document().then((doc) => {
-                cy.wrap(doc).find('.react-select__option').contains('Mobile App').click();
-            });
+            selectStaticOption('Project Type', 'Mobile App');
             cy.wait(TIMEOUTS.ONE_SEC);
 
             // * Verify project name value is preserved during refresh
             cy.get('input[placeholder*="project name"]').should('have.value', 'My Test Project');
 
             // * Verify project type selection is preserved
-            cy.get('.react-select__single-value').should('contain', 'Mobile App');
+            cy.contains('.mm-blocks-select-input', 'Project Type').find('input').should('have.value', 'Mobile App');
 
             // * Verify platform field appeared for mobile app
             cy.contains('Platform').should('be.visible');
 
             // # Fill in the platform field and submit
-            cy.get('.form-group').contains('Platform').parent().within(() => {
-                cy.get('[id^=\'MultiInput_\']').click();
-            });
-            cy.wait(TIMEOUTS.HALF_SEC);
-            cy.document().then((doc) => {
-                cy.wrap(doc).find('.react-select__option').contains('React Native').click();
-            });
+            selectStaticOption('Platform', 'React Native');
 
             // # Submit the form
             cy.get('.modal-footer button').contains('Submit').click();
@@ -175,13 +169,7 @@ describe('Interactive Dialog - Field Refresh', () => {
 
             projectTypes.forEach((projectType) => {
                 // # Select different project type
-                cy.get('.form-group').contains('Project Type').parent().within(() => {
-                    cy.get('[id^=\'MultiInput_\']').click();
-                });
-                cy.wait(TIMEOUTS.HALF_SEC);
-                cy.document().then((doc) => {
-                    cy.wrap(doc).find('.react-select__option').contains(projectType).click();
-                });
+                selectStaticOption('Project Type', projectType);
                 cy.wait(TIMEOUTS.ONE_SEC);
 
                 // * Verify basic fields are always present in correct order
@@ -192,18 +180,18 @@ describe('Interactive Dialog - Field Refresh', () => {
                 cy.get('input[placeholder*="project name"]').should('have.value', 'Multi-Test Project');
 
                 // * Verify selection was made
-                cy.get('.react-select__single-value').should('contain', projectType);
+                cy.contains('.mm-blocks-select-input', 'Project Type').find('input').should('have.value', projectType);
 
                 // * Verify project-specific fields appear dynamically
                 if (projectType === 'Web Application') {
                     cy.contains('Framework').should('be.visible');
-                    cy.get('.form-group').should('have.length', 3);
+                    cy.get(FIELD_SELECTOR).should('have.length', 3);
                 } else if (projectType === 'Mobile App') {
                     cy.contains('Platform').should('be.visible');
-                    cy.get('.form-group').should('have.length', 3);
+                    cy.get(FIELD_SELECTOR).should('have.length', 3);
                 } else if (projectType === 'API Service') {
                     cy.contains('Language').should('be.visible');
-                    cy.get('.form-group').should('have.length', 3);
+                    cy.get(FIELD_SELECTOR).should('have.length', 3);
                 }
             });
 
@@ -218,4 +206,3 @@ function closeAppsFormModal() {
     });
     cy.get('#appsModal').should('not.exist');
 }
-

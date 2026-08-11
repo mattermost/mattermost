@@ -15,6 +15,7 @@ type Props = {
     value: string | null;
     onChange: (name: string, value: string | null) => void;
     setIsInteracting?: (isInteracting: boolean) => void;
+    id?: string;
 };
 
 const AppsFormDateField: React.FC<Props> = ({
@@ -22,6 +23,7 @@ const AppsFormDateField: React.FC<Props> = ({
     value,
     onChange,
     setIsInteracting,
+    id,
 }) => {
     const intl = useIntl();
     const [isPopperOpen, setIsPopperOpen] = useState(false);
@@ -96,6 +98,7 @@ const AppsFormDateField: React.FC<Props> = ({
     return (
         <div>
             <DatePicker
+                id={id}
                 isPopperOpen={isPopperOpen}
                 handlePopperOpenState={handlePopperOpenState}
                 locale={intl.locale}

@@ -10,6 +10,7 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
+import {MmBlocksHandlersContext} from './context';
 import {StaticSelectElement} from './static_select_element';
 
 jest.mock('components/autocomplete_selector', () => ({
@@ -45,51 +46,54 @@ describe('StaticSelectElement', () => {
 
     it('returns null when action_id is missing', () => {
         const {container} = renderWithContext(
-            <StaticSelectElement
-                element={{
-                    type: 'static_select',
-                    placeholder: 'Pick',
-                    options: [{text: 'A', value: 'a'}],
-                } as MmStaticSelectBlock}
-                postId={postId}
-                onAction={onAction}
-            />,
+            <MmBlocksHandlersContext.Provider value={{onAction}}>
+                <StaticSelectElement
+                    element={{
+                        type: 'static_select',
+                        placeholder: 'Pick',
+                        options: [{text: 'A', value: 'a'}],
+                    } as MmStaticSelectBlock}
+                    postId={postId}
+                />
+            </MmBlocksHandlersContext.Provider>,
         );
         expect(container).toBeEmptyDOMElement();
     });
 
     it('returns null when static options are empty and no dynamic data_source', () => {
         const {container} = renderWithContext(
-            <StaticSelectElement
-                element={{
-                    type: 'static_select',
-                    action_id: 'sel',
-                    placeholder: 'Pick',
-                    options: [],
-                }}
-                postId={postId}
-                onAction={onAction}
-            />,
+            <MmBlocksHandlersContext.Provider value={{onAction}}>
+                <StaticSelectElement
+                    element={{
+                        type: 'static_select',
+                        action_id: 'sel',
+                        placeholder: 'Pick',
+                        options: [],
+                    }}
+                    postId={postId}
+                />
+            </MmBlocksHandlersContext.Provider>,
         );
         expect(container).toBeEmptyDOMElement();
     });
 
     it('shows initial_option label when redux has no selection', () => {
         renderWithContext(
-            <StaticSelectElement
-                element={{
-                    type: 'static_select',
-                    action_id: 'sel',
-                    placeholder: 'Choose',
-                    options: [
-                        {text: 'Option A', value: 'a'},
-                        {text: 'Option B', value: 'b'},
-                    ],
-                    initial_option: 'b',
-                }}
-                postId={postId}
-                onAction={onAction}
-            />,
+            <MmBlocksHandlersContext.Provider value={{onAction}}>
+                <StaticSelectElement
+                    element={{
+                        type: 'static_select',
+                        action_id: 'sel',
+                        placeholder: 'Choose',
+                        options: [
+                            {text: 'Option A', value: 'a'},
+                            {text: 'Option B', value: 'b'},
+                        ],
+                        initial_option: 'b',
+                    }}
+                    postId={postId}
+                />
+            </MmBlocksHandlersContext.Provider>,
             {},
             {useMockedStore: true},
         );
@@ -111,17 +115,18 @@ describe('StaticSelectElement', () => {
         };
 
         renderWithContext(
-            <StaticSelectElement
-                element={{
-                    type: 'static_select',
-                    action_id: 'sel',
-                    placeholder: 'Choose',
-                    options: [{text: 'Option A', value: 'a'}],
-                    initial_option: 'a',
-                }}
-                postId={postId}
-                onAction={onAction}
-            />,
+            <MmBlocksHandlersContext.Provider value={{onAction}}>
+                <StaticSelectElement
+                    element={{
+                        type: 'static_select',
+                        action_id: 'sel',
+                        placeholder: 'Choose',
+                        options: [{text: 'Option A', value: 'a'}],
+                        initial_option: 'a',
+                    }}
+                    postId={postId}
+                />
+            </MmBlocksHandlersContext.Provider>,
             state,
             {useMockedStore: true},
         );
@@ -132,20 +137,21 @@ describe('StaticSelectElement', () => {
     it('dispatches redux selection and onAction when an option is chosen', async () => {
         const user = userEvent.setup();
         const {store} = renderWithContext(
-            <StaticSelectElement
-                element={{
-                    type: 'static_select',
-                    action_id: 'sel',
-                    placeholder: 'Choose',
-                    options: [
-                        {text: 'Option A', value: 'a'},
-                        {text: 'Option B', value: 'b'},
-                    ],
-                    cookie: 'attach-cookie',
-                }}
-                postId={postId}
-                onAction={onAction}
-            />,
+            <MmBlocksHandlersContext.Provider value={{onAction}}>
+                <StaticSelectElement
+                    element={{
+                        type: 'static_select',
+                        action_id: 'sel',
+                        placeholder: 'Choose',
+                        options: [
+                            {text: 'Option A', value: 'a'},
+                            {text: 'Option B', value: 'b'},
+                        ],
+                        cookie: 'attach-cookie',
+                    }}
+                    postId={postId}
+                />
+            </MmBlocksHandlersContext.Provider>,
             {},
             {useMockedStore: false},
         );
@@ -169,19 +175,20 @@ describe('StaticSelectElement', () => {
         const user = userEvent.setup();
 
         renderWithContext(
-            <StaticSelectElement
-                element={{
-                    type: 'static_select',
-                    action_id: 'sel',
-                    placeholder: 'Choose',
-                    options: [
-                        {text: 'Option A', value: 'a'},
-                        {text: 'Option B', value: 'b'},
-                    ],
-                }}
-                postId={postId}
-                onAction={onActionPending}
-            />,
+            <MmBlocksHandlersContext.Provider value={{onAction: onActionPending}}>
+                <StaticSelectElement
+                    element={{
+                        type: 'static_select',
+                        action_id: 'sel',
+                        placeholder: 'Choose',
+                        options: [
+                            {text: 'Option A', value: 'a'},
+                            {text: 'Option B', value: 'b'},
+                        ],
+                    }}
+                    postId={postId}
+                />
+            </MmBlocksHandlersContext.Provider>,
         );
 
         await user.click(screen.getByTestId('autocomplete-select'));
@@ -195,16 +202,17 @@ describe('StaticSelectElement', () => {
 
     it('renders for users data_source without static options', () => {
         renderWithContext(
-            <StaticSelectElement
-                element={{
-                    type: 'static_select',
-                    action_id: 'user_sel',
-                    placeholder: 'Select user',
-                    data_source: 'users',
-                }}
-                postId={postId}
-                onAction={onAction}
-            />,
+            <MmBlocksHandlersContext.Provider value={{onAction}}>
+                <StaticSelectElement
+                    element={{
+                        type: 'static_select',
+                        action_id: 'user_sel',
+                        placeholder: 'Select user',
+                        data_source: 'users',
+                    }}
+                    postId={postId}
+                />
+            </MmBlocksHandlersContext.Provider>,
             {},
             {useMockedStore: true},
         );

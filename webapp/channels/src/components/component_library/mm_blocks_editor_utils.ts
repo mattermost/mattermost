@@ -4,6 +4,7 @@
 import type {
     MmBlock,
     MmButtonStyle,
+    MmButtonSubtype,
     MmColumnBlock,
     MmContainerBackground,
     MmContainerGap,
@@ -34,7 +35,13 @@ export type BlockTypeId =
     'column' |
     'column_set' |
     'container' |
-    'collapsible';
+    'collapsible' |
+    'text_input' |
+    'bool_input' |
+    'select' |
+    'date_input' |
+    'datetime_input' |
+    'file_input';
 
 export type PropertyFieldType = 'string' | 'number' | 'boolean' | 'enum' | 'json';
 
@@ -55,6 +62,12 @@ export const ROOT_ADDABLE_TYPES: BlockTypeId[] = [
     'container',
     'column_set',
     'collapsible',
+    'text_input',
+    'bool_input',
+    'select',
+    'date_input',
+    'datetime_input',
+    'file_input',
 ];
 
 export const COLUMN_SET_ADDABLE_TYPES: BlockTypeId[] = ['column'];
@@ -69,6 +82,12 @@ const BLOCK_TYPE_LABELS: Record<BlockTypeId, string> = {
     column_set: 'Column set',
     container: 'Container',
     collapsible: 'Collapsible',
+    text_input: 'Text input',
+    bool_input: 'Bool input',
+    select: 'Select',
+    date_input: 'Date input',
+    datetime_input: 'Datetime input',
+    file_input: 'File input',
 };
 
 export function blockTypeLabel(type: BlockTypeId): string {
@@ -129,6 +148,26 @@ export function createDefaultBlock(type: BlockTypeId): MmBlock {
             header: [{type: 'text', text: 'Header'}],
             content: [{type: 'text', text: 'Collapsed content'}],
         };
+    case 'text_input':
+        return {type: 'text_input', name: 'field_name', label: 'Label'};
+    case 'bool_input':
+        return {type: 'bool_input', name: 'flag', label: 'Flag', placeholder: 'Enabled'};
+    case 'select':
+        return {
+            type: 'select',
+            name: 'choice',
+            label: 'Choice',
+            options: [
+                {text: 'Option A', value: 'a'},
+                {text: 'Option B', value: 'b'},
+            ],
+        };
+    case 'date_input':
+        return {type: 'date_input', name: 'due', label: 'Due date'};
+    case 'datetime_input':
+        return {type: 'datetime_input', name: 'when', label: 'When'};
+    case 'file_input':
+        return {type: 'file_input', name: 'files', label: 'Files'};
     default:
         return {type: 'text', text: 'New text'};
     }
@@ -455,6 +494,13 @@ export function blockSummary(block: MmBlock | MmColumnBlock): string {
         return 'Collapsible section';
     case 'divider':
         return 'Horizontal rule';
+    case 'text_input':
+    case 'bool_input':
+    case 'select':
+    case 'date_input':
+    case 'datetime_input':
+    case 'file_input':
+        return block.label?.trim() || block.name || block.type;
     default:
         return 'Unknown block';
     }
@@ -462,10 +508,22 @@ export function blockSummary(block: MmBlock | MmColumnBlock): string {
 
 const TEXT_SIZE_OPTIONS: MmTextSize[] = ['small', 'default'];
 const BUTTON_STYLE_OPTIONS: MmButtonStyle[] = ['default', 'primary', 'danger', 'good', 'success', 'warning'];
+const BUTTON_SUBTYPE_OPTIONS: MmButtonSubtype[] = ['execute', 'submit'];
 const IMAGE_SIZE_OPTIONS: MmImageSize[] = ['auto', 'xsmall', 'small', 'medium', 'large', 'stretch'];
 const CONTAINER_GAP_OPTIONS: MmContainerGap[] = ['none', 'small', 'medium', 'large', 'xlarge'];
 const CONTAINER_BACKGROUND_OPTIONS: MmContainerBackground[] = ['none', 'gray'];
 const CONTAINER_MAX_HEIGHT_OPTIONS: MmContainerMaxHeight[] = ['none', 'small', 'medium', 'large'];
+const TEXT_INPUT_SUBTYPE_OPTIONS = ['text', 'email', 'number', 'password', 'tel', 'url'];
+const SELECT_STYLE_OPTIONS = ['compact', 'expanded'];
+
+const FORM_FIELD_BASE_PROPERTIES: PropertyField[] = [
+    {key: 'name', label: 'name', type: 'string'},
+    {key: 'label', label: 'label', type: 'string'},
+    {key: 'help_text', label: 'help_text', type: 'string'},
+    {key: 'optional', label: 'optional', type: 'boolean'},
+    {key: 'disabled', label: 'disabled', type: 'boolean'},
+    {key: 'onChange', label: 'onChange', type: 'string'},
+];
 
 export function propertyFieldsForBlock(block: MmBlock | MmColumnBlock): PropertyField[] {
     switch (block.type) {
@@ -481,6 +539,7 @@ export function propertyFieldsForBlock(block: MmBlock | MmColumnBlock): Property
         return [
             {key: 'text', label: 'text', type: 'string'},
             {key: 'action_id', label: 'action_id', type: 'string'},
+            {key: 'subtype', label: 'subtype', type: 'enum', options: BUTTON_SUBTYPE_OPTIONS},
             {key: 'style', label: 'style', type: 'enum', options: BUTTON_STYLE_OPTIONS},
             {key: 'tooltip', label: 'tooltip', type: 'string'},
             {key: 'disabled', label: 'disabled', type: 'boolean'},
@@ -530,6 +589,50 @@ export function propertyFieldsForBlock(block: MmBlock | MmColumnBlock): Property
     case 'column_set':
         return [
             {key: 'gap', label: 'gap', type: 'enum', options: CONTAINER_GAP_OPTIONS},
+        ];
+    case 'text_input':
+        return [
+            ...FORM_FIELD_BASE_PROPERTIES,
+            {key: 'placeholder', label: 'placeholder', type: 'string'},
+            {key: 'subtype', label: 'subtype', type: 'enum', options: TEXT_INPUT_SUBTYPE_OPTIONS},
+            {key: 'multiline', label: 'multiline', type: 'boolean'},
+            {key: 'min_length', label: 'min_length', type: 'number'},
+            {key: 'max_length', label: 'max_length', type: 'number'},
+            {key: 'initial_value', label: 'initial_value', type: 'string'},
+        ];
+    case 'bool_input':
+        return [
+            ...FORM_FIELD_BASE_PROPERTIES,
+            {key: 'placeholder', label: 'placeholder', type: 'string'},
+            {key: 'initial_value', label: 'initial_value', type: 'boolean'},
+        ];
+    case 'select':
+        return [
+            ...FORM_FIELD_BASE_PROPERTIES,
+            {key: 'placeholder', label: 'placeholder', type: 'string'},
+            {key: 'style', label: 'style', type: 'enum', options: SELECT_STYLE_OPTIONS},
+            {key: 'options', label: 'options', type: 'json'},
+            {key: 'option_groups', label: 'option_groups', type: 'json'},
+            {key: 'multiselect', label: 'multiselect', type: 'boolean'},
+            {key: 'initial_option', label: 'initial_option', type: 'string'},
+            {key: 'initial_options', label: 'initial_options', type: 'json'},
+            {key: 'data_source', label: 'data_source', type: 'string'},
+            {key: 'data_source_action', label: 'data_source_action', type: 'string'},
+        ];
+    case 'date_input':
+    case 'datetime_input':
+        return [
+            ...FORM_FIELD_BASE_PROPERTIES,
+            {key: 'placeholder', label: 'placeholder', type: 'string'},
+            {key: 'initial_value', label: 'initial_value', type: 'string'},
+            {key: 'datetime_config', label: 'datetime_config', type: 'json'},
+        ];
+    case 'file_input':
+        return [
+            ...FORM_FIELD_BASE_PROPERTIES,
+            {key: 'placeholder', label: 'placeholder', type: 'string'},
+            {key: 'allow_multiple', label: 'allow_multiple', type: 'boolean'},
+            {key: 'initial_value', label: 'initial_value', type: 'string'},
         ];
     default:
         return [];

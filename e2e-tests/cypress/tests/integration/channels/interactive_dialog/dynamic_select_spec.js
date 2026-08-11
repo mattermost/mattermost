@@ -21,6 +21,13 @@ const webhookUtils = require('../../../../utils/webhook_utils');
 let createdCommand;
 let dynamicSelectDialog;
 
+// Legacy dialogs render via BlocksDialogShell/mm_blocks. Dynamic selects use
+// AsyncSelect with inputId = mmBlocksFieldDomId('', name) → mm-blocks--{name}.
+// Prefer role locators within .mm-blocks-select-input rather than raw element.name ids.
+const REQUIRED_SELECT = 'dynamic_role_selector';
+const OPTIONAL_SELECT = 'optional_dynamic_selector';
+const SELECT_COMBOBOX = '[role="combobox"]';
+
 describe('Interactive Dialog - Dynamic Select', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();
@@ -73,34 +80,36 @@ describe('Interactive Dialog - Dynamic Select', () => {
             });
 
             // * Verify that the body contains both dynamic select elements
-            cy.get('.modal-body').should('be.visible').children('.form-group').should('have.length', 2).each(($elForm, index) => {
-                const element = dynamicSelectDialog.dialog.elements[index];
+            cy.get('.modal-body').should('be.visible').within(() => {
+                cy.get('.mm-blocks-select-input').should('have.length', 2).each(($elForm, index) => {
+                    const element = dynamicSelectDialog.dialog.elements[index];
 
-                if (!element) {
-                    return;
-                }
-
-                cy.wrap($elForm).within(() => {
-                    // Verify the label text includes display name
-                    cy.get('label').first().scrollIntoView().should('be.visible').and('contain', element.display_name);
-
-                    if (element.name === 'dynamic_role_selector') {
-                        // * Verify required dynamic select field starts empty
-                        cy.get('[id^=\'MultiInput_\']').should('be.visible');
-                        cy.get('.react-select__single-value').should('not.exist');
-                        cy.get('.react-select__placeholder').should('contain', element.placeholder);
-                    } else if (element.name === 'optional_dynamic_selector') {
-                        // * Verify optional dynamic select field is visible (may have default value)
-                        cy.get('[id^=\'MultiInput_\']').should('be.visible');
-
-                        // Note: Default values for dynamic selects may not be resolved until user interaction
-                        // The field may show the raw value or be empty initially
+                    if (!element) {
+                        return;
                     }
 
-                    // * Verify help text if present
-                    if (element.help_text) {
-                        cy.get('.help-text').should('be.visible').and('contain', element.help_text);
-                    }
+                    cy.wrap($elForm).within(() => {
+                        // Verify the label text includes display name
+                        cy.get('label').first().scrollIntoView().should('be.visible').and('contain', element.display_name);
+
+                        if (element.name === REQUIRED_SELECT) {
+                            // * Verify required dynamic select field starts empty
+                            cy.get(SELECT_COMBOBOX).should('be.visible');
+                            cy.get('.react-select__single-value').should('not.exist');
+                            cy.get('.react-select__placeholder').should('contain', element.placeholder);
+                        } else if (element.name === OPTIONAL_SELECT) {
+                            // * Verify optional dynamic select field is visible (may have default value)
+                            cy.get(SELECT_COMBOBOX).should('be.visible');
+
+                            // Note: Default values for dynamic selects may not be resolved until user interaction
+                            // The field may show the raw value or be empty initially
+                        }
+
+                        // * Verify help text if present
+                        if (element.help_text) {
+                            cy.get('.help-text').should('be.visible').and('contain', element.help_text);
+                        }
+                    });
                 });
             });
 
@@ -121,9 +130,9 @@ describe('Interactive Dialog - Dynamic Select', () => {
         // * Verify that the apps form modal opens up
         cy.get('#appsModal').should('be.visible').within(() => {
             // # Test dynamic search in the required field
-            cy.get('.form-group').eq(0).within(() => {
+            cy.get('.mm-blocks-select-input').eq(0).within(() => {
                 // # Click to open dropdown and verify initial options load
-                cy.get('[id^=\'MultiInput_\']').click();
+                cy.get(SELECT_COMBOBOX).click();
 
                 cy.wait(TIMEOUTS.HALF_SEC); // Wait for dynamic options to load
 
@@ -166,9 +175,9 @@ describe('Interactive Dialog - Dynamic Select', () => {
         // * Verify that the apps form modal opens up
         cy.get('#appsModal').should('be.visible').within(() => {
             // # Test different search scenarios
-            cy.get('.form-group').eq(0).within(() => {
+            cy.get('.mm-blocks-select-input').eq(0).within(() => {
                 // # Test search for "manager"
-                cy.get('[id^=\'MultiInput_\']').click().type('manager');
+                cy.get(SELECT_COMBOBOX).click().type('manager');
 
                 cy.wait(TIMEOUTS.HALF_SEC); // Wait for search results
 
@@ -181,7 +190,7 @@ describe('Interactive Dialog - Dynamic Select', () => {
                 });
 
                 // # Clear and test search for "senior"
-                cy.get('[id^=\'MultiInput_\']').click().type('senior');
+                cy.get(SELECT_COMBOBOX).click().type('{selectall}{backspace}senior');
 
                 cy.wait(TIMEOUTS.HALF_SEC); // Wait for search results
 
@@ -194,27 +203,23 @@ describe('Interactive Dialog - Dynamic Select', () => {
                 });
 
                 // # Test search with no matches
-                cy.get('[id^=\'MultiInput_\']').type('xyz123nomatch');
+                cy.get(SELECT_COMBOBOX).type('{selectall}{backspace}xyz123nomatch');
 
                 cy.wait(TIMEOUTS.HALF_SEC); // Wait for search results
 
-                // * Verify no options when no matches
+                // * Verify empty results (menu is portaled to body)
                 cy.document().then((doc) => {
-                    // Either no options exist or "No options" message is shown
-                    cy.wrap(doc).find('.react-select__menu').then(($menu) => {
-                        if ($menu.length > 0) {
-                            cy.wrap(doc).find('.react-select__option, .react-select__menu-notice--no-options').should('exist');
-                        }
+                    cy.wrap(doc.body).find('[role="listbox"]').should(($listbox) => {
+                        expect($listbox.text()).to.match(/no options|no results/i);
                     });
                 });
                 cy.wait(TIMEOUTS.HALF_SEC); // Wait for default options to load
 
                 // # Clear search to get back to default options
-                cy.get('[id^=\'MultiInput_\']').click();
+                cy.get(SELECT_COMBOBOX).click().type('{selectall}{backspace}');
                 cy.wait(TIMEOUTS.HALF_SEC); // Wait for default options to load
 
                 // # Select a valid option for form submission test
-                cy.get('[id^=\'MultiInput_\']').click();
                 cy.document().then((doc) => {
                     cy.wrap(doc).find('.react-select__option').first().click();
                 });
@@ -231,8 +236,8 @@ describe('Interactive Dialog - Dynamic Select', () => {
         // * Verify that the apps form modal opens up
         cy.get('#appsModal').should('be.visible').within(() => {
             // # Select value in required field
-            cy.get('.form-group').eq(0).within(() => {
-                cy.get('[id^=\'MultiInput_\']').click();
+            cy.get('.mm-blocks-select-input').eq(0).within(() => {
+                cy.get(SELECT_COMBOBOX).click();
             });
 
             cy.wait(TIMEOUTS.HALF_SEC); // Wait for options to load
@@ -242,8 +247,8 @@ describe('Interactive Dialog - Dynamic Select', () => {
             });
 
             // # Modify the optional field (which has a default)
-            cy.get('.form-group').eq(1).within(() => {
-                cy.get('[id^=\'MultiInput_\']').click();
+            cy.get('.mm-blocks-select-input').eq(1).within(() => {
+                cy.get(SELECT_COMBOBOX).click();
             });
 
             cy.wait(TIMEOUTS.HALF_SEC); // Wait for options to load
@@ -280,7 +285,7 @@ describe('Interactive Dialog - Dynamic Select', () => {
         // * Verify that the apps form modal opens up
         cy.get('#appsModal').should('be.visible').within(() => {
             // # Clear the required field (first field starts empty, second has default)
-            cy.get('.form-group').eq(0).within(() => {
+            cy.get('.mm-blocks-select-input').eq(0).within(() => {
                 // Field should already be empty, but verify
                 cy.get('.react-select__single-value').should('not.exist');
             });
@@ -296,8 +301,8 @@ describe('Interactive Dialog - Dynamic Select', () => {
 
         // * Verify error message appears for required field
         cy.get('#appsModal').within(() => {
-            cy.get('.form-group').eq(0).within(() => {
-                cy.get('.error-text').should('be.visible').and('contain', 'This field is required');
+            cy.get('.mm-blocks-select-input').eq(0).within(() => {
+                cy.get('.has-error .control-label').should('be.visible').and('contain', 'This field is required');
             });
         });
 
@@ -311,14 +316,14 @@ describe('Interactive Dialog - Dynamic Select', () => {
         // * Verify that the apps form modal opens up
         cy.get('#appsModal').should('be.visible').within(() => {
             // # Test keyboard navigation in dynamic select
-            cy.get('.form-group').eq(0).within(() => {
+            cy.get('.mm-blocks-select-input').eq(0).within(() => {
                 // # Open dropdown and navigate with keyboard
-                cy.get('[id^=\'MultiInput_\']').click();
+                cy.get(SELECT_COMBOBOX).click();
 
                 cy.wait(TIMEOUTS.HALF_SEC); // Wait for options to load
 
                 // # Navigate using arrow keys
-                cy.get('[id^=\'MultiInput_\']').type('{downarrow}{downarrow}{enter}');
+                cy.get(SELECT_COMBOBOX).type('{downarrow}{downarrow}{enter}');
 
                 // * Verify selection was made (should be the third option in default list)
                 cy.get('.react-select__single-value').should('exist').and('not.be.empty');
@@ -335,18 +340,18 @@ describe('Interactive Dialog - Dynamic Select', () => {
         // * Verify that the apps form modal opens up
         cy.get('#appsModal').should('be.visible').within(() => {
             // # Test accessibility elements for dynamic select
-            cy.get('.form-group').eq(0).within(() => {
+            cy.get('.mm-blocks-select-input').eq(0).within(() => {
                 // * Verify label exists and is visible
                 cy.get('label').should('be.visible').and('contain', 'Dynamic Role Selector');
 
                 // * Verify dynamic select input is present and accessible
-                cy.get('[id^=\'MultiInput_\']').should('be.visible');
+                cy.get(SELECT_COMBOBOX).should('be.visible');
 
                 // * Verify help text exists and is visible
                 cy.get('.help-text').should('be.visible').and('contain', 'Start typing to search');
 
                 // * Test basic interaction accessibility - click to open/close
-                cy.get('[id^=\'MultiInput_\']').click();
+                cy.get(SELECT_COMBOBOX).click();
 
                 cy.wait(TIMEOUTS.HALF_SEC); // Wait for options to load
 

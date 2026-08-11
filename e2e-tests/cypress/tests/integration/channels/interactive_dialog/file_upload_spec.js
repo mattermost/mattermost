@@ -19,6 +19,9 @@ const webhookUtils = require('../../../../utils/webhook_utils');
 let createdCommand;
 let fileUploadDialog;
 
+// Legacy dialogs render via BlocksDialogShell; file inputs use mmBlocksFieldDomId('', name).
+const fieldDomId = (name) => `#mm-blocks--${name}`;
+
 describe('Interactive Dialog - File Upload', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();
@@ -112,7 +115,7 @@ describe('Interactive Dialog - File Upload', () => {
         // * Verify that the apps form modal opens up
         cy.get('#appsModal').should('be.visible').within(() => {
             // # Upload a file to the single_document field (required, allow_multiple=false)
-            cy.get('input#single_document').attachFile('png-image-file.png');
+            cy.get(`input${fieldDomId('single_document')}`).attachFile('png-image-file.png');
 
             // * Verify a completed file preview appears for single_document
             // (.post-image__details renders only once the upload has finished)
@@ -121,7 +124,7 @@ describe('Interactive Dialog - File Upload', () => {
             });
 
             // # Upload a file to the multiple_files field (required, allow_multiple=true)
-            cy.get('input#multiple_files').attachFile('small-image.png');
+            cy.get(`input${fieldDomId('multiple_files')}`).attachFile('small-image.png');
 
             // * Verify a completed file preview appears for multiple_files
             cy.get('.apps-form-file-upload').eq(1).within(() => {
@@ -173,7 +176,7 @@ describe('Interactive Dialog - File Upload', () => {
         // * Verify that the apps form modal opens up
         cy.get('#appsModal').should('be.visible').within(() => {
             // # Test allow_multiple=true appends: attach first file to multiple_files
-            cy.get('input#multiple_files').attachFile('png-image-file.png');
+            cy.get(`input${fieldDomId('multiple_files')}`).attachFile('png-image-file.png');
 
             // * Verify one completed preview item appears
             cy.get('.apps-form-file-upload').eq(1).within(() => {
@@ -181,7 +184,7 @@ describe('Interactive Dialog - File Upload', () => {
             });
 
             // # Attach a second file to multiple_files
-            cy.get('input#multiple_files').attachFile('small-image.png');
+            cy.get(`input${fieldDomId('multiple_files')}`).attachFile('small-image.png');
 
             // * Verify two preview items appear (appended, not replaced)
             cy.get('.apps-form-file-upload').eq(1).within(() => {
@@ -189,7 +192,7 @@ describe('Interactive Dialog - File Upload', () => {
             });
 
             // # Test allow_multiple=false replaces: attach a file to single_document
-            cy.get('input#single_document').attachFile('png-image-file.png');
+            cy.get(`input${fieldDomId('single_document')}`).attachFile('png-image-file.png');
 
             // * Verify the first file completed (one preview item)
             cy.get('.apps-form-file-upload').eq(0).within(() => {
@@ -197,7 +200,7 @@ describe('Interactive Dialog - File Upload', () => {
             });
 
             // # Attach a different file to single_document (should replace, not append)
-            cy.get('input#single_document').attachFile('small-image.png');
+            cy.get(`input${fieldDomId('single_document')}`).attachFile('small-image.png');
 
             // * Verify only one preview item exists for single_document (replaced)
             cy.get('.apps-form-file-upload').eq(0).within(() => {
@@ -223,11 +226,10 @@ describe('Interactive Dialog - File Upload', () => {
         // * Verify that the apps form modal is still visible (validation blocked submission)
         cy.get('#appsModal').should('be.visible');
 
-        // * Verify the inline required error renders on the file field itself,
-        // consistent with every other apps-form field type (rendered via .error-text)
+        // * Verify the inline required error renders on the file field itself
         cy.get('#appsModal').within(() => {
-            cy.get('.apps-form-file-upload').eq(0).within(() => {
-                cy.get('.error-text').should('be.visible').and('contain', 'This field is required');
+            cy.get('.mm-blocks-file-input').eq(0).within(() => {
+                cy.get('[data-testid="single_document-error"]').should('be.visible').and('contain', 'This field is required');
             });
         });
 

@@ -184,14 +184,87 @@ func ParseDecryptedActionCookiePayload(decrypted string) (legacy *PostActionCook
 	return &c, nil, nil
 }
 
+// EncryptMmBlocksActionsCookieParams identifies the post/channel/user binding
+// stored on an encrypted mm_blocks_actions cookie.
+type EncryptMmBlocksActionsCookieParams struct {
+	PostID     string
+	RootPostID string
+	ChannelID  string
+	UserID     string
+}
+
+// EncryptMmBlocksActionsCookie encrypts a plaintext mm_blocks_actions map into
+// an opaque cookie string. Returns ("", nil) when there is nothing to encrypt.
+func EncryptMmBlocksActionsCookie(
+	actions any,
+	ids EncryptMmBlocksActionsCookieParams,
+	retainProps map[string]any,
+	removeProps []string,
+	secret []byte,
+) (string, error) {
+	actionsTop, ok := coerceToStringAnyMap(actions)
+	if !ok {
+		return "", fmt.Errorf("mm_blocks_actions must be a map")
+	}
+	if len(actionsTop) == 0 {
+		return "", nil
+	}
+
+	actionsForEnc := make(map[string]map[string]any, len(actionsTop))
+	for actionID, val := range actionsTop {
+		entryMap, ok := coerceToStringAnyMap(val)
+		if !ok {
+			continue
+		}
+		actionsForEnc[actionID] = entryMap
+	}
+	if len(actionsForEnc) == 0 {
+		return "", nil
+	}
+
+	if retainProps == nil {
+		retainProps = map[string]any{}
+	}
+	if removeProps == nil {
+		removeProps = []string{}
+	}
+
+	mmCookie := MmBlocksActionCookie{
+		Kind:        MmBlocksActionCookieKind,
+		PostId:      ids.PostID,
+		RootPostId:  ids.RootPostID,
+		ChannelId:   ids.ChannelID,
+		UserId:      ids.UserID,
+		RetainProps: retainProps,
+		RemoveProps: removeProps,
+		Actions:     actionsForEnc,
+	}
+	b, err := json.Marshal(mmCookie)
+	if err != nil {
+		return "", err
+	}
+	enc, err := EncryptPostActionCookie(string(b), secret)
+	if err != nil {
+		return "", err
+	}
+	return enc, nil
+}
+
+// EncryptBlockDialogMmBlocksActions encrypts block_dialog.actions into an opaque
+// cookie string (dialog-scoped: empty post and channel ids, bound to userID).
+func EncryptBlockDialogMmBlocksActions(d *BlockDialog, secret []byte, userID string) (string, error) {
+	if d == nil || d.Actions == nil {
+		return "", nil
+	}
+	removeProps := make([]string, len(PostActionRetainPropKeys))
+	copy(removeProps, PostActionRetainPropKeys)
+	return EncryptMmBlocksActionsCookie(d.Actions, EncryptMmBlocksActionsCookieParams{UserID: userID}, map[string]any{}, removeProps, secret)
+}
+
 // AddMmBlocksActionCookies encrypts the full mm_blocks_actions map into one cookie string stored in PostPropsMmBlocksActions.
 func AddMmBlocksActionCookies(p *Post, secret []byte) {
 	raw := p.GetProp(PostPropsMmBlocksActions)
 	if raw == nil {
-		return
-	}
-	actionsTop, ok := coerceToStringAnyMap(raw)
-	if !ok || len(actionsTop) == 0 {
 		return
 	}
 
@@ -206,34 +279,16 @@ func AddMmBlocksActionCookies(p *Post, secret []byte) {
 		}
 	}
 
-	actionsForEnc := make(map[string]map[string]any, len(actionsTop))
-	for actionID, val := range actionsTop {
-		entryMap, ok := coerceToStringAnyMap(val)
-		if !ok {
-			continue
-		}
-		actionsForEnc[actionID] = entryMap
-	}
-
 	rootPostID := p.Id
 	if p.RootId != "" {
 		rootPostID = p.RootId
 	}
-	mmCookie := MmBlocksActionCookie{
-		Kind:        MmBlocksActionCookieKind,
-		PostId:      p.Id,
-		RootPostId:  rootPostID,
-		ChannelId:   p.ChannelId,
-		RetainProps: retainProps,
-		RemoveProps: removeProps,
-		Actions:     actionsForEnc,
-	}
-	b, err := json.Marshal(mmCookie)
-	if err != nil {
-		return
-	}
-	enc, err := EncryptPostActionCookie(string(b), secret)
-	if err != nil {
+	enc, err := EncryptMmBlocksActionsCookie(raw, EncryptMmBlocksActionsCookieParams{
+		PostID:     p.Id,
+		RootPostID: rootPostID,
+		ChannelID:  p.ChannelId,
+	}, retainProps, removeProps, secret)
+	if err != nil || enc == "" {
 		return
 	}
 	p.AddProp(PostPropsMmBlocksActions, enc)

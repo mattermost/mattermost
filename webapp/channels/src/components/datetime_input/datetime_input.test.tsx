@@ -55,6 +55,30 @@ describe('components/datetime_input/DateTimeInput', () => {
         expect(screen.getByLabelText('Time')).toBeInTheDocument();
     });
 
+    test('should scope time button and menu ids from id prop', () => {
+        renderWithContext(
+            <DateTimeInput
+                {...baseProps}
+                id='field-meeting'
+            />,
+        );
+
+        const timeButton = screen.getByLabelText('Time');
+        expect(timeButton).toHaveAttribute('id', 'field-meeting_time_button');
+        expect(timeButton).toHaveAttribute('aria-controls', 'field-meeting_expiryTimeMenu');
+        expect(timeButton).toHaveAttribute('data-testid', 'time_button');
+    });
+
+    test('should keep default time button and menu ids when id is omitted', () => {
+        renderWithContext(
+            <DateTimeInput {...baseProps}/>,
+        );
+
+        const timeButton = screen.getByLabelText('Time');
+        expect(timeButton).toHaveAttribute('id', 'time_button');
+        expect(timeButton).toHaveAttribute('aria-controls', 'expiryTimeMenu');
+    });
+
     test('should not infinitely loop on DST', () => {
         const timezone = 'Europe/Paris';
         const time = '2024-03-31T02:00:00+0100';

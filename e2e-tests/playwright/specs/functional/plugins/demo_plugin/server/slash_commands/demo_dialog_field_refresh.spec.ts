@@ -54,8 +54,7 @@ test('should update form fields dynamically when project type changes via /dialo
     await expect(dialog.getByText('API Type')).not.toBeVisible();
 
     // 7. Select "Web Application" — new fields should appear
-    // Click the react-select control (not the hidden input) to open the dropdown
-    await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').first().click();
+    await dialog.getByRole('combobox', {name: 'Project Type *'}).click();
     await channelsPage.page.getByRole('option', {name: 'Web Application'}).click();
 
     await expect(dialog.getByText('Frontend Framework *')).toBeVisible();
@@ -65,7 +64,7 @@ test('should update form fields dynamically when project type changes via /dialo
     await expect(dialog.getByText('API Type')).not.toBeVisible();
 
     // 8. Change to "Mobile Application" — fields update
-    await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').first().click();
+    await dialog.getByRole('combobox', {name: 'Project Type *'}).click();
     await channelsPage.page.getByRole('option', {name: 'Mobile Application'}).click();
 
     await expect(dialog.getByText('Platform *')).toBeVisible();
@@ -76,7 +75,7 @@ test('should update form fields dynamically when project type changes via /dialo
     await expect(dialog.getByText('API Type')).not.toBeVisible();
 
     // 9. Change to "API Service" — fields update again
-    await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').first().click();
+    await dialog.getByRole('combobox', {name: 'Project Type *'}).click();
     await channelsPage.page.getByRole('option', {name: 'API Service'}).click();
 
     await expect(dialog.getByText('API Type *')).toBeVisible();
@@ -93,7 +92,7 @@ test('should update form fields dynamically when project type changes via /dialo
     await dialog.getByRole('radio', {name: 'REST API'}).click();
 
     // Select PostgreSQL from Database dropdown
-    await dialog.locator('[class*="Select__control"], [class*="react-select__control"]').last().click();
+    await dialog.getByRole('combobox', {name: /Database/}).click();
     await channelsPage.page.getByRole('option', {name: 'PostgreSQL'}).click();
 
     await dialog.getByRole('button', {name: 'Create Project'}).click();

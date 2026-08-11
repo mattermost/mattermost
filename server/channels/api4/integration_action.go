@@ -16,6 +16,8 @@ import (
 func (api *API) InitAction() {
 	api.BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9_-]+}", api.APISessionRequired(doPostAction)).Methods(http.MethodPost)
 
+	api.BaseRoutes.APIRoot.Handle("/actions/blocks/do", api.APISessionRequired(doBlockAction)).Methods(http.MethodPost)
+
 	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/open", api.APIHandler(openDialog)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/submit", api.APISessionRequired(submitDialog)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/actions/dialogs/lookup", api.APISessionRequired(lookupDialog)).Methods(http.MethodPost)
@@ -51,41 +53,30 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var legacyCookie *model.PostActionCookie
-	var mmBlocksCookie *model.MmBlocksActionCookie
+	var cookie *model.PostActionCookie
 	if actionRequest.Cookie != "" {
 		cookieStr, decErr := model.DecryptPostActionCookie(actionRequest.Cookie, c.App.PostActionCookieSecret())
 		if decErr != nil {
 			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(decErr)
 			return
 		}
-		var parseErr error
-		legacyCookie, mmBlocksCookie, parseErr = model.ParseDecryptedActionCookiePayload(cookieStr)
+		legacy, mmBlocks, parseErr := model.ParseDecryptedActionCookiePayload(cookieStr)
 		if parseErr != nil {
 			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(parseErr)
 			return
 		}
-		if !c.App.Config().FeatureFlags.MmBlocksEnabled && mmBlocksCookie != nil {
-			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(errors.New("mm_blocks are not enabled"))
+		if mmBlocks != nil {
+			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "mm_blocks cookie is not valid for this endpoint", http.StatusBadRequest)
 			return
 		}
+		cookie = legacy
 
-		var cookiePostId string
-		var channelID string
-		if legacyCookie != nil {
-			cookiePostId = legacyCookie.PostId
-			channelID = legacyCookie.ChannelId
-		} else if mmBlocksCookie != nil {
-			cookiePostId = mmBlocksCookie.PostId
-			channelID = mmBlocksCookie.ChannelId
-		}
-
-		if cookiePostId != c.Params.PostId {
+		if cookie.PostId != c.Params.PostId {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
 
-		channel, appErr := c.App.GetChannel(c.AppContext, channelID)
+		channel, appErr := c.App.GetChannel(c.AppContext, cookie.ChannelId)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -105,7 +96,7 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp := &model.PostActionAPIResponse{Status: "OK"}
 
 	resp.TriggerId, resp.GotoLocation, appErr = c.App.DoPostActionWithCookie(c.AppContext, c.Params.PostId, c.Params.ActionId, c.AppContext.Session().UserId,
-		actionRequest.SelectedOption, legacyCookie, mmBlocksCookie, actionRequest.Query, actionRequest.IntegrationFormat)
+		actionRequest.SelectedOption, cookie, actionRequest.Query)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -113,6 +104,118 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
+}
+
+// doBlockAction handles POST /api/v4/actions/blocks/do — the sync endpoint for
+// mm_blocks execute/lookup. Legacy attachment post actions use doPostAction.
+func doBlockAction(c *Context, w http.ResponseWriter, r *http.Request) {
+	var actionRequest model.DoBlockActionRequest
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(&actionRequest)
+	if err != nil && !errors.Is(err, io.EOF) {
+		c.SetInvalidParamWithErr("do_block_action", err)
+		return
+	}
+	if err == nil {
+		var trailing any
+		if extraErr := dec.Decode(&trailing); !errors.Is(extraErr, io.EOF) {
+			c.SetInvalidParamWithErr("do_block_action", extraErr)
+			return
+		}
+	}
+
+	if actionRequest.PostId == "" && actionRequest.Cookie == "" {
+		c.SetInvalidParam("post_id")
+		return
+	}
+	if actionRequest.ActionId == "" {
+		c.SetInvalidParam("action_id")
+		return
+	}
+
+	if actionRequest.ChannelId != "" {
+		channel, appErr := c.App.GetChannel(c.AppContext, actionRequest.ChannelId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	}
+
+	// MmBlocksEnabled is enforced where mm_blocks resolution happens
+	// (post mm_block/block/card formats and mm_blocks cookies), so attachment
+	// format requests can use this endpoint when the flag is off.
+
+	var cookie *model.MmBlocksActionCookie
+	if actionRequest.Cookie != "" {
+		cookieStr, decErr := model.DecryptPostActionCookie(actionRequest.Cookie, c.App.PostActionCookieSecret())
+		if decErr != nil {
+			c.Err = model.NewAppError("DoBlockAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(decErr)
+			return
+		}
+		legacy, mmBlocks, parseErr := model.ParseDecryptedActionCookiePayload(cookieStr)
+		if parseErr != nil {
+			c.Err = model.NewAppError("DoBlockAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(parseErr)
+			return
+		}
+		if legacy != nil {
+			c.Err = model.NewAppError("DoBlockAction", "api.post.do_action.action_integration.app_error", nil, "legacy cookie is not valid for this endpoint", http.StatusBadRequest)
+			return
+		}
+		cookie = mmBlocks
+
+		// Allow empty post_id on both sides for dialog-scoped mm_blocks cookies.
+		if cookie.PostId != actionRequest.PostId {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+
+		sessionUserID := c.AppContext.Session().UserId
+		if cookie.UserId != "" && cookie.UserId != sessionUserID {
+			c.Err = model.NewAppError("DoBlockAction", "api.context.permissions.app_error", nil, "mm_blocks cookie user mismatch", http.StatusForbidden)
+			return
+		}
+		// Dialog-scoped cookies have no channel/post ACL; require user binding.
+		if cookie.ChannelId == "" && cookie.PostId == "" && cookie.UserId == "" {
+			c.Err = model.NewAppError("DoBlockAction", "api.post.do_action.action_integration.app_error", nil, "mm_blocks cookie missing user_id", http.StatusBadRequest)
+			return
+		}
+
+		if cookie.ChannelId != "" {
+			channel, appErr := c.App.GetChannel(c.AppContext, cookie.ChannelId)
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
+				c.SetPermissionError(model.PermissionReadChannelContent)
+				return
+			}
+		} else if actionRequest.PostId != "" {
+			if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), actionRequest.PostId); !ok {
+				c.SetPermissionError(model.PermissionReadChannelContent)
+				return
+			}
+		}
+	} else {
+		if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), actionRequest.PostId); !ok {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	}
+
+	resp, appErr := c.App.DoBlockAction(c.AppContext, c.AppContext.Session().UserId, &actionRequest, cookie)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(resp); err != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(err))
 	}
 }
@@ -125,7 +228,7 @@ func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if dialog.URL == "" {
+	if !dialog.IsBlocksMode() && dialog.URL == "" {
 		c.SetInvalidParam("url")
 		return
 	}

@@ -18,6 +18,9 @@ import * as TIMEOUTS from '@/fixtures/timeouts';
 
 let createdCommand;
 
+// Legacy dialogs render via BlocksDialogShell/mm_blocks.
+const FIELD_SELECTOR = '.mm-blocks-text-input, .mm-blocks-select-input, .mm-blocks-bool-input';
+
 describe('Interactive Dialog - Multiform (Step-by-step Form Submissions)', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();
@@ -69,7 +72,7 @@ describe('Interactive Dialog - Multiform (Step-by-step Form Submissions)', () =>
             cy.get('.modal-body').within(() => {
                 cy.contains('First Name').should('be.visible');
                 cy.contains('Email').should('be.visible');
-                cy.get('.form-group').should('have.length', 2);
+                cy.get(FIELD_SELECTOR).should('have.length', 2);
             });
 
             closeAppsFormModal();
@@ -110,13 +113,11 @@ describe('Interactive Dialog - Multiform (Step-by-step Form Submissions)', () =>
             });
 
             // # Fill out Step 2 form
-            cy.get('.form-group').contains('Department').parent().within(() => {
-                cy.get('[id^=\'MultiInput_\']').click();
+            cy.contains('.mm-blocks-select-input', 'Department').within(() => {
+                cy.get('input').first().click();
             });
             cy.wait(TIMEOUTS.HALF_SEC);
-            cy.document().then((doc) => {
-                cy.wrap(doc).find('.react-select__option').contains('Engineering').click();
-            });
+            cy.get('#suggestionList').should('be.visible').contains('Engineering').click({force: true});
 
             // Select experience level (radio)
             cy.get('input[type="radio"][value="senior"]').click();
@@ -173,11 +174,11 @@ describe('Interactive Dialog - Multiform (Step-by-step Form Submissions)', () =>
             cy.get('#appsModalLabel').should('contain', 'Step 1 - Personal Info'); // Still on step 1
 
             // * Check for validation errors on required fields
-            cy.get('.form-group').contains('First Name').parent().within(() => {
-                cy.get('.error-text').should('be.visible');
+            cy.contains('.mm-blocks-text-input', 'First Name').within(() => {
+                cy.get('[data-testid="first_name-error"]').should('be.visible');
             });
-            cy.get('.form-group').contains('Email').parent().within(() => {
-                cy.get('.error-text').should('be.visible');
+            cy.contains('.mm-blocks-text-input', 'Email').within(() => {
+                cy.get('[data-testid="email-error"]').should('be.visible');
             });
 
             closeAppsFormModal();

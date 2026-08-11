@@ -26,6 +26,7 @@ server.post('/simple_dialog_request', onSimpleDialogRequest);
 server.post('/user_and_channel_dialog_request', onUserAndChannelDialogRequest);
 server.post('/dialog_submit', onDialogSubmit);
 server.post('/boolean_dialog_request', onBooleanDialogRequest);
+server.post('/server_field_errors_dialog_request', onServerFieldErrorsDialogRequest);
 server.post('/multiselect_dialog_request', onMultiSelectDialogRequest);
 server.post('/dynamic_select_dialog_request', onDynamicSelectDialogRequest);
 server.post('/file_upload_dialog_request', onFileUploadDialogRequest);
@@ -43,6 +44,19 @@ server.post('/mm_blocks_integration_update', postMmBlocksIntegrationUpdate);
 server.post('/mm_blocks_integration_static_select', postMmBlocksIntegrationStaticSelect);
 server.post('/mm_blocks_integration_echo_query', postMmBlocksIntegrationEchoQuery);
 server.post('/mm_blocks_integration_echo_context', postMmBlocksIntegrationEchoContext);
+server.post('/mm_blocks_integration_echo_form_values', postMmBlocksIntegrationEchoFormValues);
+server.post('/mm_blocks_integration_lookup', postMmBlocksIntegrationLookup);
+server.post('/mm_blocks_dialog_open', postMmBlocksDialogOpen);
+server.post('/mm_blocks_dialog_return', postMmBlocksDialogReturn);
+server.post('/mm_blocks_dialog_submit', postMmBlocksDialogSubmit);
+server.post('/mm_blocks_dialog_cancel', postMmBlocksDialogCancel);
+server.post('/mm_blocks_dialog_refresh', postMmBlocksDialogRefresh);
+server.post('/mm_blocks_dialog_errors', postMmBlocksDialogErrors);
+server.post('/mm_blocks_dialog_error', postMmBlocksDialogError);
+server.post('/mm_blocks_dialog_goto', postMmBlocksDialogGoto);
+server.post('/mm_blocks_dialog_field_refresh', postMmBlocksDialogFieldRefresh);
+server.post('/mm_blocks_dialog_multistep', postMmBlocksDialogMultistep);
+server.post('/mm_blocks_dialog_child', postMmBlocksDialogChild);
 server.post('/send_message_to_channel', postSendMessageToChannel);
 server.post('/post_outgoing_webhook', postOutgoingWebhook);
 server.post('/send_oauth_credentials', postSendOauthCredentials);
@@ -70,6 +84,7 @@ function ping(req, res) {
             'POST /user_and_channel_dialog_request',
             'POST /dialog_submit',
             'POST /boolean_dialog_request',
+            'POST /server_field_errors_dialog_request',
             'POST /multiselect_dialog_request',
             'POST /dynamic_select_dialog_request',
             'POST /file_upload_dialog_request',
@@ -87,6 +102,19 @@ function ping(req, res) {
             'POST /mm_blocks_integration_static_select',
             'POST /mm_blocks_integration_echo_query',
             'POST /mm_blocks_integration_echo_context',
+            'POST /mm_blocks_integration_echo_form_values',
+            'POST /mm_blocks_integration_lookup',
+            'POST /mm_blocks_dialog_open',
+            'POST /mm_blocks_dialog_return',
+            'POST /mm_blocks_dialog_submit',
+            'POST /mm_blocks_dialog_cancel',
+            'POST /mm_blocks_dialog_refresh',
+            'POST /mm_blocks_dialog_errors',
+            'POST /mm_blocks_dialog_error',
+            'POST /mm_blocks_dialog_goto',
+            'POST /mm_blocks_dialog_field_refresh',
+            'POST /mm_blocks_dialog_multistep',
+            'POST /mm_blocks_dialog_child',
             'POST /send_message_to_channel',
             'POST /post_outgoing_webhook',
             'POST /send_oauth_credentials',
@@ -255,6 +283,253 @@ function postMmBlocksIntegrationStaticSelect(req, res) {
     });
 }
 
+/**
+ * Echoes form field values from the upstream integration request's
+ * context.form_values (submit buttons and form-field onChange). Values may be
+ * strings, booleans, numbers, or arrays of scalars.
+ */
+function formatFormValuesSummary(formValues) {
+    return Object.keys(formValues || {})
+        .sort()
+        .map((k) => {
+            const v = formValues[k];
+            const rendered = Array.isArray(v) ? v.join(',') : String(v);
+            return `${k}=${rendered}`;
+        })
+        .join('&');
+}
+
+function getUpstreamFormValues(req) {
+    const ctx = (req.body && req.body.context) || {};
+    if (ctx.form_values && typeof ctx.form_values === 'object' && !Array.isArray(ctx.form_values)) {
+        return ctx.form_values;
+    }
+    return {};
+}
+
+function postMmBlocksIntegrationEchoFormValues(req, res) {
+    const summary = formatFormValuesSummary(getUpstreamFormValues(req));
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        ephemeral_text: `Playwright mm_blocks form_values OK (${summary})`,
+        skip_slack_parsing: true,
+    });
+}
+
+/**
+ * Returns LookupDialogResponse items for mm_blocks form select with data_source=dynamic.
+ * Search text may arrive as URL query `query` (do-block-action) or context.query.
+ */
+function postMmBlocksIntegrationLookup(req, res) {
+    const ctx = (req.body && req.body.context) || {};
+    const searchText = String(ctx.query || req.query.query || '').toLowerCase();
+
+    const allOptions = [
+        {text: 'Alpha', value: 'opt_alpha'},
+        {text: 'Beta', value: 'opt_beta'},
+        {text: 'Gamma', value: 'opt_gamma'},
+        {text: 'Mattermost', value: 'opt_mm'},
+    ];
+
+    let items = allOptions;
+    if (searchText) {
+        items = allOptions.filter(
+            (option) =>
+                option.text.toLowerCase().includes(searchText) || option.value.toLowerCase().includes(searchText),
+        );
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({items});
+}
+
+/**
+ * Path A: post action integration opens a blocks dialog via dialogs/open using trigger_id.
+ */
+async function postMmBlocksDialogOpen(req, res) {
+    const body = req.body || {};
+    const triggerId = body.trigger_id;
+    const ctx = body.context || {};
+    const marker = typeof ctx.marker === 'string' ? ctx.marker : '';
+
+    res.setHeader('Content-Type', 'application/json');
+
+    if (!triggerId) {
+        return res.status(200).json({
+            type: 'ok',
+            error: 'mm_blocks_dialog_open requires trigger_id',
+        });
+    }
+
+    const dialog = webhookUtils.getMmBlocksDialog(triggerId, webhookBaseUrl, {
+        title: 'PW Blocks (open)',
+        marker,
+    });
+    await openDialog(dialog);
+
+    return res.status(200).json({type: 'ok'});
+}
+
+/**
+ * Path B: post action integration returns type:dialog so the client opens the modal directly.
+ * Optional context.scenario selects a specialized block_dialog fixture.
+ */
+function postMmBlocksDialogReturn(req, res) {
+    const ctx = (req.body && req.body.context) || {};
+    const marker = typeof ctx.marker === 'string' ? ctx.marker : '';
+    const scenario = typeof ctx.scenario === 'string' && ctx.scenario ? ctx.scenario : 'default';
+
+    let blockDialog;
+    if (scenario === 'default') {
+        const openPayload = webhookUtils.getMmBlocksDialog('unused', webhookBaseUrl, {
+            title: 'PW Blocks (return)',
+            marker,
+        });
+        blockDialog = openPayload.block_dialog;
+    } else {
+        blockDialog = webhookUtils.getMmBlocksDialogByScenario(webhookBaseUrl, scenario, {marker});
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        type: 'dialog',
+        block_dialog: blockDialog,
+    });
+}
+
+function postMmBlocksDialogSubmit(req, res) {
+    const ctx = (req.body && req.body.context) || {};
+    // Form fields arrive under context.form_values (DoBlockAction); static action
+    // context keys (form, step, …) stay at the top level of context.
+    const summary = formatFormValuesSummary(getUpstreamFormValues(req));
+    const step = ctx.step ? ` step=${ctx.step}` : '';
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        type: 'ok',
+        ephemeral_text: `Playwright mm_blocks dialog submit OK${step} (${summary})`,
+        skip_slack_parsing: true,
+    });
+}
+
+/** Field onChange → type:refresh with type-specific extra fields. */
+function postMmBlocksDialogFieldRefresh(req, res) {
+    const formValues = getUpstreamFormValues(req);
+    const projectType = typeof formValues.project_type === 'string' ? formValues.project_type : '';
+    const projectName = typeof formValues.project_name === 'string' ? formValues.project_name : '';
+
+    const blockDialog = webhookUtils.getMmBlocksFieldRefreshDialog(webhookBaseUrl, {
+        projectType,
+        projectName,
+    });
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        type: 'refresh',
+        block_dialog: blockDialog,
+    });
+}
+
+/** Multistep Next: step 1 → step 2, step 2 → step 3. */
+function postMmBlocksDialogMultistep(req, res) {
+    const ctx = (req.body && req.body.context) || {};
+    const step = String(ctx.step || '1');
+
+    let blockDialog;
+    if (step === '1') {
+        blockDialog = webhookUtils.getMmBlocksMultistep2Dialog(webhookBaseUrl);
+    } else {
+        blockDialog = webhookUtils.getMmBlocksMultistep3Dialog(webhookBaseUrl);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        type: 'refresh',
+        block_dialog: blockDialog,
+    });
+}
+
+/**
+ * Stack a child block_dialog on top of the parent (parity with legacy action_button).
+ * Opens via dialogs/open using the action trigger_id, then returns keep_dialog_open so the
+ * parent modal is not closed by the client (plain type:ok / missing type would close it;
+ * type:dialog with block_dialog would stack another modal from the response).
+ */
+async function postMmBlocksDialogChild(req, res) {
+    const body = req.body || {};
+    const ctx = body.context || {};
+    const source = typeof ctx.source === 'string' ? ctx.source : 'Unknown';
+    const triggerId = body.trigger_id;
+
+    res.setHeader('Content-Type', 'application/json');
+
+    if (!triggerId) {
+        return res.status(200).json({
+            type: 'ok',
+            keep_dialog_open: true,
+            error: 'mm_blocks_dialog_child requires trigger_id',
+        });
+    }
+
+    const dialog = webhookUtils.getMmBlocksChildOpenRequest(triggerId, webhookBaseUrl, source);
+    // Await open so the WS dialog is stored before the client receives trigger_id.
+    await openDialog(dialog);
+
+    return res.status(200).json({type: 'ok', keep_dialog_open: true});
+}
+
+function postMmBlocksDialogCancel(req, res) {
+    const ctx = (req.body && req.body.context) || {};
+    const reason = typeof ctx.reason === 'string' ? ctx.reason : 'cancel';
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        type: 'ok',
+        ephemeral_text: `Playwright mm_blocks dialog cancelled (reason=${reason})`,
+        skip_slack_parsing: true,
+    });
+}
+
+function postMmBlocksDialogRefresh(req, res) {
+    const formValues = getUpstreamFormValues(req);
+    const previousTitle = typeof formValues.title === 'string' && formValues.title ? formValues.title : 'Demo ticket';
+    const blockDialog = webhookUtils.getMmBlocksDialogStep2(webhookBaseUrl, previousTitle);
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        type: 'refresh',
+        block_dialog: blockDialog,
+    });
+}
+
+function postMmBlocksDialogErrors(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        type: 'ok',
+        errors: {
+            title: 'Title looks wrong',
+            email: 'Email is invalid',
+            pick: 'Pick something else',
+        },
+    });
+}
+
+function postMmBlocksDialogError(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        type: 'ok',
+        error: 'Playwright mm_blocks dialog top-level error',
+    });
+}
+
+function postMmBlocksDialogGoto(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        goto_location: '/',
+    });
+}
+
 function postMessageMenus(req, res) {
     let responseData = {};
     const {body} = req;
@@ -338,6 +613,17 @@ function onBooleanDialogRequest(req, res) {
     return res.json({text: 'Simple dialog triggered via slash command!'});
 }
 
+async function onServerFieldErrorsDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        const dialog = webhookUtils.getServerFieldErrorsDialog(body.trigger_id, webhookBaseUrl);
+        await openDialog(dialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'Server field errors dialog triggered via slash command!'});
+}
+
 function onMultiSelectDialogRequest(req, res) {
     const {body} = req;
     if (body.trigger_id) {
@@ -395,12 +681,13 @@ function onDynamicSelectSource(req, res) {
     ];
 
     // Filter options based on search text
-    const filteredOptions = searchText
-        ? allOptions.filter(
-              (option) =>
-                  option.text.toLowerCase().includes(searchText) || option.value.toLowerCase().includes(searchText),
-          )
-        : allOptions.slice(0, 6); // Limit to first 6 if no search
+    let filteredOptions = allOptions.slice(0, 6); // Limit to first 6 if no search
+    if (searchText) {
+        filteredOptions = allOptions.filter(
+            (option) =>
+                option.text.toLowerCase().includes(searchText) || option.value.toLowerCase().includes(searchText),
+        );
+    }
 
     res.setHeader('Content-Type', 'application/json');
     return res.json({
@@ -531,6 +818,16 @@ function onDialogSubmit(req, res) {
         message = `Field refresh dialog submitted successfully! Values: ${JSON.stringify(submission, null, 2)}`;
         sendSysadminResponse(message, body.channel_id);
         return res.json({text: message});
+    }
+
+    // Integration rejects with per-field errors only (no top-level error string).
+    if (body.callback_id === 'server_field_errors_callback') {
+        return res.json({
+            errors: {
+                realname: 'Name was rejected by the integration',
+                someemail: 'Email was rejected by the integration',
+            },
+        });
     }
 
     // Regular dialog submission

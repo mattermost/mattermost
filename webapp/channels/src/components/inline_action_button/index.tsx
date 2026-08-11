@@ -8,7 +8,7 @@ import {useDispatch} from 'react-redux';
 
 import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
 
-import {doPostActionWithCookie} from 'mattermost-redux/actions/posts';
+import {doBlockAction} from 'mattermost-redux/actions/posts';
 
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
@@ -46,11 +46,12 @@ type Props = {
     label?: string;
 
     /**
-     * Encrypted mm_blocks_actions cookie from post.props. When set, clicks use
-     * doPostActionWithCookie with an empty cookie (server resolves from the post).
+     * Encrypted action cookie from post props (mm_blocks_actions or unused
+     * for persisted attachment posts). Always dispatched via doBlockAction.
      */
     mmBlocksActionCookie?: string;
 
+    /** integration_format so the server resolves attachment vs mm_blocks actions. */
     integrationFormat?: PostActionIntegrationFormat;
 };
 
@@ -145,14 +146,15 @@ const InlineActionButton: React.FC<Props> = ({href, postId, children, label, mmB
 
         try {
             const result = await Promise.race([
-                dispatch(doPostActionWithCookie(
-                    postId,
-                    parsed.actionId,
-                    mmBlocksActionCookie ?? '',
-                    '',
-                    parsed.query,
-                    integrationFormat ?? '',
-                )) as unknown as Promise<{error?: {message?: string}; data?: {goto_location?: string}}>,
+                dispatch(doBlockAction({
+                    subtype: 'execute',
+                    context: 'post',
+                    post_id: postId,
+                    action_id: parsed.actionId,
+                    cookie: mmBlocksActionCookie,
+                    query: parsed.query,
+                    integration_format: integrationFormat,
+                })) as unknown as Promise<{error?: {message?: string}; data?: {goto_location?: string; error?: string}}>,
                 timeoutPromise,
             ]);
             if (mountedRef.current && result?.error) {
@@ -171,6 +173,8 @@ const InlineActionButton: React.FC<Props> = ({href, postId, children, label, mmB
                         ),
                     );
                 }
+            } else if (mountedRef.current && result && 'data' in result && result.data?.error) {
+                setActionError(result.data.error);
             } else if (
                 mountedRef.current &&
                 result &&

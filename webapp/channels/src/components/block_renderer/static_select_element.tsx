@@ -26,15 +26,13 @@ import {ActionTypes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-import {MmBlocksInteractionsDisabledContext} from './context';
-import type {ActionHandler} from './types';
+import {MmBlocksInteractionsDisabledContext, useMmBlocksHandlers} from './context';
 
 type MmBlocksSelectProvider = GenericUserProvider | GenericChannelProvider | MenuActionProvider;
 
 type StaticSelectElementProps = {
     element: MmStaticSelectBlock;
     postId: string;
-    onAction: ActionHandler;
 };
 
 function staticSelectDisplayValue(
@@ -52,9 +50,10 @@ function staticSelectDisplayValue(
     return '';
 }
 
-export const StaticSelectElement = ({element, postId, onAction}: StaticSelectElementProps) => {
+export const StaticSelectElement = ({element, postId}: StaticSelectElementProps) => {
     const dispatch = useDispatch();
     const interactionsDisabled = useContext(MmBlocksInteractionsDisabledContext);
+    const {onAction} = useMmBlocksHandlers();
     const [isExecuting, setIsExecuting] = useState(false);
     const reduxSelection = useSelector((state: GlobalState) => {
         const actions = state.views.posts.menuActions[postId];
@@ -154,6 +153,7 @@ export const StaticSelectElement = ({element, postId, onAction}: StaticSelectEle
                     toggleFocus={handlePopupOpened}
                     listPosition='auto'
                     disabled={interactionsDisabled || element.disabled === true || isExecuting}
+                    deferLoad={true}
                 />
             )}
         </PostContext.Consumer>
