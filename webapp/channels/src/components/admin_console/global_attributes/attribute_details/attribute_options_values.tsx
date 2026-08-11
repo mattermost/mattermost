@@ -13,6 +13,7 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 import * as Menu from 'components/menu';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
+import {moveOptionByIndex} from './option_utils';
 import {useOptionChipEditor} from './use_option_chip_editor';
 
 import './attribute_options_values.scss';
@@ -26,18 +27,6 @@ type Props = {
     onOptionsChange: (options: PropertyFieldOption[]) => void;
     disabled?: boolean;
 };
-
-// Moves the option at fromIndex to toIndex, a plain array-position splice with
-// no rank field involved -- Select/Multiselect's order IS array position (per
-// the ticket's own "Order is array position" wording), unlike Rank's
-// moveOptionByAscIndex (system_properties/rank_utils.ts), which additionally
-// redistributes rank values.
-function moveOptionByIndex(options: PropertyFieldOption[], fromIndex: number, toIndex: number): PropertyFieldOption[] {
-    const next = [...options];
-    const [moved] = next.splice(fromIndex, 1);
-    next.splice(toIndex, 0, moved);
-    return next;
-}
 
 const buildNewOption = (name: string): PropertyFieldOption => ({id: '', name});
 
