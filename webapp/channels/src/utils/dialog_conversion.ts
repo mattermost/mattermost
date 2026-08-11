@@ -646,7 +646,7 @@ export function convertDialogToAppForm(
     };
 
     // Set source if sourceUrl is provided or if any fields have refresh enabled
-    const hasRefreshFields = convertedFields.some((field) => field.refresh === true);
+    const hasRefreshFields = flattenAppFields(convertedFields).some((field) => field.refresh === true);
     if ((sourceUrl && sourceUrl.trim()) || hasRefreshFields) {
         form.source = {
             path: sourceUrl || '/refresh',
@@ -737,6 +737,17 @@ export function flattenDialogElements(elements: DialogElement[]): DialogElement[
         elements,
         (element) => element.type === DialogElementTypes.COLLAPSIBLE,
         (element) => element.elements,
+    );
+}
+
+/**
+ * Flatten AppFields, expanding collapsible sections into their leaf fields.
+ */
+export function flattenAppFields(fields: AppField[]): AppField[] {
+    return flattenCollapsible(
+        fields,
+        (field) => field.type === AppFieldTypes.COLLAPSIBLE,
+        (field) => field.collapsible_config?.fields,
     );
 }
 

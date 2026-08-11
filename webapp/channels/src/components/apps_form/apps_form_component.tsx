@@ -612,10 +612,9 @@ export class AppsForm extends React.PureComponent<Props, State> {
     };
 
     hasDateTimeFields = (): boolean => {
-        const {fields} = this.props.form;
-        return fields ? fields.some((field) =>
+        return flattenFields(this.props.form.fields).some((field) =>
             field.type === AppFieldTypes.DATE || field.type === AppFieldTypes.DATETIME,
-        ) : false;
+        );
     };
 
     renderModal() {
@@ -645,7 +644,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                 >
                     <Modal.Header
                         closeButton={true}
-                        style={{borderBottom: fields && fields.length ? '' : '0px'}}
+                        style={{borderBottom: flattenFields(fields).length ? '' : '0px'}}
                     >
                         <Modal.Title
                             componentClass='h1'
@@ -731,7 +730,9 @@ export class AppsForm extends React.PureComponent<Props, State> {
         const {isEmbedded} = this.props;
 
         if (originalField.type === AppFieldTypes.COLLAPSIBLE) {
-            const childFields = originalField.collapsible_config?.fields || [];
+            const childFields = (originalField.collapsible_config?.fields || []).filter(
+                (f) => f.name !== this.props.form.submit_buttons,
+            );
             return (
                 <CollapsibleSection
                     key={originalField.name}
@@ -813,7 +814,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                 id='appsModalSubmit'
                 key='submit'
                 type='submit'
-                autoFocus={!fields || fields.length === 0}
+                autoFocus={flattenFields(fields).length === 0}
                 spinning={Boolean(this.state.submitting)}
                 disabled={this.state.uploadingFields.size > 0}
                 spinningText={defineMessage({
@@ -826,7 +827,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
         )];
 
         if (this.props.form.submit_buttons) {
-            const field = fields?.find((f) => f.name === this.props.form.submit_buttons);
+            const field = flattenFields(fields).find((f) => f.name === this.props.form.submit_buttons);
             if (field) {
                 const buttons = field.options?.map((o) => (
                     <SpinnerButton
