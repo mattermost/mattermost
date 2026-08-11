@@ -95,11 +95,16 @@ func GetDefaultResponseTypes() []string {
 // IsValidDCRRedirectURI validates a concrete DCR redirect URI. Unlike
 // IsValidHTTPURL, it accepts custom (non-HTTP) schemes so that desktop OAuth
 // clients can use their own URI schemes (e.g. cursor://anysphere.cursor-mcp/oauth/callback).
-// The URI must be absolute with both a scheme and a host; opaque URIs such as
-// "javascript:alert(1)" are rejected because they have no host.
+// The URI must be absolute with both a scheme and a host. Dangerous schemes
+// (javascript, data, vbscript, file, blob, about) are rejected even in
+// authority form (e.g. "javascript://evil.example.com/x").
 func IsValidDCRRedirectURI(rawURL string) bool {
 	u, err := url.ParseRequestURI(rawURL)
 	if err != nil || u.Scheme == "" || u.Host == "" {
+		return false
+	}
+	switch strings.ToLower(u.Scheme) {
+	case "javascript", "data", "vbscript", "file", "blob", "about":
 		return false
 	}
 	return true

@@ -57,6 +57,10 @@ func TestClientRegistrationRequestIsValid(t *testing.T) {
 		// Opaque URIs without a host are rejected.
 		req.RedirectURIs = []string{"javascript:alert(1)"}
 		require.NotNil(t, req.IsValid())
+
+		// Authority-form dangerous schemes are rejected even though they have a host.
+		req.RedirectURIs = []string{"javascript://evil.example.com/steal"}
+		require.NotNil(t, req.IsValid())
 	})
 }
 
@@ -202,6 +206,14 @@ func TestIsValidDCRRedirectURI(t *testing.T) {
 		"data:text/html,hi",   // opaque URI, no host
 		"/relative/path",      // not absolute
 		"not a url",
+		// Authority-form dangerous schemes parse with a host but must still be rejected.
+		"javascript://evil.example.com/steal",
+		"data://evil.example.com/steal",
+		"file://localhost/etc/passwd",
+		"vbscript://evil.example.com/x",
+		"blob://evil.example.com/x",
+		"about://evil.example.com/x",
+		"JavaScript://evil.example.com/steal", // case-insensitive scheme check
 	}
 	for _, uri := range invalid {
 		require.False(t, IsValidDCRRedirectURI(uri), "expected invalid: %s", uri)
@@ -234,6 +246,14 @@ func TestIsValidDCRRedirectURIPattern(t *testing.T) {
 		"https://example.com/\n",  // control character (newline)
 		"https://exa\tmple.com/*", // control character (tab)
 		"\x7f",                    // control character (DEL)
+		// Authority-form dangerous schemes must not be usable as allowlist patterns.
+		"javascript://evil.example.com/**",
+		"data://evil.example.com/**",
+		"file://localhost/**",
+		"vbscript://evil.example.com/*",
+		"blob://evil.example.com/**",
+		"about://evil.example.com/**",
+		"JavaScript://evil.example.com/**",
 	}
 	for _, p := range invalid {
 		require.False(t, IsValidDCRRedirectURIPattern(p), "expected invalid: %s", p)
