@@ -152,6 +152,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.License.SkuShortName = license.SkuShortName
 		d.License.IsTrial = license.IsTrial
 		d.License.IsGovSKU = license.IsGovSku
+		d.License.IsNonProduction = license.IsNonProduction
 	}
 
 	/* Server */

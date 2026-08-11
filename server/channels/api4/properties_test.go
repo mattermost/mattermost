@@ -158,6 +158,44 @@ func TestPropertyRoutesWithClassificationMarkingsFlag(t *testing.T) {
 	})
 }
 
+func TestPropertyRoutesWithPostAttributesFlag(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	// Routes should be available when PostAttributes=true alone, with every
+	// other peer property flag off. The post_attributes group itself is
+	// registered unconditionally at startup (see RegisterBuiltinGroups in
+	// server.go); only the generic Properties API route registration is
+	// gated by the OR condition in InitProperties.
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = false
+		cfg.FeatureFlags.ManagedChannelCategories = false
+		cfg.FeatureFlags.ClassificationMarkings = false
+		cfg.FeatureFlags.SessionAttributes = false
+		cfg.FeatureFlags.PostAttributes = true
+	}).InitBasic(t)
+
+	groupName := model.PostAttributesPropertyGroupName
+
+	t.Run("create field should succeed with PostAttributes flag", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), groupName, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotEmpty(t, createdField.ID)
+	})
+
+	t.Run("get fields should succeed with PostAttributes flag", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetPropertyFields(context.Background(), groupName, "post", model.PropertyFieldSearch{TargetType: "system"})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+}
+
 func TestCreatePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
