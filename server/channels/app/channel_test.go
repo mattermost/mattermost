@@ -1315,7 +1315,7 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 		// Leave one slot free so single adds would pass individually, but a
 		// two-user batch must fail collective validation before any mutation.
 		userIDs := make([]string, 0, model.ChannelGroupMaxUsers-1)
-		for i := 0; i < model.ChannelGroupMaxUsers-1; i++ {
+		for i := range model.ChannelGroupMaxUsers - 1 {
 			userIDs = append(userIDs, users[i].Id)
 		}
 		channel, appErr := th.App.CreateGroupChannel(th.Context, userIDs, th.BasicUser.Id)

@@ -2469,8 +2469,8 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		userId, ok := props["user_id"]
-		if ok && len(newChannelMembers) == 1 && newChannelMembers[0].UserId == userId {
+		userId, hasUserId := props["user_id"]
+		if hasUserId && len(newChannelMembers) == 1 && newChannelMembers[0].UserId == userId {
 			if err := json.NewEncoder(w).Encode(newChannelMembers[0]); err != nil {
 				c.Logger.Warn("Error while writing response", mlog.Err(err))
 			}
