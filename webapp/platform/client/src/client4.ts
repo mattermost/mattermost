@@ -14,6 +14,10 @@ import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch, Updat
 import type {ChannelCategory, OrderedChannelCategories} from '@mattermost/types/channel_categories';
 import type {
     Channel,
+    ChannelJoinRequest,
+    ChannelJoinRequestApprovalResponse,
+    ChannelJoinRequestList,
+    ChannelJoinRequestPatch,
     ChannelMemberCountsByGroup,
     ChannelMembership,
     ChannelModeration,
@@ -24,6 +28,7 @@ import type {
     ChannelViewResponse,
     ChannelWithTeamData,
     ChannelSearchOpts,
+    GetChannelJoinRequestsOptions,
     ServerChannel,
 } from '@mattermost/types/channels';
 import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions, OptsSignalExt} from '@mattermost/types/client4';
@@ -115,7 +120,7 @@ import type {ProductNotices} from '@mattermost/types/product_notices';
 import type {NameMappedPropertyFields, PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
-import type {Recap, CreateRecapRequest} from '@mattermost/types/recaps';
+import type {Recap, CreateRecapRequest, ScheduledRecap, ScheduledRecapInput, RecapLimitStatus} from '@mattermost/types/recaps';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {Role} from '@mattermost/types/roles';
@@ -333,6 +338,12 @@ export default class Client4 {
     getChannelBookmarkRoute(channelId: string, bookmarkId: string) {
         return `${this.getChannelRoute(channelId)}/bookmarks/${bookmarkId}`;
     }
+    getChannelJoinRequestRoute(channelId: string) {
+        return `${this.getChannelRoute(channelId)}/join_request`;
+    }
+    getChannelJoinRequestsRoute(channelId: string) {
+        return `${this.getChannelRoute(channelId)}/join_requests`;
+    }
 
     getChannelCategoriesRoute(userId: string, teamId: string) {
         return `${this.getBaseRoute()}/users/${userId}/teams/${teamId}/channels/categories`;
@@ -460,6 +471,10 @@ export default class Client4 {
 
     getRecapsRoute() {
         return `${this.getBaseRoute()}/recaps`;
+    }
+
+    getScheduledRecapsRoute() {
+        return `${this.getBaseRoute()}/scheduled_recaps`;
     }
 
     getPluginsRoute() {
@@ -1974,6 +1989,85 @@ export default class Client4 {
         return this.doFetch<ChannelMembership[]>(
             `${this.getChannelMembersRoute(channelId)}/ids`,
             {method: 'post', body: JSON.stringify(userIds)},
+        );
+    };
+
+    // ------------------------------------------------------------------
+    // Discoverable Private Channels — join request endpoints (FF gated)
+    // ------------------------------------------------------------------
+
+    // POST /channels/{id}/join_request
+    // Server returns either {status: 'approved'} (immediate add via the ABAC
+    // fast path) or the full ChannelJoinRequest row (pending admin review).
+    // The two shapes are discriminated by the `status` field; callers branch
+    // on whether `id` is present.
+    requestJoinChannel = (channelId: string, message = '') => {
+        return this.doFetch<ChannelJoinRequest | ChannelJoinRequestApprovalResponse>(
+            `${this.getChannelJoinRequestRoute(channelId)}`,
+            {method: 'post', body: JSON.stringify({message})},
+        );
+    };
+
+    // GET /channels/{id}/join_request — current user's pending request for
+    // this channel. The server returns 404 with no body when none exists;
+    // callers should treat 404 as "no pending request" rather than an error.
+    getMyChannelJoinRequest = (channelId: string) => {
+        return this.doFetch<ChannelJoinRequest>(
+            `${this.getChannelJoinRequestRoute(channelId)}`,
+            {method: 'get'},
+        );
+    };
+
+    // DELETE /channels/{id}/join_request — withdraw the current user's
+    // pending request. Returns the updated row.
+    withdrawMyChannelJoinRequest = (channelId: string) => {
+        return this.doFetch<ChannelJoinRequest>(
+            `${this.getChannelJoinRequestRoute(channelId)}`,
+            {method: 'delete'},
+        );
+    };
+
+    // GET /channels/{id}/join_requests — admin queue listing.
+    getChannelJoinRequests = (channelId: string, opts: GetChannelJoinRequestsOptions = {}) => {
+        const query = buildQueryString({
+            status: opts.status,
+            page: opts.page,
+            per_page: opts.per_page,
+        });
+        return this.doFetch<ChannelJoinRequestList>(
+            `${this.getChannelJoinRequestsRoute(channelId)}${query}`,
+            {method: 'get'},
+        );
+    };
+
+    // GET /channels/{id}/join_requests/count — pending count for the channel
+    // header / LHS / RHS indicator triad.
+    countPendingChannelJoinRequests = (channelId: string) => {
+        return this.doFetch<{count: number}>(
+            `${this.getChannelJoinRequestsRoute(channelId)}/count`,
+            {method: 'get'},
+        );
+    };
+
+    // PATCH /channels/{id}/join_requests/{request_id} — approve or deny.
+    patchChannelJoinRequest = (channelId: string, requestId: string, patch: ChannelJoinRequestPatch) => {
+        return this.doFetch<ChannelJoinRequest>(
+            `${this.getChannelJoinRequestsRoute(channelId)}/${requestId}`,
+            {method: 'PATCH', body: JSON.stringify(patch)},
+        );
+    };
+
+    // GET /users/me/channel_join_requests — the current user's requests
+    // across channels, used by the My Pending Requests tab.
+    getMyChannelJoinRequests = (opts: GetChannelJoinRequestsOptions = {}) => {
+        const query = buildQueryString({
+            status: opts.status,
+            page: opts.page,
+            per_page: opts.per_page,
+        });
+        return this.doFetch<ChannelJoinRequestList>(
+            `${this.getUserRoute('me')}/channel_join_requests${query}`,
+            {method: 'get'},
         );
     };
 
@@ -3584,6 +3678,63 @@ export default class Client4 {
         );
     };
 
+    getRecapLimitStatus = () => {
+        return this.doFetch<RecapLimitStatus>(
+            `${this.getRecapsRoute()}/limit_status`,
+            {method: 'get'},
+        );
+    };
+
+    // Scheduled Recaps Routes
+    createScheduledRecap = (input: ScheduledRecapInput) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}`,
+            {method: 'post', body: JSON.stringify(input)},
+        );
+    };
+
+    getScheduledRecaps = (page = 0, perPage = PER_PAGE_DEFAULT) => {
+        return this.doFetch<ScheduledRecap[]>(
+            `${this.getScheduledRecapsRoute()}${buildQueryString({page, per_page: perPage})}`,
+            {method: 'get'},
+        );
+    };
+
+    getScheduledRecap = (id: string) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}`,
+            {method: 'get'},
+        );
+    };
+
+    updateScheduledRecap = (id: string, input: ScheduledRecapInput) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}`,
+            {method: 'put', body: JSON.stringify(input)},
+        );
+    };
+
+    deleteScheduledRecap = (id: string) => {
+        return this.doFetch<void>(
+            `${this.getScheduledRecapsRoute()}/${id}`,
+            {method: 'delete'},
+        );
+    };
+
+    pauseScheduledRecap = (id: string) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}/pause`,
+            {method: 'post'},
+        );
+    };
+
+    resumeScheduledRecap = (id: string) => {
+        return this.doFetch<ScheduledRecap>(
+            `${this.getScheduledRecapsRoute()}/${id}/resume`,
+            {method: 'post'},
+        );
+    };
+
     // Admin Routes
 
     getLogs = (logFilter: LogFilterQuery) => {
@@ -5006,7 +5157,7 @@ export default class Client4 {
     };
 
     getTeamAccessControlPolicy = (teamId: string) => {
-        return this.doFetch<{policy: AccessControlPolicy | null; enforced: boolean}>(
+        return this.doFetch<{policy: AccessControlPolicy | null; enforced: boolean; parent_policies?: AccessControlPolicy[]}>(
             `${this.getTeamRoute(teamId)}/access_control/policy`,
             {method: 'get'},
         );
@@ -5022,7 +5173,7 @@ export default class Client4 {
     // getProfilesMatchingTeamPolicy returns only users who satisfy the team's
     // ABAC membership policy and are not yet members, for the policy-filtered
     // invite candidate list.
-    getProfilesMatchingTeamPolicy = (teamId: string, perPage = PER_PAGE_DEFAULT, cursorId = '') => {
+    getProfilesMatchingTeamPolicy = (teamId: string, perPage = PER_PAGE_DEFAULT, cursorId = '', term = '') => {
         const queryStringObj: any = {
             not_in_team: teamId,
             per_page: perPage,
@@ -5030,6 +5181,9 @@ export default class Client4 {
         };
         if (cursorId) {
             queryStringObj.cursor_id = cursorId;
+        }
+        if (term) {
+            queryStringObj.term = term;
         }
 
         return this.doFetch<UserProfile[]>(

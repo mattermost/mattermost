@@ -273,6 +273,15 @@
             .help-text-warning {
                 color: var(--error-text)
             }
+
+            .admin-console__production-warning {
+                margin-bottom: 12px;
+                white-space: normal;
+
+                .sectionNoticeTitle {
+                    margin-bottom: 0;
+                }
+            }
         }
 
         .form-group {
