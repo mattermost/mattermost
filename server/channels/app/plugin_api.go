@@ -1557,7 +1557,7 @@ func (api *PluginAPI) RequestTrialLicense(requesterID string, users int, termsAc
 		return model.NewAppError("RequestTrialLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 	}
 
-	return api.app.Channels().RequestTrialLicense(request.EmptyContext(api.app.Log()), requesterID, users, termsAccepted, receiveEmailsAccepted)
+	return api.app.Channels().RequestTrialLicense(api.ctx, requesterID, users, termsAccepted, receiveEmailsAccepted)
 }
 
 // GetCloudLimits returns any limits associated with the cloud instance
