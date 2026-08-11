@@ -251,7 +251,7 @@ func truncateUserNames(name string, i int) string {
 }
 
 func (es *Service) sendBatchedEmailNotification(userID string, notifications []*batchedNotification) {
-	user, err := es.userService.GetUser(request.EmptyContext(nil), userID)
+	user, err := es.userService.GetUser(request.EmptyContext(es.logger), userID)
 	if err != nil {
 		mlog.Warn("Unable to find recipient for batched email notification")
 		return
@@ -289,7 +289,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 
 	if emailNotificationContentsType == model.EmailNotificationContentsFull {
 		for i, notification := range notifications {
-			sender, errSender := es.userService.GetUser(request.EmptyContext(nil), notification.post.UserId)
+			sender, errSender := es.userService.GetUser(request.EmptyContext(es.logger), notification.post.UserId)
 			if errSender != nil {
 				mlog.Warn("Unable to find sender of post for batched email notification")
 			}

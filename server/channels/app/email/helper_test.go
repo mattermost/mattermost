@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -106,12 +107,14 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	require.True(tb, ok)
 	htmlTemplates, err := templates.New(templatesDir)
 	require.NoError(tb, err)
+	logger := mlog.CreateConsoleTestLogger(tb)
 
 	service := &Service{
 		store:              s,
 		userService:        us,
 		license:            licenseFn,
 		config:             configStore.Get,
+		logger:             logger,
 		templatesContainer: htmlTemplates,
 	}
 
