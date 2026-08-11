@@ -182,9 +182,7 @@
     }
 
     &.openUp {
-        @media screen and (min-width: 768px) {
-            top: auto;
-            bottom: 100%;
-        }
+        top: auto;
+        bottom: 100%;
     }
 }
