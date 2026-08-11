@@ -53,7 +53,7 @@ We strongly recommend that you:
 
 <Important>
 
-Support for Mattermost Server v10.5 [Extended Support Release](/product-overview/mattermost-server-releases) has come to the end of its life cycle on November 15, 2025. Upgrading to Mattermost Server v10.11 Extended Support Release or later is required. Upgrading from the previous Extended Support Release to the latest Extended Support Release is supported. Review the [important upgrade notes](/administration-guide/upgrade/important-upgrade-notes) for all intermediate versions in between to ensure you’re aware of the possible migrations that could affect your upgrade.
+Support for Mattermost Server v10.11 [Extended Support Release](/product-overview/mattermost-server-releases) is coming to the end of its life cycle on August 15, 2026. Upgrading to Mattermost Server v11.7 Extended Support Release or later is recommended. Upgrading from the previous Extended Support Release to the latest Extended Support Release is supported. Review the [important upgrade notes](/administration-guide/upgrade/important-upgrade-notes) for all intermediate versions in between to ensure you’re aware of the possible migrations that could affect your upgrade.
 
 </Important>
 
@@ -111,9 +111,9 @@ UPDATE TableName SET ColumnName = regexp_replace(ColumnName, '\\u0000', '', 'g')
 
 ## Upgrade high availability cluster-based deployments
 
-In [high availability cluster-based](/administration-guide/scale/high-availability-cluster-based-deployment) environments, you should expect to schedule downtime for the upgrade to v6.0. Based on your database size and setup, the migration to v6.0 can take a significant amount of time, and may even lock the tables for posts which will prevent your users from posting or receiving messages until the migration is complete.
+In [high availability cluster-based](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) environments, you should expect to schedule downtime for the upgrade to v6.0. Based on your database size and setup, the migration to v6.0 can take a significant amount of time, and may even lock the tables for posts which will prevent your users from posting or receiving messages until the migration is complete.
 
-Ensure you review the [high availability cluster-based deployment upgrade guide](/administration-guide/scale/high-availability-cluster-based-deployment#upgrade-guide), as well as the [important upgrade notes](/administration-guide/upgrade/important-upgrade-notes) to make sure you're aware of any actions you need to take before or after upgrading from your particular version.
+Ensure you review the [high availability cluster-based deployment upgrade guide](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment#upgrade-guide), as well as the [important upgrade notes](/administration-guide/upgrade/important-upgrade-notes) to make sure you're aware of any actions you need to take before or after upgrading from your particular version.
 
 <Important>
 

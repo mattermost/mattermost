@@ -7,6 +7,7 @@ import type {Dispatch} from 'redux';
 
 import {getAccessControlPolicy as fetchPolicy, createAccessControlPolicy as createPolicy, deleteAccessControlPolicy as deletePolicy, searchAccessControlPolicyChannels as searchChannels, assignChannelsToAccessControlPolicy, unassignChannelsFromAccessControlPolicy, updateAccessControlPoliciesActive} from 'mattermost-redux/actions/access_control';
 import {createJob} from 'mattermost-redux/actions/jobs';
+import {getTeam} from 'mattermost-redux/actions/teams';
 import {getAccessControlSettings, getAccessControlPolicy as getPolicy} from 'mattermost-redux/selectors/entities/access_control';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
@@ -46,6 +47,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setNavigationBlocked,
             createJob,
             updateAccessControlPoliciesActive,
+            getTeam,
         }, dispatch),
     };
 }

@@ -34,6 +34,12 @@ import (
 
 const (
 	ImageProfilePixelDimension = 128
+
+	lockedProfileFieldUsername  = "username"
+	lockedProfileFieldFirstName = "first name"
+	lockedProfileFieldLastName  = "last name"
+	lockedProfileFieldNickname  = "nickname"
+	lockedProfileFieldPosition  = "position"
 )
 
 func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *model.Token) (*model.User, *model.AppError) {
@@ -85,6 +91,17 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 
 	user.Email = tokenData["email"]
 	user.EmailVerified = true
+
+	// Profile fields pre-set by the inviter are authoritative over client-supplied values.
+	if username := tokenData["username"]; username != "" {
+		user.Username = strings.ToLower(username)
+	}
+	if firstName := tokenData["first_name"]; firstName != "" {
+		user.FirstName = firstName
+	}
+	if lastName := tokenData["last_name"]; lastName != "" {
+		user.LastName = lastName
+	}
 
 	var ruser *model.User
 	var err *model.AppError
@@ -813,16 +830,23 @@ func (a *App) GetUsersNotInAbacChannel(rctx request.CTX, teamID string, channelI
 }
 
 // GetUsersNotInAbacTeam returns users who satisfy the team's ABAC membership
-// policy, for candidate lists on policy-governed teams. Mirrors
-// GetUsersNotInAbacChannel, with the team as the resource being evaluated.
-func (a *App) GetUsersNotInAbacTeam(rctx request.CTX, teamID string, cursorID string, limit int, asAdmin bool) ([]*model.User, *model.AppError) {
+// policy, for invite candidate lists on policy-governed teams. Mirrors
+// GetUsersNotInAbacChannel. A non-empty term filters by name server-side so the
+// invite picker can typeahead instead of pre-buffering the whole matching set.
+func (a *App) GetUsersNotInAbacTeam(rctx request.CTX, teamID string, term string, cursorID string, limit int, asAdmin bool) ([]*model.User, *model.AppError) {
 	acs := a.Srv().Channels().AccessControl
 	if acs == nil {
 		return nil, model.NewAppError("GetUsersNotInAbacTeam", "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error", nil, "", http.StatusInternalServerError)
 	}
 
+	// Match the normal user-search privacy gate: a non-admin caller must not be
+	// able to probe users' real names via the term when ShowFullName is off.
+	excludeFullNames := !asAdmin && !*a.Config().PrivacySettings.ShowFullName
+
 	users, _, appErr := acs.QueryUsersForResource(rctx, teamID, model.AccessControlPolicyActionMembership, model.SubjectSearchOptions{
-		Limit: limit,
+		Term:             term,
+		ExcludeFullNames: excludeFullNames,
+		Limit:            limit,
 		Cursor: model.SubjectCursor{
 			TargetID: cursorID, // Empty string means start from beginning
 		},
@@ -1362,14 +1386,14 @@ func (a *App) UpdateUserAsUser(rctx request.CTX, user *model.User, asAdmin bool)
 	return updatedUser, nil
 }
 
+func tryingToChange(userValue *string, patchValue *string) bool {
+	return patchValue != nil && *patchValue != *userValue
+}
+
 // CheckProviderAttributes returns the empty string if the patch can be applied without
 // overriding attributes set by the user's login provider; otherwise, the name of the offending
 // field is returned.
 func (a *App) CheckProviderAttributes(rctx request.CTX, user *model.User, patch *model.UserPatch) string {
-	tryingToChange := func(userValue *string, patchValue *string) bool {
-		return patchValue != nil && *patchValue != *userValue
-	}
-
 	// If any login provider is used, then the username may not be changed
 	if user.AuthService != "" && tryingToChange(&user.Username, patch.Username) {
 		return "username"
@@ -1391,6 +1415,57 @@ func (a *App) CheckProviderAttributes(rctx request.CTX, user *model.User, patch 
 	}
 
 	return conflictField
+}
+
+// CheckLockedProfileFields returns the name of the first profile field in the patch that
+// conflicts with TeamSettings.LockProfileFieldsForEmailUsers, or "" when there is no conflict.
+// It only applies to email/password users on Enterprise-licensed servers and exempts sessions
+// with the edit_other_users permission.
+func (a *App) CheckLockedProfileFields(session model.Session, user *model.User, patch *model.UserPatch) string {
+	if a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) ||
+		!model.MinimumEnterpriseLicense(a.License()) ||
+		user.AuthService != "" {
+		return ""
+	}
+
+	setting := *a.Config().TeamSettings.LockProfileFieldsForEmailUsers
+	if setting != model.TeamSettingsLockProfileFieldsNameAndUsername && setting != model.TeamSettingsLockProfileFieldsAll {
+		return ""
+	}
+
+	if tryingToChange(&user.Username, patch.Username) {
+		return lockedProfileFieldUsername
+	}
+
+	// Empty first/last names may be filled in once, so users who signed up without
+	// pre-provisioned names (e.g. via a team invite link) aren't stuck nameless.
+	if user.FirstName != "" && tryingToChange(&user.FirstName, patch.FirstName) {
+		return lockedProfileFieldFirstName
+	}
+	if user.LastName != "" && tryingToChange(&user.LastName, patch.LastName) {
+		return lockedProfileFieldLastName
+	}
+
+	if setting == model.TeamSettingsLockProfileFieldsAll {
+		if tryingToChange(&user.Nickname, patch.Nickname) {
+			return lockedProfileFieldNickname
+		}
+		if tryingToChange(&user.Position, patch.Position) {
+			return lockedProfileFieldPosition
+		}
+	}
+
+	return ""
+}
+
+// IsProfileImageLockedForUser returns true when TeamSettings.LockProfileFieldsForEmailUsers
+// locks the profile picture of the given email/password user, unless the session has the
+// edit_other_users permission.
+func (a *App) IsProfileImageLockedForUser(session model.Session, user *model.User) bool {
+	return !a.SessionHasPermissionTo(session, model.PermissionEditOtherUsers) &&
+		model.MinimumEnterpriseLicense(a.License()) &&
+		user.AuthService == "" &&
+		*a.Config().TeamSettings.LockProfileFieldsForEmailUsers == model.TeamSettingsLockProfileFieldsAll
 }
 
 func (a *App) PatchUser(rctx request.CTX, userID string, patch *model.UserPatch, asAdmin bool) (*model.User, *model.AppError) {
@@ -1421,6 +1496,10 @@ func (a *App) UpdateUserAuth(rctx request.CTX, userID string, userAuth *model.Us
 	}
 
 	a.InvalidateCacheForUser(userID)
+
+	if err := a.RevokeAllSessions(rctx, userID); err != nil {
+		return nil, err
+	}
 
 	return userAuth, nil
 }

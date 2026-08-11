@@ -1,6 +1,8 @@
 ---
 title: "Outgoing Webhooks"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="all-commercial" />
 
 **Technical complexity:** [Low-code](./faq#low-code)
@@ -166,7 +168,7 @@ The JSON response can contain the following parameters:
 <tbody>
 <tr>
 <td><code>text</code></td>
-<td>(Required if <code>attachments</code> is not set) <a href="mm-doc:%2Fend-user-guide%2Fcollaborate%2Fformat-messages">Markdown-formatted</a> message.</td>
+<td>(Required if <code>attachments</code> is not set) <a href="/end-user-guide/collaborate/format-messages">Markdown-formatted</a> message.</td>
 </tr>
 <tr>
 <td><code>response_type</code></td>
@@ -174,11 +176,11 @@ The JSON response can contain the following parameters:
 </tr>
 <tr>
 <td><code>username</code></td>
-<td>Overrides the default username. Requires <a href="mm-ref:administration-guide%2Fconfigure%2Fintegrations-configuration-settings%3Aenable%20integrations%20to%20override%20usernames">Enable integrations to override usernames</a> to be enabled.</td>
+<td>Overrides the default username. Requires <a href="/administration-guide/configure/integrations-configuration-settings#enable-integrations-to-override-usernames">Enable integrations to override usernames</a> to be enabled.</td>
 </tr>
 <tr>
 <td><code>icon_url</code></td>
-<td>Overrides the default profile picture. Requires <a href="mm-ref:administration-guide%2Fconfigure%2Fintegrations-configuration-settings%3Aenable%20integrations%20to%20override%20profile%20picture%20icons">Enable integrations to override profile picture icons</a> to be enabled.</td>
+<td>Overrides the default profile picture. Requires <a href="/administration-guide/configure/integrations-configuration-settings#enable-integrations-to-override-profile-picture-icons">Enable integrations to override profile picture icons</a> to be enabled.</td>
 </tr>
 <tr>
 <td><code>attachments</code></td>
@@ -219,7 +221,7 @@ The JSON response can contain the following parameters:
 
 This response would produce a threaded reply to the original message that triggered the webhook.
 
-<img src="../images/outgoing_webhooks_full_example.png" width="400" alt="Example of a full response from an outgoing webhook." />
+<img src={useBaseUrl('/images/outgoing_webhooks_full_example.png')} width="400" alt="Example of a full response from an outgoing webhook." />
 
 You can also include [message attachments](https://developers.mattermost.com/integrate/reference/message-attachments/) and [interactive messages](https://developers.mattermost.com/integrate/plugins/interactive-messages/) in your response to create more advanced workflows.
 

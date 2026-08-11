@@ -43,9 +43,9 @@ If a user reports a broken shortcut after upgrading to v6.1.0, the user should:
 
     ![Go to the mattermost/desktop repository on GitHub.](/images/desktop/msi_gpo/msi_gpo_installation_test_00002.png)
 
-3.  Navigate to the release page for [version v6.1.2](https://github.com/mattermost/desktop/releases/latest) and download the appropriate installer for your version of Windows (32-bit vs. 64-bit).
+3.  Navigate to the release page for [version v6.2.2](https://github.com/mattermost/desktop/releases/latest) and download the appropriate installer for your version of Windows (32-bit vs. 64-bit).
 
-4.  Download the [source.zip](https://github.com/mattermost/desktop/archive/v6.1.2.zip) file as well to extract group policy files.
+4.  Download the [source.zip](https://github.com/mattermost/desktop/archive/v6.2.2.zip) file as well to extract group policy files.
 
     ![In the mattermost/desktop repository on GitHub, go to the release page for the latest desktop release, then download the installer for your version of Windows. Download the source.zip file as well to extract group policy files.](/images/desktop/msi_gpo/msi_gpo_installation_test_00003.png)
 
@@ -90,11 +90,11 @@ The following group policies are available supporting a state option of Not Conf
 > </tbody>
 > </table>
 
-1.  Browse to the folder the above files were downloaded to and unzip the `desktop-6.1.2.zip` file in place.
+1.  Browse to the folder the above files were downloaded to and unzip the `desktop-6.2.2.zip` file in place.
 
     ![Go to the install download directory on your machine and unzip the ZIP file.](/images/desktop/msi_gpo/msi_gpo_installation_test_00004.png)
 
-2.  Navigate to the unzipped `desktop-6.1.2\resources\windows\gpo` folder and copy the contents.
+2.  Navigate to the unzipped `desktop-6.2.2\resources\windows\gpo` folder and copy the contents.
 
     ![Go to the \resources\windows\gpo directory and copy its contents.](/images/desktop/msi_gpo/msi_gpo_installation_test_00005.png)
 
@@ -215,13 +215,13 @@ Ensure the desktop app is closed before proceeding with a silent installation. B
 
 </Important>
 
-**Command Prompt:** `msiexec /i mattermost-desktop-v6.1.2-x64.msi /qn`
+**Command Prompt:** `msiexec /i mattermost-desktop-v6.2.2-x64.msi /qn`
 
-**PowerShell:** `Start-Process -FilePath "$env:systemroot\system32\msiexec.exe" -ArgumentList '/i mattermost-desktop-v6.1.2-x64.msi /qn'`
+**PowerShell:** `Start-Process -FilePath "$env:systemroot\system32\msiexec.exe" -ArgumentList '/i mattermost-desktop-v6.2.2-x64.msi /qn'`
 
 <Note>
 
-\- Replace `&lt;version&gt;` with the actual version number (e.g., `v6.1.2`). - From v6.1.0, the MSI installs per-machine by default, requiring administrator privileges.
+\- Replace `&lt;version&gt;` with the actual version number (e.g., `v6.2.2`). - From v6.1.0, the MSI installs per-machine by default, requiring administrator privileges.
 
 </Note>
 
@@ -231,7 +231,13 @@ From version v5.9.0 of the Mattermost desktop app, the following silent MSI inst
 
 Use the `APPLICATIONFOLDER` parameter to specify an installation directory for the MSI installation:
 
-- **Command Prompt:** `msiexec /i mattermost-desktop-v6.1.2-x64.msi APPLICATIONFOLDER="&lt;install directory&gt;"`
-- **PowerShell:** `Start-Process -FilePath "$env:systemroot\system32\msiexec.exe" -ArgumentList '/i mattermost-desktop-v6.1.2-x64.msi APPLICATIONFOLDER="&lt;install directory&gt;"'`
+- **Command Prompt:** `msiexec /i mattermost-desktop-v6.2.2-x64.msi APPLICATIONFOLDER="&lt;install directory&gt;"`
+- **PowerShell:** `Start-Process -FilePath "$env:systemroot\system32\msiexec.exe" -ArgumentList '/i mattermost-desktop-v6.2.2-x64.msi APPLICATIONFOLDER="&lt;install directory&gt;"'`
 
 Change this command as new versions of the Mattermost Desktop App are released.
+
+## macOS managed configuration (MDM)
+
+From Mattermost Desktop v6.2.0, admins can manage supported Desktop App configuration on macOS using managed preferences delivered through an MDM solution, in addition to the Windows group policy support described above. macOS managed preferences support the same configuration items as the Windows group policies listed in the [Install group policy files locally](#install-group-policy-files-locally) section, including predefined server lists, server management controls, and update notification controls.
+
+To apply managed configuration on macOS, deploy a configuration profile that sets the supported keys to client Macs through your MDM solution. The Mattermost Desktop App reads managed preference values on launch; restart the app after changing managed configuration for new values to take effect.
