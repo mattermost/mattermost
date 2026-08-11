@@ -1706,6 +1706,27 @@ func TestPluginCreatePostAddsFromPluginProp(t *testing.T) {
 	assert.Equal(t, "true", actualPost.GetProp(model.PostPropsFromPlugin))
 }
 
+func TestPluginCreatePostSilentNotification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	api := th.SetupPluginAPI()
+
+	post, err := api.CreatePost(&model.Post{
+		Message:   "silent plugin post",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+		Props: model.StringInterface{
+			model.PostPropsSilentNotification: true,
+		},
+	})
+	require.Nil(t, err)
+
+	actualPost, err := api.GetPost(post.Id)
+	require.Nil(t, err)
+	require.True(t, actualPost.HasSilentNotification())
+}
+
 func TestPluginAPIGetConfig(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -3550,6 +3571,116 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 	})
 }
 
+func TestPluginAPIPropertyValueWithOptions(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	setup := func(t *testing.T) (*PluginAPI, *model.PropertyGroup, *model.PropertyField) {
+		th := Setup(t).InitBasic(t)
+		api := th.SetupPluginAPI()
+
+		group, err := api.RegisterPropertyGroup("optsgroup" + model.NewId())
+		require.NoError(t, err)
+
+		field, err := api.CreatePropertyField(&model.PropertyField{
+			GroupID: group.ID,
+			Name:    "opt_field",
+			Type:    model.PropertyFieldTypeText,
+		})
+		require.NoError(t, err)
+		return api, group, field
+	}
+
+	opts := model.PropertyRequestOptions{ActingAsScope: "entra"}
+
+	t.Run("UpsertPropertyValueWithOptions creates and reads back a value", func(t *testing.T) {
+		api, group, field := setup(t)
+
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"hello"`),
+		}
+
+		upserted, err := api.UpsertPropertyValueWithOptions(value, opts)
+		require.NoError(t, err)
+		require.NotNil(t, upserted)
+
+		got, err := api.GetPropertyValue(group.ID, upserted.ID)
+		require.NoError(t, err)
+		assert.JSONEq(t, `"hello"`, string(got.Value))
+	})
+
+	t.Run("UpsertPropertyValuesWithOptions upserts multiple values", func(t *testing.T) {
+		api, group, field := setup(t)
+
+		targetID := model.NewId()
+		values := []*model.PropertyValue{
+			{GroupID: group.ID, FieldID: field.ID, TargetType: "user", TargetID: targetID, Value: json.RawMessage(`"a"`)},
+		}
+
+		upserted, err := api.UpsertPropertyValuesWithOptions(values, opts)
+		require.NoError(t, err)
+		require.Len(t, upserted, 1)
+	})
+
+	t.Run("DeletePropertyValueWithOptions deletes a value", func(t *testing.T) {
+		api, group, field := setup(t)
+
+		upserted, err := api.UpsertPropertyValueWithOptions(&model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"x"`),
+		}, opts)
+		require.NoError(t, err)
+
+		require.NoError(t, api.DeletePropertyValueWithOptions(group.ID, upserted.ID, opts))
+	})
+
+	t.Run("DeletePropertyValuesForTargetWithOptions deprovisions a target", func(t *testing.T) {
+		api, group, field := setup(t)
+
+		targetID := model.NewId()
+		_, err := api.UpsertPropertyValueWithOptions(&model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   targetID,
+			Value:      json.RawMessage(`"y"`),
+		}, opts)
+		require.NoError(t, err)
+
+		require.NoError(t, api.DeletePropertyValuesForTargetWithOptions(group.ID, "user", targetID, opts))
+
+		remaining, err := api.SearchPropertyValues(group.ID, model.PropertyValueSearchOpts{
+			GroupID:    group.ID,
+			TargetType: "user",
+			TargetIDs:  []string{targetID},
+			PerPage:    10,
+		})
+		require.NoError(t, err)
+		assert.Empty(t, remaining)
+	})
+
+	t.Run("DeletePropertyValuesForFieldWithOptions deletes all values for a field", func(t *testing.T) {
+		api, group, field := setup(t)
+
+		_, err := api.UpsertPropertyValueWithOptions(&model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"z"`),
+		}, opts)
+		require.NoError(t, err)
+
+		require.NoError(t, api.DeletePropertyValuesForFieldWithOptions(group.ID, field.ID, opts))
+	})
+}
+
 func TestPluginAPICountPropertyFields(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -3778,6 +3909,366 @@ func TestPluginAPICreateChannelManagedCategory(t *testing.T) {
 	assert.Equal(t, categoryName, mappings[createdChannel.Id])
 }
 
+func TestPluginAPICreateSpaceRequiresEnableDocs(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() { th.ConfigStore.SetReadOnlyFF(true) })
+	api := th.SetupPluginAPI()
+
+	newSpace := func() *model.Channel {
+		return &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			DisplayName: "Space",
+			Name:        "space-" + model.NewId(),
+			Type:        model.ChannelTypeSpace,
+			CreatorId:   th.BasicUser.Id,
+		}
+	}
+
+	t.Run("EnableDocs off: CreateChannel rejects space type", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = false })
+
+		_, appErr := api.CreateChannel(newSpace())
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+	})
+
+	t.Run("EnableDocs on: CreateChannel allows space type", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = false })
+
+		space, appErr := api.CreateChannel(newSpace())
+		require.Nil(t, appErr)
+		require.Equal(t, model.ChannelTypeSpace, space.Type)
+		t.Cleanup(func() {
+			require.NoError(t, th.App.Srv().Store().Channel().PermanentDelete(th.Context, space.Id))
+		})
+	})
+}
+
+func TestPluginAPICreateSpaceAndAddMember(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() {
+		th.ConfigStore.SetReadOnlyFF(true)
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = false })
+
+	api := th.SetupPluginAPI()
+
+	// Reproduces the docs plugin's CreateSpace flow: create the space backing channel,
+	// then add the creator as a member. Both must succeed through the plugin API.
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+		CreatorId:   th.BasicUser.Id,
+	}
+	created, appErr := api.CreateChannel(space)
+	require.Nil(t, appErr)
+	require.Equal(t, model.ChannelTypeSpace, created.Type)
+
+	member, appErr := api.AddChannelMember(created.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, created.Id, member.ChannelId)
+	require.Equal(t, th.BasicUser.Id, member.UserId)
+
+	// AddUserToChannel skips the sidebar default-category assignment for a space backing channel,
+	// so the space must not appear in the member's sidebar categories.
+	categories, appErr := th.App.GetSidebarCategories(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+	for _, category := range categories.Categories {
+		require.NotContains(t, category.Channels, created.Id, "space backing channel must not appear in the sidebar")
+	}
+
+	// AddUserToChannel resolves the space backing channel through the same 404 fallback.
+	added, appErr := api.AddUserToChannel(created.Id, th.BasicUser2.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, created.Id, added.ChannelId)
+	require.Equal(t, th.BasicUser2.Id, added.UserId)
+
+	// DeleteChannelMember resolves the space backing channel and removes the member.
+	appErr = api.DeleteChannelMember(created.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+
+	_, appErr = api.GetChannelMember(created.Id, th.BasicUser2.Id)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+}
+
+func TestPluginAPIChannelMemberNotificationsRejectSpace(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}
+	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, space, -1)
+	require.NoError(t, nErr)
+	_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   space.Id,
+		UserId:      th.BasicUser.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeUser:  true,
+	})
+	require.NoError(t, nErr)
+
+	notifications := map[string]string{model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention}
+
+	// Notify-prop mutations carry chat semantics (a channel_member_updated event) that do not
+	// belong on an internal space backing channel, so the plugin API rejects them like /channels.
+	_, appErr := api.UpdateChannelMemberNotifications(space.Id, th.BasicUser.Id, notifications)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+	appErr = api.PatchChannelMembersNotifications(
+		[]*model.ChannelMemberIdentifier{{ChannelId: space.Id, UserId: th.BasicUser.Id}},
+		notifications,
+	)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+	// A regular channel is unaffected.
+	_, appErr = api.UpdateChannelMemberNotifications(th.BasicChannel.Id, th.BasicUser.Id, notifications)
+	require.Nil(t, appErr)
+}
+
+func TestPluginAPIUpdateSpaceBackingChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() {
+		th.ConfigStore.SetReadOnlyFF(true)
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = false })
+
+	api := th.SetupPluginAPI()
+
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+		CreatorId:   th.BasicUser.Id,
+	}
+	created, appErr := api.CreateChannel(space)
+	require.Nil(t, appErr)
+
+	// Reproduces the docs plugin's rename/metadata sync: fetch the backing channel, edit its
+	// user-visible fields, and Update it. UpdateChannel must resolve the space through the
+	// dedicated path instead of 404ing on the space-excluding generic Get.
+	created.DisplayName = "Renamed Space"
+	created.Header = "New header"
+	updated, appErr := api.UpdateChannel(created)
+	require.Nil(t, appErr)
+	require.Equal(t, "Renamed Space", updated.DisplayName)
+	require.Equal(t, "New header", updated.Header)
+
+	got, appErr := api.GetChannelOfType(created.Id, model.ChannelTypeSpace)
+	require.Nil(t, appErr)
+	require.Equal(t, "Renamed Space", got.DisplayName)
+	require.Equal(t, "New header", got.Header)
+}
+
+func TestPluginAPISpaceLifecycleSkipsChatSideEffects(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() {
+		th.ConfigStore.SetReadOnlyFF(true)
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableDocs = false })
+
+	api := th.SetupPluginAPI()
+
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+		CreatorId:   th.BasicUser.Id,
+	}
+	created, appErr := api.CreateChannel(space)
+	require.Nil(t, appErr)
+
+	_, appErr = api.AddChannelMember(created.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	appErr = api.DeleteChannel(created.Id)
+	require.Nil(t, appErr)
+
+	appErr = api.RestoreChannel(created.Id)
+	require.Nil(t, appErr)
+
+	// Internal backing channels get none of the chat-UI side effects: no join system post on
+	// member add, no archive post on delete, no unarchive post on restore.
+	posts, appErr := th.App.GetPosts(th.Context, created.Id, 0, 60)
+	require.Nil(t, appErr)
+	assert.Empty(t, posts.Order, "space backing channel should carry no join/archive/restore system posts")
+}
+
+func TestPluginAPIDeleteAndRestoreChannelAllowSpace(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}
+	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, space, -1)
+	require.NoError(t, nErr)
+
+	// The docs plugin manages the space backing channel lifecycle through these plugin APIs,
+	// so archive and restore must succeed on a space channel.
+	appErr := api.DeleteChannel(space.Id)
+	require.Nil(t, appErr)
+
+	appErr = api.RestoreChannel(space.Id)
+	require.Nil(t, appErr)
+}
+
+func TestPluginAPIGetChannelOfType(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}
+	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, space, -1)
+	require.NoError(t, nErr)
+
+	// Resolves an opaque backing channel type (space) that generic GetChannel excludes.
+	got, appErr := api.GetChannelOfType(space.Id, model.ChannelTypeSpace)
+	require.Nil(t, appErr)
+	require.Equal(t, space.Id, got.Id)
+	require.Equal(t, model.ChannelTypeSpace, got.Type)
+
+	// Also resolves a non-opaque type by ID + type.
+	got, appErr = api.GetChannelOfType(th.BasicChannel.Id, model.ChannelTypeOpen)
+	require.Nil(t, appErr)
+	require.Equal(t, th.BasicChannel.Id, got.Id)
+
+	// A type mismatch (space ID asked for as an open channel) returns not-found.
+	_, appErr = api.GetChannelOfType(space.Id, model.ChannelTypeOpen)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+	// A regular channel ID is not a space, so this returns not-found.
+	_, appErr = api.GetChannelOfType(th.BasicChannel.Id, model.ChannelTypeSpace)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+}
+
+func TestPluginAPIResolveSpaceChannelNotFound(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	nonExistentID := model.NewId()
+
+	// A genuinely non-existent ID (neither regular channel nor space) should return a not-found error.
+	appErr := api.DeleteChannel(nonExistentID)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+	appErr = api.RestoreChannel(nonExistentID)
+	require.NotNil(t, appErr)
+	require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+}
+
+func TestResolveChannelByID(t *testing.T) {
+	// resolveChannelByID has three branches that must be covered:
+	//  1. GetChannel succeeds → return that channel (no space lookup).
+	//  2. GetChannel returns 404 AND GetChannelOfType succeeds → return the space.
+	//  3. GetChannel returns a non-404 error → return that error immediately, skip the space lookup.
+	// Branches 1 and 2 are exercised by the integration tests above.
+	// Branch 3 cannot be triggered through a live DB (a SELECT by ID either finds the row or
+	// returns ErrNotFound), so it is covered here by calling the extracted function directly
+	// with controlled stubs.
+
+	th := Setup(t)
+	ctx := th.Context
+
+	t.Run("non-404 from GetChannel is propagated without attempting space lookup", func(t *testing.T) {
+		dbErr := model.NewAppError("store.Get", "store.sql_channel.get.app_error", nil, "", http.StatusInternalServerError)
+
+		spaceWasCalled := false
+		getChannel := func(_ request.CTX, _ string) (*model.Channel, *model.AppError) {
+			return nil, dbErr
+		}
+		getChannelOfType := func(_ request.CTX, _ string, _ model.ChannelType) (*model.Channel, *model.AppError) {
+			spaceWasCalled = true
+			return nil, model.NewAppError("store.GetChannelOfType", "not_found", nil, "", http.StatusNotFound)
+		}
+
+		got, appErr := resolveChannelByID(ctx, model.NewId(), getChannel, getChannelOfType)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		require.Nil(t, got)
+		require.False(t, spaceWasCalled, "space lookup must not be attempted when GetChannel returns a non-404 error")
+	})
+
+	t.Run("non-404 from GetChannelOfType is propagated", func(t *testing.T) {
+		notFoundErr := model.NewAppError("store.Get", "not_found", nil, "", http.StatusNotFound)
+		spaceErr := model.NewAppError("store.GetChannelOfType", "store.sql_channel.get.app_error", nil, "", http.StatusInternalServerError)
+
+		getChannel := func(_ request.CTX, _ string) (*model.Channel, *model.AppError) {
+			return nil, notFoundErr
+		}
+		getChannelOfType := func(_ request.CTX, _ string, _ model.ChannelType) (*model.Channel, *model.AppError) {
+			return nil, spaceErr
+		}
+
+		got, appErr := resolveChannelByID(ctx, model.NewId(), getChannel, getChannelOfType)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		require.Nil(t, got)
+	})
+
+	t.Run("404 from both returns the original GetChannel 404", func(t *testing.T) {
+		notFoundErr := model.NewAppError("store.Get", "not_found", nil, "", http.StatusNotFound)
+		spaceNotFoundErr := model.NewAppError("store.GetChannelOfType", "not_found", nil, "", http.StatusNotFound)
+
+		getChannel := func(_ request.CTX, _ string) (*model.Channel, *model.AppError) {
+			return nil, notFoundErr
+		}
+		getChannelOfType := func(_ request.CTX, _ string, _ model.ChannelType) (*model.Channel, *model.AppError) {
+			return nil, spaceNotFoundErr
+		}
+
+		got, appErr := resolveChannelByID(ctx, model.NewId(), getChannel, getChannelOfType)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		require.Equal(t, notFoundErr, appErr, "should return the original GetChannel error, not the space error")
+		require.Nil(t, got)
+	})
+}
+
 func TestPluginAPICreateChannelAnonymousURLs(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -3835,6 +4326,39 @@ func TestPluginAPICreateChannelAnonymousURLs(t *testing.T) {
 
 		assert.NotEqual(t, originalName, createdChannel.Name, "private channel name should be overridden")
 		assert.True(t, model.IsValidId(createdChannel.Name), "channel name should be a valid server-generated ID")
+	})
+
+	t.Run("should preserve space backing channel name when UseAnonymousURLs is enabled", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PrivacySettings.UseAnonymousURLs = true
+			cfg.FeatureFlags.EnableDocs = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PrivacySettings.UseAnonymousURLs = false
+			cfg.FeatureFlags.EnableDocs = false
+		})
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "space-" + model.NewId()
+		channel := &model.Channel{
+			DisplayName: "Space",
+			Name:        originalName,
+			Type:        model.ChannelTypeSpace,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.Equal(t, originalName, createdChannel.Name, "space backing channel name should not be rewritten")
 	})
 
 	t.Run("should preserve channel name when UseAnonymousURLs is disabled", func(t *testing.T) {

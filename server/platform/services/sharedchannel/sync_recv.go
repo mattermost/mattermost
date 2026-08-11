@@ -94,15 +94,6 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 		MembershipErrors:      make([]string, 0),
 	}
 
-	// Check if feature flag is enabled for membership changes
-	membershipSyncEnabled := scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync
-	hasMembershipChanges := len(syncMsg.MembershipChanges) > 0
-
-	// If this message only contains membership changes and feature is disabled, skip it
-	if hasMembershipChanges && !membershipSyncEnabled && len(syncMsg.Users) == 0 && len(syncMsg.Posts) == 0 && len(syncMsg.Reactions) == 0 {
-		return syncResp, nil
-	}
-
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Sync msg received",
 		mlog.String("remote", rc.Name),
 		mlog.String("channel_id", syncMsg.ChannelId),
@@ -282,7 +273,7 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 	}
 
 	// Process membership changes after users have been synced
-	if hasMembershipChanges && membershipSyncEnabled {
+	if len(syncMsg.MembershipChanges) > 0 {
 		if err := scs.onReceiveMembershipChanges(syncMsg, rc); err != nil {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error processing membership changes",
 				mlog.String("remote", rc.Name),
@@ -516,7 +507,16 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 
 		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionTransforms)
 
-		rpost, _, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
+		// The post is federated (RemoteId set) and its author is verified above
+		// to belong to the remote, which already enforced mm_blocks_actions
+		// authority. Preserve the prop through the create-time strip, mirroring
+		// how SanitizeProps preserves integration/notification props for
+		// federated posts.
+		rpost, _, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{
+			TriggerWebhooks:      true,
+			SetOnline:            true,
+			AllowMmBlocksActions: post.GetProp(model.PostPropsMmBlocksActions) != nil,
+		})
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
 				mlog.String("post_id", post.Id),
@@ -557,8 +557,11 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			}
 		}
 
-		// First update the basic post
-		rpost, _, appErr = scs.app.UpdatePost(rctx, post, nil)
+		// First update the basic post. The post is federated and remote-owned
+		// (verified above); the origin cluster already enforced mm_blocks_actions
+		// authority, so allow the synced value through the UpdatePost freeze so
+		// button edits (or removals) made upstream propagate to this cluster.
+		rpost, _, appErr = scs.app.UpdatePost(rctx, post, &model.UpdatePostOptions{AllowMmBlocksActionsUpdate: true})
 		if appErr != nil {
 			rerr := errors.New(appErr.Error())
 			return nil, rerr

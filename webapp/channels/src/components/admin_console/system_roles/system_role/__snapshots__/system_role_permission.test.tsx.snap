@@ -4,6 +4,7 @@ exports[`admin_console/system_role_permission should match snapshot 1`] = `
 <div>
   <div
     class="PermissionRow"
+    data-testid="permissionRow_environment"
   >
     <div
       class="PermissionSection"
@@ -14,11 +15,13 @@ exports[`admin_console/system_role_permission should match snapshot 1`] = `
       >
         <div
           class="PermissionSectionText_title"
+          data-testid="permissionSection-title"
         >
           Environment
         </div>
         <div
           class="PermissionSection_description"
+          data-testid="permissionSection-description"
         >
           Review server environment configuration such as URLs, database and performance.
         </div>
@@ -38,6 +41,7 @@ exports[`admin_console/system_role_permission should match snapshot 1`] = `
           >
             <div
               class="PermissionSectionDropdownButton_text"
+              data-testid="permissionDropdownButton-text"
             >
               Read only
             </div>

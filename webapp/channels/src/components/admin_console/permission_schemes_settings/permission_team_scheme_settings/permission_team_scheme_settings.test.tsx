@@ -635,4 +635,19 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         expect(mockPermissionsTreeProps.team_admin.role.permissions).not.toContain(Permissions.EDIT_OTHERS_POSTS);
         expect(mockPlaybookTreeProps.playbook_admin.role.permissions).not.toContain(Permissions.EDIT_OTHERS_POSTS);
     });
+
+    test('should render the Playbook Administrators role heading as plural', () => {
+        renderWithContext(
+            <PermissionTeamSchemeSettings {...defaultProps}/>,
+        );
+
+        // Regression test for MM-60599: the Playbook role heading must be plural
+        // ("Playbook Administrators") to stay consistent with the other role headings.
+        expect(screen.getByRole('heading', {name: 'Playbook Administrators'})).toBeInTheDocument();
+        expect(screen.queryByRole('heading', {name: 'Playbook Administrator'})).not.toBeInTheDocument();
+
+        for (const roleName of ['Channel Administrators', 'Team Administrators']) {
+            expect(screen.getByRole('heading', {name: roleName})).toBeInTheDocument();
+        }
+    });
 });

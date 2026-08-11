@@ -1,0 +1,175 @@
+/* Branded landing-page hero. Mid-intensity per design call:
+ * full-bleed denim with hex camo, but capped height so it doesn't
+ * dominate every visit. The curved bottom edge (`.curve`) matches
+ * the brand book's photo/color transition treatment.
+ */
+
+/* The hero fills the article column it lives in (no full-viewport escape).
+ * Why: 100vw includes scrollbar width on Windows/Chrome and produces a
+ * horizontal-scroll bleed. Also when a sidebar is present, escaping to
+ * 100vw misaligns the hero's centered inner content vs. the body content
+ * below (which sits in the article column). Containing the hero keeps
+ * its left/right edges consistent with the rest of the page. */
+/* The hero is a flat banded section, no rounded corners (the card-like
+ * frame felt clunky and disconnected from the rest of the page). The
+ * pattern sits under a heavier dimming overlay so it reads as
+ * atmospheric texture, not foreground motif. */
+.hero {
+  position: relative;
+  width: 100%;
+  margin-top: -1.25rem;
+  margin-bottom: 2.5rem;
+  background-color: var(--mm-color-denim);
+  background-image:
+    linear-gradient(180deg, rgba(12, 20, 36, 0.55) 0%, rgba(12, 20, 36, 0.25) 100%),
+    radial-gradient(ellipse 50% 100% at 100% 50%, rgba(91, 119, 177, 0.15) 0%, rgba(30, 50, 92, 0) 60%),
+    var(--mm-hero-camo);
+  background-size: cover, cover, 108px 125px;
+  background-repeat: no-repeat, no-repeat, repeat;
+  color: var(--mm-color-white);
+  overflow: hidden;
+  isolation: isolate;
+  border-bottom: 3px solid var(--mm-color-marigold);
+}
+
+.full {
+  padding: clamp(2rem, 3.5vw, 3rem) 0 clamp(2rem, 3.5vw, 3rem);
+}
+
+.compact {
+  padding: clamp(1.5rem, 2.5vw, 2.25rem) 0 clamp(1.75rem, 3vw, 2.5rem);
+}
+
+.inner {
+  /* Fill the hero band; the band itself is sized by its parent
+   * (the article column). Padding keeps content off the band edges. */
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 3vw, 2rem);
+  position: relative;
+  z-index: 2;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-family: var(--mm-font-heading);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mm-color-marigold);
+  border: 1px solid rgba(255, 188, 31, 0.55);
+  padding: 0.32rem 0.75rem;
+  border-radius: 2px;
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-family: var(--mm-font-heading);
+  font-weight: 900;
+  font-size: clamp(1.6rem, 3.2vw, 2.4rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--mm-color-white);
+  margin: 0 0 0.75rem;
+  max-width: 28ch;
+}
+
+.full .title {
+  font-size: clamp(1.85rem, 3.8vw, 3rem);
+  max-width: 24ch;
+}
+
+.subtitle {
+  font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 64ch;
+  margin: 0 0 1.5rem;
+}
+
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.ctaPrimary,
+.ctaGhost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.1rem;
+  font-family: var(--mm-font-heading);
+  font-weight: 900;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 3px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.ctaPrimary {
+  background: var(--mm-color-marigold);
+  color: var(--mm-color-black);
+  border: 2px solid var(--mm-color-marigold);
+}
+.ctaPrimary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px -10px rgba(0, 0, 0, 0.5);
+  color: var(--mm-color-black);
+  text-decoration: none;
+}
+
+.ctaGhost {
+  background: transparent;
+  color: var(--mm-color-white);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+.ctaGhost:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--mm-color-white);
+  color: var(--mm-color-white);
+  text-decoration: none;
+}
+
+.pillars {
+  list-style: none;
+  padding: 1.75rem 0 0;
+  margin: 1.75rem 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+@media (max-width: 720px) {
+  .pillars { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.pillars li {
+  position: relative;
+  padding-top: 0.65rem;
+  border-top: 2px solid var(--mm-color-marigold);
+}
+
+.pillars strong {
+  display: block;
+  font-family: var(--mm-font-heading);
+  font-size: 0.9rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+  color: var(--mm-color-white);
+}
+
+.pillars span {
+  display: block;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.curve { display: none; }   /* dropping the curve — too theatrical at this scale */

@@ -505,6 +505,57 @@ func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 	require.Equal(t, channel.DisplayName, "Public 1")
 }
 
+func TestCreateChannelSpaceRequiresEnableDocs(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	newSpace := func(teamID string) *model.Channel {
+		return &model.Channel{
+			DisplayName: "Space",
+			Name:        "space-" + model.NewId(),
+			Type:        model.ChannelTypeSpace,
+			TeamId:      teamID,
+		}
+	}
+
+	t.Run("CreateChannel rejects a space channel when EnableDocs is off", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableDocs = false
+		}).InitBasic(t)
+
+		_, appErr := th.App.CreateChannel(th.Context, newSpace(th.BasicTeam.Id), false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.create_channel.spaces_not_enabled.app_error", appErr.Id)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+	})
+
+	t.Run("CreateChannel allows a space channel when EnableDocs is on", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableDocs = true
+		}).InitBasic(t)
+
+		channel, appErr := th.App.CreateChannel(th.Context, newSpace(th.BasicTeam.Id), false)
+		require.Nil(t, appErr)
+		defer func() {
+			require.NoError(t, th.App.Srv().Store().Channel().PermanentDelete(th.Context, channel.Id))
+		}()
+		assert.Equal(t, model.ChannelTypeSpace, channel.Type)
+	})
+
+	t.Run("CreateChannelWithUser rejects a space channel", func(t *testing.T) {
+		// Space backing channels are created through CreateChannel (the docs plugin path),
+		// never CreateChannelWithUser, which applies chat semantics (sidebar category, join
+		// post, channel_created event) that do not belong on an internal backing channel.
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableDocs = true
+		}).InitBasic(t)
+
+		_, appErr := th.App.CreateChannelWithUser(th.Context, newSpace(th.BasicTeam.Id), th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.create_channel.space_type.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+}
+
 func TestUpdateChannelPrivacy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -516,6 +567,24 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 	require.Nil(t, appErr, "Failed to update channel privacy.")
 	assert.Equal(t, publicChannel.Id, privateChannel.Id)
 	assert.Equal(t, publicChannel.Type, model.ChannelTypeOpen)
+}
+
+func TestUpdateChannelPrivacyRejectsSpace(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	space, err := th.GetSqlStore().Channel().Save(th.Context, &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}, -1)
+	require.NoError(t, err)
+
+	_, appErr := th.App.UpdateChannelPrivacy(th.Context, space, th.BasicUser)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "app.channel.update_channel_privacy.space.app_error", appErr.Id)
+	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 }
 
 func TestUpdateChannelPrivacyWebSocketEvent(t *testing.T) {
@@ -1014,6 +1083,44 @@ func TestLeaveLastChannel(t *testing.T) {
 		_, appErr = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		assert.Nil(t, appErr, "It should remove the team membership")
 	})
+}
+
+func TestLeaveLastChannelGuestStillInSpace(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	guest := th.CreateGuest(t)
+	th.LinkUserToTeam(t, guest, th.BasicTeam)
+
+	townSquare, appErr := th.App.GetChannelByName(th.Context, "town-square", th.BasicTeam.Id, false)
+	require.Nil(t, appErr)
+	th.AddUserToChannel(t, guest, townSquare)
+	th.AddUserToChannel(t, guest, th.BasicChannel)
+
+	// The guest also belongs to a space backing channel, which GetChannelMembersForUser excludes.
+	// Leaving every chat channel must not evict them from the team while a space membership remains.
+	space, nErr := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}, -1)
+	require.NoError(t, nErr)
+	_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   space.Id,
+		UserId:      guest.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeGuest: true,
+	})
+	require.NoError(t, nErr)
+
+	appErr = th.App.LeaveChannel(th.Context, townSquare.Id, guest.Id)
+	require.Nil(t, appErr)
+	appErr = th.App.LeaveChannel(th.Context, th.BasicChannel.Id, guest.Id)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
+	assert.Nil(t, appErr, "guest still in a space should keep the team membership")
 }
 
 func TestAddChannelMemberNoUserRequestor(t *testing.T) {
@@ -1675,6 +1782,30 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, "channel_guest channel_user")
 		require.NotNil(t, appErr, "Should work when you not modify guest role")
 	})
+}
+
+func TestUpdateChannelMemberRolesRejectsOutOfScopeBuiltInRoles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+	ruser, _ := th.App.CreateUser(th.Context, &user)
+
+	_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	// CustomGroupUserRoleId is a built-in role whose role.BuiltIn flag is false, so it must
+	// be rejected via the shared model.IsBuiltInRole predicate rather than the BuiltIn flag.
+	// This guards the app-layer path used by plugins and bulk import, which bypass the API check.
+	for _, roleName := range []string{model.SystemManagerRoleId, model.SystemCustomGroupAdminRoleId, model.CustomGroupUserRoleId} {
+		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, ruser.Id, model.ChannelUserRoleId+" "+roleName)
+		require.NotNilf(t, appErr, "expected rejection for role %s", roleName)
+		require.Equal(t, "api.channel.update_channel_member_roles.scheme_role.app_error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	}
 }
 
 func TestUpdateChannelMemberRolesRequireUser(t *testing.T) {

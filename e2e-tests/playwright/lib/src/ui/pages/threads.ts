@@ -18,7 +18,7 @@ export default class ThreadsPage {
 
         this.threadsList = page.locator('#threads-list');
 
-        this.noThreadSelected = page.locator('.no-results__title', {
+        this.noThreadSelected = page.getByTestId('no-results-title').filter({
             hasText: /Looks like you’re all caught up|Catch up on your threads/,
         });
     }

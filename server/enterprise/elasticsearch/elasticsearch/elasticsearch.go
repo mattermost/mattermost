@@ -337,7 +337,7 @@ func (es *ElasticsearchInterfaceImpl) IndexPost(post *model.Post, teamId string,
 	indexName := common.BuildPostIndexName(*es.Platform.Config().ElasticsearchSettings.AggregatePostsAfterDays,
 		*es.Platform.Config().ElasticsearchSettings.IndexPrefix+common.IndexBasePosts, *es.Platform.Config().ElasticsearchSettings.IndexPrefix+common.IndexBasePosts_MONTH, time.Now(), post.CreateAt)
 
-	searchPost, err := common.ESPostFromPost(post, teamId, channelType)
+	searchPost, err := common.ESPostFromPost(post, teamId, channelType, es.Platform.Config().FeatureFlags.MmBlocksEnabled)
 	if err != nil {
 		return model.NewAppError("Elasticsearch.IndexPost", "ent.elasticsearch.index_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

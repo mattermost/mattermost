@@ -268,7 +268,10 @@ class AdminSidebar extends React.PureComponent<Props, State> {
     render() {
         const {showTaskList} = this.props;
         return (
-            <div className='admin-sidebar'>
+            <div
+                className='admin-sidebar'
+                data-testid='admin-sidebar'
+            >
                 <AdminSidebarHeader/>
                 <div className='filter-container'>
                     <SearchIcon

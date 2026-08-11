@@ -106,6 +106,7 @@ const DatePicker = ({children, datePickerProps, isPopperOpen, handlePopperOpenSt
                     initialFocus={-1}
                 >
                     <div
+                        data-testid='date-picker-popper'
                         ref={setFloating}
                         style={{
                             position: strategy,

@@ -44,7 +44,6 @@ SEE ALSO
 * `mmctl user create <mmctl_user_create.rst>`_ 	 - Create a user
 * `mmctl user deactivate <mmctl_user_deactivate.rst>`_ 	 - Deactivate users
 * `mmctl user delete <mmctl_user_delete.rst>`_ 	 - Delete users
-* `mmctl user deleteall <mmctl_user_deleteall.rst>`_ 	 - Delete all users and all posts. Local command only.
 * `mmctl user demote <mmctl_user_demote.rst>`_ 	 - Demote users to guests
 * `mmctl user edit <mmctl_user_edit.rst>`_ 	 - Edit user properties
 * `mmctl user invite <mmctl_user_invite.rst>`_ 	 - Send user an email invite to a team.
@@ -55,5 +54,6 @@ SEE ALSO
 * `mmctl user reset-password <mmctl_user_reset-password.rst>`_ 	 - Send users an email to reset their password
 * `mmctl user resetmfa <mmctl_user_resetmfa.rst>`_ 	 - Turn off MFA
 * `mmctl user search <mmctl_user_search.rst>`_ 	 - Search for users
+* `mmctl user status <mmctl_user_status.rst>`_ 	 - Get a user's status
 * `mmctl user verify <mmctl_user_verify.rst>`_ 	 - Mark user's email as verified
 

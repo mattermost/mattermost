@@ -181,11 +181,17 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 			rctx.Logger().Info("Email notification cancelled by plugin.",
 				mlog.String("rejection_reason", rejectionReason),
 				mlog.String("plugin_id", manifest.Id),
-				mlog.String("plugin_name", manifest.Name))
+				mlog.String("user_id", user.Id),
+				mlog.String("channel_id", channel.Id))
 			return false
 		}
 		if replacementContent != nil {
 			emailNotification.EmailNotificationContent = *replacementContent
+
+			rctx.Logger().Info("Email notification modified by plugin.",
+				mlog.String("plugin_id", manifest.Id),
+				mlog.String("user_id", user.Id),
+				mlog.String("channel_id", channel.Id))
 		}
 		return true
 	}, plugin.EmailNotificationWillBeSentID)

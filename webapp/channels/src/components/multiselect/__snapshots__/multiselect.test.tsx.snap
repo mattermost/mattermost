@@ -111,6 +111,7 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
     >
       <div
         class="more-modal__list"
+        data-testid="more-modal-list"
       >
         <div
           aria-live="polite"
@@ -275,6 +276,7 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
     >
       <div
         class="more-modal__list"
+        data-testid="more-modal-list"
       >
         <div
           aria-live="polite"
@@ -439,6 +441,7 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
     >
       <div
         class="more-modal__list"
+        data-testid="more-modal-list"
       >
         <div
           aria-live="polite"
