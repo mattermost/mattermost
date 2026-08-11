@@ -2549,14 +2549,25 @@ func TestConfigServiceSettingsIsValid(t *testing.T) {
 		appErr := cfg.ServiceSettings.isValid()
 		require.Nil(t, appErr)
 
+		// Custom URI schemes used by desktop OAuth clients are accepted
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"cursor://anysphere.cursor-mcp/oauth/callback", "com.example.app://callback/**"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
+
 		// Empty/whitespace entry rejected
 		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://ok.com/**", "  ", "https://also.com/cb"}
 		appErr = cfg.ServiceSettings.isValid()
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
 
-		// Non-http(s) scheme rejected
-		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"ftp://example.com/**"}
+		// Scheme without a host rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"cursor://"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Opaque URI without a host rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"javascript:alert(1)"}
 		appErr = cfg.ServiceSettings.isValid()
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)

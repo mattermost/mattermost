@@ -52,7 +52,7 @@ func (r *ClientRegistrationRequest) IsValid() *AppError {
 	}
 
 	for _, uri := range r.RedirectURIs {
-		if !IsValidHTTPURL(uri) {
+		if !IsValidDCRRedirectURI(uri) {
 			return NewAppError("ClientRegistrationRequest.IsValid", "model.dcr.is_valid.redirect_uri_format.app_error", nil, "uri="+uri, http.StatusBadRequest)
 		}
 	}
@@ -92,20 +92,24 @@ func GetDefaultResponseTypes() []string {
 	return []string{ResponseTypeCode}
 }
 
-// IsValidDCRRedirectURIPattern validates a DCR redirect URI allowlist pattern.
-// Patterns must start with http:// or https:// and be well-formed for glob matching.
-func IsValidDCRRedirectURIPattern(pattern string) bool {
-	if strings.HasPrefix(pattern, "https://") {
-		if len(pattern) < 9 { // minimum "https://x"
-			return false
-		}
-	} else if strings.HasPrefix(pattern, "http://") {
-		if len(pattern) < 8 { // minimum "http://x"
-			return false
-		}
-	} else {
+// IsValidDCRRedirectURI validates a concrete DCR redirect URI. Unlike
+// IsValidHTTPURL, it accepts custom (non-HTTP) schemes so that desktop OAuth
+// clients can use their own URI schemes (e.g. cursor://anysphere.cursor-mcp/oauth/callback).
+// The URI must be absolute with both a scheme and a host; opaque URIs such as
+// "javascript:alert(1)" are rejected because they have no host.
+func IsValidDCRRedirectURI(rawURL string) bool {
+	u, err := url.ParseRequestURI(rawURL)
+	if err != nil || u.Scheme == "" || u.Host == "" {
 		return false
 	}
+	return true
+}
+
+// IsValidDCRRedirectURIPattern validates a DCR redirect URI allowlist pattern.
+// Patterns must be absolute URIs with a scheme and host and be well-formed for
+// glob matching. Custom schemes (e.g. cursor://) are permitted in addition to
+// http:// and https://.
+func IsValidDCRRedirectURIPattern(pattern string) bool {
 	// Reject control characters and other invalid chars
 	for _, r := range pattern {
 		if r < 0x20 || r == 0x7f {
@@ -126,7 +130,7 @@ func IsValidDCRRedirectURIPattern(pattern string) bool {
 	normalized = strings.ReplaceAll(normalized, "mmdoublewildcard", "1")
 	normalized = strings.ReplaceAll(normalized, "mmsinglewildcard", "1")
 
-	return IsValidHTTPURL(normalized)
+	return IsValidDCRRedirectURI(normalized)
 }
 
 // RedirectURIMatchesGlob returns true if uri matches the glob pattern.

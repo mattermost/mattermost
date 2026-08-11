@@ -47,7 +47,15 @@ func TestClientRegistrationRequestIsValid(t *testing.T) {
 		req.RedirectURIs = []string{"http://localhost:3000/callback"}
 		require.Nil(t, req.IsValid())
 
+		// Custom URI schemes used by desktop OAuth clients are accepted.
+		req.RedirectURIs = []string{"cursor://anysphere.cursor-mcp/oauth/callback"}
+		require.Nil(t, req.IsValid())
+
 		req.RedirectURIs = []string{"invalid-uri"}
+		require.NotNil(t, req.IsValid())
+
+		// Opaque URIs without a host are rejected.
+		req.RedirectURIs = []string{"javascript:alert(1)"}
 		require.NotNil(t, req.IsValid())
 	})
 }
@@ -124,6 +132,14 @@ func TestRedirectURIMatchesGlob(t *testing.T) {
 		require.False(t, RedirectURIMatchesGlob("https://localhost:3000/cb", "https://localhost:8080/cb"))
 	})
 
+	t.Run("custom scheme", func(t *testing.T) {
+		require.True(t, RedirectURIMatchesGlob("cursor://anysphere.cursor-mcp/oauth/callback", "cursor://anysphere.cursor-mcp/oauth/callback"))
+		require.True(t, RedirectURIMatchesGlob("cursor://anysphere.cursor-mcp/oauth/callback", "cursor://anysphere.cursor-mcp/**"))
+		require.False(t, RedirectURIMatchesGlob("cursor://anysphere.cursor-mcp/oauth/callback", "cursor://other.app/**"))
+		// Scheme must match exactly: an https candidate must not satisfy a cursor:// pattern.
+		require.False(t, RedirectURIMatchesGlob("https://anysphere.cursor-mcp/oauth/callback", "cursor://anysphere.cursor-mcp/**"))
+	})
+
 	t.Run("multiple patterns one match suffices", func(t *testing.T) {
 		allowlist := []string{"https://a.com/**", "https://b.com/**"}
 		require.True(t, RedirectURIMatchesAllowlist("https://a.com/x", allowlist))
@@ -149,13 +165,56 @@ func TestRedirectURIMatchesGlob(t *testing.T) {
 	})
 }
 
+func TestIsValidDCRRedirectURI(t *testing.T) {
+	valid := []string{
+		"https://example.com/callback",
+		"http://localhost:3000/cb",
+		"cursor://anysphere.cursor-mcp/oauth/callback",
+		"com.example.app://callback",
+	}
+	for _, uri := range valid {
+		require.True(t, IsValidDCRRedirectURI(uri), "expected valid: %s", uri)
+	}
+
+	invalid := []string{
+		"",
+		"cursor://",           // custom scheme without a host
+		"https://",            // http scheme without a host
+		"javascript:alert(1)", // opaque URI, no host
+		"data:text/html,hi",   // opaque URI, no host
+		"/relative/path",      // not absolute
+		"not a url",
+	}
+	for _, uri := range invalid {
+		require.False(t, IsValidDCRRedirectURI(uri), "expected invalid: %s", uri)
+	}
+}
+
 func TestIsValidDCRRedirectURIPattern(t *testing.T) {
-	require.True(t, IsValidDCRRedirectURIPattern("https://example.com/**"))
-	require.True(t, IsValidDCRRedirectURIPattern("http://localhost:3000/cb"))
-	require.True(t, IsValidDCRRedirectURIPattern("http://localhost:*"))
-	require.True(t, IsValidDCRRedirectURIPattern("http://x"))  // minimum valid http URL (8 chars)
-	require.True(t, IsValidDCRRedirectURIPattern("https://x")) // minimum valid https URL (9 chars)
-	require.False(t, IsValidDCRRedirectURIPattern("https://"))
-	require.False(t, IsValidDCRRedirectURIPattern("ftp://example.com"))
-	require.False(t, IsValidDCRRedirectURIPattern("https://example.com/***"))
+	valid := []string{
+		"https://example.com/**",
+		"http://localhost:3000/cb",
+		"http://localhost:*",
+		"http://x",  // minimum valid http URL
+		"https://x", // minimum valid https URL
+		"cursor://anysphere.cursor-mcp/oauth/callback", // custom desktop-app scheme
+		"cursor://app/callback",
+		"com.example.app://callback/**",
+		"cursor://*.example.com/**", // wildcards allowed with custom schemes
+	}
+	for _, p := range valid {
+		require.True(t, IsValidDCRRedirectURIPattern(p), "expected valid: %s", p)
+	}
+
+	invalid := []string{
+		"",
+		"https://",                // missing host
+		"cursor://",               // custom scheme missing host
+		"://example.com",          // missing scheme
+		"javascript:alert(1)",     // opaque URI, no host
+		"https://example.com/***", // malformed wildcard run
+	}
+	for _, p := range invalid {
+		require.False(t, IsValidDCRRedirectURIPattern(p), "expected invalid: %s", p)
+	}
 }
