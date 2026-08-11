@@ -11,7 +11,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -357,13 +356,47 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 }
 
 func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission) {
-	if jobType == model.JobTypeAccessControlTeamSync {
+	var permission *model.Permission
+
+	switch jobType {
+	case model.JobTypeDataRetention:
+		permission = model.PermissionReadDataRetentionJob
+	case model.JobTypeMessageExport:
+		permission = model.PermissionReadComplianceExportJob
+	case model.JobTypeElasticsearchPostIndexing:
+		permission = model.PermissionReadElasticsearchPostIndexingJob
+	case model.JobTypeElasticsearchPostAggregation:
+		permission = model.PermissionReadElasticsearchPostAggregationJob
+	case model.JobTypeLdapSync:
+		permission = model.PermissionReadLdapSyncJob
+	case
+		model.JobTypeMigrations,
+		model.JobTypePlugins,
+		model.JobTypeProductNotices,
+		model.JobTypeExpiryNotify,
+		model.JobTypeActiveUsers,
+		model.JobTypeImportProcess,
+		model.JobTypeImportDelete,
+		model.JobTypeExportProcess,
+		model.JobTypeExportDelete,
+		model.JobTypeCloud,
+		model.JobTypeMobileSessionMetadata,
+		model.JobTypeExtractContent,
+		model.JobTypeCleanupExpiredAccessTokens,
+		model.JobTypeLastAccessiblePost,
+		model.JobTypeLastAccessibleFile,
+		model.JobTypeRefreshMaterializedViews,
+		model.JobTypeScheduledRecap:
+		permission = model.PermissionReadJobs
+	case model.JobTypeAccessControlSync:
+		permission = model.PermissionManageSystem
+	case model.JobTypeAccessControlTeamSync:
 		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
 			return true, model.PermissionManageSystem
 		}
+		permission = model.PermissionManageTeamAccessRules
 	}
 
-	permission := jobs.ReadPermissionForType(jobType)
 	if permission == nil {
 		return false, nil
 	}

@@ -139,7 +139,44 @@ func (srv *JobServer) publishJobStatus(job *model.Job, status string) {
 	}
 	message := model.NewWebSocketEvent(model.WebsocketEventJobUpdated, "", "", "", nil, "")
 	message.Add("job", string(jobJSON))
-	if permission := ReadPermissionForType(job.Type); permission != nil {
+
+	var permission *model.Permission
+	switch job.Type {
+	case model.JobTypeDataRetention:
+		permission = model.PermissionReadDataRetentionJob
+	case model.JobTypeMessageExport:
+		permission = model.PermissionReadComplianceExportJob
+	case model.JobTypeElasticsearchPostIndexing:
+		permission = model.PermissionReadElasticsearchPostIndexingJob
+	case model.JobTypeElasticsearchPostAggregation:
+		permission = model.PermissionReadElasticsearchPostAggregationJob
+	case model.JobTypeLdapSync:
+		permission = model.PermissionReadLdapSyncJob
+	case
+		model.JobTypeMigrations,
+		model.JobTypePlugins,
+		model.JobTypeProductNotices,
+		model.JobTypeExpiryNotify,
+		model.JobTypeActiveUsers,
+		model.JobTypeImportProcess,
+		model.JobTypeImportDelete,
+		model.JobTypeExportProcess,
+		model.JobTypeExportDelete,
+		model.JobTypeCloud,
+		model.JobTypeMobileSessionMetadata,
+		model.JobTypeExtractContent,
+		model.JobTypeCleanupExpiredAccessTokens,
+		model.JobTypeLastAccessiblePost,
+		model.JobTypeLastAccessibleFile,
+		model.JobTypeRefreshMaterializedViews,
+		model.JobTypeScheduledRecap:
+		permission = model.PermissionReadJobs
+	case model.JobTypeAccessControlSync:
+		permission = model.PermissionManageSystem
+	case model.JobTypeAccessControlTeamSync:
+		permission = model.PermissionManageTeamAccessRules
+	}
+	if permission != nil {
 		message.GetBroadcast().RequiredPermissions = []string{permission.Id}
 	} else {
 		message.GetBroadcast().ContainsSensitiveData = true

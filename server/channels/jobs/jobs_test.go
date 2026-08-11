@@ -50,34 +50,6 @@ func expectErrorId(t *testing.T, errId string, appErr *model.AppError) {
 	require.Equal(t, errId, appErr.Id)
 }
 
-func TestReadPermissionForType(t *testing.T) {
-	testCases := []struct {
-		name       string
-		jobType    string
-		permission *model.Permission
-	}{
-		{"data retention", model.JobTypeDataRetention, model.PermissionReadDataRetentionJob},
-		{"message export", model.JobTypeMessageExport, model.PermissionReadComplianceExportJob},
-		{"elasticsearch indexing", model.JobTypeElasticsearchPostIndexing, model.PermissionReadElasticsearchPostIndexingJob},
-		{"elasticsearch aggregation", model.JobTypeElasticsearchPostAggregation, model.PermissionReadElasticsearchPostAggregationJob},
-		{"ldap sync", model.JobTypeLdapSync, model.PermissionReadLdapSyncJob},
-		{"generic jobs", model.JobTypeExportProcess, model.PermissionReadJobs},
-		{"last accessible post", model.JobTypeLastAccessiblePost, model.PermissionReadJobs},
-		{"last accessible file", model.JobTypeLastAccessibleFile, model.PermissionReadJobs},
-		{"refresh materialized views", model.JobTypeRefreshMaterializedViews, model.PermissionReadJobs},
-		{"scheduled recap", model.JobTypeScheduledRecap, model.PermissionReadJobs},
-		{"access control sync", model.JobTypeAccessControlSync, model.PermissionManageSystem},
-		{"access control team sync", model.JobTypeAccessControlTeamSync, model.PermissionManageTeamAccessRules},
-		{"unknown", "unknown", nil},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			require.Equal(t, testCase.permission, ReadPermissionForType(testCase.jobType))
-		})
-	}
-}
-
 func makeTeamEditionJobServer(t *testing.T) (*JobServer, *storetest.Store) {
 	configService := &testutils.StaticConfigService{}
 
@@ -799,6 +771,42 @@ func TestPublishJobStatus(t *testing.T) {
 		require.NotPanics(t, func() {
 			jobServer.publishJobStatus(job, model.JobStatusSuccess)
 		})
+	})
+
+	t.Run("sets required permissions by job type", func(t *testing.T) {
+		testCases := []struct {
+			name       string
+			jobType    string
+			permission *model.Permission
+		}{
+			{"data retention", model.JobTypeDataRetention, model.PermissionReadDataRetentionJob},
+			{"message export", model.JobTypeMessageExport, model.PermissionReadComplianceExportJob},
+			{"elasticsearch indexing", model.JobTypeElasticsearchPostIndexing, model.PermissionReadElasticsearchPostIndexingJob},
+			{"elasticsearch aggregation", model.JobTypeElasticsearchPostAggregation, model.PermissionReadElasticsearchPostAggregationJob},
+			{"ldap sync", model.JobTypeLdapSync, model.PermissionReadLdapSyncJob},
+			{"generic jobs", model.JobTypeExportProcess, model.PermissionReadJobs},
+			{"last accessible post", model.JobTypeLastAccessiblePost, model.PermissionReadJobs},
+			{"last accessible file", model.JobTypeLastAccessibleFile, model.PermissionReadJobs},
+			{"refresh materialized views", model.JobTypeRefreshMaterializedViews, model.PermissionReadJobs},
+			{"scheduled recap", model.JobTypeScheduledRecap, model.PermissionReadJobs},
+			{"access control sync", model.JobTypeAccessControlSync, model.PermissionManageSystem},
+			{"access control team sync", model.JobTypeAccessControlTeamSync, model.PermissionManageTeamAccessRules},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.name, func(t *testing.T) {
+				jobServer, _, _ := makeJobServer(t)
+				var captured *model.WebSocketEvent
+				jobServer.publish = func(ev *model.WebSocketEvent) { captured = ev }
+
+				job := &model.Job{Id: "job_id", Type: testCase.jobType}
+				jobServer.publishJobStatus(job, model.JobStatusSuccess)
+
+				assertPublishedJob(t, captured, model.JobStatusSuccess)
+				require.False(t, captured.GetBroadcast().ContainsSensitiveData)
+				require.Equal(t, []string{testCase.permission.Id}, captured.GetBroadcast().RequiredPermissions)
+			})
+		}
 	})
 
 	t.Run("broadcasts correct status", func(t *testing.T) {
