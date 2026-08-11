@@ -38,15 +38,53 @@ const (
 const oauthTokenRedacted = "[REDACTED]"
 
 var (
-	oauthJSONTokenPattern = regexp.MustCompile(`(?i)("(?:access|refresh|id)_token"\s*:\s*")((?:\\.|[^"\\])*)`)
-	oauthFormTokenPattern = regexp.MustCompile(`(?i)((?:access|refresh|id)_token=)([^&\s]+)`)
+	// oauthJSONTokenPattern captures a JSON member name, the separator and the (possibly unterminated) string value.
+	oauthJSONTokenPattern = regexp.MustCompile(`"((?:\\.|[^"\\])*)"(\s*:\s*")((?:\\.|[^"\\])*)("?)`)
+	// oauthFormTokenPattern captures a form-encoded parameter name and its value.
+	oauthFormTokenPattern = regexp.MustCompile(`(\A|[&;?])([^&;=\s]+)=([^&;"\s]*)`)
+	// oauthTokenFieldNamePattern matches a decoded parameter or member name that carries a token value.
+	oauthTokenFieldNamePattern = regexp.MustCompile(`(?i)(?:\A|[^0-9a-z_])(?:access|refresh|id)_token\z`)
 )
+
+// decodeJSONMemberName resolves JSON escape sequences in a member name, e.g. "access\u005ftoken".
+func decodeJSONMemberName(name string) string {
+	var decoded string
+	if err := json.Unmarshal([]byte(`"`+name+`"`), &decoded); err != nil {
+		return name
+	}
+
+	return decoded
+}
+
+// decodeFormFieldName resolves percent-encoding in a form parameter name, e.g. "access%5Ftoken".
+func decodeFormFieldName(name string) string {
+	decoded, err := url.QueryUnescape(name)
+	if err != nil {
+		return name
+	}
+
+	return decoded
+}
 
 // redactOAuthTokenResponse masks token values in a token endpoint response body so it can be used in error details.
 func redactOAuthTokenResponse(body string) string {
-	redacted := oauthJSONTokenPattern.ReplaceAllString(body, `${1}`+oauthTokenRedacted)
+	redacted := oauthJSONTokenPattern.ReplaceAllStringFunc(body, func(match string) string {
+		groups := oauthJSONTokenPattern.FindStringSubmatch(match)
+		if groups == nil || !oauthTokenFieldNamePattern.MatchString(decodeJSONMemberName(groups[1])) {
+			return match
+		}
 
-	return oauthFormTokenPattern.ReplaceAllString(redacted, `${1}`+oauthTokenRedacted)
+		return `"` + groups[1] + `"` + groups[2] + oauthTokenRedacted + groups[4]
+	})
+
+	return oauthFormTokenPattern.ReplaceAllStringFunc(redacted, func(match string) string {
+		groups := oauthFormTokenPattern.FindStringSubmatch(match)
+		if groups == nil || !oauthTokenFieldNamePattern.MatchString(decodeFormFieldName(groups[2])) {
+			return match
+		}
+
+		return groups[1] + groups[2] + "=" + oauthTokenRedacted
+	})
 }
 
 func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {

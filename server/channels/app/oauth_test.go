@@ -2210,6 +2210,41 @@ func TestRedactOAuthTokenResponse(t *testing.T) {
 			`{"access_token":"abcd1234\`,
 			`{"access_token":"[REDACTED]\`,
 		},
+		{
+			"json member name with escaped underscore",
+			`{"access\u005ftoken":"abcd1234","token_type":"bearer"}`,
+			`{"access\u005ftoken":"[REDACTED]","token_type":"bearer"}`,
+		},
+		{
+			"json member name with escaped underscore and mixed case",
+			`{"Refresh\u005FTOKEN":"abcd1234"}`,
+			`{"Refresh\u005FTOKEN":"[REDACTED]"}`,
+		},
+		{
+			"form field name with percent encoded underscore",
+			"access%5Ftoken=abcd1234&scope=read",
+			"access%5Ftoken=[REDACTED]&scope=read",
+		},
+		{
+			"form field name with lowercase percent encoded underscore",
+			"scope=read&id%5ftoken=abcd1234",
+			"scope=read&id%5ftoken=[REDACTED]",
+		},
+		{
+			"form encoded body inside a json error field",
+			`{"error":"access_token=abcd1234"}`,
+			`{"error":"access_token=[REDACTED]"}`,
+		},
+		{
+			"json member name that merely ends with a token name",
+			`{"my_access_token_hint":"abcd1234"}`,
+			`{"my_access_token_hint":"abcd1234"}`,
+		},
+		{
+			"form field name that merely contains a token name",
+			"xaccess_token=abcd1234",
+			"xaccess_token=abcd1234",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -2225,6 +2260,8 @@ func TestRedactOAuthTokenResponse(t *testing.T) {
 			`{"refresh_token":"a\\b\"c\\\"def","expires_in":3600}`,
 			`{"id_token":"abc\"def"}`,
 			"access_token=abc%22def&scope=read",
+			`{"access\u005ftoken":"abcdef"}`,
+			"access%5Ftoken=abcdef&scope=read",
 		} {
 			actual := redactOAuthTokenResponse(body)
 			assert.NotContains(t, actual, "abc")
