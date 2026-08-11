@@ -1003,6 +1003,11 @@ func (s *Server) seedSessionAttributeFields(groupID string) error {
 			current.Type = expected.Type
 			current.Attrs["platforms"] = expected.Attrs["platforms"]
 			current.Attrs[model.SAAttrDisplayName] = expected.Attrs[model.SAAttrDisplayName]
+			if operators, ok := expected.Attrs[model.NativeAttributeAttrOperators]; ok {
+				current.Attrs[model.NativeAttributeAttrOperators] = operators
+			} else {
+				delete(current.Attrs, model.NativeAttributeAttrOperators)
+			}
 			if err := syncSessionAttributeOptions(current, expected); err != nil {
 				return fmt.Errorf("failed to sync options for session attribute field %q: %w", expected.Name, err)
 			}
