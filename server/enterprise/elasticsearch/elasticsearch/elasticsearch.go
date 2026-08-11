@@ -371,11 +371,6 @@ func (es *ElasticsearchInterfaceImpl) Stop() *model.AppError {
 	es.bulkProcessor = nil
 	es.syncBulkProcessor = nil
 
-	// Flushing any pending requests. Attempt both processors even when the
-	// first one reports an error so a failed flush cannot leak the other worker.
-	// PlatformService initializes its logger before this lifecycle is reached.
-	// Log returns that logger through an interface, so checking the result
-	// against nil is ineffective; keep only the Platform guard for test doubles.
 	if bulkProcessor != nil {
 		if err := bulkProcessor.Stop(); err != nil && es.Platform != nil {
 			es.Platform.Log().Warn("Error stopping bulk processor", mlog.Err(err))
