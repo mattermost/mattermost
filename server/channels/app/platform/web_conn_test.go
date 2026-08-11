@@ -18,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 type hookRunner struct {
@@ -236,6 +237,91 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		t.Run("End", func(t *testing.T) { run(int64(127), deadQueueSize+10) })
 		t.Run("Cycled End", func(t *testing.T) { run(int64(137), deadQueueSize+10) })
 		t.Run("Overwritten First", func(t *testing.T) { run(int64(128), deadQueueSize+10) })
+	})
+}
+
+type visibilitySuite struct {
+	mockSuite
+	canSee bool
+}
+
+func (vs *visibilitySuite) UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserID string) (bool, *model.AppError) {
+	return vs.canSee, nil
+}
+
+func TestWebConnShouldSendEventToGuest(t *testing.T) {
+	th := Setup(t)
+
+	targetUserID := model.NewId()
+
+	newGuestConn := func(canSee bool) *WebConn {
+		return &WebConn{
+			Platform: th.Service,
+			Suite:    &visibilitySuite{canSee: canSee},
+			UserId:   model.NewId(),
+		}
+	}
+
+	cpaEvent := func(userID any) *model.WebSocketEvent {
+		msg := model.NewWebSocketEvent(model.WebsocketEventCPAValuesUpdated, "", "", "", nil, "")
+		if userID != nil {
+			msg.Add("user_id", userID)
+		}
+		msg.Add("values", map[string]string{"fieldID": "secret"})
+		return msg
+	}
+
+	propertyEvent := func(objectType string, targetID any) *model.WebSocketEvent {
+		msg := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, "", "", "", nil, "")
+		msg.Add("object_type", objectType)
+		if targetID != nil {
+			msg.Add("target_id", targetID)
+		}
+		msg.Add("values", `[{"value":"secret"}]`)
+		return msg
+	}
+
+	t.Run("CPA values updated is not sent to a guest who cannot see the target user", func(t *testing.T) {
+		assert.False(t, newGuestConn(false).ShouldSendEventToGuest(cpaEvent(targetUserID)))
+	})
+
+	t.Run("CPA values updated is sent to a guest who can see the target user", func(t *testing.T) {
+		assert.True(t, newGuestConn(true).ShouldSendEventToGuest(cpaEvent(targetUserID)))
+	})
+
+	t.Run("CPA values updated is not sent when the target user is missing or malformed", func(t *testing.T) {
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(cpaEvent(nil)))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(cpaEvent("")))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(cpaEvent(42)))
+	})
+
+	t.Run("user property values updated is not sent to a guest who cannot see the target user", func(t *testing.T) {
+		assert.False(t, newGuestConn(false).ShouldSendEventToGuest(propertyEvent(model.PropertyFieldObjectTypeUser, targetUserID)))
+	})
+
+	t.Run("user property values updated is sent to a guest who can see the target user", func(t *testing.T) {
+		assert.True(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(model.PropertyFieldObjectTypeUser, targetUserID)))
+	})
+
+	t.Run("user property values updated is not sent when the target user is missing or malformed", func(t *testing.T) {
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(model.PropertyFieldObjectTypeUser, nil)))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(model.PropertyFieldObjectTypeUser, "")))
+		assert.False(t, newGuestConn(true).ShouldSendEventToGuest(propertyEvent(model.PropertyFieldObjectTypeUser, 42)))
+	})
+
+	t.Run("non-user property values updated is unaffected", func(t *testing.T) {
+		for _, objectType := range []string{
+			model.PropertyFieldObjectTypePost,
+			model.PropertyFieldObjectTypeChannel,
+			model.PropertyFieldObjectTypeSystem,
+		} {
+			assert.True(t, newGuestConn(false).ShouldSendEventToGuest(propertyEvent(objectType, model.NewId())), objectType)
+		}
+	})
+
+	t.Run("unrelated events are unaffected", func(t *testing.T) {
+		msg := model.NewWebSocketEvent(model.WebsocketEventTyping, "", "", "", nil, "")
+		assert.True(t, newGuestConn(false).ShouldSendEventToGuest(msg))
 	})
 }
 
