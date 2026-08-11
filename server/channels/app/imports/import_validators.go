@@ -457,8 +457,11 @@ func ValidateReactionImportData(data *ReactionImportData, parentCreateAt int64) 
 
 	if data.EmojiName == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.EmojiName) > model.EmojiNameMaxLength {
-		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_length.error", nil, "", http.StatusBadRequest)
+	}
+	// Same empty/length/charset rules as Reaction.IsValid. Do not use IsValidEmojiName —
+	// it rejects system emoji names, which are valid on reactions.
+	if *data.EmojiName == "" || len(*data.EmojiName) > model.EmojiNameMaxLength || !model.IsValidAlphaNumHyphenUnderscorePlus(*data.EmojiName) {
+		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_invalid.error", nil, "emoji_name="+*data.EmojiName, http.StatusBadRequest)
 	}
 
 	if data.CreateAt == nil {
