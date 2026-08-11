@@ -3792,6 +3792,13 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 			if fromChannelID != "" && err.Id == app.MissingChannelMemberError {
 				break
 			}
+			if fromChannelID != "" {
+				// Earlier pages have already streamed, committing the response
+				// to status 200. Setting c.Err here would only cause a second,
+				// conflicting WriteHeader call, so log and end the stream instead.
+				c.Logger.Warn("Error while streaming channel members for user", mlog.Err(err))
+				break
+			}
 			c.Err = err
 			return
 		}

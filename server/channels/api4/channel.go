@@ -1469,14 +1469,17 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			if fromChannelID != "" && err.Id == "app.channel.get_channels.not_found.app_error" {
 				break
 			}
-			c.Err = err
-			return
+			// The opening `[` above has already committed the response to
+			// status 200, so setting c.Err here would only cause a second,
+			// conflicting WriteHeader call. Log and end the stream instead.
+			c.Logger.Warn("Error while streaming channels for user", mlog.Err(err))
+			break
 		}
 
 		err = c.App.FillInChannelsProps(c.AppContext, channels)
 		if err != nil {
-			c.Err = err
-			return
+			c.Logger.Warn("Error while streaming channels for user", mlog.Err(err))
+			break
 		}
 
 		// intermediary comma between sets
