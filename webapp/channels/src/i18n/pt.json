@@ -1293,8 +1293,6 @@
   "admin.team.siteNameExample": "Exemplo: \"Mattermost\"",
   "admin.team.siteNameTitle": "Nome do site:",
   "admin.team.userCreationTitle": "Ativar criação de conta: ",
-  "admin.teamSettings.teamDetail.teamDescription": "<b>Descrição da equipa</b>:",
-  "admin.teamSettings.teamDetail.teamName": "<b>Nome da equipa</b>:",
   "admin.team_channel_settings.cancel": "Cancelar",
   "admin.team_channel_settings.convertAndRemoveConfirmModal.cancel": "Não, cancelar",
   "admin.team_channel_settings.convertConfirmModal.cancel": "Não, cancelar",

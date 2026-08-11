@@ -747,11 +747,11 @@ func TestUpdateTeam(t *testing.T) {
 
 		require.Equal(t, uteam.AllowedDomains, "domain", "Update failed")
 
-		team.Name = "Updated name"
+		team.Name = "updated-" + model.NewRandomTeamName()
 		uteam, _, err = client.UpdateTeam(context.Background(), team)
 		require.NoError(t, err)
 
-		require.NotEqual(t, uteam.Name, "Updated name", "Should not update name")
+		require.Equal(t, uteam.Name, team.Name, "Should update name")
 
 		team.Email = "test@domain.com"
 		uteam, _, err = client.UpdateTeam(context.Background(), team)
@@ -794,9 +794,49 @@ func TestUpdateTeam(t *testing.T) {
 		team, _, err := client.CreateTeam(context.Background(), team)
 		require.NoError(t, err)
 
-		team.Name = "new-name"
-		_, _, err = client.UpdateTeam(context.Background(), team)
+		// Renaming the slug must also persist sanitized fields without letting
+		// non-renamable fields (e.g. Email, Type) leak through.
+		newName := "renamed-" + model.NewRandomTeamName()
+		newDescription := "Updated description"
+		team.Name = newName
+		team.Description = newDescription
+		team.Email = "leak+" + model.NewId() + "@simulator.amazonses.com"
+		team.Type = model.TeamInvite
+		uteam, _, err := client.UpdateTeam(context.Background(), team)
 		require.NoError(t, err)
+		require.Equal(t, newName, uteam.Name, "team name (slug) should be updated")
+		require.Equal(t, newDescription, uteam.Description, "team description should be updated")
+
+		fetched, _, err := client.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, newName, fetched.Name, "renamed slug should be persisted")
+		require.Equal(t, newDescription, fetched.Description, "updated description should be persisted")
+		require.NotEqual(t, team.Email, fetched.Email, "rename must not change the email")
+		require.Equal(t, model.TeamOpen, fetched.Type, "rename must not change the type")
+
+		// An invalid team name must be rejected and must not be persisted.
+		team.Name = "Invalid Name"
+		_, resp, err := client.UpdateTeam(context.Background(), team)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		fetched, _, err = client.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, newName, fetched.Name, "an invalid rename must leave the slug unchanged")
+
+		// Renaming to a name that is already in use must be rejected.
+		other := &model.Team{DisplayName: "Other", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TeamOpen}
+		other, _, err = client.CreateTeam(context.Background(), other)
+		require.NoError(t, err)
+
+		team.Name = other.Name
+		_, resp, err = client.UpdateTeam(context.Background(), team)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		fetched, _, err = client.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, newName, fetched.Name, "a duplicate rename must leave the slug unchanged")
 	})
 }
 
@@ -3740,6 +3780,25 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestUpdateTeamMemberRolesRejectsGuestAndAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	SystemAdminClient := th.SystemAdminClient
+
+	memberBefore, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+	require.NoError(t, err)
+	rolesBefore := memberBefore.Roles
+
+	resp, err := SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, model.TeamGuestRoleId+" "+model.TeamAdminRoleId)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "api.team.update_team_member_roles.guest_and_admin.app_error")
+
+	memberAfter, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+	require.NoError(t, err)
+	require.Equal(t, rolesBefore, memberAfter.Roles)
+}
+
 func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -4283,6 +4342,35 @@ func TestInviteUsersToTeam(t *testing.T) {
 		CheckRequestEntityTooLargeStatus(t, resp)
 		CheckErrorID(t, err, "app.email.rate_limit_exceeded.app_error")
 	}, "rate limits")
+}
+
+func TestLocalInviteUsersToTeamDeactivatedUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
+
+	_, appErr := th.App.UpdateActive(th.Context, th.BasicUser2, false)
+	require.Nil(t, appErr)
+	t.Cleanup(func() {
+		_, _ = th.App.UpdateActive(th.Context, th.BasicUser2, true)
+	})
+
+	t.Run("non-graceful local invite returns error for deactivated user", func(t *testing.T) {
+		_, err := th.LocalClient.InviteUsersToTeam(context.Background(), th.BasicTeam.Id, []string{th.BasicUser2.Email})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.team.invite_members.account_deactivated.app_error")
+	})
+
+	t.Run("graceful local invite returns error for deactivated user", func(t *testing.T) {
+		invitesWithErrors, _, err := th.LocalClient.InviteUsersToTeamGracefully(context.Background(), th.BasicTeam.Id, []string{th.BasicUser2.Email})
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.NotNil(t, invitesWithErrors[0].Error)
+		CheckErrorID(t, invitesWithErrors[0].Error, "api.team.invite_members.account_deactivated.app_error")
+	})
 }
 
 func TestInviteUsersToTeamWithProfiles(t *testing.T) {
