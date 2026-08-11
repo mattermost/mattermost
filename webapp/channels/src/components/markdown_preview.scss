@@ -1,0 +1,44 @@
+.markdown-preview {
+    display: flex;
+    overflow: hidden;
+    width: 100%;
+    max-width: 900px;
+    max-height: calc(100vh - 168px);
+    flex-direction: column;
+    border-radius: 8px;
+    background: var(--center-channel-bg);
+    color: var(--center-channel-color);
+
+    @media screen and (max-width: 768px) {
+        max-width: 100%;
+        height: calc(100vh - 108px);
+        max-height: none;
+        border-radius: 0;
+    }
+
+    &__filename {
+        display: block;
+        padding: 8px 16px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+        opacity: 0.72;
+    }
+
+    &__content {
+        overflow: auto;
+        padding: 16px 24px 24px;
+        text-align: left;
+        word-break: break-word;
+
+        > :first-child {
+            margin-top: 0;
+        }
+
+        > :last-child {
+            margin-bottom: 0;
+        }
+    }
+}
