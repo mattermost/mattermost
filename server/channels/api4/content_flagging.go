@@ -354,6 +354,8 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.App.RecordPostDelivery(c.AppContext, c.AppContext.Session().UserId, post, model.DeliveryMechanismProduct)
+
 	if err := post.EncodeJSON(w); err != nil {
 		c.Err = model.NewAppError("getFlaggedPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return

@@ -213,6 +213,12 @@ func (a *App) runGuardedMessageWillBeUpdated(rctx request.CTX, newPost, oldPost 
 	trackPluginDelivery := a.deliveryTrackingEnabled()
 	var deliveredPluginIDs []string
 
+	// Deferred so a later rejection cannot discard plugins that already received the content.
+	// oldPost carries the same id and channel as newPost, and is non-nil on every exit.
+	defer func() {
+		a.RecordPostDeliveryToPlugins(rctx, deliveredPluginIDs, oldPost)
+	}()
+
 	// Phase A: fan out to non-guard plugins, fail-open. With empty guards the exclude list is
 	// empty and behavior is identical to plain RunMultiHook.
 	var rejectionReason string
@@ -253,8 +259,6 @@ func (a *App) runGuardedMessageWillBeUpdated(rctx request.CTX, newPost, oldPost 
 			deliveredPluginIDs = append(deliveredPluginIDs, g.PluginId)
 		}
 	}
-
-	a.RecordPostDeliveryToPlugins(rctx, deliveredPluginIDs, newPost)
 
 	return newPost, nil
 }

@@ -887,6 +887,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					message.Add("thread", string(payload))
 					message.Add("previous_unread_mentions", previousUnreadMentions)
 					message.Add("previous_unread_replies", previousUnreadReplies)
+					a.markPostDeliveryForBroadcast(rctx, message, userThread.Post)
 
 					auditRec := a.MakeAuditRecord(rctx, model.AuditEventWebsocketPost, model.AuditStatusSuccess)
 					defer a.LogAuditRec(rctx, auditRec, nil)
@@ -1059,6 +1060,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				message.Add("thread", string(payload))
 				message.Add("previous_unread_mentions", previousUnreadMentions)
 				message.Add("previous_unread_replies", previousUnreadReplies)
+				a.markPostDeliveryForBroadcast(rctx, message, userThread.Post)
 
 				a.Publish(message)
 			}

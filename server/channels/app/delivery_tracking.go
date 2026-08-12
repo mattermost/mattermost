@@ -167,7 +167,8 @@ func (a *App) markPostDeliveryForBroadcast(rctx request.CTX, message *model.WebS
 
 // RecordPushDelivery records that a post's content reached a user inside a push notification
 // payload. Only full-content message pushes carry the post body: generic pushes deliver no
-// content, and the fetch an id-loaded push triggers is recorded by the REST path instead.
+// content, and an id-loaded push carries only ids — that delivery is recorded by the ack handler
+// the device calls to fetch the message.
 func (a *App) RecordPushDelivery(rctx request.CTX, userID string, msg *model.PushNotification) {
 	if !a.deliveryTrackingEnabled() || msg == nil || msg.Type != model.PushTypeMessage ||
 		msg.PostId == "" || *a.Config().EmailSettings.PushNotificationContents != model.FullNotification {

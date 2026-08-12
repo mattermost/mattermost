@@ -763,8 +763,9 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
 			var isMember bool
+			var post *model.Post
 			var appErr *model.AppError
-			if _, appErr, isMember = c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
+			if post, appErr, isMember = c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
 				c.Err = appErr
 				return
 			}
@@ -781,6 +782,8 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, "", http.StatusInternalServerError).Wrap(appError)
 				return
 			}
+			c.App.RecordPostDelivery(c.AppContext, c.AppContext.Session().UserId, post, model.DeliveryMechanismPush)
+
 			if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
 				c.Logger.Warn("Error while writing response", mlog.Err(err2))
 			}
