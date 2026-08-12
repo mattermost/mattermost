@@ -365,6 +365,20 @@ test.describe('Post height', () => {
                 await expect(preview.locator('.PostAttachmentOpenGraph__image img')).toBeVisible();
             },
         },
+        {
+            name: 'post with an OpenGraph preview with a larger image',
+            getSeedOptions: (baseUrl) => ({
+                message: `${baseUrl}/opengraph-huge.html`,
+            }),
+            additionalCheck: async ({postComponent}) => {
+                const preview = postComponent.container.locator('.PostAttachmentOpenGraph');
+                await expect(preview).toBeVisible();
+                await expect(preview.locator('.sitename')).toHaveText('Mattermost Test');
+                await expect(preview.locator('.title')).toHaveText('OpenGraph Preview Title');
+                await expect(preview.locator('.description')).toHaveText('This is a test page with a large image.');
+                await expect(preview.locator('.PostAttachmentOpenGraph__image img')).toBeVisible();
+            },
+        },
     ];
 
     for (const testCase of testCases) {
