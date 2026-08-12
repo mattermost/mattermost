@@ -147,6 +147,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		member, _, err = th.service.JoinUserToTeam(th.Context, team, ruser)
 		require.NoError(t, err)
 		require.True(t, member.SchemeGuest)
+		require.False(t, member.SchemeUser)
 		require.False(t, member.SchemeAdmin)
 	})
 
