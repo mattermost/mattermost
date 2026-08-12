@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -256,7 +255,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}()
 	}
 
-	user, nErr := a.Srv().Store().User().Get(context.Background(), post.UserId)
+	user, nErr := a.Srv().Store().User().Get(rctx, post.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {

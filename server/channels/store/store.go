@@ -460,7 +460,7 @@ type UserStore interface {
 	UpdateMfaActive(userID string, active bool) error
 	StoreMfaUsedTimestamps(userID string, ts []int) error
 	GetMfaUsedTimestamps(userID string) ([]int, error)
-	Get(ctx context.Context, id string) (*model.User, error)
+	Get(rctx request.CTX, id string) (*model.User, error)
 	GetMany(rctx request.CTX, ids []string) ([]*model.User, error)
 	GetAll() ([]*model.User, error)
 	ClearCaches()
@@ -522,8 +522,8 @@ type UserStore interface {
 	Count(options model.UserCountOptions) (int64, error)
 	GetTeamGroupUsers(teamID string) ([]*model.User, error)
 	GetChannelGroupUsers(channelID string) ([]*model.User, error)
-	PromoteGuestToUser(userID string) error
-	DemoteUserToGuest(userID string) (*model.User, error)
+	PromoteGuestToUser(rctx request.CTX, userID string) error
+	DemoteUserToGuest(rctx request.CTX, userID string) (*model.User, error)
 	DeactivateGuests() ([]string, error)
 	DeactivateMagicLinkGuests() ([]string, error)
 	AutocompleteUsersInChannel(rctx request.CTX, teamID, channelID, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)
