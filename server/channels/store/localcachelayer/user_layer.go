@@ -5,7 +5,6 @@ package localcachelayer
 
 import (
 	"bytes"
-	"context"
 	"sort"
 	"sync"
 
