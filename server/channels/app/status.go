@@ -93,7 +93,7 @@ func (a *App) SetCustomStatus(rctx request.CTX, userID string, cs *model.CustomS
 		}
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func (a *App) SetCustomStatus(rctx request.CTX, userID string, cs *model.CustomS
 }
 
 func (a *App) RemoveCustomStatus(rctx request.CTX, userID string) *model.AppError {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return err
 	}
@@ -128,8 +128,8 @@ func (a *App) RemoveCustomStatus(rctx request.CTX, userID string) *model.AppErro
 	return nil
 }
 
-func (a *App) GetCustomStatus(userID string) (*model.CustomStatus, *model.AppError) {
-	user, err := a.GetUser(userID)
+func (a *App) GetCustomStatus(rctx request.CTX, userID string) (*model.CustomStatus, *model.AppError) {
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return &model.CustomStatus{}, err
 	}

@@ -517,8 +517,8 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 			UserId: th.BasicUser.Id,
 			Roles:  model.SystemUserRoleId,
 		}
-		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser.Id))
-		assert.False(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
+		assert.True(t, th.App.SessionHasPermissionToUser(th.Context, session, th.BasicUser.Id))
+		assert.False(t, th.App.SessionHasPermissionToUser(th.Context, session, th.BasicUser2.Id))
 	})
 
 	t.Run("test user manager access", func(t *testing.T) {
@@ -526,11 +526,11 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 			UserId: th.BasicUser.Id,
 			Roles:  model.SystemUserManagerRoleId,
 		}
-		assert.False(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
+		assert.False(t, th.App.SessionHasPermissionToUser(th.Context, session, th.BasicUser2.Id))
 
 		th.AddPermissionToRole(t, model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
-		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
-		assert.False(t, th.App.SessionHasPermissionToUser(session, th.SystemAdminUser.Id))
+		assert.True(t, th.App.SessionHasPermissionToUser(th.Context, session, th.BasicUser2.Id))
+		assert.False(t, th.App.SessionHasPermissionToUser(th.Context, session, th.SystemAdminUser.Id))
 		th.RemovePermissionFromRole(t, model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
@@ -545,7 +545,7 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 			assert.Nil(t, appErr)
 		}()
 
-		assert.False(t, th.App.SessionHasPermissionToUser(session, bot.UserId))
+		assert.False(t, th.App.SessionHasPermissionToUser(th.Context, session, bot.UserId))
 	})
 
 	t.Run("test admin user access", func(t *testing.T) {
@@ -553,8 +553,8 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 			UserId: th.SystemAdminUser.Id,
 			Roles:  model.SystemAdminRoleId,
 		}
-		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser.Id))
-		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
+		assert.True(t, th.App.SessionHasPermissionToUser(th.Context, session, th.BasicUser.Id))
+		assert.True(t, th.App.SessionHasPermissionToUser(th.Context, session, th.BasicUser2.Id))
 	})
 }
 

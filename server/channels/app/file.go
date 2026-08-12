@@ -1616,7 +1616,7 @@ func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) (*model.
 	if rctx.Session().UserId == userID {
 		subject, appErr = a.BuildAccessControlSubjectForSession(rctx, "")
 	} else {
-		user, err := a.GetUser(userID)
+		user, err := a.GetUser(rctx, userID)
 		if err != nil {
 			rctx.Logger().Warn("Failed to get user for file download permission filtering",
 				mlog.String("user_id", userID),

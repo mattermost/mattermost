@@ -93,7 +93,7 @@ func (a *App) NotifySessionsExpired() error {
 
 func (a *App) getSessionExpiredPushMessage(session *model.Session) string {
 	locale := model.DefaultLocale
-	user, err := a.GetUser(session.UserId)
+	user, err := a.GetUser(request.EmptyContext(a.Log()), session.UserId)
 	if err == nil {
 		locale = user.Locale
 	}

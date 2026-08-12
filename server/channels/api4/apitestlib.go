@@ -485,31 +485,31 @@ func (th *TestHelper) InitLogin(tb testing.TB) *TestHelper {
 	systemAdminPassword := th.SystemAdminUser.Password
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 	require.Nil(tb, appErr)
-	th.SystemAdminUser, appErr = th.App.GetUser(th.SystemAdminUser.Id)
+	th.SystemAdminUser, appErr = th.App.GetUser(th.Context, th.SystemAdminUser.Id)
 	require.Nil(tb, appErr)
 
 	th.SystemManagerUser = th.CreateUser(tb)
 	systemManagerPassword := th.SystemManagerUser.Password
 	_, appErr = th.App.UpdateUserRoles(th.Context, th.SystemManagerUser.Id, model.SystemUserRoleId+" "+model.SystemManagerRoleId, false)
 	require.Nil(tb, appErr)
-	th.SystemManagerUser, appErr = th.App.GetUser(th.SystemManagerUser.Id)
+	th.SystemManagerUser, appErr = th.App.GetUser(th.Context, th.SystemManagerUser.Id)
 	require.Nil(tb, appErr)
 
 	th.TeamAdminUser = th.CreateUser(tb)
 	teamAdminPassword := th.TeamAdminUser.Password
 	_, appErr = th.App.UpdateUserRoles(th.Context, th.TeamAdminUser.Id, model.SystemUserRoleId, false)
 	require.Nil(tb, appErr)
-	th.TeamAdminUser, appErr = th.App.GetUser(th.TeamAdminUser.Id)
+	th.TeamAdminUser, appErr = th.App.GetUser(th.Context, th.TeamAdminUser.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicUser = th.CreateUser(tb)
 	basicUserPassword := th.BasicUser.Password
-	th.BasicUser, appErr = th.App.GetUser(th.BasicUser.Id)
+	th.BasicUser, appErr = th.App.GetUser(th.Context, th.BasicUser.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicUser2 = th.CreateUser(tb)
 	basicUser2Password := th.BasicUser2.Password
-	th.BasicUser2, appErr = th.App.GetUser(th.BasicUser2.Id)
+	th.BasicUser2, appErr = th.App.GetUser(th.Context, th.BasicUser2.Id)
 	require.Nil(tb, appErr)
 
 	// restore non-hashed password for login
@@ -1424,7 +1424,7 @@ func (th *TestHelper) SetUserRemoteID(tb testing.TB, userID, remoteID string) *m
 	require.NoError(tb, err)
 
 	th.App.InvalidateCacheForUser(userID)
-	user, appErr := th.App.GetUser(userID)
+	user, appErr := th.App.GetUser(th.Context, userID)
 	require.Nil(tb, appErr)
 	return user
 }

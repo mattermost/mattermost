@@ -2470,7 +2470,7 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	// user.isbot / user.createat) for runtime PDP evaluation. a.GetUser is the
 	// cached user read and already resolves IsBot via the Bots join, so this is
 	// a single (usually cache-hit) lookup per subject build.
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		// Fail closed: a native-attribute policy must not silently evaluate
 		// against zero-valued natives if the user read fails. The caller

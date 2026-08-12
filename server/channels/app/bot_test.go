@@ -84,7 +84,7 @@ func TestCreateBot(t *testing.T) {
 		assert.Equal(t, "a bot", bot.Description)
 		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
 
-		user, err := th.App.GetUser(bot.UserId)
+		user, err := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, err)
 
 		// Check that a post was created to add bot to team and channels
@@ -709,7 +709,7 @@ func TestDisableUserBots(t *testing.T) {
 	require.Nil(t, err)
 	require.Zero(t, bot.DeleteAt)
 
-	user, err := th.App.GetUser(u2bot1.UserId)
+	user, err := th.App.GetUser(th.Context, u2bot1.UserId)
 	require.Nil(t, err)
 	require.Zero(t, user.DeleteAt)
 
@@ -935,7 +935,7 @@ func TestConvertUserToBot(t *testing.T) {
 		require.Nil(t, err)
 
 		// Verify OAuth credentials are set
-		oauthUser, appErr := th.App.GetUser(oauthUser.Id)
+		oauthUser, appErr := th.App.GetUser(th.Context, oauthUser.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "google", oauthUser.AuthService)
 		require.NotNil(t, oauthUser.AuthData)
@@ -949,7 +949,7 @@ func TestConvertUserToBot(t *testing.T) {
 		}()
 
 		// Get updated user and verify OAuth credentials are cleared
-		updatedUser, err := th.App.GetUser(oauthUser.Id)
+		updatedUser, err := th.App.GetUser(th.Context, oauthUser.Id)
 		require.Nil(t, err)
 		assert.Empty(t, updatedUser.AuthService)
 		// AuthData may be empty string instead of nil in the database

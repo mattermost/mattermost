@@ -329,7 +329,7 @@ func canUserDirectMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Get shared channel sync service for remote user checks
 	scs := c.App.Srv().GetSharedChannelSyncService()
 	if scs != nil {
-		otherUser, otherErr := c.App.GetUser(c.Params.OtherUserId)
+		otherUser, otherErr := c.App.GetUser(c.AppContext, c.Params.OtherUserId)
 		if otherErr != nil {
 			canDM = false
 		} else {

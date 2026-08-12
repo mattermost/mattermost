@@ -108,7 +108,7 @@ func (*MobileLogsProvider) DoCommand(a *app.App, rctx request.CTX, args *model.C
 			}
 		}
 
-		caller, appErr := a.GetUser(args.UserId)
+		caller, appErr := a.GetUser(rctx, args.UserId)
 		if appErr != nil {
 			rctx.Logger().Error("Failed to get caller for mobile-logs command", mlog.String("user_id", args.UserId), mlog.Err(appErr))
 			return &model.CommandResponse{

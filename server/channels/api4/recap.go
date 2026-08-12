@@ -51,7 +51,7 @@ func getRecapLimitStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userID := c.AppContext.Session().UserId
 
-	status, appErr := c.App.GetRecapLimitStatus(userID)
+	status, appErr := c.App.GetRecapLimitStatus(c.AppContext, userID)
 	if appErr != nil {
 		c.Err = appErr
 		return

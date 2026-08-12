@@ -47,11 +47,11 @@ func (a *App) pluginAccessControlAvailable() bool {
 
 // validatePluginActingUser validates actingUserID is a well-formed ID of an
 // existing user. Permission checks are the calling plugin's responsibility.
-func (a *App) validatePluginActingUser(where, actingUserID string) *model.AppError {
+func (a *App) validatePluginActingUser(rctx request.CTX, where, actingUserID string) *model.AppError {
 	if !model.IsValidId(actingUserID) {
 		return model.NewAppError(where, "app.access_control.plugin.invalid_acting_user.app_error", nil, "", http.StatusBadRequest)
 	}
-	if _, appErr := a.GetUser(actingUserID); appErr != nil {
+	if _, appErr := a.GetUser(rctx, actingUserID); appErr != nil {
 		return model.NewAppError(where, "app.access_control.plugin.invalid_acting_user.app_error", nil, "", http.StatusBadRequest).Wrap(appErr)
 	}
 	return nil
@@ -121,7 +121,7 @@ func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, re
 		return a.resolvePluginPolicyExistence(rctx, where, pluginID, resourceType, resourceID, "abac_unavailable")
 	}
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		rctx.Logger().Warn("Plugin access evaluation: failed to load user; resolving policy existence",
 			mlog.String("plugin_id", pluginID),
@@ -185,7 +185,7 @@ func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUs
 	if appErr := a.pluginAccessControlScopeCheck("SavePluginAccessControlPolicy", pluginID, policy.Type); appErr != nil {
 		return nil, appErr
 	}
-	if appErr := a.validatePluginActingUser("SavePluginAccessControlPolicy", actingUserID); appErr != nil {
+	if appErr := a.validatePluginActingUser(rctx, "SavePluginAccessControlPolicy", actingUserID); appErr != nil {
 		return nil, appErr
 	}
 
@@ -331,7 +331,7 @@ func (a *App) DeletePluginAccessControlPolicy(rctx request.CTX, pluginID, acting
 	if appErr := a.pluginAccessControlScopeCheck(where, pluginID, resourceType); appErr != nil {
 		return appErr
 	}
-	if appErr := a.validatePluginActingUser(where, actingUserID); appErr != nil {
+	if appErr := a.validatePluginActingUser(rctx, where, actingUserID); appErr != nil {
 		return appErr
 	}
 	if !model.IsValidId(id) {
@@ -366,7 +366,7 @@ func (a *App) CheckPluginAccessControlExpression(rctx request.CTX, pluginID, act
 	if appErr := a.pluginAccessControlScopeCheck("CheckPluginAccessControlExpression", pluginID, resourceType); appErr != nil {
 		return nil, appErr
 	}
-	if appErr := a.validatePluginActingUser("CheckPluginAccessControlExpression", actingUserID); appErr != nil {
+	if appErr := a.validatePluginActingUser(rctx, "CheckPluginAccessControlExpression", actingUserID); appErr != nil {
 		return nil, appErr
 	}
 
@@ -380,7 +380,7 @@ func (a *App) QueryUsersForPluginAccessControlExpression(rctx request.CTX, plugi
 	if appErr := a.pluginAccessControlScopeCheck("QueryUsersForPluginAccessControlExpression", pluginID, resourceType); appErr != nil {
 		return nil, appErr
 	}
-	if appErr := a.validatePluginActingUser("QueryUsersForPluginAccessControlExpression", actingUserID); appErr != nil {
+	if appErr := a.validatePluginActingUser(rctx, "QueryUsersForPluginAccessControlExpression", actingUserID); appErr != nil {
 		return nil, appErr
 	}
 
@@ -411,7 +411,7 @@ func (a *App) GetPluginAccessControlFieldsAutocomplete(rctx request.CTX, pluginI
 	if a.Srv().ch.AccessControl == nil {
 		return nil, model.NewAppError("GetPluginAccessControlFieldsAutocomplete", "app.pap.get_access_control_auto_complete.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
-	if appErr := a.validatePluginActingUser("GetPluginAccessControlFieldsAutocomplete", actingUserID); appErr != nil {
+	if appErr := a.validatePluginActingUser(rctx, "GetPluginAccessControlFieldsAutocomplete", actingUserID); appErr != nil {
 		return nil, appErr
 	}
 
@@ -436,7 +436,7 @@ func (a *App) GetPluginAccessControlVisualAST(rctx request.CTX, pluginID, acting
 	if appErr := a.pluginAccessControlScopeCheck("GetPluginAccessControlVisualAST", pluginID, resourceType); appErr != nil {
 		return nil, appErr
 	}
-	if appErr := a.validatePluginActingUser("GetPluginAccessControlVisualAST", actingUserID); appErr != nil {
+	if appErr := a.validatePluginActingUser(rctx, "GetPluginAccessControlVisualAST", actingUserID); appErr != nil {
 		return nil, appErr
 	}
 

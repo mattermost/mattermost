@@ -247,7 +247,7 @@ func (a *App) SessionHasPermissionToCategory(rctx request.CTX, session model.Ses
 	return err == nil && category != nil && category.UserId == session.UserId && category.UserId == userID && category.TeamId == teamID
 }
 
-func (a *App) SessionHasPermissionToUser(session model.Session, userID string) bool {
+func (a *App) SessionHasPermissionToUser(rctx request.CTX, session model.Session, userID string) bool {
 	if userID == "" {
 		return false
 	}
@@ -263,7 +263,7 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 		return false
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return false
 	}
@@ -285,7 +285,7 @@ func (a *App) SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Se
 		return true
 	}
 	if err.Id == "store.sql_bot.get.missing.app_error" && err.Where == "SqlBotStore.Get" {
-		if a.SessionHasPermissionToUser(session, userID) {
+		if a.SessionHasPermissionToUser(rctx, session, userID) {
 			return true
 		}
 	}
@@ -293,7 +293,7 @@ func (a *App) SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Se
 }
 
 func (a *App) HasPermissionTo(askingUserId string, permission *model.Permission) bool {
-	user, err := a.GetUser(askingUserId)
+	user, err := a.GetUser(request.EmptyContext(a.Log()), askingUserId)
 	if err != nil {
 		return false
 	}
