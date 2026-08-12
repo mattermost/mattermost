@@ -4,6 +4,8 @@
 import React from 'react';
 import * as reactRedux from 'react-redux';
 
+import {WithTestMenuContext} from 'components/menu/menu_context_test';
+
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -47,7 +49,12 @@ describe('UserAccountNameMenuItem', () => {
     });
 
     test('should render with both first and last name along with username', () => {
-        renderWithContext(<UserAccountNameMenuItem/>, initialState);
+        renderWithContext(
+            <WithTestMenuContext>
+                <UserAccountNameMenuItem/>
+            </WithTestMenuContext>,
+            initialState,
+        );
 
         expect(screen.getByText('sampleFirstName sampleLastName')).toBeInTheDocument();
         expect(screen.getByText('@sampleUsername')).toBeInTheDocument();
@@ -68,7 +75,12 @@ describe('UserAccountNameMenuItem', () => {
             },
         } as GlobalState;
 
-        renderWithContext(<UserAccountNameMenuItem/>, state);
+        renderWithContext(
+            <WithTestMenuContext>
+                <UserAccountNameMenuItem/>
+            </WithTestMenuContext>,
+            state,
+        );
 
         expect(screen.queryByText('sampleFirstName sampleLastName')).not.toBeInTheDocument();
         expect(screen.getByText('@sampleUsername')).toBeInTheDocument();
@@ -77,7 +89,12 @@ describe('UserAccountNameMenuItem', () => {
     test('should try to open user settings modal', async () => {
         jest.spyOn(reactRedux, 'useDispatch').mockReturnValue(jest.fn());
 
-        renderWithContext(<UserAccountNameMenuItem/>, initialState);
+        renderWithContext(
+            <WithTestMenuContext>
+                <UserAccountNameMenuItem/>
+            </WithTestMenuContext>,
+            initialState,
+        );
 
         await userEvent.click(screen.getByRole('menuitem'));
 
@@ -85,7 +102,11 @@ describe('UserAccountNameMenuItem', () => {
     });
 
     test('should not break if no props are passed', () => {
-        const {container} = renderWithContext(<UserAccountNameMenuItem/>);
+        const {container} = renderWithContext(
+            <WithTestMenuContext>
+                <UserAccountNameMenuItem/>
+            </WithTestMenuContext>,
+        );
 
         expect(container).toMatchSnapshot();
     });
