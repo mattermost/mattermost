@@ -18,7 +18,7 @@ import type {TableRow} from './value_selector_menu';
 import ValueSelectorMenu from './value_selector_menu';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
-import {AddAttributeButton, TestButton, TestResults, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isRankOperator, isNativeMethodOperator, celPathFor, isNativeField, isNativeBooleanField, hasControlledAttributeValues, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, RESOURCE_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
+import {AddAttributeButton, TestButton, TestResults, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isRankOperator, isNativeMethodOperator, isFieldAdvertisedOperator, celPathFor, isNativeField, isNativeBooleanField, hasControlledAttributeValues, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, valuePlaceholderForOperator, RESOURCE_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
 
 import './table_editor.scss';
 
@@ -206,14 +206,14 @@ const defaultOperatorForType = (type?: string): OperatorLabel => {
 
 // Whether an operator is valid for an attribute of the given type. Mirrors the
 // per-type operator sets shown by OperatorSelectorMenu.
-const isOperatorValidForType = (op: string, type?: string): boolean => {
+export const isOperatorValidForType = (op: string, type?: string): boolean => {
     if (type === 'multiselect') {
         return isMultiselectOperator(op);
     }
     if (type === 'rank') {
         return isRankOperator(op) || op === OperatorLabel.IS_NOT;
     }
-    return !isMultiselectOperator(op) && !isRankOperator(op) && !isNativeMethodOperator(op);
+    return !isMultiselectOperator(op) && !isRankOperator(op) && !isNativeMethodOperator(op) && !isFieldAdvertisedOperator(op);
 };
 
 // Parses a CEL (Common Expression Language) string into a structured array of TableRow objects.
@@ -512,7 +512,7 @@ function TableEditor({
         const newRow: TableRow = {
             attribute: firstAvailableAttribute.name,
             attribute_object_type: firstAvailableAttribute.object_type,
-            operator: isNativeField(firstAvailableAttribute) ? defaultOperatorForField(firstAvailableAttribute) : defaultOperatorForType(firstAvailableAttribute.type),
+            operator: allowedOperatorLabelsForField(firstAvailableAttribute) ? defaultOperatorForField(firstAvailableAttribute) : defaultOperatorForType(firstAvailableAttribute.type),
             values: [],
             attribute_type: firstAvailableAttribute.type || '',
             hasMaskedValues: false,
@@ -699,6 +699,7 @@ function TableEditor({
                             const isYoungerThan = row.operator === OperatorLabel.YOUNGER_THAN;
                             const youngerThanValue = row.values.length > 0 ? row.values[0] : '';
                             const youngerThanInvalid = isYoungerThan && youngerThanValue.trim() !== '' && !isValidYoungerThanDaysValue(youngerThanValue);
+                            const valuePlaceholder = valuePlaceholderForOperator(row.operator);
 
                             // Channel attributes this row's user attribute may be
                             // compared against (offered as the right-hand side
@@ -759,7 +760,7 @@ function TableEditor({
                                                 disabled={cellDisabled}
                                                 updateValues={(values: string[]) => updateRowValues(index, values)}
                                                 options={row.attribute ? field?.attrs?.options || [] : []}
-                                                placeholder={isYoungerThan ? formatMessage({id: 'admin.access_control.table_editor.value.days_placeholder', defaultMessage: 'Number of days'}) : undefined}
+                                                placeholder={valuePlaceholder ? formatMessage(valuePlaceholder) : undefined}
                                                 channelFields={supportsTarget ? targets : undefined}
                                                 onSelectTarget={(name: string) => updateRowTarget(index, name)}
                                             />
@@ -772,6 +773,7 @@ function TableEditor({
                                                 </div>
                                             )}
                                         </div>
+
                                     </td>
                                     <td className='table-editor__cell-actions'>
                                         <button
