@@ -228,10 +228,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 		return nil, errors.Wrap(err, "error while getting DB version")
 	}
 
-	ok, err := store.ensureMinimumDBVersion(ver)
-	if !ok {
-		return nil, errors.Wrap(err, "error while checking DB version")
-	}
+	store.checkVersion(ver)
 
 	if !store.skipMigrations {
 		err = store.preMigration()
@@ -1044,17 +1041,24 @@ func IsDuplicate(err error) bool {
 	return false
 }
 
-// ensureMinimumDBVersion gets the DB version and ensures it is
-// above the required minimum version requirements.
-func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
+// checkVersion logs an error if the given Postgres version is unsupported.
+// Running an unsupported version is discouraged, but not prevented.
+func (ss *SqlStore) checkVersion(ver string) {
 	intVer, err := strconv.Atoi(ver)
 	if err != nil {
-		return false, fmt.Errorf("cannot parse DB version: %v", err)
+		ss.logger.Error("Cannot parse Postgres version.",
+			mlog.String("version", ver),
+			mlog.Err(err),
+		)
+		return
 	}
+
 	if intVer < minimumRequiredPostgresVersion {
-		return false, fmt.Errorf("minimum Postgres version requirements not met. Found: %s, Wanted: %s", versionString(intVer), versionString(minimumRequiredPostgresVersion))
+		ss.logger.Error("Unsupported Postgres version. Running an unsupported version may lead to unexpected behaviour.",
+			mlog.String("version", versionString(intVer)),
+			mlog.String("min_version", versionString(minimumRequiredPostgresVersion)),
+		)
 	}
-	return true, nil
 }
 
 // versionString converts an integer representation of a Postgres DB version
