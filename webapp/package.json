@@ -64,6 +64,7 @@
     },
     "braces": "3.0.3",
     "cheerio": "1.0.0-rc.12",
+    "date-fns": "2.29.3",
     "@testing-library/dom": {
       "dom-accessibility-api": "0.6.3"
     },
