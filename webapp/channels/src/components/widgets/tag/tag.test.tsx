@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import {render, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import Tag from './tag';
 
 describe('components/widgets/tag/Tag', () => {
     test('should render tag with text and default classes', () => {
-        render(
+        renderWithContext(
             <Tag
                 className={'test'}
                 text={'Test text'}
@@ -24,7 +24,7 @@ describe('components/widgets/tag/Tag', () => {
     });
 
     test('should render tag with icon', () => {
-        const {container} = render(
+        const {container} = renderWithContext(
             <Tag
                 className={'test'}
                 text={'Test text'}
@@ -44,7 +44,7 @@ describe('components/widgets/tag/Tag', () => {
     });
 
     test('should render tag with uppercase styling', () => {
-        render(
+        renderWithContext(
             <Tag
                 className={'test'}
                 text={'Test text'}
@@ -63,7 +63,7 @@ describe('components/widgets/tag/Tag', () => {
     });
 
     test('should render tag with size "sm"', () => {
-        render(
+        renderWithContext(
             <Tag
                 className={'test'}
                 text={'Test text'}
@@ -79,7 +79,7 @@ describe('components/widgets/tag/Tag', () => {
     });
 
     test('should render tag with "success" variant', () => {
-        render(
+        renderWithContext(
             <Tag
                 className={'test'}
                 text={'Test text'}
@@ -96,7 +96,7 @@ describe('components/widgets/tag/Tag', () => {
 
     test('should render as button and handle click when onClick provided', async () => {
         const click = jest.fn();
-        render(
+        renderWithContext(
             <Tag
                 className={'test'}
                 text={'Test text'}
