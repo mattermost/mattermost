@@ -6,8 +6,11 @@ import type {ConnectedProps} from 'react-redux';
 
 import {getCurrentChannelId, makeGetChannel, makeGetChannelUnreadCount} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {getAutoSortedCategoryIds, getDraggingState, isChannelSelected} from 'selectors/views/channel_sidebar';
+
+import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -39,8 +42,11 @@ function makeMapStateToProps() {
 
         const unreadCount = getUnreadCount(state, channel?.id || '');
 
+        const isMissingTeammateProfile = Boolean(channel && channel.type === Constants.DM_CHANNEL && !getUser(state, channel.teammate_id ?? ''));
+
         return {
             channel,
+            isMissingTeammateProfile,
             isCurrentChannel: channel?.id === currentChannelId,
             currentTeamName: currentTeam?.name,
             unreadMentions: unreadCount.mentions,

@@ -22,6 +22,7 @@ function SidebarChannel({
     isCurrentChannel,
     setChannelRef,
     channel,
+    isMissingTeammateProfile,
     currentTeamName,
     isDraggable,
     isChannelSelected,
@@ -37,6 +38,12 @@ function SidebarChannel({
     }
 
     if (!currentTeamName) {
+        return null;
+    }
+
+    // SidebarDirectChannel renders nothing until the teammate's profile has loaded. Without this,
+    // the wrapper below still renders, leaving a blank row taking up space in the sidebar.
+    if (isMissingTeammateProfile) {
         return null;
     }
 

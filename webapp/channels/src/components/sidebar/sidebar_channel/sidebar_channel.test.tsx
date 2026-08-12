@@ -36,6 +36,7 @@ describe('components/sidebar/sidebar_channel', () => {
             group_constrained: false,
         },
         channelId: 'channel_id',
+        isMissingTeammateProfile: false,
         isDraggable: false,
         channelIndex: 0,
         currentTeamName: 'team_name',
@@ -115,6 +116,23 @@ describe('components/sidebar/sidebar_channel', () => {
         );
 
         expect(container).toMatchSnapshot();
+    });
+
+    test('should render nothing for a DM channel whose teammate profile has not loaded', () => {
+        const props = {
+            ...baseProps,
+            channel: {
+                ...baseProps.channel,
+                type: 'D' as ChannelType,
+            },
+            isMissingTeammateProfile: true,
+        };
+
+        const {container} = renderWithContext(
+            <SidebarChannel {...props}/>,
+        );
+
+        expect(container).toBeEmptyDOMElement();
     });
 
     test('should match snapshot when GM channel', () => {
