@@ -157,9 +157,6 @@ const GroupMemberList = (props: Props) => {
     const Item = ({index, style}: ListChildComponentProps) => {
         const status = useSelector((state: GlobalState) => getStatusForUserId(state, members[index]?.user?.id) || UserStatuses.OFFLINE);
 
-        // Remove explicit height provided by VariableSizeList
-        style.height = undefined;
-
         if (isUserLoaded(index)) {
             const user = members[index].user;
             const name = members[index].displayName;
@@ -169,7 +166,12 @@ const GroupMemberList = (props: Props) => {
                     className='group-member-list_item'
                     first={index === 0}
                     last={index === group.member_count - 1}
-                    style={style}
+                    style={{
+                        ...style,
+
+                        // Remove explicit height provided by VariableSizeList
+                        height: undefined,
+                    }}
                     key={user.id}
                     role='listitem'
                 >
