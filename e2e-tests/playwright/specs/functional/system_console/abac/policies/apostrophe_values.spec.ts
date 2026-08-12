@@ -155,8 +155,22 @@ test.describe('System Console - Membership Policy apostrophe values (MM-64357)',
                 .first();
             await expect(reopenedValue).toHaveValue(APOSTROPHE_VALUE, {timeout: 10_000});
         } finally {
-            if (policyId) {
-                await adminClient.deleteAccessControlPolicy(policyId).catch(() => {});
+            // Clean up the policy. If we didn't capture the ID from the DOM (e.g. because
+            // save succeeded but navigation/assertion failed), search for it by name.
+            let idToDelete = policyId;
+            if (!idToDelete) {
+                try {
+                    const searchResult = await adminClient.searchAccessControlPolicies(policyName, 'parent', '', 10);
+                    const foundPolicy = searchResult.policies?.find((p) => p.name === policyName);
+                    if (foundPolicy) {
+                        idToDelete = foundPolicy.id;
+                    }
+                } catch {
+                    // Search failed; skip cleanup
+                }
+            }
+            if (idToDelete) {
+                await adminClient.deleteAccessControlPolicy(idToDelete).catch(() => {});
             }
         }
     });
