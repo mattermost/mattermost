@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -29,6 +30,12 @@ export enum CELOperator {
     CONTAINS = 'contains',
     IN = 'in',
     YOUNGER_THAN_DAYS = 'youngerThanDays',
+    IN_CIDR = 'inCIDR',
+    VERSION_EQ = 'versionEQ',
+    VERSION_GT = 'versionGT',
+    VERSION_GTE = 'versionGTE',
+    VERSION_LT = 'versionLT',
+    VERSION_LTE = 'versionLTE',
 }
 
 // Operator label constants
@@ -52,6 +59,13 @@ export enum OperatorLabel {
     IS_LESS_THAN = 'is less than',
 
     YOUNGER_THAN = 'younger than',
+
+    IN_CIDR = 'in IP range',
+    VERSION_IS = 'version is',
+    VERSION_GREATER_THAN = 'version is greater than',
+    VERSION_AT_LEAST = 'version is at least',
+    VERSION_LESS_THAN = 'version is less than',
+    VERSION_AT_MOST = 'version is at most',
 }
 
 // Map from visual AST operator to UI label. The comparison symbols (>=, >, <, <=)
@@ -70,6 +84,12 @@ export const OPERATOR_LABELS: Record<string, string> = {
     [CELOperator.CONTAINS]: OperatorLabel.CONTAINS,
     [CELOperator.IN]: OperatorLabel.IN,
     [CELOperator.YOUNGER_THAN_DAYS]: OperatorLabel.YOUNGER_THAN,
+    [CELOperator.IN_CIDR]: OperatorLabel.IN_CIDR,
+    [CELOperator.VERSION_EQ]: OperatorLabel.VERSION_IS,
+    [CELOperator.VERSION_GT]: OperatorLabel.VERSION_GREATER_THAN,
+    [CELOperator.VERSION_GTE]: OperatorLabel.VERSION_AT_LEAST,
+    [CELOperator.VERSION_LT]: OperatorLabel.VERSION_LESS_THAN,
+    [CELOperator.VERSION_LTE]: OperatorLabel.VERSION_AT_MOST,
     hasAnyOf: OperatorLabel.HAS_ANY_OF,
     hasAllOf: OperatorLabel.HAS_ALL_OF,
 };
@@ -97,6 +117,12 @@ export const OPERATOR_CONFIG: Record<string, {type: OperatorType; celOp: CELOper
     [OperatorLabel.IS_LESS_THAN]: {type: 'comparison', celOp: CELOperator.LESS_THAN},
 
     [OperatorLabel.YOUNGER_THAN]: {type: 'native_method', celOp: CELOperator.YOUNGER_THAN_DAYS},
+    [OperatorLabel.IN_CIDR]: {type: 'method', celOp: CELOperator.IN_CIDR},
+    [OperatorLabel.VERSION_IS]: {type: 'method', celOp: CELOperator.VERSION_EQ},
+    [OperatorLabel.VERSION_GREATER_THAN]: {type: 'method', celOp: CELOperator.VERSION_GT},
+    [OperatorLabel.VERSION_AT_LEAST]: {type: 'method', celOp: CELOperator.VERSION_GTE},
+    [OperatorLabel.VERSION_LESS_THAN]: {type: 'method', celOp: CELOperator.VERSION_LT},
+    [OperatorLabel.VERSION_AT_MOST]: {type: 'method', celOp: CELOperator.VERSION_LTE},
 };
 
 export function isMultiValueOperator(op: string): boolean {
@@ -124,6 +150,22 @@ export function isRankOperator(op: string): boolean {
 // attribute type.
 export function isNativeMethodOperator(op: string): boolean {
     return OPERATOR_CONFIG[op]?.type === 'native_method';
+}
+
+// Field-advertised method operators (inCIDR, version*) are exclusive to attributes
+// that declare them via attrs.operators. They must never be offered for—or left
+// applied to—unrelated text attributes.
+export function isFieldAdvertisedOperator(op: string): boolean {
+    const config = OPERATOR_CONFIG[op];
+    if (!config || config.type !== 'method') {
+        return false;
+    }
+    return config.celOp === CELOperator.IN_CIDR ||
+        config.celOp === CELOperator.VERSION_EQ ||
+        config.celOp === CELOperator.VERSION_GT ||
+        config.celOp === CELOperator.VERSION_GTE ||
+        config.celOp === CELOperator.VERSION_LT ||
+        config.celOp === CELOperator.VERSION_LTE;
 }
 
 // Native user attributes are referenced as `user.<name>` rather than the custom
@@ -166,11 +208,42 @@ export function isValidYoungerThanDaysValue(value: string): boolean {
     return (/^\d+$/).test(value.trim());
 }
 
-// Returns the operator labels a field may use. Native fields advertise their
-// allowed operator tokens via attrs.operators; everything else falls back to the
+const daysValuePlaceholder = defineMessage({
+    id: 'admin.access_control.table_editor.value.days_placeholder',
+    defaultMessage: 'Number of days',
+});
+
+const cidrValuePlaceholder = defineMessage({
+    id: 'admin.access_control.table_editor.value.cidr_placeholder',
+    defaultMessage: 'CIDR range (e.g. 10.0.0.0/8)',
+});
+
+const versionValuePlaceholder = defineMessage({
+    id: 'admin.access_control.table_editor.value.version_placeholder',
+    defaultMessage: 'Version (e.g. 6.0.0)',
+});
+
+// CIDR/version operators have no client-side format validation, so the value
+// input's placeholder is the only hint at the expected format.
+export function valuePlaceholderForOperator(operator: string): MessageDescriptor | undefined {
+    if (operator === OperatorLabel.YOUNGER_THAN) {
+        return daysValuePlaceholder;
+    }
+    if (operator === OperatorLabel.IN_CIDR) {
+        return cidrValuePlaceholder;
+    }
+    if (isFieldAdvertisedOperator(operator)) {
+        // Only version operators reach here; inCIDR is handled above.
+        return versionValuePlaceholder;
+    }
+    return undefined;
+}
+
+// Returns the operator labels a field may use. Fields advertise an explicit
+// operator token list via attrs.operators; everything else falls back to the
 // full set (operator menu still applies its multiselect filter).
 export function allowedOperatorLabelsForField(field?: UserPropertyField): string[] | undefined {
-    if (!isNativeField(field) || !field?.attrs?.operators) {
+    if (!field?.attrs?.operators) {
         return undefined;
     }
     return field.attrs.operators.
@@ -233,6 +306,8 @@ const SIMPLE_CONDITION_PATTERNS: RegExp[] = [
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.startsWith\(${CEL_STRING}.*?\)$`),
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.endsWith\(${CEL_STRING}.*?\)$`),
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.contains\(${CEL_STRING}.*?\)$`),
+    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.inCIDR\(${CEL_STRING}.*?\)$`),
+    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.version(?:EQ|GT|GTE|LT|LTE)\(${CEL_STRING}.*?\)$`),
 
     // Native user attributes (single segment after `user.`). Restricted to
     // the field/operator pairings the table editor can round-trip: boolean

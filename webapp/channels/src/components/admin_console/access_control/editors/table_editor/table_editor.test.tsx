@@ -6,7 +6,7 @@ import type {FieldType} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {isSimpleExpression, isSimpleCondition, isMultiselectOrGroup} from 'components/admin_console/access_control/editors/shared';
-import {parseExpression, findFirstAvailableAttributeFromList, rowToCEL, celStringLiteral, isRowValueValid} from 'components/admin_console/access_control/editors/table_editor/table_editor';
+import {parseExpression, findFirstAvailableAttributeFromList, rowToCEL, celStringLiteral, isRowValueValid, isOperatorValidForType} from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import type {TableRow} from 'components/admin_console/access_control/editors/table_editor/value_selector_menu';
 
 describe('parseExpression', () => {
@@ -795,6 +795,69 @@ describe('parseExpression with native user attributes', () => {
             },
         ]);
     });
+
+    test('parses session inCIDR helper', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.session.ip_address',
+                    operator: 'inCIDR',
+                    value: '10.0.0.0/8',
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'ip_address',
+                attribute_object_type: 'session',
+                operator: 'in IP range',
+                values: ['10.0.0.0/8'],
+                attribute_type: 'text',
+                hasMaskedValues: false,
+            },
+        ]);
+    });
+});
+
+describe('rowToCEL with session attribute helpers', () => {
+    test('inCIDR emits a member call on user.session.<name>', () => {
+        const cel = rowToCEL({
+            attribute: 'ip_address',
+            attribute_object_type: 'session',
+            operator: 'in IP range',
+            values: ['10.0.0.0/8'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('user.session.ip_address.inCIDR("10.0.0.0/8")');
+    });
+
+    test('versionGTE emits a member call on user.session.<name>', () => {
+        const cel = rowToCEL({
+            attribute: 'os_version',
+            attribute_object_type: 'session',
+            operator: 'version is at least',
+            values: ['6.0.0'],
+            attribute_type: 'text',
+            hasMaskedValues: false,
+        });
+        expect(cel).toBe('user.session.os_version.versionGTE("6.0.0")');
+    });
+});
+
+describe('isOperatorValidForType', () => {
+    test('rejects field-advertised operators for generic text attributes', () => {
+        expect(isOperatorValidForType('in IP range', 'text')).toBe(false);
+        expect(isOperatorValidForType('version is at least', 'text')).toBe(false);
+    });
+
+    test('still accepts standard text operators', () => {
+        expect(isOperatorValidForType('is', 'text')).toBe(true);
+        expect(isOperatorValidForType('starts with', 'text')).toBe(true);
+    });
 });
 
 describe('rowToCEL with native user attributes', () => {
@@ -1045,6 +1108,11 @@ describe('isSimpleCondition', () => {
 
     test('native youngerThanDays helper', () => {
         expect(isSimpleCondition('user.createat.youngerThanDays(7)')).toBe(true);
+    });
+
+    test('session inCIDR and version helpers', () => {
+        expect(isSimpleCondition('user.session.ip_address.inCIDR("10.0.0.0/8")')).toBe(true);
+        expect(isSimpleCondition('user.session.os_version.versionGTE("6.0.0")')).toBe(true);
     });
 
     test('unsupported native field/operator pairings are not simple', () => {
