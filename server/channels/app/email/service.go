@@ -57,6 +57,12 @@ type Service struct {
 	perMinuteEmailRateLimiter *throttled.GCRARateLimiterCtx
 	perHourEmailRateLimiter   *throttled.GCRARateLimiterCtx
 	EmailBatching             *EmailBatchingJob
+
+	postDeliveryRecorder func(userID string, post *model.Post)
+}
+
+func (es *Service) SetPostDeliveryRecorder(fn func(userID string, post *model.Post)) {
+	es.postDeliveryRecorder = fn
 }
 
 type ServiceConfig struct {

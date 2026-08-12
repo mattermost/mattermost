@@ -375,5 +375,12 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 
 	if nErr := es.SendMailWithEmbeddedFiles(user.Email, subject, renderedPage, embeddedFiles, "", "", "", "BatchedEmailNotification"); nErr != nil {
 		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
+		return
+	}
+
+	if es.postDeliveryRecorder != nil && emailNotificationContentsType == model.EmailNotificationContentsFull {
+		for _, notification := range notifications {
+			es.postDeliveryRecorder(userID, notification.post)
+		}
 	}
 }
