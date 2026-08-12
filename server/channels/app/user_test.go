@@ -121,7 +121,7 @@ func TestUpdateDefaultProfileImage(t *testing.T) {
 	err = th.App.UpdateDefaultProfileImage(th.Context, user)
 	require.Nil(t, err)
 
-	user = getUserFromDB(th.App, user.Id, t)
+	user = getUserFromDB(th.Context, th.App, user.Id, t)
 	assert.Less(t, user.LastPictureUpdate, -startTime, "LastPictureUpdate should be set to -(current time in milliseconds)")
 }
 
@@ -573,10 +573,10 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 			data := bytes.NewReader(gitlabUser)
 
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 			appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 			require.Nil(t, appErr)
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 
 			require.Equal(t, gitlabUserObj.Username, user.Username, "user's username is not updated")
 		})
@@ -587,10 +587,10 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 			data := bytes.NewReader(gitlabUser)
 
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 			appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 			require.Nil(t, appErr)
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 
 			require.NotEqual(t, gitlabUserObj.Username, user.Username, "user's username is updated though there already exists another user with the same username")
 		})
@@ -602,10 +602,10 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 			data := bytes.NewReader(gitlabUser)
 
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 			appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 			require.Nil(t, appErr)
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 
 			require.Equal(t, gitlabUserObj.Email, user.Email, "user's email is not updated")
 
@@ -618,10 +618,10 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 			data := bytes.NewReader(gitlabUser)
 
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 			appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 			require.Nil(t, appErr)
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 
 			require.NotEqual(t, gitlabUserObj.Email, user.Email, "user's email is updated though there already exists another user with the same email")
 		})
@@ -632,10 +632,10 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 		data := bytes.NewReader(gitlabUser)
 
-		user = getUserFromDB(th.App, user.Id, t)
+		user = getUserFromDB(th.Context, th.App, user.Id, t)
 		appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 		require.Nil(t, appErr)
-		user = getUserFromDB(th.App, user.Id, t)
+		user = getUserFromDB(th.Context, th.App, user.Id, t)
 
 		require.Equal(t, "Updated", user.FirstName, "user's first name is not updated")
 	})
@@ -645,10 +645,10 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 		data := bytes.NewReader(gitlabUser)
 
-		user = getUserFromDB(th.App, user.Id, t)
+		user = getUserFromDB(th.Context, th.App, user.Id, t)
 		appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 		require.Nil(t, appErr)
-		user = getUserFromDB(th.App, user.Id, t)
+		user = getUserFromDB(th.Context, th.App, user.Id, t)
 
 		require.Equal(t, "Lastname", user.LastName, "user's last name is not updated")
 	})
@@ -846,8 +846,8 @@ func TestUpdateUserEmail(t *testing.T) {
 	})
 }
 
-func getUserFromDB(a *App, id string, t *testing.T) *model.User {
-	user, err := a.GetUser(request.EmptyContext(a.Log()), id)
+func getUserFromDB(rctx request.CTX, a *App, id string, t *testing.T) *model.User {
+	user, err := a.GetUser(rctx, id)
 	require.Nil(t, err, "user is not found", err)
 	return user
 }
