@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
+
+import {Button, type ButtonEmphasis, type ButtonVariant} from '@mattermost/shared/components/button';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -73,10 +74,11 @@ export default function DataSpillageExposureReport({flaggedPostId}: Props) {
         setStatus('idle');
     }, [flaggedPostId, status]);
 
-    const {icon, label, buttonClass} = useMemo(() => {
+    const {icon, label, emphasis, variant} = useMemo(() => {
         let icon;
         let label;
-        let buttonClass;
+        let emphasis: ButtonEmphasis = 'tertiary';
+        let variant: ButtonVariant = '';
 
         switch (status) {
         case 'generating':
@@ -87,7 +89,6 @@ export default function DataSpillageExposureReport({flaggedPostId}: Props) {
                     defaultMessage='Generating…'
                 />
             );
-            buttonClass = 'btn-tertiary';
             break;
         case 'error':
             icon = <i className='icon icon-alert-outline'/>;
@@ -97,7 +98,10 @@ export default function DataSpillageExposureReport({flaggedPostId}: Props) {
                     defaultMessage='Generation failed. Try again.'
                 />
             );
-            buttonClass = 'btn-danger';
+
+            // Primary emphasis is suppressed by the destructive variant, leaving just btn-danger
+            emphasis = 'primary';
+            variant = 'destructive';
             break;
         case 'idle':
         default:
@@ -108,11 +112,10 @@ export default function DataSpillageExposureReport({flaggedPostId}: Props) {
                     defaultMessage='Download exposure report'
                 />
             );
-            buttonClass = 'btn-tertiary';
             break;
         }
 
-        return {icon, label, buttonClass};
+        return {icon, label, emphasis, variant};
     }, [status]);
 
     return (
@@ -120,16 +123,18 @@ export default function DataSpillageExposureReport({flaggedPostId}: Props) {
             className='DataSpillageExposureReport'
             data-testid='data-spillage-exposure-report'
         >
-            <button
+            <Button
                 type='button'
-                className={classNames('btn btn-sm', buttonClass)}
+                size='sm'
+                emphasis={emphasis}
+                variant={variant}
                 onClick={handleClick}
                 disabled={status === 'generating'}
                 data-testid='data-spillage-action-download-exposure-report'
             >
                 {icon}
                 {label}
-            </button>
+            </Button>
         </div>
     );
 }
