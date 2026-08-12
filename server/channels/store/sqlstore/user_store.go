@@ -959,7 +959,7 @@ func (us SqlUserStore) GetProfilesInChannelByAdmin(options *model.UserGetOptions
 	return users, nil
 }
 
-func (us SqlUserStore) GetAllProfilesInChannel(ctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error) {
+func (us SqlUserStore) GetAllProfilesInChannel(rctx request.CTX, channelID string, allowFromCache bool) (map[string]*model.User, error) {
 	query := us.usersQuery.
 		Join("ChannelMembers cm ON ( cm.UserId = Users.Id )").
 		Where("cm.ChannelId = ?", channelID).
@@ -972,7 +972,7 @@ func (us SqlUserStore) GetAllProfilesInChannel(ctx context.Context, channelID st
 	}
 
 	users := []*model.User{}
-	rows, err := us.SqlStore.DBXFromContext(ctx).Query(queryString, args...)
+	rows, err := us.SqlStore.DBXFromContext(rctx.Context()).QueryContext(rctx.Context(), queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
