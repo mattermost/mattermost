@@ -77,7 +77,9 @@ export async function purgeAttributes(adminClient: Client4): Promise<void> {
     for (const objectType of ['channel', 'user'] as const) {
         try {
             const fields = await adminClient.getPropertyFields(GROUP, objectType, TARGET_TYPE);
-            const stale = (fields ?? []).filter((field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0);
+            const stale = (fields ?? []).filter(
+                (field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0,
+            );
             await deleteAttributes(adminClient, stale);
         } catch {} // eslint-disable-line no-empty
     }
