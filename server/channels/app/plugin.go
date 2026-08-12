@@ -1019,16 +1019,8 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 	}
 
 	// Skip installing if the plugin has not been previously enabled — unless a plugin state override
-	// force-enables it (e.g. the MBE tech-preview plugin), so install respects the override the same
-	// way activation (syncPluginsActiveState) does.
-	enabled := false
-	if pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[plugin.Manifest.Id]; pluginState != nil {
-		enabled = pluginState.Enable
-	}
-	if hasOverride, value := ch.getPluginStateOverride(plugin.Manifest.Id); hasOverride {
-		enabled = value
-	}
-	if !enabled {
+	// force-enables it, so installation respects the same override as activation.
+	if !ch.isPrepackagedPluginEnabled(plugin.Manifest.Id) {
 		logger.Info("Not installing prepackaged plugin: not previously enabled")
 		return plugin, nil
 	}
@@ -1038,6 +1030,19 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 	}
 
 	return plugin, nil
+}
+
+func (ch *Channels) isPrepackagedPluginEnabled(pluginID string) bool {
+	enabled := false
+	if pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[pluginID]; pluginState != nil {
+		enabled = pluginState.Enable
+	}
+
+	if hasOverride, value := ch.getPluginStateOverride(pluginID); hasOverride {
+		enabled = value
+	}
+
+	return enabled
 }
 
 var transitionallyPrepackagedPlugins = []string{

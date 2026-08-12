@@ -10,14 +10,12 @@ ARG PGID=2000
 # e.g. https://releases.mattermost.com/9.7.1/mattermost-9.7.1-linux-amd64.tar.gz
 ARG MM_PACKAGE="https://latest.mattermost.com/mattermost-enterprise-linux"
 
-# Message-Based Encryption tech-preview: public URL of the signed MBE plugin bundle + detached
-# signature, published to pr-builds.mattermost.com by the plugin repo's sign-plugin.yml workflow.
-# Defaults to the stable latest/ alias, which sign-plugin.yml overwrites on each run — so revving the
-# plugin needs no Dockerfile edit, just re-dispatch the workflow and rebuild the image. The enterprise
-# CI image build passes only MM_PACKAGE (no way to inject extra build-args), hence ARG defaults. Same
-# host the server package is fetched from, so no auth is needed at build. To PIN a specific build
-# instead of latest, override with the commit/<sha>/ URL the workflow prints. Test image only.
-ARG MBE_PLUGIN_URL="https://pr-builds.mattermost.com/mattermost-plugin-message-based-encryption/latest/message-based-encryption.tar.gz"
+# Message-Based Encryption demo: the release bundle carries its own SoftHSM runtime, so the image
+# only needs to prepackage the signed plugin. Pin the release used by a cloud image build; override
+# MBE_PLUGIN_URL and MBE_PLUGIN_SIG_URL together to test another build. Test image only.
+ARG MBE_PLUGIN_VERSION="v0.1.0"
+ARG MBE_PLUGIN_PLATFORM="linux-amd64"
+ARG MBE_PLUGIN_URL="https://github.com/mattermost/message-based-encryption/releases/download/${MBE_PLUGIN_VERSION}/message-based-encryption-${MBE_PLUGIN_VERSION}-${MBE_PLUGIN_PLATFORM}.tar.gz"
 ARG MBE_PLUGIN_SIG_URL="${MBE_PLUGIN_URL}.sig"
 
 # Install needed packages and indirect dependencies
@@ -46,10 +44,10 @@ RUN mkdir -p /mattermost/.postgresql \
   && chmod 700 /mattermost/.postgresql
 
 # Message-Based Encryption tech-preview: fetch the signed MBE plugin bundle + .sig into the
-# prepackaged_plugins dir already populated by MM_PACKAGE. The server verifies the signature at boot
-# against the baked dev key (mbeDevPublicKey) and, with PLUGINSTATES enabling it, auto-installs it
-# (processPrepackagedPlugins runs after the startup filestore sync). -f makes the build fail loudly
-# if the bundle URL has not been published yet. Test image only.
+# prepackaged_plugins dir already populated by MM_PACKAGE. The server verifies it against the baked
+# demo key, and the MBE plugin-state override auto-installs and activates it without replacing
+# cloud's PluginStates map. The plugin provisions its bundled SoftHSM runtime on activation, with no
+# image packages, HSM environment variables, or feature flags required. Test image only.
 RUN mkdir -p /mattermost/prepackaged_plugins \
   && curl -fL "$MBE_PLUGIN_URL" -o /mattermost/prepackaged_plugins/message-based-encryption.tar.gz \
   && curl -fL "$MBE_PLUGIN_SIG_URL" -o /mattermost/prepackaged_plugins/message-based-encryption.tar.gz.sig \
