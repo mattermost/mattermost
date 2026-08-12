@@ -3,17 +3,17 @@
 exports[`components/admin_console/workspace-optimization/chips_list should match snapshot 1`] = `
 <div>
   <button
-    class="StyledChip-cgKRRy kTqman info"
+    class="StyledChip-chiGIC jjhooV info"
   >
     Suggestions: 3
   </button>
   <button
-    class="StyledChip-cgKRRy kTqman warning"
+    class="StyledChip-chiGIC jjhooV warning"
   >
     Warnings: 2
   </button>
   <button
-    class="StyledChip-cgKRRy kTqman error"
+    class="StyledChip-chiGIC jjhooV error"
   >
     Problems: 1
   </button>

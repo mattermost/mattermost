@@ -35,7 +35,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="enableIndexingtrue"
@@ -47,7 +47,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -257,7 +257,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="Label-eHXQqd gObyiF"
               >
                 <input
                   data-testid="skipTLSVerificationtrue"
@@ -270,7 +270,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                 True
               </label>
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="Label-eHXQqd gObyiF"
               >
                 <input
                   checked=""
@@ -369,7 +369,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="Label-eHXQqd gObyiF"
               >
                 <input
                   data-testid="snifftrue"
@@ -382,7 +382,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                 True
               </label>
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="Label-eHXQqd gObyiF"
               >
                 <input
                   checked=""
@@ -603,7 +603,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="Label-eHXQqd gObyiF"
               >
                 <input
                   data-testid="enableSearchingtrue"
@@ -616,7 +616,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                 True
               </label>
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="Label-eHXQqd gObyiF"
               >
                 <input
                   checked=""
@@ -651,7 +651,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="Label-eHXQqd gObyiF"
               >
                 <input
                   data-testid="enableAutocompletetrue"
@@ -664,7 +664,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                 True
               </label>
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="Label-eHXQqd gObyiF"
               >
                 <input
                   checked=""
@@ -699,7 +699,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="Label-eHXQqd gObyiF"
               >
                 <input
                   data-testid="enableSearchPublicChannelsWithoutMembershiptrue"
@@ -712,7 +712,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
                 True
               </label>
               <label
-                class="Label-eJcoMl kxVoZJ"
+                class="Label-eHXQqd gObyiF"
               >
                 <input
                   checked=""
@@ -793,7 +793,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -806,7 +806,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="enableIndexingfalse"
@@ -1010,7 +1010,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="skipTLSVerificationtrue"
@@ -1022,7 +1022,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -1118,7 +1118,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="snifftrue"
@@ -1130,7 +1130,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -1345,7 +1345,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="enableSearchingtrue"
@@ -1357,7 +1357,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -1391,7 +1391,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="enableAutocompletetrue"
@@ -1403,7 +1403,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -1437,7 +1437,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="enableSearchPublicChannelsWithoutMembershiptrue"
@@ -1449,7 +1449,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -1529,7 +1529,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -1542,7 +1542,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="enableIndexingfalse"
@@ -1746,7 +1746,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="skipTLSVerificationtrue"
@@ -1758,7 +1758,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -1854,7 +1854,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -1867,7 +1867,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="snifffalse"
@@ -2090,7 +2090,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="enableSearchingtrue"
@@ -2102,7 +2102,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -2136,7 +2136,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="enableAutocompletetrue"
@@ -2148,7 +2148,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -2182,7 +2182,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="enableSearchPublicChannelsWithoutMembershiptrue"
@@ -2194,7 +2194,7 @@ exports[`components/ElasticSearchSettings should match snapshot, sniff enabled 1
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""

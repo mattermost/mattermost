@@ -3,7 +3,7 @@
 exports[`components/TextDismissableBar should match snapshot 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    class="_StyledDiv-BlAAQ ephMud announcement-bar announcement-bar-critical"
   >
     <div
       class="announcement-bar__text"
@@ -32,7 +32,7 @@ exports[`components/TextDismissableBar should match snapshot 1`] = `
 exports[`components/TextDismissableBar should match snapshot, with an internal and an external link 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    class="_StyledDiv-BlAAQ ephMud announcement-bar announcement-bar-critical"
   >
     <div
       class="announcement-bar__text"
@@ -79,7 +79,7 @@ exports[`components/TextDismissableBar should match snapshot, with an internal a
 exports[`components/TextDismissableBar should match snapshot, with an internal url 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    class="_StyledDiv-BlAAQ ephMud announcement-bar announcement-bar-critical"
   >
     <div
       class="announcement-bar__text"
@@ -117,7 +117,7 @@ exports[`components/TextDismissableBar should match snapshot, with an internal u
 exports[`components/TextDismissableBar should match snapshot, with ean external url 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    class="_StyledDiv-BlAAQ ephMud announcement-bar announcement-bar-critical"
   >
     <div
       class="announcement-bar__text"
@@ -155,7 +155,7 @@ exports[`components/TextDismissableBar should match snapshot, with ean external 
 exports[`components/TextDismissableBar should match snapshot, with link but without siteURL 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    class="_StyledDiv-BlAAQ ephMud announcement-bar announcement-bar-critical"
   >
     <div
       class="announcement-bar__text"

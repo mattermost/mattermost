@@ -58,7 +58,7 @@ exports[`components/UserList should match default snapshot when there are users 
             </button>
           </div>
           <span
-            class="CustomStatus-yKQhw rXrno"
+            class="CustomStatus-yDSSY dBOEhE"
           />
         </div>
         <div
@@ -113,7 +113,7 @@ exports[`components/UserList should match default snapshot when there are users 
             </button>
           </div>
           <span
-            class="CustomStatus-yKQhw rXrno"
+            class="CustomStatus-yDSSY dBOEhE"
           />
         </div>
         <div

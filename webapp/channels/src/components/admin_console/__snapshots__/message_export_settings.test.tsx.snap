@@ -35,7 +35,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="enableComplianceExporttrue"
@@ -47,7 +47,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -275,7 +275,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="enableComplianceExporttrue"
@@ -287,7 +287,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -689,7 +689,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -702,7 +702,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="enableComplianceExportfalse"
@@ -926,7 +926,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -939,7 +939,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="enableComplianceExportfalse"

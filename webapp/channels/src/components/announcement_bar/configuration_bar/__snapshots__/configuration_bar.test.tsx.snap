@@ -3,7 +3,7 @@
 exports[`components/ConfigurationBar should match snapshot, expired 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    class="_StyledDiv-BlAAQ ephMud announcement-bar announcement-bar-critical"
   >
     <div
       class="announcement-bar__text"
@@ -40,7 +40,7 @@ exports[`components/ConfigurationBar should match snapshot, expired, cloud licen
 exports[`components/ConfigurationBar should match snapshot, expired, in grace period 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    class="_StyledDiv-BlAAQ ephMud announcement-bar announcement-bar-critical"
   >
     <div
       class="announcement-bar__text"
@@ -75,7 +75,7 @@ exports[`components/ConfigurationBar should match snapshot, expired, in grace pe
 exports[`components/ConfigurationBar should match snapshot, expired, regular user 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    class="_StyledDiv-BlAAQ ephMud announcement-bar announcement-bar-critical"
   >
     <div
       class="announcement-bar__text"
@@ -97,7 +97,7 @@ exports[`components/ConfigurationBar should match snapshot, expiring, cloud lice
 exports[`components/ConfigurationBar should match snapshot, expiring, trial license 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    class="_StyledDiv-BlAAQ ephMud announcement-bar announcement-bar-critical"
   >
     <div
       class="announcement-bar__text"
@@ -132,7 +132,7 @@ exports[`components/ConfigurationBar should match snapshot, expiring, trial lice
 exports[`components/ConfigurationBar should match snapshot, expiring, trial license, mobile viewport 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+    class="_StyledDiv-BlAAQ ephMud announcement-bar announcement-bar-critical"
   >
     <div
       class="announcement-bar__text"

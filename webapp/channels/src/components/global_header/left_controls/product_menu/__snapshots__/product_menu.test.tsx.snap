@@ -7,13 +7,13 @@ exports[`components/global/product_switcher should have an active button state w
       class="MenuWrapper  MenuWrapper--open"
     >
       <nav
-        class="ProductMenuContainer-kJFYWA bJxYdd"
+        class="ProductMenuContainer-kJzbIc uziHG"
       >
         <button
           aria-controls="product-switcher-menu"
           aria-expanded="true"
           aria-label="Product switch menu"
-          class="ProductMenuButton-hbKrCl fFnSuH"
+          class="ProductMenuButton-hbmCLh cvJuJb"
           id="product_switch_menu"
           style="background-color: rgba(var(--sidebar-text-rgb), 0.16); color: rgba(var(--sidebar-text-rgb), 0.56);"
           type="button"
@@ -46,7 +46,7 @@ exports[`components/global/product_switcher should have an active button state w
           role="menu"
         >
           <a
-            class="MenuItem-fJA-dRx CkdyB"
+            class="MenuItem-fJcpat gLCqFw"
             href="/"
             role="menuitem"
           >
@@ -68,7 +68,7 @@ exports[`components/global/product_switcher should have an active button state w
               />
             </svg>
             <span
-              class="ProductMenuItemText-bbJshj kjMpVz"
+              class="ProductMenuItemText-bcwZaL bXsVzB"
             >
               Channels
             </span>
@@ -86,7 +86,7 @@ exports[`components/global/product_switcher should have an active button state w
             </svg>
           </a>
           <a
-            class="MenuItem-fJA-dRx CkdyB"
+            class="MenuItem-fJcpat gLCqFw"
             href="/"
             id="product-menu-item-Boards"
             role="menuitem"
@@ -117,13 +117,13 @@ exports[`components/global/product_switcher should have an active button state w
               />
             </svg>
             <span
-              class="ProductMenuItemText-bbJshj kjMpVz"
+              class="ProductMenuItemText-bcwZaL bXsVzB"
             >
               Boards
             </span>
             <button
               aria-label="Open in new tab"
-              class="OpenInNewTabButton-fKoVVp cLFfqU"
+              class="OpenInNewTabButton-fJRhel klDQtN"
             >
               <svg
                 fill="currentColor"
@@ -140,7 +140,7 @@ exports[`components/global/product_switcher should have an active button state w
             </button>
           </a>
           <a
-            class="MenuItem-fJA-dRx CkdyB"
+            class="MenuItem-fJcpat gLCqFw"
             href="/"
             id="product-menu-item-Playbooks"
             role="menuitem"
@@ -161,13 +161,13 @@ exports[`components/global/product_switcher should have an active button state w
               />
             </svg>
             <span
-              class="ProductMenuItemText-bbJshj kjMpVz"
+              class="ProductMenuItemText-bcwZaL bXsVzB"
             >
               Playbooks
             </span>
             <button
               aria-label="Open in new tab"
-              class="OpenInNewTabButton-fKoVVp cLFfqU"
+              class="OpenInNewTabButton-fJRhel klDQtN"
             >
               <svg
                 fill="currentColor"
@@ -205,13 +205,13 @@ exports[`components/global/product_switcher should match snapshot 1`] = `
       class="MenuWrapper "
     >
       <nav
-        class="ProductMenuContainer-kJFYWA bJxYdd"
+        class="ProductMenuContainer-kJzbIc uziHG"
       >
         <button
           aria-controls="product-switcher-menu"
           aria-expanded="false"
           aria-label="Product switch menu"
-          class="ProductMenuButton-hbKrCl fFnSuH"
+          class="ProductMenuButton-hbmCLh cvJuJb"
           id="product_switch_menu"
           type="button"
         >
@@ -244,13 +244,13 @@ exports[`components/global/product_switcher should match snapshot for Entry lice
       class="MenuWrapper "
     >
       <nav
-        class="ProductMenuContainer-kJFYWA bJxYdd"
+        class="ProductMenuContainer-kJzbIc uziHG"
       >
         <button
           aria-controls="product-switcher-menu"
           aria-expanded="false"
           aria-label="Product switch menu"
-          class="ProductMenuButton-hbKrCl fFnSuH"
+          class="ProductMenuButton-hbmCLh cvJuJb"
           id="product_switch_menu"
           type="button"
         >
@@ -283,13 +283,13 @@ exports[`components/global/product_switcher should match snapshot with a registe
       class="MenuWrapper  MenuWrapper--open"
     >
       <nav
-        class="ProductMenuContainer-kJFYWA bJxYdd"
+        class="ProductMenuContainer-kJzbIc uziHG"
       >
         <button
           aria-controls="product-switcher-menu"
           aria-expanded="true"
           aria-label="Product switch menu"
-          class="ProductMenuButton-hbKrCl fFnSuH"
+          class="ProductMenuButton-hbmCLh cvJuJb"
           id="product_switch_menu"
           style="background-color: rgba(var(--sidebar-text-rgb), 0.16); color: rgba(var(--sidebar-text-rgb), 0.56);"
           type="button"
@@ -322,7 +322,7 @@ exports[`components/global/product_switcher should match snapshot with a registe
           role="menu"
         >
           <a
-            class="MenuItem-fJA-dRx CkdyB"
+            class="MenuItem-fJcpat gLCqFw"
             href="/"
             role="menuitem"
           >
@@ -344,7 +344,7 @@ exports[`components/global/product_switcher should match snapshot with a registe
               />
             </svg>
             <span
-              class="ProductMenuItemText-bbJshj kjMpVz"
+              class="ProductMenuItemText-bcwZaL bXsVzB"
             >
               Channels
             </span>
@@ -362,7 +362,7 @@ exports[`components/global/product_switcher should match snapshot with a registe
             </svg>
           </a>
           <a
-            class="MenuItem-fJA-dRx CkdyB"
+            class="MenuItem-fJcpat gLCqFw"
             href="/"
             id="product-menu-item-Boards"
             role="menuitem"
@@ -393,13 +393,13 @@ exports[`components/global/product_switcher should match snapshot with a registe
               />
             </svg>
             <span
-              class="ProductMenuItemText-bbJshj kjMpVz"
+              class="ProductMenuItemText-bcwZaL bXsVzB"
             >
               Boards
             </span>
             <button
               aria-label="Open in new tab"
-              class="OpenInNewTabButton-fKoVVp cLFfqU"
+              class="OpenInNewTabButton-fJRhel klDQtN"
             >
               <svg
                 fill="currentColor"
@@ -416,7 +416,7 @@ exports[`components/global/product_switcher should match snapshot with a registe
             </button>
           </a>
           <a
-            class="MenuItem-fJA-dRx CkdyB"
+            class="MenuItem-fJcpat gLCqFw"
             href="/"
             id="product-menu-item-Playbooks"
             role="menuitem"
@@ -437,13 +437,13 @@ exports[`components/global/product_switcher should match snapshot with a registe
               />
             </svg>
             <span
-              class="ProductMenuItemText-bbJshj kjMpVz"
+              class="ProductMenuItemText-bcwZaL bXsVzB"
             >
               Playbooks
             </span>
             <button
               aria-label="Open in new tab"
-              class="OpenInNewTabButton-fKoVVp cLFfqU"
+              class="OpenInNewTabButton-fJRhel klDQtN"
             >
               <svg
                 fill="currentColor"
@@ -469,7 +469,7 @@ exports[`components/global/product_switcher should match snapshot with a registe
             role="menuitem"
           >
             <button
-              class="SwitcherActionButton-gnHZoG jMgsOP"
+              class="SwitcherActionButton-gnBazu cYdXKE"
               type="button"
             >
               <svg
@@ -485,7 +485,7 @@ exports[`components/global/product_switcher should match snapshot with a registe
                 />
               </svg>
               <span
-                class="ProductMenuItemText-bbJshj kjMpVz"
+                class="ProductMenuItemText-bcwZaL bXsVzB"
               >
                 Create Encrypted Channel
               </span>
@@ -513,13 +513,13 @@ exports[`components/global/product_switcher should match snapshot with product s
       class="MenuWrapper  MenuWrapper--open"
     >
       <nav
-        class="ProductMenuContainer-kJFYWA bJxYdd"
+        class="ProductMenuContainer-kJzbIc uziHG"
       >
         <button
           aria-controls="product-switcher-menu"
           aria-expanded="true"
           aria-label="Product switch menu"
-          class="ProductMenuButton-hbKrCl fFnSuH"
+          class="ProductMenuButton-hbmCLh cvJuJb"
           id="product_switch_menu"
           style="background-color: rgba(var(--sidebar-text-rgb), 0.16); color: rgba(var(--sidebar-text-rgb), 0.56);"
           type="button"
@@ -552,7 +552,7 @@ exports[`components/global/product_switcher should match snapshot with product s
           role="menu"
         >
           <a
-            class="MenuItem-fJA-dRx CkdyB"
+            class="MenuItem-fJcpat gLCqFw"
             href="/"
             role="menuitem"
           >
@@ -574,7 +574,7 @@ exports[`components/global/product_switcher should match snapshot with product s
               />
             </svg>
             <span
-              class="ProductMenuItemText-bbJshj kjMpVz"
+              class="ProductMenuItemText-bcwZaL bXsVzB"
             >
               Channels
             </span>
@@ -592,7 +592,7 @@ exports[`components/global/product_switcher should match snapshot with product s
             </svg>
           </a>
           <a
-            class="MenuItem-fJA-dRx CkdyB"
+            class="MenuItem-fJcpat gLCqFw"
             href="/"
             id="product-menu-item-Boards"
             role="menuitem"
@@ -623,13 +623,13 @@ exports[`components/global/product_switcher should match snapshot with product s
               />
             </svg>
             <span
-              class="ProductMenuItemText-bbJshj kjMpVz"
+              class="ProductMenuItemText-bcwZaL bXsVzB"
             >
               Boards
             </span>
             <button
               aria-label="Open in new tab"
-              class="OpenInNewTabButton-fKoVVp cLFfqU"
+              class="OpenInNewTabButton-fJRhel klDQtN"
             >
               <svg
                 fill="currentColor"
@@ -646,7 +646,7 @@ exports[`components/global/product_switcher should match snapshot with product s
             </button>
           </a>
           <a
-            class="MenuItem-fJA-dRx CkdyB"
+            class="MenuItem-fJcpat gLCqFw"
             href="/"
             id="product-menu-item-Playbooks"
             role="menuitem"
@@ -667,13 +667,13 @@ exports[`components/global/product_switcher should match snapshot with product s
               />
             </svg>
             <span
-              class="ProductMenuItemText-bbJshj kjMpVz"
+              class="ProductMenuItemText-bcwZaL bXsVzB"
             >
               Playbooks
             </span>
             <button
               aria-label="Open in new tab"
-              class="OpenInNewTabButton-fKoVVp cLFfqU"
+              class="OpenInNewTabButton-fJRhel klDQtN"
             >
               <svg
                 fill="currentColor"
@@ -711,13 +711,13 @@ exports[`components/global/product_switcher should match snapshot without licens
       class="MenuWrapper "
     >
       <nav
-        class="ProductMenuContainer-kJFYWA bJxYdd"
+        class="ProductMenuContainer-kJzbIc uziHG"
       >
         <button
           aria-controls="product-switcher-menu"
           aria-expanded="false"
           aria-label="Product switch menu"
-          class="ProductMenuButton-hbKrCl fFnSuH"
+          class="ProductMenuButton-hbmCLh cvJuJb"
           id="product_switch_menu"
           type="button"
         >
@@ -750,13 +750,13 @@ exports[`components/global/product_switcher should render once when there are no
       class="MenuWrapper  MenuWrapper--open"
     >
       <nav
-        class="ProductMenuContainer-kJFYWA bJxYdd"
+        class="ProductMenuContainer-kJzbIc uziHG"
       >
         <button
           aria-controls="product-switcher-menu"
           aria-expanded="true"
           aria-label="Product switch menu"
-          class="ProductMenuButton-hbKrCl fFnSuH"
+          class="ProductMenuButton-hbmCLh cvJuJb"
           id="product_switch_menu"
           style="background-color: rgba(var(--sidebar-text-rgb), 0.16); color: rgba(var(--sidebar-text-rgb), 0.56);"
           type="button"
@@ -789,7 +789,7 @@ exports[`components/global/product_switcher should render once when there are no
           role="menu"
         >
           <a
-            class="MenuItem-fJA-dRx CkdyB"
+            class="MenuItem-fJcpat gLCqFw"
             href="/"
             role="menuitem"
           >
@@ -811,7 +811,7 @@ exports[`components/global/product_switcher should render once when there are no
               />
             </svg>
             <span
-              class="ProductMenuItemText-bbJshj kjMpVz"
+              class="ProductMenuItemText-bcwZaL bXsVzB"
             >
               Channels
             </span>
@@ -829,7 +829,7 @@ exports[`components/global/product_switcher should render once when there are no
             </svg>
           </a>
           <a
-            class="MenuItem-fJA-dRx CkdyB"
+            class="MenuItem-fJcpat gLCqFw"
             href="/"
             id="product-menu-item-Boards"
             role="menuitem"
@@ -860,13 +860,13 @@ exports[`components/global/product_switcher should render once when there are no
               />
             </svg>
             <span
-              class="ProductMenuItemText-bbJshj kjMpVz"
+              class="ProductMenuItemText-bcwZaL bXsVzB"
             >
               Boards
             </span>
             <button
               aria-label="Open in new tab"
-              class="OpenInNewTabButton-fKoVVp cLFfqU"
+              class="OpenInNewTabButton-fJRhel klDQtN"
             >
               <svg
                 fill="currentColor"
@@ -883,7 +883,7 @@ exports[`components/global/product_switcher should render once when there are no
             </button>
           </a>
           <a
-            class="MenuItem-fJA-dRx CkdyB"
+            class="MenuItem-fJcpat gLCqFw"
             href="/"
             id="product-menu-item-Playbooks"
             role="menuitem"
@@ -904,13 +904,13 @@ exports[`components/global/product_switcher should render once when there are no
               />
             </svg>
             <span
-              class="ProductMenuItemText-bbJshj kjMpVz"
+              class="ProductMenuItemText-bcwZaL bXsVzB"
             >
               Playbooks
             </span>
             <button
               aria-label="Open in new tab"
-              class="OpenInNewTabButton-fKoVVp cLFfqU"
+              class="OpenInNewTabButton-fJRhel klDQtN"
             >
               <svg
                 fill="currentColor"
@@ -948,13 +948,13 @@ exports[`components/global/product_switcher should render the correct amount of 
       class="MenuWrapper  MenuWrapper--open"
     >
       <nav
-        class="ProductMenuContainer-kJFYWA bJxYdd"
+        class="ProductMenuContainer-kJzbIc uziHG"
       >
         <button
           aria-controls="product-switcher-menu"
           aria-expanded="true"
           aria-label="Product switch menu"
-          class="ProductMenuButton-hbKrCl fFnSuH"
+          class="ProductMenuButton-hbmCLh cvJuJb"
           id="product_switch_menu"
           style="background-color: rgba(var(--sidebar-text-rgb), 0.16); color: rgba(var(--sidebar-text-rgb), 0.56);"
           type="button"
@@ -987,7 +987,7 @@ exports[`components/global/product_switcher should render the correct amount of 
           role="menu"
         >
           <a
-            class="MenuItem-fJA-dRx CkdyB"
+            class="MenuItem-fJcpat gLCqFw"
             href="/"
             role="menuitem"
           >
@@ -1009,7 +1009,7 @@ exports[`components/global/product_switcher should render the correct amount of 
               />
             </svg>
             <span
-              class="ProductMenuItemText-bbJshj kjMpVz"
+              class="ProductMenuItemText-bcwZaL bXsVzB"
             >
               Channels
             </span>
@@ -1027,7 +1027,7 @@ exports[`components/global/product_switcher should render the correct amount of 
             </svg>
           </a>
           <a
-            class="MenuItem-fJA-dRx CkdyB"
+            class="MenuItem-fJcpat gLCqFw"
             href="/"
             id="product-menu-item-Boards"
             role="menuitem"
@@ -1058,13 +1058,13 @@ exports[`components/global/product_switcher should render the correct amount of 
               />
             </svg>
             <span
-              class="ProductMenuItemText-bbJshj kjMpVz"
+              class="ProductMenuItemText-bcwZaL bXsVzB"
             >
               Boards
             </span>
             <button
               aria-label="Open in new tab"
-              class="OpenInNewTabButton-fKoVVp cLFfqU"
+              class="OpenInNewTabButton-fJRhel klDQtN"
             >
               <svg
                 fill="currentColor"
@@ -1081,7 +1081,7 @@ exports[`components/global/product_switcher should render the correct amount of 
             </button>
           </a>
           <a
-            class="MenuItem-fJA-dRx CkdyB"
+            class="MenuItem-fJcpat gLCqFw"
             href="/"
             id="product-menu-item-Playbooks"
             role="menuitem"
@@ -1102,13 +1102,13 @@ exports[`components/global/product_switcher should render the correct amount of 
               />
             </svg>
             <span
-              class="ProductMenuItemText-bbJshj kjMpVz"
+              class="ProductMenuItemText-bcwZaL bXsVzB"
             >
               Playbooks
             </span>
             <button
               aria-label="Open in new tab"
-              class="OpenInNewTabButton-fKoVVp cLFfqU"
+              class="OpenInNewTabButton-fJRhel klDQtN"
             >
               <svg
                 fill="currentColor"

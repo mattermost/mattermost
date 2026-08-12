@@ -39,10 +39,10 @@ exports[`components/drafts/drafts_row should match snapshot for channel draft 1`
             56 years ago
           </div>
           <div
-            class="TagWrapper-kezsCu cA-dXXM Tag Tag--danger Tag--xs"
+            class="TagWrapper-kfDQYC gPUiz Tag Tag--danger Tag--xs"
           >
             <span
-              class="TagText-bWoQAI beIloY"
+              class="TagText-bVBjHg CqOfw"
             >
               draft
             </span>
@@ -96,7 +96,7 @@ exports[`components/drafts/drafts_row should match snapshot for thread draft 1`]
             56 years ago
           </div>
           <div
-            class="TagWrapper-kezsCu cA-dXXM Tag Tag--danger Tag--xs"
+            class="TagWrapper-kfDQYC gPUiz Tag Tag--danger Tag--xs"
           >
             <svg
               fill="currentColor"
@@ -114,7 +114,7 @@ exports[`components/drafts/drafts_row should match snapshot for thread draft 1`]
               />
             </svg>
             <span
-              class="TagText-bWoQAI beIloY"
+              class="TagText-bVBjHg CqOfw"
             >
               Thread not found
             </span>

@@ -542,10 +542,10 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with one la
         target="_blank"
       >
         <div
-          class="TagWrapper-kezsCu cA-dXXM Tag Tag--sm"
+          class="TagWrapper-kfDQYC gPUiz Tag Tag--sm"
         >
           <span
-            class="TagText-bWoQAI beIloY"
+            class="TagText-bVBjHg CqOfw"
           >
             someName
           </span>
@@ -732,10 +732,10 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with two la
         target="_blank"
       >
         <div
-          class="TagWrapper-kezsCu cA-dXXM Tag Tag--sm"
+          class="TagWrapper-kfDQYC gPUiz Tag Tag--sm"
         >
           <span
-            class="TagText-bWoQAI beIloY"
+            class="TagText-bVBjHg CqOfw"
           >
             someName
           </span>
@@ -750,10 +750,10 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with two la
         target="_blank"
       >
         <div
-          class="TagWrapper-kezsCu cA-dXXM Tag Tag--sm"
+          class="TagWrapper-kfDQYC gPUiz Tag Tag--sm"
         >
           <span
-            class="TagText-bWoQAI beIloY"
+            class="TagText-bVBjHg CqOfw"
           >
             someName2
           </span>

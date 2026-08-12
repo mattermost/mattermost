@@ -307,7 +307,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="tracetrue"
@@ -319,7 +319,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -386,7 +386,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
               class="col-sm-8"
             >
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   checked=""
@@ -399,7 +399,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
                 True
               </label>
               <label
-                class="Label-eJcoMl iShgPr"
+                class="Label-eHXQqd jYRdHb"
               >
                 <input
                   data-testid="disableDatabaseSearchfalse"
