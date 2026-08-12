@@ -214,6 +214,22 @@ describe('TestResultsModal', () => {
         });
     });
 
+    it('should treat null users as an empty list', async () => {
+        // Plugin RPC (gob) can serialize an empty users slice as null.
+        mockSearchUsers.mockReturnValue(() => Promise.resolve({
+            data: {
+                users: null,
+                total: 0,
+            },
+        }));
+
+        renderWithContext(<TestResultsModal {...defaultProps}/>);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('user-count')).toHaveTextContent('Showing 0 of 0 users');
+        });
+    });
+
     it('should handle search error gracefully', async () => {
         mockSearchUsers.mockReturnValue(() => Promise.resolve({
             error: 'Search failed',
