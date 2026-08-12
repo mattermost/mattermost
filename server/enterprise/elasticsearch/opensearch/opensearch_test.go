@@ -249,6 +249,8 @@ func TestTestConfigThenSavingConfigStartsEngine(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 		}
 	}))
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
 	th := api4.SetupEnterpriseWithServerOptions(t, nil)
 	ps := th.Server.Platform()
 	ps.StopSearchEngine()
