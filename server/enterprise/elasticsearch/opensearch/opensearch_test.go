@@ -7,12 +7,19 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -36,6 +43,88 @@ func TestOpensearchInterfaceTestSuite(t *testing.T) {
 		CommonTestSuite: common.CommonTestSuite{},
 	}
 	suite.Run(t, testSuite)
+}
+
+func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/":
+			_, _ = fmt.Fprint(w, `{"version":{"number":"2.11.0"}}`)
+		case r.URL.Path == "/_nodes/plugins":
+			_, _ = fmt.Fprint(w, `{"_nodes":{"total":2,"successful":1,"failed":1},"nodes":{"node-1":{"name":"node-1","plugins":[]}}}`)
+		case strings.HasPrefix(r.URL.Path, "/_index_template/") && strings.HasSuffix(r.URL.Path, "posts"):
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = fmt.Fprint(w, `{"error":{"type":"illegal_argument_exception","reason":"failed to parse template","caused_by":{"type":"illegal_argument_exception","reason":"Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]"}},"status":400}`)
+		case strings.HasPrefix(r.URL.Path, "/_index_template/"):
+			_, _ = fmt.Fprint(w, `{"acknowledged":true}`)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+		*cfg.ElasticsearchSettings.LiveIndexingBatchSize = 2
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
+	appErr := impl.Start(context.Background())
+	require.NotNil(t, appErr)
+	require.Contains(t, appErr.Error(), "icu_tokenizer")
+	require.Equal(t, int32(0), impl.ready.Load())
+	require.Nil(t, impl.bulkProcessor)
+	require.Nil(t, impl.syncBulkProcessor)
+
+	require.Nil(t, impl.Stop())
+}
+
+func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
+	templateRequested := make(chan struct{}, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/":
+			_, _ = fmt.Fprint(w, `{"version":{"number":"2.11.0"}}`)
+		case r.URL.Path == "/_nodes/plugins":
+			_, _ = fmt.Fprint(w, `{"_nodes":{"total":2,"successful":2,"failed":0},"nodes":{"node-1":{"name":"node-1","plugins":[{"name":"analysis-icu"}]},"node-2":{"name":"node-2","plugins":[]}}}`)
+		case strings.HasPrefix(r.URL.Path, "/_index_template/"):
+			templateRequested <- struct{}{}
+			_, _ = fmt.Fprint(w, `{"acknowledged":true}`)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
+	defer func() { require.Nil(t, impl.Stop()) }()
+	appErr := impl.Start(context.Background())
+	require.NotNil(t, appErr)
+	require.Equal(t, "ent.elasticsearch.analysis_icu_required", appErr.Id)
+	require.Equal(t, int32(0), impl.ready.Load())
+	require.Nil(t, impl.bulkProcessor)
+	require.Nil(t, impl.syncBulkProcessor)
+	select {
+	case <-templateRequested:
+		require.Fail(t, "template creation should not be attempted without analysis-icu on every node")
+	default:
+	}
 }
 
 func (s *OpensearchInterfaceTestSuite) SetupSuite() {
@@ -137,6 +226,87 @@ func (s *OpensearchInterfaceTestSuite) SetupTest() {
 
 	s.Nil(s.CommonTestSuite.ESImpl.PurgeIndexes(s.th.Context))
 	s.NoError(s.RefreshIndexFn())
+}
+
+func (s *OpensearchInterfaceTestSuite) newBulk(client *opensearchapi.Client) *Bulk {
+	return NewBulk(
+		common.BulkSettings{
+			FlushBytes:    0,
+			FlushInterval: 0,
+			FlushNumReqs:  0,
+		},
+		client,
+		time.Second,
+		s.th.Server.Platform().Log())
+}
+
+func (s *OpensearchInterfaceTestSuite) TestStopReleasesBothBulkProcessors() {
+	impl := s.CommonTestSuite.ESImpl.(*OpensearchInterfaceImpl)
+	impl.bulkProcessor = s.newBulk(s.client)
+	impl.syncBulkProcessor = s.newBulk(s.client)
+	impl.ready.Store(1)
+	impl.healthy.Store(1)
+
+	s.Require().Nil(impl.Stop())
+	s.Require().Nil(impl.bulkProcessor)
+	s.Require().Nil(impl.syncBulkProcessor)
+	s.Require().Nil(impl.client)
+	s.Require().Equal(int32(0), impl.ready.Load())
+	s.Require().Equal(int32(0), impl.healthy.Load())
+
+	// Stop is idempotent after all resources have been detached.
+	s.Require().Nil(impl.Stop())
+}
+
+type failingRoundTripper struct {
+	calls atomic.Int32
+}
+
+func (t *failingRoundTripper) RoundTrip(_ *http.Request) (*http.Response, error) {
+	t.calls.Add(1)
+	return nil, errors.New("bulk request failed")
+}
+
+func (s *OpensearchInterfaceTestSuite) TestStopAttemptsBothBulkProcessorsAfterError() {
+	transport := &failingRoundTripper{}
+	client, err := opensearchapi.NewClient(opensearchapi.Config{
+		Client: opensearch.Config{
+			Addresses:    []string{"http://localhost:9201"},
+			DisableRetry: true,
+			Transport:    transport,
+		},
+	})
+	s.Require().NoError(err)
+
+	impl := s.CommonTestSuite.ESImpl.(*OpensearchInterfaceImpl)
+	impl.client = client
+	impl.bulkProcessor = s.newBulk(client)
+	impl.bulkProcessor.pendingRequests = 1
+	impl.syncBulkProcessor = s.newBulk(client)
+	impl.syncBulkProcessor.pendingRequests = 1
+	impl.ready.Store(1)
+	impl.healthy.Store(1)
+
+	s.Require().Nil(impl.Stop())
+	s.Require().Equal(int32(2), transport.calls.Load())
+	s.Require().Nil(impl.bulkProcessor)
+	s.Require().Nil(impl.syncBulkProcessor)
+}
+
+func (s *OpensearchInterfaceTestSuite) TestStopCleansPartiallyInitializedEngine() {
+	impl := s.CommonTestSuite.ESImpl.(*OpensearchInterfaceImpl)
+	impl.client = s.client
+	impl.bulkProcessor = s.newBulk(s.client)
+	impl.syncBulkProcessor = s.newBulk(s.client)
+	impl.ready.Store(0)
+	impl.healthy.Store(1)
+
+	s.Require().Nil(impl.Stop())
+	s.Require().Nil(impl.bulkProcessor)
+	s.Require().Nil(impl.syncBulkProcessor)
+	s.Require().Nil(impl.client)
+	s.Require().Equal(int32(0), impl.ready.Load())
+	s.Require().Equal(int32(0), impl.healthy.Load())
 }
 
 func (s *OpensearchInterfaceTestSuite) TestSyncBulkIndexChannels() {
