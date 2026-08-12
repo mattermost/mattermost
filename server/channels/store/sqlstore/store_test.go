@@ -532,6 +532,7 @@ func TestCheckVersion(t *testing.T) {
 
 	tests := []struct {
 		ver            string
+		wantErr        string
 		wantLog        string
 		wantVersion    string
 		wantMinVersion string
@@ -564,9 +565,8 @@ func TestCheckVersion(t *testing.T) {
 			wantMinVersion: "14.0",
 		},
 		{
-			ver:         "12.34.1",
-			wantLog:     "Cannot parse Postgres version",
-			wantVersion: "12.34.1",
+			ver:     "12.34.1",
+			wantErr: "cannot parse DB version",
 		},
 	}
 
@@ -584,8 +584,15 @@ func TestCheckVersion(t *testing.T) {
 			store.settings = pgSettings
 			store.logger = logger
 
-			store.checkVersion(tc.ver)
+			err := store.checkVersion(tc.ver)
 			require.NoError(t, logger.Flush())
+
+			if tc.wantErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.wantErr)
+				return
+			}
+			require.NoError(t, err)
 
 			if tc.wantLog == "" {
 				assert.Empty(t, buf.String())
