@@ -284,7 +284,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 					rctx.Logger().Warn("Failed to decode export scope metadata; proceeding as unscoped import", mlog.Err(err))
 				} else {
 					sourceTeamName = scope.TeamName
-					if scope.ChannelName != "" {
+					if scope.ChannelName != "" || scope.TeamName != "" {
 						existingUsersOnly = true
 					}
 				}
