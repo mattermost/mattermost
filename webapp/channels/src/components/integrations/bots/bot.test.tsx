@@ -180,7 +180,7 @@ describe('components/integrations/bots/Bot', () => {
     });
 
     it.each(['system-bot', 'content-review'])('protected system bot %s hides Edit and Disable but keeps token management', (username) => {
-        const bot = UtilsTestHelper.getBotMock({user_id: '1', owner_id: '1', username});
+        const bot = UtilsTestHelper.getBotMock({user_id: '1', owner_id: '1', username, system_owned: true});
         const owner = UtilsTestHelper.getUserMock({id: bot.owner_id});
         const user = UtilsTestHelper.getUserMock({id: bot.user_id});
         renderWithContext(
@@ -212,7 +212,7 @@ describe('components/integrations/bots/Bot', () => {
     });
 
     it('disabled protected system bot still offers a working Enable control for recovery', () => {
-        const bot = UtilsTestHelper.getBotMock({user_id: 'protected-user-id', owner_id: '1', username: 'system-bot'});
+        const bot = UtilsTestHelper.getBotMock({user_id: 'protected-user-id', owner_id: '1', username: 'system-bot', system_owned: true});
         bot.delete_at = 100; // disabled
         const owner = UtilsTestHelper.getUserMock({id: bot.owner_id});
         const user = UtilsTestHelper.getUserMock({id: bot.user_id});

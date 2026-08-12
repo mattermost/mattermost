@@ -20,10 +20,6 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import * as Utils from 'utils/utils';
 
-// System-owned bots that must not be edited or disabled from the UI. The API
-// rejects disabling them with a 403 as a backstop if this check is missed.
-const protectedBotUsernames = ['system-bot', 'content-review'];
-
 export function matchesFilter(bot: BotType, filter?: string, owner?: UserProfile): boolean {
     if (!filter) {
         return true;
@@ -311,7 +307,7 @@ export default class Bot extends React.PureComponent<Props, State> {
             );
         });
 
-        const isProtectedBot = protectedBotUsernames.includes(username);
+        const isProtectedBot = Boolean(this.props.bot.system_owned);
 
         let options;
         if (ownerUsername !== 'plugin') {

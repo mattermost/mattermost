@@ -408,8 +408,7 @@ func (a *App) UpdateBotActive(rctx request.CTX, botUserId string, active bool) (
 
 	// System-owned bots must never be disabled. This is the single choke point
 	// for both direct API calls and the disableUserBots owner-deactivation path.
-	_, protected := model.ProtectedBotUsernames[bot.Username]
-	if protected && !active {
+	if bot.IsSystemOwned() && !active {
 		return nil, model.NewAppError("UpdateBotActive", "app.bot.update_bot_active.protected_bot.app_error", nil, "", http.StatusForbidden)
 	}
 
