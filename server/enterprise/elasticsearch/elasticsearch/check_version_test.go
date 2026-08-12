@@ -100,6 +100,9 @@ func TestCheckVersion(t *testing.T) {
 			assert.Equal(t, tc.wantMajor, major)
 			if tc.wantUnsupported {
 				assert.Contains(t, buf.String(), "Unsupported Elasticsearch version")
+				assert.Contains(t, buf.String(), fmt.Sprintf(`"version":%q`, tc.wantVersion))
+				assert.Contains(t, buf.String(), `"min_version":8`)
+				assert.Contains(t, buf.String(), `"max_version":9`)
 			} else {
 				assert.Empty(t, buf.String())
 			}

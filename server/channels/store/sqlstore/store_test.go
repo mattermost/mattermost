@@ -560,7 +560,7 @@ func TestCheckVersion(t *testing.T) {
 		{
 			ver:            "90603",
 			wantLog:        "Unsupported Postgres version",
-			wantVersion:    "9.603",
+			wantVersion:    "9.6.3",
 			wantMinVersion: "14.0",
 		},
 		{
@@ -779,7 +779,7 @@ func TestVersionString(t *testing.T) {
 		},
 		{
 			input:  90603,
-			output: "9.603",
+			output: "9.6.3",
 		},
 		{
 			input:  120005,

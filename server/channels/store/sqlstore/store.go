@@ -1066,9 +1066,12 @@ func (ss *SqlStore) checkVersion(ver string) {
 // Postgres doesn't follow three-part version numbers from 10.0 onwards:
 // https://www.postgresql.org/docs/13/libpq-status.html#LIBPQ-PQSERVERVERSION.
 func versionString(v int) string {
-	minor := v % 10000
 	major := v / 10000
-	return strconv.Itoa(major) + "." + strconv.Itoa(minor)
+	if major < 10 {
+		return fmt.Sprintf("%d.%d.%d", major, (v/100)%100, v%100)
+	}
+
+	return fmt.Sprintf("%d.%d", major, v%10000)
 }
 
 func (ss *SqlStore) toReserveCase(str string) string {
