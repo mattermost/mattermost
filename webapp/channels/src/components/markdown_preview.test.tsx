@@ -85,13 +85,14 @@ describe('components/MarkdownPreview', () => {
     });
 
     test('should clear parent content when fetch fails or file is too large', async () => {
+        const raw = '# Title\n\nBody content';
         const getContent = jest.fn();
         global.fetch = jest.fn().mockResolvedValue({
-            ok: false,
-            text: () => Promise.resolve(''),
+            ok: true,
+            text: () => Promise.resolve(raw),
         });
 
-        renderWithContext(
+        const {rerender} = renderWithContext(
             <MarkdownPreview
                 {...requiredProps}
                 getContent={getContent}
@@ -99,22 +100,44 @@ describe('components/MarkdownPreview', () => {
         );
 
         await waitFor(() => {
-            expect(document.querySelector('.file-details__name')).toBeInTheDocument();
+            expect(getContent).toHaveBeenCalledWith(raw);
         });
 
-        expect(getContent).toHaveBeenCalledWith('');
-        expect(getContent).not.toHaveBeenCalledWith(expect.stringMatching(/./));
-
+        // Fetch failure: same fileUrl so mount/file-selection cleanup does not run; only size change
+        // re-triggers the fetch effect.
         getContent.mockClear();
-        global.fetch = jest.fn();
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: false,
+            text: () => Promise.resolve(''),
+        });
 
-        renderWithContext(
+        rerender(
             <MarkdownPreview
                 {...requiredProps}
                 fileInfo={TestHelper.getFileInfoMock({
-                    id: 'file_id',
+                    ...requiredProps.fileInfo,
+                    size: requiredProps.fileInfo.size + 1,
+                })}
+                getContent={getContent}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(document.querySelector('.file-details__name')).toBeInTheDocument();
+        });
+        expect(getContent).toHaveBeenCalledWith('');
+        expect(getContent).not.toHaveBeenCalledWith(raw);
+
+        // Oversized file: again keep fileUrl stable so only the size-gate branch clears content.
+        getContent.mockClear();
+        global.fetch = jest.fn();
+
+        rerender(
+            <MarkdownPreview
+                {...requiredProps}
+                fileInfo={TestHelper.getFileInfoMock({
+                    ...requiredProps.fileInfo,
                     name: 'large.md',
-                    extension: 'md',
                     size: Constants.CODE_PREVIEW_MAX_FILE_SIZE + 1,
                 })}
                 getContent={getContent}
@@ -124,6 +147,8 @@ describe('components/MarkdownPreview', () => {
         await waitFor(() => {
             expect(getContent).toHaveBeenCalledWith('');
         });
+        expect(global.fetch).not.toHaveBeenCalled();
+        expect(getContent).not.toHaveBeenCalledWith(raw);
     });
 
     test('should escape HTML tags instead of rendering them', async () => {
