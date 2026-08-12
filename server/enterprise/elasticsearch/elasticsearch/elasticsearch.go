@@ -147,7 +147,7 @@ func (es *ElasticsearchInterfaceImpl) IsIndexingSync() bool {
 
 // fetchServerInfo retrieves and stores the server version and plugins from the given client.
 func (es *ElasticsearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *elastic.TypedClient) *model.AppError {
-	version, major, appErr := checkVersion(ctx, client)
+	version, major, appErr := checkVersion(ctx, client, es.Platform.Log())
 	if appErr != nil {
 		return appErr
 	}
@@ -2240,7 +2240,10 @@ func (es *ElasticsearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime
 	return nil
 }
 
-func checkVersion(ctx context.Context, client *elastic.TypedClient) (string, int, *model.AppError) {
+// checkVersion returns the version of the connected Elasticsearch server. An
+// unsupported version is logged but not treated as fatal, allowing the server to
+// start regardless.
+func checkVersion(ctx context.Context, client *elastic.TypedClient, logger mlog.LoggerIFace) (string, int, *model.AppError) {
 	resp, err := client.API.Core.Info().Do(ctx)
 	if err != nil {
 		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
@@ -2251,11 +2254,13 @@ func checkVersion(ctx context.Context, client *elastic.TypedClient) (string, int
 		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(esErr)
 	}
 
-	if major < elasticsearchMinVersion {
-		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.min_version.app_error", map[string]any{"Version": major, "MinVersion": elasticsearchMinVersion, "Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusBadRequest)
+	if major < elasticsearchMinVersion || major > elasticsearchMaxVersion {
+		logger.Error("Unsupported Elasticsearch version. Running an unsupported version may lead to unexpected behaviour.",
+			mlog.String("version", resp.Version.Int),
+			mlog.Int("min_version", elasticsearchMinVersion),
+			mlog.Int("max_version", elasticsearchMaxVersion),
+		)
 	}
-	if major > elasticsearchMaxVersion {
-		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.max_version.app_error", map[string]any{"Version": major, "MaxVersion": elasticsearchMaxVersion, "Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusBadRequest)
-	}
+
 	return resp.Version.Int, major, nil
 }
