@@ -29,6 +29,7 @@ import {editLatestPost} from 'actions/views/create_comment';
 import {useDebounce} from 'hooks/useDebounce';
 import {useLatest} from 'hooks/useLatest';
 
+import {serializeToMarkdown} from './wysiwyg_markdown';
 import WysiwygSuggestionList from './wysiwyg_suggestion_list';
 
 import './wysiwyg_editor.scss';
@@ -175,19 +176,17 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         onChangeRef.current(md);
     }, SERIALIZE_DEBOUNCE_MS);
 
+    const handleSuggestionSubmit = useCallback(() => {
+        onSubmitRef.current();
+    }, [onSubmitRef]);
+
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
         if (jsonMode) {
             debouncedOnChange(JSON.stringify(editor.getJSON()));
             return;
         }
 
-        // Strip &nbsp; artifacts the @tiptap/markdown serializer leaves around
-        // empty paragraphs at doc start/end.
-        const md = editor.getMarkdown().trimEnd().
-            replace(/\n\n&nbsp;\n/g, '\n').
-            replace(/\n\n&nbsp;$/g, '').
-            replace(/^&nbsp;$/, '');
-        debouncedOnChange(md);
+        debouncedOnChange(serializeToMarkdown(editor));
     }, [debouncedOnChange, jsonMode]);
 
     const baseExtensions: Extensions = [
@@ -537,6 +536,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 editor={editor}
                 channelId={channelId}
                 rootId={rootId}
+                onSubmit={handleSuggestionSubmit}
             />
         </div>
     );
