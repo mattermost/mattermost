@@ -176,6 +176,34 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		assert.Contains(t, updateErr.Error(), "unknown action")
 	})
 
+	// Mirrors the lenient grandfather for Name: attrs are merged on PATCH, so a
+	// field carrying an actions value that is no longer valid has to stay editable
+	// on every other attr rather than needing delete/recreate to fix.
+	t.Run("grandfathers an untouched invalid actions value on update", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs:      model.StringInterface{model.PropertyFieldAttrActions: []any{"retired_action"}},
+		})
+
+		field.Attrs = model.StringInterface{
+			model.PropertyFieldAttrActions:     []any{"retired_action"},
+			model.PropertyFieldAttrDisplayName: "Renamed",
+		}
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		assert.Equal(t, "Renamed", updated.Attrs[model.PropertyFieldAttrDisplayName])
+
+		// Changing actions still gets the strict check.
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrActions: []any{"retired_action", "unknown"}}
+		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "unknown action")
+	})
+
 	t.Run("skips validation for unmanaged groups", func(t *testing.T) {
 		otherGroup, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_other_group", Version: model.PropertyGroupVersionV2})
 		require.NoError(t, groupErr)
