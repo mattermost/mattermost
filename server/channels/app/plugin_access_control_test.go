@@ -426,6 +426,8 @@ func TestSavePluginAccessControlPolicy(t *testing.T) {
 		expression := p.Rules[0].Expression
 
 		mockACS.On("GetPolicy", mock.Anything, p.ID).Return(nil, notFoundErr).Once()
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+			Return([]*model.User{{Id: actingUserID}}, int64(1), nil).Once()
 		mockACS.On("SavePolicy", mock.MatchedBy(func(c request.CTX) bool {
 			return c.Session() != nil && c.Session().UserId == actingUserID
 		}), mock.MatchedBy(func(saved *model.AccessControlPolicy) bool {
@@ -450,10 +452,46 @@ func TestSavePluginAccessControlPolicy(t *testing.T) {
 		p := validPluginPolicy(model.NewId())
 		existing := validPluginPolicy(p.ID)
 		mockACS.On("GetPolicy", mock.Anything, p.ID).Return(existing, nil).Once()
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+			Return([]*model.User{{Id: actingUserID}}, int64(1), nil).Once()
 		mockACS.On("SavePolicy", mock.Anything, mock.Anything).Return(p, nil).Once()
 
 		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, p)
 		require.Nil(t, appErr)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("non-sysadmin self-excluding expression rejected", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		p := validPluginPolicy(model.NewId())
+		mockACS.On("GetPolicy", mock.Anything, p.ID).Return(nil, notFoundErr).Once()
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+			Return([]*model.User{}, int64(0), nil).Once()
+
+		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, p)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Equal(t, "app.pap.save_policy.self_exclusion", appErr.Id)
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("sysadmin may save self-excluding expression", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		adminID := th.SystemAdminUser.Id
+		p := validPluginPolicy(model.NewId())
+		mockACS.On("GetPolicy", mock.Anything, p.ID).Return(nil, notFoundErr).Once()
+		mockACS.On("SavePolicy", mock.MatchedBy(func(c request.CTX) bool {
+			return c.Session() != nil && c.Session().UserId == adminID
+		}), mock.Anything).Return(p, nil).Once()
+
+		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, adminID, p)
+		require.Nil(t, appErr)
+		mockACS.AssertNotCalled(t, "QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything)
 		mockACS.AssertExpectations(t)
 	})
 
@@ -1094,6 +1132,8 @@ func TestPluginAccessControlAudit(t *testing.T) {
 		p := validPluginPolicy(model.NewId())
 		mockACS.On("GetPolicy", mock.Anything, p.ID).
 			Return(nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusNotFound)).Once()
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+			Return([]*model.User{{Id: actingUserID}}, int64(1), nil).Once()
 		mockACS.On("SavePolicy", mock.Anything, mock.Anything).Return(p, nil).Once()
 
 		rec := assertNextRecord(t, model.AuditEventSavePluginAccessControlPolicy, model.AuditStatusSuccess, func() {
@@ -1101,6 +1141,26 @@ func TestPluginAccessControlAudit(t *testing.T) {
 			require.Nil(t, appErr)
 		})
 		assert.Equal(t, "create", auditParam(t, rec, "operation"))
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("save: self-exclusion audits as fail", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		p := validPluginPolicy(model.NewId())
+		mockACS.On("GetPolicy", mock.Anything, p.ID).
+			Return(nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusNotFound)).Once()
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+			Return([]*model.User{}, int64(0), nil).Once()
+
+		rec := assertNextRecord(t, model.AuditEventSavePluginAccessControlPolicy, model.AuditStatusFail, func() {
+			_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, p)
+			require.NotNil(t, appErr)
+			assert.Equal(t, "app.pap.save_policy.self_exclusion", appErr.Id)
+		})
+		assert.Equal(t, "create", auditParam(t, rec, "operation"))
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
 		mockACS.AssertExpectations(t)
 	})
 

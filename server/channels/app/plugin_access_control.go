@@ -159,7 +159,8 @@ func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, re
 // SavePluginAccessControlPolicy creates or updates a plugin-owned access
 // control policy. Version is forced to v0.5 and Active to true (plugin types
 // have no separate activation lifecycle); policy.ID must be the resource's
-// stable ID.
+// stable ID. Non-system-admin acting users must satisfy the saved expression
+// (self-inclusion); system admins may author policies they do not match.
 func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
 	// Audit every attempt, including precondition failures.
 	auditRec := a.MakeAuditRecord(rctx, model.AuditEventSavePluginAccessControlPolicy, model.AuditStatusFail)
@@ -213,6 +214,15 @@ func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUs
 
 	if appErr := policy.IsValid(); appErr != nil {
 		return nil, appErr
+	}
+
+	// Non-system-admins must satisfy the policy they save (self-inclusion),
+	// matching CreateOrUpdateAccessControlPolicy. System admins may author
+	// policies they do not personally match.
+	if !a.HasPermissionTo(actingUserID, model.PermissionManageSystem) {
+		if appErr := a.checkSelfInclusion(rctx, policy, actingUserID, false); appErr != nil {
+			return nil, appErr
+		}
 	}
 
 	// Enterprise SavePolicy derives the caller ID from the session, so
