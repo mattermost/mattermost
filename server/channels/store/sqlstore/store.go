@@ -1063,7 +1063,9 @@ func (ss *SqlStore) checkVersion(ver string) {
 
 // versionString converts an integer representation of a Postgres DB version
 // to a pretty-printed string.
-// Postgres doesn't follow three-part version numbers from 10.0 onwards:
+// From 10.0 onwards, the version is the major version multiplied by 10000 plus
+// the minor version, e.g. 10.1 is 100001. Prior to 10, the version used two
+// digits for each of the three parts, e.g. 9.1.5 is 90105:
 // https://www.postgresql.org/docs/13/libpq-status.html#LIBPQ-PQSERVERVERSION.
 func versionString(v int) string {
 	major := v / 10000

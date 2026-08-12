@@ -552,7 +552,7 @@ func TestCheckVersion(t *testing.T) {
 			ver: "140000",
 		},
 		{
-			ver: "141900",
+			ver: "140019",
 		},
 		{
 			ver: "150000",
@@ -785,11 +785,32 @@ func TestVersionString(t *testing.T) {
 			input:  120005,
 			output: "12.5",
 		},
+		// Examples given by the PQserverVersion documentation.
+		{
+			input:  100001,
+			output: "10.1",
+		},
+		{
+			input:  110000,
+			output: "11.0",
+		},
+		{
+			input:  90105,
+			output: "9.1.5",
+		},
+		{
+			input:  90200,
+			output: "9.2.0",
+		},
+		{
+			input:  140019,
+			output: "14.19",
+		},
 	}
 
 	for _, v := range versions {
 		out := versionString(v.input)
-		assert.Equal(t, v.output, out)
+		assert.Equal(t, v.output, out, "input: %d", v.input)
 	}
 }
 
