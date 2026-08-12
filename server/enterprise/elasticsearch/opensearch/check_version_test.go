@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.enterprise for license information.
 
-package elasticsearch
+package opensearch
 
 import (
 	"context"
@@ -10,20 +10,24 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	elastic "github.com/elastic/go-elasticsearch/v8"
+	"github.com/opensearch-project/opensearch-go/v4"
+	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-func newTestClient(t *testing.T, handler http.Handler) *elastic.TypedClient {
+func newTestClient(t *testing.T, handler http.Handler) *opensearchapi.Client {
 	t.Helper()
 	ts := httptest.NewServer(handler)
 	t.Cleanup(ts.Close)
 
-	client, err := elastic.NewTypedClient(elastic.Config{
-		Addresses: []string{ts.URL},
+	client, err := opensearchapi.NewClient(opensearchapi.Config{
+		Client: opensearch.Config{
+			Addresses:  []string{ts.URL},
+			MaxRetries: 0,
+		},
 	})
 	require.NoError(t, err)
 	return client
@@ -32,8 +36,7 @@ func newTestClient(t *testing.T, handler http.Handler) *elastic.TypedClient {
 func infoHandler(version string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("X-Elastic-Product", "Elasticsearch")
-		fmt.Fprintf(w, `{"cluster_name":"test","version":{"number":%q,"build_flavor":"default","build_hash":"abc","build_date":"2024-01-01","build_snapshot":false,"build_type":"docker","lucene_version":"9.0.0","minimum_wire_compatibility_version":"7.0.0","minimum_index_compatibility_version":"7.0.0"}}`, version)
+		fmt.Fprintf(w, `{"name":"node","cluster_name":"test","cluster_uuid":"abc","version":{"distribution":"opensearch","number":%q,"build_type":"tar","build_hash":"abc","build_date":"2024-01-01","build_snapshot":false,"lucene_version":"9.7.0","minimum_wire_compatibility_version":"7.10.0","minimum_index_compatibility_version":"7.0.0"},"tagline":"The OpenSearch Project: https://opensearch.org/"}`, version)
 	}
 }
 
@@ -47,29 +50,22 @@ func TestCheckVersion(t *testing.T) {
 		wantUnsupported bool
 	}{
 		{
-			name:        "ES 8 is supported",
-			version:     "8.9.0",
-			wantVersion: "8.9.0",
-			wantMajor:   8,
+			name:        "OpenSearch 2 is supported",
+			version:     "2.11.0",
+			wantVersion: "2.11.0",
+			wantMajor:   2,
 		},
 		{
-			name:        "ES 9 is supported",
-			version:     "9.0.0",
-			wantVersion: "9.0.0",
-			wantMajor:   9,
+			name:        "OpenSearch 3 is supported",
+			version:     "3.0.0",
+			wantVersion: "3.0.0",
+			wantMajor:   3,
 		},
 		{
-			name:            "ES 7 is too old, but allowed",
-			version:         "7.17.0",
-			wantVersion:     "7.17.0",
-			wantMajor:       7,
-			wantUnsupported: true,
-		},
-		{
-			name:            "ES 10 is too new, but allowed",
-			version:         "10.0.0",
-			wantVersion:     "10.0.0",
-			wantMajor:       10,
+			name:            "OpenSearch 4 is too new, but allowed",
+			version:         "4.0.0",
+			wantVersion:     "4.0.0",
+			wantMajor:       4,
 			wantUnsupported: true,
 		},
 		{
@@ -99,10 +95,9 @@ func TestCheckVersion(t *testing.T) {
 			assert.Equal(t, tc.wantVersion, version)
 			assert.Equal(t, tc.wantMajor, major)
 			if tc.wantUnsupported {
-				assert.Contains(t, buf.String(), "Unsupported Elasticsearch version")
+				assert.Contains(t, buf.String(), "Unsupported OpenSearch version")
 				assert.Contains(t, buf.String(), fmt.Sprintf(`"version":%q`, tc.wantVersion))
-				assert.Contains(t, buf.String(), `"min_version":8`)
-				assert.Contains(t, buf.String(), `"max_version":9`)
+				assert.Contains(t, buf.String(), `"max_version":3`)
 			} else {
 				assert.Empty(t, buf.String())
 			}
@@ -114,9 +109,11 @@ func TestCheckVersionConnectionError(t *testing.T) {
 	ts := httptest.NewServer(http.NotFoundHandler())
 	ts.Close() // close immediately to force connection error
 
-	client, err := elastic.NewTypedClient(elastic.Config{
-		Addresses:  []string{ts.URL},
-		MaxRetries: 0,
+	client, err := opensearchapi.NewClient(opensearchapi.Config{
+		Client: opensearch.Config{
+			Addresses:  []string{ts.URL},
+			MaxRetries: 0,
+		},
 	})
 	require.NoError(t, err)
 
