@@ -19,16 +19,10 @@ export default class PermissionsSystemScheme {
     constructor(container: Locator) {
         this.container = container;
 
-        this.systemSchemeHeader = container.locator('.admin-console__header').getByText('System Scheme', {exact: true});
-        this.channelAdministratorsSection = container
-            .locator('.permissions-block')
-            .filter({hasText: 'Channel Administrators'});
-        this.teamAdministratorsSection = container
-            .locator('.permissions-block')
-            .filter({hasText: 'Team Administrators'});
-        this.systemAdministratorsSection = container
-            .locator('.permissions-block')
-            .filter({hasText: 'System Administrators'});
+        this.systemSchemeHeader = container.getByText('System Scheme', {exact: true});
+        this.channelAdministratorsSection = container.locator('#channelAdministratorsSection');
+        this.teamAdministratorsSection = container.locator('#teamAdministratorsSection');
+        this.systemAdministratorsSection = container.locator('#systemAdministratorsSection');
     }
 
     async toBeVisible() {
@@ -40,7 +34,7 @@ export default class PermissionsSystemScheme {
      * There can be two (public and private channel).
      */
     getManageChannelAutoTranslationRows(section: Locator): Locator {
-        return section.locator('.permission-row').filter({hasText: 'Manage Channel Auto Translation'});
+        return section.getByTestId('permissionRow').filter({hasText: 'Manage Channel Auto Translation'});
     }
 
     /**
@@ -57,7 +51,7 @@ export default class PermissionsSystemScheme {
         }
         for (let i = 0; i < count; i++) {
             const row = rows.nth(i);
-            await expect(row.locator('.permission-check.checked')).toBeVisible();
+            await expect(row.getByTestId('permissionCheckbox-checked')).toBeVisible();
         }
     }
 
@@ -75,7 +69,7 @@ export default class PermissionsSystemScheme {
         }
         for (let i = 0; i < count; i++) {
             const row = rows.nth(i);
-            await expect(row.locator('.permission-check.checked')).not.toBeVisible();
+            await expect(row.getByTestId('permissionCheckbox-checked')).not.toBeVisible();
         }
     }
 }

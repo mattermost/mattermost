@@ -28,13 +28,21 @@ server.post('/dialog_submit', onDialogSubmit);
 server.post('/boolean_dialog_request', onBooleanDialogRequest);
 server.post('/multiselect_dialog_request', onMultiSelectDialogRequest);
 server.post('/dynamic_select_dialog_request', onDynamicSelectDialogRequest);
+server.post('/file_upload_dialog_request', onFileUploadDialogRequest);
 server.post('/dynamic_select_source', onDynamicSelectSource);
 server.post('/dialog/field-refresh', onFieldRefreshDialogRequest);
 server.post('/dialog/multistep', onMultistepDialogRequest);
+server.post('/dialog/action_button_request', onActionButtonDialogRequest);
+server.post('/dialog/open_child', onOpenChildDialog);
 server.post('/field_refresh_source', onFieldRefreshSource);
 server.post('/datetime_dialog_request', onDateTimeDialogRequest);
 server.post('/datetime_dialog_submit', onDateTimeDialogSubmit);
 server.post('/slack_compatible_message_response', postSlackCompatibleMessageResponse);
+server.post('/mm_blocks_integration', postMmBlocksIntegration);
+server.post('/mm_blocks_integration_update', postMmBlocksIntegrationUpdate);
+server.post('/mm_blocks_integration_static_select', postMmBlocksIntegrationStaticSelect);
+server.post('/mm_blocks_integration_echo_query', postMmBlocksIntegrationEchoQuery);
+server.post('/mm_blocks_integration_echo_context', postMmBlocksIntegrationEchoContext);
 server.post('/send_message_to_channel', postSendMessageToChannel);
 server.post('/post_outgoing_webhook', postOutgoingWebhook);
 server.post('/send_oauth_credentials', postSendOauthCredentials);
@@ -42,7 +50,13 @@ server.get('/start_oauth', getStartOAuth);
 server.get('/complete_oauth', getCompleteOauth);
 server.post('/post_oauth_message', postOAuthMessage);
 
-server.listen(port, () => console.log(`Webhook test server listening on port ${port}!`));
+server.listen(port, (err) => {
+    if (err) {
+        console.error(err);
+        throw err;
+    }
+    console.log(`Webhook test server listening on port ${port}!`);
+});
 
 function ping(req, res) {
     return res.json({
@@ -58,13 +72,21 @@ function ping(req, res) {
             'POST /boolean_dialog_request',
             'POST /multiselect_dialog_request',
             'POST /dynamic_select_dialog_request',
+            'POST /file_upload_dialog_request',
             'POST /dynamic_select_source',
             'POST /dialog/field-refresh',
             'POST /dialog/multistep',
+            'POST /dialog/action_button_request',
+            'POST /dialog/open_child',
             'POST /field_refresh_source',
             'POST /datetime_dialog_request',
             'POST /datetime_dialog_submit',
             'POST /slack_compatible_message_response',
+            'POST /mm_blocks_integration',
+            'POST /mm_blocks_integration_update',
+            'POST /mm_blocks_integration_static_select',
+            'POST /mm_blocks_integration_echo_query',
+            'POST /mm_blocks_integration_echo_context',
             'POST /send_message_to_channel',
             'POST /post_outgoing_webhook',
             'POST /send_oauth_credentials',
@@ -159,6 +181,81 @@ function postSlackCompatibleMessageResponse(req, res) {
     });
 }
 
+/**
+ * Mattermost mm_blocks external actions POST the same integration envelope as legacy message buttons.
+ * @see model.PostActionIntegrationResponse
+ */
+function postMmBlocksIntegration(req, res) {
+    const userName = req.body && req.body.user_name ? req.body.user_name : 'unknown';
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        ephemeral_text: `Playwright mm_blocks integration OK (user: ${userName}).`,
+        skip_slack_parsing: true,
+    });
+}
+
+/**
+ * Returns a PostActionIntegrationResponse update so the interactive post is edited in-place
+ * (persisted webhook post or ephemeral mm_blocks post).
+ */
+function postMmBlocksIntegrationUpdate(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        update: {
+            message: 'E2E mm_blocks post updated (message field).',
+            props: {
+                mm_blocks: [
+                    {
+                        type: 'text',
+                        text: 'PLAYWRIGHT_MM_BLOCKS_UPDATED',
+                    },
+                ],
+            },
+        },
+        skip_slack_parsing: true,
+    });
+}
+
+/** Echoes URL query parameters Mattermost merged onto the integration request (action query + block query). */
+function postMmBlocksIntegrationEchoQuery(req, res) {
+    const entries = Object.keys(req.query || {}).
+        sort().
+        map((k) => `${k}=${String(req.query[k])}`);
+    const summary = entries.join('&');
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        ephemeral_text: `Playwright mm_blocks query OK (${summary})`,
+        skip_slack_parsing: true,
+    });
+}
+
+/** Echoes `context.test_marker` from the Mattermost integration POST body for mm_blocks external actions. */
+function postMmBlocksIntegrationEchoContext(req, res) {
+    const ctx = (req.body && req.body.context) || {};
+    const marker =
+        typeof ctx.test_marker === 'string' ? ctx.test_marker : JSON.stringify(ctx.test_marker ?? null);
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        ephemeral_text: `Playwright mm_blocks context OK (test_marker: ${marker}).`,
+        skip_slack_parsing: true,
+    });
+}
+
+/** Echoes `context.selected_option` from the Mattermost integration POST for mm_blocks static_select. */
+function postMmBlocksIntegrationStaticSelect(req, res) {
+    const selected = req.body && req.body.context && req.body.context.selected_option;
+    const label = typeof selected === 'string' ? selected : JSON.stringify(selected ?? null);
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.status(200).json({
+        ephemeral_text: `Playwright mm_blocks static_select OK (selected_option: ${label}).`,
+        skip_slack_parsing: true,
+    });
+}
+
 function postMessageMenus(req, res) {
     let responseData = {};
     const {body} = req;
@@ -173,11 +270,25 @@ function postMessageMenus(req, res) {
 }
 
 async function openDialog(dialog) {
-    await axios({
-        method: 'post',
-        url: `${baseUrl}/api/v4/actions/dialogs/open`,
-        data: dialog,
-    });
+    // Callers invoke this fire-and-forget (no await/catch), so any rejection here
+    // would become an unhandled rejection and crash the whole webhook process.
+    // Guard against a missing baseUrl (set by /setup) and swallow request errors.
+    if (!baseUrl) {
+        console.error('openDialog called before /setup ran — baseUrl is not set; skipping dialog open');
+        return;
+    }
+
+    try {
+        await axios({
+            method: 'post',
+            url: `${baseUrl}/api/v4/actions/dialogs/open`,
+            data: dialog,
+        });
+    } catch (err) {
+        const status = err.response && err.response.status;
+        const body = err.response && err.response.data;
+        console.error('openDialog request failed:', status || err.code || err.message, body ? JSON.stringify(body) : '');
+    }
 }
 
 function onDialogRequest(req, res) {
@@ -246,6 +357,17 @@ function onDynamicSelectDialogRequest(req, res) {
 
     res.setHeader('Content-Type', 'application/json');
     return res.json({text: 'Dynamic select dialog triggered via slash command!'});
+}
+
+function onFileUploadDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        const dialog = webhookUtils.getFileUploadDialog(body.trigger_id, webhookBaseUrl);
+        openDialog(dialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'File upload dialog triggered via slash command!'});
 }
 
 function onDynamicSelectSource(req, res) {
@@ -364,6 +486,7 @@ function onDialogSubmit(req, res) {
     let message;
     if (body.cancelled) {
         message = 'Dialog cancelled';
+        console.log('[WEBHOOK] Dialog cancelled');
         sendSysadminResponse(message, body.channel_id);
         return res.json({text: message});
     }
@@ -405,7 +528,13 @@ function onDialogSubmit(req, res) {
     }
 
     // Regular dialog submission
-    message = 'Dialog submitted';
+    // Format submission data for the channel message
+    const sanitize = (str) => String(str).replace(/[<>&"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
+    const submissionData = Object.entries(body.submission || {}).
+        map(([key, value]) => `**${sanitize(key)}**: ${sanitize(value)}`).
+        join('\n');
+
+    message = `Dialog submitted successfully!\n\n**Submission Data:**\n${submissionData}`;
 
     sendSysadminResponse(message, body.channel_id);
     return res.json({text: message});
@@ -513,6 +642,38 @@ function onMultistepDialogRequest(req, res) {
 
     res.setHeader('Content-Type', 'application/json');
     return res.json({text: 'Multistep dialog triggered via slash command!'});
+}
+
+function onActionButtonDialogRequest(req, res) {
+    const {body} = req;
+    if (body.trigger_id) {
+        const dialog = webhookUtils.getActionButtonParentDialog(body.trigger_id, webhookBaseUrl);
+        openDialog(dialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({text: 'Action button dialog triggered!'});
+}
+
+async function onOpenChildDialog(req, res) {
+    const {body} = req;
+
+    // context.source identifies which action button on the parent dialog was
+    // pressed; it is forwarded by the server in the PostActionIntegrationRequest.
+    const source = (body.context && body.context.source) || 'Unknown';
+    console.log('onOpenChildDialog called with trigger_id:', body.trigger_id, 'source:', source);
+    if (body.trigger_id) {
+        const childDialog = webhookUtils.getActionButtonChildDialog(body.trigger_id, webhookBaseUrl, source);
+
+        // Await the dialog open before responding. The server's /execute call
+        // (DoActionRequest) waits for this response, so awaiting here ensures the
+        // child's WS open_dialog event is published before the browser's
+        // executeDialogAction promise resolves — removing the render race in tests.
+        await openDialog(childDialog);
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+    return res.json({});
 }
 
 function onFieldRefreshSource(req, res) {

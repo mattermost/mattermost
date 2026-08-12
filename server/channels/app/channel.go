@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -61,7 +60,7 @@ func (a *App) JoinDefaultChannels(rctx request.CTX, teamID string, user *model.U
 	var requestor *model.User
 	var nErr error
 	if userRequestorId != "" {
-		requestor, nErr = a.Srv().Store().User().Get(context.Background(), userRequestorId)
+		requestor, nErr = a.Srv().Store().User().Get(rctx, userRequestorId)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -165,6 +164,10 @@ func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, us
 		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.board_type.app_error", nil, "use CreateBoardChannel instead", http.StatusBadRequest)
 	}
 
+	if channel.IsSpace() {
+		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.space_type.app_error", nil, "use CreateChannel instead", http.StatusBadRequest)
+	}
+
 	if channel.TeamId == "" {
 		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.no_team_id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -237,6 +240,10 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.board_type.app_error", nil, "use CreateBoardChannel instead", http.StatusBadRequest)
 	}
 
+	if channel.IsSpace() && !a.Config().FeatureFlags.EnableDocs {
+		return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.spaces_not_enabled.app_error", nil, "", http.StatusForbidden)
+	}
+
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
 	channel.DefaultCategoryName = strings.TrimSpace(channel.DefaultCategoryName)
 	channel.ManagedCategoryName = strings.TrimSpace(channel.ManagedCategoryName)
@@ -268,7 +275,7 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 	}
 
 	if addMember {
-		user, nErr := a.Srv().Store().User().Get(context.Background(), channel.CreatorId)
+		user, nErr := a.Srv().Store().User().Get(rctx, channel.CreatorId)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -324,6 +331,10 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 				sc.ManagedCategoryName = ""
 			}
 		}
+	}
+
+	if sc.IsSpace() {
+		return sc, nil
 	}
 
 	a.Srv().Go(func() {
@@ -737,7 +748,18 @@ func (a *App) GetGroupChannel(rctx request.CTX, userIDs []string) (*model.Channe
 
 // UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
-	oldChannel, getErr := a.Srv().Store().Channel().Get(channel.Id, true)
+	// The generic Get excludes spaces, so fetch a space by its exact type instead; otherwise
+	// UpdateChannel can't load the existing channel and a rename or header edit would fail with
+	// a not-found before it reaches the store.
+	// Read from master: spaces are uncached, so an update right after create would otherwise
+	// miss against a lagging replica.
+	var oldChannel *model.Channel
+	var getErr error
+	if channel.IsSpace() {
+		oldChannel, getErr = a.Srv().Store().Channel().GetChannelOfType(RequestContextWithMaster(rctx), channel.Id, model.ChannelTypeSpace)
+	} else {
+		oldChannel, getErr = a.Srv().Store().Channel().Get(channel.Id, true)
+	}
 	if getErr != nil {
 		errCtx := map[string]any{"channel_id": channel.Id}
 		var nfErr *store.ErrNotFound
@@ -749,32 +771,36 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 		}
 	}
 
-	enforced, appErr := a.ChannelAccessControlled(rctx, channel.Id)
-	if appErr != nil {
-		return nil, appErr
-	}
-	if enforced {
-		if channel.Type != model.ChannelTypePrivate && channel.Type != model.ChannelTypeOpen {
-			return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.not_allowed.app_error", nil, "", http.StatusForbidden)
+	// Space backing channels are internal: skip ABAC enforcement and the plugin
+	// ChannelWillBeUpdated hook, matching the other space lifecycle paths.
+	if !channel.IsSpace() {
+		enforced, appErr := a.ChannelAccessControlled(rctx, channel.Id)
+		if appErr != nil {
+			return nil, appErr
+		}
+		if enforced {
+			if channel.Type != model.ChannelTypePrivate && channel.Type != model.ChannelTypeOpen {
+				return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.not_allowed.app_error", nil, "", http.StatusForbidden)
+			}
+
+			// Block public ↔ private conversion while an ABAC policy is attached.
+			// Public-channel and private-channel ABAC have asymmetric semantics
+			// (advisory recommend/auto-add vs hard-gate with member removal); a
+			// silent type flip would change what the existing policy actually
+			// does to members. The admin must remove the policy first and
+			// re-apply it after the conversion if they still want it.
+			if oldChannel.Type != channel.Type {
+				return nil, model.NewAppError("UpdateChannel",
+					"api.channel.update_channel.policy_enforced_type_conversion.app_error",
+					nil, "channel has an active ABAC policy; remove the policy before converting between public and private", http.StatusBadRequest)
+			}
 		}
 
-		// Block public ↔ private conversion while an ABAC policy is attached.
-		// Public-channel and private-channel ABAC have asymmetric semantics
-		// (advisory recommend/auto-add vs hard-gate with member removal); a
-		// silent type flip would change what the existing policy actually
-		// does to members. The admin must remove the policy first and
-		// re-apply it after the conversion if they still want it.
-		if oldChannel.Type != channel.Type {
-			return nil, model.NewAppError("UpdateChannel",
-				"api.channel.update_channel.policy_enforced_type_conversion.app_error",
-				nil, "channel has an active ABAC policy; remove the policy before converting between public and private", http.StatusBadRequest)
+		var channelErr *model.AppError
+		channel, channelErr = a.runGuardedChannelWillBeUpdated(rctx, channel, oldChannel)
+		if channelErr != nil {
+			return nil, channelErr
 		}
-	}
-
-	var channelErr *model.AppError
-	channel, channelErr = a.runGuardedChannelWillBeUpdated(rctx, channel, oldChannel)
-	if channelErr != nil {
-		return nil, channelErr
 	}
 
 	_, err := a.Srv().Store().Channel().Update(rctx, channel)
@@ -795,6 +821,11 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
+
+	// Space backing channels are internal: skip the channel_updated broadcast.
+	if channel.IsSpace() {
+		return channel, nil
+	}
 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, "", channel.Id, "", nil, "")
 	channelJSON, jsonErr := json.Marshal(channel)
@@ -849,6 +880,10 @@ func (a *App) UpdateChannelScheme(rctx request.CTX, channel *model.Channel) (*mo
 }
 
 func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
+	if oldChannel.IsSpace() {
+		return nil, model.NewAppError("UpdateChannelPrivacy", "app.channel.update_channel_privacy.space.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	wasDiscoverable := oldChannel.Discoverable
 	// Public channels are inherently joinable; the discoverable flag only
 	// has meaning for private channels. Clear it eagerly so callers reading
@@ -946,8 +981,11 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 		return nil, model.NewAppError("restoreChannel", "api.channel.restore_channel.restored.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if appErr := a.runGuardedChannelWillBeRestored(rctx, channel); appErr != nil {
-		return nil, appErr
+	// Space backing channels are internal; plugin ChannelWillBeRestored hooks are skipped.
+	if !channel.IsSpace() {
+		if appErr := a.runGuardedChannelWillBeRestored(rctx, channel); appErr != nil {
+			return nil, appErr
+		}
 	}
 
 	if err := a.Srv().Store().Channel().Restore(channel.Id, model.GetMillis()); err != nil {
@@ -955,6 +993,11 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 	}
 	channel.DeleteAt = 0
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
+
+	// Space backing channels are internal: skip the channel_restored chat event and system post.
+	if channel.IsSpace() {
+		return channel, nil
+	}
 
 	var message *model.WebSocketEvent
 	if channel.Type == model.ChannelTypeOpen {
@@ -968,7 +1011,7 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 	var user *model.User
 	if userID != "" {
 		var nErr error
-		user, nErr = a.Srv().Store().User().Get(context.Background(), userID)
+		user, nErr = a.Srv().Store().User().Get(rctx, userID)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -1398,7 +1441,10 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 		}
 
 		if !role.SchemeManaged {
-			// The role is not scheme-managed, so it's OK to apply it to the explicit roles field.
+			if model.IsBuiltInRole(roleName) && !model.IsChannelScopedBuiltInRole(roleName) {
+				err = model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+				return nil, err
+			}
 			newExplicitRoles = append(newExplicitRoles, roleName)
 		} else {
 			// The role is scheme-managed, so need to check if it is part of the scheme for this channel or not.
@@ -1418,6 +1464,10 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 
 	if member.SchemeUser && member.SchemeGuest {
 		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if member.SchemeGuest && member.SchemeAdmin {
+		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.guest_and_admin.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if prevSchemeGuestValue != member.SchemeGuest {
@@ -1658,7 +1708,7 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 	var user *model.User
 	if userID != "" {
 		var nErr error
-		user, nErr = a.Srv().Store().User().Get(context.Background(), userID)
+		user, nErr = a.Srv().Store().User().Get(rctx, userID)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -1690,16 +1740,19 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 		return err
 	}
 
-	var archiveRejectionReason string
-	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		archiveRejectionReason = hooks.ChannelWillBeArchived(pluginContext, channel)
-		return archiveRejectionReason == ""
-	}, plugin.ChannelWillBeArchivedID)
+	// Space backing channels are internal; plugin ChannelWillBeArchived hooks are skipped.
+	if !channel.IsSpace() {
+		var archiveRejectionReason string
+		pluginContext := pluginContext(rctx)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			archiveRejectionReason = hooks.ChannelWillBeArchived(pluginContext, channel)
+			return archiveRejectionReason == ""
+		}, plugin.ChannelWillBeArchivedID)
 
-	if archiveRejectionReason != "" {
-		return model.NewAppError("DeleteChannel", "app.channel.delete_channel.rejected_by_plugin",
-			map[string]any{"Reason": archiveRejectionReason}, "", http.StatusBadRequest)
+		if archiveRejectionReason != "" {
+			return model.NewAppError("DeleteChannel", "app.channel.delete_channel.rejected_by_plugin",
+				map[string]any{"Reason": archiveRejectionReason}, "", http.StatusBadRequest)
+		}
 	}
 
 	deleteAt := model.GetMillis()
@@ -1708,39 +1761,42 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if user != nil {
-		T := i18n.GetUserTranslations(user.Locale)
+	// Space backing channels are internal and skip the archive system post.
+	if !channel.IsSpace() {
+		if user != nil {
+			T := i18n.GetUserTranslations(user.Locale)
 
-		post := &model.Post{
-			ChannelId: channel.Id,
-			Message:   fmt.Sprintf(T("api.channel.delete_channel.archived"), user.Username),
-			Type:      model.PostTypeChannelDeleted,
-			UserId:    userID,
-			Props: model.StringInterface{
-				"username": user.Username,
-			},
-		}
-
-		if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
-			rctx.Logger().Warn("Failed to post archive message", mlog.Err(err))
-		}
-	} else {
-		systemBot, err := a.GetSystemBot(rctx)
-		if err != nil {
-			rctx.Logger().Warn("Failed to post archive message", mlog.Err(err))
-		} else {
 			post := &model.Post{
 				ChannelId: channel.Id,
-				Message:   fmt.Sprintf(i18n.T("api.channel.delete_channel.archived"), systemBot.Username),
+				Message:   fmt.Sprintf(T("api.channel.delete_channel.archived"), user.Username),
 				Type:      model.PostTypeChannelDeleted,
-				UserId:    systemBot.UserId,
+				UserId:    userID,
 				Props: model.StringInterface{
-					"username": systemBot.Username,
+					"username": user.Username,
 				},
 			}
 
 			if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
 				rctx.Logger().Warn("Failed to post archive message", mlog.Err(err))
+			}
+		} else {
+			systemBot, err := a.GetSystemBot(rctx)
+			if err != nil {
+				rctx.Logger().Warn("Failed to post archive message", mlog.Err(err))
+			} else {
+				post := &model.Post{
+					ChannelId: channel.Id,
+					Message:   fmt.Sprintf(i18n.T("api.channel.delete_channel.archived"), systemBot.Username),
+					Type:      model.PostTypeChannelDeleted,
+					UserId:    systemBot.UserId,
+					Props: model.StringInterface{
+						"username": systemBot.Username,
+					},
+				}
+
+				if _, _, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); err != nil {
+					rctx.Logger().Warn("Failed to post archive message", mlog.Err(err))
+				}
 			}
 		}
 	}
@@ -1771,6 +1827,10 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
+	if channel.IsSpace() {
+		return nil
+	}
+
 	var message *model.WebSocketEvent
 	if channel.Type == model.ChannelTypeOpen {
 		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
@@ -1785,7 +1845,7 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 }
 
 func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	if channel.Type != model.ChannelTypeOpen && channel.Type != model.ChannelTypePrivate {
+	if channel.Type != model.ChannelTypeOpen && channel.Type != model.ChannelTypePrivate && !channel.IsSpace() {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1855,9 +1915,11 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	}
 
 	var channelMemberErr *model.AppError
-	newMember, channelMemberErr = a.runGuardedChannelMemberWillBeAdded(rctx, channel.Id, newMember)
-	if channelMemberErr != nil {
-		return nil, channelMemberErr
+	if !channel.IsSpace() {
+		newMember, channelMemberErr = a.runGuardedChannelMemberWillBeAdded(rctx, channel.Id, newMember)
+		if channelMemberErr != nil {
+			return nil, channelMemberErr
+		}
 	}
 
 	newMember, nErr = a.Srv().Store().Channel().SaveMember(rctx, newMember)
@@ -1905,6 +1967,10 @@ func (a *App) AddUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	newMember, err := a.addUserToChannel(rctx, user, channel)
 	if err != nil {
 		return nil, err
+	}
+
+	if channel.IsSpace() {
+		return newMember, nil
 	}
 
 	a.addChannelToDefaultCategory(rctx, user.Id, channel)
@@ -1968,6 +2034,10 @@ func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.C
 		return nil, err
 	}
 
+	if channel.IsSpace() {
+		return cm, nil
+	}
+
 	a.Srv().Go(func() {
 		pluginContext := pluginContext(rctx)
 		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
@@ -2028,7 +2098,7 @@ func (a *App) AddDirectChannels(rctx request.CTX, teamID string, user *model.Use
 }
 
 func (a *App) PostUpdateChannelHeaderMessage(rctx request.CTX, userID string, channel *model.Channel, oldChannelHeader, newChannelHeader string) *model.AppError {
-	user, err := a.Srv().Store().User().Get(context.Background(), userID)
+	user, err := a.Srv().Store().User().Get(rctx, userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelHeaderMessage", "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -2062,7 +2132,7 @@ func (a *App) PostUpdateChannelHeaderMessage(rctx request.CTX, userID string, ch
 }
 
 func (a *App) PostUpdateChannelPurposeMessage(rctx request.CTX, userID string, channel *model.Channel, oldChannelPurpose string, newChannelPurpose string) *model.AppError {
-	user, err := a.Srv().Store().User().Get(context.Background(), userID)
+	user, err := a.Srv().Store().User().Get(rctx, userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelPurposeMessage", "app.channel.post_update_channel_purpose_message.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -2095,7 +2165,7 @@ func (a *App) PostUpdateChannelPurposeMessage(rctx request.CTX, userID string, c
 }
 
 func (a *App) postUpdateChannelAutotranslationMessage(rctx request.CTX, userID string, channel *model.Channel, newChannelAutotranslation bool) *model.AppError {
-	user, err := a.Srv().Store().User().Get(context.Background(), userID)
+	user, err := a.Srv().Store().User().Get(rctx, userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelAutotranslationMessage", "api.channel.post_update_channel_autotranslation_message.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -2126,7 +2196,7 @@ func (a *App) postUpdateChannelAutotranslationMessage(rctx request.CTX, userID s
 }
 
 func (a *App) PostUpdateChannelDisplayNameMessage(rctx request.CTX, userID string, channel *model.Channel, oldChannelDisplayName, newChannelDisplayName string) *model.AppError {
-	user, err := a.Srv().Store().User().Get(context.Background(), userID)
+	user, err := a.Srv().Store().User().Get(rctx, userID)
 	if err != nil {
 		return model.NewAppError("PostUpdateChannelDisplayNameMessage", "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -2179,6 +2249,23 @@ func (a *App) GetBoardChannel(rctx request.CTX, channelID string) (*model.Channe
 			return nil, model.NewAppError("GetBoardChannel", "app.channel.get.existing.app_error", map[string]any{"channel_id": channelID}, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetBoardChannel", "app.channel.get.find.app_error", map[string]any{"channel_id": channelID}, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	return channel, nil
+}
+
+// GetChannelOfType resolves a channel by ID, requiring it to be of the given type. Generic
+// channel access goes through GetChannel, which excludes opaque backing channel types (e.g.
+// space); callers that legitimately need such a channel ask for it by its exact type here.
+func (a *App) GetChannelOfType(rctx request.CTX, channelID string, channelType model.ChannelType) (*model.Channel, *model.AppError) {
+	channel, err := a.Srv().Store().Channel().GetChannelOfType(rctx, channelID, channelType)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetChannelOfType", "app.channel.get.existing.app_error", map[string]any{"channel_id": channelID}, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetChannelOfType", "app.channel.get.find.app_error", map[string]any{"channel_id": channelID}, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return channel, nil
@@ -2320,7 +2407,23 @@ func (s *Server) getChannelsForTeamForUser(rctx request.CTX, teamID string, user
 }
 
 func (a *App) GetChannelsForTeamForUser(rctx request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	return a.Srv().getChannelsForTeamForUser(rctx, teamID, userID, opts)
+	channels, appErr := a.Srv().getChannelsForTeamForUser(rctx, teamID, userID, opts)
+	if appErr != nil {
+		return nil, appErr
+	}
+	// Hydrate the policy action set so the frontend can distinguish a
+	// membership policy from a permission-only one (e.g. file upload) without
+	// a second round-trip. Without this the guest-invite picker reads the bare
+	// PolicyEnforced flag and wrongly hides permission-only channels. No-op for
+	// channels without an attached policy, keeping the no-policy path free.
+	if appErr := a.HydrateChannelsPolicyActions(rctx, channels); appErr != nil {
+		rctx.Logger().Warn("Failed to hydrate channel policy actions for team channels; returning channels without action map",
+			mlog.String("team_id", teamID),
+			mlog.String("user_id", userID),
+			mlog.Err(appErr),
+		)
+	}
+	return channels, nil
 }
 
 func (a *App) GetChannelsForUser(rctx request.CTX, userID string, includeDeleted bool, lastDeleteAt, pageSize int, fromChannelID string) (model.ChannelList, *model.AppError) {
@@ -2617,7 +2720,7 @@ func (a *App) JoinChannel(rctx request.CTX, channel *model.Channel, userID strin
 	userChan := make(chan store.StoreResult[*model.User], 1)
 	memberChan := make(chan store.StoreResult[*model.ChannelMember], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), userID)
+		user, err := a.Srv().Store().User().Get(rctx, userID)
 		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
@@ -2724,7 +2827,7 @@ func (a *App) LeaveChannel(rctx request.CTX, channelID string, userID string) *m
 
 	uc := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), userID)
+		user, err := a.Srv().Store().User().Get(rctx, userID)
 		uc <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uc)
 	}()
@@ -2894,7 +2997,7 @@ func (a *App) removeChannelMembership(rctx request.CTX, userID, channelID, calle
 }
 
 func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
-	user, nErr := a.Srv().Store().User().Get(context.Background(), userIDToRemove)
+	user, nErr := a.Srv().Store().User().Get(rctx, userIDToRemove)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2939,18 +3042,26 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 		if err != nil {
 			return err
 		}
+		// GetChannelMembersForUser excludes space backing channels. A guest still in a space
+		// belongs to the team, so count space memberships before evicting them from the team.
 		if len(currentMembers) == 0 {
-			teamMember, err := a.GetTeamMember(rctx, channel.TeamId, userIDToRemove)
-			if err != nil {
-				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			spaceChannels, sErr := a.Srv().Store().Channel().GetTeamSpaceChannelsForUser(channel.TeamId, userIDToRemove)
+			if sErr != nil {
+				return model.NewAppError("removeUserFromChannel", "app.channel.get_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
 			}
+			if len(spaceChannels) == 0 {
+				teamMember, err := a.GetTeamMember(rctx, channel.TeamId, userIDToRemove)
+				if err != nil {
+					return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+				}
 
-			if err := a.ch.srv.teamService.RemoveTeamMember(rctx, teamMember); err != nil {
-				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-			}
+				if err := a.ch.srv.teamService.RemoveTeamMember(rctx, teamMember); err != nil {
+					return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+				}
 
-			if err = a.postProcessTeamMemberLeave(rctx, teamMember, removerUserId); err != nil {
-				return err
+				if err = a.postProcessTeamMemberLeave(rctx, teamMember, removerUserId); err != nil {
+					return err
+				}
 			}
 		}
 	}
@@ -2959,6 +3070,11 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 	a.invalidateCacheForChannelMembers(channel.Id)
 	a.Srv().Store().AutoTranslation().InvalidateUserAutoTranslation(userIDToRemove, channel.Id)
 	a.Srv().Store().AutoTranslation().InvalidateUserLocaleCache(userIDToRemove)
+
+	// Space backing channels are internal: skip the user_removed chat events and plugin hook.
+	if channel.IsSpace() {
+		return nil
+	}
 
 	var actorUser *model.User
 	if removerUserId != "" {
@@ -2999,6 +3115,11 @@ func (a *App) RemoveUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 
 	if err = a.removeUserFromChannel(rctx, userIDToRemove, removerUserId, channel); err != nil {
 		return err
+	}
+
+	// Space backing channels are internal: skip the leave/remove system post.
+	if channel.IsSpace() {
+		return nil
 	}
 
 	var user *model.User
@@ -3371,6 +3492,17 @@ func (a *App) SearchChannels(rctx request.CTX, teamID string, term string) (mode
 		return nil, model.NewAppError("SearchChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Hydrate policy actions so search results carry the same action map as the
+	// bootstrap channel list; otherwise a search would overwrite a hydrated
+	// channel in the frontend store with an unhydrated copy. No-op without a
+	// policy attached.
+	if appErr := a.HydrateChannelsPolicyActions(rctx, channelList); appErr != nil {
+		rctx.Logger().Warn("Failed to hydrate channel policy actions for search results; returning channels without action map",
+			mlog.String("team_id", teamID),
+			mlog.Err(appErr),
+		)
+	}
+
 	return channelList, nil
 }
 
@@ -3382,6 +3514,18 @@ func (a *App) SearchChannelsForUser(rctx request.CTX, userID, teamID, term strin
 	channelList, err := a.Srv().Store().Channel().SearchForUserInTeam(userID, teamID, term, includeDeleted)
 	if err != nil {
 		return nil, model.NewAppError("SearchChannelsForUser", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Hydrate policy actions so search results carry the same action map as the
+	// bootstrap channel list; otherwise a search would overwrite a hydrated
+	// channel in the frontend store with an unhydrated copy. No-op without a
+	// policy attached.
+	if appErr := a.HydrateChannelsPolicyActions(rctx, channelList); appErr != nil {
+		rctx.Logger().Warn("Failed to hydrate channel policy actions for user search results; returning channels without action map",
+			mlog.String("team_id", teamID),
+			mlog.String("user_id", userID),
+			mlog.Err(appErr),
+		)
 	}
 
 	return channelList, nil
@@ -3410,7 +3554,7 @@ func (a *App) SearchChannelsUserNotIn(rctx request.CTX, teamID string, userID st
 }
 
 func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, userID string, currentSessionID string, isCRTEnabled bool) (map[string]int64, *model.AppError) {
-	user, err := a.Srv().Store().User().Get(rctx.Context(), userID)
+	user, err := a.Srv().Store().User().Get(rctx, userID)
 	if err != nil {
 		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3470,7 +3614,7 @@ func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, 
 }
 
 func (a *App) MarkAllDirectAndGroupMessagesViewed(rctx request.CTX, userID string, currentSessionID string, isCRTEnabled bool) (map[string]int64, *model.AppError) {
-	user, err := a.Srv().Store().User().Get(rctx.Context(), userID)
+	user, err := a.Srv().Store().User().Get(rctx, userID)
 	if err != nil {
 		return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3535,7 +3679,7 @@ func (a *App) MarkAllDirectAndGroupMessagesViewed(rctx request.CTX, userID strin
 func (a *App) MarkChannelsAsViewed(rctx request.CTX, channelIDs []string, userID string, currentSessionID string, collapsedThreadsSupported, isCRTEnabled bool) (map[string]int64, *model.AppError) {
 	var err error
 
-	user, err := a.Srv().Store().User().Get(rctx.Context(), userID)
+	user, err := a.Srv().Store().User().Get(rctx, userID)
 	if err != nil {
 		return nil, model.NewAppError("MarkChannelsAsViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3648,6 +3792,10 @@ func (a *App) PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
+	if channel.IsSpace() {
+		return nil
+	}
+
 	var message *model.WebSocketEvent
 	if channel.Type == model.ChannelTypeOpen {
 		message = model.NewWebSocketEvent(model.WebsocketEventChannelDeleted, channel.TeamId, "", "", nil, "")
@@ -3673,6 +3821,10 @@ func (a *App) RemoveAllDeactivatedMembersFromChannel(rctx request.CTX, channel *
 // MoveChannel method is prone to data races if someone joins to channel during the move process. However this
 // function is only exposed to sysadmins and the possibility of this edge case is relatively small.
 func (a *App) MoveChannel(rctx request.CTX, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
+	if channel.IsSpace() {
+		return model.NewAppError("MoveChannel", "app.channel.move_channel.space.app_error", nil, "", http.StatusForbidden)
+	}
+
 	// Check that all channel members are in the destination team.
 	channelMembers, err := a.GetChannelMembersPage(rctx, channel.Id, 0, 10000000)
 	if err != nil {

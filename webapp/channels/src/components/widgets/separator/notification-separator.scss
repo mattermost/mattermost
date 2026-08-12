@@ -1,11 +1,11 @@
 .NotificationSeparator {
     .separator__hr {
-        border-color: #ffaf53;
+        border-color: rgba(var(--new-message-separator-rgb), 0.5);
     }
 
     .separator__text {
         display: inline-flex;
-        color: #f80;
+        color: var(--new-message-separator);
         font-weight: normal;
     }
 }

@@ -5,8 +5,6 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {GlobalState} from '@mattermost/types/store';
-
 import {getAccessControlPolicy, deleteAccessControlPolicy, assignChannelsToAccessControlPolicy, searchAccessControlPolicies, unassignChannelsFromAccessControlPolicy, createAccessControlPolicy, getAccessControlFields, getVisualAST, validateExpressionAgainstRequester, updateAccessControlPoliciesActive, searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {
     addChannelMember,
@@ -39,8 +37,11 @@ import {getScheme} from 'mattermost-redux/selectors/entities/schemes';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
+import {isChannelAccessControlEnabled} from 'selectors/general';
 
 import {isMinimumEnterpriseAdvancedLicense, isMinimumEnterpriseLicense, isMinimumProfessionalLicense} from 'utils/license_utils';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelDetails from './channel_details';
 
@@ -64,7 +65,10 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     // Channel Groups is only available for Enterprise and above
     const channelGroupsEnabled = isLicensed && isMinimumEnterpriseLicense(license);
 
-    const abacSupported = isLicensed && isMinimumEnterpriseAdvancedLicense(license) && config.FeatureFlagAttributeBasedAccessControl === 'true';
+    // ABAC must be licensed (Enterprise Advanced) and enabled via the
+    // AccessControlSettings.EnableAttributeBasedAccessControl config setting,
+    // which is now the sole switch for the feature.
+    const abacSupported = isLicensed && isMinimumEnterpriseAdvancedLicense(license) && isChannelAccessControlEnabled(state);
 
     const guestAccountsEnabled = config.EnableGuestAccounts === 'true';
     const channelID = ownProps.match.params.channel_id;

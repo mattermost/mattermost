@@ -714,6 +714,7 @@ exports[`components/integrations/EditCommand should match snapshot when EnableCo
 <div>
   <div
     class="loading-screen"
+    data-testid="loading-screen"
     style="position: relative;"
   >
     <div
@@ -740,6 +741,7 @@ exports[`components/integrations/EditCommand should match snapshot, loading 1`] 
 <div>
   <div
     class="loading-screen"
+    data-testid="loading-screen"
     style="position: relative;"
   >
     <div

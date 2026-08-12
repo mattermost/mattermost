@@ -7,6 +7,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {Channel, ChannelUnread} from '@mattermost/types/channels';
 import type {FetchPaginatedThreadOptions} from '@mattermost/types/client4';
 import type {Group} from '@mattermost/types/groups';
+import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
 import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 import type {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
 import type {Reaction} from '@mattermost/types/reactions';
@@ -36,6 +37,7 @@ import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'matt
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
+import {scanHumanReadableStringsFromInteractiveProps} from 'mattermost-redux/utils/post_interactive_utils';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {logError, LogErrorBarMode} from './errors';
@@ -1131,7 +1133,7 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
     }
 
     for (const post of posts) {
-        // These correspond to the fields searched by getMentionsEnabledFields on the server
+        // These correspond to the text segments from model.Post.AllStrings on the server (message, attachments, interactive).
         findNeededUsernamesAndGroups(post.message);
 
         if (isMessageAttachmentArray(post.props?.attachments)) {
@@ -1147,6 +1149,10 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
                     }
                 }
             }
+        }
+
+        for (const text of scanHumanReadableStringsFromInteractiveProps(post.props)) {
+            findNeededUsernamesAndGroups(text);
         }
     }
 
@@ -1228,14 +1234,14 @@ export function addPostReminder(userId: string, postId: string, timestamp: numbe
 }
 
 export function doPostAction(postId: string, actionId: string, selectedOption = '') {
-    return doPostActionWithCookie(postId, actionId, '', selectedOption);
+    return doPostActionWithCookie(postId, actionId, '', selectedOption, undefined, '');
 }
 
-export function doPostActionWithCookie(postId: string, actionId: string, actionCookie: string, selectedOption = ''): ActionFuncAsync {
+export function doPostActionWithCookie(postId: string, actionId: string, actionCookie: string, selectedOption = '', query?: Record<string, string>, integrationFormat: PostActionIntegrationFormat | '' = ''): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.doPostActionWithCookie(postId, actionId, actionCookie, selectedOption);
+            data = await Client4.doPostActionWithCookie(postId, actionId, actionCookie, selectedOption, query, integrationFormat);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -1254,38 +1260,6 @@ export function doPostActionWithCookie(postId: string, actionId: string, actionC
                 data: {
                     channel_id: post.channel_id,
                 }});
-        }
-
-        return {data};
-    };
-}
-
-export function doPostActionWithQuery(postId: string, actionId: string, query: Record<string, string>): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.doPostActionWithQuery(postId, actionId, query);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-
-        if (data && data.trigger_id) {
-            dispatch({
-                type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID,
-                data: data.trigger_id,
-            });
-            const state = getState();
-            const post = PostSelectors.getPost(state, postId);
-            if (post) {
-                dispatch({
-                    type: IntegrationTypes.RECEIVED_DIALOG_ARGUMENTS,
-                    data: {
-                        channel_id: post.channel_id,
-                    },
-                });
-            }
         }
 
         return {data};

@@ -40,6 +40,7 @@ const ChannelSummary = ({selectedChannelIds, myChannels}: Props) => {
                         <div
                             key={channel.id}
                             className='summary-channel-item'
+                            data-testid='summary-channel-item'
                         >
                             {icon}
                             <span className='channel-name'>{channel.display_name}</span>

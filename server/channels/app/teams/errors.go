@@ -18,3 +18,11 @@ type DomainError struct {
 func (DomainError) Error() string {
 	return "restricting team to the domain, it is not allowed by the system config"
 }
+
+type NameOccupiedError struct {
+	Name string
+}
+
+func (NameOccupiedError) Error() string {
+	return "team name is already occupied"
+}

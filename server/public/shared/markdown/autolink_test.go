@@ -4,6 +4,8 @@
 package markdown
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -703,6 +705,18 @@ func TestTrimTrailingCharactersFromLink(t *testing.T) {
 			ExpectedEnd: 54,
 		},
 		{
+			Input:       "https://example.com/" + strings.Repeat(")", 4096),
+			ExpectedEnd: len("https://example.com/"),
+		},
+		{
+			Input:       "https://example.com/path_(with_" + strings.Repeat("nested_", 10) + "parens)",
+			ExpectedEnd: len("https://example.com/path_(with_" + strings.Repeat("nested_", 10) + "parens)"),
+		},
+		{
+			Input:       "https://example.com/path_((opening-heavy)",
+			ExpectedEnd: len("https://example.com/path_((opening-heavy)"),
+		},
+		{
 			Input:       "https://en.wikipedia.org/wiki/Dolphin_(disambiguation)_(disambiguation)",
 			ExpectedEnd: 71,
 		},
@@ -795,6 +809,22 @@ func TestTrimTrailingCharactersFromLink(t *testing.T) {
 			}
 
 			assert.Equal(t, testCase.ExpectedEnd, trimTrailingCharactersFromLink(testCase.Input, testCase.Start, testCase.End))
+		})
+	}
+}
+
+func BenchmarkTrimTrailingCharactersFromLink_UnmatchedClosingParens(b *testing.B) {
+	for _, size := range []int{128, 1024, 8192, 65536} {
+		b.Run(fmt.Sprintf("closing-%d", size), func(b *testing.B) {
+			input := "https://example.com/" + strings.Repeat(")", size)
+			expectedEnd := len("https://example.com/")
+
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				if end := trimTrailingCharactersFromLink(input, 0, len(input)); end != expectedEnd {
+					b.Fatalf("expected end %d, got %d", expectedEnd, end)
+				}
+			}
 		})
 	}
 }

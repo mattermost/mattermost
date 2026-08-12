@@ -76,7 +76,7 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 // (template/system/channel in the access_control group) legitimately use the
 // rank type and ship behind the separate, GA-by-default ClassificationMarkings
 // flag. Gating those here would break the classification admin panel (create
-// and edit alike) whenever PropertyFieldRank is off, which is the default.
+// and edit alike) whenever PropertyFieldRank is off.
 func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) *model.AppError {
 	if field == nil || field.Type != model.PropertyFieldTypeRank {
 		return nil
@@ -158,6 +158,10 @@ func (a *App) GetPropertyFields(rctx request.CTX, groupID string, ids []string) 
 }
 
 // GetPropertyFieldByName retrieves a property field by name within a group and target.
+//
+// Deprecated: name is not unique within a group when fields of different object
+// types share a name. Use GetPropertyFieldByNameForObjectType to scope the
+// lookup to a single object type and get a deterministic result.
 func (a *App) GetPropertyFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, *model.AppError) {
 	field, err := a.Srv().propertyService.GetPropertyFieldByName(rctx, groupID, targetID, name)
 	if err != nil {
@@ -165,6 +169,21 @@ func (a *App) GetPropertyFieldByName(rctx request.CTX, groupID, targetID, name s
 			return nil, appErr
 		}
 		return nil, model.NewAppError("GetPropertyFieldByName", "app.property_field.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return field, nil
+}
+
+// GetPropertyFieldByNameForObjectType retrieves a property field by name within
+// a group and target, scoped to a single object type. Prefer this over
+// GetPropertyFieldByName when a name may be shared across object types within a
+// group (e.g. the access_control "classification" fields).
+func (a *App) GetPropertyFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, *model.AppError) {
+	field, err := a.Srv().propertyService.GetPropertyFieldByNameForObjectType(rctx, groupID, targetID, objectType, name)
+	if err != nil {
+		if appErr := mapPropertyServiceError("GetPropertyFieldByNameForObjectType", err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("GetPropertyFieldByNameForObjectType", "app.property_field.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return field, nil
 }

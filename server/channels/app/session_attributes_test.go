@@ -218,6 +218,24 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 		}
 	})
 
+	t.Run("skips OAuth app sessions", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId:  th.BasicUser.Id,
+			IsOAuth: true,
+			Props:   model.StringMap{},
+		})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+
+		r := newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234")
+		th.App.ProcessSessionAttributesRequest(rctx, r)
+
+		require.Empty(t, sessionAttributeValuesByFieldName(t, th, session.Id))
+	})
+
 	t.Run("skips when session id is empty", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		enableSessionAttributesCollection(t, th)

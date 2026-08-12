@@ -80,7 +80,7 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
-	GetDiagnostics(ctx context.Context) (*DatabaseDiagnostics, error)
+	GetDiagnostics(rctx request.CTX) (*DatabaseDiagnostics, error)
 	ReplicaLagTime() error
 	ReplicaLagAbs() error
 	CheckIntegrity() <-chan model.IntegrityCheckResult
@@ -103,6 +103,7 @@ type Store interface {
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
 	Recap() RecapStore
+	ScheduledRecap() ScheduledRecapStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
 	ChannelJoinRequest() ChannelJoinRequestStore
@@ -206,6 +207,7 @@ type ChannelStore interface {
 	ClearSidebarOnTeamLeave(userID, teamID string) error
 	Get(id string, allowFromCache bool) (*model.Channel, error)
 	GetBoardChannel(id string) (*model.Channel, error)
+	GetChannelOfType(rctx request.CTX, id string, channelType model.ChannelType) (*model.Channel, error)
 	GetMany(ids []string, allowFromCache bool) (model.ChannelList, error)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamID, name string)
@@ -230,6 +232,8 @@ type ChannelStore interface {
 	GetPublicChannelsForTeam(teamID string, offset int, limit int) (model.ChannelList, error)
 	GetPublicChannelsByIdsForTeam(teamID string, channelIds []string) (model.ChannelList, error)
 	GetTeamChannels(teamID string) (model.ChannelList, error)
+	GetTeamSpaceChannels(teamID string) (model.ChannelList, error)
+	GetTeamSpaceChannelsForUser(teamID string, userID string) (model.ChannelList, error)
 	GetAll(teamID string) ([]*model.Channel, error)
 	GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, error)
 	GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error)
@@ -402,6 +406,7 @@ type PostStore interface {
 	GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error)
 	GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
 	GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
+	GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string) (string, error)
 	GetEtag(channelID string, allowFromCache bool, collapsedThreads bool, includeTranslations bool) string
 	Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error)
 	AnalyticsUserCountsWithPostsByDay(teamID string) (model.AnalyticsRows, error)
@@ -455,7 +460,7 @@ type UserStore interface {
 	UpdateMfaActive(userID string, active bool) error
 	StoreMfaUsedTimestamps(userID string, ts []int) error
 	GetMfaUsedTimestamps(userID string) ([]int, error)
-	Get(ctx context.Context, id string) (*model.User, error)
+	Get(rctx request.CTX, id string) (*model.User, error)
 	GetMany(rctx request.CTX, ids []string) ([]*model.User, error)
 	GetAll() ([]*model.User, error)
 	ClearCaches()
@@ -464,7 +469,7 @@ type UserStore interface {
 	GetProfilesInChannel(options *model.UserGetOptions) ([]*model.User, error)
 	GetProfilesInChannelByStatus(options *model.UserGetOptions) ([]*model.User, error)
 	GetProfilesInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, error)
-	GetAllProfilesInChannel(ctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error)
+	GetAllProfilesInChannel(rctx request.CTX, channelID string, allowFromCache bool) (map[string]*model.User, error)
 	GetProfilesNotInChannel(teamID string, channelID string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
 	GetProfilesWithoutTeam(options *model.UserGetOptions) ([]*model.User, error)
 	GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, error)
@@ -517,8 +522,8 @@ type UserStore interface {
 	Count(options model.UserCountOptions) (int64, error)
 	GetTeamGroupUsers(teamID string) ([]*model.User, error)
 	GetChannelGroupUsers(channelID string) ([]*model.User, error)
-	PromoteGuestToUser(userID string) error
-	DemoteUserToGuest(userID string) (*model.User, error)
+	PromoteGuestToUser(rctx request.CTX, userID string) error
+	DemoteUserToGuest(rctx request.CTX, userID string) (*model.User, error)
 	DeactivateGuests() ([]string, error)
 	DeactivateMagicLinkGuests() ([]string, error)
 	AutocompleteUsersInChannel(rctx request.CTX, teamID, channelID, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)
@@ -550,6 +555,7 @@ type SessionStore interface {
 	GetLRUSessions(rctx request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error)
 	GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
+	GetAllSessionsWithActiveDeviceIds() ([]*model.Session, error)
 	GetSessionsExpired(thresholdMillis int64, mobileOnly bool, unnotifiedOnly bool) ([]*model.Session, error)
 	UpdateExpiredNotify(sessionid string, notified bool) error
 	Remove(sessionIDOrToken string) error
@@ -823,7 +829,10 @@ type JobStore interface {
 	// If this method is called concurrently with another job of the same type,
 	// then nil, nil is returned.
 	SaveOnce(job *model.Job) (*model.Job, error)
-	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
+	// SaveOnceByTypeAndData will only insert the job when there is no pending or
+	// in-progress job with the same type matching the data filter.
+	SaveOnceByTypeAndData(job *model.Job, data map[string]string) (*model.Job, error)
+	UpdateOptimistically(job *model.Job, currentStatus string) (*model.Job, error)
 	UpdateStatus(id string, status string) (*model.Job, error)
 	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error)
 	Get(rctx request.CTX, id string) (*model.Job, error)
@@ -851,9 +860,14 @@ type UserAccessTokenStore interface {
 	GetByToken(tokenString string) (*model.UserAccessToken, error)
 	GetByUser(userID string, page, perPage int) ([]*model.UserAccessToken, error)
 	GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error)
+	GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error)
+	CountNonCompliantExpiry(maxExpiresAt int64) (int64, error)
+	DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error)
 	Search(term string) ([]*model.UserAccessToken, error)
 	UpdateTokenEnable(tokenID string) error
 	UpdateTokenDisable(tokenID string) error
+	UpdateTokenRotate(tokenID, newToken string, expiresAt int64) error
+	UpdateLastNotifiedAt(tokenID string, notifiedAt int64) error
 }
 
 type PluginStore interface {
@@ -1177,6 +1191,7 @@ type PropertyFieldStore interface {
 	Get(ctx context.Context, groupID, id string) (*model.PropertyField, error)
 	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
 	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
+	GetFieldByNameForObjectType(ctx context.Context, groupID, targetID, objectType, name string) (*model.PropertyField, error)
 	GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
@@ -1399,14 +1414,58 @@ type ChannelJoinRequestStore interface {
 
 type RecapStore interface {
 	SaveRecap(recap *model.Recap) (*model.Recap, error)
+	SaveRecapIfUnderDailyLimit(recap *model.Recap, since int64, limit int) (*model.Recap, error)
 	UpdateRecap(recap *model.Recap) (*model.Recap, error)
 	GetRecap(id string) (*model.Recap, error)
 	GetRecapsForUser(userId string, page, perPage int) ([]*model.Recap, error)
 	UpdateRecapStatus(id, status string) error
+	// MarkRecapSkipped flips a recap to the skipped status with the given reason.
+	// Skipped recaps are excluded from the daily-limit count, so this frees the slot
+	// for a recap that never ran (e.g. its processing job failed to enqueue).
+	MarkRecapSkipped(id, reason string) error
 	MarkRecapAsRead(id string) error
 	MarkRecapsAsViewed(userId string, statuses []string) ([]string, error)
 	DeleteRecap(id string) error
 	DeleteRecapChannels(recapId string) error
 	SaveRecapChannel(recapChannel *model.RecapChannel) error
 	GetRecapChannelsByRecapId(recapId string) ([]*model.RecapChannel, error)
+
+	// CountForUserSince returns count of recaps created by user since given timestamp.
+	// Used for daily limit enforcement (pass midnight timestamp in user timezone).
+	// Excludes skipped recaps, but includes soft-deleted recaps because they still
+	// consumed AI usage.
+	CountForUserSince(userId string, since int64) (int64, error)
+
+	// SumTotalMessageCountForUserSince returns the total number of posts processed
+	// by recaps created by user since given timestamp. Excludes skipped recaps, but
+	// includes soft-deleted recaps because they still consumed AI usage.
+	SumTotalMessageCountForUserSince(userId string, since int64) (int64, error)
+
+	// GetLastCompletedManualRecap returns the most recent completed manual recap for user.
+	// Manual recap = ScheduledRecapId is empty. Used for cooldown checking, including
+	// soft-deleted recaps so deleting a recap does not bypass cooldown.
+	// Returns nil, nil if no manual recap exists.
+	GetLastCompletedManualRecap(userId string) (*model.Recap, error)
+}
+
+type ScheduledRecapStore interface {
+	// CRUD operations
+	Save(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error)
+	SaveIfUnderLimit(scheduledRecap *model.ScheduledRecap, limit int) (*model.ScheduledRecap, error)
+	Get(id string) (*model.ScheduledRecap, error)
+	Update(scheduledRecap *model.ScheduledRecap) (*model.ScheduledRecap, error)
+	Delete(id string) error // Soft delete (sets DeleteAt)
+
+	// Query operations
+	GetForUser(userId string, page, perPage int) ([]*model.ScheduledRecap, error)
+	GetDueBefore(timestamp int64, limit int) ([]*model.ScheduledRecap, error)
+
+	// CountForUser returns count of active (non-deleted, enabled) scheduled recaps for a user
+	// Used for max scheduled recaps limit enforcement
+	CountForUser(userId string) (int64, error)
+
+	// State updates (efficient single-field updates)
+	UpdateNextRunAt(id string, nextRunAt int64) error
+	MarkExecuted(id string, lastRunAt int64, nextRunAt int64) error
+	SetEnabled(id string, enabled bool) error
 }

@@ -28,7 +28,7 @@ export default class SettingsModal {
     constructor(container: Locator) {
         this.container = container;
 
-        this.content = container.locator('.modal-content');
+        this.content = container;
         this.closeButton = container.getByRole('button', {name: 'Close'});
 
         this.notificationsTab = container.getByRole('tab', {name: 'notifications'});

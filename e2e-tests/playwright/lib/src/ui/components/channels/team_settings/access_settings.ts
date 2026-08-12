@@ -9,7 +9,8 @@ export default class AccessSettings {
 
     readonly allowedDomainsCheckbox;
     readonly allowedDomainsInput;
-    readonly allowOpenInviteCheckbox;
+    readonly publicTeamButton;
+    readonly privateTeamButton;
     readonly regenerateButton;
 
     constructor(container: Locator) {
@@ -17,7 +18,8 @@ export default class AccessSettings {
 
         this.allowedDomainsCheckbox = container.locator('input[name="showAllowedDomains"]');
         this.allowedDomainsInput = container.locator('#allowedDomains input');
-        this.allowOpenInviteCheckbox = container.locator('input[name="allowOpenInvite"]');
+        this.publicTeamButton = container.locator('#public-private-selector-button-O');
+        this.privateTeamButton = container.locator('#public-private-selector-button-P');
         this.regenerateButton = container.locator('button[data-testid="regenerateButton"]');
     }
 
@@ -44,9 +46,10 @@ export default class AccessSettings {
         await removeButton.click();
     }
 
-    async toggleOpenInvite() {
-        await expect(this.allowOpenInviteCheckbox).toBeVisible();
-        await this.allowOpenInviteCheckbox.click();
+    async setPublicTeam(isPublic: boolean) {
+        const button = isPublic ? this.publicTeamButton : this.privateTeamButton;
+        await expect(button).toBeVisible();
+        await button.click();
     }
 
     async regenerateInviteId() {

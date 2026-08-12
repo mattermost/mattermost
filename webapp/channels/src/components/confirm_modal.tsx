@@ -214,7 +214,6 @@ const ConfirmModal = ({
             show={show}
             onHide={handleCancel}
             onExited={handleExited}
-            ariaLabelledby='confirmModalLabel'
             compassDesign={true}
             modalHeaderText={title}
             isStacked={isStacked}

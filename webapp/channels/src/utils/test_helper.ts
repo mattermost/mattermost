@@ -454,6 +454,7 @@ export class TestHelper {
             showAppBar: false,
             wrapped: true,
             publicComponent: () => null,
+            isTeamScoped: false,
         };
     }
 

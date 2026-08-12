@@ -1,0 +1,64 @@
+---
+title: "Frequently Asked Questions"
+---
+## What encryption options are supported for SAML?
+
+See the encryption options documentation for details on what [encryption methods](/deployment-guide/encryption-options#saml-encryption-support) Mattermost supports for SAML.
+
+## How to bind authentication to Id attribute instead of email
+
+Alternatively, you can use an `Id` attribute instead of email to bind the user. We recommend choosing an ID that is unique and will not change over time.
+
+Configuring with an `Id` attribute allows you to reuse an email address for a new user without the old user's information being exposed. For instance, if a user with an email address [joe.smith@mattermost.com](mailto:joe.smith@mattermost.com) was once an employee, a new employee named Joe Smith can use the same email. This configuration is also useful when a user's name changes and their email needs to be updated.
+
+This process was designed with backwards compatibility to email binding. Here is the process applied to new account creations and to accounts logging in after the configuration:
+
+- A user authenticated with SAML is bound to the SAML service user using the Id Attribute (as long as it has been configured) or bound by email using the email received from SAML.
+- When the user tries to login and the SAML server responds with a valid authentication, then the server uses the "Id" field of the SAML authentication to search the user.
+- If a user bound to that ID already exists, it logs in as that user.
+- If a user bound to that ID does not exist, it will search base on the email.
+- If a user bound to the email exists, it logs in with email and updates the autentication data to the ID, instead of the email.
+- If a user bound to the ID or email does not exist, it will create a new Mattermost account bound to the SAML account by ID and will allow the user to log in.
+
+<Note>
+
+Existing accounts won't update until they log in to the server.
+
+</Note>
+
+## Why does login fail with "one of the attributes is incorrect" / "`<attribute>` attribute is missing"?
+
+A login failure with the error `SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator.` — accompanied in the server logs by a detail such as `email attribute is missing` or `name attribute is missing` — means the assertion from your Identity Provider (IdP) did not contain an attribute whose name **exactly** matches what you configured in the Mattermost SAML attribute settings.
+
+Mattermost matches each attribute by its full `Name` (or `FriendlyName`) as it appears in the assertion, character-for-character. The named attribute in the error message is the value you entered in Mattermost that could not be found.
+
+This most often happens because the IdP sends attributes under a namespace. For example, Microsoft Entra ID emits its built-in claims under `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/` by default, so an attribute that looks like `email` in the Entra ID admin UI is actually sent in the assertion as `http://schemas.xmlsoap.org/ws/2005/05/identity/claims/email`. Entering only `email` in Mattermost will not match.
+
+To resolve this:
+
+- Capture and decode the SAML response (for example, with the [SAML-tracer](https://addons.mozilla.org/firefox/addon/saml-tracer/) browser extension) and read the `Name` attribute of each `<Attribute>` element in the `<AttributeStatement>`.
+- Set each Mattermost attribute field to the **exact** `Name` value from the assertion — including any namespace prefix — or reconfigure the IdP to emit the claim under the short name you want to use in Mattermost.
+
+## Can SAML via Microsoft ADFS be configured with Integrated Windows Authentication (IWA)?
+
+Yes. IWA is supported on the browser, with support added to iOS and Android mobile apps in Q2/2019 (mobile apps v1.18 and later).
+
+However, IWA is not supported on the Mattermost Desktop Apps due to a limitation in Electron. As a workaround you may create a browser desktop shortcut for quick access to Mattermost, just like a Desktop App.
+
+## Can I provision and deprovision users who log in via SAML?
+
+Yes, but this relies on AD/LDAP to do so. Currently, we do not support SCIM. See ["How do I deactivate users?"](/administration-guide/onboard/ad-ldap#how-do-i-deactivate-users) for more information.
+
+## How do I migrate users from one authentication method (e.g. email) to SAML?
+
+See the [mmctl user migrate-auth](/administration-guide/manage/mmctl-command-line-tool#mmctl-user-migrate-auth) command documentation for details.
+
+## How is SAML different from OAuth 2.0 and OpenId Connect?
+
+OAuth 2.0 was primarily intended for delegated authorization, where an app is authorized to access resources, such as Google contact list. It doesn’t deal with authentication.
+
+OpenID Connect is built on top of OAuth 2.0, which supports authentication and thus direct SSO.
+
+SAML is like OpenID Connect, except typically used in enterprise settings. OpenID Connect is more common in consumer websites and web/mobile apps.
+
+Learn more at [https://hackernoon.com/demystifying-oauth-2-0-and-openid-connect-and-saml-12aa4cf9fdba](https://hackernoon.com/demystifying-oauth-2-0-and-openid-connect-and-saml-12aa4cf9fdba).
