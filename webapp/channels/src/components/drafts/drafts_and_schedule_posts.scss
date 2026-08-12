@@ -44,8 +44,9 @@
                 .badge {
                     position: relative;
                     top: -2px;
-                    display: inline-block;
+                    display: inline-flex;
                     height: 14px;
+                    align-items: center;
                     margin-left: 6px;
                     background: rgba(var(--center-channel-color-rgb), 0.2);
                     color: rgba(var(--center-channel-color-rgb), 0.75);
@@ -74,11 +75,6 @@
                 height: calc(100%);
             }
         }
-    }
-
-    span.MuiBadge-badge {
-        position: relative;
-        top: -2px;
     }
 
     .virtualizedVariableListRowWrapper {
