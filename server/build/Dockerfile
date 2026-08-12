@@ -11,11 +11,11 @@ ARG PGID=2000
 ARG MM_PACKAGE="https://latest.mattermost.com/mattermost-enterprise-linux"
 
 # Message-Based Encryption demo: the release bundle carries its own SoftHSM runtime, so the image
-# only needs to prepackage the signed plugin. Pin the release used by a cloud image build; override
-# MBE_PLUGIN_URL and MBE_PLUGIN_SIG_URL together to test another build. Test image only.
-ARG MBE_PLUGIN_VERSION="v0.1.0"
+# only needs to prepackage the signed plugin. pr-builds is public because this repository is private;
+# pin the release and platform used by each cloud image build. Test image only.
+ARG MBE_PLUGIN_VERSION="v0.1.1"
 ARG MBE_PLUGIN_PLATFORM="linux-amd64"
-ARG MBE_PLUGIN_URL="https://github.com/mattermost/message-based-encryption/releases/download/${MBE_PLUGIN_VERSION}/message-based-encryption-${MBE_PLUGIN_VERSION}-${MBE_PLUGIN_PLATFORM}.tar.gz"
+ARG MBE_PLUGIN_URL="https://pr-builds.mattermost.com/mattermost-plugin-message-based-encryption/release/${MBE_PLUGIN_VERSION}/${MBE_PLUGIN_PLATFORM}/message-based-encryption.tar.gz"
 ARG MBE_PLUGIN_SIG_URL="${MBE_PLUGIN_URL}.sig"
 
 # Install needed packages and indirect dependencies
