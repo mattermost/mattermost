@@ -121,7 +121,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	// callers may intentionally set rules they don't match, mirroring the
 	// masking self-inclusion exemption below.
 	if policy.Type == model.AccessControlPolicyTypeTeam {
-		if session := rctx.Session(); session != nil && session.UserId != "" && !a.HasPermissionTo(session.UserId, model.PermissionManageSystem) {
+		if session := rctx.Session(); session != nil && session.UserId != "" && !a.HasPermissionTo(rctx, session.UserId, model.PermissionManageSystem) {
 			for _, rule := range policy.Rules {
 				if appErr := a.ValidateTeamAdminSelfInclusion(rctx, session.UserId, rule.Expression); appErr != nil {
 					return nil, appErr
@@ -170,7 +170,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		// (e.g., creating a "Clearance == Top Secret" rule without holding that
 		// clearance themselves). Masking and write-path value validation still
 		// apply to system admins above.
-		if !a.HasPermissionTo(callerID, model.PermissionManageSystem) {
+		if !a.HasPermissionTo(rctx, callerID, model.PermissionManageSystem) {
 			if appErr := a.checkSelfInclusion(rctx, policy, callerID, mergedHidden); appErr != nil {
 				return nil, appErr
 			}
@@ -2247,7 +2247,7 @@ type ValidateAccessControlPolicyPermissionOptions struct {
 
 func (a *App) ValidateAccessControlPolicyPermissionWithOptions(rctx request.CTX, userID, policyID string, opts ValidateAccessControlPolicyPermissionOptions) *model.AppError {
 	// System admins can manage any policy
-	if a.HasPermissionTo(userID, model.PermissionManageSystem) {
+	if a.HasPermissionTo(rctx, userID, model.PermissionManageSystem) {
 		return nil
 	}
 
@@ -2326,7 +2326,7 @@ func (a *App) isSystemPolicyAppliedToChannel(rctx request.CTX, policyID, channel
 // ValidateChannelAccessControlPolicyCreation validates if a user can create a channel-specific access control policy
 func (a *App) ValidateChannelAccessControlPolicyCreation(rctx request.CTX, userID string, policy *model.AccessControlPolicy) *model.AppError {
 	// System admins can create any type of policy
-	if a.HasPermissionTo(userID, model.PermissionManageSystem) {
+	if a.HasPermissionTo(rctx, userID, model.PermissionManageSystem) {
 		return nil
 	}
 

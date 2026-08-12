@@ -2753,7 +2753,7 @@ func (a *App) userBelongsToChannels(userID string, channelIDs []string) (bool, *
 }
 
 func (a *App) GetViewUsersRestrictions(rctx request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError) {
-	if a.HasPermissionTo(userID, model.PermissionViewMembers) {
+	if a.HasPermissionTo(rctx, userID, model.PermissionViewMembers) {
 		return nil, nil
 	}
 

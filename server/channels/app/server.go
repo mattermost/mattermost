@@ -341,7 +341,7 @@ func NewServer(options ...Option) (*Server, error) {
 		if userID == model.CallerIDLocalAdmin {
 			return true
 		}
-		return app.HasPermissionTo(userID, perm)
+		return app.HasPermissionTo(request.EmptyContext(app.Log()), userID, perm)
 	}
 	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)

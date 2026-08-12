@@ -125,11 +125,11 @@ func (*MobileLogsProvider) DoCommand(a *app.App, rctx request.CTX, args *model.C
 			// Cross-user: callers without system admin get one neutral outcome for any failure
 			// (unknown user, deactivated, disallowed target, or missing role) to avoid username
 			// enumeration. System admins still get explicit not-found messages for support workflows.
-			if !a.HasPermissionTo(args.UserId, model.PermissionManageSystem) && !a.HasPermissionTo(args.UserId, model.PermissionEditOtherUsers) {
+			if !a.HasPermissionTo(rctx, args.UserId, model.PermissionManageSystem) && !a.HasPermissionTo(rctx, args.UserId, model.PermissionEditOtherUsers) {
 				return mobileLogsCrossUserUnavailableResponse(args)
 			}
 
-			callerHasManageSystem := a.HasPermissionTo(args.UserId, model.PermissionManageSystem)
+			callerHasManageSystem := a.HasPermissionTo(rctx, args.UserId, model.PermissionManageSystem)
 
 			targetUser, lookupErr := a.GetUserByUsername(username)
 			if lookupErr != nil {

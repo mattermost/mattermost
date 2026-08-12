@@ -392,9 +392,9 @@ func TestHasPermissionToUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	assert.True(t, th.App.HasPermissionToUser(th.SystemAdminUser.Id, th.BasicUser.Id))
-	assert.True(t, th.App.HasPermissionToUser(th.BasicUser.Id, th.BasicUser.Id))
-	assert.False(t, th.App.HasPermissionToUser(th.BasicUser.Id, th.BasicUser2.Id))
+	assert.True(t, th.App.HasPermissionToUser(th.Context, th.SystemAdminUser.Id, th.BasicUser.Id))
+	assert.True(t, th.App.HasPermissionToUser(th.Context, th.BasicUser.Id, th.BasicUser.Id))
+	assert.False(t, th.App.HasPermissionToUser(th.Context, th.BasicUser.Id, th.BasicUser2.Id))
 }
 
 func TestSessionHasPermissionToManageBot(t *testing.T) {
