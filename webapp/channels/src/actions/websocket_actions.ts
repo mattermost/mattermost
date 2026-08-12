@@ -52,6 +52,7 @@ import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/a
 import {addChannelToInitialCategory, fetchMyCategories, handleManagedCategoryPropertyValuesUpdated, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
 import {
     getChannelAndMyMember,
+    getChannelMember,
     getMyChannelMember,
     getChannelStats,
     markMultipleChannelsAsRead,
@@ -1384,12 +1385,21 @@ export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel):
                 data: {id: msg.broadcast.channel_id, user_id: msg.data.user_id},
             });
 
-            // The membership relation alone is not enough to render the member in the
-            // participant list: the member list selectors drop users whose profile is
-            // not loaded. This happens for remote users synced into a shared channel,
-            // since the viewer has never loaded their profile. Fetch it if missing.
+            // The member list selectors drop users whose profile is not loaded. This
+            // happens for remote users synced into a shared channel, since the viewer
+            // has never loaded their profile. Fetch it if missing.
             if (!getUser(state, msg.data.user_id)) {
                 doDispatch(loadUser(msg.data.user_id));
+            }
+
+            // The member list also requires the ChannelMembership relation, which the
+            // user_added event does not carry. Without it, the participant list filters
+            // the user out even when their profile is loaded (e.g. after they post), so
+            // members added while the channel is open (notably remote shared-channel
+            // members synced in from another server) never appear until the member list
+            // is fully reloaded. Fetch the membership if we don't already have it.
+            if (!getChannelMembersInChannels(state)[currentChannelId]?.[msg.data.user_id]) {
+                doDispatch(getChannelMember(currentChannelId, msg.data.user_id));
             }
 
             if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && config.EnableConfirmNotificationsToChannel === 'true') {
