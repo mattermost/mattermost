@@ -56,7 +56,7 @@ function PostPriorityPicker({
         onClose();
     }, [onClose]);
 
-    const makeOnSelectPriority = useCallback((type?: PostPriority) => (e: React.MouseEvent<HTMLLIElement> | React.KeyboardEvent<HTMLLIElement>) => {
+    const makeOnSelectPriority = useCallback((type?: PostPriority) => (e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
 
