@@ -146,7 +146,7 @@ func TestDeliveryTrackingStoreChannelEligibilityCache(t *testing.T) {
 		require.False(t, trackable)
 	})
 
-	t.Run("unknown channels are not trackable and are memoized", func(t *testing.T) {
+	t.Run("unknown channels are not trackable and are re-resolved", func(t *testing.T) {
 		cachedStore, _, mockChannelStore := newCachedStore(t)
 
 		for range 2 {
@@ -154,7 +154,9 @@ func TestDeliveryTrackingStoreChannelEligibilityCache(t *testing.T) {
 			require.NoError(t, err)
 			require.False(t, trackable)
 		}
-		mockChannelStore.AssertNumberOfCalls(t, "Get", 1)
+		// Not-found is never memoized: the channel may exist on a later read, and a transient
+		// miss must not exclude it from auditing for the life of the process.
+		mockChannelStore.AssertNumberOfCalls(t, "Get", 2)
 	})
 
 	t.Run("saving the list re-resolves tracked but not trackable", func(t *testing.T) {
@@ -171,7 +173,8 @@ func TestDeliveryTrackingStoreChannelEligibilityCache(t *testing.T) {
 		require.NoError(t, err)
 		mockDeliveryTrackingStore.AssertNumberOfCalls(t, "IsChannelTracked", 2)
 
-		// DM and GM membership is immutable, so those entries survive the invalidation.
+		// Saving the allow-list purges trackableChannels too, but channelByIdCache still holds
+		// the channel, so no additional store read is needed to re-resolve it.
 		_, err = cachedStore.DeliveryTracking().IsChannelTrackable(rctx, openChannel.Id)
 		require.NoError(t, err)
 		mockChannelStore.AssertNumberOfCalls(t, "Get", 1)

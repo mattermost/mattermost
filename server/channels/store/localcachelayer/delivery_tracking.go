@@ -31,8 +31,9 @@ type LocalCacheDeliveryTrackingStore struct {
 	// admin saves the list.
 	trackedChannels *lru.Cache[string, bool]
 
-	// trackableChannels memoizes whether a channel is not a DM or GM. A channel can never
-	// convert to or from those types, so entries cannot go stale.
+	// trackableChannels memoizes whether a channel is neither a DM nor a GM. Channel types are
+	// mutable (ConvertGroupMessageToChannel rewrites one in place), so entries are dropped
+	// alongside channelByIdCache — see LocalCacheChannelStore.InvalidateChannel.
 	trackableChannels *lru.Cache[string, bool]
 }
 
@@ -53,9 +54,7 @@ func (s *LocalCacheDeliveryTrackingStore) purge() {
 		s.rootStore.logger.Error("failed to purge delivery tracking cache", mlog.Err(err))
 	}
 	s.trackedChannels.Purge()
-
-	// trackableChannels is deliberately left alone: DM and GM membership of a channel is
-	// immutable, so those entries stay valid across any configuration change.
+	s.trackableChannels.Purge()
 }
 
 func (s *LocalCacheDeliveryTrackingStore) SaveTrackedChannelIDs(rctx request.CTX, channelIDs []string) error {
@@ -110,11 +109,20 @@ func (s *LocalCacheDeliveryTrackingStore) IsChannelTrackable(rctx request.CTX, c
 			return false, err
 		}
 
-		s.trackableChannels.Add(channelID, false)
+		// Not cached: a channel missing now — replica lag, or a type this store does not
+		// return — may resolve on a later read, and caching would exclude it permanently.
 		return false, nil
 	}
 
 	trackable := !channel.IsGroupOrDirect()
 	s.trackableChannels.Add(channelID, trackable)
 	return trackable, nil
+}
+
+func (s *LocalCacheDeliveryTrackingStore) invalidateChannel(channelID string) {
+	s.trackableChannels.Remove(channelID)
+}
+
+func (s *LocalCacheDeliveryTrackingStore) purgeChannels() {
+	s.trackableChannels.Purge()
 }
