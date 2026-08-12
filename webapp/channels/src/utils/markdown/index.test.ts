@@ -96,6 +96,12 @@ x^2 + y^2 = z^2
             expect(output).toContain('checked="checked"');
             expect(output).toContain('Completed task');
             expect(output).toContain('Incomplete task');
+
+            // Root-level children must be an OL followed by a sibling UL (not nested).
+            const parsed = new DOMParser().parseFromString(`<div id="root">${output}</div>`, 'text/html');
+            const rootChildren = Array.from(parsed.querySelector('#root')?.children ?? []);
+            expect(rootChildren.map((el) => el.tagName)).toEqual(['OL', 'UL']);
+            expect(rootChildren[0].querySelector('ul')).toBeNull();
         });
     });
 

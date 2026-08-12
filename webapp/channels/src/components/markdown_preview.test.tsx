@@ -84,6 +84,48 @@ describe('components/MarkdownPreview', () => {
         });
     });
 
+    test('should clear parent content when fetch fails or file is too large', async () => {
+        const getContent = jest.fn();
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: false,
+            text: () => Promise.resolve(''),
+        });
+
+        renderWithContext(
+            <MarkdownPreview
+                {...requiredProps}
+                getContent={getContent}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(document.querySelector('.file-details__name')).toBeInTheDocument();
+        });
+
+        expect(getContent).toHaveBeenCalledWith('');
+        expect(getContent).not.toHaveBeenCalledWith(expect.stringMatching(/./));
+
+        getContent.mockClear();
+        global.fetch = jest.fn();
+
+        renderWithContext(
+            <MarkdownPreview
+                {...requiredProps}
+                fileInfo={TestHelper.getFileInfoMock({
+                    id: 'file_id',
+                    name: 'large.md',
+                    extension: 'md',
+                    size: Constants.CODE_PREVIEW_MAX_FILE_SIZE + 1,
+                })}
+                getContent={getContent}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(getContent).toHaveBeenCalledWith('');
+        });
+    });
+
     test('should escape HTML tags instead of rendering them', async () => {
         global.fetch = jest.fn().mockResolvedValue({
             ok: true,

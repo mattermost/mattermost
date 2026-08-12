@@ -237,7 +237,8 @@ export default class Renderer extends marked.Renderer {
 
     public listitem(text: string, bullet = '') { // eslint-disable-line @typescript-eslint/no-unused-vars
         // Loose items wrap content in <p>; still treat leading [x]/[ ] as a task checkbox.
-        const taskListReg = /^(<p>)?\[([ |xX])] /;
+        // Character class is space/x/X only — a bare "|" inside [] is a literal pipe, not OR.
+        const taskListReg = /^(<p>)?\[([ xX])] /;
         const isTaskList = taskListReg.exec(text);
 
         if (isTaskList) {

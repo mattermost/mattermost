@@ -646,7 +646,9 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                     );
                 } else if (isMarkdownFile(fileInfo)) {
                     dialogClassName += ' modal-code';
-                    canCopyContent = true;
+
+                    // Only enable copy after MarkdownPreview loads this file's content.
+                    canCopyContent = this.state.content.length > 0;
                     content = (
                         <MarkdownPreview
                             fileInfo={fileInfo as FileInfo}

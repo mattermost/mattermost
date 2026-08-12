@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useState} from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -34,12 +34,18 @@ const MarkdownPreview = ({
     const [content, setContent] = useState('');
     const [status, setStatus] = useState<'success' | 'loading' | 'fail'>('loading');
 
+    // Clear parent copy state before paint when the selected file changes.
+    useLayoutEffect(() => {
+        getContent?.('');
+    }, [fileUrl, getContent]);
+
     useEffect(() => {
         let cancelled = false;
 
         if (fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
             setContent('');
             setStatus('fail');
+            getContent?.('');
             return () => {
                 cancelled = true;
             };
@@ -54,6 +60,7 @@ const MarkdownPreview = ({
                 if (!response.ok) {
                     if (!cancelled) {
                         setStatus('fail');
+                        getContent?.('');
                     }
                     return;
                 }
@@ -69,6 +76,7 @@ const MarkdownPreview = ({
             } catch {
                 if (!cancelled) {
                     setStatus('fail');
+                    getContent?.('');
                 }
             }
         };

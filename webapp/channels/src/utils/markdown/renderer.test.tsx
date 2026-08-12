@@ -55,6 +55,13 @@ describe('listitem', () => {
             '<li class="list-item--task-list"><input type="checkbox" disabled="disabled" /> <p>Incomplete task</p></li>',
         );
     });
+
+    test('should not treat a pipe character as a task checkbox marker', () => {
+        const renderer = new Renderer({}, {});
+
+        expect(renderer.listitem('[|] not a task')).toBe('<li>[|] not a task</li>');
+        expect(renderer.listitem('<p>[|] not a task</p>')).toBe('<li><p>[|] not a task</p></li>');
+    });
 });
 
 describe('link (mmaction://)', () => {
