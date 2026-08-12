@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {MenuList} from '@mui/material';
 import React, {useEffect, useState} from 'react';
 
 import {MenuContext, useMenuContextValue} from './menu_context';
@@ -26,7 +27,9 @@ export function WithTestMenuContext({
 
     return (
         <MenuContext.Provider value={menuContextValue}>
-            {children}
+            <MenuList>
+                {children}
+            </MenuList>
         </MenuContext.Provider>
     );
 }

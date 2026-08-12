@@ -5,6 +5,8 @@ import React from 'react';
 
 import * as modalActions from 'actions/views/modals';
 
+import {WithTestMenuContext} from 'components/menu/menu_context_test';
+
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -23,13 +25,21 @@ describe('UserAccountOutOfOfficeMenuItem', () => {
 
     test('should not render if status is not out of office', () => {
         const props = {...defaultProps, isStatusOutOfOffice: false};
-        renderWithContext(<UserAccountOutOfOfficeMenuItem {...props}/>);
+        renderWithContext(
+            <WithTestMenuContext>
+                <UserAccountOutOfOfficeMenuItem {...props}/>
+            </WithTestMenuContext>,
+        );
 
         expect(screen.queryByText('Out of office')).not.toBeInTheDocument();
     });
 
     test('should only render when status is out of office', () => {
-        renderWithContext(<UserAccountOutOfOfficeMenuItem {...defaultProps}/>);
+        renderWithContext(
+            <WithTestMenuContext>
+                <UserAccountOutOfOfficeMenuItem {...defaultProps}/>
+            </WithTestMenuContext>,
+        );
 
         expect(screen.getAllByText(/Out of office/).length).toBe(1);
         expect(screen.getAllByText(/Automatic replies are enabled/).length).toBe(1);
@@ -48,7 +58,12 @@ describe('UserAccountOutOfOfficeMenuItem', () => {
             },
         };
         const props = {...defaultProps, shouldConfirmBeforeStatusChange: true};
-        renderWithContext(<UserAccountOutOfOfficeMenuItem {...props}/>, initialState);
+        renderWithContext(
+            <WithTestMenuContext>
+                <UserAccountOutOfOfficeMenuItem {...props}/>
+            </WithTestMenuContext>,
+            initialState,
+        );
 
         await userEvent.click(screen.getByRole('menuitem'));
 

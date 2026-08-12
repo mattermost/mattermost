@@ -68,7 +68,10 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
 
     test('renders the component correctly', () => {
         renderWithContext(
-            <ArchiveChannel channel={channel}/>, initialState,
+            <WithTestMenuContext>
+                <ArchiveChannel channel={channel}/>
+            </WithTestMenuContext>,
+            initialState,
         );
 
         const menuItem = screen.getByText('Archive Channel');
@@ -79,7 +82,8 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
         renderWithContext(
             <WithTestMenuContext>
                 <ArchiveChannel channel={channel}/>
-            </WithTestMenuContext>, initialState,
+            </WithTestMenuContext>,
+            initialState,
         );
 
         const menuItem = screen.getByText('Archive Channel');
@@ -107,7 +111,8 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
         renderWithContext(
             <WithTestMenuContext>
                 <ArchiveChannel channel={publicChannel}/>
-            </WithTestMenuContext>, initialState,
+            </WithTestMenuContext>,
+            initialState,
         );
 
         // Check that the component renders without error
@@ -124,7 +129,8 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
         renderWithContext(
             <WithTestMenuContext>
                 <ArchiveChannel channel={privateChannel}/>
-            </WithTestMenuContext>, initialState,
+            </WithTestMenuContext>,
+            initialState,
         );
 
         // Check that the component renders without error
