@@ -5,9 +5,16 @@ import React from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithContext, screen, waitFor, within} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import GlobalAttributes from './global_attributes';
+
+const mockHistoryPush = jest.fn();
+jest.mock('utils/browser_history', () => ({
+    getHistory: () => ({
+        push: mockHistoryPush,
+    }),
+}));
 
 describe('components/admin_console/global_attributes/GlobalAttributes', () => {
     const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields');
@@ -15,6 +22,15 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
     beforeEach(() => {
         getPropertyFields.mockReset();
         getPropertyFields.mockResolvedValue([]);
+        mockHistoryPush.mockReset();
+    });
+
+    test('renders a "New attribute" button that navigates to the create page', async () => {
+        renderWithContext(<GlobalAttributes/>);
+
+        await userEvent.click(screen.getByRole('button', {name: 'New attribute'}));
+
+        expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details');
     });
 
     test('renders the header and section frame, and renders the attributes table', async () => {
