@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -977,7 +978,7 @@ func TestAccessControlAttributeValidationHookManagedAuthorization(t *testing.T) 
 	adminUserID := model.NewId()
 	regularUserID := model.NewId()
 
-	permChecker := func(userID string, perm *model.Permission) bool {
+	permChecker := func(_ request.CTX, userID string, perm *model.Permission) bool {
 		return userID == adminUserID && perm.Id == model.PermissionManageSystem.Id
 	}
 
@@ -1462,7 +1463,7 @@ func TestAccessControlAttributeValidationHookSync(t *testing.T) {
 	require.NoError(t, err)
 
 	adminUserID := model.NewId()
-	permChecker := func(userID string, perm *model.Permission) bool {
+	permChecker := func(_ request.CTX, userID string, perm *model.Permission) bool {
 		return userID == adminUserID && perm.Id == model.PermissionManageSystem.Id
 	}
 
@@ -1653,7 +1654,7 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_owner_validation", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
-	hook := NewAccessControlAttributeValidationHook(th.service, func(userID string, _ *model.Permission) bool {
+	hook := NewAccessControlAttributeValidationHook(th.service, func(_ request.CTX, userID string, _ *model.Permission) bool {
 		return userID == "admin-user"
 	}, group.ID)
 	th.service.AddHook(hook)

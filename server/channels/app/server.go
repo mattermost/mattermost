@@ -334,14 +334,14 @@ func NewServer(options ...Option) (*Server, error) {
 	// Attribute validation hook — validates visibility, sort_order on fields,
 	// field-type constraints on values (options, user IDs, value_type), and
 	// managed-flag authorization + permission level enforcement.
-	permChecker := func(userID string, perm *model.Permission) bool {
+	permChecker := func(rctx request.CTX, userID string, perm *model.Permission) bool {
 		// Local-mode (unrestricted) sessions are tagged with
 		// CallerIDLocalAdmin by the HTTP layer; grant them admin
 		// permissions without a user lookup.
 		if userID == model.CallerIDLocalAdmin {
 			return true
 		}
-		return app.HasPermissionTo(request.EmptyContext(app.Log()), userID, perm)
+		return app.HasPermissionTo(rctx, userID, perm)
 	}
 	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
