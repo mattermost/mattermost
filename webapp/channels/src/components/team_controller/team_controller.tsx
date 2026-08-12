@@ -14,6 +14,7 @@ import {
 } from 'mattermost-redux/selectors/entities/content_flagging';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import {loadProfilesForSidebar} from 'actions/user_actions';
 import {reconnect} from 'actions/websocket_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -70,8 +71,16 @@ function TeamController(props: Props) {
             setInitialChannelsLoaded(true);
         }
 
-        props.fetchAllMyChannelMembers();
-        fetchAllChannels();
+        async function fetchAllChannelsAndSidebarProfiles() {
+            await Promise.all([props.fetchAllMyChannelMembers(), fetchAllChannels()]);
+
+            // DataPrefetch loads these as soon as the sidebar categories arrive, which usually wins
+            // the race against the channels themselves. Load them again now that the channels are
+            // here, otherwise the DM and GM profiles stay unloaded for the rest of the session.
+            loadProfilesForSidebar();
+        }
+
+        fetchAllChannelsAndSidebarProfiles();
     }, []);
 
     useEffect(() => {
