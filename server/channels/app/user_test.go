@@ -2595,8 +2595,9 @@ func TestGetThreadsForUserSanitizesRootPost(t *testing.T) {
 				},
 			},
 		},
-	}, th.BasicChannel, model.CreatePostFlags{})
+	}, th.BasicChannel, model.CreatePostFlags{AllowMmBlocksActions: true})
 	require.Nil(t, appErr)
+	require.NotNil(t, rootPost.GetProp(model.PostPropsMmBlocksActions))
 
 	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
 		UserId:    th.BasicUser2.Id,
