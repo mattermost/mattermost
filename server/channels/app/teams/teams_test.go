@@ -130,6 +130,38 @@ func TestJoinUserToTeam(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("guest with the team email does not become team admin", func(t *testing.T) {
+		user := model.User{Email: team.Email, Nickname: "Guest Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), Roles: model.SystemGuestRoleId, AuthService: ""}
+		ruser := th.CreateUser(&user)
+		defer th.DeleteUser(&user)
+
+		member, _, err := th.service.JoinUserToTeam(th.Context, team, ruser)
+		require.NoError(t, err)
+		require.True(t, member.SchemeGuest)
+		require.False(t, member.SchemeUser)
+		require.False(t, member.SchemeAdmin)
+
+		err = th.service.RemoveTeamMember(th.Context, member)
+		require.NoError(t, err)
+
+		member, _, err = th.service.JoinUserToTeam(th.Context, team, ruser)
+		require.NoError(t, err)
+		require.True(t, member.SchemeGuest)
+		require.False(t, member.SchemeAdmin)
+	})
+
+	t.Run("regular user with the team email becomes team admin", func(t *testing.T) {
+		user := model.User{Email: team.Email, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+		ruser := th.CreateUser(&user)
+		defer th.DeleteUser(&user)
+
+		member, _, err := th.service.JoinUserToTeam(th.Context, team, ruser)
+		require.NoError(t, err)
+		require.False(t, member.SchemeGuest)
+		require.True(t, member.SchemeUser)
+		require.True(t, member.SchemeAdmin)
+	})
+
 	t.Run("new join with limit problem", func(t *testing.T) {
 		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		ruser1 := th.CreateUser(&user1)
