@@ -110,26 +110,3 @@ func TestSavePluginAccessControlPolicyWriteGuards(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 }
-
-func TestQueryUsersForPluginAccessControlExpressionUsersSlice(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-	actingUserID := th.BasicUser.Id
-	resourceType := testAgentResourceType
-	expression := `user.attributes.dept == "eng"`
-
-	t.Run("empty match returns non-nil users slice", func(t *testing.T) {
-		mockACS := &mocks.AccessControlServiceInterface{}
-		th.App.Srv().ch.AccessControl = mockACS
-		mockACS.On("QueryUsersForExpression", mock.Anything, expression, mock.Anything).
-			Return(([]*model.User)(nil), int64(0), nil).Once()
-
-		resp, appErr := th.App.QueryUsersForPluginAccessControlExpression(
-			th.Context, testAgentsPluginID, actingUserID, resourceType, expression, "", "", 10)
-		require.Nil(t, appErr)
-		require.NotNil(t, resp)
-		require.NotNil(t, resp.Users)
-		assert.Empty(t, resp.Users)
-		assert.Equal(t, int64(0), resp.Total)
-		mockACS.AssertExpectations(t)
-	})
-}

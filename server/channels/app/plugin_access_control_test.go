@@ -358,8 +358,9 @@ func TestEvaluatePluginAccessRequestStoreError(t *testing.T) {
 }
 
 func TestSavePluginAccessControlPolicy(t *testing.T) {
-	// Masking write-guards are covered in plugin_access_control_save_test.go.
-	// Keep this suite focused on plugin ownership/versioning with masking off.
+	// Write-guard self-inclusion and masking cases live in
+	// plugin_access_control_save_test.go. Keep this suite on ownership/versioning
+	// with masking off.
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.AttributeValueMasking = false
 	}).InitBasic(t)
@@ -462,40 +463,6 @@ func TestSavePluginAccessControlPolicy(t *testing.T) {
 
 		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, p)
 		require.Nil(t, appErr)
-		mockACS.AssertExpectations(t)
-	})
-
-	t.Run("non-sysadmin self-excluding expression rejected", func(t *testing.T) {
-		mockACS := &mocks.AccessControlServiceInterface{}
-		th.App.Srv().ch.AccessControl = mockACS
-
-		p := validPluginPolicy(model.NewId())
-		mockACS.On("GetPolicy", mock.Anything, p.ID).Return(nil, notFoundErr).Once()
-		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
-			Return([]*model.User{}, int64(0), nil).Once()
-
-		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, p)
-		require.NotNil(t, appErr)
-		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
-		assert.Equal(t, "app.pap.save_policy.self_exclusion", appErr.Id)
-		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
-		mockACS.AssertExpectations(t)
-	})
-
-	t.Run("sysadmin may save self-excluding expression", func(t *testing.T) {
-		mockACS := &mocks.AccessControlServiceInterface{}
-		th.App.Srv().ch.AccessControl = mockACS
-
-		adminID := th.SystemAdminUser.Id
-		p := validPluginPolicy(model.NewId())
-		mockACS.On("GetPolicy", mock.Anything, p.ID).Return(nil, notFoundErr).Once()
-		mockACS.On("SavePolicy", mock.MatchedBy(func(c request.CTX) bool {
-			return c.Session() != nil && c.Session().UserId == adminID
-		}), mock.Anything).Return(p, nil).Once()
-
-		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, adminID, p)
-		require.Nil(t, appErr)
-		mockACS.AssertNotCalled(t, "QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything)
 		mockACS.AssertExpectations(t)
 	})
 
