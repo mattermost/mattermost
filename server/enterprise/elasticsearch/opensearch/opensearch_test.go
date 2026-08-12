@@ -112,8 +112,24 @@ func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
 	})
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
+	originalClient := &opensearchapi.Client{}
+	impl := &OpensearchInterfaceImpl{
+		Platform:    th.Server.Platform(),
+		client:      originalClient,
+		version:     2,
+		fullVersion: "2.10.0",
+		plugins:     []string{"existing-plugin"},
+	}
 	defer func() { require.Nil(t, impl.Stop()) }()
+	serverVersion, serverPlugins, testErr := impl.TestConfigWithServerInfo(th.Context, th.App.Config())
+	require.NotNil(t, testErr)
+	require.Equal(t, "ent.elasticsearch.analysis_icu_required", testErr.Id)
+	require.Equal(t, "2.11.0", serverVersion)
+	require.Equal(t, []string{"analysis-icu"}, serverPlugins)
+	require.Same(t, originalClient, impl.client)
+	require.Equal(t, 2, impl.version)
+	require.Equal(t, "2.10.0", impl.fullVersion)
+	require.Equal(t, []string{"existing-plugin"}, impl.plugins)
 	appErr := impl.Start(context.Background())
 	require.NotNil(t, appErr)
 	require.Equal(t, "ent.elasticsearch.analysis_icu_required", appErr.Id)
@@ -125,6 +141,154 @@ func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
 		require.Fail(t, "template creation should not be attempted without analysis-icu on every node")
 	default:
 	}
+}
+
+func TestStartPreservesPluginsWhenDiscoveryFails(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == "/":
+			_, _ = fmt.Fprint(w, `{"version":{"number":"2.11.0"}}`)
+		case r.Method == http.MethodGet && r.URL.Path == "/_nodes/plugins":
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = fmt.Fprint(w, `{"error":"temporarily unavailable","status":503}`)
+		case r.Method == http.MethodPut && strings.HasPrefix(r.URL.Path, "/_index_template/"):
+			_, _ = fmt.Fprint(w, `{"acknowledged":true}`)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+		*cfg.ElasticsearchSettings.LiveIndexingBatchSize = 1
+	})
+
+	impl := &OpensearchInterfaceImpl{
+		Platform: th.Server.Platform(),
+		plugins:  []string{"analysis-nori"},
+	}
+	defer func() { require.Nil(t, impl.Stop()) }()
+	require.Nil(t, impl.Start(context.Background()))
+	require.Equal(t, "2.11.0", impl.fullVersion)
+	require.Equal(t, []string{"analysis-nori"}, impl.plugins)
+}
+
+func TestTestConfigDoesNotActivateEngine(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/":
+			_, _ = fmt.Fprint(w, `{"version":{"number":"2.11.0"}}`)
+		case "/_nodes/plugins":
+			_, _ = fmt.Fprint(w, `{"_nodes":{"total":1,"successful":1,"failed":0},"nodes":{"node-1":{"name":"node-1","plugins":[{"name":"analysis-icu"}]}}}`)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+	})
+
+	originalClient := &opensearchapi.Client{}
+	impl := &OpensearchInterfaceImpl{
+		Platform:    th.Server.Platform(),
+		client:      originalClient,
+		version:     2,
+		fullVersion: "2.10.0",
+		plugins:     []string{"existing-plugin"},
+	}
+	defer func() { require.Nil(t, impl.Stop()) }()
+	serverVersion, serverPlugins, appErr := impl.TestConfigWithServerInfo(th.Context, th.App.Config())
+	require.Nil(t, appErr)
+	require.Equal(t, "2.11.0", serverVersion)
+	require.Equal(t, []string{"analysis-icu"}, serverPlugins)
+	require.Nil(t, impl.TestConfig(th.Context, th.App.Config()))
+	require.Equal(t, int32(0), impl.ready.Load())
+	require.Same(t, originalClient, impl.client)
+	require.Nil(t, impl.bulkProcessor)
+	require.Nil(t, impl.syncBulkProcessor)
+	require.Equal(t, 2, impl.version)
+	require.Equal(t, "2.10.0", impl.fullVersion)
+	require.Equal(t, []string{"existing-plugin"}, impl.plugins)
+
+	// A partially initialized state must return an error instead of panicking.
+	impl.ready.Store(1)
+	syncErr := impl.SyncBulkIndexChannels(th.Context, []*model.Channel{{Id: model.NewId()}}, func(*model.Channel) ([]string, error) {
+		return nil, nil
+	}, nil)
+	require.NotNil(t, syncErr)
+	require.Equal(t, "ent.elasticsearch.not_started.error", syncErr.Id)
+}
+
+func TestTestConfigThenSavingConfigStartsEngine(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == "/":
+			_, _ = fmt.Fprint(w, `{"version":{"number":"2.11.0"}}`)
+		case r.Method == http.MethodGet && r.URL.Path == "/_nodes/plugins":
+			_, _ = fmt.Fprint(w, `{"_nodes":{"total":1,"successful":1,"failed":0},"nodes":{"node-1":{"name":"node-1","plugins":[{"name":"analysis-icu"}]}}}`)
+		case r.Method == http.MethodPut && strings.HasPrefix(r.URL.Path, "/_index_template/"):
+			_, _ = fmt.Fprint(w, `{"acknowledged":true}`)
+		case r.Method == http.MethodGet && r.URL.Path == "/_cluster/health":
+			_, _ = fmt.Fprint(w, `{"status":"green"}`)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	th := api4.SetupEnterpriseWithServerOptions(t, nil)
+	ps := th.Server.Platform()
+	ps.StopSearchEngine()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = false
+		*cfg.ElasticsearchSettings.LiveIndexingBatchSize = 1
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: ps}
+	th.App.SearchEngine().RegisterElasticsearchEngine(impl)
+	configListenerID, licenseListenerID := ps.StartSearchEngine()
+	t.Cleanup(func() {
+		ps.StopSearchEngine()
+		ps.RemoveConfigListener(configListenerID)
+		ps.RemoveLicenseListener(licenseListenerID)
+		server.Close()
+	})
+	require.False(t, impl.IsActive())
+
+	submittedConfig := th.App.Config().Clone()
+	*submittedConfig.ElasticsearchSettings.EnableIndexing = true
+	require.Nil(t, impl.TestConfig(th.Context, submittedConfig))
+	require.False(t, impl.IsActive())
+	require.Nil(t, impl.client)
+	require.Nil(t, impl.syncBulkProcessor)
+
+	// Saving the submitted config must wake the watcher, which performs the
+	// full Start sequence and creates the synchronous bulk processor.
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+	})
+
+	require.Eventually(t, func() bool {
+		return impl.IsActive() && impl.syncBulkProcessor != nil
+	}, 5*time.Second, 10*time.Millisecond)
+	require.Equal(t, "2.11.0", impl.GetFullVersion())
+	require.Equal(t, []string{"analysis-icu"}, impl.GetPlugins())
 }
 
 func (s *OpensearchInterfaceTestSuite) SetupSuite() {

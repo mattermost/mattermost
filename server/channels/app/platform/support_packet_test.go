@@ -690,9 +690,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		})
 
 		esMock := &semocks.SearchEngineInterface{}
-		esMock.On("GetFullVersion").Return("2.5.0")
-		esMock.On("GetPlugins").Return([]string{"opensearch-plugin"})
-		esMock.On("TestConfig", mock.AnythingOfType("*request.Context"), mock.Anything).Return(nil)
+		esMock.On("GetFullVersion").Return("stale-version")
+		esMock.On("GetPlugins").Return([]string{"stale-plugin"})
+		esMock.On("TestConfigWithServerInfo", mock.AnythingOfType("*request.Context"), mock.Anything).Return(
+			"2.5.0", []string{"opensearch-plugin"}, nil)
 		originalES := th.Service.SearchEngine.ElasticsearchEngine
 		t.Cleanup(func() {
 			th.Service.SearchEngine.ElasticsearchEngine = originalES
@@ -717,7 +718,8 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		esMock := &semocks.SearchEngineInterface{}
 		esMock.On("GetFullVersion").Return("7.10.0")
 		esMock.On("GetPlugins").Return([]string{"plugin1", "plugin2"})
-		esMock.On("TestConfig", mock.AnythingOfType("*request.Context"), mock.Anything).Return(
+		esMock.On("TestConfigWithServerInfo", mock.AnythingOfType("*request.Context"), mock.Anything).Return(
+			"", []string(nil),
 			model.NewAppError("TestConfig", "ent.elasticsearch.test_config.connection_failed", nil, "connection refused", 500))
 		originalES := th.Service.SearchEngine.ElasticsearchEngine
 		t.Cleanup(func() {
@@ -1096,6 +1098,32 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		assert.Equal(t, model.StatusFail, packet.OAuthProviders.GitLab.Status)
 		assert.Contains(t, packet.OAuthProviders.GitLab.Error, "no discovery or token endpoint")
+	})
+
+	t.Run("Elasticsearch config test preserves fresh server info when validation fails", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.Backend = model.NewPointer(model.ElasticsearchSettingsESBackend)
+			cfg.ElasticsearchSettings.EnableIndexing = model.NewPointer(true)
+		})
+
+		esMock := &semocks.SearchEngineInterface{}
+		esMock.On("GetFullVersion").Return("stale-version")
+		esMock.On("GetPlugins").Return([]string{"stale-plugin"})
+		esMock.On("TestConfigWithServerInfo", mock.AnythingOfType("*request.Context"), mock.Anything).Return(
+			"8.19.0", []string{"analysis-icu"},
+			model.NewAppError("TestConfig", "ent.elasticsearch.analysis_icu_required", nil, "", 500))
+		originalES := th.Service.SearchEngine.ElasticsearchEngine
+		t.Cleanup(func() {
+			th.Service.SearchEngine.ElasticsearchEngine = originalES
+		})
+		th.Service.SearchEngine.ElasticsearchEngine = esMock
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.ElasticSearch.Status)
+		assert.Equal(t, "8.19.0", packet.ElasticSearch.ServerVersion)
+		assert.Equal(t, []string{"analysis-icu"}, packet.ElasticSearch.ServerPlugins)
+		assert.Equal(t, "TestConfig: ent.elasticsearch.analysis_icu_required", packet.ElasticSearch.Error)
 	})
 }
 

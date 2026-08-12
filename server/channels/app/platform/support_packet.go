@@ -314,7 +314,14 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.ElasticSearch.ServerVersion = se.GetFullVersion()
 		d.ElasticSearch.ServerPlugins = se.GetPlugins()
 		if *ps.Config().ElasticsearchSettings.EnableIndexing {
-			appErr := se.TestConfig(rctx, ps.Config())
+			// Try to get fresh server info, but when it's unavailable keep the cached values
+			serverVersion, serverPlugins, appErr := se.TestConfigWithServerInfo(rctx, ps.Config())
+			if serverVersion != "" {
+				d.ElasticSearch.ServerVersion = serverVersion
+			}
+			if serverPlugins != nil {
+				d.ElasticSearch.ServerPlugins = serverPlugins
+			}
 			if appErr != nil {
 				d.ElasticSearch.Status = model.StatusFail
 				d.ElasticSearch.Error = appErr.Error()

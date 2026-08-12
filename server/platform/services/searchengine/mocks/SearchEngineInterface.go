@@ -862,6 +862,45 @@ func (_m *SearchEngineInterface) TestConfig(rctx request.CTX, cfg *model.Config)
 	return r0
 }
 
+// TestConfigWithServerInfo provides a mock function with given fields: rctx, cfg
+func (_m *SearchEngineInterface) TestConfigWithServerInfo(rctx request.CTX, cfg *model.Config) (string, []string, *model.AppError) {
+	ret := _m.Called(rctx, cfg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for TestConfigWithServerInfo")
+	}
+
+	var r0 string
+	var r1 []string
+	var r2 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Config) (string, []string, *model.AppError)); ok {
+		return rf(rctx, cfg)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Config) string); ok {
+		r0 = rf(rctx, cfg)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Config) []string); ok {
+		r1 = rf(rctx, cfg)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(request.CTX, *model.Config) *model.AppError); ok {
+		r2 = rf(rctx, cfg)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
+		}
+	}
+
+	return r0, r1, r2
+}
+
 // UpdateConfig provides a mock function with given fields: cfg
 func (_m *SearchEngineInterface) UpdateConfig(cfg *model.Config) {
 	_m.Called(cfg)
