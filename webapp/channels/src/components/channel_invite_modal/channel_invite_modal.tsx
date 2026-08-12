@@ -592,6 +592,8 @@ const ChannelInviteModalComponent = (props: Props) => {
                     key={option.id}
                     ref={isSelected ? selectedItemRef : undefined}
                     className={'more-modal__row clickable ' + rowSelected}
+                    data-testid={isSelected ? 'multiSelectListItemSelected' : 'multiSelectListItem'}
+                    aria-selected={isSelected}
                     onClick={() => onAdd(option)}
                     onMouseMove={() => onMouseMove(option)}
                 >

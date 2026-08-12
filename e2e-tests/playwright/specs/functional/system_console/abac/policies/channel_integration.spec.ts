@@ -334,26 +334,24 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await page.waitForTimeout(1000);
 
         // Step 2.3: Try to select the Group Sync channel
-        const channelModal = page.locator('[role="dialog"]').filter({hasText: /channel/i});
-        await channelModal.waitFor({state: 'visible', timeout: 5000});
+        const channelModal = systemConsolePage.getChannelSelectorModal();
+        await channelModal.toBeVisible();
 
         // Search for the Group Sync channel
-        const modalSearchInput = channelModal.locator('[data-testid="searchInput"], input[type="text"]').first();
-        if (await modalSearchInput.isVisible({timeout: 3000})) {
-            await modalSearchInput.fill(groupSyncChannelName);
+        if (await channelModal.searchInput.isVisible({timeout: 3000})) {
+            await channelModal.searchInput.fill(groupSyncChannelName);
             await page.waitForTimeout(1000);
         }
 
         // Document actual behavior (requirement notes uncertainty)
 
-        const channelRows = channelModal.locator('.DataGrid_row, .more-modal__row');
-        const rowCount = await channelRows.count();
+        const rowCount = await channelModal.listItems.count();
 
         if (rowCount === 0) {
             // Group Sync channel is filtered out - good behavior
         } else {
             // Channel is shown - try to select it
-            const channelRowToSelect = channelRows.first();
+            const channelRowToSelect = channelModal.listItems.first();
             await channelRowToSelect.textContent();
 
             // Try to click/select the channel
@@ -363,21 +361,19 @@ test.describe('ABAC Policies - Channel Integration', () => {
             await page.waitForTimeout(500);
 
             // Try to click Add button
-            const addButton = channelModal.getByRole('button', {name: 'Add'});
-            if (await addButton.isVisible({timeout: 3000})) {
-                const addButtonDisabled = await addButton.isDisabled();
+            if (await channelModal.addButton.isVisible({timeout: 3000})) {
+                const addButtonDisabled = await channelModal.addButton.isDisabled();
                 if (addButtonDisabled) {
                     // Add button is disabled
                 } else {
-                    await addButton.click();
+                    await channelModal.addButton.click();
                     await page.waitForTimeout(1000);
                 }
             }
 
             // Close modal
-            const closeButton = channelModal.getByRole('button', {name: /close|cancel|×/i});
-            if (await closeButton.isVisible({timeout: 2000})) {
-                await closeButton.click();
+            if (await channelModal.closeButton.isVisible({timeout: 2000})) {
+                await channelModal.closeButton.click();
                 await page.waitForTimeout(500);
             }
 

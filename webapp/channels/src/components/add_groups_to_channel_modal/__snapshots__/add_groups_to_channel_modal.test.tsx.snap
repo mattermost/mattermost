@@ -149,6 +149,7 @@ exports[`components/AddGroupsToChannelModal should match snapshot 1`] = `
               <div
                 aria-live="polite"
                 class="multi-select__wrapper"
+                data-testid="multiSelectWrapper"
               >
                 <div
                   aria-hidden="true"

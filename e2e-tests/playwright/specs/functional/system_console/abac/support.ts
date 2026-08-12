@@ -12,7 +12,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {newTestPassword} from '@mattermost/playwright-lib';
+import {SystemConsolePage, newTestPassword} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../channels/custom_profile_attributes/helpers';
 import {setupCustomProfileAttributeValuesForUser} from '../../channels/custom_profile_attributes/helpers';
@@ -812,18 +812,17 @@ export async function createAdvancedPolicy(
         await page.waitForTimeout(1000);
 
         // Wait for the modal to appear
-        const channelModal = page.locator('[role="dialog"]').filter({hasText: /channel/i});
-        await channelModal.waitFor({state: 'visible', timeout: 5000});
+        const channelModal = new SystemConsolePage(page).getChannelSelectorModal();
+        await channelModal.toBeVisible();
 
         for (const channelName of options.channels) {
             // Find search input within the modal
-            const searchInput = channelModal.locator('input').first();
-            await searchInput.waitFor({state: 'visible', timeout: 5000});
-            await searchInput.fill(channelName);
+            await channelModal.searchInput.waitFor({state: 'visible', timeout: 5000});
+            await channelModal.searchInput.fill(channelName);
             await page.waitForTimeout(1000);
 
             // Click the "Select channel" button (the + button) to add it
-            const selectChannelButton = channelModal.getByRole('button', {name: /select channel/i}).first();
+            const selectChannelButton = channelModal.selectChannelButton.first();
             if (await selectChannelButton.isVisible({timeout: 5000})) {
                 await selectChannelButton.click();
             }
@@ -831,12 +830,11 @@ export async function createAdvancedPolicy(
         }
 
         // Click Add button inside the modal to confirm
-        const modalAddButton = channelModal.getByRole('button', {name: 'Add'});
-        await modalAddButton.click();
+        await channelModal.addButton.click();
 
         // Wait for modal to close
         await page.waitForTimeout(1000);
-        const modalStillOpen = await channelModal.isVisible().catch(() => false);
+        const modalStillOpen = await channelModal.container.isVisible().catch(() => false);
         if (modalStillOpen) {
             // Try pressing Escape to close
             await page.keyboard.press('Escape');

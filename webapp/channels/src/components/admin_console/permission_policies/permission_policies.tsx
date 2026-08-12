@@ -160,7 +160,10 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
             return {
                 cells: {
                     name: (
-                        <div className='policy-name'>
+                        <div
+                            className='policy-name'
+                            data-testid='policyName'
+                        >
                             {policy.name}
                         </div>
                     ),

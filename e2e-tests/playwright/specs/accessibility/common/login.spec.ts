@@ -2,14 +2,46 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from '@mattermost/playwright-lib';
+import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+
+/**
+ * Ensure the login "Don't have an account?" link can render.
+ * showSignup requires EnableOpenServer and (email signup with user creation, or external signup/LDAP).
+ * Other workers (e.g. concurrent_config_save) may flip EmailSettings mid-run, so re-apply and reload until visible.
+ */
+async function ensureCreateAccountLinkVisible(pw: PlaywrightExtended) {
+    const {adminClient} = await pw.getAdminClient();
+
+    const enableSignupConfig = {
+        TeamSettings: {
+            EnableOpenServer: true,
+            EnableUserCreation: true,
+        },
+        EmailSettings: {
+            EnableSignUpWithEmail: true,
+        },
+    } as const;
+
+    await expect(async () => {
+        await adminClient.patchConfig(enableSignupConfig);
+
+        const config = await adminClient.getConfig();
+        expect(config.TeamSettings.EnableOpenServer).toBe(true);
+        expect(config.TeamSettings.EnableUserCreation).toBe(true);
+        expect(config.EmailSettings.EnableSignUpWithEmail).toBe(true);
+
+        await pw.loginPage.goto();
+        await pw.loginPage.toBeVisible();
+        await expect(pw.loginPage.createAccountLink).toBeVisible({timeout: 5000});
+    }).toPass({timeout: 30000});
+}
 
 test('/login accessibility quick check', async ({pw, axe}) => {
     // Set up the page not to redirect to the landing page
     await pw.hasSeenLandingPage();
 
-    // # Go to login page
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
+    // # Ensure signup link is available despite parallel config mutations
+    await ensureCreateAccountLinkVisible(pw);
 
     // # Analyze the page
     const accessibilityScanResults = await axe.builder(pw.loginPage.page).analyze();
@@ -22,9 +54,8 @@ test('/login accessibility tab support', async ({pw}) => {
     // Set up the page not to redirect to the landing page
     await pw.hasSeenLandingPage();
 
-    // # Go to login page
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
+    // # Ensure signup link is available despite parallel config mutations
+    await ensureCreateAccountLinkVisible(pw);
 
     // * Should have focused at login input on page load
     expect(await pw.loginPage.loginInput).toBeFocused();

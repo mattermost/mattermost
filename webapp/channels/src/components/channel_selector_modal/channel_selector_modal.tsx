@@ -206,6 +206,8 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                 key={option.id}
                 ref={isSelected ? this.selectedItemRef : option.id}
                 className={'more-modal__row clickable ' + rowSelected}
+                data-testid={isSelected ? 'multiSelectListItemSelected' : 'multiSelectListItem'}
+                aria-selected={isSelected}
                 onClick={() => onAdd(option)}
                 onMouseMove={() => onMouseMove(option)}
             >
@@ -302,6 +304,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                 compassDesign={true}
                 bodyPadding={false}
                 id='channelSelectorModal'
+                dataTestId='channelSelectorModal'
             >
                 <MultiSelect<ChannelWithTeamDataValue>
                     key='addChannelsToSchemeKey'

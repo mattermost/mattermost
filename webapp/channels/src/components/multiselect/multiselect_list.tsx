@@ -141,6 +141,8 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
             <div
                 ref={isSelected ? this.selectedItemRef : option.value}
                 className={rowSelected}
+                data-testid={isSelected ? 'multiSelectListItemSelected' : 'multiSelectListItem'}
+                aria-selected={isSelected}
                 key={'multiselectoption' + option.value}
                 onClick={() => add(option)}
                 onMouseEnter={() => select(option)}
@@ -182,7 +184,10 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
                         className='no-channel-message'
                         tabIndex={0}
                     >
-                        <p className='primary-message'>
+                        <p
+                            className='primary-message'
+                            data-testid='multiSelectNoResultsMessage'
+                        >
                             <FormattedMessage
                                 id='multiselect.list.notFound'
                                 defaultMessage='No results found matching <b>{searchQuery}</b>'
@@ -226,6 +231,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
                     </div>
                     <div
                         className='sr-only'
+                        data-testid='multiSelectSelectionStatus'
                         aria-live='polite'
                         aria-atomic='true'
                     >
@@ -234,6 +240,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
                     <div
                         ref={this.listRef}
                         id='multiSelectList'
+                        data-testid='multiSelectList'
                         className='more-modal__options'
                         role='presentation'
                     >
@@ -246,6 +253,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
         return (
             <div
                 className='multi-select__wrapper'
+                data-testid='multiSelectWrapper'
                 aria-live='polite'
             >
                 {renderOutput}

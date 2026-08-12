@@ -605,6 +605,7 @@ function ChannelSettingsInfoTab({
                     menuPortalTargetId='channelSettingsModal'
                     disabled={!canManageChannelProperties}
                     helpText={formatMessage({id: 'default_category.help_text', defaultMessage: 'Sets the default sidebar category for users when they join the channel.'})}
+                    testId='defaultCategorySelector'
                 />
             )}
             {/* Managed Sidebar Category Selector */}
@@ -617,6 +618,7 @@ function ChannelSettingsInfoTab({
                     placeholder={formatMessage({id: 'managed_category.placeholder', defaultMessage: 'Choose a managed category (optional)'})}
                     menuPortalTargetId='channelSettingsModal'
                     disabled={!canManageChannelRoles}
+                    testId='managedCategorySelector'
                 />
             )}
 

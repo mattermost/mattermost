@@ -78,6 +78,8 @@ const GroupOption = (props: Props) => {
             key={group.id}
             ref={isSelected ? selectedItemRef : undefined}
             className={'more-modal__row clickable ' + rowSelected}
+            data-testid={isSelected ? 'multiSelectListItemSelected' : 'multiSelectListItem'}
+            aria-selected={isSelected}
             onClick={onAdd}
             onMouseMove={() => onMouseMove(group)}
         >
