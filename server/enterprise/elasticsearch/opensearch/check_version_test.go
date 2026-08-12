@@ -42,12 +42,12 @@ func infoHandler(version string) http.HandlerFunc {
 
 func TestCheckVersion(t *testing.T) {
 	tests := []struct {
-		name            string
-		version         string
-		wantVersion     string
-		wantMajor       int
-		wantErrID       string
-		wantUnsupported bool
+		name          string
+		version       string
+		wantVersion   string
+		wantMajor     int
+		wantLog       string
+		wantLogFields []string
 	}{
 		{
 			name:        "OpenSearch 2 is supported",
@@ -62,16 +62,20 @@ func TestCheckVersion(t *testing.T) {
 			wantMajor:   3,
 		},
 		{
-			name:            "OpenSearch 4 is too new, but allowed",
-			version:         "4.0.0",
-			wantVersion:     "4.0.0",
-			wantMajor:       4,
-			wantUnsupported: true,
+			name:          "OpenSearch 4 is too new, but allowed",
+			version:       "4.0.0",
+			wantVersion:   "4.0.0",
+			wantMajor:     4,
+			wantLog:       "Unsupported OpenSearch version",
+			wantLogFields: []string{`"version":"4.0.0"`, `"max_version":3`},
 		},
 		{
-			name:      "invalid version string",
-			version:   "invalid",
-			wantErrID: "ent.elasticsearch.start.parse_server_version.app_error",
+			name:          "unparseable version is allowed",
+			version:       "invalid",
+			wantVersion:   "invalid",
+			wantMajor:     0,
+			wantLog:       "Failed to parse the OpenSearch version",
+			wantLogFields: []string{`"version":"invalid"`},
 		},
 	}
 
@@ -82,24 +86,20 @@ func TestCheckVersion(t *testing.T) {
 			require.NoError(t, mlog.AddWriterTarget(logger, &buf, true, mlog.LvlError))
 
 			client := newTestClient(t, infoHandler(tc.version))
-			version, major, appErr := checkVersion(context.Background(), client, logger)
+			version, major := checkVersion(context.Background(), client, logger)
 			require.NoError(t, logger.Flush())
 
-			if tc.wantErrID != "" {
-				require.NotNil(t, appErr)
-				assert.Equal(t, tc.wantErrID, appErr.Id)
+			assert.Equal(t, tc.wantVersion, version)
+			assert.Equal(t, tc.wantMajor, major)
+
+			if tc.wantLog == "" {
+				assert.Empty(t, buf.String())
 				return
 			}
 
-			require.Nil(t, appErr)
-			assert.Equal(t, tc.wantVersion, version)
-			assert.Equal(t, tc.wantMajor, major)
-			if tc.wantUnsupported {
-				assert.Contains(t, buf.String(), "Unsupported OpenSearch version")
-				assert.Contains(t, buf.String(), fmt.Sprintf(`"version":%q`, tc.wantVersion))
-				assert.Contains(t, buf.String(), `"max_version":3`)
-			} else {
-				assert.Empty(t, buf.String())
+			assert.Contains(t, buf.String(), tc.wantLog)
+			for _, field := range tc.wantLogFields {
+				assert.Contains(t, buf.String(), field)
 			}
 		})
 	}
@@ -117,7 +117,15 @@ func TestCheckVersionConnectionError(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	_, _, appErr := checkVersion(context.Background(), client, mlog.CreateConsoleTestLogger(t))
-	require.NotNil(t, appErr)
-	assert.Equal(t, "ent.elasticsearch.start.get_server_version.app_error", appErr.Id)
+	logger := mlog.CreateConsoleTestLogger(t)
+	var buf mlog.Buffer
+	require.NoError(t, mlog.AddWriterTarget(logger, &buf, true, mlog.LvlError))
+
+	// An unreachable server is logged, but must not fail the caller.
+	version, major := checkVersion(context.Background(), client, logger)
+	require.NoError(t, logger.Flush())
+
+	assert.Empty(t, version)
+	assert.Zero(t, major)
+	assert.Contains(t, buf.String(), "Failed to get the OpenSearch version")
 }

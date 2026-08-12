@@ -115,15 +115,11 @@ func (os *OpensearchInterfaceImpl) IsIndexingSync() bool {
 	return *os.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize <= 1
 }
 
-// fetchServerInfo retrieves and stores the server version and plugins from the given client.
-func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *opensearchapi.Client) *model.AppError {
-	version, major, appErr := checkVersion(ctx, client, os.Platform.Log())
-	if appErr != nil {
-		return appErr
-	}
-
-	os.version = major
-	os.fullVersion = version
+// fetchServerInfo retrieves and stores the server version and plugins from the
+// given client. The version is only reported, never acted upon, so failures are
+// logged and left behind instead of preventing a start.
+func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *opensearchapi.Client) {
+	os.fullVersion, os.version = checkVersion(ctx, client, os.Platform.Log())
 
 	// Since we are only retrieving plugins for the Support Packet generation, it doesn't make sense to kill the process if we get an error
 	// Instead, we will log it and move forward
@@ -136,8 +132,6 @@ func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *
 			os.plugins = append(os.plugins, p.Component)
 		}
 	}
-
-	return nil
 }
 
 func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
@@ -160,9 +154,7 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 		return appErr
 	}
 
-	if appErr = os.fetchServerInfo(ctx, os.client); appErr != nil {
-		return appErr
-	}
+	os.fetchServerInfo(ctx, os.client)
 
 	esSettings := os.Platform.Config().ElasticsearchSettings
 	if *esSettings.LiveIndexingBatchSize > 1 {
@@ -1702,9 +1694,13 @@ func (os *OpensearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Confi
 		return appErr
 	}
 
-	if appErr = os.fetchServerInfo(context.Background(), client); appErr != nil {
-		return appErr
+	// Unlike starting up, testing the configuration must report an unreachable
+	// server: it's the only thing this is asked to find out.
+	if _, err := client.Ping(rctx.Context(), nil); err != nil {
+		return model.NewAppError("Opensearch.TestConfig", "ent.elasticsearch.test_config.reachable.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	os.fetchServerInfo(context.Background(), client)
 
 	// Resetting the state.
 	if os.ready.CompareAndSwap(0, 1) {
@@ -2333,18 +2329,24 @@ func (os *OpensearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime, l
 	return nil
 }
 
-// checkVersion returns the version of the connected OpenSearch server. An
-// unsupported version is logged but not treated as fatal, allowing the server to
-// start regardless.
-func checkVersion(ctx context.Context, client *opensearchapi.Client, logger mlog.LoggerIFace) (string, int, *model.AppError) {
+// checkVersion returns the full version and major version of the connected
+// OpenSearch server, or zero values if it cannot be determined. Nothing here is
+// fatal: an unsupported version, an unreachable server and an unparseable
+// version are all logged and allowed to proceed.
+func checkVersion(ctx context.Context, client *opensearchapi.Client, logger mlog.LoggerIFace) (string, int) {
 	resp, err := client.Info(ctx, nil)
 	if err != nil {
-		return "", 0, model.NewAppError("Opensearch.checkVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+		logger.Error("Failed to get the OpenSearch version.", mlog.Err(err))
+		return "", 0
 	}
 
-	major, _, _, esErr := common.GetVersionComponents(resp.Version.Number)
-	if esErr != nil {
-		return "", 0, model.NewAppError("Opensearch.checkVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(esErr)
+	major, _, _, err := common.GetVersionComponents(resp.Version.Number)
+	if err != nil {
+		logger.Error("Failed to parse the OpenSearch version.",
+			mlog.String("version", resp.Version.Number),
+			mlog.Err(err),
+		)
+		return resp.Version.Number, 0
 	}
 
 	if major > opensearchMaxVersion {
@@ -2354,5 +2356,5 @@ func checkVersion(ctx context.Context, client *opensearchapi.Client, logger mlog
 		)
 	}
 
-	return resp.Version.Number, major, nil
+	return resp.Version.Number, major
 }

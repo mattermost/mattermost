@@ -105,15 +105,11 @@ func (es *ElasticsearchInterfaceImpl) IsIndexingSync() bool {
 	return *es.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize <= 1
 }
 
-// fetchServerInfo retrieves and stores the server version and plugins from the given client.
-func (es *ElasticsearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *elastic.TypedClient) *model.AppError {
-	version, major, appErr := checkVersion(ctx, client, es.Platform.Log())
-	if appErr != nil {
-		return appErr
-	}
-
-	es.version = major
-	es.fullVersion = version
+// fetchServerInfo retrieves and stores the server version and plugins from the
+// given client. The version is only reported, never acted upon, so failures are
+// logged and left behind instead of preventing a start.
+func (es *ElasticsearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *elastic.TypedClient) {
+	es.fullVersion, es.version = checkVersion(ctx, client, es.Platform.Log())
 
 	// Since we are only retrieving plugins for the Support Packet generation, it doesn't make sense to kill the process if we get an error
 	// Instead, we will log it and move forward
@@ -126,8 +122,6 @@ func (es *ElasticsearchInterfaceImpl) fetchServerInfo(ctx context.Context, clien
 			es.plugins = append(es.plugins, *p.Component)
 		}
 	}
-
-	return nil
 }
 
 func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
@@ -150,9 +144,7 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 		return appErr
 	}
 
-	if appErr = es.fetchServerInfo(ctx, es.client); appErr != nil {
-		return appErr
-	}
+	es.fetchServerInfo(ctx, es.client)
 
 	var err error
 	esSettings := es.Platform.Config().ElasticsearchSettings
@@ -1590,9 +1582,13 @@ func (es *ElasticsearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Co
 		return appErr
 	}
 
-	if appErr = es.fetchServerInfo(context.Background(), client); appErr != nil {
-		return appErr
+	// Unlike starting up, testing the configuration must report an unreachable
+	// server: it's the only thing this is asked to find out.
+	if ok, err := client.API.Core.Ping().Do(rctx.Context()); err != nil || !ok {
+		return model.NewAppError("Elasticsearch.TestConfig", "ent.elasticsearch.test_config.reachable.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	es.fetchServerInfo(context.Background(), client)
 
 	// Resetting the state.
 	if es.ready.CompareAndSwap(0, 1) {
@@ -2169,18 +2165,24 @@ func (es *ElasticsearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime
 	return nil
 }
 
-// checkVersion returns the version of the connected Elasticsearch server. An
-// unsupported version is logged but not treated as fatal, allowing the server to
-// start regardless.
-func checkVersion(ctx context.Context, client *elastic.TypedClient, logger mlog.LoggerIFace) (string, int, *model.AppError) {
+// checkVersion returns the full version and major version of the connected
+// Elasticsearch server, or zero values if it cannot be determined. Nothing here
+// is fatal: an unsupported version, an unreachable server and an unparseable
+// version are all logged and allowed to proceed.
+func checkVersion(ctx context.Context, client *elastic.TypedClient, logger mlog.LoggerIFace) (string, int) {
 	resp, err := client.API.Core.Info().Do(ctx)
 	if err != nil {
-		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
+		logger.Error("Failed to get the Elasticsearch version.", mlog.Err(err))
+		return "", 0
 	}
 
-	major, _, _, esErr := common.GetVersionComponents(resp.Version.Int)
-	if esErr != nil {
-		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(esErr)
+	major, _, _, err := common.GetVersionComponents(resp.Version.Int)
+	if err != nil {
+		logger.Error("Failed to parse the Elasticsearch version.",
+			mlog.String("version", resp.Version.Int),
+			mlog.Err(err),
+		)
+		return resp.Version.Int, 0
 	}
 
 	if major < elasticsearchMinVersion || major > elasticsearchMaxVersion {
@@ -2191,5 +2193,5 @@ func checkVersion(ctx context.Context, client *elastic.TypedClient, logger mlog.
 		)
 	}
 
-	return resp.Version.Int, major, nil
+	return resp.Version.Int, major
 }
