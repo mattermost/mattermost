@@ -8,6 +8,7 @@
     border-radius: 8px;
     background: var(--center-channel-bg);
     color: var(--center-channel-color);
+    text-align: left;
 
     @media screen and (max-width: 768px) {
         max-width: 100%;
@@ -39,6 +40,42 @@
 
         > :last-child {
             margin-bottom: 0;
+        }
+
+        // Neutralize image-viewer modal styles that leak into document markdown.
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+
+            &:hover,
+            &:focus {
+                text-decoration: underline;
+            }
+        }
+
+        img {
+            max-width: 100%;
+            max-height: none;
+            height: auto;
+        }
+
+        .codespan__pre-wrap code {
+            display: inline;
+            width: auto;
+            min-width: 0;
+            min-height: 0;
+            padding: 0.2em 0.4em;
+            margin: 0;
+        }
+
+        .post-code {
+            pre,
+            code {
+                display: block;
+                width: 100%;
+                min-width: 0;
+                min-height: 0;
+            }
         }
     }
 }

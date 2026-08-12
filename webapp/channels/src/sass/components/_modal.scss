@@ -459,6 +459,13 @@
                     padding: 5px 0;
                 }
 
+                pre,
+                code {
+                    display: inline-block;
+                    min-width: 330px;
+                    min-height: 130px;
+                }
+
                 code {
                     width: 100%;
                     padding: 5px 0;
@@ -529,16 +536,6 @@
                 min-width: 300px;
                 max-width: 100%;
                 min-height: 100px;
-            }
-
-            code {
-                min-width: 330px;
-                min-height: 130px;
-            }
-
-            pre,
-            code {
-                display: inline-block;
             }
 
             .post-body--code {
