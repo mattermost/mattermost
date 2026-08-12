@@ -23,6 +23,12 @@
     }
 }
 
+.GlobalAttributes__actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 24px;
+}
+
 .GlobalAttributes__headerGroup {
     h1 {
         margin: 0;
