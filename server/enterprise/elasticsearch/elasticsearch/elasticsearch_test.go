@@ -453,6 +453,11 @@ func TestTestConfigThenSavingConfigStartsEngine(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
 	es := &ElasticsearchInterfaceImpl{Platform: ps}
+	hasSyncBulkProcessor := func() bool {
+		es.mutex.RLock()
+		defer es.mutex.RUnlock()
+		return es.syncBulkProcessor != nil
+	}
 	th.App.SearchEngine().RegisterElasticsearchEngine(es)
 	configListenerID, licenseListenerID := ps.StartSearchEngine()
 	t.Cleanup(func() {
@@ -468,7 +473,7 @@ func TestTestConfigThenSavingConfigStartsEngine(t *testing.T) {
 	require.Nil(t, es.TestConfig(th.Context, submittedConfig))
 	require.False(t, es.IsActive())
 	require.Nil(t, es.client)
-	require.Nil(t, es.syncBulkProcessor)
+	require.False(t, hasSyncBulkProcessor())
 
 	// Saving the submitted config must wake the watcher, which performs the
 	// full Start sequence and creates the synchronous bulk processor.
@@ -477,7 +482,7 @@ func TestTestConfigThenSavingConfigStartsEngine(t *testing.T) {
 	})
 
 	require.Eventually(t, func() bool {
-		return es.IsActive() && es.syncBulkProcessor != nil
+		return es.IsActive() && hasSyncBulkProcessor()
 	}, 5*time.Second, 10*time.Millisecond)
 	require.Equal(t, "8.19.0", es.GetFullVersion())
 	require.Equal(t, []string{"analysis-icu"}, es.GetPlugins())
