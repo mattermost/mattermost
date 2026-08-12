@@ -183,7 +183,7 @@ export function Menu(props: Props) {
 
     // Stop synthetic events from bubbling up to the parent
     // @see https://github.com/mui/material-ui/issues/32064
-    function handleMenuClick(e: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>) {
+    function handleMenuClick(e: MouseEvent) {
         e.stopPropagation();
     }
 

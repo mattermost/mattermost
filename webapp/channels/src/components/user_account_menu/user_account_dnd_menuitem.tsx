@@ -3,7 +3,7 @@
 
 import moment from 'moment';
 import React, {useMemo} from 'react';
-import type {MouseEvent, KeyboardEvent} from 'react';
+import type {MouseEvent} from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -62,7 +62,7 @@ export default function UserAccountDndMenuItem(props: Props) {
         }
     }
 
-    function handleSubMenuItemClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
+    function handleSubMenuItemClick(event: MouseEvent<HTMLLIElement>) {
         if (props.shouldConfirmBeforeStatusChange) {
             dispatch(openModal({
                 modalId: ModalIdentifiers.RESET_STATUS,

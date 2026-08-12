@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {MouseEvent, TouchEvent, KeyboardEvent, ReactNode} from 'react';
+import type {MouseEvent, TouchEvent, ReactNode} from 'react';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -23,7 +23,7 @@ import * as Menu from 'components/menu';
 interface Props {
     timezone?: string;
     customStatus?: UserCustomStatus;
-    openCustomStatusModal: (event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
+    openCustomStatusModal: (event: MouseEvent<HTMLLIElement>) => void;
 }
 
 export default function UserAccountSetCustomStatusMenuItem(props: Props) {
