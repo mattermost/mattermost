@@ -153,9 +153,9 @@ func (backend *LocalBackend) GetImageDirect(imageURL string) (io.ReadCloser, str
 }
 
 // ServeImage fetches the remote image referenced by req and writes it to w.
-// If maxBytes is positive, at most maxBytes of the remote response body will
-// be copied to w, and the return value reports whether the remote response
-// was truncated as a result.
+// maxBytes limits how many bytes of the response body are copied to w; pass 0
+// to disable the limit. The return value reports whether the body was truncated
+// (always false when maxBytes is 0).
 func (backend *LocalBackend) ServeImage(w http.ResponseWriter, req *http.Request, maxBytes int64) (truncated bool) {
 	proxyReq, err := newProxyRequest(req, backend.baseURL)
 	if err != nil {
