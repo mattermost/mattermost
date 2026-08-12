@@ -7,6 +7,10 @@ import {batchActions} from 'redux-batched-actions';
 import type {AccessControlAttributes} from '@mattermost/types/access_control';
 import type {
     Channel,
+    ChannelJoinRequest,
+    ChannelJoinRequestApprovalResponse,
+    ChannelJoinRequestList,
+    ChannelJoinRequestPatch,
     ChannelNotifyProps,
     ChannelMembership,
     ChannelModerationPatch,
@@ -15,6 +19,7 @@ import type {
     ServerChannel,
     ChannelStats,
     ChannelWithTeamData,
+    GetChannelJoinRequestsOptions,
 } from '@mattermost/types/channels';
 import type {OptsSignalExt} from '@mattermost/types/client4';
 import type {ServerError} from '@mattermost/types/errors';
@@ -1518,6 +1523,187 @@ export function getChannelAccessControlAttributes(channelId: string): ActionFunc
     };
 }
 
+// ---------------------------------------------------------------------------
+// Discoverable Private Channels — join request thunks
+// ---------------------------------------------------------------------------
+
+function isApprovalResponse(value: ChannelJoinRequest | ChannelJoinRequestApprovalResponse): value is ChannelJoinRequestApprovalResponse {
+    return (value as ChannelJoinRequest).id === undefined;
+}
+
+// requestJoinChannel calls POST /channels/{id}/join_request. The server returns
+// either an approval shortcut (when the user matches an attached access policy)
+// or a persisted ChannelJoinRequest row that the admin queue must review. The
+// return value preserves that distinction so the caller can route to a "Joined"
+// toast vs. a "Pending" state without a second round-trip.
+export function requestJoinChannel(channelId: string, message = ''): ActionFuncAsync<ChannelJoinRequest | ChannelJoinRequestApprovalResponse> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.requestJoinChannel(channelId, message);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        if (isApprovalResponse(data)) {
+            // The ABAC fast path adds the user directly. No pending row to
+            // track; the user_added WS event will surface the channel in the
+            // sidebar. Clear any cached pending state for this channel.
+            dispatch({
+                type: ChannelTypes.CHANNEL_JOIN_REQUEST_REMOVED,
+                data: {channel_id: channelId},
+            });
+        } else {
+            dispatch({
+                type: ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUEST,
+                data,
+            });
+        }
+
+        return {data};
+    };
+}
+
+// getMyChannelJoinRequest reads the calling user's pending request for a
+// specific channel. The server returns 404 when none exists, which we surface
+// as a successful "no pending request" result rather than an error.
+export function getMyChannelJoinRequest(channelId: string): ActionFuncAsync<ChannelJoinRequest | null> {
+    return async (dispatch, getState) => {
+        let data: ChannelJoinRequest;
+        try {
+            data = await Client4.getMyChannelJoinRequest(channelId);
+        } catch (error) {
+            const status = (error as ServerError | undefined)?.status_code;
+            if (status === 404) {
+                dispatch({
+                    type: ChannelTypes.CHANNEL_JOIN_REQUEST_REMOVED,
+                    data: {channel_id: channelId},
+                });
+                return {data: null};
+            }
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUEST,
+            data,
+        });
+        return {data};
+    };
+}
+
+// withdrawMyChannelJoinRequest cancels the user's pending request via DELETE
+// on the join_request resource. On success the server emits
+// channel_join_request_updated; we also patch local state immediately so the
+// Browse row flips without waiting for the WS round-trip.
+export function withdrawMyChannelJoinRequest(channelId: string): ActionFuncAsync<ChannelJoinRequest> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.withdrawMyChannelJoinRequest(channelId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: ChannelTypes.CHANNEL_JOIN_REQUEST_REMOVED,
+            data: {channel_id: channelId, request_id: data.id},
+        });
+        return {data};
+    };
+}
+
+// getChannelJoinRequests powers the admin queue. The list is keyed by channel
+// id in the reducer so two open queues do not collide.
+export function getChannelJoinRequests(channelId: string, opts: GetChannelJoinRequestsOptions = {}): ActionFuncAsync<ChannelJoinRequestList> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.getChannelJoinRequests(channelId, opts);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: ChannelTypes.RECEIVED_CHANNEL_JOIN_REQUESTS,
+            data: {channel_id: channelId, list: data},
+        });
+        return {data};
+    };
+}
+
+// countPendingChannelJoinRequests is called by the channel header / LHS /
+// RHS indicators. Cheap endpoint; safe to poll on channel switch.
+export function countPendingChannelJoinRequests(channelId: string): ActionFuncAsync<number> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.countPendingChannelJoinRequests(channelId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: ChannelTypes.RECEIVED_CHANNEL_JOIN_REQUEST_COUNT,
+            data: {channel_id: channelId, count: data.count},
+        });
+        return {data: data.count};
+    };
+}
+
+// patchChannelJoinRequest is the admin approve/deny action. The server
+// re-runs the PDP gate inside AddChannelMember on approve, so an active ABAC
+// policy is honored even if the admin tries to approve a non-matching user.
+export function patchChannelJoinRequest(channelId: string, requestId: string, patch: ChannelJoinRequestPatch): ActionFuncAsync<ChannelJoinRequest> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.patchChannelJoinRequest(channelId, requestId, patch);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: ChannelTypes.CHANNEL_JOIN_REQUEST_UPDATED,
+            data,
+        });
+        return {data};
+    };
+}
+
+// getMyChannelJoinRequests powers the My Pending Requests tab inside Browse
+// Channels (lands in PR 4). Returns the user's requests across all channels.
+export function getMyChannelJoinRequests(opts: GetChannelJoinRequestsOptions = {}): ActionFuncAsync<ChannelJoinRequestList> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.getMyChannelJoinRequests(opts);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUESTS,
+            data,
+        });
+        return {data};
+    };
+}
+
 export default {
     selectChannel,
     createChannel,
@@ -1548,4 +1734,11 @@ export default {
     getChannelModerations,
     getChannelMemberCountsByGroup,
     getChannelAccessControlAttributes,
+    requestJoinChannel,
+    getMyChannelJoinRequest,
+    withdrawMyChannelJoinRequest,
+    getChannelJoinRequests,
+    countPendingChannelJoinRequests,
+    patchChannelJoinRequest,
+    getMyChannelJoinRequests,
 };
