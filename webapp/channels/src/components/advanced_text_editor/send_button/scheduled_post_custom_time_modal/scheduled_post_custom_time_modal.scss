@@ -1,6 +1,8 @@
 .scheduled_post_custom_time_modal {
     .ScheduledPostCustomTimeModal__repeat {
+        // Shrink-wrap so WithTooltip anchors to the checkbox/label, not the modal width.
         display: flex;
+        width: fit-content;
         align-items: flex-start;
         margin-bottom: 12px;
         gap: 8px;
