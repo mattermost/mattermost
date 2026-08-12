@@ -335,22 +335,20 @@ export function Menu(props: Props) {
                         // Making it pointer-events:none lets drag events pass through to
                         // elements behind it, while the paper content stays interactive.
                         style={props.menu.hideBackdrop ? {pointerEvents: 'none'} : undefined}
-                        PaperProps={props.menu.hideBackdrop ? {style: {pointerEvents: 'auto'}} : undefined}
-                        TransitionProps={{
-                            mountOnEnter: true,
-                            unmountOnExit: true,
-                            timeout: {
-                                enter: MENU_OPEN_ANIMATION_DURATION,
-                                exit: MENU_CLOSE_ANIMATION_DURATION,
-                            },
+                        transitionDuration={{
+                            enter: MENU_OPEN_ANIMATION_DURATION,
+                            exit: MENU_CLOSE_ANIMATION_DURATION,
                         }}
                         slotProps={{
                             backdrop: {
                                 id: ELEMENT_ID_FOR_MENU_BACKDROP,
                             },
+                            paper: props.menu.hideBackdrop ? {style: {pointerEvents: 'auto'}} : undefined,
+                            transition: {
+                                mountOnEnter: true,
+                                unmountOnExit: true,
+                            },
                         }}
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-expect-error This exists in source code of mui, but its types are missing
                         onTransitionExited={providerValue.handleClosed}
                     >
                         {props.menuHeader}
