@@ -230,8 +230,24 @@ func TestPropertyRoutesAbsentWithoutGateFlags(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
+	// Patch a field that genuinely exists, created through the app layer since
+	// the create route is gated off (asserted above). A random field ID would
+	// 404 on its own and prove nothing about the route being absent.
+	memberLevel := model.PermissionLevelMember
+	existingField, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		Name:              model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		GroupID:           group.ID,
+		ObjectType:        "channel",
+		TargetType:        "system",
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+	}, false, "")
+	require.Nil(t, appErr)
+
 	_, resp, err = th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, []model.PropertyValuePatchItem{
-		{FieldID: model.NewId(), Value: json.RawMessage(`"x"`)},
+		{FieldID: existingField.ID, Value: json.RawMessage(`"x"`)},
 	})
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
@@ -3990,6 +4006,7 @@ func TestPatchPropertyValuesChannelAdminTier(t *testing.T) {
 		cfg.FeatureFlags.ManagedChannelCategories = false
 		cfg.FeatureFlags.ClassificationMarkings = false
 		cfg.FeatureFlags.SessionAttributes = false
+		cfg.FeatureFlags.PostAttributes = false
 		cfg.FeatureFlags.ChannelAttributes = true
 	}).InitBasic(t)
 
