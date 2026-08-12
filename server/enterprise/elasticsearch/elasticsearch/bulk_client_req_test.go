@@ -298,8 +298,8 @@ func TestStopShutsDownPeriodicFlusher(t *testing.T) {
 
 			post := createTestPost(t, "test message")
 			err := bulkClient.IndexOp(types.IndexOperation{
-				Index_: new("testindex"),
-				Id_:    new(post.Id),
+				Index_: model.NewPointer("testindex"),
+				Id_:    model.NewPointer(post.Id),
 			}, post)
 			require.NoError(t, err)
 
