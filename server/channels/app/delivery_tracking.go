@@ -113,8 +113,8 @@ func (a *App) RecordPostListDelivery(rctx request.CTX, userID string, list *mode
 		return
 	}
 
-	for _, postID := range list.Order {
-		a.recordPostDelivery(rctx, userID, list.Posts[postID], mechanism)
+	for _, post := range list.Posts {
+		a.recordPostDelivery(rctx, userID, post, mechanism)
 	}
 }
 
@@ -219,8 +219,8 @@ func (a *App) RecordPostListDeliveryToPlugin(rctx request.CTX, pluginID string, 
 		return
 	}
 
-	for _, postID := range list.Order {
-		a.recordPostDeliveryToPlugin(rctx, pluginID, list.Posts[postID])
+	for _, post := range list.Posts {
+		a.recordPostDeliveryToPlugin(rctx, pluginID, post)
 	}
 }
 

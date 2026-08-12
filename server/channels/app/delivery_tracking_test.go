@@ -73,6 +73,21 @@ func (c *deliveryAuditCapture) requireNone() {
 	require.Empty(c.t, c.records())
 }
 
+// postIDs returns the post ID of every record emitted so far. Callers that drive a PostList must
+// compare it as a set: RecordPostListDelivery walks the Posts map, so emission order is
+// unspecified.
+func (c *deliveryAuditCapture) postIDs() []string {
+	c.t.Helper()
+
+	records := c.records()
+	out := make([]string, 0, len(records))
+	for _, rec := range records {
+		postID, _ := auditMeta(c.t, rec)[model.PostDeliveryKeyPostID].(string)
+		out = append(out, postID)
+	}
+	return out
+}
+
 // requireOne asserts exactly one record was emitted and returns its actor user ID and meta.
 func (c *deliveryAuditCapture) requireOne() (string, map[string]any) {
 	c.t.Helper()
@@ -320,7 +335,7 @@ func TestRecordPostsDelivery(t *testing.T) {
 func TestRecordPostListDelivery(t *testing.T) {
 	th := setupDeliveryTracking(t)
 
-	t.Run("records every post in order", func(t *testing.T) {
+	t.Run("records every post in the list", func(t *testing.T) {
 		capture := startDeliveryAuditCapture(t, th)
 		first := th.CreatePost(t, th.BasicChannel)
 		second := th.CreatePost(t, th.BasicChannel)
@@ -333,10 +348,25 @@ func TestRecordPostListDelivery(t *testing.T) {
 
 		th.App.RecordPostListDelivery(th.Context, th.BasicUser2.Id, list, model.DeliveryMechanismProduct)
 
-		records := capture.records()
-		require.Len(t, records, 2)
-		require.Equal(t, first.Id, auditMeta(t, records[0])[model.PostDeliveryKeyPostID])
-		require.Equal(t, second.Id, auditMeta(t, records[1])[model.PostDeliveryKeyPostID])
+		require.ElementsMatch(t, []string{first.Id, second.Id}, capture.postIDs())
+	})
+
+	t.Run("records posts present in Posts but absent from Order", func(t *testing.T) {
+		// SqlPostStore.GetPosts and getPostsAround add out-of-window thread context with AddPost
+		// and no AddOrder. PostList marshals Posts, so that content reaches the client and has to
+		// be recorded — walking Order alone would miss it.
+		capture := startDeliveryAuditCapture(t, th)
+		ordered := th.CreatePost(t, th.BasicChannel)
+		unordered := th.CreatePost(t, th.BasicChannel)
+
+		list := model.NewPostList()
+		list.AddPost(ordered)
+		list.AddOrder(ordered.Id)
+		list.AddPost(unordered) // deliberately no AddOrder
+
+		th.App.RecordPostListDelivery(th.Context, th.BasicUser2.Id, list, model.DeliveryMechanismProduct)
+
+		require.ElementsMatch(t, []string{ordered.Id, unordered.Id}, capture.postIDs())
 	})
 
 	t.Run("nil and empty lists emit nothing", func(t *testing.T) {
@@ -615,6 +645,23 @@ func TestRecordPostDeliveryToIntegrations(t *testing.T) {
 
 		th.App.RecordPostsDeliveryToPlugin(th.Context, "com.example.plugin", posts)
 		require.Len(t, capture.records(), 2)
+	})
+
+	t.Run("plugin list delivery records posts absent from Order", func(t *testing.T) {
+		// Mirrors the RecordPostListDelivery case: the PluginAPI read wrappers hand over whole
+		// PostLists, whose Posts map carries out-of-window thread context with no Order entry.
+		capture := startDeliveryAuditCapture(t, th)
+		ordered := th.CreatePost(t, th.BasicChannel)
+		unordered := th.CreatePost(t, th.BasicChannel)
+
+		list := model.NewPostList()
+		list.AddPost(ordered)
+		list.AddOrder(ordered.Id)
+		list.AddPost(unordered) // deliberately no AddOrder
+
+		th.App.RecordPostListDeliveryToPlugin(th.Context, "com.example.plugin", list)
+
+		require.ElementsMatch(t, []string{ordered.Id, unordered.Id}, capture.postIDs())
 	})
 
 	t.Run("webhook delivery has no actor and carries webhook_id", func(t *testing.T) {
