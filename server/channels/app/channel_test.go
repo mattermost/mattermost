@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -3465,7 +3464,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 
 	mockUserStore := mocks.UserStore{}
 	mockStore.On("User").Return(&mockUserStore)
-	mockUserStore.On("Get", context.Background(), "user_id_1").Return(&model.User{Username: "username_1"}, nil)
+	mockUserStore.On("Get", mock.Anything, "user_id_1").Return(&model.User{Username: "username_1"}, nil)
 	mockUserStore.On("GetProfilesInChannel", mock.AnythingOfType("*model.UserGetOptions")).Return([]*model.User{
 		{Id: "user_id_1", Username: "user_id_1"},
 		{Id: "user_id_2", Username: "user_id_2"},
