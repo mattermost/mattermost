@@ -466,14 +466,14 @@ func NewServer(options ...Option) (*Server, error) {
 		TemplatesContainer: s.TemplatesContainer(),
 		UserService:        s.userService,
 		Store:              s.GetStore(),
+		PostDeliveryRecorderFn: func(userID string, post *model.Post) {
+			app.RecordPostDelivery(request.EmptyContext(s.Log()), userID, post, model.DeliveryMechanismEmail)
+		},
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to initialize email service")
 	}
 	s.EmailService = emailService
-	emailService.SetPostDeliveryRecorder(func(userID string, post *model.Post) {
-		app.RecordPostDelivery(request.EmptyContext(s.Log()), userID, post, model.DeliveryMechanismEmail)
-	})
 
 	s.platform.SetupFeatureFlags()
 

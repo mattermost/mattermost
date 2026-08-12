@@ -61,10 +61,6 @@ type Service struct {
 	postDeliveryRecorder func(userID string, post *model.Post)
 }
 
-func (es *Service) SetPostDeliveryRecorder(fn func(userID string, post *model.Post)) {
-	es.postDeliveryRecorder = fn
-}
-
 type ServiceConfig struct {
 	ConfigFn  func() *model.Config
 	LicenseFn func() *model.License
@@ -72,6 +68,10 @@ type ServiceConfig struct {
 	TemplatesContainer *templates.Container
 	UserService        *users.UserService
 	Store              store.Store
+
+	// PostDeliveryRecorderFn is optional. It must be supplied here rather than set afterwards:
+	// NewService starts the batching job, whose goroutine reads the field.
+	PostDeliveryRecorderFn func(userID string, post *model.Post)
 }
 
 func NewService(config ServiceConfig) (*Service, error) {
@@ -79,11 +79,12 @@ func NewService(config ServiceConfig) (*Service, error) {
 		return nil, err
 	}
 	service := &Service{
-		config:             config.ConfigFn,
-		templatesContainer: config.TemplatesContainer,
-		license:            config.LicenseFn,
-		store:              config.Store,
-		userService:        config.UserService,
+		config:               config.ConfigFn,
+		templatesContainer:   config.TemplatesContainer,
+		license:              config.LicenseFn,
+		store:                config.Store,
+		userService:          config.UserService,
+		postDeliveryRecorder: config.PostDeliveryRecorderFn,
 	}
 	if err := service.setUpRateLimiters(); err != nil {
 		return nil, err

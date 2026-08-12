@@ -43,6 +43,7 @@ func (s *LocalCacheDeliveryTrackingStore) handleClusterInvalidateDeliveryTrackin
 
 func (s *LocalCacheDeliveryTrackingStore) ClearCaches() {
 	s.purge()
+	s.purgeChannels()
 
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.deliveryTrackingCache.Name())
@@ -54,7 +55,6 @@ func (s *LocalCacheDeliveryTrackingStore) purge() {
 		s.rootStore.logger.Error("failed to purge delivery tracking cache", mlog.Err(err))
 	}
 	s.trackedChannels.Purge()
-	s.trackableChannels.Purge()
 }
 
 func (s *LocalCacheDeliveryTrackingStore) SaveTrackedChannelIDs(rctx request.CTX, channelIDs []string) error {
@@ -119,10 +119,18 @@ func (s *LocalCacheDeliveryTrackingStore) IsChannelTrackable(rctx request.CTX, c
 	return trackable, nil
 }
 
+// invalidateChannel and purgeChannels are called from the channel store, which is built before
+// this one, so they tolerate a nil receiver.
 func (s *LocalCacheDeliveryTrackingStore) invalidateChannel(channelID string) {
+	if s == nil {
+		return
+	}
 	s.trackableChannels.Remove(channelID)
 }
 
 func (s *LocalCacheDeliveryTrackingStore) purgeChannels() {
+	if s == nil {
+		return
+	}
 	s.trackableChannels.Purge()
 }
