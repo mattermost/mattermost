@@ -5,13 +5,14 @@ import React from 'react';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
+import {onSubmit} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
 
 import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen, act} from 'tests/react_testing_utils';
 import Constants, {Locations, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -24,6 +25,10 @@ jest.mock('actions/views/drafts', () => ({
     ...jest.requireActual('actions/views/drafts'),
     updateDraft: jest.fn((...args) => ({type: 'MOCK_UPDATE_DRAFT', args})),
     removeDraft: jest.fn((...args) => ({type: 'MOCK_REMOVE_DRAFT', args})),
+}));
+
+jest.mock('actions/views/create_comment', () => ({
+    onSubmit: jest.fn(() => () => Promise.resolve({data: true})),
 }));
 
 jest.mock('utils/exec_commands.ts', () => ({
@@ -44,6 +49,7 @@ jest.mock('utils/exec_commands.ts', () => ({
 
 const mockedRemoveDraft = jest.mocked(removeDraft);
 const mockedUpdateDraft = jest.mocked(updateDraft);
+const mockedOnSubmit = jest.mocked(onSubmit);
 
 const currentUserId = 'current_user_id';
 const channelId = 'current_channel_id';
@@ -310,6 +316,56 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         expect(mockedUpdateDraft.mock.calls[0][1]).toMatchObject({
             message: 'some text',
             show: true,
+        });
+    });
+
+    it('should not adopt the previous channel draft when a submit resolves after a channel switch', async () => {
+        let resolveSubmit = () => {};
+        mockedOnSubmit.mockImplementation((() => () => new Promise((resolve) => {
+            resolveSubmit = () => resolve({data: true});
+        })) as unknown as typeof onSubmit);
+
+        const {rerender} = renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+            />,
+            initialState,
+        );
+
+        await userEvent.type(screen.getByPlaceholderText('Write to Test Channel'), 'first message');
+        await userEvent.click(screen.getByTestId('SendMessageButton'));
+
+        // The channel switches while that submit is still in flight, exactly as
+        // /msg does when redirecting to a DM that already exists in the store.
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={otherChannelId}
+            />,
+        );
+
+        // Now the in-flight submit resolves and clears the origin channel's draft.
+        await act(async () => {
+            resolveSubmit();
+        });
+
+        await userEvent.type(screen.getByPlaceholderText('Write to Other Channel'), 'second message');
+
+        // Switching away flushes the composer's draft, revealing which channel it
+        // believes it belongs to. Before the fix this was the origin channel, so
+        // the message would have posted there.
+        mockedUpdateDraft.mockClear();
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                channelId={channelId}
+            />,
+        );
+
+        expect(mockedUpdateDraft).toHaveBeenCalled();
+        expect(mockedUpdateDraft.mock.calls[0][1]).toMatchObject({
+            message: 'second message',
+            channelId: otherChannelId,
         });
     });
 

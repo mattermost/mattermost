@@ -221,6 +221,7 @@ const AdvancedTextEditor = ({
     const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>();
     const saveDraftFrame = useRef<NodeJS.Timeout>();
     const draftRef = useRef(draftFromStore);
+    const mountedChannelIdRef = useRef(channelId);
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);
     const messageStatusRef = useRef<HTMLDivElement | null>(null);
@@ -255,7 +256,13 @@ const AdvancedTextEditor = ({
             clearTimeout(saveDraftFrame.current);
         }
 
-        setDraft(draftToChange);
+        // An async submit resolves with the channelId captured when it started.
+        // If the user has since moved to another channel, adopting that draft as
+        // local state would stamp this composer with the previous channel's id,
+        // and every later message would post there. Persist it, but don't adopt it.
+        if (draftToChange.channelId === mountedChannelIdRef.current) {
+            setDraft(draftToChange);
+        }
 
         const saveDraft = () => {
             let prefix = StoragePrefixes.DRAFT;
@@ -690,6 +697,10 @@ const AdvancedTextEditor = ({
     useEffect(() => {
         draftRef.current = draft;
     }, [draft]);
+
+    useEffect(() => {
+        mountedChannelIdRef.current = channelId;
+    }, [channelId]);
 
     const handleSubmitPostAndScheduledMessage = useCallback((schedulingInfo?: SchedulingInfo) => {
         handleSubmitWithErrorHandling(undefined, schedulingInfo);
