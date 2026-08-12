@@ -359,28 +359,55 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 
 	var user *model.User
 	var nErr error
-	// createDeactivated is true when we're in a channel-scoped import (existingUsersOnly)
+	// createDeactivated is true when we're in a scoped import (existingUsersOnly)
 	// and the user doesn't yet exist on the destination. We still create the account so
 	// their posts are preserved, but we deactivate it so they can't log in until an admin
 	// explicitly reactivates them.
 	createDeactivated := false
-	user, nErr = a.Srv().Store().User().GetByUsername(*data.Username)
-	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(nErr, &nfErr) {
-			return model.NewAppError("importUser", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+
+	hasSSOIdentity := existingUsersOnly && data.AuthService != nil && data.AuthData != nil && *data.AuthData != ""
+	if hasSSOIdentity {
+		// For SSO users in a scoped import, match exclusively on auth_data.
+		// Falling back to username is unsafe: usernames can change (e.g. via SAML
+		// attribute sync), so a username match could silently link content to the
+		// wrong account. If auth_data doesn't match, flag and skip — do not create.
+		user, nErr = a.Srv().Store().User().GetByAuth(data.AuthData, *data.AuthService)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			if !errors.As(nErr, &nfErr) {
+				return model.NewAppError("importUser", "app.user.get_by_auth.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+			rctx.Logger().Warn(
+				"auth_data match failed during scoped import; user skipped — review and reactivate manually if needed",
+				mlog.String("username", *data.Username),
+				mlog.String("auth_service", *data.AuthService),
+				mlog.String("auth_data", *data.AuthData),
+			)
+			return nil
 		}
-		if existingUsersOnly {
-			rctx.Logger().Info("User not found on destination during channel-scoped import; creating as deactivated to preserve post authorship", mlog.String("username", *data.Username))
-			createDeactivated = true
+	} else {
+		user, nErr = a.Srv().Store().User().GetByUsername(*data.Username)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			if !errors.As(nErr, &nfErr) {
+				return model.NewAppError("importUser", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+			if existingUsersOnly {
+				rctx.Logger().Info("User not found on destination during scoped import; creating as deactivated to preserve post authorship", mlog.String("username", *data.Username))
+				createDeactivated = true
+			}
+			user = &model.User{}
+			user.MakeNonNil()
+			user.SetDefaultNotifications()
+			hasUserChanged = true
 		}
-		user = &model.User{}
-		user.MakeNonNil()
-		user.SetDefaultNotifications()
-		hasUserChanged = true
 	}
 
-	user.Username = *data.Username
+	// When matched by auth_data, preserve the dest username — the whole point of
+	// auth_data matching is that the username may have legitimately changed.
+	if !hasSSOIdentity {
+		user.Username = *data.Username
+	}
 
 	if user.Email != *data.Email {
 		hasUserChanged = true
