@@ -858,8 +858,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 						userThread.UnreadMentions = 0
 						userThread.UnreadReplies = 0
 					}
-					a.sanitizeProfiles(userThread.Participants, false)
-					userThread.Post.SanitizeProps()
+					a.sanitizeThreadResponse(userThread)
 
 					sanitizedPost, isMemberForPreview, err := a.SanitizePostMetadataForUser(rctx, userThread.Post, uid)
 					if err != nil {
@@ -1026,8 +1025,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				previousUnreadMentions := int64(0)
 				previousUnreadReplies := int64(0)
 
-				a.sanitizeProfiles(userThread.Participants, false)
-				userThread.Post.SanitizeProps()
+				a.sanitizeThreadResponse(userThread)
 
 				sanitizedPost, isMemberForPreview, err1 := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
 				if err1 != nil {
