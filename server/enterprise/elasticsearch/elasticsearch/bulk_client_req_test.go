@@ -4,14 +4,18 @@
 package elasticsearch
 
 import (
+	"net/http"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
-	"github.com/stretchr/testify/require"
 )
 
 // setupBulkClient creates a test bulk client with common setup
@@ -251,4 +255,112 @@ func TestStop(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 0, bulkClient.pendingRequests)
 	})
+}
+
+func TestStopShutsDownPeriodicFlusher(t *testing.T) {
+	tests := []struct {
+		name            string
+		status          int
+		wantErr         bool
+		pendingRequests int
+	}{
+		{name: "successful pending flush", status: http.StatusOK},
+		{name: "failed pending flush", status: http.StatusInternalServerError, wantErr: true, pendingRequests: 1},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			const flushInterval = 50 * time.Millisecond
+			requestStarted := make(chan struct{}, 1)
+			releaseRequest := make(chan struct{})
+			var releaseOnce sync.Once
+			release := func() {
+				releaseOnce.Do(func() { close(releaseRequest) })
+			}
+			t.Cleanup(release)
+
+			bulkClient := setupReqBulkClientWithHandler(t, flushInterval, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				select {
+				case requestStarted <- struct{}{}:
+				default:
+				}
+				<-releaseRequest
+
+				w.Header().Set("Content-Type", "application/json")
+				w.Header().Set("X-Elastic-Product", "Elasticsearch")
+				w.WriteHeader(tt.status)
+				if tt.status == http.StatusOK {
+					_, _ = w.Write([]byte(`{"errors":false,"items":[]}`))
+					return
+				}
+				_, _ = w.Write([]byte(`{"error":{"type":"test_error","reason":"bulk request failed"},"status":500}`))
+			}))
+
+			post := createTestPost(t, "test message")
+			err := bulkClient.IndexOp(types.IndexOperation{
+				Index_: model.NewPointer("testindex"),
+				Id_:    model.NewPointer(post.Id),
+			}, post)
+			require.NoError(t, err)
+
+			stopDone := make(chan error, 1)
+			go func() {
+				stopDone <- bulkClient.Stop()
+			}()
+
+			select {
+			case <-requestStarted:
+			case <-time.After(2 * time.Second):
+				require.FailNow(t, "timed out waiting for final flush to start")
+			}
+
+			// Stop still holds mut while the final flush is blocked. Waiting for a
+			// timer interval forces the periodic flusher to contend for that mutex.
+			time.Sleep(2 * flushInterval)
+			release()
+
+			select {
+			case err = <-stopDone:
+			case <-time.After(2 * time.Second):
+				require.FailNow(t, "Stop deadlocked while waiting for the periodic flusher")
+			}
+
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			require.Equal(t, tt.pendingRequests, bulkClient.pendingRequests)
+			assertFlusherStopped(t, bulkClient)
+		})
+	}
+}
+
+func setupReqBulkClientWithHandler(t *testing.T, flushInterval time.Duration, handler http.Handler) *ReqBulkClient {
+	t.Helper()
+
+	client := newTestClient(t, handler)
+
+	bulkClient, err := NewReqBulkClient(
+		common.BulkSettings{
+			FlushBytes:    0,
+			FlushInterval: flushInterval,
+			FlushNumReqs:  10,
+		},
+		client,
+		time.Second,
+		mlog.CreateConsoleTestLogger(t))
+	require.NoError(t, err)
+
+	return bulkClient
+}
+
+func assertFlusherStopped(t *testing.T, bulkClient *ReqBulkClient) {
+	t.Helper()
+
+	select {
+	case <-bulkClient.quitFlusher:
+	default:
+		require.Fail(t, "periodic flusher was not stopped")
+	}
 }
