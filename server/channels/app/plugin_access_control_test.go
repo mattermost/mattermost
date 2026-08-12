@@ -358,7 +358,11 @@ func TestEvaluatePluginAccessRequestStoreError(t *testing.T) {
 }
 
 func TestSavePluginAccessControlPolicy(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	// Masking write-guards are covered in plugin_access_control_save_test.go.
+	// Keep this suite focused on plugin ownership/versioning with masking off.
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = false
+	}).InitBasic(t)
 	actingUserID := th.BasicUser.Id
 
 	notFoundErr := model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusNotFound)
@@ -1033,7 +1037,9 @@ func auditParam(t *testing.T, rec map[string]any, key string) any {
 // from entry and refines it to "create"/"update" once the existence probe
 // resolves; Delete stamps "delete".
 func TestPluginAccessControlAudit(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = false
+	}).InitBasic(t)
 	capture := startPluginAuditCapture(t, th)
 
 	actingUserID := th.BasicUser.Id

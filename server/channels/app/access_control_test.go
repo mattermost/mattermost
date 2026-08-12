@@ -441,9 +441,8 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 
 // TestCheckSelfInclusion verifies the self-exclusion guard: non-admin callers must
 // satisfy their own policy after saving, or the save is refused with 403
-// self_exclusion. Sysadmins are exempt at the call site
-// (CreateOrUpdateAccessControlPolicy), not inside checkSelfInclusion itself — this
-// test exercises the function directly.
+// self_exclusion. Sysadmins are exempt in enforceAccessControlPolicyWriteGuards,
+// not inside checkSelfInclusion itself — this test exercises the function directly.
 func TestCheckSelfInclusion(t *testing.T) {
 	t.Run("caller who satisfies the policy passes", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)

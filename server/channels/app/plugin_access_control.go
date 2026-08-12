@@ -159,8 +159,14 @@ func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, re
 // SavePluginAccessControlPolicy creates or updates a plugin-owned access
 // control policy. Version is forced to v0.5 and Active to true (plugin types
 // have no separate activation lifecycle); policy.ID must be the resource's
-// stable ID. Non-system-admin acting users must satisfy the saved expression
-// (self-inclusion); system admins may author policies they do not match.
+// stable ID.
+//
+// Write guards go through enforceAccessControlPolicyWriteGuards with
+// mergeFromStore=false: plugin GET returns unmasked policies, so there is no
+// masked-value round-trip to repair. Non-system-admin acting users must always
+// satisfy the saved expression (self-inclusion), including when
+// AttributeValueMasking is off. System admins may author policies they do not
+// match, but remain subject to value-holding validation when masking is on.
 func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
 	// Audit every attempt, including precondition failures.
 	auditRec := a.MakeAuditRecord(rctx, model.AuditEventSavePluginAccessControlPolicy, model.AuditStatusFail)
@@ -216,13 +222,8 @@ func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUs
 		return nil, appErr
 	}
 
-	// Non-system-admins must satisfy the policy they save (self-inclusion),
-	// matching CreateOrUpdateAccessControlPolicy. System admins may author
-	// policies they do not personally match.
-	if !a.HasPermissionTo(actingUserID, model.PermissionManageSystem) {
-		if appErr := a.checkSelfInclusion(rctx, policy, actingUserID, false); appErr != nil {
-			return nil, appErr
-		}
+	if _, appErr := a.enforceAccessControlPolicyWriteGuards(rctx, policy, actingUserID, false); appErr != nil {
+		return nil, appErr
 	}
 
 	// Enterprise SavePolicy derives the caller ID from the session, so
@@ -408,6 +409,10 @@ func (a *App) QueryUsersForPluginAccessControlExpression(rctx request.CTX, plugi
 	})
 	if appErr != nil {
 		return nil, appErr
+	}
+	// Normalize at the producer so gob/JSON never serialize Users as null.
+	if users == nil {
+		users = []*model.User{}
 	}
 
 	return &model.AccessControlPolicyTestResponse{Users: users, Total: total}, nil
