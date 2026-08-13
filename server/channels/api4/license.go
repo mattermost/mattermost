@@ -24,6 +24,7 @@ func (api *API) InitLicense() {
 	api.BaseRoutes.APIRoot.Handle("/license", api.APISessionRequired(removeLicense)).Methods(http.MethodDelete)
 	api.BaseRoutes.APIRoot.Handle("/license/client", api.APIHandler(getClientLicense)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/license/load_metric", api.APISessionRequired(getLicenseLoadMetric)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/license/preview", api.APISessionRequired(previewLicense, handlerParamFileAPI)).Methods(http.MethodPost)
 }
 
 func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -52,8 +53,48 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// parseLicenseFileFromRequest extracts license bytes from a multipart form request.
+// Returns the license bytes, the filename, and any error that occurred.
+func parseLicenseFileFromRequest(c *Context, r *http.Request) ([]byte, string, *model.AppError) {
+	err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize)
+	if err != nil {
+		return nil, "", model.NewAppError("parseLicenseFileFromRequest", "api.license.parse_license.parse_form.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	defer func() {
+		if r.MultipartForm != nil {
+			if err = r.MultipartForm.RemoveAll(); err != nil {
+				c.Logger.Warn("Failed to remove temporary multipart files", mlog.Err(err))
+			}
+		}
+	}()
+
+	fileArray, ok := r.MultipartForm.File["license"]
+	if !ok {
+		return nil, "", model.NewAppError("parseLicenseFileFromRequest", "api.license.add_license.no_file.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(fileArray) <= 0 {
+		return nil, "", model.NewAppError("parseLicenseFileFromRequest", "api.license.add_license.array.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	fileData := fileArray[0]
+
+	file, err := fileData.Open()
+	if err != nil {
+		return nil, "", model.NewAppError("parseLicenseFileFromRequest", "api.license.add_license.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	defer file.Close()
+
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, file); err != nil {
+		return nil, "", model.NewAppError("parseLicenseFileFromRequest", "api.license.add_license.copy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return buf.Bytes(), fileData.Filename, nil
+}
+
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("addLicense", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventAddLicense, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -62,42 +103,13 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	licenseBytes, filename, appErr := parseLicenseFileFromRequest(c, r)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
+	model.AddEventParameterToAuditRec(auditRec, "filename", filename)
 
-	m := r.MultipartForm
-
-	fileArray, ok := m.File["license"]
-	if !ok {
-		c.Err = model.NewAppError("addLicense", "api.license.add_license.no_file.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if len(fileArray) <= 0 {
-		c.Err = model.NewAppError("addLicense", "api.license.add_license.array.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	fileData := fileArray[0]
-	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
-
-	file, err := fileData.Open()
-	if err != nil {
-		c.Err = model.NewAppError("addLicense", "api.license.add_license.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	}
-	defer file.Close()
-
-	buf := bytes.NewBuffer(nil)
-	if _, err := io.Copy(buf, file); err != nil {
-		c.Err = model.NewAppError("addLicense", "api.license.add_license.copy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	licenseBytes := buf.Bytes()
 	license, appErr := utils.LicenseValidator.LicenseFromBytes(licenseBytes)
 	if appErr != nil {
 		c.Err = appErr
@@ -154,8 +166,32 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func previewLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
+		c.SetPermissionError(model.PermissionManageLicenseInformation)
+		return
+	}
+
+	licenseBytes, _, appErr := parseLicenseFileFromRequest(c, r)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	license, appErr := utils.LicenseValidator.LicenseFromBytes(licenseBytes)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Return the parsed license without saving it
+	if err := json.NewEncoder(w).Encode(license); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
 func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("removeLicense", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRemoveLicense, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -176,18 +212,12 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("requestTrialLicense", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRequestTrialLicense, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageLicenseInformation) {
 		c.SetPermissionError(model.PermissionManageLicenseInformation)
-		return
-	}
-
-	// MySQL is not supported for trial licenses
-	if c.App.Config().SqlSettings.DriverName != nil && *c.App.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
-		c.Err = model.NewAppError("requestTrialLicense", "api.license.request-trial.mysql.app_error", nil, "mysql is not supported for trial licenses", http.StatusBadRequest)
 		return
 	}
 
@@ -224,9 +254,9 @@ func requestTrialLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	var appErr *model.AppError
 	// If any of the newly supported trial request fields are set (ie, not a legacy request), process this as a new trial request (requiring the new fields) otherwise fall back on the old method.
 	if !trialRequest.IsLegacy() {
-		appErr = c.App.Channels().RequestTrialLicenseWithExtraFields(c.AppContext.Session().UserId, trialRequest)
+		appErr = c.App.Channels().RequestTrialLicenseWithExtraFields(c.AppContext, c.AppContext.Session().UserId, trialRequest)
 	} else {
-		appErr = c.App.Channels().RequestTrialLicense(c.AppContext.Session().UserId, trialRequest.Users, trialRequest.TermsAccepted, trialRequest.ReceiveEmailsAccepted)
+		appErr = c.App.Channels().RequestTrialLicense(c.AppContext, c.AppContext.Session().UserId, trialRequest.Users, trialRequest.TermsAccepted, trialRequest.ReceiveEmailsAccepted)
 	}
 
 	if appErr != nil {

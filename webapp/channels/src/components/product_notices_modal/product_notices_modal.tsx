@@ -5,17 +5,14 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import {isDesktopApp, getDesktopVersion} from '@mattermost/shared/utils/user_agent';
 import type {ProductNotices, ProductNotice} from '@mattermost/types/product_notices';
-
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 
 import ExternalLink from 'components/external_link';
 import Markdown from 'components/markdown';
 import AdminEyeIcon from 'components/widgets/icons/admin_eye_icon';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
-
-import {isDesktopApp, getDesktopVersion} from 'utils/user_agent';
 
 import type {PropsFromRedux} from './index';
 
@@ -26,7 +23,7 @@ type Props = PropsFromRedux;
 type State = {
     presentNoticeIndex: number;
     noticesData: ProductNotices;
-}
+};
 
 export default class ProductNoticesModal extends React.PureComponent<Props, State> {
     clearDataTimer?: number;
@@ -81,7 +78,9 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
                 noticesData: data,
             });
             if (data.length) {
-                const presentNoticeInfo = this.state.noticesData[this.state.presentNoticeIndex];
+                const safeIndex = Math.min(this.state.presentNoticeIndex, data.length - 1);
+                const presentNoticeInfo = data[safeIndex];
+                this.setState({presentNoticeIndex: safeIndex});
                 this.props.actions.updateNoticesAsViewed([presentNoticeInfo.id]);
             }
         }
@@ -186,11 +185,6 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
         return null;
     }
 
-    private trackClickEvent = () => {
-        const presentNoticeInfo = this.state.noticesData[this.state.presentNoticeIndex];
-        trackEvent('ui', `notice_click_${presentNoticeInfo.id}`);
-    };
-
     private renderActionButton(presentNoticeInfo: ProductNotice) {
         const noOfNotices = this.state.noticesData.length;
 
@@ -198,10 +192,8 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
             return (
                 <ExternalLink
                     id='actionButton'
-                    className='GenericModal__button actionButton'
                     location='product_notices_modal'
                     href={presentNoticeInfo.actionParam || ''}
-                    onClick={this.trackClickEvent}
                 >
                     {presentNoticeInfo.actionText}
                 </ExternalLink>
@@ -214,7 +206,6 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
         const presentNoticeInfo = this.state.noticesData[this.state.presentNoticeIndex];
         const noOfNotices = this.state.noticesData.length;
         if (noOfNotices === 1 && presentNoticeInfo.actionText) {
-            this.trackClickEvent();
             window.open(presentNoticeInfo.actionParam, '_blank');
         } else if (this.state.presentNoticeIndex + 1 < noOfNotices) {
             const nextNoticeInfo = this.state.noticesData[this.state.presentNoticeIndex + 1];

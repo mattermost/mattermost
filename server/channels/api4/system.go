@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -48,7 +47,9 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/notifications/test", api.APISessionRequired(testNotifications)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/email/test", api.APISessionRequired(testEmail)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/site_url/test", api.APISessionRequired(testSiteURL)).Methods(http.MethodPost)
-	api.BaseRoutes.APIRoot.Handle("/file/s3_test", api.APISessionRequired(testS3)).Methods(http.MethodPost)
+	api.BaseRoutes.APIRoot.Handle("/file/test", api.APISessionRequired(testFileStore)).Methods(http.MethodPost)
+	// Deprecated: use /file/test instead. Kept as a thin compatibility wrapper.
+	api.BaseRoutes.APIRoot.Handle("/file/s3_test", api.APISessionRequired(testFileStore)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/database/recycle", api.APISessionRequired(databaseRecycle)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods(http.MethodPost)
 
@@ -69,6 +70,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(clearServerBusy)).Methods(http.MethodDelete)
 	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise", api.APISessionRequired(upgradeToEnterprise)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise/status", api.APISessionRequired(upgradeToEnterpriseStatus)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise/allowed", api.APISessionRequired(isAllowedToUpgradeToEnterprise)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/restart", api.APISessionRequired(restart)).Methods(http.MethodPost)
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices)).Methods(http.MethodGet)
 	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods(http.MethodPut)
@@ -80,13 +82,15 @@ func (api *API) InitSystem() {
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	const FileMime = "application/zip"
-	const OutputDirectory = "support_packet"
 
 	// Support Packet generation is limited to system admins (MM-42271).
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGenerateSupportPacket, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
 
 	// We support the existing API hence the logs are always included
 	// if nothing specified.
@@ -99,6 +103,9 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		PluginPackets: r.Form["plugin_packets"],
 	}
 
+	auditRec.AddMeta("include_logs", supportPacketOptions.IncludeLogs)
+	auditRec.AddMeta("plugin_packets", supportPacketOptions.PluginPackets)
+
 	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
 	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.no_license", nil, "", http.StatusForbidden)
@@ -110,32 +117,21 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	outputZipFilename := supportPacketFileName(now, c.App.License().Customer.Company)
 
-	fileStorageBackend := c.App.FileBackend()
-	// We do this incase we get concurrent requests, we will always have a unique directory.
-	// This is to avoid the situation where we try to write to the same directory while we are trying to delete it (further down)
-	outputDirectoryToUse := OutputDirectory + "_" + model.NewId()
-	err := c.App.CreateZipFileAndAddFiles(fileStorageBackend, fileDatas, outputZipFilename, outputDirectoryToUse)
+	// Create a buffer and write the zip file to it
+	buf := new(bytes.Buffer)
+	err := c.App.WriteZipFile(buf, fileDatas)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_create_zip_file", nil, "", http.StatusForbidden).Wrap(err)
 		return
 	}
 
-	fileBytes, err := fileStorageBackend.ReadFile(path.Join(outputDirectoryToUse, outputZipFilename))
-	defer func() {
-		if err = fileStorageBackend.RemoveDirectory(outputDirectoryToUse); err != nil {
-			c.Logger.Warn("Error while removing directory", mlog.Err(err))
-		}
-	}()
-	if err != nil {
-		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.unable_to_read_file_from_backend", nil, "", http.StatusForbidden).Wrap(err)
-		return
-	}
-	fileBytesReader := bytes.NewReader(fileBytes)
+	auditRec.Success()
+	auditRec.AddMeta("filename", outputZipFilename)
 
 	// Prevent caching so support packets are always fresh
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 
-	err = web.WriteStreamResponse(w, fileBytesReader, outputZipFilename, FileMime, true)
+	err = web.WriteStreamResponse(w, buf, outputZipFilename, FileMime, true)
 	if err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -220,7 +216,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if deviceID := r.FormValue("device_id"); deviceID != "" {
-		s["CanReceiveNotifications"] = c.App.SendTestPushNotification(deviceID)
+		s["CanReceiveNotifications"] = c.App.SendTestPushNotification(c.AppContext, deviceID)
 	}
 
 	s["ActiveSearchBackend"] = c.App.ActiveSearchBackend()
@@ -296,7 +292,7 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("getAudits", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetAudits, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionReadAudits) {
@@ -325,7 +321,7 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("databaseRecycle", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDatabaseRecycle, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	c.App.RecycleDatabaseConnection(c.AppContext)
@@ -340,7 +336,7 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("invalidateCaches", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventInvalidateCaches, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	appErr := c.App.Srv().InvalidateAllCaches()
@@ -356,7 +352,7 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("queryLogs", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventQueryLogs, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
@@ -399,7 +395,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("getLogs", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetLogs, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
@@ -422,7 +418,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("downloadLogs", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDownloadLogs, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionGetLogs) {
@@ -482,6 +478,8 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 	fields := []mlog.Field{
 		mlog.String("type", "client_message"),
 		mlog.String("user_agent", c.AppContext.UserAgent()),
+		mlog.String("session_id", c.AppContext.Session().Id),
+		mlog.String("user_id", c.AppContext.Session().UserId),
 	}
 
 	if !forceToDebug && lvl == "ERROR" {
@@ -566,7 +564,7 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
+func testFileStore(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cfg *model.Config
 	err := json.NewDecoder(r.Body).Decode(&cfg)
 	if err != nil {
@@ -576,28 +574,51 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg = c.App.Config()
 	}
 
-	if checkHasNilFields(&cfg.FileSettings) {
-		c.Err = model.NewAppError("testS3", "api.file.test_connection_s3_settings_nil.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
+	// PermissionTestS3 is kept for backwards compatibility -- it was named
+	// after the only supported test endpoint at the time it was introduced.
+	// The new /file/test endpoint is backend-agnostic but reuses the same
+	// permission to avoid a role migration.
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
 		c.SetPermissionError(model.PermissionTestS3)
 		return
 	}
 
-	appErr := c.App.CheckMandatoryS3Fields(&cfg.FileSettings)
-	if appErr != nil {
-		c.Err = appErr
+	if checkHasNilFields(&cfg.FileSettings) {
+		c.Err = model.NewAppError("testFileStore", "api.file.test_connection_settings_nil.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	if *cfg.FileSettings.AmazonS3SecretAccessKey == model.FakeSetting {
-		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
+	// Validate mandatory fields per driver. TestFileStoreConnectionWithConfig
+	// will catch missing fields by failing to construct the backend, but a
+	// dedicated validation step lets us surface a clearer error.
+	driver := ""
+	if cfg.FileSettings.DriverName != nil {
+		driver = *cfg.FileSettings.DriverName
+	}
+	switch driver {
+	case model.ImageDriverLocal:
+		// Local driver has no mandatory fields beyond the directory, which has a default.
+	case model.ImageDriverS3:
+		if appErr := c.App.CheckMandatoryS3Fields(&cfg.FileSettings); appErr != nil {
+			c.Err = appErr
+			return
+		}
+	case model.ImageDriverAzure:
+		if appErr := c.App.CheckMandatoryAzureFields(&cfg.FileSettings); appErr != nil {
+			c.Err = appErr
+			return
+		}
+	default:
+		c.Err = model.NewAppError("testFileStore", "api.file.test_connection_unsupported_driver.app_error", map[string]any{"Driver": driver}, "", http.StatusBadRequest)
+		return
 	}
 
-	appErr = c.App.TestFileStoreConnectionWithConfig(&cfg.FileSettings)
-	if appErr != nil {
+	// A client editing the admin UI and clicking Test Connection without
+	// re-entering the secret would send the FakeSetting placeholder back, so we
+	// need to desanitize this first.
+	config.Desanitize(c.App.Config(), cfg)
+
+	if appErr := c.App.TestFileStoreConnectionWithConfig(&cfg.FileSettings); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -718,20 +739,22 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err := c.App.SendAckToPushProxy(&ack)
+	c.AppContext = c.AppContext.WithLogFields(
+		mlog.String("type", model.NotificationTypePush),
+		mlog.String("ack_id", ack.Id),
+		mlog.String("push_type", ack.NotificationType),
+		mlog.String("post_id", ack.PostId),
+		mlog.String("ack_type", ack.NotificationType),
+		mlog.String("device_type", ack.ClientPlatform),
+		mlog.Int("received_at", ack.ClientReceivedAt),
+	)
+	err := c.App.SendAckToPushProxy(c.AppContext, &ack)
 	if ack.IsIdLoaded {
 		if err != nil {
 			c.App.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError, ack.ClientPlatform)
-			c.App.NotificationsLog().Error("Notification ack not sent to push proxy",
-				mlog.String("type", model.NotificationTypePush),
+			c.AppContext.Logger().LogM(mlog.MlvlNotificationError, "Notification ack not sent to push proxy",
 				mlog.String("status", model.NotificationStatusError),
 				mlog.String("reason", model.NotificationReasonPushProxySendError),
-				mlog.String("ack_id", ack.Id),
-				mlog.String("push_type", ack.NotificationType),
-				mlog.String("post_id", ack.PostId),
-				mlog.String("ack_type", ack.NotificationType),
-				mlog.String("device_type", ack.ClientPlatform),
-				mlog.Int("received_at", ack.ClientReceivedAt),
 				mlog.Err(err),
 			)
 		} else {
@@ -739,7 +762,9 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
-			if _, appErr := c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
+			var isMember bool
+			var appErr *model.AppError
+			if _, appErr, isMember = c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
 				c.Err = appErr
 				return
 			}
@@ -758,6 +783,14 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
 				c.Logger.Warn("Error while writing response", mlog.Err(err2))
+			}
+
+			auditRec := c.MakeAuditRecord(model.AuditEventNotificationAck, model.AuditStatusSuccess)
+			defer c.LogAuditRec(auditRec)
+			model.AddEventParameterToAuditRec(auditRec, "post_id", ack.PostId)
+
+			if !isMember {
+				model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 			}
 		}
 
@@ -789,7 +822,7 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("setServerBusy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventSetServerBusy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "seconds", i)
 
@@ -806,7 +839,7 @@ func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("clearServerBusy", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventClearServerBusy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	c.App.Srv().Platform().Busy.Clear()
@@ -835,7 +868,7 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("upgradeToEnterprise", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpgradeToEnterprise, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -923,8 +956,28 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 }
 
+func isAllowedToUpgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	err := c.App.Srv().CanIUpgradeToE0()
+	if err != nil {
+		var iaErr *upgrader.InvalidArch
+		if errors.As(err, &iaErr) {
+			c.Err = model.NewAppError("isAllowedToUpgradeToEnterprise", "api.upgrade_to_enterprise.system_not_supported.app_error", nil, "", http.StatusForbidden).Wrap(err)
+			return
+		}
+		c.Err = model.NewAppError("isAllowedToUpgradeToEnterprise", err.Error(), nil, "", http.StatusForbidden).Wrap(err)
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
 func restart(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("restartServer", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRestartServer, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -968,7 +1021,7 @@ func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("updateViewedProductNotices", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateViewedProductNotices, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -988,7 +1041,7 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func getOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("getOnboarding", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetOnboarding, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -1015,7 +1068,7 @@ func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("completeOnboarding", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCompleteOnboarding, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	onboardingRequest, err := model.CompleteOnboardingRequestFromReader(r.Body)
@@ -1042,7 +1095,7 @@ func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("getAppliedSchemaMigrations", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetAppliedSchemaMigrations, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	migrations, appErr := c.App.GetAppliedSchemaMigrations()
@@ -1071,9 +1124,8 @@ func checkHasNilFields(value any) bool {
 		return false
 	}
 
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		if field.Kind() == reflect.Ptr && field.IsNil() {
+	for _, field := range v.Fields() {
+		if field.Kind() == reflect.Pointer && field.IsNil() {
 			return true
 		}
 	}

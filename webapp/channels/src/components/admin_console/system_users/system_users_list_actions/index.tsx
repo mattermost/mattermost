@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -328,7 +328,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
         return managedByLDAP ? {
             trailingElements: formatMessage({
                 id: 'admin.system_users.list.actions.menu.managedByLdap',
-                defaultMessage: 'Managed by LDAP',
+                defaultMessage: '(Managed by LDAP)',
             }),
         } : {};
     };
@@ -349,7 +349,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
         <Menu.Container
             menuButton={{
                 id: menuButtonId,
-                class: classNames('btn btn-quaternary btn-sm', {
+                class: buttonClassNames({emphasis: 'quaternary', size: 'sm'}, {
                     disabled: disableEditingOtherUsers,
                 }),
                 disabled: disableEditingOtherUsers,
@@ -524,7 +524,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                         labels={
                             <FormattedMessage
                                 id='admin.system_users.list.actions.menu.removeSessions'
-                                defaultMessage='Remove sessions'
+                                defaultMessage='Revoke sessions'
                             />
                         }
                         onClick={handleRemoveSessionsClick}

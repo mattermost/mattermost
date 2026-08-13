@@ -42,6 +42,7 @@ export default function useShowAdminLimitReached() {
         const modalProps: any = {
             title: defineMessage({
                 id: 'workspace_limits.modals.limits_reached.title',
+                // eslint-disable-next-line formatjs/enforce-placeholders -- limitName provided via values property
                 defaultMessage: '{limitName} limit reached',
                 values: {
                     limitName: intl.formatMessage({
@@ -66,7 +67,6 @@ export default function useShowAdminLimitReached() {
             onClose: () => {
                 dispatch(closeModal(ModalIdentifiers.CLOUD_LIMITS));
             },
-            needsTheme: true,
         };
 
         // Only show primary action if not air-gapped
@@ -78,7 +78,7 @@ export default function useShowAdminLimitReached() {
                 }),
                 onClick: () => {
                     dispatch(closeModal(ModalIdentifiers.CLOUD_LIMITS));
-                    openPricingModal({trackingLocation: 'admin_login_limit_reached_dashboard'});
+                    openPricingModal();
                 },
             };
         }

@@ -26,9 +26,8 @@ type Props = {
 
     actions: {
         prefetchChannelPosts: (channelId: string, delay?: number) => Promise<ActionResult>;
-        trackPreloadedChannels: (prefetchQueueObj: Record<string, string[]>) => void;
     };
-}
+};
 
 /*
     This component is responsible for prefetching data. As of now component only fetches for channel posts based on the below set of rules.
@@ -67,10 +66,6 @@ export default class DataPrefetch extends React.PureComponent<Props> {
             clearTimeout(this.prefetchTimeout);
             await queue.clear();
             this.prefetchData();
-        }
-
-        if (currentChannelId && sidebarLoaded && (!prevProps.currentChannelId || !prevProps.sidebarLoaded)) {
-            this.props.actions.trackPreloadedChannels(prefetchQueueObj);
         }
     }
 

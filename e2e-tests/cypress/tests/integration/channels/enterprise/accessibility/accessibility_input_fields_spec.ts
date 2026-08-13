@@ -10,9 +10,10 @@
 // Stage: @prod
 // Group: @channels @enterprise @accessibility
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Verify Accessibility Support in different input fields', () => {
     let testTeam: Team;
@@ -48,7 +49,7 @@ describe('Verify Accessibility Support in different input fields', () => {
 
         // * Verify Accessibility Support in Add or Invite People input field
         cy.get('.users-emails-input__control').should('be.visible').within(() => {
-            cy.get('input').should('have.attr', 'aria-label', 'Add or Invite People').and('have.attr', 'aria-autocomplete', 'list');
+            cy.get('input').should('have.attr', 'aria-label', 'Invite People').and('have.attr', 'aria-autocomplete', 'list');
             cy.get('.users-emails-input__placeholder').should('have.text', 'Enter a name or email address');
         });
 
@@ -57,7 +58,7 @@ describe('Verify Accessibility Support in different input fields', () => {
 
         // * Verify Accessibility Support in Invite People input field
         cy.get('.users-emails-input__control').should('be.visible').within(() => {
-            cy.get('input').should('have.attr', 'aria-label', 'Add or Invite People').and('have.attr', 'aria-autocomplete', 'list');
+            cy.get('input').should('have.attr', 'aria-label', 'Invite People').and('have.attr', 'aria-autocomplete', 'list');
             cy.get('.users-emails-input__placeholder').should('have.text', 'Enter a name or email address');
         });
 
@@ -71,7 +72,7 @@ describe('Verify Accessibility Support in different input fields', () => {
     it('MM-T1457 Verify Accessibility Support in Search Autocomplete', () => {
         // # Adding at least five other users in the channel
         for (let i = 0; i < 5; i++) {
-            cy.apiCreateUser().then(({user}) => { // eslint-disable-line
+            cy.apiCreateUser().then(({user}) => {
                 cy.apiAddUserToTeam(testTeam.id, user.id).then(() => {
                     cy.apiAddUserToChannel(testChannel.id, user.id);
                 });
@@ -109,11 +110,11 @@ describe('Verify Accessibility Support in different input fields', () => {
         cy.uiGetSearchBox().clear().type('in:').wait(TIMEOUTS.ONE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
-        verifySearchAutocomplete(2, 'channel');
+        verifySearchAutocomplete(2);
 
         // # Press Up arrow and verify if focus changes
         cy.focused().type('{uparrow}{uparrow}');
-        verifySearchAutocomplete(0, 'channel');
+        verifySearchAutocomplete(0);
     });
 
     it('MM-T1455 Verify Accessibility Support in Message Autocomplete', () => {
@@ -201,12 +202,15 @@ describe('Verify Accessibility Support in different input fields', () => {
             cy.get('#FormattingControl_ul').should('be.focused').and('have.attr', 'aria-label', 'bulleted list').tab();
 
             // * Verify if the focus is on the numbered list button
-            cy.get('#FormattingControl_ol').should('be.focused').and('have.attr', 'aria-label', 'numbered list').tab().tab();
+            cy.get('#FormattingControl_ol').should('be.focused').and('have.attr', 'aria-label', 'numbered list');
+
+            // # Skip any additional controls (priority, AI rewrite, BOR) which vary by enterprise config
+            cy.get('#toggleFormattingBarButton').focus();
 
             // * Verify if the focus is on the formatting options button
             cy.get('#toggleFormattingBarButton').should('be.focused').and('have.attr', 'aria-label', 'formatting').tab();
 
-            // * Verify if the focus is on the attachment icon
+            // * Verify if the focus is on the attachment icon (skipping burn-on-read button when enabled)
             cy.get('#fileUploadButton').should('be.focused').and('have.attr', 'aria-label', 'attachment').tab();
 
             // * Verify if the focus is on the emoji picker
@@ -239,32 +243,23 @@ describe('Verify Accessibility Support in different input fields', () => {
             // * Verify if the focus is on the bold button
             cy.get('#FormattingControl_bold').should('be.focused').and('have.attr', 'aria-label', 'bold').tab();
 
-            // * Verify if the focus is on the italic button
-            cy.get('#FormattingControl_italic').should('be.focused').and('have.attr', 'aria-label', 'italic').tab();
+            // # Tab through any remaining visible formatting controls before the overflow button.
+            // # The number of visible controls depends on the RHS width and additional controls present.
+            cy.get('#HiddenControlsButtonRHS_COMMENT').focus().click().tab();
 
-            // * Verify if the focus is on the strike through button
-            cy.get('#FormattingControl_strike').should('be.focused').and('have.attr', 'aria-label', 'strike through').tab();
+            // * Verify hidden controls are accessible via the overflow menu
+            cy.get('#FormattingControl_italic').should('exist').and('have.attr', 'aria-label', 'italic');
+            cy.get('#FormattingControl_strike').should('exist').and('have.attr', 'aria-label', 'strike through');
+            cy.get('#FormattingControl_heading').should('exist').and('have.attr', 'aria-label', 'heading');
+            cy.get('#FormattingControl_link').should('exist').and('have.attr', 'aria-label', 'link');
+            cy.get('#FormattingControl_code').should('exist').and('have.attr', 'aria-label', 'code');
+            cy.get('#FormattingControl_quote').should('exist').and('have.attr', 'aria-label', 'quote');
+            cy.get('#FormattingControl_ul').should('exist').and('have.attr', 'aria-label', 'bulleted list');
+            cy.get('#FormattingControl_ol').should('exist').and('have.attr', 'aria-label', 'numbered list');
 
-            // * Verify if the focus is on the hidden controls button
-            cy.get('#HiddenControlsButtonRHS_COMMENT').should('be.focused').and('have.attr', 'aria-label', 'show hidden formatting options').click().tab();
-
-            // * Verify if the focus is on the hidden heading button
-            cy.get('#FormattingControl_heading').should('be.focused').and('have.attr', 'aria-label', 'heading').tab();
-
-            // * Verify if the focus is on the hidden link button
-            cy.get('#FormattingControl_link').should('be.focused').and('have.attr', 'aria-label', 'link').tab();
-
-            // * Verify if the focus is on the hidden code button
-            cy.get('#FormattingControl_code').should('be.focused').and('have.attr', 'aria-label', 'code').tab();
-
-            // * Verify if the focus is on the hidden quote button
-            cy.get('#FormattingControl_quote').should('be.focused').and('have.attr', 'aria-label', 'quote').tab();
-
-            // * Verify if the focus is on the hidden bulleted list button
-            cy.get('#FormattingControl_ul').should('be.focused').and('have.attr', 'aria-label', 'bulleted list').tab();
-
-            // * Verify if the focus is on the hidden numbered list button
-            cy.get('#FormattingControl_ol').should('be.focused').and('have.attr', 'aria-label', 'numbered list').tab();
+            // # Close the overflow popover, skip additional controls (priority, BOR) which vary by enterprise config
+            cy.get('#HiddenControlsButtonRHS_COMMENT').focus().type('{esc}');
+            cy.get('#toggleFormattingBarButton').focus();
 
             // * Verify if the focus is on the formatting options button
             cy.get('#toggleFormattingBarButton').should('be.focused').and('have.attr', 'aria-label', 'formatting').tab();
@@ -281,33 +276,15 @@ describe('Verify Accessibility Support in different input fields', () => {
     });
 });
 
-function getUserMentionAriaLabel(displayName) {
-    return displayName.
-        replace('(you)', '').
-        replace(/[@()]/g, '').
-        toLowerCase().
-        trim();
+function verifySearchAutocomplete(index: number) {
+    cy.get('#searchBox').find('.suggestion-list__item').eq(index).should('be.visible').
+        and('have.class', 'suggestion--selected').
+        invoke('attr', 'id').then((suggestionId) => {
+            cy.get('#searchBox').find('[role="searchbox"]').should('have.attr', 'aria-activedescendant', suggestionId);
+        });
 }
 
-function verifySearchAutocomplete(index, type = 'user') {
-    cy.get('#searchBox').find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected').within((el) => {
-        if (type === 'user') {
-            cy.get('.suggestion-list__ellipsis').invoke('text').then((text) => {
-                const usernameLength = 12;
-                const displayName = text.substring(1, usernameLength) + ' ' + text.substring(usernameLength, text.length);
-                const userAriaLabel = getUserMentionAriaLabel(displayName);
-                cy.wrap(el).parents('#searchBox').find('.sr-only').should('have.attr', 'aria-live', 'polite').and('contain.text', userAriaLabel);
-            });
-        } else if (type === 'channel') {
-            cy.get('.suggestion-list__ellipsis').invoke('text').then((text) => {
-                const channel = text.split('~')[1].toLowerCase().trim();
-                cy.wrap(el).parents('#searchBox').find('.sr-only').should('have.attr', 'aria-live', 'polite').and('contain.text', channel);
-            });
-        }
-    });
-}
-
-function verifyMessageAutocomplete(index) {
+function verifyMessageAutocomplete(index: number) {
     cy.get('#suggestionList').find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected');
     cy.get('#suggestionList').find('.suggestion-list__item').eq(index).invoke('attr', 'id').then((selectedId) => {
         cy.wrap(selectedId).should('not.equal', '');

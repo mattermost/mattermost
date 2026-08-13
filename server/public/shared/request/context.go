@@ -22,6 +22,7 @@ type Context struct {
 	path           string
 	userAgent      string
 	acceptLanguage string
+	connectionId   string
 	logger         mlog.LoggerIFace
 	context        context.Context
 }
@@ -63,33 +64,54 @@ func (c *Context) clone() *Context {
 func (c *Context) T(translationID string, args ...any) string {
 	return c.t(translationID, args...)
 }
+
 func (c *Context) GetT() i18n.TranslateFunc {
 	return c.t
 }
+
 func (c *Context) Session() *model.Session {
 	return &c.session
 }
+
 func (c *Context) RequestId() string {
 	return c.requestId
 }
+
 func (c *Context) IPAddress() string {
 	return c.ipAddress
 }
+
 func (c *Context) XForwardedFor() string {
 	return c.xForwardedFor
 }
+
 func (c *Context) Path() string {
 	return c.path
 }
+
 func (c *Context) UserAgent() string {
 	return c.userAgent
 }
+
 func (c *Context) AcceptLanguage() string {
 	return c.acceptLanguage
 }
+
+// ConnectionId returns the identifier of the WebSocket connection associated
+// with the request, when present. It is populated from the "Connection-Id"
+// HTTP header that authenticated clients set when they have an active
+// WebSocket connection, allowing handlers and plugins to correlate an HTTP
+// request with its originating WebSocket connection. Returns an empty string
+// when the header is absent (e.g., requests from clients without an active
+// WebSocket connection or from non-WebSocket integrations).
+func (c *Context) ConnectionId() string {
+	return c.connectionId
+}
+
 func (c *Context) Logger() mlog.LoggerIFace {
 	return c.logger
 }
+
 func (c *Context) Context() context.Context {
 	return c.context
 }
@@ -99,50 +121,74 @@ func (c *Context) WithT(t i18n.TranslateFunc) CTX {
 	rctx.t = t
 	return rctx
 }
+
 func (c *Context) WithSession(s *model.Session) CTX {
 	rctx := c.clone()
-	rctx.session = *s
+	if s == nil {
+		rctx.session = model.Session{}
+	} else {
+		rctx.session = *s
+	}
 	return rctx
 }
+
 func (c *Context) WithRequestId(s string) CTX {
 	rctx := c.clone()
 	rctx.requestId = s
 	return rctx
 }
+
 func (c *Context) WithIPAddress(s string) CTX {
 	rctx := c.clone()
 	rctx.ipAddress = s
 	return rctx
 }
+
 func (c *Context) WithXForwardedFor(s string) CTX {
 	rctx := c.clone()
 	rctx.xForwardedFor = s
 	return rctx
 }
+
 func (c *Context) WithPath(s string) CTX {
 	rctx := c.clone()
 	rctx.path = s
 	return rctx
 }
+
 func (c *Context) WithUserAgent(s string) CTX {
 	rctx := c.clone()
 	rctx.userAgent = s
 	return rctx
 }
+
 func (c *Context) WithAcceptLanguage(s string) CTX {
 	rctx := c.clone()
 	rctx.acceptLanguage = s
 	return rctx
 }
+
+func (c *Context) WithConnectionId(s string) CTX {
+	rctx := c.clone()
+	rctx.connectionId = s
+	return rctx
+}
+
 func (c *Context) WithContext(ctx context.Context) CTX {
 	rctx := c.clone()
 	rctx.context = ctx
 	return rctx
 }
+
 func (c *Context) WithLogger(logger mlog.LoggerIFace) CTX {
 	rctx := c.clone()
 	rctx.logger = logger
 	return rctx
+}
+
+// WithLogFields returns a new context with the given fields added to the logger.
+func (c *Context) WithLogFields(fields ...mlog.Field) CTX {
+	return c.WithLogger(c.logger.With(fields...))
 }
 
 func (c *Context) With(f func(ctx CTX) CTX) CTX {
@@ -160,6 +206,7 @@ type CTX interface {
 	Path() string
 	UserAgent() string
 	AcceptLanguage() string
+	ConnectionId() string
 	Logger() mlog.LoggerIFace
 	Context() context.Context
 	WithT(i18n.TranslateFunc) CTX
@@ -170,7 +217,9 @@ type CTX interface {
 	WithPath(string) CTX
 	WithUserAgent(string) CTX
 	WithAcceptLanguage(string) CTX
+	WithConnectionId(string) CTX
 	WithLogger(mlog.LoggerIFace) CTX
+	WithLogFields(fields ...mlog.Field) CTX
 	WithContext(ctx context.Context) CTX
 	With(func(ctx CTX) CTX) CTX
 }

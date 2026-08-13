@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {isDesktopApp, isMobile} from '@mattermost/shared/utils/user_agent';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
@@ -18,7 +19,7 @@ import {
 import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
 import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
-import {ensureString, isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
+import {ensureString, isNotificationSuppressed, isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {getChannelURL, getPermalinkURL} from 'selectors/urls';
@@ -31,8 +32,8 @@ import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {DesktopNotificationSounds, ding} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
-import {cjkrPattern, escapeRegex} from 'utils/text_formatting';
-import {isDesktopApp, isMobileApp} from 'utils/user_agent';
+import {getFocusedPopoutInfo} from 'utils/popouts/focus';
+import {cjkrPattern} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
 import type {ActionFuncAsync, GlobalState} from 'types/store';
@@ -44,7 +45,7 @@ type NotificationResult = {
     status: string;
     reason?: string;
     data?: string;
-}
+};
 
 type NotificationHooksArgs = {
     title: string;
@@ -53,7 +54,7 @@ type NotificationHooksArgs = {
     soundName: string;
     url: string;
     notify: boolean;
-}
+};
 
 /**
  * This function is used to determine if the desktop sound is enabled.
@@ -106,14 +107,14 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
     return async (dispatch, getState) => {
         const state = getState();
 
-        const teamId = msgProps.team_id;
+        const teamId = msgProps.team_id || '';
 
         const channel = makeGetChannel()(state, post.channel_id) || {
             id: post.channel_id,
             name: msgProps.channel_name,
             display_name: msgProps.channel_display_name,
             type: msgProps.channel_type,
-        };
+        } as Channel;
         const user = getCurrentUser(state);
         const member = getMyChannelMember(state, post.channel_id);
         const isCrtReply = isCollapsedThreadsEnabled(state) && post.root_id !== '';
@@ -162,10 +163,10 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
             return {data: {status: 'not_sent', reason: 'desktop_notification_hook', data: String(hookResult)}};
         }
 
-        const result = dispatch(notifyMe(argsAfterHooks.title, argsAfterHooks.body, channel.id, teamId, argsAfterHooks.silent, argsAfterHooks.soundName, argsAfterHooks.url));
+        const result = dispatch(notifyMe(argsAfterHooks.title, argsAfterHooks.body, channel.id, teamId, argsAfterHooks.silent, argsAfterHooks.soundName, argsAfterHooks.url, post.id));
 
         //Don't add extra sounds on native desktop clients
-        if (desktopSoundEnabled && !isDesktopApp() && !isMobileApp()) {
+        if (desktopSoundEnabled && !isDesktopApp() && !isMobile()) {
             ding(soundName);
         }
 
@@ -185,12 +186,12 @@ const getNotificationTitle = (channel: Pick<Channel, 'type' | 'display_name'>, m
         if (msgProps.channel_type === Constants.DM_CHANNEL) {
             title = Utils.localizeMessage({id: 'notification.dm', defaultMessage: 'Direct Message'});
         } else {
-            title = msgProps.channel_display_name;
+            title = msgProps.channel_display_name || '';
         }
     }
 
     if (isCrtReply) {
-        title = Utils.localizeAndFormatMessage({id: 'notification.crt', defaultMessage: 'Reply in {title}'}, {title});
+        title = Utils.localizeMessage({id: 'notification.crt', defaultMessage: 'Reply in {title}'}, {title});
     }
 
     return title;
@@ -218,8 +219,7 @@ const getNotificationBody = (state: GlobalState, post: Post, msgProps: NewPostMe
 
     let notifyText = post.message;
 
-    const msgPropsPost: Post = JSON.parse(msgProps.post);
-    const attachments = isMessageAttachmentArray(msgPropsPost?.props?.attachments) ? msgPropsPost.props.attachments : [];
+    const attachments = isMessageAttachmentArray(post.props?.attachments) ? post.props.attachments : [];
     let image = false;
     attachments.forEach((attachment) => {
         if (notifyText.length === 0) {
@@ -267,6 +267,10 @@ function shouldSkipNotification(
 
     if (isSystemMessage(post) && !isUserAddedInChannel(post, currentUserId)) {
         return {status: 'not_sent', reason: 'system_message'};
+    }
+
+    if (isNotificationSuppressed(post)) {
+        return {status: 'not_sent', reason: 'silent_notification'};
     }
 
     if (!member) {
@@ -331,7 +335,9 @@ function shouldSkipNotification(
                     if (attachment.fields) {
                         for (const field of attachment.fields) {
                             appendText(field.title);
-                            appendText(field.value);
+                            if (typeof field.value === 'string') {
+                                appendText(field.value);
+                            }
                         }
                     }
                 }
@@ -368,10 +374,10 @@ function shouldSkipNotification(
             let pattern;
             if (cjkrPattern.test(mention.key)) {
                 // In the case of CJK mention key, even if there's no delimiters (such as spaces) at both ends of a word, it is recognized as a mention key
-                pattern = new RegExp(`()(${escapeRegex(mention.key)})()`, flags);
+                pattern = new RegExp(`()(${RegExp.escape(mention.key)})()`, flags);
             } else {
                 pattern = new RegExp(
-                    `(^|\\W)(${escapeRegex(mention.key)})(\\b|_+\\b)`,
+                    `(^|\\W)(${RegExp.escape(mention.key)})(\\b|_+\\b)`,
                     flags,
                 );
             }
@@ -396,6 +402,7 @@ function shouldSkipNotification(
     // the window itself is not active
     const activeChannel = getCurrentChannel(state);
     const channelId = channel ? channel.id : null;
+    const focusedPopout = getFocusedPopoutInfo();
 
     if (state.views.browser.focused) {
         if (isCrtReply) {
@@ -405,15 +412,24 @@ function shouldSkipNotification(
         } else if (activeChannel && activeChannel.id === channelId) {
             return {status: 'not_sent', reason: 'channel_is_open', data: activeChannel?.id};
         }
+    } else if (focusedPopout) {
+        if (isCrtReply && focusedPopout.threadId === post.root_id) {
+            return {status: 'not_sent', reason: 'thread_is_open', data: post.root_id};
+        }
+        if (!isCrtReply && !focusedPopout.threadId && focusedPopout.channelId === channelId) {
+            return {status: 'not_sent', reason: 'channel_is_open', data: channelId};
+        }
     }
 
     return undefined;
 }
 
-export function notifyMe(title: string, body: string, channelId: string, teamId: string, silent: boolean, soundName: string, url: string): ActionFuncAsync<NotificationResult> {
+export function notifyMe(title: string, body: string, channelId: string, teamId: string, silent: boolean, soundName: string, url: string, postId: string): ActionFuncAsync<NotificationResult> {
     return async (dispatch) => {
         // handle notifications in desktop app
         if (isDesktopApp()) {
+            // The notification-tag leak only affects Chromium-based browser notifications,
+            // so the desktop app path does not need the opaque post id.
             const result = await DesktopApp.dispatchNotification(title, body, channelId, teamId, silent, soundName, url);
             return {data: result};
         }
@@ -422,6 +438,8 @@ export function notifyMe(title: string, body: string, channelId: string, teamId:
             const result = await dispatch(showNotification({
                 title,
                 body,
+
+                tag: postId,
                 requireInteraction: false,
                 silent,
                 onClick: () => {

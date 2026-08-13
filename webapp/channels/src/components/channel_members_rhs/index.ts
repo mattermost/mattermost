@@ -9,18 +9,26 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import {loadMyChannelMemberAndRole} from 'mattermost-redux/actions/channels';
+import {
+    countPendingChannelJoinRequests,
+    getChannelJoinRequests,
+    loadMyChannelMemberAndRole,
+} from 'mattermost-redux/actions/channels';
+import {fetchRemoteClusterInfo} from 'mattermost-redux/actions/shared_channels';
 import {Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
+    canManageChannelJoinRequests,
     getCurrentChannel,
     getCurrentChannelStats,
     getMembersInCurrentChannel,
     getMyCurrentChannelMembership,
+    getPendingChannelJoinRequests,
     isCurrentChannelArchived,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getRemoteDisplayName} from 'mattermost-redux/selectors/entities/shared_channels';
 import {getCurrentRelativeTeamUrl, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {
     getActiveProfilesInCurrentChannelWithoutSorting,
@@ -48,6 +56,7 @@ const buildProfileList = (
     userStatuses: RelationOneToOne<UserProfile, string>,
     teammateNameDisplaySetting: string,
     membersInCurrentChannel: Record<string, ChannelMembership>,
+    state: GlobalState,
 ) => {
     const channelMembers: ChannelMember[] = [];
     profilesInCurrentChannel.forEach((profile) => {
@@ -55,11 +64,14 @@ const buildProfileList = (
             return;
         }
 
+        const remoteDisplayName = profile.remote_id ? getRemoteDisplayName(state, profile.remote_id) || undefined : undefined;
+
         channelMembers.push({
             user: profile,
             membership: membersInCurrentChannel[profile.id],
             status: userStatuses[profile.id],
             displayName: displayUsername(profile, teammateNameDisplaySetting),
+            remoteDisplayName,
         });
     });
 
@@ -83,6 +95,7 @@ const getProfiles = createSelector(
     getUserStatuses,
     getTeammateNameDisplaySetting,
     getMembersInCurrentChannel,
+    (state: GlobalState) => state,
     buildProfileList,
 );
 
@@ -92,6 +105,7 @@ const searchProfiles = createSelector(
     getUserStatuses,
     getTeammateNameDisplaySetting,
     getMembersInCurrentChannel,
+    (state: GlobalState) => state,
     buildProfileList,
 );
 
@@ -143,6 +157,7 @@ function mapStateToProps(state: GlobalState) {
     const editing = getIsEditingMembers(state);
 
     const currentUserIsChannelAdmin = currentUser && currentUser.scheme_admin;
+    const canManageJoinRequests = canManageChannelJoinRequests(state, channel);
 
     return {
         channel,
@@ -154,6 +169,8 @@ function mapStateToProps(state: GlobalState) {
         canManageMembers,
         channelMembers,
         editing,
+        canManageJoinRequests,
+        pendingJoinRequests: canManageJoinRequests ? getPendingChannelJoinRequests(state, channel.id) : [],
     } as Props;
 }
 
@@ -169,6 +186,9 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
             loadMyChannelMemberAndRole,
             setEditChannelMembers,
             searchProfilesAndChannelMembers,
+            fetchRemoteClusterInfo,
+            getChannelJoinRequests,
+            countPendingChannelJoinRequests,
         }, dispatch),
     };
 }

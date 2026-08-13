@@ -17,6 +17,7 @@ import {
     PlusIcon,
     MonitorAccountIcon,
 } from '@mattermost/compass-icons/components';
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -72,7 +73,7 @@ export default function SidebarTeamMenu(props: Props) {
         <Menu.Container
             menuButton={{
                 id: 'sidebarTeamMenuButton',
-                class: 'btn btn-sm btn-quaternary btn-inverted',
+                class: buttonClassNames({emphasis: 'quaternary', size: 'sm'}, 'btn-inverted'),
                 children: (
                     <>
                         <span>{props.currentTeam.display_name}</span>
@@ -203,6 +204,7 @@ function TeamSettingsMenuItem(props: Menu.FirstMenuItemProps) {
             modalId: ModalIdentifiers.TEAM_SETTINGS,
             dialogType: TeamSettingsModal,
             dialogProps: {
+                isOpen: true,
                 focusOriginElement: 'sidebarTeamMenuButton',
             },
         }));
@@ -443,7 +445,7 @@ function RestrictedIndicatorForCreateTeam({isFreeTrial}: {isFreeTrial: boolean})
             })}
             messageAdminPostTrial={formatMessage({
                 id: 'navbar_dropdown.create.modal.messageAdminPostTrial',
-                defaultMessage: "Multiple teams allow for context-specific spaces that are more attuned to your and your teams' needs. Upgrade to the Professional plan to create unlimited teams.",
+                defaultMessage: 'Multiple teams allow for context-specific spaces that are more attuned to your and your teams’ needs. Upgrade to the Professional plan to create unlimited teams.',
             })}
             titleEndUser={formatMessage({
                 id: 'navbar_dropdown.create.modal.titleEndUser',
@@ -451,7 +453,7 @@ function RestrictedIndicatorForCreateTeam({isFreeTrial}: {isFreeTrial: boolean})
             })}
             messageEndUser={formatMessage({
                 id: 'navbar_dropdown.create.modal.messageEndUser',
-                defaultMessage: "Multiple teams allow for context-specific spaces that are more attuned to your teams' needs.",
+                defaultMessage: 'Multiple teams allow for context-specific spaces that are more attuned to your teams’ needs.',
             })}
         />
     );

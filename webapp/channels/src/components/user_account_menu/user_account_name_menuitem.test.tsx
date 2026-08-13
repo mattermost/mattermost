@@ -79,7 +79,7 @@ describe('UserAccountNameMenuItem', () => {
 
         renderWithContext(<UserAccountNameMenuItem/>, initialState);
 
-        userEvent.click(screen.getByRole('menuitem'));
+        await userEvent.click(screen.getByRole('menuitem'));
 
         expect(reactRedux.useDispatch).toHaveBeenCalledTimes(1);
     });

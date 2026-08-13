@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"slices"
 	"strings"
 	"text/template"
 )
@@ -148,8 +149,7 @@ func extractStoreMetadata() (*storeMetadata, error) {
 						metadata.Methods[methodName] = extractMethodMetadata(method, src)
 					}
 				}
-			} else if strings.HasSuffix(x.Name.Name, "Store") {
-				subStoreName := strings.TrimSuffix(x.Name.Name, "Store")
+			} else if subStoreName, ok := strings.CutSuffix(x.Name.Name, "Store"); ok {
 				metadata.SubStores[subStoreName] = subStore{Methods: map[string]methodData{}}
 				for _, method := range x.Type.(*ast.InterfaceType).Methods.List {
 					methodName := method.Names[0].Name
@@ -184,6 +184,8 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 				switch result {
 				case "*PostReminderMetadata":
 					returns = append(returns, fmt.Sprintf("*store.%s", strings.TrimPrefix(result, "*")))
+				case "[]*ChannelGuard":
+					returns = append(returns, fmt.Sprintf("[]*store.%s", strings.TrimPrefix(result, "[]*")))
 				default:
 					returns = append(returns, result)
 				}
@@ -212,26 +214,17 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 			return strings.Join(vars, ", ")
 		},
 		"errorToBoolean": func(results []string) string {
-			for _, typeName := range results {
-				if isError(typeName) {
-					return "err == nil"
-				}
+			if slices.ContainsFunc(results, isError) {
+				return "err == nil"
 			}
 			return "true"
 		},
 		"errorPresent": func(results []string) bool {
-			for _, typeName := range results {
-				if isError(typeName) {
-					return true
-				}
-			}
-			return false
+			return slices.ContainsFunc(results, isError)
 		},
 		"errorVar": func(results []string) string {
-			for _, typeName := range results {
-				if isError(typeName) {
-					return "err"
-				}
+			if slices.ContainsFunc(results, isError) {
+				return "err"
 			}
 			return ""
 		},
@@ -252,7 +245,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 				switch param.Type {
 				case "ChannelSearchOpts", "UserGetByIdsOpts", "ThreadMembershipOpts", "GetPolicyOptions":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
-				case "*UserGetByIdsOpts", "*SidebarCategorySearchOpts":
+				case "*UserGetByIdsOpts", "*SidebarCategorySearchOpts", "*ChannelGuard":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.%s", param.Name, strings.TrimPrefix(param.Type, "*")))
 				default:
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))
@@ -266,7 +259,7 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 				switch param.Type {
 				case "ChannelSearchOpts", "UserGetByIdsOpts", "ThreadMembershipOpts", "GetPolicyOptions":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s store.%s", param.Name, param.Type))
-				case "*UserGetByIdsOpts", "*SidebarCategorySearchOpts":
+				case "*UserGetByIdsOpts", "*SidebarCategorySearchOpts", "*ChannelGuard":
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s *store.%s", param.Name, strings.TrimPrefix(param.Type, "*")))
 				default:
 					paramsWithType = append(paramsWithType, fmt.Sprintf("%s %s", param.Name, param.Type))

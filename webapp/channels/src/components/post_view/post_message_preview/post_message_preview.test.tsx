@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
@@ -10,19 +9,41 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {General} from 'mattermost-redux/constants';
 
+import InteractiveMessages from 'components/post_view/interactive_messages';
+
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
+
 import PostMessagePreview from './post_message_preview';
 import type {Props} from './post_message_preview';
+
+import ConnectedPostMessagePreview from './index';
+
+const MockedInteractiveMessages = InteractiveMessages as jest.MockedFunction<typeof InteractiveMessages>;
+
+jest.mock('components/properties_card_view/propertyValueRenderer/post_preview_property_renderer/post_preview_property_renderer', () => {
+    return jest.fn(() => <div data-testid='post-preview-property-renderer-mock'>{'PostPreviewPropertyRenderer Mock'}</div>);
+});
+
+jest.mock('components/post_view/interactive_messages', () => ({
+    __esModule: true,
+    default: jest.fn(() => <div data-testid='interactive-messages-preview'/>),
+}));
 
 describe('PostMessagePreview', () => {
     const previewPost = {
         id: 'post_id',
         message: 'post message',
         metadata: {},
+        channel_id: 'channel_id',
+        create_at: new Date('2020-01-15T12:00:00Z').getTime(),
     } as Post;
 
     const user = {
         id: 'user_1',
         username: 'username1',
+        roles: 'system_admin',
     } as UserProfile;
 
     const baseProps: Props = {
@@ -46,49 +67,153 @@ describe('PostMessagePreview', () => {
             toggleEmbedVisibility: jest.fn(),
         },
         isPostPriorityEnabled: false,
+        isChannelAutotranslated: false,
     };
 
-    test('should render correctly', () => {
-        const wrapper = shallow(<PostMessagePreview {...baseProps}/>);
+    const baseState = {
+        entities: {
+            users: {
+                currentUserId: user.id,
+                profiles: {
+                    [user.id]: user,
+                },
+            },
+            teams: {
+                currentTeamId: 'team_id',
+                teams: {
+                    team_id: {
+                        id: 'team_id',
+                        name: 'team1',
+                    },
+                },
+            },
+            channels: {
+                channels: {
+                    channel_id: {
+                        id: 'channel_id',
+                        team_id: 'team_id',
+                        type: 'O' as ChannelType,
+                        name: 'channel-name',
+                        display_name: 'Channel Name',
+                    },
+                },
+            },
+            posts: {
+                posts: {
+                    [previewPost.id]: previewPost,
+                },
+            },
+            preferences: {
+                myPreferences: {},
+            },
+            general: {
+                config: {},
+            },
+            roles: {
+                roles: {
+                    system_admin: {
+                        permissions: [],
+                    },
+                },
+            },
+        },
+    };
 
-        expect(wrapper).toMatchSnapshot();
+    beforeEach(() => {
+        MockedInteractiveMessages.mockClear();
+    });
+
+    test('should render correctly', () => {
+        const {container} = renderWithContext(<PostMessagePreview {...baseProps}/>, baseState);
+        expect(container).toMatchSnapshot();
+    });
+
+    test('renders interactive messages with interactions disabled when mm blocks are present', () => {
+        const postPreview = {
+            ...previewPost,
+            props: {
+                mm_blocks: [{type: 'button', text: 'Go', action_id: 'go'}],
+            },
+        } as Post;
+
+        renderWithContext(
+            <PostMessagePreview
+                {...baseProps}
+                previewPost={postPreview}
+                mmBlocksEnabled={true}
+            />,
+            baseState,
+        );
+
+        expect(MockedInteractiveMessages).toHaveBeenCalledWith(
+            expect.objectContaining({
+                post: postPreview,
+                interactionsDisabled: true,
+            }),
+            expect.anything(),
+        );
+        expect(screen.getByTestId('interactive-messages-preview')).toBeInTheDocument();
+    });
+
+    test('does not render interactive messages when mm blocks flag is off', () => {
+        const postPreview = {
+            ...previewPost,
+            props: {
+                mm_blocks: [{type: 'button', text: 'Go', action_id: 'go'}],
+            },
+        } as Post;
+
+        renderWithContext(
+            <PostMessagePreview
+                {...baseProps}
+                previewPost={postPreview}
+                mmBlocksEnabled={false}
+            />,
+            baseState,
+        );
+
+        expect(MockedInteractiveMessages).not.toHaveBeenCalled();
+        expect(screen.queryByTestId('interactive-messages-preview')).toBeNull();
     });
 
     test('should render without preview', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PostMessagePreview
                 {...baseProps}
                 previewPost={undefined}
             />,
+            baseState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('show render without preview when preview posts becomes undefined after being defined', () => {
         const props = {...baseProps};
-        let wrapper = shallow(
+        let renderResult = renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
+            baseState,
         );
 
-        expect(wrapper).toMatchSnapshot();
-        let permalink = wrapper.find('.permalink');
-        expect(permalink.length).toBe(1);
+        expect(renderResult.container).toMatchSnapshot();
+        let permalink = renderResult.container.querySelector('.attachment--permalink');
+        expect(permalink).toBeInTheDocument();
 
         // now we'll set the preview post to undefined. This happens when the
         // previewed post is deleted.
         props.previewPost = undefined;
 
-        wrapper = shallow(
+        renderResult = renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
+            baseState,
         );
-        expect(wrapper).toMatchSnapshot();
-        permalink = wrapper.find('.permalink');
-        expect(permalink.length).toBe(0);
+        expect(renderResult.container).toMatchSnapshot();
+        permalink = renderResult.container.querySelector('.attachment--permalink');
+        expect(permalink).not.toBeInTheDocument();
     });
 
     test('should not render bot icon', () => {
@@ -107,13 +232,14 @@ describe('PostMessagePreview', () => {
             ...baseProps,
             previewPost: postPreview,
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
+            baseState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render bot icon', () => {
@@ -133,13 +259,76 @@ describe('PostMessagePreview', () => {
             previewPost: postPreview,
             enablePostIconOverride: true,
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PostMessagePreview
                 {...props}
             />,
+            baseState,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
+    });
+
+    describe('redacted files placeholder', () => {
+        test('should render placeholder when permissionPoliciesEnabled and redacted_file_count > 0', () => {
+            const postPreview = {
+                ...previewPost,
+                metadata: {
+                    redacted_file_count: 2,
+                },
+            } as Post;
+
+            const props = {
+                ...baseProps,
+                previewPost: postPreview,
+                permissionPoliciesEnabled: true,
+            };
+
+            const {getByTestId, queryByTestId} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+
+            expect(getByTestId('redactedFilesPlaceholder')).toBeInTheDocument();
+            expect(queryByTestId('fileAttachmentList')).not.toBeInTheDocument();
+        });
+
+        test('should not render placeholder when permissionPoliciesEnabled is false even if redacted_file_count > 0', () => {
+            const postPreview = {
+                ...previewPost,
+                file_ids: ['file_1'],
+                metadata: {
+                    redacted_file_count: 1,
+                },
+            } as Post;
+
+            const props = {
+                ...baseProps,
+                previewPost: postPreview,
+                permissionPoliciesEnabled: false,
+            };
+
+            const {queryByTestId} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+
+            expect(queryByTestId('redactedFilesPlaceholder')).not.toBeInTheDocument();
+        });
+
+        test('should render regular file list when permissionPoliciesEnabled is true but redacted_file_count is 0', () => {
+            const postPreview = {
+                ...previewPost,
+                file_ids: ['file_1'],
+                metadata: {
+                    redacted_file_count: 0,
+                },
+            } as Post;
+
+            const props = {
+                ...baseProps,
+                previewPost: postPreview,
+                permissionPoliciesEnabled: true,
+            };
+
+            const {queryByTestId} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+
+            expect(queryByTestId('redactedFilesPlaceholder')).not.toBeInTheDocument();
+        });
     });
 
     describe('nested previews', () => {
@@ -168,9 +357,8 @@ describe('PostMessagePreview', () => {
                 previewPost: postPreview,
             };
 
-            const wrapper = shallow(<PostMessagePreview {...props}/>);
-
-            expect(wrapper).toMatchSnapshot();
+            const {container} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+            expect(container).toMatchSnapshot();
         });
 
         test('should render file preview', () => {
@@ -184,35 +372,132 @@ describe('PostMessagePreview', () => {
                 previewPost: postPreview,
             };
 
-            const wrapper = shallow(<PostMessagePreview {...props}/>);
-
-            expect(wrapper).toMatchSnapshot();
+            const {container} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+            expect(container).toMatchSnapshot();
         });
     });
 
     describe('direct and group messages', () => {
-        const channelTypes = [General.DM_CHANNEL, General.GM_CHANNEL] as ChannelType[];
+        const teammate = TestHelper.getUserMock({
+            id: 'teammate_id',
+            username: 'teammate_username',
+        });
 
-        test.each(channelTypes)('should render preview for %s message', (type) => {
-            const metadata = {
-                ...baseProps.metadata,
-                team_name: '',
-                channel_type: type,
-                channel_id: 'channel_id',
-            };
+        test("should use the teammate's display name for a fully loaded DM channel", () => {
+            const dmChannel = TestHelper.getChannelMock({
+                id: 'dm_channel_id',
+                type: General.DM_CHANNEL,
+                name: `${user.id}__${teammate.id}`,
+                display_name: '',
+            });
 
-            const props = {
-                ...baseProps,
-                metadata,
-            };
+            const testState = mergeObjects(baseState, {
+                entities: {
+                    users: {
+                        profiles: {
+                            [teammate.id]: teammate,
+                        },
+                    },
+                    channels: {
+                        channels: {
+                            [dmChannel.id]: dmChannel,
+                        },
+                    },
+                },
+            });
 
-            const wrapper = shallow(
-                <PostMessagePreview
-                    {...props}
+            renderWithContext(
+                <ConnectedPostMessagePreview
+                    metadata={{
+                        post_id: previewPost.id,
+
+                        // The server sends a blank channel_display_name for DM channels
+                        channel_display_name: '',
+                        team_name: '',
+                        channel_type: General.DM_CHANNEL,
+                        channel_id: dmChannel.id,
+                    }}
                 />,
+                testState,
             );
 
-            expect(wrapper).toMatchSnapshot();
+            expect(screen.getByText('Only visible to users in', {exact: false})).toHaveTextContent(`Only visible to users in ~${teammate.username}`);
+        });
+
+        test('should use the channel display name for a fully loaded GM channel', () => {
+            const gmChannel = TestHelper.getChannelMock({
+                id: 'gm_channel_id',
+                type: General.GM_CHANNEL,
+                name: 'gm_channel',
+                display_name: 'username1, teammate_username',
+            });
+
+            const testState = mergeObjects(baseState, {
+                entities: {
+                    users: {
+                        profiles: {
+                            [teammate.id]: teammate,
+                        },
+                    },
+                    channels: {
+                        channels: {
+                            [gmChannel.id]: gmChannel,
+                        },
+                    },
+                },
+            });
+
+            renderWithContext(
+                <ConnectedPostMessagePreview
+                    metadata={{
+                        post_id: previewPost.id,
+
+                        // The server sends channel.display_name for GM channels
+                        channel_display_name: 'username1, teammate_username',
+                        team_name: '',
+                        channel_type: General.GM_CHANNEL,
+                        channel_id: gmChannel.id,
+                    }}
+                />,
+                testState,
+            );
+
+            expect(screen.getByText('Only visible to users in', {exact: false})).toHaveTextContent('Only visible to users in ~username1, teammate_username');
+        });
+
+        test('should fall back to "Someone" as the channel display name when the DM teammate is not loaded', () => {
+            const teammateId = 'teammate_id';
+            const dmChannelId = 'dm_channel_id';
+
+            const testState = mergeObjects(baseState, {
+                entities: {
+                    channels: {
+                        channels: {
+                            [dmChannelId]: TestHelper.getChannelMock({
+                                id: dmChannelId,
+                                type: General.DM_CHANNEL,
+                                name: `${user.id}__${teammateId}`,
+                                display_name: '',
+                            }),
+                        },
+                    },
+                },
+            });
+
+            renderWithContext(
+                <ConnectedPostMessagePreview
+                    metadata={{
+                        post_id: previewPost.id,
+                        channel_display_name: '',
+                        team_name: '',
+                        channel_type: General.DM_CHANNEL,
+                        channel_id: dmChannelId,
+                    }}
+                />,
+                testState,
+            );
+
+            expect(screen.getByText('Only visible to users in', {exact: false})).toHaveTextContent('Only visible to users in ~Someone');
         });
     });
 });

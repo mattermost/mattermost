@@ -4,8 +4,8 @@
 import React from 'react';
 import * as reactRedux from 'react-redux';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import MenuStartTrial from './menu_start_trial';
 
@@ -16,59 +16,91 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
         useDispatchMock.mockClear();
     });
 
-    test('should render null there is no license currently loaded', () => {
+    test('should render TEAM EDITION for unlicensed', () => {
         const state = {
             entities: {
                 users: {
                     currentUserId: 'test_id',
-                    profiles: {
-                        test_id: {
-                            id: 'test_id',
-                            roles: 'system_user',
-                        },
-                    },
                 },
                 general: {
-                    config: {},
-                    license: {
+                    license: TestHelper.getLicenseMock({
                         IsLicensed: 'false',
-                        IsTrial: 'false',
-                    },
+                        SkuShortName: '',
+                    }),
                 },
             },
         };
-        const store = mockStore(state);
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
-        const wrapper = mountWithIntl(<reactRedux.Provider store={store}><MenuStartTrial id='startTrial'/></reactRedux.Provider>);
-        expect(wrapper.find('.editionText').exists()).toBe(true);
+        const {container} = renderWithContext(<MenuStartTrial id='startTrial'/>, state);
+
+        expect(container.querySelector('.editionText')).not.toBeNull();
+        expect(container.textContent).toContain('TEAM EDITION');
+        expect(container.textContent).toContain('This is the free');
     });
 
-    test('should render null when there is a license currently loaded', () => {
+    test('should render ENTRY EDITION for Entry license', () => {
         const state = {
             entities: {
                 users: {
                     currentUserId: 'test_id',
-                    profiles: {
-                        test_id: {
-                            id: 'test_id',
-                            roles: 'system_user',
-                        },
-                    },
                 },
                 general: {
-                    config: {},
-                    license: {
+                    license: TestHelper.getLicenseMock({
                         IsLicensed: 'true',
-                        IsTrial: 'false',
-                    },
+                        SkuShortName: 'entry',
+                    }),
                 },
             },
         };
-        const store = mockStore(state);
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
-        const wrapper = mountWithIntl(<reactRedux.Provider store={store}><MenuStartTrial id='startTrial'/></reactRedux.Provider>);
-        expect(wrapper.find('.editionText').exists()).toBe(false);
+        const {container} = renderWithContext(<MenuStartTrial id='startTrial'/>, state);
+
+        expect(container.querySelector('.editionText')).not.toBeNull();
+        expect(container.textContent).toContain('ENTRY EDITION');
+        expect(container.textContent).toContain('Entry offers Enterprise Advance capabilities');
+    });
+
+    test('should return null for Professional license', () => {
+        const state = {
+            entities: {
+                users: {
+                    currentUserId: 'test_id',
+                },
+                general: {
+                    license: TestHelper.getLicenseMock({
+                        IsLicensed: 'true',
+                        SkuShortName: 'professional',
+                    }),
+                },
+            },
+        };
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+        const {container} = renderWithContext(<MenuStartTrial id='startTrial'/>, state);
+
+        expect(container.innerHTML).toBe('');
+    });
+
+    test('should return null for Enterprise license', () => {
+        const state = {
+            entities: {
+                users: {
+                    currentUserId: 'test_id',
+                },
+                general: {
+                    license: TestHelper.getLicenseMock({
+                        IsLicensed: 'true',
+                        SkuShortName: 'enterprise',
+                    }),
+                },
+            },
+        };
+        const dummyDispatch = jest.fn();
+        useDispatchMock.mockReturnValue(dummyDispatch);
+        const {container} = renderWithContext(<MenuStartTrial id='startTrial'/>, state);
+
+        expect(container.innerHTML).toBe('');
     });
 });

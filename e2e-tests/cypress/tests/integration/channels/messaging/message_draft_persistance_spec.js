@@ -42,7 +42,7 @@ describe('Message Draft Persistance', () => {
         cy.uiGetPostTextBox().type(testText);
 
         // # Reload the page
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
+
         cy.wait(500).reload();
 
         // * Ensure the draft is back in the post textbox
@@ -68,7 +68,7 @@ describe('Message Draft Persistance', () => {
         verifyDraftIcon('off-topic', true);
 
         // # Reload the page
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
+
         cy.wait(500).reload();
 
         // * Ensure the post textbox is still empty
@@ -106,7 +106,7 @@ describe('Message Draft Persistance', () => {
         });
 
         // # Refresh the app to trigger migration
-        // eslint-disable-next-line cypress/no-unnecessary-waiting
+
         cy.wait(500).reload();
 
         // * Ensure the other channel has the draft icon

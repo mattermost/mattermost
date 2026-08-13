@@ -43,25 +43,21 @@ test('/signup_user_complete accessibility tab support', async ({pw}, testInfo) =
     await pw.signupPage.passwordInput.press('Tab');
     expect(await pw.signupPage.passwordToggleButton).toBeFocused();
 
-    // * Should move focus to newsletter checkbox after tab
+    // * Should move focus to terms and privacy checkbox after tab
     await pw.signupPage.passwordToggleButton.press('Tab');
-    expect(await pw.signupPage.newsLetterCheckBox).toBeFocused();
+    expect(await pw.signupPage.termsAndPrivacyCheckBox).toBeFocused();
 
-    // * Should move focus to newsletter privacy policy link after tab
-    await pw.signupPage.newsLetterCheckBox.press('Tab');
-    expect(await pw.signupPage.newsLetterPrivacyPolicyLink).toBeFocused();
+    // * Should move focus to acceptable use policy link after tab
+    await pw.signupPage.termsAndPrivacyCheckBox.press('Tab');
+    expect(await pw.signupPage.termsAndPrivacyAcceptableUsePolicyLink).toBeFocused();
 
-    // * Should move focus to newsletter unsubscribe link after tab
-    await pw.signupPage.newsLetterPrivacyPolicyLink.press('Tab');
-    expect(await pw.signupPage.newsLetterUnsubscribeLink).toBeFocused();
+    // * Should move focus to privacy policy link after tab
+    await pw.signupPage.termsAndPrivacyAcceptableUsePolicyLink.press('Tab');
+    expect(await pw.signupPage.termsAndPrivacyPrivacyPolicyLink).toBeFocused();
 
-    // * Should move focus to agreement terms of use link after tab
-    await pw.signupPage.newsLetterUnsubscribeLink.press('Tab');
-    expect(await pw.signupPage.agreementTermsOfUseLink).toBeFocused();
-
-    // * Should move focus to agreement privacy policy link after tab
-    await pw.signupPage.agreementTermsOfUseLink.press('Tab');
-    expect(await pw.signupPage.agreementPrivacyPolicyLink).toBeFocused();
+    // * Should move focus to about link after tab (skips disabled create account button)
+    await pw.signupPage.termsAndPrivacyPrivacyPolicyLink.press('Tab');
+    expect(await pw.signupPage.footer.aboutLink).toBeFocused();
 
     // * Should move focus to privacy policy link after tab
     await pw.signupPage.footer.aboutLink.press('Tab');

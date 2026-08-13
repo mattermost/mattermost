@@ -30,7 +30,7 @@ type AuditRecord struct {
 	EventData AuditEventData  `json:"event"`
 	Actor     AuditEventActor `json:"actor"`
 	Meta      map[string]any  `json:"meta"`
-	Error     AuditEventError `json:"error,omitempty"`
+	Error     AuditEventError `json:"error"`
 }
 
 // AuditEventData contains all event specific data about the modified entity

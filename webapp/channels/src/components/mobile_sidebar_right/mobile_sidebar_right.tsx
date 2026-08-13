@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo} from 'react';
+import React, {memo, useEffect, useRef} from 'react';
 import {CSSTransition} from 'react-transition-group';
 
 import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
@@ -21,6 +21,13 @@ const MobileRightDrawer = ({
     currentUser,
 }: Props) => {
     const usageDeltas = useGetUsageDeltas();
+    const sidebarRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (isOpen && sidebarRef.current) {
+            sidebarRef.current.focus();
+        }
+    }, [isOpen]);
 
     if (!currentUser) {
         return null;
@@ -28,8 +35,13 @@ const MobileRightDrawer = ({
 
     return (
         <div
+            ref={sidebarRef}
             className={classNames('sidebar--menu', {'move--left': isOpen})}
             id='sidebar-menu'
+            tabIndex={-1}
+            role='dialog'
+            aria-modal='true'
+            aria-label='Mobile menu'
         >
             <div className='nav-pills__container mobile-main-menu'>
                 <CSSTransition

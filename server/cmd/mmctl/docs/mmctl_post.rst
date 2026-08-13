@@ -40,4 +40,5 @@ SEE ALSO
 * `mmctl post create <mmctl_post_create.rst>`_ 	 - Create a post
 * `mmctl post delete <mmctl_post_delete.rst>`_ 	 - Mark posts as deleted or permanently delete posts with the --permanent flag
 * `mmctl post list <mmctl_post_list.rst>`_ 	 - List posts for a channel
+* `mmctl post reveal <mmctl_post_reveal.rst>`_ 	 - Reveal a post
 

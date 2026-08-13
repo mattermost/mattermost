@@ -31,7 +31,7 @@ func TestMemFootprint(t *testing.T) {
 
 		numJobs := 100000
 		jobs := make(map[string]*int32, numJobs)
-		for i := 0; i < numJobs; i++ {
+		for range numJobs {
 			jobs[makeKey()] = new(int32)
 		}
 

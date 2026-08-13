@@ -75,7 +75,7 @@ func getRoleByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role, err := c.App.GetRoleByName(r.Context(), c.Params.RoleName)
+	role, err := c.App.GetRoleByName(c.AppContext, c.Params.RoleName)
 	if err != nil {
 		c.Err = err
 		return
@@ -139,7 +139,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("patchRole", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchRole, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "role_patch", &patch)
 	defer c.LogAuditRec(auditRec)
 
@@ -151,9 +151,9 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventPriorState(oldRole)
 	auditRec.AddEventObjectType("role")
 
-	// manage_system permission is required to patch system_admin
+	// manage_system permission is required to patch system_admin and other protected system roles.
 	requiredPermission := model.PermissionSysconsoleWriteUserManagementPermissions
-	specialProtectedSystemRoles := append(model.NewSystemRoleIDs, model.SystemAdminRoleId)
+	specialProtectedSystemRoles := append(append([]string{}, model.NewSystemRoleIDs...), model.SystemAdminRoleId, model.SystemUserRoleId, model.SystemGuestRoleId)
 	for _, roleID := range specialProtectedSystemRoles {
 		if oldRole.Name == roleID {
 			requiredPermission = model.PermissionManageSystem

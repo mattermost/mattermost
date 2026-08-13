@@ -3,6 +3,7 @@
 
 import React, {useRef, memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {
     MarkAsUnreadIcon,
@@ -15,15 +16,20 @@ import {
     DotsVerticalIcon,
     ExitToAppIcon,
 } from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import {trackEvent} from 'actions/telemetry_actions';
+import {isChannelInManagedCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 
+import MenuItemOpenInNewWindow from 'components/channel_header_menu/menu_items/open_in_new_window';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMoveToSubmenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import {canPopout, isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {copyToClipboard} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import type {PropsFromRedux, OwnProps} from './index';
 
@@ -49,6 +55,7 @@ const SidebarChannelMenu = ({
     channelLeaveHandler,
 }: Props) => {
     const isLeaving = useRef(false);
+    const isInManagedCategory = useSelector((state: GlobalState) => isChannelInManagedCategory(state, channel.id));
 
     const {formatMessage} = useIntl();
 
@@ -57,7 +64,6 @@ const SidebarChannelMenu = ({
         function handleMarkAsRead() {
             // We use mark multiple to not update the active channel in the server
             readMultipleChannels([channel.id]);
-            trackEvent('ui', 'ui_sidebar_channel_menu_markAsRead');
         }
 
         markAsReadUnreadMenuItem = (
@@ -77,7 +83,6 @@ const SidebarChannelMenu = ({
     } else {
         function handleMarkAsUnread() {
             markMostRecentPostInChannelAsUnread(channel.id);
-            trackEvent('ui', 'ui_sidebar_channel_menu_markAsUnread');
         }
 
         markAsReadUnreadMenuItem = (
@@ -95,14 +100,13 @@ const SidebarChannelMenu = ({
         );
     }
 
-    let favoriteUnfavoriteMenuItem: JSX.Element | null = null;
+    let favoriteItem: JSX.Element;
     if (isFavorite) {
         function handleUnfavoriteChannel() {
             unfavoriteChannel(channel.id);
-            trackEvent('ui', 'ui_sidebar_channel_menu_unfavorite');
         }
 
-        favoriteUnfavoriteMenuItem = (
+        favoriteItem = (
             <Menu.Item
                 id={`unfavorite-${channel.id}`}
                 onClick={handleUnfavoriteChannel}
@@ -113,16 +117,15 @@ const SidebarChannelMenu = ({
                         defaultMessage='Unfavorite'
                     />
                 )}
+                disabled={isInManagedCategory}
             />
         );
     } else {
         function handleFavoriteChannel() {
             favoriteChannel(channel.id);
-            trackEvent('ui', 'ui_sidebar_channel_menu_favorite');
         }
 
-        favoriteUnfavoriteMenuItem = (
-
+        favoriteItem = (
             <Menu.Item
                 id={`favorite-${channel.id}`}
                 onClick={handleFavoriteChannel}
@@ -133,9 +136,23 @@ const SidebarChannelMenu = ({
                         defaultMessage='Favorite'
                     />
                 )}
+                disabled={isInManagedCategory}
             />
         );
     }
+
+    const favoriteUnfavoriteMenuItem = isInManagedCategory ? (
+        <WithTooltip
+            title={
+                <FormattedMessage
+                    id='channelHeader.managedCategoryFavoriteDisabled'
+                    defaultMessage='Channels in managed categories cannot be favorited.'
+                />
+            }
+        >
+            <div>{favoriteItem}</div>
+        </WithTooltip>
+    ) : favoriteItem;
 
     let muteUnmuteChannelMenuItem: JSX.Element | null = null;
     if (isMuted) {
@@ -225,7 +242,6 @@ const SidebarChannelMenu = ({
                 dialogType: ChannelInviteModal,
                 dialogProps: {channel},
             });
-            trackEvent('ui', 'ui_sidebar_channel_menu_addMembers');
         }
 
         addMembersMenuItem = (
@@ -271,7 +287,6 @@ const SidebarChannelMenu = ({
             channelLeaveHandler(() => {
                 isLeaving.current = false;
             });
-            trackEvent('ui', 'ui_sidebar_channel_menu_leave');
         }
 
         leaveChannelMenuItem = (
@@ -306,6 +321,9 @@ const SidebarChannelMenu = ({
                 onToggle: onMenuToggle,
             }}
         >
+            {canPopout() && !isChannelPopoutWindow() && (
+                <MenuItemOpenInNewWindow channel={channel}/>
+            )}
             {markAsReadUnreadMenuItem}
             {favoriteUnfavoriteMenuItem}
             {muteUnmuteChannelMenuItem}

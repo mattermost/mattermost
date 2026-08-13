@@ -15,11 +15,10 @@ import {descriptorOrStringToString, renderLabel, renderSettingHelpText} from '..
 type Props = {
     setting: LDAPDefinitionSettingButton;
     saveNeeded: boolean;
-    onChange(id: string, value: any): void;
     disabled: boolean;
     ldapSettingsState: LdapSettings;
     onFilterTestResults?: (results: TestLdapFiltersResponse) => void;
-} & GeneralSettingProps
+} & GeneralSettingProps;
 
 const LDAPButtonSetting = (props: Props) => {
     const intl = useIntl();
@@ -28,7 +27,7 @@ const LDAPButtonSetting = (props: Props) => {
         return null;
     }
 
-    const handleRequestAction = (success: () => void, error: (error: { message: string }) => void) => {
+    const handleRequestAction = (success: () => void, error: (error: {message: string}) => void) => {
         if (!props.setting.skipSaveNeeded && props.saveNeeded !== false) {
             error({
                 message: intl.formatMessage({id: 'admin_settings.save_unsaved_changes', defaultMessage: 'Please save unsaved changes first'}),
@@ -89,7 +88,6 @@ const LDAPButtonSetting = (props: Props) => {
             errorMessage={props.setting.error_message}
             successMessage={props.setting.success_message}
             flushLeft={true}
-            buttonType={'primary'}
         />
     );
 };

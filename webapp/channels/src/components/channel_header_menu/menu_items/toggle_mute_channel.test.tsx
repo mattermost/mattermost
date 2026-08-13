@@ -8,7 +8,7 @@ import * as channelActions from 'mattermost-redux/actions/channels';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {NotificationLevels} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -23,11 +23,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    test('renders the component correctly, public channel, not muted', () => {
+    test('renders the component correctly, public channel, not muted', async () => {
         renderWithContext(
             <WithTestMenuContext>
                 <ToggleMuteChannel
@@ -41,7 +37,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
         const menuItem = screen.getByText('Mute Channel');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledTimes(1);
         expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledWith(
@@ -51,7 +47,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
         );
     });
 
-    test('renders the component correctly, public channel, muted', () => {
+    test('renders the component correctly, public channel, muted', async () => {
         renderWithContext(
             <WithTestMenuContext>
                 <ToggleMuteChannel
@@ -65,7 +61,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
         const menuItem = screen.getByText('Unmute Channel');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledTimes(1);
         expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledWith(
@@ -75,7 +71,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
         );
     });
 
-    test('renders the component correctly, dm channel, not muted', () => {
+    test('renders the component correctly, dm channel, not muted', async () => {
         const channel = TestHelper.getChannelMock({type: 'D'});
         renderWithContext(
             <WithTestMenuContext>
@@ -90,7 +86,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
         const menuItem = screen.getByText('Mute');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledTimes(1);
         expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledWith(
@@ -99,7 +95,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
             {mark_unread: NotificationLevels.MENTION},
         );
     });
-    test('renders the component correctly, dm channel, muted', () => {
+    test('renders the component correctly, dm channel, muted', async () => {
         const channel = TestHelper.getChannelMock({type: 'D'});
         renderWithContext(
             <WithTestMenuContext>
@@ -114,7 +110,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
         const menuItem = screen.getByText('Unmute');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledTimes(1);
         expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledWith(

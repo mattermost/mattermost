@@ -78,7 +78,7 @@ function renderLeaveChannelMessage(post: Post): ReactNode {
     return (
         <FormattedMessage
             id='api.channel.leave.left'
-            defaultMessage='{username} has left the channel.'
+            defaultMessage='{username} left the channel.'
             values={{username}}
         />
     );
@@ -164,7 +164,7 @@ function renderAddToTeamMessage(post: Post): ReactNode {
     return (
         <FormattedMessage
             id='api.team.add_member.added'
-            defaultMessage='{addedUsername} added to the team by {username}.'
+            defaultMessage='{addedUsername} added to the team by {username}'
             values={{
                 username,
                 addedUsername,
@@ -184,6 +184,42 @@ function renderRemoveFromTeamMessage(post: Post): ReactNode {
                 removedUsername,
             }}
         />
+    );
+}
+
+function renderTeamAccessControlRemovalMessage(post: Post): ReactNode {
+    const teamName = ensureString(post.props?.team_name);
+
+    return (
+        <span className='post--system__access-control'>
+            <i
+                className='icon icon-shield-outline'
+                aria-hidden='true'
+            />
+            <FormattedMessage
+                id='post_body.team_access_control.removed'
+                defaultMessage='You have been removed from {teamName} because you no longer meet the membership requirements.'
+                values={{teamName}}
+            />
+        </span>
+    );
+}
+
+function renderTeamAccessControlAdditionMessage(post: Post): ReactNode {
+    const teamName = ensureString(post.props?.team_name);
+
+    return (
+        <span className='post--system__access-control'>
+            <i
+                className='icon icon-account-plus-outline'
+                aria-hidden='true'
+            />
+            <FormattedMessage
+                id='post_body.team_access_control.added'
+                defaultMessage='You have been added to {teamName} because you now meet the membership requirements.'
+                values={{teamName}}
+            />
+        </span>
     );
 }
 
@@ -250,8 +286,8 @@ function renderDisplayNameChangeMessage(post: Post): ReactNode {
     }
 
     const username = renderUsername(post.props.username);
-    const oldDisplayName = post.props.old_displayname;
-    const newDisplayName = post.props.new_displayname;
+    const oldDisplayName = ensureString(post.props.old_displayname);
+    const newDisplayName = ensureString(post.props.new_displayname);
 
     return (
         <FormattedMessage
@@ -290,8 +326,8 @@ function renderPurposeChangeMessage(post: Post): ReactNode {
     }
 
     const username = renderUsername(post.props.username);
-    const oldPurpose = post.props.old_purpose;
-    const newPurpose = post.props.new_purpose;
+    const oldPurpose = ensureString(post.props.old_purpose);
+    const newPurpose = ensureString(post.props.new_purpose);
 
     if (post.props.new_purpose) {
         if (post.props.old_purpose) {
@@ -344,7 +380,7 @@ function renderChannelDeletedMessage(post: Post): ReactNode {
     return (
         <FormattedMessage
             id='api.channel.delete_channel.archived'
-            defaultMessage='{username} has archived the channel.'
+            defaultMessage='{username} archived the channel.'
             values={{username}}
         />
     );
@@ -360,10 +396,68 @@ function renderChannelUnarchivedMessage(post: Post): ReactNode {
     return (
         <FormattedMessage
             id='api.channel.restore_channel.unarchived'
-            defaultMessage='{username} has unarchived the channel.'
+            defaultMessage='{username} unarchived the channel.'
             values={{username}}
         />
     );
+}
+
+function renderAutoTranslationChangeMessage(post: Post): ReactNode {
+    if (!post.props.username) {
+        return null;
+    }
+
+    const username = renderUsername(post.props.username);
+    const enabled = post.props.enabled;
+    if (enabled) {
+        return (
+            <FormattedMessage
+                id='api.channel.auto_translation_change.message.enabled'
+                defaultMessage='{username} enabled Auto-translation for this channel. All new messages will appear in your preferred language.'
+                values={{username}}
+            />
+        );
+    }
+    return (
+        <FormattedMessage
+            id='api.channel.auto_translation_change.message.disabled'
+            defaultMessage='{username} disabled Auto-translation for this channel. All messages will appear in the original language.'
+            values={{username}}
+        />
+    );
+}
+
+function renderSharedChannelStateMessage(post: Post): ReactNode {
+    const state = ensureString(post.props?.shared_channel_state);
+    const workspaceName = ensureString(post.props?.workspace_name);
+
+    if (state === 'shared') {
+        return (
+            <FormattedMessage
+                id='shared_channel.system_message.now_shared'
+                defaultMessage='This channel is now shared with {workspaceName}.'
+                values={{workspaceName}}
+            />
+        );
+    }
+    if (state === 'unshared') {
+        if (workspaceName === '') {
+            return (
+                <FormattedMessage
+                    id='shared_channel.system_message.no_longer_shared_unknown'
+                    defaultMessage='This channel is no longer shared with another workspace.'
+                />
+            );
+        }
+        return (
+            <FormattedMessage
+                id='shared_channel.system_message.no_longer_shared'
+                defaultMessage='This channel is no longer shared with {workspaceName}.'
+                values={{workspaceName}}
+            />
+        );
+    }
+    return null;
 }
 
 function renderMeMessage(post: Post): ReactNode {
@@ -383,6 +477,8 @@ const systemMessageRenderers = {
     [Posts.POST_TYPES.LEAVE_TEAM]: renderLeaveTeamMessage,
     [Posts.POST_TYPES.ADD_TO_TEAM]: renderAddToTeamMessage,
     [Posts.POST_TYPES.REMOVE_FROM_TEAM]: renderRemoveFromTeamMessage,
+    [Posts.POST_TYPES.ACCESS_CONTROL_TEAM_REMOVAL]: renderTeamAccessControlRemovalMessage,
+    [Posts.POST_TYPES.ACCESS_CONTROL_TEAM_ADDITION]: renderTeamAccessControlAdditionMessage,
     [Posts.POST_TYPES.HEADER_CHANGE]: renderHeaderChangeMessage,
     [Posts.POST_TYPES.DISPLAYNAME_CHANGE]: renderDisplayNameChangeMessage,
     [Posts.POST_TYPES.CONVERT_CHANNEL]: renderConvertChannelToPrivateMessage,
@@ -390,6 +486,8 @@ const systemMessageRenderers = {
     [Posts.POST_TYPES.CHANNEL_DELETED]: renderChannelDeletedMessage,
     [Posts.POST_TYPES.CHANNEL_UNARCHIVED]: renderChannelUnarchivedMessage,
     [Posts.POST_TYPES.ME]: renderMeMessage,
+    [Posts.POST_TYPES.AUTO_TRANSLATION_CHANGE]: renderAutoTranslationChangeMessage,
+    [Posts.POST_TYPES.SHARED_CHANNEL_STATE]: renderSharedChannelStateMessage,
 };
 
 export type AddMemberProps = {
@@ -397,7 +495,7 @@ export type AddMemberProps = {
     not_in_channel_user_ids: string[];
     not_in_groups_usernames: string[];
     not_in_channel_usernames: string[];
-}
+};
 
 export function isAddMemberProps(v: unknown): v is AddMemberProps {
     if (typeof v !== 'object' || !v) {
@@ -560,7 +658,7 @@ export function renderWranglerSystemMessage(post: Post): ReactNode {
         };
         const numMessages = ensureNumber(post.props.NumMessages);
         if (numMessages > 1) {
-            values.number = post.props.NumMessages;
+            values.number = numMessages;
         }
     }
     return (

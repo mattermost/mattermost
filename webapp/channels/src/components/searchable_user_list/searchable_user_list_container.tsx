@@ -17,7 +17,7 @@ type Props = {
     nextPage: (page: number) => void;
     previousPage?: (page: number) => void;
     search: (term: string) => void;
-    actions?: React.ReactNode[];
+    actions?: Array<React.ComponentType<any>>;
     actionProps?: {
         mfaEnabled: boolean;
         enableUserAccessTokens: boolean;
@@ -37,7 +37,7 @@ type Props = {
         };
     };
     focusOnMount?: boolean;
-}
+};
 
 export default function SearchableUserListContainer(props: Props) {
     const [term, setTerm] = useState('');

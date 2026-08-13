@@ -15,7 +15,7 @@ import {
     searchForChannel,
 } from '../enterprise/elasticsearch_autocomplete/helpers';
 
-import {getAdminAccount} from '../../../support/env';
+import {getAdminAccount} from '@/support/env';
 
 describe('Autocomplete without Elasticsearch - Channel', () => {
     const admin = getAdminAccount();

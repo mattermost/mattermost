@@ -2,17 +2,18 @@
 // See LICENSE.txt for license information.
 
 import type React from 'react';
-import {useCallback, useRef, useState} from 'react';
+import {useCallback, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
+import type {Post} from '@mattermost/types/posts';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {FileTypes} from 'mattermost-redux/action_types';
 import {getChannelTimezones} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, getAllChannelStats} from 'mattermost-redux/selectors/entities/channels';
-import {getFilesIdsForPost} from 'mattermost-redux/selectors/entities/files';
+import {makeGetFileIdsForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -59,10 +60,10 @@ const useSubmit = (
     postError: React.ReactNode,
     channelId: string,
     rootId: string,
-    serverError: (ServerError & { submittedMessage?: string }) | null,
+    serverError: (ServerError & {submittedMessage?: string}) | null,
     lastBlurAt: React.MutableRefObject<number>,
     focusTextbox: (forceFocust?: boolean) => void,
-    setServerError: (err: (ServerError & { submittedMessage?: string }) | null) => void,
+    setServerError: (err: (ServerError & {submittedMessage?: string}) | null) => void,
     setShowPreview: (showPreview: boolean) => void,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     prioritySubmitCheck: (onConfirm: () => void) => boolean,
@@ -71,14 +72,12 @@ const useSubmit = (
     skipCommands?: boolean,
     isInEditMode?: boolean,
     postId?: string,
-): [
-        (submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => void,
-        string | null,
-    ] => {
+) => {
     const getGroupMentions = useGroups(channelId, draft.message);
 
     const dispatch = useDispatch();
 
+    const getFilesIdsForPost = useMemo(() => makeGetFileIdsForPost(), []);
     const postFileIds = useSelector((state: GlobalState) => getFilesIdsForPost(state, postId || ''));
 
     const isDraftSubmitting = useRef(false);
@@ -121,12 +120,34 @@ const useSubmit = (
         return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS);
     });
 
+    const editingPostRefocusId = useSelector((state: GlobalState) => state.views.posts.editingPost.refocusId);
+
     const showPostDeletedModal = useCallback(() => {
         dispatch(openModal({
             modalId: ModalIdentifiers.POST_DELETED_MODAL,
             dialogType: PostDeletedModal,
         }));
     }, [dispatch]);
+
+    const handleFileChange = useCallback((submittingDraft: PostDraft) => {
+        // sets the updated data for file IDs by post ID part
+        dispatch({
+            type: FileTypes.RECEIVED_FILES_FOR_POST,
+            data: submittingDraft.fileInfos,
+            postId,
+        });
+
+        // removes the data for the deleted files from store
+        const deletedFileIds = postFileIds.filter((id: string) => !submittingDraft.fileInfos.find((file) => file.id === id));
+        if (deletedFileIds) {
+            dispatch({
+                type: FileTypes.REMOVED_FILE,
+                data: {
+                    fileIds: deletedFileIds,
+                },
+            });
+        }
+    }, [dispatch, postFileIds, postId]);
 
     const doSubmit = useCallback(async (submittingDraft: PostDraft = draft, schedulingInfo?: SchedulingInfo, createPostOptions?: CreatePostOptions) => {
         if (submittingDraft.uploadsInProgress.length > 0) {
@@ -178,7 +199,9 @@ const useSubmit = (
         try {
             let response;
             if (isInEditMode) {
-                response = await dispatch(editPost(submittingDraft));
+                // The types of Post and PostDraft are mostly interchangeable, but our typing doesn't make it easy to
+                // mix them without assertions like this
+                response = await dispatch(editPost(submittingDraft as unknown as Post));
                 handleFileChange(submittingDraft);
             } else {
                 response = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
@@ -213,11 +236,16 @@ const useSubmit = (
             return;
         }
 
-        if (!rootId && !schedulingInfo) {
+        if (!rootId && !schedulingInfo && !isInEditMode) {
             dispatch(scrollPostListToBottom());
         }
 
         if (isInEditMode) {
+            // Refocus the main textbox before unsetting edit mode
+            if (editingPostRefocusId) {
+                const element = document.getElementById(editingPostRefocusId);
+                element?.focus();
+            }
             dispatch(unsetEditingPost());
         }
 
@@ -239,27 +267,9 @@ const useSubmit = (
         handleDraftChange,
         channelId,
         isInEditMode,
+        handleFileChange,
+        editingPostRefocusId,
     ]);
-
-    const handleFileChange = useCallback((submittingDraft: PostDraft) => {
-        // sets the updated data for file IDs by post ID part
-        dispatch({
-            type: FileTypes.RECEIVED_FILES_FOR_POST,
-            data: submittingDraft.fileInfos,
-            postId,
-        });
-
-        // removes the data for the deleted files from store
-        const deletedFileIds = postFileIds.filter((id: string) => !submittingDraft.fileInfos.find((file) => file.id === id));
-        if (deletedFileIds) {
-            dispatch({
-                type: FileTypes.REMOVED_FILE,
-                data: {
-                    fileIds: deletedFileIds,
-                },
-            });
-        }
-    }, [dispatch, postFileIds, postId]);
 
     const setUpdatedFileIds = useCallback((draft: PostDraft) => {
         // new object creation is needed here to support sending a draft with files.
@@ -324,18 +334,18 @@ const useSubmit = (
         }
 
         const onConfirm = () => doSubmit(submittingDraft, schedulingInfo);
-        if (prioritySubmitCheck(onConfirm)) {
+        if (!isInEditMode && prioritySubmitCheck(onConfirm)) {
             isDraftSubmitting.current = false;
             return;
         }
 
-        if (memberNotifyCount > 0) {
+        if (!isInEditMode && memberNotifyCount > 0) {
             showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount, onConfirm);
             isDraftSubmitting.current = false;
             return;
         }
 
-        if (!skipCommands && !schedulingInfo) {
+        if (!isInEditMode && !skipCommands && !schedulingInfo) {
             const status = getStatusFromSlashCommand(submittingDraft.message);
             if (userIsOutOfOffice && status) {
                 const resetStatusModalData = {
@@ -394,6 +404,7 @@ const useSubmit = (
         doSubmit,
         draft,
         isDirectOrGroup,
+        isInEditMode,
         channel,
         channelId,
         channelMembersCount,
@@ -407,9 +418,10 @@ const useSubmit = (
         getGroupMentions,
         setShowPreview,
         prioritySubmitCheck,
+        setUpdatedFileIds,
     ]);
 
-    return [handleSubmit, errorClass];
+    return [handleSubmit, errorClass] as const;
 };
 
 export default useSubmit;

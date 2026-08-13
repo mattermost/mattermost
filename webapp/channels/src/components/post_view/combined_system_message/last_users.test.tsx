@@ -48,7 +48,7 @@ describe('components/post_view/combined_system_message/LastUsers', () => {
         },
     } as any;
 
-    test('should match component state', () => {
+    test('should match component state', async () => {
         renderWithContext(
             <LastUsers {...baseProps}/>, initialState,
         );
@@ -59,13 +59,13 @@ describe('components/post_view/combined_system_message/LastUsers', () => {
         expect(screen.getByText('and')).toBeInTheDocument();
 
         //there are 3 mention keys, so the text should read
-        userEvent.click(screen.getByText(`${formatOptions.mentionKeys.length - 1} others`));
+        await userEvent.click(screen.getByText(`${formatOptions.mentionKeys.length - 1} others`));
 
         expect(screen.getByText('added to the channel')).toBeInTheDocument();
         expect(screen.getByText(`by ${baseProps.actor}`, {exact: false})).toBeInTheDocument();
     });
 
-    test('should match component state, expanded', () => {
+    test('should match component state, expanded', async () => {
         renderWithContext(
             <LastUsers {...baseProps}/>, initialState,
         );
@@ -80,7 +80,7 @@ describe('components/post_view/combined_system_message/LastUsers', () => {
         expect(screen.getByText('were', {exact: false})).toBeInTheDocument();
 
         //setting {expand: true} in the state
-        userEvent.click(screen.getByText(`${formatOptions.mentionKeys.length - 1} others`));
+        await userEvent.click(screen.getByText(`${formatOptions.mentionKeys.length - 1} others`));
 
         expect(screen.queryByText('were', {exact: false})).not.toBeInTheDocument();
 

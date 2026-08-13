@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import {screen, userEvent, renderWithContext} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
@@ -15,7 +15,7 @@ jest.mock('../is_mobile_view_hack', () => ({
 
 describe('components/widgets/menu/menu_items/submenu_item', () => {
     test('empty subMenu should match snapshot', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <SubMenuItem
                 key={'_pluginmenuitem'}
                 id={'1'}
@@ -26,11 +26,11 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('present subMenu should match snapshot with submenu', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <SubMenuItem
                 key={'_pluginmenuitem'}
                 id={'1'}
@@ -52,10 +52,10 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('test subMenu click triggers action', () => {
+    test('test subMenu click triggers action', async () => {
         const action1 = jest.fn();
         const action2 = jest.fn();
         const action3 = jest.fn();
@@ -84,13 +84,13 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
             />,
         );
 
-        userEvent.click(screen.getByText('test'));
+        await userEvent.click(screen.getByText('test'));
         expect(action1).toHaveBeenCalledTimes(1);
 
-        userEvent.click(screen.getByText('Test A'));
+        await userEvent.click(screen.getByText('Test A'));
         expect(action2).toHaveBeenCalledTimes(1);
 
-        userEvent.click(screen.getByText('Test B'));
+        await userEvent.click(screen.getByText('Test B'));
         expect(action3).toHaveBeenCalledTimes(1);
 
         // Confirm that the parent's action wasn't called again when clicking on a child item
@@ -98,18 +98,21 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
     });
 
     test('should show/hide submenu based on keyboard commands', () => {
-        const wrapper = mountWithIntl(
-            <SubMenuItem
+        const ref = React.createRef<SubMenuItemClass>();
+        renderWithContext(
+            <SubMenuItemClass
+                intl={defaultIntl}
                 key={'_pluginmenuitem'}
                 id={'1'}
                 text={'test'}
                 subMenu={[]}
                 root={true}
                 direction={'right'}
+                ref={ref}
             />,
         );
 
-        const instance = wrapper.find(SubMenuItemClass).instance() as SubMenuItemClass;
+        const instance = ref.current!;
 
         instance.show = jest.fn();
         instance.hide = jest.fn();

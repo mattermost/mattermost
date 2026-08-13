@@ -5,12 +5,11 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-
-import {trackEvent} from 'actions/telemetry_actions';
 
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal';
 import ChannelInviteModal from 'components/channel_invite_modal';
@@ -68,10 +67,9 @@ const LessThanMaxFreeUsers = ({pluginButtons}: {pluginButtons: React.ReactNode})
             <div className='LessThanMaxFreeUsers'>
                 <ToggleModalButton
                     id='introTextInvite'
-                    className='btn btn-sm btn-primary'
+                    className={buttonClassNames({emphasis: 'primary', size: 'sm'})}
                     modalId={ModalIdentifiers.INVITATION}
                     dialogType={InvitationModal}
-                    onClick={() => trackEvent('channel_intro_message', 'click_invite_button')}
                     dialogProps={{focusOriginElement: 'browseOrAddChannelMenuButton'}}
                 >
                     <i

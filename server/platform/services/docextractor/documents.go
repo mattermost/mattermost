@@ -4,12 +4,15 @@
 package docextractor
 
 import (
+	"context"
 	"errors"
 	"io"
 	"path"
 	"strings"
 
 	"code.sajari.com/docconv/v2"
+
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 type documentExtractor struct{}
@@ -36,7 +39,7 @@ func (de *documentExtractor) Match(filename string) bool {
 	return ok
 }
 
-func (de *documentExtractor) Extract(filename string, r io.ReadSeeker) (out string, outErr error) {
+func (de *documentExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, maxFileSize int64) (out string, outErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			out = ""
@@ -50,7 +53,14 @@ func (de *documentExtractor) Extract(filename string, r io.ReadSeeker) (out stri
 		return "", errors.New("unknown converter")
 	}
 
-	text, _, err := converter(r)
+	// Bound how much data the converter is allowed to read so a small upload
+	// cannot expand into an unbounded amount of in-memory work.
+	var reader io.Reader = r
+	if maxFileSize > 0 {
+		reader = utils.NewLimitedReaderWithError(r, maxFileSize)
+	}
+
+	text, _, err := converter(reader)
 	if err != nil {
 		return "", err
 	}

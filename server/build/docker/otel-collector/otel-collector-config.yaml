@@ -1,0 +1,83 @@
+receivers:
+  filelog/mattermost:
+    include:
+      - /logs/*.log
+    start_at: beginning
+    operators:
+      - type: json_parser
+        timestamp:
+          parse_from: attributes.timestamp
+          layout_type: gotime
+          layout: '2006-01-02 15:04:05.000 -07:00'
+        severity:
+          parse_from: attributes.level
+
+  filelog/docker:
+    include:
+      - /var/lib/docker/containers/*/*-json.log
+    start_at: beginning
+    operators:
+      - type: json_parser
+        timestamp:
+          parse_from: attributes.time
+          layout_type: gotime
+          layout: '2006-01-02T15:04:05.999999999Z'
+      - type: move
+        from: attributes.log
+        to: body
+      - type: move
+        from: attributes.attrs.tag
+        to: resource["container.name"]
+
+  docker_stats:
+    endpoint: unix:///var/run/docker.sock
+    collection_interval: 10s
+    metrics:
+      container.uptime:
+        enabled: true
+
+processors:
+  resource/mattermost:
+    attributes:
+      - key: service.name
+        value: mattermost
+        action: upsert
+      - key: job
+        value: mattermost
+        action: upsert
+      - key: app
+        value: mattermost
+        action: upsert
+
+  resource/docker:
+    attributes:
+      - key: job
+        value: docker
+        action: upsert
+
+exporters:
+  otlp_http/loki:
+    endpoint: http://loki:3100/otlp
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    resource_to_telemetry_conversion:
+      enabled: true
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+service:
+  extensions: [health_check]
+  pipelines:
+    logs/mattermost:
+      receivers: [filelog/mattermost]
+      processors: [resource/mattermost]
+      exporters: [otlp_http/loki]
+    logs/docker:
+      receivers: [filelog/docker]
+      processors: [resource/docker]
+      exporters: [otlp_http/loki]
+    metrics/docker:
+      receivers: [docker_stats]
+      exporters: [prometheus]

@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -88,7 +87,7 @@ func (jss SqlJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 		jsonData = AppendBinaryFlag(jsonData)
 	}
 
-	tx, err := jss.GetMaster().BeginXWithIsolation(&sql.TxOptions{
+	tx, err := jss.GetMaster().BeginWithIsolation(&sql.TxOptions{
 		Isolation: sql.LevelSerializable,
 	})
 	if err != nil {
@@ -142,110 +141,135 @@ func (jss SqlJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 	return job, nil
 }
 
-func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
-	dataJSON, jsonErr := json.Marshal(job.Data)
-	if jsonErr != nil {
-		return false, errors.Wrap(jsonErr, "failed to encode job's data to JSON")
+// SaveOnceByTypeAndData inserts the job only when no pending or in-progress job already exists
+// with the same type and matching data filter. Unlike SaveOnce (which dedupes per type), this
+// allows many concurrent jobs of the same type while keeping at most one queued per entity
+// identified by the data filter (e.g. one job per scheduled_recap_id). Returns (nil, nil) when a
+// matching job already exists.
+func (jss SqlJobStore) SaveOnceByTypeAndData(job *model.Job, data map[string]string) (*model.Job, error) {
+	if len(data) == 0 {
+		return nil, errors.New("data filter cannot be empty")
+	}
+
+	jsonData, err := json.Marshal(job.Data)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed marshalling job data")
 	}
 	if jss.IsBinaryParamEnabled() {
-		dataJSON = AppendBinaryFlag(dataJSON)
+		jsonData = AppendBinaryFlag(jsonData)
 	}
-	query, args, err := jss.getQueryBuilder().
-		Update("Jobs").
-		Set("LastActivityAt", model.GetMillis()).
-		Set("Status", job.Status).
-		Set("Data", dataJSON).
-		Set("Progress", job.Progress).
-		Where(sq.Eq{"Id": job.Id, "Status": currentStatus}).ToSql()
+
+	tx, err := jss.GetMaster().BeginWithIsolation(&sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	})
 	if err != nil {
-		return false, errors.Wrap(err, "job_tosql")
+		return nil, errors.Wrap(err, "begin_transaction")
 	}
-	sqlResult, err := jss.GetMaster().Exec(query, args...)
+	defer finalizeTransactionX(tx, &err)
+
+	query, args, err := jss.jobTypeAndDataQuery(
+		jss.getQueryBuilder().Select("COUNT(*)").From("Jobs"),
+		job.Type,
+		data,
+		model.JobStatusPending,
+		model.JobStatusInProgress,
+	).ToSql()
 	if err != nil {
-		return false, errors.Wrap(err, "failed to update Job")
+		return nil, errors.Wrap(err, "job_tosql")
 	}
 
-	rows, err := sqlResult.RowsAffected()
-
+	var count int64
+	err = tx.Get(&count, query, args...)
 	if err != nil {
-		return false, errors.Wrap(err, "unable to get rows affected")
+		return nil, errors.Wrapf(err, "failed to count pending and in-progress jobs with type=%s and data filter", job.Type)
 	}
 
-	if rows != 1 {
-		return false, nil
+	if count > 0 {
+		return nil, nil
 	}
 
-	return true, nil
-}
-
-func (jss SqlJobStore) UpdateStatus(id string, status string) (*model.Job, error) {
-	job := &model.Job{
-		Id:             id,
-		Status:         status,
-		LastActivityAt: model.GetMillis(),
+	query, args, err = jss.getQueryBuilder().
+		Insert("Jobs").
+		Columns("Id", "Type", "Priority", "CreateAt", "StartAt", "LastActivityAt", "Status", "Progress", "Data").
+		Values(job.Id, job.Type, job.Priority, job.CreateAt, job.StartAt, job.LastActivityAt, job.Status, job.Progress, jsonData).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate sqlquery")
 	}
 
-	if _, err := jss.GetMaster().NamedExec(`UPDATE Jobs
-		SET Status=:Status, LastActivityAt=:LastActivityAt
-		WHERE Id=:Id`, job); err != nil {
-		return nil, errors.Wrapf(err, "failed to update Job with id=%s", id)
+	if _, err = tx.Exec(query, args...); err != nil {
+		if isRepeatableError(err) {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "failed to save Job")
+	}
+
+	if err = tx.Commit(); err != nil {
+		if isRepeatableError(err) {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	return job, nil
 }
 
+// UpdateOptimistically updates the job only if its current status matches currentStatus.
+// Returns the updated job on success, or nil if no row was matched (status mismatch or job not
+// found). A nil return with a nil error is not an error — it means the precondition was not met.
+func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (*model.Job, error) {
+	dataJSON, jsonErr := json.Marshal(job.Data)
+	if jsonErr != nil {
+		return nil, errors.Wrap(jsonErr, "failed to encode job's data to JSON")
+	}
+	if jss.IsBinaryParamEnabled() {
+		dataJSON = AppendBinaryFlag(dataJSON)
+	}
+
+	builder := jss.getQueryBuilder().
+		Update("Jobs").
+		Set("LastActivityAt", model.GetMillis()).
+		Set("Status", job.Status).
+		Set("Data", dataJSON).
+		Set("Progress", job.Progress).
+		Where(sq.Eq{"Id": job.Id, "Status": currentStatus}).
+		Suffix("RETURNING " + strings.Join(jss.jobColumns, ", "))
+
+	var jobs []*model.Job
+	if err := jss.GetMaster().SelectBuilder(&jobs, builder); err != nil {
+		return nil, errors.Wrapf(err, "failed to update Job with id=%s", job.Id)
+	}
+
+	if len(jobs) != 1 {
+		return nil, nil
+	}
+
+	return jobs[0], nil
+}
+
+func (jss SqlJobStore) UpdateStatus(id string, status string) (*model.Job, error) {
+	builder := jss.getQueryBuilder().
+		Update("Jobs").
+		Set("Status", status).
+		Set("LastActivityAt", model.GetMillis()).
+		Where(sq.Eq{"Id": id}).
+		Suffix("RETURNING " + strings.Join(jss.jobColumns, ", "))
+
+	var jobs []*model.Job
+	if err := jss.GetMaster().SelectBuilder(&jobs, builder); err != nil {
+		return nil, errors.Wrapf(err, "failed to update Job with id=%s", id)
+	}
+
+	if len(jobs) != 1 {
+		return nil, store.NewErrNotFound("Job", id)
+	}
+
+	return jobs[0], nil
+}
+
 func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error) {
 	lastActivityAndStartTime := model.GetMillis()
 
-	if jss.DriverName() == model.DatabaseDriverMysql {
-		tx, err := jss.GetMaster().Beginx()
-		if err != nil {
-			return nil, errors.Wrap(err, "begin_transaction")
-		}
-		defer finalizeTransactionX(tx, &err)
-
-		builder := jss.getQueryBuilder().
-			Update("Jobs").
-			Set("LastActivityAt", lastActivityAndStartTime).
-			Set("Status", newStatus).
-			Where(sq.Eq{"Id": id, "Status": currentStatus})
-
-		if newStatus == model.JobStatusInProgress {
-			builder = builder.Set("StartAt", lastActivityAndStartTime)
-		}
-
-		sqlResult, err := tx.ExecBuilder(builder)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to update Job with id=%s", id)
-		}
-		rows, err := sqlResult.RowsAffected()
-		if err != nil {
-			return nil, errors.Wrap(err, "unable to get rows affected")
-		}
-		if rows != 1 {
-			return nil, nil
-		}
-
-		getBuilder := jss.jobQuery.
-			Where(sq.Eq{"Id": id, "Status": newStatus})
-
-		var job model.Job
-		if err = tx.GetBuilder(&job, getBuilder); err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return nil, store.NewErrNotFound("Job", id)
-			}
-			return nil, errors.Wrapf(err, "failed to get Job with id=%s", id)
-		}
-
-		err = tx.Commit()
-		if err != nil {
-			return nil, errors.Wrap(err, "commit_transaction")
-		}
-
-		return &job, nil
-	}
-
-	// For PostgreSQL, use RETURNING to get the updated job in a single query
+	// Use RETURNING to get the updated job in a single query
 	builder := jss.getQueryBuilder().
 		Update("Jobs").
 		Set("LastActivityAt", lastActivityAndStartTime).
@@ -274,7 +298,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 	return job[0], nil
 }
 
-func (jss SqlJobStore) Get(c request.CTX, id string) (*model.Job, error) {
+func (jss SqlJobStore) Get(rctx request.CTX, id string) (*model.Job, error) {
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Id": id}).ToSql()
 	if err != nil {
@@ -292,7 +316,7 @@ func (jss SqlJobStore) Get(c request.CTX, id string) (*model.Job, error) {
 	return &status, nil
 }
 
-func (jss SqlJobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, page int, perPage int) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypesPage(rctx request.CTX, jobTypes []string, page int, perPage int) ([]*model.Job, error) {
 	offset := page * perPage
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobTypes}).
@@ -311,7 +335,7 @@ func (jss SqlJobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, page 
 	return jobs, nil
 }
 
-func (jss SqlJobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByType(rctx request.CTX, jobType string) ([]*model.Job, error) {
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType}).
 		OrderBy("CreateAt DESC").ToSql()
@@ -327,7 +351,7 @@ func (jss SqlJobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypeAndStatus(rctx request.CTX, jobType string, status string) ([]*model.Job, error) {
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType, "Status": status}).
 		OrderBy("CreateAt DESC").ToSql()
@@ -343,7 +367,7 @@ func (jss SqlJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, stat
 	return jobs, nil
 }
 
-func (jss SqlJobStore) GetAllByTypePage(c request.CTX, jobType string, page int, perPage int) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypePage(rctx request.CTX, jobType string, page int, perPage int) ([]*model.Job, error) {
 	offset := page * perPage
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType}).
@@ -362,7 +386,7 @@ func (jss SqlJobStore) GetAllByTypePage(c request.CTX, jobType string, page int,
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByStatus(rctx request.CTX, status string) ([]*model.Job, error) {
 	statuses := []*model.Job{}
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Status": status}).
@@ -378,7 +402,7 @@ func (jss SqlJobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Jo
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByTypesAndStatusesPage(c request.CTX, jobType []string, status []string, offset int, limit int) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypesAndStatusesPage(rctx request.CTX, jobType []string, status []string, offset int, limit int) ([]*model.Job, error) {
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType, "Status": status}).
 		OrderBy("CreateAt DESC").
@@ -436,6 +460,43 @@ func (jss SqlJobStore) GetCountByStatusAndType(status string, jobType string) (i
 	return count, nil
 }
 
+func (jss SqlJobStore) jobTypeAndDataQuery(query sq.SelectBuilder, jobType string, data map[string]string, statuses ...string) sq.SelectBuilder {
+	query = query.Where(sq.Eq{"Type": jobType})
+	// Add status filtering if provided - enables full usage of idx_jobs_status_type index
+	if len(statuses) > 0 {
+		query = query.Where(sq.Eq{"Status": statuses})
+	}
+
+	// Add JSON data filtering for each key-value pair
+	for key, value := range data {
+		query = query.Where(sq.Expr("Data->? = ?", key, fmt.Sprintf(`"%s"`, value)))
+	}
+
+	return query
+}
+
+func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error) {
+	query := jss.jobTypeAndDataQuery(jss.jobQuery, jobType, data, statuses...)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_by_type_and_data_tosql")
+	}
+
+	var jobs []*model.Job
+	// For consistency-critical operations (like job deduplication), use master
+	db := jss.GetReplica()
+	if useMaster {
+		db = jss.GetMaster()
+	}
+
+	if err := db.Select(&jobs, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get Jobs by type and data")
+	}
+
+	return jobs, nil
+}
+
 func (jss SqlJobStore) Delete(id string) (string, error) {
 	query, args, err := jss.getQueryBuilder().
 		Delete("Jobs").
@@ -451,12 +512,7 @@ func (jss SqlJobStore) Delete(id string) (string, error) {
 }
 
 func (jss SqlJobStore) Cleanup(expiryTime int64, batchSize int) error {
-	var query string
-	if jss.DriverName() == model.DatabaseDriverPostgres {
-		query = "DELETE FROM Jobs WHERE Id IN (SELECT Id FROM Jobs WHERE CreateAt < ? AND (Status != ? AND Status != ?) ORDER BY CreateAt ASC LIMIT ?)"
-	} else {
-		query = "DELETE FROM Jobs WHERE CreateAt < ? AND (Status != ? AND Status != ?) ORDER BY CreateAt ASC LIMIT ?"
-	}
+	query := "DELETE FROM Jobs WHERE Id IN (SELECT Id FROM Jobs WHERE CreateAt < ? AND (Status != ? AND Status != ?) ORDER BY CreateAt ASC LIMIT ?)"
 
 	var rowsAffected int64 = 1
 
@@ -469,7 +525,7 @@ func (jss SqlJobStore) Cleanup(expiryTime int64, batchSize int) error {
 		var rowErr error
 		rowsAffected, rowErr = sqlResult.RowsAffected()
 		if rowErr != nil {
-			return errors.Wrap(err, "unable to delete jobs")
+			return errors.Wrap(rowErr, "unable to delete jobs")
 		}
 
 		time.Sleep(jobsCleanupDelay)
@@ -478,21 +534,14 @@ func (jss SqlJobStore) Cleanup(expiryTime int64, batchSize int) error {
 	return nil
 }
 
-const mySQLDeadlockCode = uint16(1213)
-
 // isRepeatableError is a bit of copied code from retrylayer.go.
 // A little copying is fine because we don't want to import another package
 // in the store layer
 func isRepeatableError(err error) bool {
 	var pqErr *pq.Error
-	var mysqlErr *mysql.MySQLError
 	switch {
 	case errors.As(err, &pqErr):
 		if pqErr.Code == "40001" || pqErr.Code == "40P01" {
-			return true
-		}
-	case errors.As(err, &mysqlErr):
-		if mysqlErr.Number == mySQLDeadlockCode {
 			return true
 		}
 	}

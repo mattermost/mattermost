@@ -34,7 +34,7 @@ SEE ALSO
 * `mmctl bot <mmctl_bot.rst>`_ 	 - Management of bots
 * `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
 * `mmctl command <mmctl_command.rst>`_ 	 - Management of slash commands
-* `mmctl completion <mmctl_completion.rst>`_ 	 - Generates autocompletion scripts for bash and zsh
+* `mmctl completion <mmctl_completion.rst>`_ 	 - Generate the autocompletion script for the specified shell
 * `mmctl compliance-export <mmctl_compliance-export.rst>`_ 	 - Management of compliance exports
 * `mmctl config <mmctl_config.rst>`_ 	 - Configuration
 * `mmctl docs <mmctl_docs.rst>`_ 	 - Generates mmctl documentation
@@ -51,6 +51,7 @@ SEE ALSO
 * `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions
 * `mmctl plugin <mmctl_plugin.rst>`_ 	 - Management of plugins
 * `mmctl post <mmctl_post.rst>`_ 	 - Management of posts
+* `mmctl report <mmctl_report.rst>`_ 	 - Reporting commands
 * `mmctl roles <mmctl_roles.rst>`_ 	 - Manage user roles
 * `mmctl saml <mmctl_saml.rst>`_ 	 - SAML related utilities
 * `mmctl sampledata <mmctl_sampledata.rst>`_ 	 - Generate sample data

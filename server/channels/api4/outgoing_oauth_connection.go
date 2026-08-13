@@ -36,12 +36,12 @@ func (api *API) InitOutgoingOAuthConnection() {
 // other users can use them in their outgoing webhooks and slash commands if they have permissions to manage those.
 func checkOutgoingOAuthConnectionReadPermissions(c *Context, teamId string) bool {
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingOAuthConnections) ||
-		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOutgoingWebhooks) ||
-		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageSlashCommands) {
+		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOwnOutgoingWebhooks) ||
+		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOwnSlashCommands) {
 		return true
 	}
 
-	c.SetPermissionError(model.PermissionManageOutgoingWebhooks, model.PermissionManageSlashCommands)
+	c.SetPermissionError(model.PermissionManageOwnOutgoingWebhooks, model.PermissionManageOwnSlashCommands)
 	return false
 }
 
@@ -204,7 +204,7 @@ func getOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func createOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("createOutgoingOauthConnection", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateOutgoingOauthConnection, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -248,7 +248,7 @@ func createOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 }
 
 func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("updateOutgoingOAuthConnection", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateOutgoingOAuthConnection, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
 	c.LogAudit("attempt")
@@ -314,7 +314,7 @@ func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 }
 
 func deleteOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("deleteOutgoingOAuthConnection", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteOutgoingOAuthConnection, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
 	c.LogAudit("attempt")
@@ -355,7 +355,7 @@ func deleteOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 // with the provided connection configuration. If the credentials are valid, the request will return a 200 status code and
 // if the credentials are invalid, the request will return a 400 status code.
 func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("validateOutgoingOAuthConnectionCredentials", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventValidateOutgoingOAuthConnectionCredentials, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -393,22 +393,18 @@ func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWrite
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "outgoing_oauth_connection", inputConnection)
 
-	resultStatusCode := http.StatusOK
-
 	// Try to retrieve a token with the provided credentials
 	// do not store the token, just check if the credentials are valid and the request can be made
 	_, err := service.RetrieveTokenForConnection(c.AppContext, inputConnection)
 	if err != nil {
 		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error", nil, "", err.StatusCode).Wrap(err)
 		c.Logger.Error("Failed to retrieve token while validating outgoing oauth connection", logr.Err(err))
-		resultStatusCode = err.StatusCode
-	} else {
-		ReturnStatusOK(w)
+		return
 	}
 
 	auditRec.Success()
 	auditRec.AddEventResultState(inputConnection)
 	auditRec.AddEventObjectType("outgoing_oauth_connection")
 
-	w.WriteHeader(resultStatusCode)
+	ReturnStatusOK(w)
 }

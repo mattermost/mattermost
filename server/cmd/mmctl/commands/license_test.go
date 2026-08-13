@@ -57,13 +57,11 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 	// create temporary file
 	tmpFile, err := os.CreateTemp(os.TempDir(), "testLicense-")
-	if err != nil {
-		panic(err)
-	}
+	s.NoError(err)
+
 	text := []byte(fakeLicensePayload)
-	if _, err = tmpFile.Write(text); err != nil {
-		panic(err)
-	}
+	_, err = tmpFile.Write(text)
+	s.NoError(err)
 	defer os.Remove(tmpFile.Name())
 
 	mockLicenseFile := []byte(fakeLicensePayload)
@@ -122,5 +120,79 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseStringCmdF() {
 		printer.Clean()
 		err := uploadLicenseStringCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().EqualError(err, "enter one license file to upload")
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestGetLicenseCmdF() {
+	s.Run("Get license successfully", func() {
+		printer.Clean()
+
+		mockLicense := map[string]string{
+			"IsLicensed":   "true",
+			"Id":           "test-license-id",
+			"Company":      "Test Company",
+			"Name":         "Test Contact",
+			"Email":        "test@example.com",
+			"SkuShortName": "enterprise",
+			"Users":        "100",
+			"IssuedAt":     "1609459200000",
+			"StartsAt":     "1609459200000",
+			"ExpiresAt":    "1640995200000",
+			"IsTrial":      "false",
+		}
+
+		s.client.
+			EXPECT().
+			GetOldClientLicense(context.TODO(), "").
+			Return(mockLicense, &model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+
+		err := getLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		// Verify human-readable dates are formatted correctly
+		output := printer.GetLines()[0].(map[string]string)
+		s.Equal("2021-01-01T00:00:00Z", output["IssuedAtReadable"])
+		s.Equal("2021-01-01T00:00:00Z", output["StartsAtReadable"])
+		s.Equal("2022-01-01T00:00:00Z", output["ExpiresAtReadable"])
+		s.Equal("Test Company", output["Company"])
+		s.Equal("enterprise", output["SkuShortName"])
+	})
+
+	s.Run("No license installed", func() {
+		printer.Clean()
+
+		mockLicense := map[string]string{
+			"IsLicensed": "false",
+		}
+
+		s.client.
+			EXPECT().
+			GetOldClientLicense(context.TODO(), "").
+			Return(mockLicense, &model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+
+		err := getLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "No license installed")
+	})
+
+	s.Run("Fail to get license", func() {
+		printer.Clean()
+		mockErr := errors.New("mock error")
+
+		s.client.
+			EXPECT().
+			GetOldClientLicense(context.TODO(), "").
+			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, mockErr).
+			Times(1)
+
+		err := getLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().NotNil(err)
+		s.Require().Equal(err, mockErr)
+		s.Require().Len(printer.GetLines(), 0)
 	})
 }

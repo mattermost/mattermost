@@ -30,16 +30,21 @@ func TestIncomingWebhook(t *testing.T) {
 
 	url := apiClient.URL + "/hooks/" + hook.Id
 
-	tooLongText := ""
-	for i := 0; i < 8200; i++ {
-		tooLongText += "a"
+	var tooLongTextBuilder strings.Builder
+	for range 8200 {
+		tooLongTextBuilder.WriteString("a")
 	}
+	tooLongText := tooLongTextBuilder.String()
 
 	t.Run("WebhookBasics", func(t *testing.T) {
 		payload := "payload={\"text\": \"test text\"}"
 		resp, err := http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(payload))
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		refreshed, appErr := th.App.GetIncomingWebhook(hook.Id)
+		require.Nil(t, appErr)
+		require.NotZero(t, refreshed.LastUsed)
 
 		payload = "payload={\"text\": \"\"}"
 		resp, err = http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(payload))
@@ -264,7 +269,7 @@ func TestCommandWebhooks(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		response, err2 := http.Post(apiClient.URL+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
 		require.NoError(t, err2)
 		require.Equal(t, http.StatusOK, response.StatusCode)

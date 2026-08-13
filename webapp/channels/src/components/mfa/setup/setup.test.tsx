@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import Setup from 'components/mfa/setup/setup';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 jest.mock('actions/global_actions', () => ({
@@ -31,12 +30,12 @@ describe('components/mfa/setup', () => {
     };
 
     test('should match snapshot without required text', async () => {
-        const wrapper = shallow<Setup>(
+        const {container} = renderWithContext(
             <Setup {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
-        const requiredText = wrapper.find('#mfa.setup.required_mfa');
-        expect(requiredText).not.toBeFalsy();
+        expect(container).toMatchSnapshot();
+        const requiredText = screen.queryByText(/Multi-factor authentication is required/);
+        expect(requiredText).not.toBeInTheDocument();
     });
 
     test('should match snapshot with required text', async () => {
@@ -45,42 +44,49 @@ describe('components/mfa/setup', () => {
             enforceMultifactorAuthentication: true,
         };
 
-        const wrapper = shallow<Setup>(
+        renderWithContext(
             <Setup {...props}/>,
         );
-        const requiredText = wrapper.find('#mfa.setup.required_mfa');
+        const requiredText = screen.queryByText(/Multi-factor authentication is required/);
         expect(requiredText).toBeDefined();
     });
 
     test('should set state after calling component did mount', async () => {
-        const wrapper = shallow<Setup>(
+        renderWithContext(
             <Setup {...baseProps}/>,
         );
-        expect(generateMfaSecret).toBeCalled();
-        await wrapper.instance().componentDidMount();
-        expect(wrapper.state('secret')).toEqual('generated secret');
-        expect(wrapper.state('qrCode')).toEqual('qrcode');
+        expect(generateMfaSecret).toHaveBeenCalled();
+
+        await waitFor(() => {
+            expect(screen.getByText(/generated secret/)).toBeInTheDocument();
+        });
     });
 
     test('should call activateMfa on submission', async () => {
-        const wrapper = mountWithIntl(
+        renderWithContext(
             <Setup {...baseProps}/>,
         );
 
-        (wrapper.instance() as Setup).input.current!.value = 'testcodeinput';
-        wrapper.find('form').simulate('submit', {preventDefault: () => {}});
-        expect(baseProps.actions.activateMfa).toBeCalledWith('testcodeinput');
+        const input = screen.getByPlaceholderText('MFA Code');
+        await userEvent.type(input, 'testcodeinput');
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        await waitFor(() => {
+            expect(baseProps.actions.activateMfa).toHaveBeenCalledWith('testcodeinput');
+        });
     });
 
     test('should focus input when code is empty', async () => {
-        const wrapper = mountWithIntl(
+        renderWithContext(
             <Setup {...baseProps}/>,
         );
-        const input = wrapper.find('input').getDOMNode() as HTMLInputElement;
-        const focusSpy = jest.spyOn(input, 'focus');
+        const input = screen.getByPlaceholderText('MFA Code');
 
-        wrapper.find('form').simulate('submit', {preventDefault: () => {}});
-        expect(focusSpy).toHaveBeenCalled();
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        await waitFor(() => {
+            expect(input).toHaveFocus();
+        });
     });
 
     test('should focus input when authentication fails', async () => {
@@ -97,15 +103,16 @@ describe('components/mfa/setup', () => {
             },
         };
 
-        const wrapper = mountWithIntl(
+        renderWithContext(
             <Setup {...props}/>,
         );
-        const input = wrapper.find('input').getDOMNode() as HTMLInputElement;
-        const focusSpy = jest.spyOn(input, 'focus');
+        const input = screen.getByPlaceholderText('MFA Code');
 
-        (wrapper.instance() as Setup).input.current!.value = 'invalidcode';
-        wrapper.find('form').simulate('submit', {preventDefault: () => {}});
-        await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for state update
-        expect(focusSpy).toHaveBeenCalled();
+        await userEvent.type(input, 'invalidcode');
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        await waitFor(() => {
+            expect(input).toHaveFocus();
+        });
     });
 });

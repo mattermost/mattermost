@@ -5,6 +5,8 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
@@ -18,7 +20,6 @@ import {
 } from 'selectors/calls';
 
 import ProfilePopoverCallButton from 'components/profile_popover/profile_popover_calls_button';
-import WithTooltip from 'components/with_tooltip';
 
 import {getDirectChannelName} from 'utils/utils';
 
@@ -29,7 +30,7 @@ type Props = {
     currentUserId: string;
     fullname: string;
     username: string;
-}
+};
 
 export function isUserInCall(state: GlobalState, userId: string, channelId: string) {
     const sessionsInCall = getSessionsInCalls(state)[channelId] || {};
@@ -102,7 +103,7 @@ const CallButton = ({
         defaultMessage: 'Call with {user} is ongoing',
     }, {user: fullname || username},
     ) : formatMessage({
-        id: 'webapp.mattermost.feature.start_call',
+        id: 'user_profile.call.start',
         defaultMessage: 'Start Call',
     });
     const callButton = (

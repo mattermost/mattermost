@@ -32,7 +32,6 @@ import {
     isManuallyUnread,
     getCurrentChannelId,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getMostRecentPostIdInChannel, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {
     getCurrentRelativeTeamUrl,
@@ -50,7 +49,7 @@ import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {loadCustomStatusEmojisForPostList} from 'actions/emoji_actions';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {markThreadAsRead} from 'actions/views/threads';
-import {getLastViewedChannelName, getPenultimateViewedChannelName} from 'selectors/local_storage';
+import {getLastViewedChannelName} from 'selectors/local_storage';
 import {getSelectedPost, getSelectedPostId} from 'selectors/rhs';
 import {getLastPostsApiTimeForChannel} from 'selectors/views/channel';
 import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
@@ -61,6 +60,7 @@ import {getHistory} from 'utils/browser_history';
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
 import {stopTryNotificationRing} from 'utils/notification_sounds';
+import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 
 import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 
@@ -78,7 +78,11 @@ export function goToLastViewedChannel(): ActionFuncAsync {
             channelToSwitchTo = getChannelByName(channels, getRedirectChannelNameForTeam(state, getCurrentTeamId(state)));
         }
 
-        return dispatch(switchToChannel(channelToSwitchTo!));
+        const result = await dispatch(switchToChannel(channelToSwitchTo!));
+        if (isChannelPopoutWindow()) {
+            window.close();
+        }
+        return result;
     };
 }
 
@@ -192,9 +196,14 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
             dispatch(selectTeam(''));
             dispatch({type: TeamTypes.LEAVE_TEAM, data: currentTeam});
             getHistory().push('/');
+            if (isChannelPopoutWindow()) {
+                window.close();
+            }
         } else if (channelId === currentChannelId) {
-            // We only need to leave the channel if we are in the channel
             getHistory().push(teamUrl);
+            if (isChannelPopoutWindow()) {
+                window.close();
+            }
         }
 
         return {
@@ -360,23 +369,23 @@ export interface LoadPostsReturnValue {
     moreToLoad: boolean;
 }
 
-export type CanLoadMorePosts = typeof PostRequestTypes[keyof typeof PostRequestTypes] | undefined
+export type CanLoadMorePosts = typeof PostRequestTypes[keyof typeof PostRequestTypes] | undefined;
 
 export interface LoadPostsParameters {
     channelId: string;
     postId: string;
     type: CanLoadMorePosts;
+    perPage: number;
 }
 
 export function loadPosts({
     channelId,
     postId,
     type,
+    perPage,
 }: LoadPostsParameters): ThunkActionFunc<Promise<LoadPostsReturnValue>> {
     //type here can be BEFORE_ID or AFTER_ID
     return async (dispatch) => {
-        const POST_INCREASE_AMOUNT = Constants.POST_CHUNK_SIZE / 2;
-
         dispatch({
             type: ActionTypes.LOADING_POSTS,
             data: true,
@@ -386,9 +395,9 @@ export function loadPosts({
         const page = 0;
         let result;
         if (type === PostRequestTypes.BEFORE_ID) {
-            result = await dispatch(PostActions.getPostsBefore(channelId, postId, page, POST_INCREASE_AMOUNT));
+            result = await dispatch(PostActions.getPostsBefore(channelId, postId, page, perPage));
         } else {
-            result = await dispatch(PostActions.getPostsAfter(channelId, postId, page, POST_INCREASE_AMOUNT));
+            result = await dispatch(PostActions.getPostsAfter(channelId, postId, page, perPage));
         }
 
         const {data} = result;
@@ -533,16 +542,6 @@ export function deleteChannel(channelId: string): ActionFuncAsync<boolean> {
         // Validate channel ID
         if (!channel || channel.id.length !== Constants.CHANNEL_ID_LENGTH) {
             return {data: false};
-        }
-
-        const canViewArchivedChannels = getConfig(state).ExperimentalViewArchivedChannels === 'true';
-        const currentTeamDetails = getCurrentTeam(state);
-        const penultimateViewedChannelName = getPenultimateViewedChannelName(state) ||
-            getRedirectChannelNameForTeam(state, getCurrentTeamId(state));
-
-        // Handle redirection before deletion if needed
-        if (!canViewArchivedChannels && penultimateViewedChannelName && currentTeamDetails) {
-            getHistory().push('/' + currentTeamDetails.name + '/channels/' + penultimateViewedChannelName);
         }
 
         // Call the delete channel action

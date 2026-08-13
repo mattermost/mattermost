@@ -1,83 +1,19 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`components/ReactionList should render nothing when no reactions 1`] = `""`;
+exports[`components/ReactionList should render nothing when no reactions 1`] = `<div />`;
 
 exports[`components/ReactionList should render when there are reactions 1`] = `
-<div
-  aria-label="reactions"
-  className="post-reaction-list"
->
-  <Connect(Reaction)
-    emojiName="expressionless"
-    key="expressionless"
-    post={
-      Object {
-        "channel_id": "",
-        "create_at": 0,
-        "delete_at": 0,
-        "edit_at": 0,
-        "hashtags": "",
-        "id": "post_id",
-        "is_pinned": false,
-        "message": "post message",
-        "metadata": Object {
-          "embeds": Array [],
-          "emojis": Array [],
-          "files": Array [],
-          "images": Object {},
-          "reactions": Array [],
-        },
-        "original_id": "",
-        "pending_post_id": "",
-        "props": Object {},
-        "reply_count": 0,
-        "root_id": "",
-        "type": "system_add_remove",
-        "update_at": 0,
-        "user_id": "user_id",
-      }
-    }
-    reactions={
-      Array [
-        Object {
-          "create_at": 1542994995740,
-          "emoji_name": "expressionless",
-          "post_id": "xbqfo5qb4bb4ffmj9hqfji6fiw",
-          "user_id": "1rj9fokoeffrigu7sk5uc8aiih",
-        },
-      ]
-    }
-  />
-  <AddReactionButton
-    onEmojiClick={[Function]}
-    post={
-      Object {
-        "channel_id": "",
-        "create_at": 0,
-        "delete_at": 0,
-        "edit_at": 0,
-        "hashtags": "",
-        "id": "post_id",
-        "is_pinned": false,
-        "message": "post message",
-        "metadata": Object {
-          "embeds": Array [],
-          "emojis": Array [],
-          "files": Array [],
-          "images": Object {},
-          "reactions": Array [],
-        },
-        "original_id": "",
-        "pending_post_id": "",
-        "props": Object {},
-        "reply_count": 0,
-        "root_id": "",
-        "type": "system_add_remove",
-        "update_at": 0,
-        "user_id": "user_id",
-      }
-    }
-    teamId="teamId"
-  />
+<div>
+  <div
+    aria-label="reactions"
+    class="post-reaction-list"
+  >
+    <div
+      data-testid="reaction-expressionless"
+    />
+    <div
+      data-testid="add-reaction-button"
+    />
+  </div>
 </div>
 `;

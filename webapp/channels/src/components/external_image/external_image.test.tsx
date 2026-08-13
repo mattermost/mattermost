@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import {Client4} from 'mattermost-redux/client';
+
+import {render} from 'tests/react_testing_utils';
 
 import ExternalImage from './external_image';
 
@@ -23,10 +24,10 @@ describe('ExternalImage', () => {
     };
 
     test('should render an image', () => {
-        const wrapper = shallow(<ExternalImage {...baseProps}/>);
+        const {container} = render(<ExternalImage {...baseProps}/>);
 
         expect(baseProps.children).toHaveBeenCalledWith(baseProps.src);
-        expect(wrapper.find('img').exists()).toBe(true);
+        expect(container.querySelector('img')).toBeInTheDocument();
     });
 
     test('should render an image without image metadata', () => {
@@ -35,10 +36,10 @@ describe('ExternalImage', () => {
             imageMetadata: undefined,
         };
 
-        const wrapper = shallow(<ExternalImage {...props}/>);
+        const {container} = render(<ExternalImage {...props}/>);
 
         expect(baseProps.children).toHaveBeenCalledWith(baseProps.src);
-        expect(wrapper.find('img').exists()).toBe(true);
+        expect(container.querySelector('img')).toBeInTheDocument();
     });
 
     test('should render an SVG when enabled', () => {
@@ -53,10 +54,10 @@ describe('ExternalImage', () => {
             src: 'https://example.com/logo.svg',
         };
 
-        const wrapper = shallow(<ExternalImage {...props}/>);
+        const {container} = render(<ExternalImage {...props}/>);
 
         expect(props.children).toHaveBeenCalledWith(props.src);
-        expect(wrapper.find('img').exists()).toBe(true);
+        expect(container.querySelector('img')).toBeInTheDocument();
     });
 
     test('should not render an SVG when disabled', () => {
@@ -72,10 +73,10 @@ describe('ExternalImage', () => {
             src: 'https://example.com/logo.svg',
         };
 
-        const wrapper = shallow(<ExternalImage {...props}/>);
+        const {container} = render(<ExternalImage {...props}/>);
 
         expect(props.children).toHaveBeenCalledWith('');
-        expect(wrapper.find('img').exists()).toBe(true);
+        expect(container.querySelector('img')).toBeInTheDocument();
     });
 
     test('should pass src through the image proxy when enabled', () => {
@@ -84,9 +85,9 @@ describe('ExternalImage', () => {
             hasImageProxy: true,
         };
 
-        const wrapper = shallow(<ExternalImage {...props}/>);
+        const {container} = render(<ExternalImage {...props}/>);
 
         expect(props.children).toHaveBeenCalledWith(Client4.getBaseRoute() + '/image?url=' + encodeURIComponent(props.src));
-        expect(wrapper.find('img').exists()).toBe(true);
+        expect(container.querySelector('img')).toBeInTheDocument();
     });
 });

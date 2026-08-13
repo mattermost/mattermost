@@ -51,7 +51,7 @@ func (s *SqlPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostA
 
 	acknowledgement.PreSave()
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -77,7 +77,7 @@ func (s *SqlPostAcknowledgementStore) SaveWithModel(acknowledgement *model.PostA
 }
 
 func (s *SqlPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledgement) error {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -109,6 +109,15 @@ func (s *SqlPostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowle
 	return nil
 }
 
+func (s *SqlPostAcknowledgementStore) DeleteAllForPost(postID string) error {
+	query := s.getQueryBuilder().
+		Delete("PostAcknowledgements").
+		Where(sq.Eq{"PostId": postID})
+
+	_, err := s.GetMaster().ExecBuilder(query)
+	return err
+}
+
 func (s *SqlPostAcknowledgementStore) GetForPost(postID string) ([]*model.PostAcknowledgement, error) {
 	var acknowledgements []*model.PostAcknowledgement
 
@@ -133,10 +142,7 @@ func (s *SqlPostAcknowledgementStore) GetForPosts(postIds []string) ([]*model.Po
 
 	perPage := 200
 	for i := 0; i < len(postIds); i += perPage {
-		j := i + perPage
-		if len(postIds) < j {
-			j = len(postIds)
-		}
+		j := min(len(postIds), i+perPage)
 
 		query := s.getQueryBuilder().
 			Select("PostId", "UserId", "ChannelId", "AcknowledgedAt", "RemoteId").
@@ -232,11 +238,7 @@ func (s *SqlPostAcknowledgementStore) buildUpsertQuery(acknowledgement *model.Po
 		Columns(columnsToInsert...).
 		Values(valuesToInsert...)
 
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = query.SuffixExpr(sq.Expr("ON DUPLICATE KEY UPDATE AcknowledgedAt = ?", acknowledgement.AcknowledgedAt))
-	} else {
-		query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET AcknowledgedAt = ?", acknowledgement.AcknowledgedAt))
-	}
+	query = query.SuffixExpr(sq.Expr("ON CONFLICT (postid, userid) DO UPDATE SET AcknowledgedAt = ?", acknowledgement.AcknowledgedAt))
 
 	return query
 }
@@ -283,7 +285,7 @@ func (s *SqlPostAcknowledgementStore) BatchSave(acknowledgements []*model.PostAc
 		}
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -326,7 +328,7 @@ func (s *SqlPostAcknowledgementStore) BatchDelete(acknowledgements []*model.Post
 		return nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}

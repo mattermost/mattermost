@@ -25,7 +25,7 @@ type Props = {
     user: UserProfile;
     isBot?: boolean;
     overwriteIcon?: string;
-}
+};
 
 export default class PostProfilePicture extends React.PureComponent<Props> {
     static defaultProps = {
@@ -100,7 +100,7 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
 
         return (
             <ProfilePicture
-                size='md'
+                size={this.props.compactDisplay ? 'inherit' : 'md'}
                 src={src}
                 profileSrc={profileSrc}
                 isEmoji={isEmoji}

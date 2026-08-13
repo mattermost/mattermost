@@ -39,13 +39,12 @@ func getLicWithSkuShortName(skuShortName string) *model.License {
 
 func TestSendNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
 	require.Nil(t, appErr)
 
-	post1, createPostErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
+	post1, _, createPostErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@" + th.BasicUser2.Username,
@@ -62,7 +61,7 @@ func TestSendNotifications(t *testing.T) {
 	})
 
 	t.Run("license is required for group mention", func(t *testing.T) {
-		group := th.CreateGroup()
+		group := th.CreateGroup(t)
 		group.AllowReference = true
 		group, updateErr := th.App.UpdateGroup(group)
 		require.Nil(t, updateErr)
@@ -76,7 +75,7 @@ func TestSendNotifications(t *testing.T) {
 			Message:   fmt.Sprintf("hello @%s group", *group.Name),
 			CreateAt:  model.GetMillis() - 10000,
 		}
-		groupMentionPost, createPostErr := th.App.CreatePost(th.Context, groupMentionPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		groupMentionPost, _, createPostErr := th.App.CreatePost(th.Context, groupMentionPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, createPostErr)
 
 		mentions, err := th.App.SendNotifications(th.Context, groupMentionPost, th.BasicTeam, th.BasicChannel, th.BasicUser, nil, true)
@@ -96,7 +95,7 @@ func TestSendNotifications(t *testing.T) {
 		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 		require.Nil(t, appErr)
 
-		post2, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
+		post2, _, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: dm.Id,
 			Message:   "dm message",
@@ -112,7 +111,7 @@ func TestSendNotifications(t *testing.T) {
 		appErr = th.App.Srv().InvalidateAllCaches()
 		require.Nil(t, appErr)
 
-		post3, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
+		post3, _, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
 			ChannelId: dm.Id,
 			Message:   "dm message",
@@ -131,13 +130,13 @@ func TestSendNotifications(t *testing.T) {
 
 	t.Run("message in GM generate mention", func(t *testing.T) {
 		users := []*model.User{}
-		for i := 0; i < 2; i++ {
-			user := th.CreateUser()
+		for range 2 {
+			user := th.CreateUser(t)
 			users = append(users, user)
 		}
-		channel := th.CreateGroupChannel(th.Context, users[0], users[1])
+		channel := th.CreateGroupChannel(t, users[0], users[1])
 
-		post2, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
+		post2, _, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 			UserId:    users[0].Id,
 			ChannelId: channel.Id,
 			Message:   "gm message",
@@ -153,7 +152,7 @@ func TestSendNotifications(t *testing.T) {
 		appErr = th.App.Srv().InvalidateAllCaches()
 		require.Nil(t, appErr)
 
-		post3, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
+		post3, _, appErr := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 			UserId:    users[0].Id,
 			ChannelId: channel.Id,
 			Message:   "gm message",
@@ -176,10 +175,12 @@ func TestSendNotifications(t *testing.T) {
 				UserId:    user.Id,
 				ChannelId: th.BasicChannel.Id,
 				Message:   "a message",
-				Props:     model.StringInterface{model.PostPropsFromWebhook: "true", model.PostPropsOverrideUsername: "a bot"},
+				Props:     model.StringInterface{model.PostPropsOverrideUsername: "a bot"},
 			}
 
-			rootPost, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
+			// from_webhook is now server-set via CreatePostFlags rather than client Props;
+			// use the flag-based path so the resulting post legitimately carries the marker.
+			rootPost, _, appErr := th.App.CreatePost(th.Context, rootPost, th.BasicChannel, model.CreatePostFlags{FromIncomingWebhook: true})
 			require.Nil(t, appErr)
 
 			childPost := &model.Post{
@@ -188,7 +189,7 @@ func TestSendNotifications(t *testing.T) {
 				RootId:    rootPost.Id,
 				Message:   "a reply",
 			}
-			childPost, appErr = th.App.CreatePostMissingChannel(th.Context, childPost, false, true)
+			childPost, _, appErr = th.App.CreatePostMissingChannel(th.Context, childPost, false, true)
 			require.Nil(t, appErr)
 
 			postList := model.PostList{
@@ -219,15 +220,14 @@ func TestSendNotifications(t *testing.T) {
 
 func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	th.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
-	sender := th.CreateUser()
+	sender := th.CreateUser(t)
 
-	th.LinkUserToTeam(sender, th.BasicTeam)
-	member := th.AddUserToChannel(sender, th.BasicChannel)
+	th.LinkUserToTeam(t, sender, th.BasicTeam)
+	member := th.AddUserToChannel(t, sender, th.BasicChannel)
 
 	eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
 
@@ -305,7 +305,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuEnterprise))
 
 		// Make a group and add users
-		group := th.CreateGroup()
+		group := th.CreateGroup(t)
 		group.AllowReference = true
 		group, updateErr := th.App.UpdateGroup(group)
 		require.Nil(t, updateErr)
@@ -361,7 +361,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		}
 
 		// Use CreatePost instead of SendNotifications here since we need that to set up some threads state
-		_, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		_, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
 
 		received1 := <-messages1
@@ -433,6 +433,179 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		assert.Equal(t, postURL, receivedPost.Message)
 		assert.Nil(t, receivedPost.Metadata.Embeds)
 	})
+}
+
+func TestSendNotifications_SilentPostBroadcastsPosted(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	bot := th.CreateBot(t)
+	botUser, appErr := th.App.GetUser(bot.UserId)
+	require.Nil(t, appErr)
+	th.LinkUserToTeam(t, botUser, th.BasicTeam)
+	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
+	messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
+	defer closeWS()
+
+	post := &model.Post{
+		UserId:    bot.UserId,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "silent delivery",
+	}
+	post.AddProp(model.PostPropsSilentNotification, true)
+	post.AddProp(model.PostPropsFromBot, "true")
+
+	_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, botUser, nil, false)
+	require.NoError(t, err)
+
+	received := <-messages
+	require.Equal(t, model.WebsocketEventPosted, received.EventType())
+	assert.Equal(t, th.BasicChannel.Id, received.GetBroadcast().ChannelId)
+
+	receivedPost := &model.Post{}
+	err = json.Unmarshal([]byte(received.GetData()["post"].(string)), &receivedPost)
+	require.NoError(t, err)
+	assert.True(t, receivedPost.HasSilentNotification())
+	assert.Equal(t, "true", receivedPost.GetProp(model.PostPropsFromBot))
+}
+
+func TestCreatePostSilentBroadcastsPostedWithProps(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	bot := th.CreateBot(t)
+	botUser, appErr := th.App.GetUser(bot.UserId)
+	require.Nil(t, appErr)
+	th.LinkUserToTeam(t, botUser, th.BasicTeam)
+	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
+	messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
+	defer closeWS()
+
+	createdPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    bot.UserId,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "silent via create post",
+	}, th.BasicChannel, model.CreatePostFlags{SilentNotification: true})
+	require.Nil(t, appErr)
+	require.True(t, createdPost.HasSilentNotification())
+
+	received := <-messages
+	require.Equal(t, model.WebsocketEventPosted, received.EventType())
+
+	receivedPost := &model.Post{}
+	unmarshalErr := json.Unmarshal([]byte(received.GetData()["post"].(string)), &receivedPost)
+	require.NoError(t, unmarshalErr)
+	assert.Equal(t, createdPost.Id, receivedPost.Id)
+	assert.True(t, receivedPost.HasSilentNotification())
+	assert.Equal(t, "true", receivedPost.GetProp(model.PostPropsFromBot))
+}
+
+// TestSendNotifications_SilentSkipsGroupMention verifies that a silent @-channel
+// mention does not populate the "mentions" field in the broadcast WS event for
+// any channel member. Covers the !suppressNotifications guard at the
+// allowGroupMentions branch in notification.go.
+func TestSendNotifications_SilentSkipsGroupMention(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	bot := th.CreateBot(t)
+	botUser, appErr := th.App.GetUser(bot.UserId)
+	require.Nil(t, appErr)
+	th.LinkUserToTeam(t, botUser, th.BasicTeam)
+	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
+	messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
+	defer closeWS1()
+	messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
+	defer closeWS2()
+
+	post := &model.Post{
+		UserId:    bot.UserId,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "@channel heads up",
+	}
+	post.AddProp(model.PostPropsSilentNotification, true)
+	post.AddProp(model.PostPropsFromBot, "true")
+
+	_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, botUser, nil, false)
+	require.NoError(t, err)
+
+	// The posted event still broadcasts (for live rendering), but mentions
+	// metadata must be absent under silent suppression.
+	received1 := <-messages1
+	require.Equal(t, model.WebsocketEventPosted, received1.EventType())
+	assert.Nil(t, received1.GetData()["mentions"], "silent @channel must not surface mentions for BasicUser")
+
+	received2 := <-messages2
+	require.Equal(t, model.WebsocketEventPosted, received2.EventType())
+	assert.Nil(t, received2.GetData()["mentions"], "silent @channel must not surface mentions for BasicUser2")
+}
+
+// TestSendNotifications_SilentSkipsCRTFollowers verifies that a silent reply
+// in a CRT thread does not populate the "followers" field in the broadcast
+// WS event. Covers the !suppressNotifications guard around the CRT follower
+// path in notification.go.
+func TestSendNotifications_SilentSkipsCRTFollowers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	bot := th.CreateBot(t)
+	botUser, appErr := th.App.GetUser(bot.UserId)
+	require.Nil(t, appErr)
+	th.LinkUserToTeam(t, botUser, th.BasicTeam)
+	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	// Sanity baseline: a non-silent reply populates followers for the root author.
+	baselineFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
+	baselineMsgs, baselineClose := connectFakeWebSocket(t, th, th.BasicUser.Id, "", baselineFilter)
+	defer baselineClose()
+
+	nonSilent := &model.Post{
+		UserId:    bot.UserId,
+		ChannelId: th.BasicChannel.Id,
+		RootId:    th.BasicPost.Id,
+		Message:   "normal reply",
+	}
+	_, _, appErr = th.App.CreatePost(th.Context, nonSilent, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	baseline := <-baselineMsgs
+	require.Equal(t, model.WebsocketEventPosted, baseline.EventType())
+	require.NotNil(t, baseline.GetData()["followers"], "baseline (non-silent) reply must populate followers — guards against unrelated regression in CRT plumbing")
+
+	// Now the actual silent case: followers must be absent.
+	silentMsgs, silentClose := connectFakeWebSocket(t, th, th.BasicUser.Id, "", baselineFilter)
+	defer silentClose()
+
+	silent := &model.Post{
+		UserId:    bot.UserId,
+		ChannelId: th.BasicChannel.Id,
+		RootId:    th.BasicPost.Id,
+		Message:   "silent reply",
+	}
+	_, _, appErr = th.App.CreatePost(th.Context, silent, th.BasicChannel, model.CreatePostFlags{SilentNotification: true})
+	require.Nil(t, appErr)
+
+	receivedSilent := <-silentMsgs
+	require.Equal(t, model.WebsocketEventPosted, receivedSilent.EventType())
+	assert.Nil(t, receivedSilent.GetData()["followers"], "silent CRT reply must not notify thread followers")
 }
 
 func assertUnmarshalsTo(t *testing.T, expected any, actual any) {
@@ -533,8 +706,7 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectio
 
 func TestConnectFakeWebSocket(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	teamID := th.BasicTeam.Id
 	userID := th.BasicUser.Id
@@ -568,19 +740,18 @@ func TestConnectFakeWebSocket(t *testing.T) {
 
 func TestSendNotificationsWithManyUsers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	users := []*model.User{}
-	for i := 0; i < 10; i++ {
-		user := th.CreateUser()
-		th.LinkUserToTeam(user, th.BasicTeam)
+	for range 10 {
+		user := th.CreateUser(t)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
 		_, appErr := th.App.AddUserToChannel(th.Context, user, th.BasicChannel, false)
 		require.Nil(t, appErr)
 		users = append(users, user)
 	}
 
-	_, appErr1 := th.App.CreatePostMissingChannel(th.Context, &model.Post{
+	_, _, appErr1 := th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@channel",
@@ -600,7 +771,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 		}
 	})
 
-	_, appErr1 = th.App.CreatePostMissingChannel(th.Context, &model.Post{
+	_, _, appErr1 = th.App.CreatePostMissingChannel(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@channel",
@@ -623,8 +794,7 @@ func TestSendNotificationsWithManyUsers(t *testing.T) {
 
 func TestSendOutOfChannelMentions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	channel := th.BasicChannel
 
@@ -652,7 +822,7 @@ func TestSendOutOfChannelMentions(t *testing.T) {
 	})
 
 	t.Run("should send ephemeral post when there is an out of team mention", func(t *testing.T) {
-		outOfTeamUser := th.CreateUser()
+		outOfTeamUser := th.CreateUser(t)
 		post := &model.Post{}
 		potentialMentions := []string{outOfTeamUser.Username}
 
@@ -665,24 +835,23 @@ func TestSendOutOfChannelMentions(t *testing.T) {
 
 func TestFilterOutOfChannelMentions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	channel := th.BasicChannel
 
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
-	user3 := th.CreateUser()
-	guest := th.CreateGuest()
-	user4 := th.CreateUser()
-	guestAndUser4Channel := th.CreateChannel(th.Context, th.BasicTeam)
+	user3 := th.CreateUser(t)
+	guest := th.CreateGuest(t)
+	user4 := th.CreateUser(t)
+	guestAndUser4Channel := th.CreateChannel(t, th.BasicTeam)
 	defer func() {
 		appErr := th.App.PermanentDeleteUser(th.Context, guest)
 		require.Nil(t, appErr)
 	}()
-	th.LinkUserToTeam(user3, th.BasicTeam)
-	th.LinkUserToTeam(user4, th.BasicTeam)
-	th.LinkUserToTeam(guest, th.BasicTeam)
+	th.LinkUserToTeam(t, user3, th.BasicTeam)
+	th.LinkUserToTeam(t, user4, th.BasicTeam)
+	th.LinkUserToTeam(t, guest, th.BasicTeam)
 	_, appErr := th.App.AddUserToChannel(th.Context, guest, channel, false)
 	require.Nil(t, appErr)
 	_, appErr = th.App.AddUserToChannel(th.Context, user4, guestAndUser4Channel, false)
@@ -704,9 +873,56 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		assert.Nil(t, outOfGroupUsers)
 	})
 
+	t.Run("should return no results for system messages", func(t *testing.T) {
+		post := &model.Post{Type: model.PostTypeJoinChannel}
+		potentialMentions := []string{user2.Username, user3.Username}
+
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+
+		assert.NoError(t, err)
+		assert.Nil(t, outOfTeamUsers)
+		assert.Nil(t, outOfChannelUsers)
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should return no results for silent posts", func(t *testing.T) {
+		// A silent post must not trigger the "did you mean to invite X?"
+		// ephemeral that goes to the poster, so the helper returns nil
+		// for all three categories regardless of channel membership.
+		post := &model.Post{}
+		post.AddProp(model.PostPropsSilentNotification, true)
+		potentialMentions := []string{user2.Username, user3.Username}
+
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+
+		assert.NoError(t, err)
+		assert.Nil(t, outOfTeamUsers)
+		assert.Nil(t, outOfChannelUsers)
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("force notification overrides silent for out-of-channel mentions", func(t *testing.T) {
+		// IsNotificationSuppressed returns false when force is set, so the
+		// helper must run its normal logic and surface user3 (out-of-channel).
+		post := &model.Post{}
+		post.AddProp(model.PostPropsSilentNotification, true)
+		post.AddProp(model.PostPropsForceNotification, model.NewId())
+		potentialMentions := []string{user3.Username}
+
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+
+		assert.NoError(t, err)
+		assert.Len(t, outOfChannelUsers, 1)
+		assert.Equal(t, user3.Id, outOfChannelUsers[0].Id)
+		// Normal-logic fall-through returns an initialized empty slice for
+		// outOfTeamUsers (mirrors the "should return users not in the channel" case).
+		assert.Len(t, outOfTeamUsers, 0)
+		assert.Nil(t, outOfGroupUsers)
+	})
+
 	t.Run("should return users not in the team", func(t *testing.T) {
-		notThisTeamUser1 := th.CreateUser()
-		notThisTeamUser2 := th.CreateUser()
+		notThisTeamUser1 := th.CreateUser(t)
+		notThisTeamUser2 := th.CreateUser(t)
 		post := &model.Post{}
 		potentialMentions := []string{notThisTeamUser1.Username, notThisTeamUser2.Username}
 
@@ -778,7 +994,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	})
 
 	t.Run("should not return inactive users", func(t *testing.T) {
-		inactiveUser := th.CreateUser()
+		inactiveUser := th.CreateUser(t)
 		inactiveUser, appErr := th.App.UpdateActive(th.Context, inactiveUser, false)
 		require.Nil(t, appErr)
 
@@ -794,7 +1010,7 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	})
 
 	t.Run("should not return bot users", func(t *testing.T) {
-		botUser := th.CreateBot()
+		botUser := th.CreateBot(t)
 
 		post := &model.Post{}
 		potentialMentions := []string{botUser.Username}
@@ -820,19 +1036,19 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 	})
 
 	t.Run("should separate users not in the channel from users not in the group", func(t *testing.T) {
-		nonChannelMember := th.CreateUser()
-		th.LinkUserToTeam(nonChannelMember, th.BasicTeam)
-		nonGroupMember := th.CreateUser()
-		th.LinkUserToTeam(nonGroupMember, th.BasicTeam)
+		nonChannelMember := th.CreateUser(t)
+		th.LinkUserToTeam(t, nonChannelMember, th.BasicTeam)
+		nonGroupMember := th.CreateUser(t)
+		th.LinkUserToTeam(t, nonGroupMember, th.BasicTeam)
 
-		group := th.CreateGroup()
+		group := th.CreateGroup(t)
 		_, appErr := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		_, appErr = th.App.UpsertGroupMember(group.Id, nonChannelMember.Id)
 		require.Nil(t, appErr)
 
-		constrainedChannel := th.CreateChannel(th.Context, th.BasicTeam)
-		constrainedChannel.GroupConstrained = model.NewPointer(true)
+		constrainedChannel := th.CreateChannel(t, th.BasicTeam)
+		constrainedChannel.GroupConstrained = new(true)
 		constrainedChannel, appErr = th.App.UpdateChannel(th.Context, constrainedChannel)
 		require.Nil(t, appErr)
 
@@ -867,7 +1083,7 @@ func TestGetExplicitMentions(t *testing.T) {
 
 	for name, tc := range map[string]struct {
 		Message     string
-		Attachments []*model.SlackAttachment
+		Attachments []*model.MessageAttachment
 		Keywords    map[string][]string
 		Groups      map[string]*model.Group
 		Expected    *MentionResults
@@ -1336,7 +1552,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"should include the mentions from attachment text and preText": {
 			Message: "this is an message for @user1",
-			Attachments: []*model.SlackAttachment{
+			Attachments: []*model.MessageAttachment{
 				{
 					Text:    "this is a message For @user2",
 					Pretext: "this is a message for @here",
@@ -1351,11 +1567,11 @@ func TestGetExplicitMentions(t *testing.T) {
 				HereMentioned: true,
 			},
 		},
-		"should include the mentions from attachment field values (but not field titles)": {
+		"should include the mentions from attachment field values and titles": {
 			Message: "this is a message",
-			Attachments: []*model.SlackAttachment{
+			Attachments: []*model.MessageAttachment{
 				{
-					Fields: []*model.SlackAttachmentField{
+					Fields: []*model.MessageAttachmentField{
 						{
 							Title: "@user1",
 							Value: "@user2",
@@ -1366,6 +1582,7 @@ func TestGetExplicitMentions(t *testing.T) {
 			Keywords: map[string][]string{"@user1": {id1}, "@user2": {id2}},
 			Expected: &MentionResults{
 				Mentions: map[string]MentionType{
+					id1: KeywordMention,
 					id2: KeywordMention,
 				},
 			},
@@ -1394,7 +1611,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"No matching groups": {
 			Message: "@nothing",
-			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewPointer("engineering")}},
+			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: new("engineering")}},
 			Expected: &MentionResults{
 				Mentions:               nil,
 				GroupMentions:          nil,
@@ -1403,7 +1620,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"matching group with no @": {
 			Message: "engineering",
-			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewPointer("engineering")}},
+			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: new("engineering")}},
 			Expected: &MentionResults{
 				Mentions:               nil,
 				GroupMentions:          nil,
@@ -1412,7 +1629,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"matching group with preceding @": {
 			Message: "@engineering",
-			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewPointer("engineering")}},
+			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: new("engineering")}},
 			Expected: &MentionResults{
 				Mentions: nil,
 				GroupMentions: map[string]MentionType{
@@ -1422,7 +1639,7 @@ func TestGetExplicitMentions(t *testing.T) {
 		},
 		"matching upper case group with preceding @": {
 			Message: "@Engineering",
-			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: model.NewPointer("engineering")}},
+			Groups:  map[string]*model.Group{groupID1: {Id: groupID1, Name: new("engineering")}},
 			Expected: &MentionResults{
 				Mentions: nil,
 				GroupMentions: map[string]MentionType{
@@ -1439,11 +1656,32 @@ func TestGetExplicitMentions(t *testing.T) {
 				},
 			}
 
-			m := getExplicitMentions(post, mapsToMentionKeywords(tc.Keywords, tc.Groups))
+			m := getExplicitMentions(post, mapsToMentionKeywords(tc.Keywords, tc.Groups), true)
 
 			assert.EqualValues(t, tc.Expected, m)
 		})
 	}
+
+	t.Run("mm blocks disabled omits interactive mentions", func(t *testing.T) {
+		userID := model.NewId()
+
+		post := &model.Post{
+			Message: "hello",
+			Props: model.StringInterface{
+				model.PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "ping @user from mm_blocks"},
+				},
+			},
+		}
+		keywords := mapsToMentionKeywords(map[string][]string{"@user": {userID}}, nil)
+
+		withBlocks := getExplicitMentions(post, keywords, true)
+		require.Len(t, withBlocks.Mentions, 1)
+		require.Equal(t, KeywordMention, withBlocks.Mentions[userID])
+
+		withoutBlocks := getExplicitMentions(post, keywords, false)
+		require.Empty(t, withoutBlocks.Mentions)
+	})
 }
 
 func TestGetExplicitMentionsAtHere(t *testing.T) {
@@ -1493,7 +1731,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 		}
 		for message, shouldMention := range cases {
 			post := &model.Post{Message: message}
-			m := getExplicitMentions(post, nil)
+			m := getExplicitMentions(post, nil, true)
 			require.False(t, m.HereMentioned && !shouldMention, "shouldn't have mentioned @here with \"%v\"")
 			require.False(t, !m.HereMentioned && shouldMention, "should've mentioned @here with \"%v\"")
 		}
@@ -1504,6 +1742,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 		m := getExplicitMentions(
 			&model.Post{Message: "@here @user @potential"},
 			mapsToMentionKeywords(map[string][]string{"@user": {id}}, nil),
+			true,
 		)
 		require.True(t, m.HereMentioned, "should've mentioned @here with \"@here @user\"")
 		require.Len(t, m.Mentions, 1)
@@ -1517,6 +1756,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 		m := getExplicitMentions(
 			&model.Post{Message: "@potential. test"},
 			mapsToMentionKeywords(map[string][]string{"@user": {id}}, nil),
+			true,
 		)
 		require.Equal(t, len(m.OtherPotentialMentions), 1, "should've potential mentions for @potential")
 		assert.Equal(t, "potential", m.OtherPotentialMentions[0])
@@ -1525,8 +1765,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 
 func TestAllowChannelMentions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id}
 
@@ -1553,10 +1792,10 @@ func TestAllowChannelMentions(t *testing.T) {
 	})
 
 	t.Run("should return false for a post where the post user does not have USE_CHANNEL_MENTIONS permission", func(t *testing.T) {
-		defer th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
-		th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 		allowChannelMentions := th.App.allowChannelMentions(th.Context, post, 5)
 		assert.False(t, allowChannelMentions)
 	})
@@ -1564,8 +1803,7 @@ func TestAllowChannelMentions(t *testing.T) {
 
 func TestAllowGroupMentions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser.Id}
 
@@ -1611,11 +1849,11 @@ func TestAllowGroupMentions(t *testing.T) {
 
 	t.Run("should return false for a post where the post user does not have USE_GROUP_MENTIONS permission", func(t *testing.T) {
 		defer func() {
-			th.AddPermissionToRole(model.PermissionUseGroupMentions.Id, model.ChannelUserRoleId)
-			th.AddPermissionToRole(model.PermissionUseGroupMentions.Id, model.ChannelAdminRoleId)
+			th.AddPermissionToRole(t, model.PermissionUseGroupMentions.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionUseGroupMentions.Id, model.ChannelAdminRoleId)
 		}()
-		th.RemovePermissionFromRole(model.PermissionUseGroupMentions.Id, model.ChannelUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionUseGroupMentions.Id, model.ChannelAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionUseGroupMentions.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionUseGroupMentions.Id, model.ChannelAdminRoleId)
 		allowGroupMentions := th.App.allowGroupMentions(th.Context, post)
 		assert.False(t, allowGroupMentions)
 	})
@@ -1624,7 +1862,6 @@ func TestAllowGroupMentions(t *testing.T) {
 func TestGetMentionKeywords(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	// user with username or custom mentions enabled
 	user1 := &model.User{
@@ -1950,7 +2187,6 @@ func TestGetMentionKeywords(t *testing.T) {
 func TestGetMentionKeywords_Groups(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	userID1 := model.NewId()
 	userID2 := model.NewId()
@@ -2197,44 +2433,46 @@ func TestGetMentionKeywords_Groups(t *testing.T) {
 	}
 }
 
-func TestGetMentionsEnabledFields(t *testing.T) {
+func TestPostAllStrings(t *testing.T) {
 	mainHelper.Parallel(t)
-	attachmentWithTextAndPreText := model.SlackAttachment{
-		Text:    "@here with mentions",
-		Pretext: "@Channel some comment for the channel",
-	}
 
-	attachmentWithOutPreText := model.SlackAttachment{
-		Text: "some text",
-		Fields: []*model.SlackAttachmentField{
-			{
-				Title: "field title",
-				Value: "field value",
+	t.Run("attachmentMentionSources", func(t *testing.T) {
+		attachmentWithTextAndPreText := model.MessageAttachment{
+			Text:    "@here with mentions",
+			Pretext: "@Channel some comment for the channel",
+		}
+
+		attachmentWithOutPreText := model.MessageAttachment{
+			Text: "some text",
+			Fields: []*model.MessageAttachmentField{
+				{
+					Title: "field title",
+					Value: "field value",
+				},
 			},
-		},
-	}
-	attachments := []*model.SlackAttachment{
-		&attachmentWithTextAndPreText,
-		&attachmentWithOutPreText,
-	}
+		}
+		attachments := []*model.MessageAttachment{
+			&attachmentWithTextAndPreText,
+			&attachmentWithOutPreText,
+		}
 
-	post := &model.Post{
-		Message: "This is the message",
-		Props: model.StringInterface{
-			model.PostPropsAttachments: attachments,
-		},
-	}
-	expectedFields := []string{
-		"This is the message",
-		"@Channel some comment for the channel",
-		"@here with mentions",
-		"some text",
-		"field value",
-	}
+		post := &model.Post{
+			Message: "This is the message",
+			Props: model.StringInterface{
+				model.PostPropsAttachments: attachments,
+			},
+		}
+		expectedFields := []string{
+			"This is the message",
+			"@here with mentions",
+			"@Channel some comment for the channel",
+			"some text",
+			"field title",
+			"field value",
+		}
 
-	mentionEnabledFields := getMentionsEnabledFields(post)
-
-	assert.EqualValues(t, expectedFields, mentionEnabledFields)
+		assert.Equal(t, expectedFields, post.AllStrings(model.AllStringsOptions{}))
+	})
 }
 
 func TestPostNotificationGetChannelName(t *testing.T) {
@@ -2322,8 +2560,6 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 
 func TestPostNotificationGetSenderName(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t)
-	defer th.TearDown()
 
 	defaultChannel := &model.Channel{Type: model.ChannelTypeOpen}
 	defaultPost := &model.Post{Props: model.StringInterface{}}
@@ -2427,8 +2663,7 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 
 func TestGetNotificationNameFormat(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("show full name on", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -2452,10 +2687,9 @@ func TestGetNotificationNameFormat(t *testing.T) {
 func TestUserAllowsEmail(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("should return true", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		th.App.SetStatusOffline(user.Id, true, false)
 
@@ -2468,7 +2702,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 
 	t.Run("should return false in case the status is ONLINE", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		th.App.SetStatusOnline(user.Id, true)
 
@@ -2481,7 +2715,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 
 	t.Run("should return false in case the EMAIL_NOTIFY_PROP is false", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		th.App.SetStatusOffline(user.Id, true, false)
 
@@ -2494,7 +2728,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 
 	t.Run("should return false in case the MARK_UNREAD_NOTIFY_PROP is CHANNEL_MARK_UNREAD_MENTION", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		th.App.SetStatusOffline(user.Id, true, false)
 
@@ -2507,7 +2741,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 
 	t.Run("should return false in case the Post type is POST_AUTO_RESPONDER", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		th.App.SetStatusOffline(user.Id, true, false)
 
@@ -2520,7 +2754,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 
 	t.Run("should return false in case the status is STATUS_OUT_OF_OFFICE", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		th.App.SetStatusOutOfOffice(user.Id)
 
@@ -2533,7 +2767,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 
 	t.Run("should return false in case the status is STATUS_ONLINE", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		th.App.SetStatusDoNotDisturb(user.Id)
 
@@ -2546,7 +2780,7 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 
 	t.Run("should return false in the case user is a bot", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		_, appErr := th.App.ConvertUserToBot(th.Context, user)
 		require.Nil(t, appErr)
@@ -2560,46 +2794,77 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 }
 
+func TestUserAllowsEmailAccessControlTeamMembership(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	props := model.StringMap{
+		model.EmailNotifyProp:      model.ChannelNotifyDefault,
+		model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
+	}
+
+	t.Run("removal DM does not email", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.App.SetStatusOffline(user.Id, true, false)
+
+		assert.False(t, th.App.userAllowsEmail(th.Context, user, props, &model.Post{Type: model.PostTypeAccessControlTeamRemoval}))
+	})
+
+	t.Run("addition DM does not email", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.App.SetStatusOffline(user.Id, true, false)
+
+		assert.False(t, th.App.userAllowsEmail(th.Context, user, props, &model.Post{Type: model.PostTypeAccessControlTeamAddition}))
+	})
+
+	// Scoped to the two ABAC types: another system DM still emails.
+	t.Run("other system DM still emails", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.App.SetStatusOffline(user.Id, true, false)
+
+		assert.True(t, th.App.userAllowsEmail(th.Context, user, props, &model.Post{Type: model.PostTypeAddToTeam}))
+	})
+}
+
 func TestInsertGroupMentions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	team := th.BasicTeam
 	channel := th.BasicChannel
-	group := th.CreateGroup()
+	group := th.CreateGroup(t)
 	group.DisplayName = "engineering"
-	group.Name = model.NewPointer("engineering")
+	group.Name = new("engineering")
 	group, err := th.App.UpdateGroup(group)
 	require.Nil(t, err)
 
-	groupChannelMember := th.CreateUser()
-	th.LinkUserToTeam(groupChannelMember, team)
+	groupChannelMember := th.CreateUser(t)
+	th.LinkUserToTeam(t, groupChannelMember, team)
 	_, appErr := th.App.AddUserToChannel(th.Context, groupChannelMember, channel, false)
 	require.Nil(t, appErr)
 	_, err = th.App.UpsertGroupMember(group.Id, groupChannelMember.Id)
 	require.Nil(t, err)
 
-	senderGroupChannelMember := th.CreateUser()
-	th.LinkUserToTeam(senderGroupChannelMember, team)
+	senderGroupChannelMember := th.CreateUser(t)
+	th.LinkUserToTeam(t, senderGroupChannelMember, team)
 	_, appErr = th.App.AddUserToChannel(th.Context, senderGroupChannelMember, channel, false)
 	require.Nil(t, appErr)
 	_, err = th.App.UpsertGroupMember(group.Id, senderGroupChannelMember.Id)
 	require.Nil(t, err)
 
-	nonGroupChannelMember := th.CreateUser()
-	th.LinkUserToTeam(nonGroupChannelMember, team)
+	nonGroupChannelMember := th.CreateUser(t)
+	th.LinkUserToTeam(t, nonGroupChannelMember, team)
 	_, appErr = th.App.AddUserToChannel(th.Context, nonGroupChannelMember, channel, false)
 	require.Nil(t, appErr)
 
-	nonChannelGroupMember := th.CreateUser()
-	th.LinkUserToTeam(nonChannelGroupMember, team)
+	nonChannelGroupMember := th.CreateUser(t)
+	th.LinkUserToTeam(t, nonChannelGroupMember, team)
 	_, err = th.App.UpsertGroupMember(group.Id, nonChannelGroupMember.Id)
 	require.Nil(t, err)
 
-	groupWithNoMembers := th.CreateGroup()
+	groupWithNoMembers := th.CreateGroup(t)
 	groupWithNoMembers.DisplayName = "marketing"
-	groupWithNoMembers.Name = model.NewPointer("marketing")
+	groupWithNoMembers.Name = new("marketing")
 	groupWithNoMembers, err = th.App.UpdateGroup(groupWithNoMembers)
 	require.Nil(t, err)
 
@@ -2697,14 +2962,13 @@ func TestInsertGroupMentions(t *testing.T) {
 
 func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	var err *model.AppError
 
 	team := th.BasicTeam
 	channel := th.BasicChannel
-	group1 := th.CreateGroup()
+	group1 := th.CreateGroup(t)
 
 	t.Run("should return empty map when no groups with allow reference", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
@@ -2716,7 +2980,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	group1, err = th.App.UpdateGroup(group1)
 	require.Nil(t, err)
 
-	group2 := th.CreateGroup()
+	group2 := th.CreateGroup(t)
 	t.Run("should only return groups with allow reference", func(t *testing.T) {
 		groupsMap, nErr := th.App.getGroupsAllowedForReferenceInChannel(channel, team)
 		require.NoError(t, nErr)
@@ -2733,7 +2997,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	customGroupId := model.NewId()
 	customGroup, err := th.App.CreateGroup(&model.Group{
 		DisplayName:    customGroupId,
-		Name:           model.NewPointer("name" + customGroupId),
+		Name:           new("name" + customGroupId),
 		Source:         model.GroupSourceCustom,
 		Description:    "description_" + customGroupId,
 		AllowReference: true,
@@ -2749,8 +3013,8 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Sync first group to constrained channel
-	constrainedChannel := th.CreateChannel(th.Context, th.BasicTeam)
-	constrainedChannel.GroupConstrained = model.NewPointer(true)
+	constrainedChannel := th.CreateChannel(t, th.BasicTeam)
+	constrainedChannel.GroupConstrained = new(true)
 	constrainedChannel, err = th.App.UpdateChannel(th.Context, constrainedChannel)
 	require.Nil(t, err)
 	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
@@ -2770,13 +3034,13 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 	})
 
 	// Create a third ldap group not synced with a team or channel
-	group3 := th.CreateGroup()
+	group3 := th.CreateGroup(t)
 	group3.AllowReference = true
 	group3, err = th.App.UpdateGroup(group3)
 	require.Nil(t, err)
 
 	// Sync group2 to the team
-	team.GroupConstrained = model.NewPointer(true)
+	team.GroupConstrained = new(true)
 	team, err = th.App.UpdateTeam(team)
 	require.Nil(t, err)
 	_, err = th.App.UpsertGroupSyncable(&model.GroupSyncable{
@@ -2806,7 +3070,7 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 		require.Equal(t, groupsMap[customGroup.Id], customGroup)
 	})
 
-	team.GroupConstrained = model.NewPointer(false)
+	team.GroupConstrained = new(false)
 	team, err = th.App.UpdateTeam(team)
 	require.Nil(t, err)
 
@@ -2824,13 +3088,12 @@ func TestGetGroupsAllowedForReferenceInChannel(t *testing.T) {
 func TestReplyPostNotificationsWithCRT(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Reply posts only shows badges for explicit mentions in collapsed threads", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		u1 := th.BasicUser
 		u2 := th.BasicUser2
 		c1 := th.BasicChannel
-		th.AddUserToChannel(u2, c1)
+		th.AddUserToChannel(t, u2, c1)
 
 		// Enable "Trigger notifications on messages in
 		// reply threads that I start or participate in"
@@ -2860,7 +3123,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			Message:   "root post by user1",
 			UserId:    u1.Id,
 		}
-		rpost, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
+		rpost, _, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		replyPost1 := &model.Post{
@@ -2869,7 +3132,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			UserId:    u2.Id,
 			RootId:    rpost.Id,
 		}
-		_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, model.CreatePostFlags{SetOnline: true})
+		_, _, appErr = th.App.CreatePost(th.Context, replyPost1, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		replyPost2 := &model.Post{
@@ -2878,12 +3141,12 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			UserId:    u1.Id,
 			RootId:    rpost.Id,
 		}
-		_, appErr = th.App.CreatePost(th.Context, replyPost2, c1, model.CreatePostFlags{SetOnline: true})
+		_, _, appErr = th.App.CreatePost(th.Context, replyPost2, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
 		require.Nil(t, appErr)
-		thread, appErr := th.App.GetThreadForUser(threadMembership, false)
+		thread, appErr := th.App.GetThreadForUser(th.Context, threadMembership, false)
 		require.Nil(t, appErr)
 		// Then: with notifications set to "all" we should
 		// not see a mention badge
@@ -2893,8 +3156,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 	})
 
 	t.Run("Replies to post created by webhook should not auto-follow webhook creator", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -2907,10 +3169,12 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			UserId:    user.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "a message",
-			Props:     model.StringInterface{model.PostPropsFromWebhook: "true", model.PostPropsOverrideUsername: "a bot"},
+			Props:     model.StringInterface{model.PostPropsOverrideUsername: "a bot"},
 		}
 
-		rootPost, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
+		// from_webhook is now server-set via CreatePostFlags rather than client Props;
+		// use the flag-based path so the resulting post legitimately carries the marker.
+		rootPost, _, appErr := th.App.CreatePost(th.Context, rootPost, th.BasicChannel, model.CreatePostFlags{FromIncomingWebhook: true})
 		require.Nil(t, appErr)
 
 		childPost := &model.Post{
@@ -2919,7 +3183,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			RootId:    rootPost.Id,
 			Message:   "a reply",
 		}
-		childPost, appErr = th.App.CreatePostMissingChannel(th.Context, childPost, false, true)
+		childPost, _, appErr = th.App.CreatePostMissingChannel(th.Context, childPost, false, true)
 		require.Nil(t, appErr)
 
 		postList := model.PostList{
@@ -2936,13 +3200,12 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 	})
 
 	t.Run("should not auto follow when the original poster is no longer a channel member", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		u1 := th.BasicUser
 		u2 := th.BasicUser2
 		c1 := th.BasicChannel
-		th.AddUserToChannel(u2, c1)
+		th.AddUserToChannel(t, u2, c1)
 
 		// Enable CRT
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -2955,7 +3218,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			Message:   "root post by user1",
 			UserId:    u1.Id,
 		}
-		rpost, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
+		rpost, _, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		// Remove user1 from the channel
@@ -2968,7 +3231,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			UserId:    u2.Id,
 			RootId:    rpost.Id,
 		}
-		_, appErr = th.App.CreatePost(th.Context, replyPost, c1, model.CreatePostFlags{SetOnline: true})
+		_, _, appErr = th.App.CreatePost(th.Context, replyPost, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		// Ensure user1 is not auto-following the thread
@@ -2980,16 +3243,15 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 
 func TestChannelAutoFollowThreads(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
-	u3 := th.CreateUser()
-	th.LinkUserToTeam(u3, th.BasicTeam)
+	u3 := th.CreateUser(t)
+	th.LinkUserToTeam(t, u3, th.BasicTeam)
 	c1 := th.BasicChannel
-	th.AddUserToChannel(u2, c1)
-	th.AddUserToChannel(u3, c1)
+	th.AddUserToChannel(t, u2, c1)
+	th.AddUserToChannel(t, u3, c1)
 
 	// Set auto-follow for user 2
 	member, appErr := th.App.UpdateChannelMemberNotifyProps(th.Context, map[string]string{model.ChannelAutoFollowThreads: model.ChannelAutoFollowThreadsOn}, c1.Id, u2.Id)
@@ -3001,7 +3263,7 @@ func TestChannelAutoFollowThreads(t *testing.T) {
 		Message:   "root post by user3",
 		UserId:    u3.Id,
 	}
-	rpost, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
+	rpost, _, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	replyPost1 := &model.Post{
@@ -3010,7 +3272,7 @@ func TestChannelAutoFollowThreads(t *testing.T) {
 		UserId:    u1.Id,
 		RootId:    rpost.Id,
 	}
-	_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, model.CreatePostFlags{SetOnline: true})
+	_, _, appErr = th.App.CreatePost(th.Context, replyPost1, c1, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	// user-2 starts auto-following thread
@@ -3032,7 +3294,7 @@ func TestChannelAutoFollowThreads(t *testing.T) {
 		UserId:    u1.Id,
 		RootId:    rpost.Id,
 	}
-	_, appErr = th.App.CreatePost(th.Context, replyPost2, c1, model.CreatePostFlags{SetOnline: true})
+	_, _, appErr = th.App.CreatePost(th.Context, replyPost2, c1, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	// Do NOT start auto-following thread, once "un-followed"
@@ -3042,15 +3304,118 @@ func TestChannelAutoFollowThreads(t *testing.T) {
 	assert.False(t, threadMembership.Following)
 }
 
+func TestChannelMentionAutoFollowThreads(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	u1 := th.BasicUser
+	u2 := th.BasicUser2
+	u3 := th.CreateUser(t)
+	th.LinkUserToTeam(t, u3, th.BasicTeam)
+	c1 := th.BasicChannel
+	th.AddUserToChannel(t, u2, c1)
+	th.AddUserToChannel(t, u3, c1)
+
+	rootPost := &model.Post{
+		ChannelId: c1.Id,
+		Message:   "root post by user3",
+		UserId:    u3.Id,
+	}
+	rpost, _, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	t.Run("channel mention auto-follow enabled (default)", func(t *testing.T) {
+		// u2 has default notify props (channel_mention_auto_follow_threads = "true")
+		require.Equal(t, "true", u2.NotifyProps[model.ChannelMentionAutoFollowThreadsProp])
+
+		replyPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "@channel reply by user1",
+			UserId:    u1.Id,
+			RootId:    rpost.Id,
+		}
+		_, _, appErr = th.App.CreatePost(th.Context, replyPost, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// u2 should be auto-following because channel_mention_auto_follow_threads is enabled
+		threadMembership, getThreadErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
+		require.Nil(t, getThreadErr)
+		require.NotNil(t, threadMembership)
+		assert.True(t, threadMembership.Following)
+	})
+
+	t.Run("channel mention auto-follow disabled for user", func(t *testing.T) {
+		// Disable auto-follow for u2
+		u2.NotifyProps[model.ChannelMentionAutoFollowThreadsProp] = "false"
+		u2, appErr = th.App.UpdateUser(th.Context, u2, false)
+		require.Nil(t, appErr)
+		require.Equal(t, "false", u2.NotifyProps[model.ChannelMentionAutoFollowThreadsProp])
+
+		// Reset u2 membership so the prior sub-test doesn't interfere
+		_, err := th.App.Srv().Store().Thread().MaintainMembership(u2.Id, rpost.Id, store.ThreadMembershipOpts{
+			Following:       false,
+			UpdateFollowing: true,
+		})
+		require.NoError(t, err)
+
+		replyPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "@channel reply by user1 again",
+			UserId:    u1.Id,
+			RootId:    rpost.Id,
+		}
+		_, _, appErr = th.App.CreatePost(th.Context, replyPost, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// u2 should NOT be auto-following because they opted out
+		threadMembership, getThreadErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
+		require.Nil(t, getThreadErr)
+		if threadMembership != nil {
+			assert.False(t, threadMembership.Following)
+		}
+	})
+
+	t.Run("channel mention auto-follow undefined (old default)", func(t *testing.T) {
+		// Remove the auto-follow setting for u2 to mimic a user created before this setting was added
+		delete(u2.NotifyProps, model.ChannelMentionAutoFollowThreadsProp)
+		u2, appErr = th.App.UpdateUser(th.Context, u2, false)
+		require.Nil(t, appErr)
+
+		_, ok := u2.NotifyProps[model.ChannelMentionAutoFollowThreadsProp]
+		require.False(t, ok)
+
+		// Reset u2 membership so the prior sub-test doesn't interfere
+		_, err := th.App.Srv().Store().Thread().MaintainMembership(u2.Id, rpost.Id, store.ThreadMembershipOpts{
+			Following:       false,
+			UpdateFollowing: true,
+		})
+		require.NoError(t, err)
+
+		replyPost := &model.Post{
+			ChannelId: c1.Id,
+			Message:   "@channel reply by user1",
+			UserId:    u1.Id,
+			RootId:    rpost.Id,
+		}
+		_, _, appErr = th.App.CreatePost(th.Context, replyPost, c1, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// u2 should be auto-following because channel_mention_auto_follow_threads isn't defined
+		threadMembership, getThreadErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
+		require.Nil(t, getThreadErr)
+		require.NotNil(t, threadMembership)
+		assert.True(t, threadMembership.Following)
+	})
+}
+
 func TestRemoveNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	u1 := th.BasicUser
 	u2 := th.BasicUser2
 	c1 := th.BasicChannel
-	th.AddUserToChannel(u2, c1)
+	th.AddUserToChannel(t, u2, c1)
 
 	// Enable CRT
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -3064,7 +3429,7 @@ func TestRemoveNotifications(t *testing.T) {
 			Message:   "root post by user1",
 			UserId:    u1.Id,
 		}
-		rootPost, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
+		rootPost, _, appErr := th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		replyPost1 := &model.Post{
@@ -3073,7 +3438,7 @@ func TestRemoveNotifications(t *testing.T) {
 			UserId:    u2.Id,
 			RootId:    rootPost.Id,
 		}
-		_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, model.CreatePostFlags{SetOnline: true})
+		_, _, appErr = th.App.CreatePost(th.Context, replyPost1, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		replyPost2 := &model.Post{
@@ -3082,7 +3447,7 @@ func TestRemoveNotifications(t *testing.T) {
 			UserId:    u1.Id,
 			RootId:    rootPost.Id,
 		}
-		replyPost2, appErr = th.App.CreatePost(th.Context, replyPost2, c1, model.CreatePostFlags{SetOnline: true})
+		replyPost2, _, appErr = th.App.CreatePost(th.Context, replyPost2, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		_, appErr = th.App.DeletePost(th.Context, replyPost2.Id, u1.Id)
@@ -3096,7 +3461,7 @@ func TestRemoveNotifications(t *testing.T) {
 
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rootPost.Id)
 		require.Nil(t, appErr)
-		thread, appErr := th.App.GetThreadForUser(threadMembership, false)
+		thread, appErr := th.App.GetThreadForUser(th.Context, threadMembership, false)
 		require.Nil(t, appErr)
 		require.Equal(t, int64(0), thread.UnreadMentions)
 		require.Equal(t, int64(0), thread.UnreadReplies)
@@ -3104,7 +3469,7 @@ func TestRemoveNotifications(t *testing.T) {
 
 	t.Run("when mentioned via a user group", func(t *testing.T) {
 		group, appErr := th.App.CreateGroup(&model.Group{
-			Name:        model.NewPointer("test_group"),
+			Name:        new("test_group"),
 			DisplayName: "test_group",
 			Source:      model.GroupSourceCustom,
 		})
@@ -3121,7 +3486,7 @@ func TestRemoveNotifications(t *testing.T) {
 			Message:   "root post by user1",
 			UserId:    u1.Id,
 		}
-		rootPost, appErr = th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
+		rootPost, _, appErr = th.App.CreatePost(th.Context, rootPost, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		replyPost1 := &model.Post{
@@ -3130,7 +3495,7 @@ func TestRemoveNotifications(t *testing.T) {
 			UserId:    u2.Id,
 			RootId:    rootPost.Id,
 		}
-		_, appErr = th.App.CreatePost(th.Context, replyPost1, c1, model.CreatePostFlags{SetOnline: true})
+		_, _, appErr = th.App.CreatePost(th.Context, replyPost1, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		replyPost2 := &model.Post{
@@ -3139,7 +3504,7 @@ func TestRemoveNotifications(t *testing.T) {
 			UserId:    u1.Id,
 			RootId:    rootPost.Id,
 		}
-		replyPost2, appErr = th.App.CreatePost(th.Context, replyPost2, c1, model.CreatePostFlags{SetOnline: true})
+		replyPost2, _, appErr = th.App.CreatePost(th.Context, replyPost2, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
 		_, appErr = th.App.DeletePost(th.Context, replyPost2.Id, u1.Id)
@@ -3149,7 +3514,7 @@ func TestRemoveNotifications(t *testing.T) {
 
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rootPost.Id)
 		require.Nil(t, appErr)
-		thread, appErr := th.App.GetThreadForUser(threadMembership, false)
+		thread, appErr := th.App.GetThreadForUser(th.Context, threadMembership, false)
 		require.Nil(t, appErr)
 		require.Equal(t, int64(0), thread.UnreadMentions)
 		require.Equal(t, int64(0), thread.UnreadReplies)

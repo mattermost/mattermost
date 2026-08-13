@@ -23,6 +23,7 @@ export default function UserProfile({
     disablePopover = false,
     displayUsername = false,
     hideStatus = false,
+    hideGuestTag = false,
     overwriteName = '',
     colorize = false,
     user,
@@ -36,10 +37,10 @@ export default function UserProfile({
 }: Props) {
     // Fetch remote info when component mounts for remote users
     useEffect(() => {
-        if (user?.remote_id && (!remoteNames || remoteNames.length === 0)) {
-            actions.fetchRemoteClusterInfo(user.remote_id);
+        if (user?.remote_id) {
+            actions.fetchRemoteClusterInfo(user.remote_id, true);
         }
-    }, [user?.remote_id, remoteNames, actions]);
+    }, [user?.remote_id]);
     let name: ReactNode;
     if (user && displayUsername) {
         name = `@${(getUsername(user))}`;
@@ -100,7 +101,7 @@ export default function UserProfile({
             />
             }
             {(user && user.is_bot) && <BotTag/>}
-            {(user && isGuest(user.roles)) && <GuestTag/>}
+            {(user && !hideGuestTag && isGuest(user.roles)) && <GuestTag/>}
         </>
     );
 }

@@ -6,6 +6,9 @@ import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
+
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import './save_changes_panel.scss';
 
@@ -20,9 +23,11 @@ type Props = {
     tabChangeError?: boolean;
     state: SaveChangesPanelState;
     customErrorMessage?: string;
+    customSavedMessage?: string;
     saveButtonText?: React.ReactNode;
     cancelButtonText?: React.ReactNode;
-}
+    saving?: boolean;
+};
 function SaveChangesPanel({
     handleSubmit,
     handleCancel,
@@ -30,13 +35,13 @@ function SaveChangesPanel({
     tabChangeError = false,
     state = 'editing',
     customErrorMessage,
+    customSavedMessage,
     saveButtonText,
     cancelButtonText,
+    saving = false,
 }: Props) {
     const panelClassName = classNames('SaveChangesPanel', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
     const messageClassName = classNames('SaveChangesPanel__message', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
-    const cancelButtonClassName = classNames('btn btn-tertiary btn-sm SaveChangesPanel__cancel-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
-    const saveButtonClassName = classNames('btn btn-primary btn-sm SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
 
     useEffect(() => {
         let timeoutId: NodeJS.Timeout;
@@ -72,6 +77,9 @@ function SaveChangesPanel({
             );
         }
 
+        if (customSavedMessage) {
+            return <span>{customSavedMessage}</span>;
+        }
         return (
             <FormattedMessage
                 id='saveChangesPanel.saved'
@@ -86,7 +94,6 @@ function SaveChangesPanel({
                 <div className='SaveChangesPanel__btn-ctr'>
                     <button
                         id='panelCloseButton'
-                        data-testid='panelCloseButton'
                         type='button'
                         className='btn btn-icon btn-sm'
                         onClick={handleClose}
@@ -99,14 +106,17 @@ function SaveChangesPanel({
             );
         }
 
-        const saveButtonDisabled = tabChangeError || state === 'error';
+        const saveButtonDisabled = saving || tabChangeError || state === 'error';
 
         return (
             <div className='SaveChangesPanel__btn-ctr'>
-                <button
+                <Button
                     data-testid='SaveChangesPanel__cancel-btn'
-                    className={cancelButtonClassName}
+                    emphasis='tertiary'
+                    size='sm'
+                    className={classNames('SaveChangesPanel__cancel-btn', {error: tabChangeError || state === 'error'})}
                     onClick={handleCancel}
+                    disabled={saving}
                 >
                     {cancelButtonText || (
                         <FormattedMessage
@@ -114,20 +124,31 @@ function SaveChangesPanel({
                             defaultMessage='Undo'
                         />
                     )}
-                </button>
-                <button
+                </Button>
+                <Button
                     data-testid='SaveChangesPanel__save-btn'
-                    className={saveButtonClassName}
+                    emphasis='primary'
+                    size='sm'
+                    className={classNames('SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error', 'btn-force-disabled': saving})}
                     onClick={handleSubmit}
                     disabled={saveButtonDisabled}
                 >
-                    {saveButtonText || (
+                    {saving ? (
+                        <LoadingSpinner
+                            text={
+                                <FormattedMessage
+                                    id='saveChangesPanel.saving'
+                                    defaultMessage='Saving...'
+                                />
+                            }
+                        />
+                    ) : (saveButtonText || (
                         <FormattedMessage
                             id='saveChangesPanel.save'
                             defaultMessage='Save'
                         />
-                    )}
-                </button>
+                    ))}
+                </Button>
             </div>
         );
     };

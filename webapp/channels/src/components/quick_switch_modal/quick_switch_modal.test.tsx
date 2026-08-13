@@ -2,15 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {IntlProvider} from 'react-intl';
+import {IntlProvider, injectIntl} from 'react-intl';
 
-import type {QuickSwitchModal as QuickSwitchModalClass} from 'components/quick_switch_modal/quick_switch_modal';
-import QuickSwitchModal from 'components/quick_switch_modal/quick_switch_modal';
+import QuickSwitchModal, {QuickSwitchModal as QuickSwitchModalClass} from 'components/quick_switch_modal/quick_switch_modal';
 import ChannelNavigator from 'components/sidebar/channel_navigator/channel_navigator';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
+
+// Wrap the class component with injectIntl + forwardRef so refs work
+const QuickSwitchModalWithRef = injectIntl(QuickSwitchModalClass, {forwardRef: true});
 
 describe('components/QuickSwitchModal', () => {
     const baseProps = {
@@ -27,36 +28,50 @@ describe('components/QuickSwitchModal', () => {
                 return Promise.resolve({error});
             }),
             closeRightHandSide: jest.fn(),
+            openRequestJoinModal: jest.fn(),
+            withdrawJoinRequest: jest.fn().mockResolvedValue({data: true}),
         },
     };
 
     it('should match snapshot', () => {
-        const wrapper = shallowWithIntl(<QuickSwitchModal {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<QuickSwitchModal {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     describe('handleSubmit', () => {
         it('should do nothing if nothing selected', () => {
             const props = {...baseProps};
-            const wrapper = shallowWithIntl(<QuickSwitchModal {...props}/>);
-            const instance = wrapper.instance() as QuickSwitchModalClass;
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
 
             instance.handleSubmit();
-            expect(props.onExited).not.toBeCalled();
-            expect(props.actions.switchToChannel).not.toBeCalled();
+            expect(props.onExited).not.toHaveBeenCalled();
+            expect(props.actions.switchToChannel).not.toHaveBeenCalled();
         });
 
         it('should fail to switch to a channel', (done) => {
             const props = {...baseProps};
-            const wrapper = shallowWithIntl(<QuickSwitchModal {...props}/>);
-            const instance = wrapper.instance() as QuickSwitchModalClass;
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
 
             const channel = {id: 'channel_id', userId: 'user_id', type: Constants.DM_CHANNEL};
             instance.handleSubmit({channel});
-            expect(props.actions.switchToChannel).toBeCalledWith(channel);
+            expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
 
             process.nextTick(() => {
-                expect(props.onExited).not.toBeCalled();
+                expect(props.onExited).not.toHaveBeenCalled();
                 done();
             });
         });
@@ -73,15 +88,21 @@ describe('components/QuickSwitchModal', () => {
                 },
             };
 
-            const wrapper = shallowWithIntl(<QuickSwitchModal {...props}/>);
-            const instance = wrapper.instance() as QuickSwitchModalClass;
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
 
             const channel = {id: 'channel_id', userId: 'user_id', type: Constants.DM_CHANNEL};
             instance.handleSubmit({channel});
-            expect(props.actions.switchToChannel).toBeCalledWith(channel);
+            expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
 
             process.nextTick(() => {
-                expect(props.onExited).toBeCalled();
+                expect(props.onExited).toHaveBeenCalled();
                 done();
             });
         });
@@ -98,8 +119,14 @@ describe('components/QuickSwitchModal', () => {
                 },
             };
 
-            const wrapper = shallowWithIntl(<QuickSwitchModal {...props}/>);
-            const instance = wrapper.instance() as QuickSwitchModalClass;
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
 
             const channel = {id: 'channel_id', name: 'test', type: Constants.OPEN_CHANNEL};
             const selected = {
@@ -108,10 +135,10 @@ describe('components/QuickSwitchModal', () => {
             };
 
             instance.handleSubmit(selected);
-            expect(props.actions.joinChannelById).toBeCalledWith(channel.id);
+            expect(props.actions.joinChannelById).toHaveBeenCalledWith(channel.id);
 
             process.nextTick(() => {
-                expect(props.actions.switchToChannel).toBeCalledWith(channel);
+                expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
                 done();
             });
         });
@@ -128,8 +155,14 @@ describe('components/QuickSwitchModal', () => {
                 },
             };
 
-            const wrapper = shallowWithIntl(<QuickSwitchModal {...props}/>);
-            const instance = wrapper.instance() as QuickSwitchModalClass;
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
 
             const channel = {id: 'channel_id', name: 'test', type: Constants.DM_CHANNEL};
             const selected = {
@@ -139,12 +172,91 @@ describe('components/QuickSwitchModal', () => {
 
             instance.handleSubmit(selected);
             expect(props.actions.joinChannelById).not.toHaveBeenCalled();
-            expect(props.actions.switchToChannel).toBeCalledWith(channel);
+            expect(props.actions.switchToChannel).toHaveBeenCalledWith(channel);
 
             process.nextTick(() => {
-                expect(props.onExited).toBeCalled();
+                expect(props.onExited).toHaveBeenCalled();
                 done();
             });
+        });
+
+        it('should open the request-to-join modal for a discoverable non-member channel', () => {
+            const props = {...baseProps};
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
+
+            const channel = {id: 'channel_id', name: 'test', type: Constants.PRIVATE_CHANNEL};
+            const selected = {
+                channel,
+                discoverableNonMember: true,
+                hasPendingJoinRequest: false,
+            };
+
+            instance.handleSubmit(selected);
+            expect(props.actions.openRequestJoinModal).toHaveBeenCalledWith(channel);
+            expect(props.actions.withdrawJoinRequest).not.toHaveBeenCalled();
+            expect(props.actions.switchToChannel).not.toHaveBeenCalled();
+            expect(props.onExited).toHaveBeenCalled();
+        });
+
+        it('should withdraw a pending request for a discoverable non-member channel (keyboard accessible)', async () => {
+            const props = {...baseProps};
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
+
+            const channel = {id: 'channel_id', name: 'test', type: Constants.PRIVATE_CHANNEL};
+            const selected = {
+                channel,
+                discoverableNonMember: true,
+                hasPendingJoinRequest: true,
+            };
+
+            await instance.handleSubmit(selected);
+            expect(props.actions.withdrawJoinRequest).toHaveBeenCalledWith(channel.id);
+            expect(props.actions.openRequestJoinModal).not.toHaveBeenCalled();
+            expect(props.actions.switchToChannel).not.toHaveBeenCalled();
+            expect(props.onExited).toHaveBeenCalled();
+        });
+
+        it('should keep the switcher open when a withdraw fails', async () => {
+            const props = {
+                ...baseProps,
+                actions: {
+                    ...baseProps.actions,
+                    withdrawJoinRequest: jest.fn().mockResolvedValue({error: {message: 'failed'}}),
+                },
+            };
+            const ref = React.createRef<QuickSwitchModalClass>();
+            renderWithContext(
+                <QuickSwitchModalWithRef
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            const instance = ref.current!;
+
+            const channel = {id: 'channel_id', name: 'test', type: Constants.PRIVATE_CHANNEL};
+            const selected = {
+                channel,
+                discoverableNonMember: true,
+                hasPendingJoinRequest: true,
+            };
+
+            await instance.handleSubmit(selected);
+            expect(props.actions.withdrawJoinRequest).toHaveBeenCalledWith(channel.id);
+            expect(props.onExited).not.toHaveBeenCalled();
         });
     });
 
@@ -168,10 +280,9 @@ describe('components/QuickSwitchModal', () => {
                 </IntlProvider>,
             );
 
-            await act(async () => {
-                userEvent.click(await screen.getByTestId('SidebarChannelNavigatorButton'));
-                userEvent.keyboard('{escape}');
-            });
+            await userEvent.click(await screen.getByTestId('SidebarChannelNavigatorButton'));
+            await userEvent.keyboard('{escape}');
+
             expect(screen.getByTestId('SidebarChannelNavigatorButton')).toHaveFocus();
         });
     });

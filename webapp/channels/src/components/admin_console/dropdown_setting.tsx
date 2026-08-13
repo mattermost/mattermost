@@ -17,7 +17,7 @@ type Props = {
     disabled?: boolean;
     setByEnv: boolean;
     helpText?: ReactNode;
-}
+};
 
 const DropdownSetting = ({
     id,

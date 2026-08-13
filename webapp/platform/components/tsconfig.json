@@ -9,6 +9,7 @@
         "strict": true,
         "skipLibCheck": true,
         "strictNullChecks": true,
+        "types": ["node", "@testing-library/jest-dom"],
         "isolatedModules": true,
         "declaration": true,
         "outDir": "dist",
@@ -17,5 +18,5 @@
     },
     "include": [
         "./src/**/*"
-    ],
+    ]
 }

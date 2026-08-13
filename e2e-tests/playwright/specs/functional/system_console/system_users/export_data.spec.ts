@@ -22,28 +22,28 @@ test.fixme('MM-T5522 Should begin export of data when export button is pressed',
     await systemConsolePage.toBeVisible();
 
     // # Go to Users section
-    await systemConsolePage.sidebar.goToItem('Users');
-    await systemConsolePage.systemUsers.toBeVisible();
+    await systemConsolePage.sidebar.users.click();
+    await systemConsolePage.users.toBeVisible();
 
-    // # Change the export pw.duration to 30 days
-    await systemConsolePage.systemUsers.dateRangeSelectorMenuButton.click();
-    await systemConsolePage.systemUsersDateRangeMenu.clickMenuItem('All time');
-
-    // # Click Export button and confirm the modal
-    await systemConsolePage.systemUsers.exportButton.click();
-    await systemConsolePage.exportModal.confirm();
-
-    // # Change the export pw.duration to all time
-    await systemConsolePage.systemUsers.dateRangeSelectorMenuButton.click();
-    await systemConsolePage.systemUsersDateRangeMenu.clickMenuItem('Last 30 days');
+    // # Change the export duration to All time
+    const dateRangeMenu = await systemConsolePage.users.openDateRangeSelectorMenu();
+    await dateRangeMenu.clickMenuItem('All time');
 
     // # Click Export button and confirm the modal
-    await systemConsolePage.systemUsers.exportButton.click();
-    await systemConsolePage.exportModal.confirm();
+    await systemConsolePage.users.clickExport();
+    await systemConsolePage.users.confirmModal.confirm();
+
+    // # Change the export duration to Last 30 days
+    const dateRangeMenu2 = await systemConsolePage.users.openDateRangeSelectorMenu();
+    await dateRangeMenu2.clickMenuItem('Last 30 days');
+
+    // # Click Export button and confirm the modal
+    await systemConsolePage.users.clickExport();
+    await systemConsolePage.users.confirmModal.confirm();
 
     // # Click Export again button and confirm the modal
-    await systemConsolePage.systemUsers.exportButton.click();
-    await systemConsolePage.exportModal.confirm();
+    await systemConsolePage.users.clickExport();
+    await systemConsolePage.users.confirmModal.confirm();
 
     // * Verify that we are told that one is already running
     expect(page.getByText('Export is in progress')).toBeVisible();

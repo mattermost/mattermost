@@ -1,0 +1,77 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ClassificationColorInput {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    max-width: 200px;
+}
+
+.ClassificationColorInput__control {
+    display: flex;
+    height: 34px;
+    box-sizing: border-box;
+    align-items: center;
+    padding: 0 10px 0 8px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    gap: 8px;
+
+    &:focus-within {
+        background: rgba(var(--button-bg-rgb), 0.06);
+    }
+}
+
+.ClassificationColorInput__swatch {
+    display: block;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    background: transparent;
+    cursor: pointer;
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--button-bg);
+        outline-offset: 1px;
+    }
+}
+
+.ClassificationColorInput__hex {
+    min-width: 0;
+    height: 100%;
+    flex: 1 1 auto;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--center-channel-color);
+    font-size: 14px;
+    line-height: 20px;
+    outline: none;
+    text-transform: uppercase;
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    &::placeholder {
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+    }
+}
+
+.ClassificationColorInput__popover {
+    position: absolute;
+    z-index: 10000;
+    top: calc(100% + 4px);
+    left: 0;
+}

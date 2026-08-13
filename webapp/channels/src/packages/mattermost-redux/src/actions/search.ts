@@ -12,7 +12,7 @@ import {Client4} from 'mattermost-redux/client';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
-import {getChannelAndMyMember, getChannelMembers} from './channels';
+import {getChannel, getChannelAndMyMember, getChannelMembers} from './channels';
 import {logError} from './errors';
 import {receivedFiles} from './files';
 import {forceLogoutIfNecessary} from './helpers';
@@ -31,7 +31,14 @@ export function getMissingChannelsFromPosts(posts: PostList['posts']): ThunkActi
         Object.values(posts).forEach((post) => {
             const id = post.channel_id;
 
-            if (!channels[id] || !myMembers[id]) {
+            if (!channels[id]) {
+                // Fetch channel data independently so a 403 on the membership request (e.g. for public channels
+                // the user hasn't joined) doesn't prevent the channel from being loaded.
+                promises.push(dispatch(getChannel(id)));
+            }
+
+            if (!myMembers[id]) {
+                // Best-effort: will 403 for non-member public channels, which is fine.
                 promises.push(dispatch(getChannelAndMyMember(id)));
             }
 
@@ -54,7 +61,14 @@ export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultI
         Object.values(files).forEach((file) => {
             const id = file.channel_id;
 
-            if (!channels[id] || !myMembers[id]) {
+            if (!channels[id]) {
+                // Fetch channel data independently so a 403 on the membership request (e.g. for public channels
+                // the user hasn't joined) doesn't prevent the channel from being loaded.
+                promises.push(dispatch(getChannel(id)));
+            }
+
+            if (!myMembers[id]) {
+                // Best-effort: will 403 for non-member public channels, which is fine.
                 promises.push(dispatch(getChannelAndMyMember(id)));
             }
 
@@ -73,6 +87,18 @@ export function searchPostsWithParams(teamId: string, params: SearchParameter): 
             type: SearchTypes.SEARCH_POSTS_REQUEST,
             isGettingMore,
         });
+
+        // Reset truncation info for new searches (not pagination)
+        if (!isGettingMore) {
+            dispatch({
+                type: SearchTypes.RECEIVED_SEARCH_TRUNCATION_INFO,
+                data: {
+                    firstInaccessiblePostTime: 0,
+                    searchType: 'posts',
+                },
+            });
+        }
+
         let posts;
 
         try {
@@ -107,6 +133,18 @@ export function searchPostsWithParams(teamId: string, params: SearchParameter): 
                 type: SearchTypes.SEARCH_POSTS_SUCCESS,
             },
         ], 'SEARCH_POST_BATCH'));
+
+        // Dispatch truncation info separately to avoid typing conflicts
+        const firstInaccessiblePostTime = posts.first_inaccessible_post_time || 0;
+        if (firstInaccessiblePostTime > 0) {
+            dispatch({
+                type: SearchTypes.RECEIVED_SEARCH_TRUNCATION_INFO,
+                data: {
+                    firstInaccessiblePostTime,
+                    searchType: 'posts',
+                },
+            });
+        }
 
         return {data: posts};
     };
@@ -144,6 +182,17 @@ export function searchFilesWithParams(teamId: string, params: SearchParameter): 
             type: SearchTypes.SEARCH_FILES_REQUEST,
             isGettingMore,
         });
+
+        // Reset truncation info for new searches (not pagination)
+        if (!isGettingMore) {
+            dispatch({
+                type: SearchTypes.RECEIVED_SEARCH_TRUNCATION_INFO,
+                data: {
+                    firstInaccessiblePostTime: 0,
+                    searchType: 'files',
+                },
+            });
+        }
 
         let files: FileSearchResults;
         try {

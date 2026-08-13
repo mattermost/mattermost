@@ -29,58 +29,39 @@ func TestUpdateAssetsSubpathFromConfig(t *testing.T) {
 	})
 
 	t.Run("IS_CI=true", func(t *testing.T) {
-		err := os.Setenv("IS_CI", "true")
-		require.NoError(t, err)
-		defer func() {
-			err = os.Unsetenv("IS_CI")
-			require.NoError(t, err)
-		}()
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("IS_CI", "true")
 
-		err = utils.UpdateAssetsSubpathFromConfig(nil)
+		err := utils.UpdateAssetsSubpathFromConfig(nil)
 		require.NoError(t, err)
 	})
 
 	t.Run("no config", func(t *testing.T) {
-		tempDir, err := os.MkdirTemp("", "test_update_assets_subpath")
-		require.NoError(t, err)
-		defer func() {
-			err = os.RemoveAll(tempDir)
-			require.NoError(t, err)
-		}()
-		err = os.Chdir(tempDir)
-		require.NoError(t, err)
+		// Explicitly clear IS_CI so UpdateAssetsSubpathFromConfig doesn't return early.
+		// IS_CI is "true" in GitHub Actions runners and persists from the sibling subtest.
+		t.Setenv("IS_CI", "")
+		tempDir := t.TempDir()
+		t.Chdir(tempDir)
 
-		err = utils.UpdateAssetsSubpathFromConfig(nil)
+		err := utils.UpdateAssetsSubpathFromConfig(nil)
 		require.Error(t, err)
 	})
 }
 
 func TestUpdateAssetsSubpath(t *testing.T) {
 	t.Run("no client dir", func(t *testing.T) {
-		tempDir, err := os.MkdirTemp("", "test_update_assets_subpath")
-		require.NoError(t, err)
-		defer func() {
-			err = os.RemoveAll(tempDir)
-			require.NoError(t, err)
-		}()
-		err = os.Chdir(tempDir)
-		require.NoError(t, err)
+		tempDir := t.TempDir()
+		t.Chdir(tempDir)
 
-		err = utils.UpdateAssetsSubpath("/")
+		err := utils.UpdateAssetsSubpath("/", nil)
 		require.Error(t, err)
 	})
 
 	t.Run("valid", func(t *testing.T) {
-		tempDir, err := os.MkdirTemp("", "test_update_assets_subpath")
-		require.NoError(t, err)
-		defer func() {
-			err = os.RemoveAll(tempDir)
-			require.NoError(t, err)
-		}()
-		err = os.Chdir(tempDir)
-		require.NoError(t, err)
+		tempDir := t.TempDir()
+		t.Chdir(tempDir)
 
-		err = os.Mkdir(model.ClientDir, 0700)
+		err := os.Mkdir(model.ClientDir, 0700)
 		require.NoError(t, err)
 
 		testCases := []struct {
@@ -178,7 +159,7 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 				require.NoError(t, os.WriteFile(filepath.Join(tempDir, model.ClientDir, "root.html"), []byte(testCase.RootHTML), 0700))
 				require.NoError(t, os.WriteFile(filepath.Join(tempDir, model.ClientDir, "main.css"), []byte(testCase.MainCSS), 0700))
 				require.NoError(t, os.WriteFile(filepath.Join(tempDir, model.ClientDir, "manifest.json"), []byte(testCase.ManifestJSON), 0700))
-				err := utils.UpdateAssetsSubpath(testCase.Subpath)
+				err := utils.UpdateAssetsSubpath(testCase.Subpath, nil)
 				if testCase.ExpectedError != nil {
 					require.Equal(t, testCase.ExpectedError, err)
 				} else {
@@ -205,6 +186,57 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 	})
 }
 
+func TestUpdateAssetsSubpathConcurrentReact(t *testing.T) {
+	// concurrentReactHash is the CSP script-src addition for the "window.enableConcurrentReact=true" inline script.
+	const concurrentReactHash = " 'sha256-VKORZJUo6WeDwDHwpxEgzZDt8C1kBbDOmUq72sfrx8M='"
+
+	// rootHTML renders a minimal root.html with the given CSP addition and concurrent React script body.
+	rootHTML := func(cspExtra, concurrentReactBody string) string {
+		return `<!DOCTYPE html> <html lang=en> <head> ` +
+			`<meta http-equiv="Content-Security-Policy" content="script-src 'self'` + cspExtra + `"> ` +
+			`<script id="publicPathInWindowScript"></script> ` +
+			`<script id="enableConcurrentReactScript">` + concurrentReactBody + `</script> ` +
+			`<link href="/static/main.js" rel="stylesheet"></head> <body></body> </html>`
+	}
+
+	writeAndUpdate := func(t *testing.T, initial string, enableConcurrentReact *bool) string {
+		t.Helper()
+
+		tempDir := t.TempDir()
+		t.Chdir(tempDir)
+		require.NoError(t, os.Mkdir(model.ClientDir, 0700))
+		require.NoError(t, os.WriteFile(filepath.Join(tempDir, model.ClientDir, "root.html"), []byte(initial), 0700))
+
+		require.NoError(t, utils.UpdateAssetsSubpath("/", enableConcurrentReact))
+
+		contents, err := os.ReadFile(filepath.Join(tempDir, model.ClientDir, "root.html"))
+		require.NoError(t, err)
+		return string(contents)
+	}
+
+	t.Run("enabled injects the script and CSP hash", func(t *testing.T) {
+		got := writeAndUpdate(t, rootHTML("", ""), model.NewPointer(true))
+		require.Equal(t, rootHTML(concurrentReactHash, "window.enableConcurrentReact=true"), got)
+	})
+
+	t.Run("disabled clears the script and CSP hash", func(t *testing.T) {
+		got := writeAndUpdate(t, rootHTML(concurrentReactHash, "window.enableConcurrentReact=true"), model.NewPointer(false))
+		require.Equal(t, rootHTML("", ""), got)
+	})
+
+	t.Run("nil preserves an enabled script", func(t *testing.T) {
+		initial := rootHTML(concurrentReactHash, "window.enableConcurrentReact=true")
+		got := writeAndUpdate(t, initial, nil)
+		require.Equal(t, initial, got)
+	})
+
+	t.Run("nil preserves a disabled script", func(t *testing.T) {
+		initial := rootHTML("", "")
+		got := writeAndUpdate(t, initial, nil)
+		require.Equal(t, initial, got)
+	})
+}
+
 func TestGetSubpathFromConfig(t *testing.T) {
 	testCases := []struct {
 		Description     string
@@ -214,13 +246,13 @@ func TestGetSubpathFromConfig(t *testing.T) {
 	}{
 		{
 			"empty SiteURL",
-			model.NewPointer(""),
+			new(""),
 			false,
 			"/",
 		},
 		{
 			"invalid SiteURL",
-			model.NewPointer("cache_object:foo/bar"),
+			new("cache_object:foo/bar"),
 			true,
 			"",
 		},
@@ -232,25 +264,25 @@ func TestGetSubpathFromConfig(t *testing.T) {
 		},
 		{
 			"no trailing slash",
-			model.NewPointer("http://localhost:8065"),
+			new("http://localhost:8065"),
 			false,
 			"/",
 		},
 		{
 			"trailing slash",
-			model.NewPointer("http://localhost:8065/"),
+			new("http://localhost:8065/"),
 			false,
 			"/",
 		},
 		{
 			"subpath, no trailing slash",
-			model.NewPointer("http://localhost:8065/subpath"),
+			new("http://localhost:8065/subpath"),
 			false,
 			"/subpath",
 		},
 		{
 			"trailing slash",
-			model.NewPointer("http://localhost:8065/subpath/"),
+			new("http://localhost:8065/subpath/"),
 			false,
 			"/subpath",
 		},
@@ -276,19 +308,19 @@ func TestGetSubpathFromConfig(t *testing.T) {
 	}
 }
 
-const contentSecurityPolicyNotFoundHTML = `<!DOCTYPE html> <html lang=en> <head> <meta charset=utf-8> <meta http-equiv=Content-Security-Policy content="script-src 'self' cdn.rudderlabs.com/"> <meta http-equiv=X-UA-Compatible content="IE=edge"> <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0"> <meta name=robots content="noindex, nofollow"> <meta name=referrer content=no-referrer> <title>Mattermost</title> <meta name=apple-mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-status-bar-style content=default> <meta name=mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-title content=Mattermost> <meta name=application-name content=Mattermost> <meta name=format-detection content="telephone=no"> <link rel=apple-touch-icon sizes=57x57 href=/static/files/78b7e73b41b8731ce2c41c870ecc8886.png> <link rel=apple-touch-icon sizes=60x60 href=/static/files/51d00ffd13afb6d74fd8f6dfdeef768a.png> <link rel=apple-touch-icon sizes=72x72 href=/static/files/23645596f8f78f017bd4d457abb855c4.png> <link rel=apple-touch-icon sizes=76x76 href=/static/files/26e9d72f472663a00b4b206149459fab.png> <link rel=apple-touch-icon sizes=144x144 href=/static/files/7bd91659bf3fc8c68fcd45fc1db9c630.png> <link rel=apple-touch-icon sizes=120x120 href=/static/files/fa69ffe11eb334aaef5aece8d848ca62.png> <link rel=apple-touch-icon sizes=152x152 href=/static/files/f046777feb6ab12fc43b8f9908b1db35.png> <link rel=icon type=image/png sizes=16x16 href=/static/files/02b96247d275680adaaabf01c71c571d.png> <link rel=icon type=image/png sizes=32x32 href=/static/files/1d9020f201a6762421cab8d30624fdd8.png> <link rel=icon type=image/png sizes=96x96 href=/static/files/fe23af39ae98d77dc26ae8586565970f.png> <link rel=icon type=image/png sizes=192x192 href=/static/files/d7ff68a7675f84337cc154c3d4abe713.png> <link rel=manifest href=/static/files/a985ad72552ad069537d6eea81e719c7.json> <link rel=stylesheet class=code_theme> < <link href="/static/main.364fd054d7a6d741efc6.css" rel="stylesheet"><script type="text/javascript" src="/static/main.e49599ac425584ffead5.js"></script></head> <body class=font--open_sans> <div id=root> <div class=error-screen> <h2>Cannot connect to Mattermost</h2> <hr/> <p>We're having trouble connecting to Mattermost. If refreshing this page (Ctrl+R or Command+R) does not work, please verify that your computer is connected to the internet.</p> <br/> </div> <div class=loading-screen style=position:relative> <div class=loading__content> <div class="round round-1"></div> <div class="round round-2"></div> <div class="round round-3"></div> </div> </div> </div> <noscript> To use Mattermost, please enable JavaScript. </noscript> </body> </html>`
+const contentSecurityPolicyNotFoundHTML = `<!DOCTYPE html> <html lang=en> <head> <meta charset=utf-8> <meta http-equiv=Content-Security-Policy content="script-src 'self'"> <meta http-equiv=X-UA-Compatible content="IE=edge"> <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0"> <meta name=robots content="noindex, nofollow"> <meta name=referrer content=no-referrer> <title>Mattermost</title> <meta name=apple-mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-status-bar-style content=default> <meta name=mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-title content=Mattermost> <meta name=application-name content=Mattermost> <meta name=format-detection content="telephone=no"> <link rel=apple-touch-icon sizes=57x57 href=/static/files/78b7e73b41b8731ce2c41c870ecc8886.png> <link rel=apple-touch-icon sizes=60x60 href=/static/files/51d00ffd13afb6d74fd8f6dfdeef768a.png> <link rel=apple-touch-icon sizes=72x72 href=/static/files/23645596f8f78f017bd4d457abb855c4.png> <link rel=apple-touch-icon sizes=76x76 href=/static/files/26e9d72f472663a00b4b206149459fab.png> <link rel=apple-touch-icon sizes=144x144 href=/static/files/7bd91659bf3fc8c68fcd45fc1db9c630.png> <link rel=apple-touch-icon sizes=120x120 href=/static/files/fa69ffe11eb334aaef5aece8d848ca62.png> <link rel=apple-touch-icon sizes=152x152 href=/static/files/f046777feb6ab12fc43b8f9908b1db35.png> <link rel=icon type=image/png sizes=16x16 href=/static/files/02b96247d275680adaaabf01c71c571d.png> <link rel=icon type=image/png sizes=32x32 href=/static/files/1d9020f201a6762421cab8d30624fdd8.png> <link rel=icon type=image/png sizes=96x96 href=/static/files/fe23af39ae98d77dc26ae8586565970f.png> <link rel=icon type=image/png sizes=192x192 href=/static/files/d7ff68a7675f84337cc154c3d4abe713.png> <link rel=manifest href=/static/files/a985ad72552ad069537d6eea81e719c7.json> <link rel=stylesheet class=code_theme> < <link href="/static/main.364fd054d7a6d741efc6.css" rel="stylesheet"><script type="text/javascript" src="/static/main.e49599ac425584ffead5.js"></script></head> <body class=font--open_sans> <div id=root> <div class=error-screen> <h2>Cannot connect to Mattermost</h2> <hr/> <p>We're having trouble connecting to Mattermost. If refreshing this page (Ctrl+R or Command+R) does not work, please verify that your computer is connected to the internet.</p> <br/> </div> <div class=loading-screen style=position:relative> <div class=loading__content> <div class="round round-1"></div> <div class="round round-2"></div> <div class="round round-3"></div> </div> </div> </div> <noscript> To use Mattermost, please enable JavaScript. </noscript> </body> </html>`
 
-const contentSecurityPolicyNotFound2HTML = `<!DOCTYPE html> <html lang=en> <head> <meta charset=utf-8> <meta http-equiv=Content-Security-Policy content="script-src 'self' cdn.rudderlabs.com/ 'unsafe-eval'"> <meta http-equiv=X-UA-Compatible content="IE=edge"> <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0"> <meta name=robots content="noindex, nofollow"> <meta name=referrer content=no-referrer> <title>Mattermost</title> <meta name=apple-mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-status-bar-style content=default> <meta name=mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-title content=Mattermost> <meta name=application-name content=Mattermost> <meta name=format-detection content="telephone=no"> <link rel=apple-touch-icon sizes=57x57 href=/static/files/78b7e73b41b8731ce2c41c870ecc8886.png> <link rel=apple-touch-icon sizes=60x60 href=/static/files/51d00ffd13afb6d74fd8f6dfdeef768a.png> <link rel=apple-touch-icon sizes=72x72 href=/static/files/23645596f8f78f017bd4d457abb855c4.png> <link rel=apple-touch-icon sizes=76x76 href=/static/files/26e9d72f472663a00b4b206149459fab.png> <link rel=apple-touch-icon sizes=144x144 href=/static/files/7bd91659bf3fc8c68fcd45fc1db9c630.png> <link rel=apple-touch-icon sizes=120x120 href=/static/files/fa69ffe11eb334aaef5aece8d848ca62.png> <link rel=apple-touch-icon sizes=152x152 href=/static/files/f046777feb6ab12fc43b8f9908b1db35.png> <link rel=icon type=image/png sizes=16x16 href=/static/files/02b96247d275680adaaabf01c71c571d.png> <link rel=icon type=image/png sizes=32x32 href=/static/files/1d9020f201a6762421cab8d30624fdd8.png> <link rel=icon type=image/png sizes=96x96 href=/static/files/fe23af39ae98d77dc26ae8586565970f.png> <link rel=icon type=image/png sizes=192x192 href=/static/files/d7ff68a7675f84337cc154c3d4abe713.png> <link rel=manifest href=/static/files/a985ad72552ad069537d6eea81e719c7.json> <link rel=stylesheet class=code_theme> <link href="/static/main.364fd054d7a6d741efc6.css" rel="stylesheet"><script type="text/javascript" src="/static/main.e49599ac425584ffead5.js"></script></head> <body class=font--open_sans> <div id=root> <div class=error-screen> <h2>Cannot connect to Mattermost</h2> <hr/> <p>We're having trouble connecting to Mattermost. If refreshing this page (Ctrl+R or Command+R) does not work, please verify that your computer is connected to the internet.</p> <br/> </div> <div class=loading-screen style=position:relative> <div class=loading__content> <div class="round round-1"></div> <div class="round round-2"></div> <div class="round round-3"></div> </div> </div> </div> <noscript> To use Mattermost, please enable JavaScript. </noscript> </body> </html>`
+const contentSecurityPolicyNotFound2HTML = `<!DOCTYPE html> <html lang=en> <head> <meta charset=utf-8> <meta http-equiv=Content-Security-Policy content="script-src 'self' 'unsafe-eval'"> <meta http-equiv=X-UA-Compatible content="IE=edge"> <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0"> <meta name=robots content="noindex, nofollow"> <meta name=referrer content=no-referrer> <title>Mattermost</title> <meta name=apple-mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-status-bar-style content=default> <meta name=mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-title content=Mattermost> <meta name=application-name content=Mattermost> <meta name=format-detection content="telephone=no"> <link rel=apple-touch-icon sizes=57x57 href=/static/files/78b7e73b41b8731ce2c41c870ecc8886.png> <link rel=apple-touch-icon sizes=60x60 href=/static/files/51d00ffd13afb6d74fd8f6dfdeef768a.png> <link rel=apple-touch-icon sizes=72x72 href=/static/files/23645596f8f78f017bd4d457abb855c4.png> <link rel=apple-touch-icon sizes=76x76 href=/static/files/26e9d72f472663a00b4b206149459fab.png> <link rel=apple-touch-icon sizes=144x144 href=/static/files/7bd91659bf3fc8c68fcd45fc1db9c630.png> <link rel=apple-touch-icon sizes=120x120 href=/static/files/fa69ffe11eb334aaef5aece8d848ca62.png> <link rel=apple-touch-icon sizes=152x152 href=/static/files/f046777feb6ab12fc43b8f9908b1db35.png> <link rel=icon type=image/png sizes=16x16 href=/static/files/02b96247d275680adaaabf01c71c571d.png> <link rel=icon type=image/png sizes=32x32 href=/static/files/1d9020f201a6762421cab8d30624fdd8.png> <link rel=icon type=image/png sizes=96x96 href=/static/files/fe23af39ae98d77dc26ae8586565970f.png> <link rel=icon type=image/png sizes=192x192 href=/static/files/d7ff68a7675f84337cc154c3d4abe713.png> <link rel=manifest href=/static/files/a985ad72552ad069537d6eea81e719c7.json> <link rel=stylesheet class=code_theme> <link href="/static/main.364fd054d7a6d741efc6.css" rel="stylesheet"><script type="text/javascript" src="/static/main.e49599ac425584ffead5.js"></script></head> <body class=font--open_sans> <div id=root> <div class=error-screen> <h2>Cannot connect to Mattermost</h2> <hr/> <p>We're having trouble connecting to Mattermost. If refreshing this page (Ctrl+R or Command+R) does not work, please verify that your computer is connected to the internet.</p> <br/> </div> <div class=loading-screen style=position:relative> <div class=loading__content> <div class="round round-1"></div> <div class="round round-2"></div> <div class="round round-3"></div> </div> </div> </div> <noscript> To use Mattermost, please enable JavaScript. </noscript> </body> </html>`
 
-const baseRootHTML = `<!DOCTYPE html> <html lang=en> <head> <meta charset=utf-8> <meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/"> <meta http-equiv=X-UA-Compatible content="IE=edge"> <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0"> <meta name=robots content="noindex, nofollow"> <meta name=referrer content=no-referrer> <title>Mattermost</title> <meta name=apple-mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-status-bar-style content=default> <meta name=mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-title content=Mattermost> <meta name=application-name content=Mattermost> <meta name=format-detection content="telephone=no"> <link rel=apple-touch-icon sizes=57x57 href=/static/files/78b7e73b41b8731ce2c41c870ecc8886.png> <link rel=apple-touch-icon sizes=60x60 href=/static/files/51d00ffd13afb6d74fd8f6dfdeef768a.png> <link rel=apple-touch-icon sizes=72x72 href=/static/files/23645596f8f78f017bd4d457abb855c4.png> <link rel=apple-touch-icon sizes=76x76 href=/static/files/26e9d72f472663a00b4b206149459fab.png> <link rel=apple-touch-icon sizes=144x144 href=/static/files/7bd91659bf3fc8c68fcd45fc1db9c630.png> <link rel=apple-touch-icon sizes=120x120 href=/static/files/fa69ffe11eb334aaef5aece8d848ca62.png> <link rel=apple-touch-icon sizes=152x152 href=/static/files/f046777feb6ab12fc43b8f9908b1db35.png> <link rel=icon type=image/png sizes=16x16 href=/static/files/02b96247d275680adaaabf01c71c571d.png> <link rel=icon type=image/png sizes=32x32 href=/static/files/1d9020f201a6762421cab8d30624fdd8.png> <link rel=icon type=image/png sizes=96x96 href=/static/files/fe23af39ae98d77dc26ae8586565970f.png> <link rel=icon type=image/png sizes=192x192 href=/static/files/d7ff68a7675f84337cc154c3d4abe713.png> <link rel=manifest href=/static/files/a985ad72552ad069537d6eea81e719c7.json> <link rel=stylesheet class=code_theme> <script id="publicPathInWindowScript"></script> <link href="/static/main.364fd054d7a6d741efc6.css" rel="stylesheet"><script type="text/javascript" src="/static/main.e49599ac425584ffead5.js"></script></head> <body class=font--open_sans> <div id=root> <div class=error-screen> <h2>Cannot connect to Mattermost</h2> <hr/> <p>We're having trouble connecting to Mattermost. If refreshing this page (Ctrl+R or Command+R) does not work, please verify that your computer is connected to the internet.</p> <br/> </div> <div class=loading-screen style=position:relative> <div class=loading__content> <div class="round round-1"></div> <div class="round round-2"></div> <div class="round round-3"></div> </div> </div> </div> <noscript> To use Mattermost, please enable JavaScript. </noscript> </body> </html>`
+const baseRootHTML = `<!DOCTYPE html> <html lang=en> <head> <meta charset=utf-8> <meta http-equiv="Content-Security-Policy" content="script-src 'self'"> <meta http-equiv=X-UA-Compatible content="IE=edge"> <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0"> <meta name=robots content="noindex, nofollow"> <meta name=referrer content=no-referrer> <title>Mattermost</title> <meta name=apple-mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-status-bar-style content=default> <meta name=mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-title content=Mattermost> <meta name=application-name content=Mattermost> <meta name=format-detection content="telephone=no"> <link rel=apple-touch-icon sizes=57x57 href=/static/files/78b7e73b41b8731ce2c41c870ecc8886.png> <link rel=apple-touch-icon sizes=60x60 href=/static/files/51d00ffd13afb6d74fd8f6dfdeef768a.png> <link rel=apple-touch-icon sizes=72x72 href=/static/files/23645596f8f78f017bd4d457abb855c4.png> <link rel=apple-touch-icon sizes=76x76 href=/static/files/26e9d72f472663a00b4b206149459fab.png> <link rel=apple-touch-icon sizes=144x144 href=/static/files/7bd91659bf3fc8c68fcd45fc1db9c630.png> <link rel=apple-touch-icon sizes=120x120 href=/static/files/fa69ffe11eb334aaef5aece8d848ca62.png> <link rel=apple-touch-icon sizes=152x152 href=/static/files/f046777feb6ab12fc43b8f9908b1db35.png> <link rel=icon type=image/png sizes=16x16 href=/static/files/02b96247d275680adaaabf01c71c571d.png> <link rel=icon type=image/png sizes=32x32 href=/static/files/1d9020f201a6762421cab8d30624fdd8.png> <link rel=icon type=image/png sizes=96x96 href=/static/files/fe23af39ae98d77dc26ae8586565970f.png> <link rel=icon type=image/png sizes=192x192 href=/static/files/d7ff68a7675f84337cc154c3d4abe713.png> <link rel=manifest href=/static/files/a985ad72552ad069537d6eea81e719c7.json> <link rel=stylesheet class=code_theme> <script id="publicPathInWindowScript"></script> <link href="/static/main.364fd054d7a6d741efc6.css" rel="stylesheet"><script type="text/javascript" src="/static/main.e49599ac425584ffead5.js"></script></head> <body class=font--open_sans> <div id=root> <div class=error-screen> <h2>Cannot connect to Mattermost</h2> <hr/> <p>We're having trouble connecting to Mattermost. If refreshing this page (Ctrl+R or Command+R) does not work, please verify that your computer is connected to the internet.</p> <br/> </div> <div class=loading-screen style=position:relative> <div class=loading__content> <div class="round round-1"></div> <div class="round round-2"></div> <div class="round round-3"></div> </div> </div> </div> <noscript> To use Mattermost, please enable JavaScript. </noscript> </body> </html>`
 
 const baseCSS = `@font-face{font-family:FontAwesome;src:url(/static/files/674f50d287a8c48dc19ba404d20fe713.eot);src:url(/static/files/674f50d287a8c48dc19ba404d20fe713.eot?#iefix&v=4.7.0) format("embedded-opentype"),url(/static/files/af7ae505a9eed503f8b8e6982036873e.woff2) format("woff2"),url(/static/files/fee66e712a8a08eef5805a46892932ad.woff) format("woff"),url(/static/files/b06871f281fee6b241d60582ae9369b9.ttf) format("truetype"),url(/static/files/677433a0892aaed7b7d2628c313c9775.svg#fontawesomeregular) format("svg");font-weight:400;font-style:normal}`
 
-const subpathRootHTML = `<!DOCTYPE html> <html lang=en> <head> <meta charset=utf-8> <meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/ 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='"> <meta http-equiv=X-UA-Compatible content="IE=edge"> <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0"> <meta name=robots content="noindex, nofollow"> <meta name=referrer content=no-referrer> <title>Mattermost</title> <meta name=apple-mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-status-bar-style content=default> <meta name=mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-title content=Mattermost> <meta name=application-name content=Mattermost> <meta name=format-detection content="telephone=no"> <link rel=apple-touch-icon sizes=57x57 href=/subpath/static/files/78b7e73b41b8731ce2c41c870ecc8886.png> <link rel=apple-touch-icon sizes=60x60 href=/subpath/static/files/51d00ffd13afb6d74fd8f6dfdeef768a.png> <link rel=apple-touch-icon sizes=72x72 href=/subpath/static/files/23645596f8f78f017bd4d457abb855c4.png> <link rel=apple-touch-icon sizes=76x76 href=/subpath/static/files/26e9d72f472663a00b4b206149459fab.png> <link rel=apple-touch-icon sizes=144x144 href=/subpath/static/files/7bd91659bf3fc8c68fcd45fc1db9c630.png> <link rel=apple-touch-icon sizes=120x120 href=/subpath/static/files/fa69ffe11eb334aaef5aece8d848ca62.png> <link rel=apple-touch-icon sizes=152x152 href=/subpath/static/files/f046777feb6ab12fc43b8f9908b1db35.png> <link rel=icon type=image/png sizes=16x16 href=/subpath/static/files/02b96247d275680adaaabf01c71c571d.png> <link rel=icon type=image/png sizes=32x32 href=/subpath/static/files/1d9020f201a6762421cab8d30624fdd8.png> <link rel=icon type=image/png sizes=96x96 href=/subpath/static/files/fe23af39ae98d77dc26ae8586565970f.png> <link rel=icon type=image/png sizes=192x192 href=/subpath/static/files/d7ff68a7675f84337cc154c3d4abe713.png> <link rel=manifest href=/subpath/static/files/a985ad72552ad069537d6eea81e719c7.json> <link rel=stylesheet class=code_theme> <script id="publicPathInWindowScript">window.publicPath='/subpath/static/'</script> <link href="/subpath/static/main.364fd054d7a6d741efc6.css" rel="stylesheet"><script type="text/javascript" src="/subpath/static/main.e49599ac425584ffead5.js"></script></head> <body class=font--open_sans> <div id=root> <div class=error-screen> <h2>Cannot connect to Mattermost</h2> <hr/> <p>We're having trouble connecting to Mattermost. If refreshing this page (Ctrl+R or Command+R) does not work, please verify that your computer is connected to the internet.</p> <br/> </div> <div class=loading-screen style=position:relative> <div class=loading__content> <div class="round round-1"></div> <div class="round round-2"></div> <div class="round round-3"></div> </div> </div> </div> <noscript> To use Mattermost, please enable JavaScript. </noscript> </body> </html>`
+const subpathRootHTML = `<!DOCTYPE html> <html lang=en> <head> <meta charset=utf-8> <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='"> <meta http-equiv=X-UA-Compatible content="IE=edge"> <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0"> <meta name=robots content="noindex, nofollow"> <meta name=referrer content=no-referrer> <title>Mattermost</title> <meta name=apple-mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-status-bar-style content=default> <meta name=mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-title content=Mattermost> <meta name=application-name content=Mattermost> <meta name=format-detection content="telephone=no"> <link rel=apple-touch-icon sizes=57x57 href=/subpath/static/files/78b7e73b41b8731ce2c41c870ecc8886.png> <link rel=apple-touch-icon sizes=60x60 href=/subpath/static/files/51d00ffd13afb6d74fd8f6dfdeef768a.png> <link rel=apple-touch-icon sizes=72x72 href=/subpath/static/files/23645596f8f78f017bd4d457abb855c4.png> <link rel=apple-touch-icon sizes=76x76 href=/subpath/static/files/26e9d72f472663a00b4b206149459fab.png> <link rel=apple-touch-icon sizes=144x144 href=/subpath/static/files/7bd91659bf3fc8c68fcd45fc1db9c630.png> <link rel=apple-touch-icon sizes=120x120 href=/subpath/static/files/fa69ffe11eb334aaef5aece8d848ca62.png> <link rel=apple-touch-icon sizes=152x152 href=/subpath/static/files/f046777feb6ab12fc43b8f9908b1db35.png> <link rel=icon type=image/png sizes=16x16 href=/subpath/static/files/02b96247d275680adaaabf01c71c571d.png> <link rel=icon type=image/png sizes=32x32 href=/subpath/static/files/1d9020f201a6762421cab8d30624fdd8.png> <link rel=icon type=image/png sizes=96x96 href=/subpath/static/files/fe23af39ae98d77dc26ae8586565970f.png> <link rel=icon type=image/png sizes=192x192 href=/subpath/static/files/d7ff68a7675f84337cc154c3d4abe713.png> <link rel=manifest href=/subpath/static/files/a985ad72552ad069537d6eea81e719c7.json> <link rel=stylesheet class=code_theme> <script id="publicPathInWindowScript">window.publicPath='/subpath/static/'</script> <link href="/subpath/static/main.364fd054d7a6d741efc6.css" rel="stylesheet"><script type="text/javascript" src="/subpath/static/main.e49599ac425584ffead5.js"></script></head> <body class=font--open_sans> <div id=root> <div class=error-screen> <h2>Cannot connect to Mattermost</h2> <hr/> <p>We're having trouble connecting to Mattermost. If refreshing this page (Ctrl+R or Command+R) does not work, please verify that your computer is connected to the internet.</p> <br/> </div> <div class=loading-screen style=position:relative> <div class=loading__content> <div class="round round-1"></div> <div class="round round-2"></div> <div class="round round-3"></div> </div> </div> </div> <noscript> To use Mattermost, please enable JavaScript. </noscript> </body> </html>`
 
 const subpathCSS = `@font-face{font-family:FontAwesome;src:url(/subpath/static/files/674f50d287a8c48dc19ba404d20fe713.eot);src:url(/subpath/static/files/674f50d287a8c48dc19ba404d20fe713.eot?#iefix&v=4.7.0) format("embedded-opentype"),url(/subpath/static/files/af7ae505a9eed503f8b8e6982036873e.woff2) format("woff2"),url(/subpath/static/files/fee66e712a8a08eef5805a46892932ad.woff) format("woff"),url(/subpath/static/files/b06871f281fee6b241d60582ae9369b9.ttf) format("truetype"),url(/subpath/static/files/677433a0892aaed7b7d2628c313c9775.svg#fontawesomeregular) format("svg");font-weight:400;font-style:normal}`
 
-const newSubpathRootHTML = `<!DOCTYPE html> <html lang=en> <head> <meta charset=utf-8> <meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.rudderlabs.com/ 'sha256-mbRaPRRpWz6MNkX9SyXWMJ8XnWV4w/DoqK2M0ryUAvc='"> <meta http-equiv=X-UA-Compatible content="IE=edge"> <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0"> <meta name=robots content="noindex, nofollow"> <meta name=referrer content=no-referrer> <title>Mattermost</title> <meta name=apple-mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-status-bar-style content=default> <meta name=mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-title content=Mattermost> <meta name=application-name content=Mattermost> <meta name=format-detection content="telephone=no"> <link rel=apple-touch-icon sizes=57x57 href=/nested/subpath/static/files/78b7e73b41b8731ce2c41c870ecc8886.png> <link rel=apple-touch-icon sizes=60x60 href=/nested/subpath/static/files/51d00ffd13afb6d74fd8f6dfdeef768a.png> <link rel=apple-touch-icon sizes=72x72 href=/nested/subpath/static/files/23645596f8f78f017bd4d457abb855c4.png> <link rel=apple-touch-icon sizes=76x76 href=/nested/subpath/static/files/26e9d72f472663a00b4b206149459fab.png> <link rel=apple-touch-icon sizes=144x144 href=/nested/subpath/static/files/7bd91659bf3fc8c68fcd45fc1db9c630.png> <link rel=apple-touch-icon sizes=120x120 href=/nested/subpath/static/files/fa69ffe11eb334aaef5aece8d848ca62.png> <link rel=apple-touch-icon sizes=152x152 href=/nested/subpath/static/files/f046777feb6ab12fc43b8f9908b1db35.png> <link rel=icon type=image/png sizes=16x16 href=/nested/subpath/static/files/02b96247d275680adaaabf01c71c571d.png> <link rel=icon type=image/png sizes=32x32 href=/nested/subpath/static/files/1d9020f201a6762421cab8d30624fdd8.png> <link rel=icon type=image/png sizes=96x96 href=/nested/subpath/static/files/fe23af39ae98d77dc26ae8586565970f.png> <link rel=icon type=image/png sizes=192x192 href=/nested/subpath/static/files/d7ff68a7675f84337cc154c3d4abe713.png> <link rel=manifest href=/nested/subpath/static/files/a985ad72552ad069537d6eea81e719c7.json> <link rel=stylesheet class=code_theme> <script id="publicPathInWindowScript">window.publicPath='/nested/subpath/static/'</script> <link href="/nested/subpath/static/main.364fd054d7a6d741efc6.css" rel="stylesheet"><script type="text/javascript" src="/nested/subpath/static/main.e49599ac425584ffead5.js"></script></head> <body class=font--open_sans> <div id=root> <div class=error-screen> <h2>Cannot connect to Mattermost</h2> <hr/> <p>We're having trouble connecting to Mattermost. If refreshing this page (Ctrl+R or Command+R) does not work, please verify that your computer is connected to the internet.</p> <br/> </div> <div class=loading-screen style=position:relative> <div class=loading__content> <div class="round round-1"></div> <div class="round round-2"></div> <div class="round round-3"></div> </div> </div> </div> <noscript> To use Mattermost, please enable JavaScript. </noscript> </body> </html>`
+const newSubpathRootHTML = `<!DOCTYPE html> <html lang=en> <head> <meta charset=utf-8> <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'sha256-mbRaPRRpWz6MNkX9SyXWMJ8XnWV4w/DoqK2M0ryUAvc='"> <meta http-equiv=X-UA-Compatible content="IE=edge"> <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0"> <meta name=robots content="noindex, nofollow"> <meta name=referrer content=no-referrer> <title>Mattermost</title> <meta name=apple-mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-status-bar-style content=default> <meta name=mobile-web-app-capable content=yes> <meta name=apple-mobile-web-app-title content=Mattermost> <meta name=application-name content=Mattermost> <meta name=format-detection content="telephone=no"> <link rel=apple-touch-icon sizes=57x57 href=/nested/subpath/static/files/78b7e73b41b8731ce2c41c870ecc8886.png> <link rel=apple-touch-icon sizes=60x60 href=/nested/subpath/static/files/51d00ffd13afb6d74fd8f6dfdeef768a.png> <link rel=apple-touch-icon sizes=72x72 href=/nested/subpath/static/files/23645596f8f78f017bd4d457abb855c4.png> <link rel=apple-touch-icon sizes=76x76 href=/nested/subpath/static/files/26e9d72f472663a00b4b206149459fab.png> <link rel=apple-touch-icon sizes=144x144 href=/nested/subpath/static/files/7bd91659bf3fc8c68fcd45fc1db9c630.png> <link rel=apple-touch-icon sizes=120x120 href=/nested/subpath/static/files/fa69ffe11eb334aaef5aece8d848ca62.png> <link rel=apple-touch-icon sizes=152x152 href=/nested/subpath/static/files/f046777feb6ab12fc43b8f9908b1db35.png> <link rel=icon type=image/png sizes=16x16 href=/nested/subpath/static/files/02b96247d275680adaaabf01c71c571d.png> <link rel=icon type=image/png sizes=32x32 href=/nested/subpath/static/files/1d9020f201a6762421cab8d30624fdd8.png> <link rel=icon type=image/png sizes=96x96 href=/nested/subpath/static/files/fe23af39ae98d77dc26ae8586565970f.png> <link rel=icon type=image/png sizes=192x192 href=/nested/subpath/static/files/d7ff68a7675f84337cc154c3d4abe713.png> <link rel=manifest href=/nested/subpath/static/files/a985ad72552ad069537d6eea81e719c7.json> <link rel=stylesheet class=code_theme> <script id="publicPathInWindowScript">window.publicPath='/nested/subpath/static/'</script> <link href="/nested/subpath/static/main.364fd054d7a6d741efc6.css" rel="stylesheet"><script type="text/javascript" src="/nested/subpath/static/main.e49599ac425584ffead5.js"></script></head> <body class=font--open_sans> <div id=root> <div class=error-screen> <h2>Cannot connect to Mattermost</h2> <hr/> <p>We're having trouble connecting to Mattermost. If refreshing this page (Ctrl+R or Command+R) does not work, please verify that your computer is connected to the internet.</p> <br/> </div> <div class=loading-screen style=position:relative> <div class=loading__content> <div class="round round-1"></div> <div class="round round-2"></div> <div class="round round-3"></div> </div> </div> </div> <noscript> To use Mattermost, please enable JavaScript. </noscript> </body> </html>`
 
 const newSubpathCSS = `@font-face{font-family:FontAwesome;src:url(/nested/subpath/static/files/674f50d287a8c48dc19ba404d20fe713.eot);src:url(/nested/subpath/static/files/674f50d287a8c48dc19ba404d20fe713.eot?#iefix&v=4.7.0) format("embedded-opentype"),url(/nested/subpath/static/files/af7ae505a9eed503f8b8e6982036873e.woff2) format("woff2"),url(/nested/subpath/static/files/fee66e712a8a08eef5805a46892932ad.woff) format("woff"),url(/nested/subpath/static/files/b06871f281fee6b241d60582ae9369b9.ttf) format("truetype"),url(/nested/subpath/static/files/677433a0892aaed7b7d2628c313c9775.svg#fontawesomeregular) format("svg");font-weight:400;font-style:normal}`
 

@@ -14,7 +14,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	tokenDescription := model.NewRandomString(10)
 
@@ -79,7 +79,7 @@ func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestRevokeTokenForAUserCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	previousVal := s.th.App.Config().ServiceSettings.EnableUserAccessTokens
 	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })

@@ -78,6 +78,53 @@ func TestPostIsValid(t *testing.T) {
 	o.Type = PostCustomTypePrefix + "type"
 	appErr = o.IsValid(maxPostSize)
 	require.Nil(t, appErr)
+
+	o.Type = PostTypeCard
+	appErr = o.IsValid(maxPostSize)
+	require.Nil(t, appErr)
+}
+
+func TestAccessControlTeamPostTypes(t *testing.T) {
+	maxPostSize := 10000
+
+	for _, postType := range []string{PostTypeAccessControlTeamRemoval, PostTypeAccessControlTeamAddition} {
+		// Persisted to Posts.Type, which is varchar(26).
+		require.LessOrEqual(t, len(postType), 26, "post type %q must fit Posts.Type varchar(26)", postType)
+		require.True(t, strings.HasPrefix(postType, PostSystemMessagePrefix), "post type %q must be a system message", postType)
+
+		o := Post{
+			Id:        NewId(),
+			CreateAt:  GetMillis(),
+			UpdateAt:  GetMillis(),
+			UserId:    NewId(),
+			ChannelId: NewId(),
+			Message:   "test",
+			Type:      postType,
+		}
+		require.Nil(t, o.IsValid(maxPostSize), "post type %q must be an accepted system type", postType)
+	}
+}
+
+func TestIsAccessControlTeamMembershipNotification(t *testing.T) {
+	cases := []struct {
+		name     string
+		postType string
+		expected bool
+	}{
+		{"removal DM", PostTypeAccessControlTeamRemoval, true},
+		{"addition DM", PostTypeAccessControlTeamAddition, true},
+		{"regular post", "", false},
+		{"add to team", PostTypeAddToTeam, false},
+		{"remove from team", PostTypeRemoveFromTeam, false},
+		{"join channel", PostTypeJoinChannel, false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := &Post{Type: tc.postType}
+			require.Equal(t, tc.expected, p.IsAccessControlTeamMembershipNotification())
+		})
+	}
 }
 
 func TestPostPreSave(t *testing.T) {
@@ -105,6 +152,23 @@ func TestPostIsSystemMessage(t *testing.T) {
 	post2.PreSave()
 
 	require.True(t, post2.IsSystemMessage())
+}
+
+func TestPostIsNotificationSuppressed(t *testing.T) {
+	post := &Post{Message: "test"}
+	post.AddProp(PostPropsSilentNotification, true)
+	require.True(t, post.IsNotificationSuppressed())
+
+	post.AddProp(PostPropsForceNotification, NewId())
+	require.False(t, post.IsNotificationSuppressed())
+
+	post2 := &Post{Message: "test"}
+	post2.AddProp(PostPropsForceNotification, false)
+	require.False(t, post2.HasForceNotification())
+
+	post3 := &Post{Message: "test"}
+	post3.AddProp(PostPropsForceNotification, true)
+	require.True(t, post3.HasForceNotification())
 }
 
 func TestPostChannelMentions(t *testing.T) {
@@ -141,6 +205,10 @@ func TestPostSanitizeProps(t *testing.T) {
 			PropsAddChannelMember:      "no good",
 			PostPropsForceNotification: "no good",
 			PostPropsAttachments:       "good",
+			PostPropsFromWebhook:       "user-settable in v11",
+			PostPropsFromBot:           "user-settable in v11",
+			PostPropsFromOAuthApp:      "user-settable in v11",
+			PostPropsFromPlugin:        "user-settable in v11",
 		},
 	}
 
@@ -150,6 +218,67 @@ func TestPostSanitizeProps(t *testing.T) {
 	require.Nil(t, post3.GetProp(PostPropsForceNotification))
 
 	require.NotNil(t, post3.GetProp(PostPropsAttachments))
+
+	// The from_* identity markers are NOT stripped by default in v11 — they
+	// remain user-settable for backward compatibility with the user-PAT-
+	// impersonation idiom. Hardened mode rejects from_webhook and from_plugin
+	// via ContainsIntegrationsReservedProps; from_bot and from_oauth_app are
+	// not currently in that reserved set. v12 will move all four into the
+	// default strip list along with override_username/override_icon_url.
+	require.Equal(t, "user-settable in v11", post3.GetProp(PostPropsFromWebhook))
+	require.Equal(t, "user-settable in v11", post3.GetProp(PostPropsFromBot))
+	require.Equal(t, "user-settable in v11", post3.GetProp(PostPropsFromOAuthApp))
+	require.Equal(t, "user-settable in v11", post3.GetProp(PostPropsFromPlugin))
+
+	// Federated post: notification-policy markers (silent/force) were verified
+	// by the origin cluster and must survive sanitization on the receiving side.
+	// The non-integration system prop (PropsAddChannelMember) is still stripped
+	// — it's a synthesis marker for local "user added to channel" system posts
+	// and doesn't belong on federated posts regardless. RemoteId is server-set
+	// (SanitizeInput on the API4 path wipes any client-supplied value), so this
+	// branch can't be reached by forgery. The from_* identity markers also
+	// survive but that's not federation-specific — they aren't in the default
+	// strip list under hardened-OFF in v11 either way.
+	remoteId := "remote-cluster-1"
+	post4 := &Post{
+		Message:  "test",
+		RemoteId: &remoteId,
+		Props: StringInterface{
+			PropsAddChannelMember:       "should-be-stripped",
+			PostPropsForceNotification:  "preserved-id",
+			PostPropsSilentNotification: true,
+			PostPropsFromWebhook:        "true",
+			PostPropsFromBot:            "true",
+			PostPropsFromOAuthApp:       "true",
+			PostPropsFromPlugin:         "true",
+		},
+	}
+
+	post4.SanitizeProps()
+
+	require.Nil(t, post4.GetProp(PropsAddChannelMember), "non-integration system prop must still be stripped from federated posts")
+	require.Equal(t, "preserved-id", post4.GetProp(PostPropsForceNotification))
+	require.Equal(t, true, post4.GetProp(PostPropsSilentNotification))
+	require.Equal(t, "true", post4.GetProp(PostPropsFromWebhook))
+	require.Equal(t, "true", post4.GetProp(PostPropsFromBot))
+	require.Equal(t, "true", post4.GetProp(PostPropsFromOAuthApp))
+	require.Equal(t, "true", post4.GetProp(PostPropsFromPlugin))
+
+	// Empty-string RemoteId must NOT be treated as federated — it's the zero
+	// value SanitizeInput sets when wiping a client-forged value. silent_notification
+	// gets stripped just like for posts with no RemoteId field at all.
+	emptyRemoteId := ""
+	post5 := &Post{
+		Message:  "test",
+		RemoteId: &emptyRemoteId,
+		Props: StringInterface{
+			PostPropsSilentNotification: true,
+		},
+	}
+
+	post5.SanitizeProps()
+
+	require.Nil(t, post5.GetProp(PostPropsSilentNotification), "empty RemoteId must not be treated as federated")
 }
 
 func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {
@@ -167,10 +296,29 @@ func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {
 			PostPropsOverrideUsername:   "overridden_username",
 			PostPropsOverrideIconURL:    "a-custom-url",
 			PostPropsOverrideIconEmoji:  ":custom_emoji_name:",
+			PostPropsMmBlocksActions: map[string]any{
+				"btn1": map[string]any{
+					"type": MmBlocksActionTypeExternal,
+					"url":  "http://example.com/hook",
+				},
+			},
 		},
 	}
 	keys2 := post2.ContainsIntegrationsReservedProps()
-	require.Len(t, keys2, 5)
+	require.Len(t, keys2, 6)
+	require.Contains(t, keys2, PostPropsMmBlocksActions)
+
+	post3 := &Post{
+		Message: "test",
+		Props: StringInterface{
+			PostPropsSilentNotification: true,
+			PostPropsForceNotification:  NewId(),
+		},
+	}
+	keys3 := post3.ContainsIntegrationsReservedProps()
+	require.Len(t, keys3, 2)
+	require.Contains(t, keys3, PostPropsSilentNotification)
+	require.Contains(t, keys3, PostPropsForceNotification)
 }
 
 func TestPostPatch_ContainsIntegrationsReservedProps(t *testing.T) {
@@ -191,8 +339,8 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 	post1 := &Post{}
 	post2 := &Post{}
 	for name, tc := range map[string]struct {
-		Attachments1 []*SlackAttachment
-		Attachments2 []*SlackAttachment
+		Attachments1 []*MessageAttachment
+		Attachments2 []*MessageAttachment
 		Expected     bool
 	}{
 		"Empty": {
@@ -201,7 +349,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			true,
 		},
 		"DifferentLength": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World",
 				},
@@ -210,12 +358,12 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			false,
 		},
 		"EqualText": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World",
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World",
 				},
@@ -223,12 +371,12 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			true,
 		},
 		"DifferentText": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World",
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World 2",
 				},
@@ -236,13 +384,13 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			false,
 		},
 		"DifferentColor": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text:  "Hello World",
 					Color: "#152313",
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Text: "Hello World 2",
 				},
@@ -250,9 +398,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			false,
 		},
 		"EqualFields": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
-					Fields: []*SlackAttachmentField{
+					Fields: []*MessageAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -264,9 +412,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					},
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
-					Fields: []*SlackAttachmentField{
+					Fields: []*MessageAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -281,9 +429,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			true,
 		},
 		"DifferentFields": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
-					Fields: []*SlackAttachmentField{
+					Fields: []*MessageAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -291,9 +439,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					},
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
-					Fields: []*SlackAttachmentField{
+					Fields: []*MessageAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -310,7 +458,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			false,
 		},
 		"EqualActions": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Actions: []*PostAction{
 						{
@@ -332,7 +480,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					},
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Actions: []*PostAction{
 						{
@@ -357,7 +505,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			true,
 		},
 		"DifferentActions": {
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Actions: []*PostAction{
 						{
@@ -379,7 +527,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					},
 				},
 			},
-			[]*SlackAttachment{
+			[]*MessageAttachment{
 				{
 					Actions: []*PostAction{
 						{
@@ -531,7 +679,7 @@ func TestRewriteImageURLs(t *testing.T) {
 var rewriteImageURLsSink string
 
 func BenchmarkRewriteImageURLs(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		rewriteImageURLsSink = RewriteImageURLs(markdownSample, func(url string) string {
 			return "rewritten:" + url
 		})
@@ -573,7 +721,7 @@ func TestPostClone(t *testing.T) {
 
 func BenchmarkClonePost(b *testing.B) {
 	p := Post{}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = p.Clone()
 	}
 }
@@ -582,7 +730,7 @@ func BenchmarkPostPropsGet_indirect(b *testing.B) {
 	p := Post{
 		Props: make(StringInterface),
 	}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = p.GetProps()
 	}
 }
@@ -591,7 +739,7 @@ func BenchmarkPostPropsGet_direct(b *testing.B) {
 	p := Post{
 		Props: make(StringInterface),
 	}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = p.Props
 	}
 }
@@ -600,7 +748,7 @@ func BenchmarkPostPropsAdd_indirect(b *testing.B) {
 	p := Post{
 		Props: make(StringInterface),
 	}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		p.AddProp("test", "somevalue")
 	}
 }
@@ -609,7 +757,7 @@ func BenchmarkPostPropsAdd_direct(b *testing.B) {
 	p := Post{
 		Props: make(StringInterface),
 	}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		p.Props["test"] = "somevalue"
 	}
 }
@@ -619,7 +767,7 @@ func BenchmarkPostPropsDel_indirect(b *testing.B) {
 		Props: make(StringInterface),
 	}
 	p.AddProp("test", "somevalue")
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		p.DelProp("test")
 	}
 }
@@ -628,7 +776,7 @@ func BenchmarkPostPropsDel_direct(b *testing.B) {
 	p := Post{
 		Props: make(StringInterface),
 	}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		delete(p.Props, "test")
 	}
 }
@@ -638,7 +786,7 @@ func BenchmarkPostPropGet_direct(b *testing.B) {
 		Props: make(StringInterface),
 	}
 	p.Props["somekey"] = "somevalue"
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = p.Props["somekey"]
 	}
 }
@@ -648,7 +796,7 @@ func BenchmarkPostPropGet_indirect(b *testing.B) {
 		Props: make(StringInterface),
 	}
 	p.Props["somekey"] = "somevalue"
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = p.GetProp("somekey")
 	}
 }
@@ -662,49 +810,49 @@ func TestPostPropsDataRace(t *testing.T) {
 	wg.Add(7)
 
 	go func() {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			p.AddProp("test", "test")
 		}
 		wg.Done()
 	}()
 
 	go func() {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			_ = p.GetProp("test")
 		}
 		wg.Done()
 	}()
 
 	go func() {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			p.AddProp("test", "test2")
 		}
 		wg.Done()
 	}()
 
 	go func() {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			_ = p.GetProps()["test"]
 		}
 		wg.Done()
 	}()
 
 	go func() {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			p.DelProp("test")
 		}
 		wg.Done()
 	}()
 
 	go func() {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			p.SetProps(make(StringInterface))
 		}
 		wg.Done()
 	}()
 
 	go func() {
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			_ = p.Clone()
 		}
 		wg.Done()
@@ -992,8 +1140,175 @@ func TestPostPriority(t *testing.T) {
 	p.Metadata.Priority = &PostPriority{}
 	require.False(t, p.IsUrgent())
 
-	p.Metadata.Priority.Priority = NewPointer(PostPriorityUrgent)
+	p.Metadata.Priority.Priority = new(PostPriorityUrgent)
 	require.True(t, p.IsUrgent())
+}
+
+func TestPost_HasUnsafeLinks(t *testing.T) {
+	t.Run("nil props", func(t *testing.T) {
+		p := &Post{}
+		require.False(t, p.HasUnsafeLinks())
+	})
+
+	t.Run("missing prop", func(t *testing.T) {
+		p := &Post{Props: StringInterface{"other": "x"}}
+		require.False(t, p.HasUnsafeLinks())
+	})
+
+	t.Run("true", func(t *testing.T) {
+		p := &Post{Props: StringInterface{PostPropsUnsafeLinks: "true"}}
+		require.True(t, p.HasUnsafeLinks())
+	})
+
+	t.Run("false string is not unsafe", func(t *testing.T) {
+		p := &Post{Props: StringInterface{PostPropsUnsafeLinks: "false"}}
+		require.False(t, p.HasUnsafeLinks())
+	})
+
+	t.Run("non-string is not unsafe", func(t *testing.T) {
+		p := &Post{Props: StringInterface{PostPropsUnsafeLinks: true}}
+		require.False(t, p.HasUnsafeLinks())
+	})
+}
+
+func TestPost_AllStrings(t *testing.T) {
+	t.Run("messageOnly", func(t *testing.T) {
+		p := &Post{Message: "  hello  "}
+		assert.Equal(t, []string{"  hello  "}, p.AllStrings(AllStringsOptions{}))
+	})
+
+	t.Run("emptyMessage", func(t *testing.T) {
+		p := &Post{Message: "   "}
+		assert.Empty(t, p.AllStrings(AllStringsOptions{}))
+	})
+
+	t.Run("interactiveProps", func(t *testing.T) {
+		p := &Post{
+			Message: "root",
+			Props: StringInterface{
+				PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "mm-line"},
+					map[string]any{"type": "button", "text": "OK", "action_id": "act"},
+				},
+				PostPropsBlockKitBlocks: []any{
+					map[string]any{"type": "image", "image_url": "https://example.com/i.png", "alt_text": "logo"},
+				},
+				PostPropsAdaptiveCards: []any{
+					map[string]any{"type": "AdaptiveCard", "version": "1.0", "body": []any{
+						map[string]any{"type": "TextBlock", "text": "card-line"},
+					}},
+				},
+			},
+		}
+		got := p.AllStrings(AllStringsOptions{})
+		require.Contains(t, got, "root")
+		require.Contains(t, got, "mm-line")
+		require.NotContains(t, got, "OK")
+		require.NotContains(t, got, "act")
+		require.NotContains(t, got, "https://example.com/i.png")
+		require.NotContains(t, got, "logo")
+		require.Contains(t, got, "card-line")
+	})
+
+	t.Run("omitInteractiveBlocks", func(t *testing.T) {
+		p := &Post{
+			Message: "root",
+			Props: StringInterface{
+				PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "text": "mm-line"},
+				},
+				PostPropsBlockKitBlocks: []any{
+					map[string]any{
+						"type": "section",
+						"text": map[string]any{
+							"type": "mrkdwn",
+							"text": "block kit-line",
+						},
+					},
+				},
+				PostPropsAdaptiveCards: []any{
+					map[string]any{
+						"type": "AdaptiveCard",
+						"body": []any{
+							map[string]any{"type": "TextBlock", "text": "card-line"},
+						},
+					},
+				},
+			},
+		}
+		got := p.AllStrings(AllStringsOptions{OmitInteractiveBlocks: true})
+		require.Contains(t, got, "root")
+		require.NotContains(t, got, "mm-line")
+		require.NotContains(t, got, "block kit-line")
+		require.NotContains(t, got, "card-line")
+	})
+
+	t.Run("blockKitHeaderPlainText", func(t *testing.T) {
+		p := &Post{
+			Props: StringInterface{
+				PostPropsBlockKitBlocks: []any{
+					map[string]any{
+						"type": "header",
+						"text": map[string]any{
+							"type":  "plain_text",
+							"text":  "Section title",
+							"emoji": true,
+						},
+					},
+				},
+			},
+		}
+		got := p.AllStrings(AllStringsOptions{})
+		require.Contains(t, got, "Section title")
+	})
+
+	t.Run("includesMessageAttachments", func(t *testing.T) {
+		p := &Post{
+			Message: "hi",
+			Props: StringInterface{
+				PostPropsAttachments: []*MessageAttachment{
+					{
+						AuthorName: "author",
+						Fallback:   "fallback",
+						Title:      "T",
+						Text:       "body",
+						Pretext:    "pre",
+						Footer:     "footer line",
+					},
+					{Fields: []*MessageAttachmentField{{Title: "Col", Value: "f1"}, {Title: "N", Value: 7}}},
+				},
+			},
+		}
+		got := p.AllStrings(AllStringsOptions{})
+		require.Contains(t, got, "hi")
+		require.Contains(t, got, "author")
+		require.NotContains(t, got, "fallback")
+		require.Contains(t, got, "T")
+		require.Contains(t, got, "body")
+		require.Contains(t, got, "pre")
+		require.Contains(t, got, "footer line")
+		require.Contains(t, got, "Col")
+		require.Contains(t, got, "f1")
+		require.Contains(t, got, "N")
+		require.Contains(t, got, "7")
+	})
+
+	t.Run("interactivePropsWithoutMessage", func(t *testing.T) {
+		p := &Post{
+			Props: StringInterface{
+				PostPropsMmBlocks: []any{
+					map[string]any{"type": "button", "text": "Go", "action_id": "x"},
+				},
+			},
+		}
+		got := p.AllStrings(AllStringsOptions{})
+		require.Len(t, got, 0)
+	})
+
+	t.Run("nilProps", func(t *testing.T) {
+		p := &Post{Message: "x", Props: nil}
+		assert.Equal(t, []string{"x"}, p.AllStrings(AllStringsOptions{}))
+	})
 }
 
 func TestPost_PropsIsValid(t *testing.T) {
@@ -1101,6 +1416,12 @@ func TestPost_PropsIsValid(t *testing.T) {
 			},
 			wantErr: "",
 		},
+		"valid silent_notification": {
+			props: StringInterface{
+				PostPropsSilentNotification: true,
+			},
+			wantErr: "",
+		},
 		"valid multiple props": {
 			props: StringInterface{
 				PostPropsFromWebhook:              "true",
@@ -1110,6 +1431,57 @@ func TestPost_PropsIsValid(t *testing.T) {
 				PostPropsMentionHighlightDisabled: true,
 			},
 			wantErr: "",
+		},
+		"valid mm_blocks array is treated as opaque data": {
+			props: StringInterface{
+				PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "content": "Hello world"},
+					map[string]any{"type": "divider"},
+				},
+			},
+			wantErr: "",
+		},
+		"valid mm_blocks with unknown block types is treated as opaque data": {
+			props: StringInterface{
+				PostPropsMmBlocks: []any{
+					map[string]any{"type": "unknown_future_block_type", "foo": "bar"},
+				},
+			},
+			wantErr: "",
+		},
+		"valid mm_blocks with empty blocks prop": {
+			props: StringInterface{
+				PostPropsMmBlocks:       []any{map[string]any{"type": "text", "text": "a"}},
+				PostPropsBlockKitBlocks: []any{},
+			},
+			wantErr: "",
+		},
+		"valid attachments with empty mm_blocks array": {
+			props: StringInterface{
+				PostPropsMmBlocks: []any{},
+				PostPropsAttachments: []*MessageAttachment{
+					{Fallback: "f"},
+				},
+			},
+			wantErr: "",
+		},
+		"invalid multiple interactive payloads mm_blocks and blocks": {
+			props: StringInterface{
+				PostPropsMmBlocks: []any{map[string]any{"type": "text", "text": "a"}},
+				PostPropsBlockKitBlocks: []any{
+					map[string]any{"type": "section", "text": map[string]any{"type": "mrkdwn", "text": "b"}},
+				},
+			},
+			wantErr: "at most one interactive payload",
+		},
+		"invalid multiple interactive payloads attachments and cards": {
+			props: StringInterface{
+				PostPropsAdaptiveCards: []any{map[string]any{"type": "AdaptiveCard", "version": "1.0", "body": []any{}}},
+				PostPropsAttachments: []*MessageAttachment{
+					{Fallback: "f"},
+				},
+			},
+			wantErr: "at most one interactive payload",
 		},
 		"invalid added_user_id type": {
 			props: StringInterface{

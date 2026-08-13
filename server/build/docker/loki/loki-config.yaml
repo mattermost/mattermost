@@ -1,0 +1,45 @@
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+
+common:
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: inmemory
+  replication_factor: 1
+  path_prefix: /loki
+
+schema_config:
+  configs:
+    - from: "2026-01-01"
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: loki_index_
+        period: 24h
+
+storage_config:
+  filesystem:
+    directory: /loki/chunks
+
+distributor:
+  otlp_config:
+    default_resource_attributes_as_index_labels:
+      - service.name
+      - service.instance.id
+      - job
+      - app
+      - container.name
+
+ingester:
+  max_chunk_age: 480h
+
+limits_config:
+  allow_structured_metadata: true
+  unordered_writes: true
+  reject_old_samples: false
+  ingestion_rate_mb: 64
+  ingestion_burst_size_mb: 64

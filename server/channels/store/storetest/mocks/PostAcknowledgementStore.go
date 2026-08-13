@@ -80,6 +80,24 @@ func (_m *PostAcknowledgementStore) Delete(acknowledgement *model.PostAcknowledg
 	return r0
 }
 
+// DeleteAllForPost provides a mock function with given fields: postID
+func (_m *PostAcknowledgementStore) DeleteAllForPost(postID string) error {
+	ret := _m.Called(postID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAllForPost")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(postID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: postID, userID
 func (_m *PostAcknowledgementStore) Get(postID string, userID string) (*model.PostAcknowledgement, error) {
 	ret := _m.Called(postID, userID)

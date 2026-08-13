@@ -6,7 +6,7 @@ import * as TIMEOUTS from '../../fixtures/timeouts';
 Cypress.Commands.add('uiEnableComplianceExport', (exportFormat = 'csv') => {
     // * Verify that the page is loaded
     cy.findByText('Enable Compliance Export:').should('be.visible');
-    cy.findByText('Compliance Export time:').should('be.visible');
+    cy.findByText('Compliance Export Time:').should('be.visible');
     cy.findByText('Export Format:').should('be.visible');
 
     // # Enable compliance export

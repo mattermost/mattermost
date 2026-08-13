@@ -376,10 +376,10 @@ func testComplianceExportDirectMessages(t *testing.T, rctx request.CTX, ss store
 			require.NoError(t, nErr)
 		}
 
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			createPost(nowMillis)
 		}
-		for i := 0; i < 2; i++ {
+		for range 2 {
 			createPost(nowMillis + 1)
 		}
 
@@ -1196,7 +1196,7 @@ func testMessageExportUntilUpdateAt(t *testing.T, rctx request.CTX, ss store.Sto
 	// need a team
 	team := &model.Team{
 		DisplayName: "DisplayName",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}
@@ -1240,7 +1240,7 @@ func testMessageExportUntilUpdateAt(t *testing.T, rctx request.CTX, ss store.Sto
 
 	var posts []*model.Post
 	// user1 posts ten times in the public channel
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		post := &model.Post{
 			ChannelId: channel.Id,
 			UserId:    user1.Id,

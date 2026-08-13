@@ -3,9 +3,8 @@
 
 import semver from 'semver';
 
-import type {DesktopAPI} from '@mattermost/desktop-api';
-
-import {isDesktopApp} from 'utils/user_agent';
+import type {DesktopAPI, PopoutViewProps, Theme, SessionAttributeField} from '@mattermost/desktop-api';
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
 declare global {
     interface Window {
@@ -18,6 +17,7 @@ export class DesktopAppAPI {
     private version?: string | null;
     private prereleaseVersion?: string;
     private dev?: boolean;
+    private isAbleToPopout?: boolean;
 
     /**
      * @deprecated
@@ -44,6 +44,9 @@ export class DesktopAppAPI {
         window.desktopAPI?.isDev?.().then((isDev) => {
             this.dev = isDev;
         });
+        window.desktopAPI?.canPopout?.().then((canPopout) => {
+            this.isAbleToPopout = canPopout;
+        });
 
         // Legacy code - to be removed
         this.postMessageListeners = new Map();
@@ -52,6 +55,32 @@ export class DesktopAppAPI {
             window.removeEventListener('message', this.postMessageListener);
         });
     }
+
+    setupDesktopPopout = async (path: string, desktopProps?: PopoutViewProps) => {
+        const popoutId = await this.openPopout(path, desktopProps ?? {});
+        if (!popoutId) {
+            throw new Error('Failed to open popout: Desktop App returned an invalid popout ID');
+        }
+        return {
+            sendToPopout: (channel: string, ...args: unknown[]) => {
+                this.sendToPopoutWindow(popoutId, channel, ...args);
+            },
+            onMessageFromPopout: (listener: (channel: string, ...args: unknown[]) => void) => {
+                return this.onMessageFromPopoutWindow((id, channel, ...args) => {
+                    if (id === popoutId) {
+                        listener(channel, ...args);
+                    }
+                });
+            },
+            onClosePopout: (listener: () => void) => {
+                return this.onPopoutWindowClosed((id) => {
+                    if (id === popoutId) {
+                        listener();
+                    }
+                });
+            },
+        };
+    };
 
     /*******************************************************
      * Getters/setters for Desktop App specific information
@@ -71,6 +100,10 @@ export class DesktopAppAPI {
 
     isDev = () => {
         return this.dev;
+    };
+
+    canPopout = () => {
+        return this.isAbleToPopout;
     };
 
     private getDesktopAppInfo = () => {
@@ -108,6 +141,18 @@ export class DesktopAppAPI {
             canGoBack: enableBack,
             canGoForward: enableForward,
         };
+    };
+
+    private openPopout = (path: string, props: PopoutViewProps) => {
+        return window.desktopAPI?.openPopout?.(path, props);
+    };
+
+    canUsePopoutOption = (optionName: string) => {
+        return Boolean(window.desktopAPI?.canUsePopoutOption?.(optionName));
+    };
+
+    getDarkMode = () => {
+        return window.desktopAPI?.getDarkMode?.() ?? Promise.resolve(false);
     };
 
     /**
@@ -160,6 +205,22 @@ export class DesktopAppAPI {
 
     onReceiveMetrics = (listener: (metricsMap: Map<string, {cpu?: number; memory?: number}>) => void) => {
         return window.desktopAPI?.onSendMetrics?.(listener);
+    };
+
+    onMessageFromParentWindow = (listener: (channel: string, ...args: unknown[]) => void) => {
+        return window.desktopAPI?.onMessageFromParent?.(listener);
+    };
+
+    private onMessageFromPopoutWindow = (listener: (id: string, channel: string, ...args: unknown[]) => void) => {
+        return window.desktopAPI?.onMessageFromPopout?.(listener);
+    };
+
+    private onPopoutWindowClosed = (listener: (id: string) => void) => {
+        return window.desktopAPI?.onPopoutClosed?.(listener);
+    };
+
+    onDarkModeChanged = (listener: (darkMode: boolean) => void) => {
+        return window.desktopAPI?.onDarkModeChanged?.(listener);
     };
 
     /**
@@ -219,7 +280,15 @@ export class DesktopAppAPI {
     setSessionExpired = (expired: boolean) => window.desktopAPI?.setSessionExpired && window.desktopAPI.setSessionExpired(expired);
     signalLogin = () => window.desktopAPI?.onLogin?.();
     signalLogout = () => window.desktopAPI?.onLogout?.();
+    invalidateSessionAttributeManifest = () => window.desktopAPI?.invalidateSessionAttributeManifest?.();
+    updateSessionAttribute = (field: SessionAttributeField) => window.desktopAPI?.updateSessionAttribute?.(field);
+    resendSessionAttributes = () => window.desktopAPI?.resendSessionAttributes?.();
     reactAppInitialized = () => window.desktopAPI?.reactAppInitialized?.();
+    updateTheme = (theme: Theme) => window.desktopAPI?.updateTheme?.(theme);
+
+    sendToParentWindow = (channel: string, ...args: unknown[]) => window.desktopAPI?.sendToParent?.(channel, ...args);
+    sendToPopoutWindow = (id: string, channel: string, ...args: unknown[]) => window.desktopAPI?.sendToPopout?.(id, channel, ...args);
+    updatePopoutTitleTemplate = (template: string) => window.desktopAPI?.updatePopoutTitleTemplate?.(template);
 
     /*********************************************************************
      * Helper functions for legacy code

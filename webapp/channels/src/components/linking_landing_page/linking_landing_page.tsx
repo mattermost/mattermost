@@ -4,6 +4,9 @@
 import React, {PureComponent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import BrowserStore from 'stores/browser_store';
 
 import ExternalLink from 'components/external_link';
@@ -11,12 +14,10 @@ import ExternalLink from 'components/external_link';
 import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
 import MattermostLogoSvg from 'images/logo.svg';
+import {navigateTo} from 'utils/browser_utils';
 import {LandingPreferenceTypes} from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
-import * as Utils from 'utils/utils';
 
 type Props = {
-    defaultTheme: any;
     desktopAppLink?: string;
     iosAppLink?: string;
     androidAppLink?: string;
@@ -24,7 +25,8 @@ type Props = {
     siteName?: string;
     brandImageUrl?: string;
     enableCustomBrand: boolean;
-}
+    enableDesktopLandingPage: boolean;
+};
 
 type State = {
     rememberChecked: boolean;
@@ -33,19 +35,52 @@ type State = {
     nativeLocation: string;
     brandImageError: boolean;
     navigating: boolean;
+};
+
+function safeRedirect(path: string) {
+    const url = new URL(path);
+
+    // Remove '/landing' from the end of the pathname
+    url.pathname = url.pathname.slice(0, -'/landing'.length);
+
+    const hash = url.hash.slice(1);
+    const baseUrl = new URL(url.pathname, url.origin);
+
+    // Default to base URL if no hash
+    if (!hash) {
+        return baseUrl.href;
+    }
+
+    let redirectUrl;
+
+    try {
+        // Attempt to construct URL from hash (handles both absolute and relative URLs)
+        redirectUrl = new URL(hash, baseUrl);
+    } catch {
+        // Invalid hash, return safe default
+        return baseUrl.href;
+    }
+
+    // Only allow same-origin redirects
+    if (redirectUrl.origin !== baseUrl.origin) {
+        return baseUrl.href;
+    }
+
+    return redirectUrl.href;
 }
 
 export default class LinkingLandingPage extends PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
-        const location = window.location.href.replace('/landing#', '');
+        const finalLocation = safeRedirect(window.location.href);
+        const nativeLocation = finalLocation.replace(/^(https|http)/, 'mattermost');
 
         this.state = {
             rememberChecked: false,
             redirectPage: false,
-            location,
-            nativeLocation: location.replace(/^(https|http)/, 'mattermost'),
+            location: finalLocation,
+            nativeLocation,
             brandImageError: false,
             navigating: false,
         };
@@ -56,8 +91,9 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        Utils.applyTheme(this.props.defaultTheme);
-        if (this.checkLandingPreferenceApp()) {
+        // When the landing page is disabled, render() has already redirected to the browser, so a stale
+        // "open in app" preference must not navigate away from it.
+        if (this.props.enableDesktopLandingPage && this.checkLandingPreferenceApp()) {
             this.openMattermostApp();
         }
 
@@ -130,12 +166,12 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     openMattermostApp = () => {
         this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP);
         this.setState({redirectPage: true});
-        window.location.href = this.state.nativeLocation;
+        navigateTo(this.state.nativeLocation);
     };
 
     openInBrowser = () => {
         this.setPreference(LandingPreferenceTypes.BROWSER);
-        window.location.href = this.state.location;
+        navigateTo(this.state.location);
     };
 
     renderSystemDialogMessage = () => {
@@ -169,7 +205,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                     this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
                     this.setState({redirectPage: true, navigating: true});
                     if (UserAgent.isMobile()) {
-                        if (UserAgent.isAndroidWeb()) {
+                        if (UserAgent.isAndroid()) {
                             const timeout = setTimeout(() => {
                                 window.location.replace(this.getDownloadLink()!);
                             }, 2000);
@@ -180,7 +216,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                         window.location.replace(this.state.nativeLocation);
                     }
                 }}
-                className='btn btn-primary btn-lg get-app__download'
+                className={buttonClassNames({emphasis: 'primary', size: 'lg'}, 'get-app__download')}
             >
                 {this.renderSystemDialogMessage()}
             </a>
@@ -188,9 +224,9 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     };
 
     getDownloadLink = () => {
-        if (UserAgent.isIosWeb()) {
+        if (UserAgent.isIos()) {
             return this.props.iosAppLink;
-        } else if (UserAgent.isAndroidWeb()) {
+        } else if (UserAgent.isAndroid()) {
             return this.props.androidAppLink;
         }
 
@@ -245,7 +281,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                         id='getApp.downloadLinkInBrowser'
                         defaultMessage='Or, <a>open this link in your browser</a>.'
                         values={{
-                            a: (chunks: string) => (
+                            a: (chunks) => (
                                 <ExternalLink
                                     href={this.state.location}
                                     location='landingPage'
@@ -381,7 +417,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                             this.setPreference(LandingPreferenceTypes.BROWSER, true);
                             this.setState({navigating: true});
                         }}
-                        className='btn btn-tertiary btn-lg'
+                        className={buttonClassNames({emphasis: 'tertiary', size: 'lg'})}
                     >
                         <FormattedMessage
                             id='get_app.continueToBrowser'
@@ -443,7 +479,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     render() {
         const isMobile = UserAgent.isMobile();
 
-        if (this.checkLandingPreferenceBrowser() || this.isEmbedded()) {
+        if (!this.props.enableDesktopLandingPage || this.checkLandingPreferenceBrowser() || this.isEmbedded()) {
             this.openInBrowser();
             return null;
         }

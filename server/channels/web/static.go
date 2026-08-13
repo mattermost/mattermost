@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
@@ -62,9 +63,30 @@ func (w *Web) InitStatic() {
 func root(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !CheckClientCompatibility(r.UserAgent()) {
 		w.Header().Set("Cache-Control", "no-store")
-		data := renderUnsupportedBrowser(c.AppContext, r)
+		subpath, _ := utils.GetSubpathFromConfig(c.App.Srv().Config())
+		data := renderUnsupportedBrowser(c.AppContext, r, subpath)
 
 		err := c.App.Srv().TemplatesContainer().Render(w, "unsupported_browser", data)
+		if err != nil {
+			c.Logger.Error("Failed to render template", mlog.Err(err))
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+
+	if !CheckDesktopAppCompatibility(r.UserAgent(), c.App.Srv().Config().ServiceSettings.MinimumDesktopAppVersion) {
+		w.Header().Set("Cache-Control", "no-store")
+
+		currentVersion, ok := app.GetDesktopAppVersion(r.UserAgent())
+		if !ok {
+			currentVersion = "unknown"
+		}
+		cfg := c.App.Srv().Config()
+		subpath, _ := utils.GetSubpathFromConfig(cfg)
+
+		data := renderUnsupportedDesktopApp(c.AppContext, cfg, currentVersion, subpath)
+		err := c.App.Srv().TemplatesContainer().Render(w, "unsupported_desktop_app", data)
 		if err != nil {
 			c.Logger.Error("Failed to render template", mlog.Err(err))
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -162,6 +184,16 @@ func unsupportedBrowserScriptHandler(w http.ResponseWriter, r *http.Request) {
 
 	templatesDir, _ := templates.GetTemplateDirectory()
 	http.ServeFile(w, r, filepath.Join(templatesDir, "unsupported_browser.js"))
+}
+
+func ensureTrailingSlash(s string) string {
+	if s == "" {
+		return "/"
+	}
+	if !strings.HasSuffix(s, "/") {
+		return s + "/"
+	}
+	return s
 }
 
 func getOpenGraphMetaTags(c *Context) string {

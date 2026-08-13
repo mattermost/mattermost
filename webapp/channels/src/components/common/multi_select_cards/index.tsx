@@ -11,7 +11,7 @@ type Props = {
     next?: () => void;
     cards: CardProps[];
     size?: 'regular' | 'small';
-}
+};
 
 export default function MultiSelectCards(props: Props) {
     const size = props.size || 'regular';

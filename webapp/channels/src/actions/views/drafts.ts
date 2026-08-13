@@ -26,7 +26,7 @@ type Draft = {
     key: keyof GlobalState['storage']['storage'];
     value: PostDraft;
     timestamp: Date;
-}
+};
 
 /**
  * Gets drafts stored on the server and reconciles them with any locally stored drafts.
@@ -87,10 +87,10 @@ export function removeDraft(key: string, channelId: string, rootId = ''): Action
     };
 }
 
-export function updateDraft(key: string, value: PostDraft|null, rootId = '', save = false): ActionFuncAsync<boolean> {
+export function updateDraft(key: string, value: PostDraft | null, rootId = '', save = false): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
-        let updatedValue: PostDraft|null = null;
+        let updatedValue: PostDraft | null = null;
         if (value) {
             const timestamp = new Date().getTime();
             const data = getGlobalItem<Partial<PostDraft>>(state, key, {});
@@ -126,6 +126,7 @@ function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', c
         channel_id: draft.channelId,
         root_id: draft.rootId || rootId,
         message: draft.message,
+        type: draft.type,
         props: draft.props,
         file_ids: fileIds,
         priority: draft.metadata?.priority as PostPriorityMetadata,
@@ -134,7 +135,7 @@ function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', c
     return Client4.upsertDraft(newDraft, connectionId);
 }
 
-export function setGlobalDraft(key: string, value: PostDraft|null, isRemote: boolean): ActionFunc {
+export function setGlobalDraft(key: string, value: PostDraft | null, isRemote: boolean): ActionFunc {
     return (dispatch) => {
         dispatch(setGlobalItem(key, value));
         dispatch(setGlobalDraftSource(key, isRemote));
@@ -181,6 +182,7 @@ export function transformServerDraft(draft: ServerDraft): Draft {
             rootId: draft.root_id,
             createAt: draft.create_at,
             updateAt: draft.update_at,
+            type: draft.type,
             metadata,
             show: true,
         },

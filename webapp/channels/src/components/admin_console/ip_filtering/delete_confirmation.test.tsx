@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, fireEvent, waitFor} from '@testing-library/react';
 import React from 'react';
+
+import {render, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import DeleteConfirmationModal from './delete_confirmation';
 
@@ -41,14 +42,14 @@ describe('DeleteConfirmationModal', () => {
         expect(getByText('Test IP Filter')).toBeInTheDocument();
     });
 
-    test('calls the onClose function when the Cancel button is clicked', () => {
+    test('calls the onClose function when the Cancel button is clicked', async () => {
         const {getByText} = render(
             <DeleteConfirmationModal
                 {...baseProps}
             />,
         );
 
-        fireEvent.click(getByText('Cancel'));
+        await userEvent.click(getByText('Cancel'));
 
         expect(onExited).toHaveBeenCalled();
         expect(onConfirm).not.toHaveBeenCalled();
@@ -61,7 +62,7 @@ describe('DeleteConfirmationModal', () => {
             />,
         );
 
-        fireEvent.click(getByText('Delete filter'));
+        await userEvent.click(getByText('Delete filter'));
 
         await waitFor(() => {
             expect(onConfirm).toHaveBeenCalledWith(filterToDelete);

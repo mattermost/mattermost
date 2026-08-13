@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -18,6 +17,7 @@ import (
 
 func TestRoleStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("Save", func(t *testing.T) { testRoleStoreSave(t, rctx, ss) })
+	t.Run("SavePreservingUnknownPermissions", func(t *testing.T) { testRoleStoreSavePreservingUnknownPermissions(t, rctx, ss) })
 	t.Run("Get", func(t *testing.T) { testRoleStoreGet(t, rctx, ss) })
 	t.Run("GetAll", func(t *testing.T) { testRoleStoreGetAll(t, rctx, ss) })
 	t.Run("GetByName", func(t *testing.T) { testRoleStoreGetByName(t, rctx, ss) })
@@ -101,6 +101,73 @@ func testRoleStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	_, err = ss.Role().Save(r4)
 	assert.Error(t, err)
+}
+
+func testRoleStoreSavePreservingUnknownPermissions(t *testing.T, _ request.CTX, ss store.Store) {
+	// A role whose permissions are all valid for this build saves and round-trips
+	// unchanged, just like Save.
+	t.Run("preserves known permissions like Save", func(t *testing.T) {
+		r := &model.Role{
+			Name:          model.NewId(),
+			DisplayName:   model.NewId(),
+			Description:   model.NewId(),
+			Permissions:   []string{"invite_user", "add_user_to_team"},
+			SchemeManaged: false,
+		}
+
+		saved, err := ss.Role().SavePreservingUnknownPermissions(r)
+		require.NoError(t, err)
+		assert.Equal(t, r.Permissions, saved.Permissions)
+	})
+
+	// The downgrade scenario from MM-68830: an existing role gains a permission this
+	// build does not recognize (written by a newer release before the downgrade). The
+	// migration re-saves every role; Save would reject the unknown permission, but
+	// SavePreservingUnknownPermissions must keep it so it is not lost on a future upgrade.
+	t.Run("tolerates and persists unknown permissions on update", func(t *testing.T) {
+		unknown := "manage_own_agent_from_the_future"
+
+		// Create the role as a known-good role first (the pre-downgrade state).
+		existing, err := ss.Role().Save(&model.Role{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Description: model.NewId(),
+			Permissions: []string{"invite_user"},
+		})
+		require.NoError(t, err)
+
+		// Simulate the newer release having added an unknown permission to the role.
+		existing.Permissions = append(existing.Permissions, unknown)
+
+		// Sanity check: the regular Save rejects the unknown permission.
+		_, err = ss.Role().Save(existing)
+		require.Error(t, err)
+
+		saved, err := ss.Role().SavePreservingUnknownPermissions(existing)
+		require.NoError(t, err)
+		assert.Contains(t, saved.Permissions, unknown, "unknown permission should be preserved")
+
+		// It must actually be persisted, not just returned.
+		fetched, err := ss.Role().Get(saved.Id)
+		require.NoError(t, err)
+		assert.Contains(t, fetched.Permissions, unknown)
+	})
+
+	// Tolerating unknown permissions must not mask genuine structural problems.
+	t.Run("still rejects structurally invalid roles", func(t *testing.T) {
+		r := &model.Role{
+			Name:          "invalid-name",
+			DisplayName:   model.NewId(),
+			Description:   model.NewId(),
+			Permissions:   []string{"manage_own_agent_from_the_future"},
+			SchemeManaged: false,
+		}
+
+		_, err := ss.Role().SavePreservingUnknownPermissions(r)
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.ErrorAs(t, err, &invErr)
+	})
 }
 
 func testRoleStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -195,7 +262,7 @@ func testRoleStoreGetByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Len(t, d1.Id, 26)
 
 	// Get a valid role
-	d2, err := ss.Role().GetByName(context.Background(), d1.Name)
+	d2, err := ss.Role().GetByName(rctx, d1.Name)
 	assert.NoError(t, err)
 	assert.Equal(t, d1.Id, d2.Id)
 	assert.Equal(t, r1.Name, d2.Name)
@@ -205,7 +272,7 @@ func testRoleStoreGetByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Equal(t, r1.SchemeManaged, d2.SchemeManaged)
 
 	// Get an invalid role
-	_, err = ss.Role().GetByName(context.Background(), model.NewId())
+	_, err = ss.Role().GetByName(rctx, model.NewId())
 	assert.Error(t, err)
 }
 
@@ -313,7 +380,7 @@ func testRoleStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.NoError(t, err)
 	assert.NotZero(t, d2.DeleteAt)
 
-	d3, err := ss.Role().GetByName(context.Background(), d1.Name)
+	d3, err := ss.Role().GetByName(rctx, d1.Name)
 	assert.NoError(t, err)
 	assert.NotZero(t, d3.DeleteAt)
 
@@ -456,39 +523,45 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, rctx request.CTX, 
 			actualRoles, err := ss.Role().ChannelRolesUnderTeamRole(teamScheme1.DefaultChannelGuestRole)
 			require.NoError(t, err)
 
-			var actualRoleNames []string
+			roleByName := make(map[string]*model.Role, len(actualRoles))
 			for _, role := range actualRoles {
-				actualRoleNames = append(actualRoleNames, role.Name)
+				roleByName[role.Name] = role
 			}
 
-			require.Contains(t, actualRoleNames, channelScheme1.DefaultChannelGuestRole)
-			require.NotContains(t, actualRoleNames, channelScheme2.DefaultChannelGuestRole)
+			require.Contains(t, roleByName, channelScheme1.DefaultChannelGuestRole)
+			require.NotContains(t, roleByName, channelScheme2.DefaultChannelGuestRole)
+			require.NotNil(t, roleByName[channelScheme1.DefaultChannelGuestRole].SchemeId)
+			assert.Equal(t, channelScheme1.Id, *roleByName[channelScheme1.DefaultChannelGuestRole].SchemeId)
 		})
 
 		t.Run("user role for the right team's channels are returned", func(t *testing.T) {
 			actualRoles, err := ss.Role().ChannelRolesUnderTeamRole(teamScheme1.DefaultChannelUserRole)
 			require.NoError(t, err)
 
-			var actualRoleNames []string
+			roleByName := make(map[string]*model.Role, len(actualRoles))
 			for _, role := range actualRoles {
-				actualRoleNames = append(actualRoleNames, role.Name)
+				roleByName[role.Name] = role
 			}
 
-			require.Contains(t, actualRoleNames, channelScheme1.DefaultChannelUserRole)
-			require.NotContains(t, actualRoleNames, channelScheme2.DefaultChannelUserRole)
+			require.Contains(t, roleByName, channelScheme1.DefaultChannelUserRole)
+			require.NotContains(t, roleByName, channelScheme2.DefaultChannelUserRole)
+			require.NotNil(t, roleByName[channelScheme1.DefaultChannelUserRole].SchemeId)
+			assert.Equal(t, channelScheme1.Id, *roleByName[channelScheme1.DefaultChannelUserRole].SchemeId)
 		})
 
 		t.Run("admin role for the right team's channels are returned", func(t *testing.T) {
 			actualRoles, err := ss.Role().ChannelRolesUnderTeamRole(teamScheme1.DefaultChannelAdminRole)
 			require.NoError(t, err)
 
-			var actualRoleNames []string
+			roleByName := make(map[string]*model.Role, len(actualRoles))
 			for _, role := range actualRoles {
-				actualRoleNames = append(actualRoleNames, role.Name)
+				roleByName[role.Name] = role
 			}
 
-			require.Contains(t, actualRoleNames, channelScheme1.DefaultChannelAdminRole)
-			require.NotContains(t, actualRoleNames, channelScheme2.DefaultChannelAdminRole)
+			require.Contains(t, roleByName, channelScheme1.DefaultChannelAdminRole)
+			require.NotContains(t, roleByName, channelScheme2.DefaultChannelAdminRole)
+			require.NotNil(t, roleByName[channelScheme1.DefaultChannelAdminRole].SchemeId)
+			assert.Equal(t, channelScheme1.Id, *roleByName[channelScheme1.DefaultChannelAdminRole].SchemeId)
 		})
 	})
 
@@ -497,9 +570,9 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, rctx request.CTX, 
 			actualRoles, err := ss.Role().AllChannelSchemeRoles()
 			require.NoError(t, err)
 
-			var actualRoleNames []string
+			roleByName := make(map[string]*model.Role, len(actualRoles))
 			for _, role := range actualRoles {
-				actualRoleNames = append(actualRoleNames, role.Name)
+				roleByName[role.Name] = role
 			}
 
 			allRoleNames := []string{
@@ -514,7 +587,27 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, rctx request.CTX, 
 			}
 
 			for _, roleName := range allRoleNames {
-				require.Contains(t, actualRoleNames, roleName)
+				require.Contains(t, roleByName, roleName)
+			}
+
+			// Roles for channelScheme1 must carry channelScheme1's ID.
+			for _, roleName := range []string{
+				channelScheme1.DefaultChannelGuestRole,
+				channelScheme1.DefaultChannelUserRole,
+				channelScheme1.DefaultChannelAdminRole,
+			} {
+				require.NotNil(t, roleByName[roleName].SchemeId)
+				assert.Equal(t, channelScheme1.Id, *roleByName[roleName].SchemeId)
+			}
+
+			// Roles for channelScheme2 must carry channelScheme2's ID.
+			for _, roleName := range []string{
+				channelScheme2.DefaultChannelGuestRole,
+				channelScheme2.DefaultChannelUserRole,
+				channelScheme2.DefaultChannelAdminRole,
+			} {
+				require.NotNil(t, roleByName[roleName].SchemeId)
+				assert.Equal(t, channelScheme2.Id, *roleByName[roleName].SchemeId)
 			}
 		})
 	})
@@ -563,13 +656,13 @@ func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *t
 	require.NoError(t, nErr)
 	defer ss.Channel().Delete(channel.Id, 0)
 
-	channelSchemeUserRole, err := ss.Role().GetByName(context.Background(), channelScheme.DefaultChannelUserRole)
+	channelSchemeUserRole, err := ss.Role().GetByName(rctx, channelScheme.DefaultChannelUserRole)
 	require.NoError(t, err)
 	channelSchemeUserRole.Permissions = []string{}
 	_, err = ss.Role().Save(channelSchemeUserRole)
 	require.NoError(t, err)
 
-	teamSchemeUserRole, err := ss.Role().GetByName(context.Background(), teamScheme.DefaultChannelUserRole)
+	teamSchemeUserRole, err := ss.Role().GetByName(rctx, teamScheme.DefaultChannelUserRole)
 	require.NoError(t, err)
 	teamSchemeUserRole.Permissions = []string{model.PermissionUploadFile.Id}
 	_, err = ss.Role().Save(teamSchemeUserRole)

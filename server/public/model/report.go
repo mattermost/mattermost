@@ -17,12 +17,18 @@ const (
 	ReportDurationLast6Months   = "last_6_months"
 
 	ReportingMaxPageSize = 100
+
+	GuestFilterAll             = "all"
+	GuestFilterSingleChannel   = "single_channel"
+	GuestFilterMultipleChannel = "multi_channel"
 )
 
 var (
 	ReportExportFormats = []string{"csv"}
 
 	UserReportSortColumns = []string{"CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email", "Roles"}
+
+	AllowedGuestFilters = []string{GuestFilterAll, GuestFilterSingleChannel, GuestFilterMultipleChannel}
 )
 
 type ReportableObject interface {
@@ -76,11 +82,15 @@ func (options *ReportingBaseOptions) IsValid() *AppError {
 type UserReportQuery struct {
 	User
 	UserPostStats
+	ChannelCount *int
+	Teams        string
 }
 
 type UserReport struct {
 	User
 	UserPostStats
+	ChannelCount *int   `json:"channel_count,omitempty"`
+	Teams        string `json:"teams,omitempty"`
 }
 
 func (u *UserReport) ToReport() []string {
@@ -99,6 +109,10 @@ func (u *UserReport) ToReport() []string {
 	totalPosts := ""
 	if u.TotalPosts != nil {
 		totalPosts = strconv.Itoa(*u.TotalPosts)
+	}
+	channelCount := ""
+	if u.ChannelCount != nil {
+		channelCount = strconv.Itoa(*u.ChannelCount)
 	}
 	lastLogin := ""
 	if u.LastLogin > 0 {
@@ -122,6 +136,8 @@ func (u *UserReport) ToReport() []string {
 		lastPostDate,
 		daysActive,
 		totalPosts,
+		channelCount,
+		u.Teams,
 		deleteAt,
 	}
 }
@@ -134,6 +150,7 @@ type UserReportOptions struct {
 	HideActive   bool
 	HideInactive bool
 	SearchTerm   string
+	GuestFilter  string
 }
 
 func (u *UserReportOptions) IsValid() *AppError {
@@ -146,6 +163,10 @@ func (u *UserReportOptions) IsValid() *AppError {
 		return NewAppError("UserReportOptions.IsValid", "model.user_report_options.is_valid.invalid_sort_column", nil, "", http.StatusBadRequest)
 	}
 
+	if u.GuestFilter != "" && !slices.Contains(AllowedGuestFilters, u.GuestFilter) {
+		return NewAppError("UserReportOptions.IsValid", "model.user_report_options.is_valid.invalid_guest_filter", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -154,15 +175,11 @@ func (u *UserReportQuery) ToReport() *UserReport {
 	return &UserReport{
 		User:          u.User,
 		UserPostStats: u.UserPostStats,
+		ChannelCount:  u.ChannelCount,
+		Teams:         u.Teams,
 	}
 }
 
 func IsValidReportExportFormat(format string) bool {
-	for _, fmt := range ReportExportFormats {
-		if format == fmt {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(ReportExportFormats, format)
 }

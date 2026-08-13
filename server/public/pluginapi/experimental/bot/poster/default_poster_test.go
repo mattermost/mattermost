@@ -91,20 +91,20 @@ func TestDM(t *testing.T) {
 func TestDMWithAttachments(t *testing.T) {
 	expectedPostID := "expected-post-id"
 
-	attachments := []*model.SlackAttachment{
+	attachments := []*model.MessageAttachment{
 		{},
 		{},
 	}
 
 	post := &model.Post{}
 
-	model.ParseSlackAttachment(post, attachments)
+	model.ParseMessageAttachment(post, attachments)
 
 	postWithID := model.Post{
 		Id:        expectedPostID,
 		UserId:    botID,
 		ChannelId: dmChannelID,
-		Type:      model.PostTypeSlackAttachment,
+		Type:      model.PostTypeMessageAttachment,
 		Props: model.StringInterface{
 			model.PostPropsAttachments: attachments,
 		},

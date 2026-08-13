@@ -9,15 +9,12 @@ import type {UserReport} from '@mattermost/types/reports';
 
 import * as Menu from 'components/menu';
 import Input from 'components/widgets/inputs/input/input';
-import Tag from 'components/widgets/tag/tag';
-import WithTooltip from 'components/with_tooltip';
 
 import {ColumnNames} from '../constants';
 
 import './system_users_column_toggler.scss';
 
 interface Props {
-    isMySql: boolean;
     allColumns: Array<Column<UserReport>>;
     visibleColumnsLength: number;
 }
@@ -81,6 +78,13 @@ export function SystemUsersColumnTogglerMenu(props: Props) {
                 <FormattedMessage
                     id='admin.system_users.list.totalPosts'
                     defaultMessage='Messages posted'
+                />
+            );
+        case ColumnNames.channelCount:
+            return (
+                <FormattedMessage
+                    id='admin.system_users.list.channelCount'
+                    defaultMessage='Channel count'
                 />
             );
         case ColumnNames.actions:
@@ -147,28 +151,6 @@ export function SystemUsersColumnTogglerMenu(props: Props) {
                     } else {
                         leadingElement = (
                             <i className='icon icon-checkbox-blank-outline'/>
-                        );
-                    }
-
-                    const postStatsColumns: string[] = [ColumnNames.lastPostDate, ColumnNames.daysActive, ColumnNames.totalPosts];
-                    if (props.isMySql && postStatsColumns.includes(column.id)) {
-                        return (
-                            <WithTooltip
-                                key={column.id}
-                                title={formatMessage({id: 'admin.system_users.column_toggler.mysql_unavailable.title', defaultMessage: 'Not available for servers using MySQL'})}
-                                hint={formatMessage({id: 'admin.system_users.column_toggler.mysql_unavailable.desc', defaultMessage: 'Please use the export functionality to view these values'})}
-                                isVertical={false}
-                            >
-                                <Menu.Item
-                                    className='systemUsersColumnToggler__lockedItem'
-                                    role='menuitemcheckbox'
-                                    labels={getColumnName(column.id)}
-                                    disabled={true}
-                                    leadingElement={leadingElement}
-                                    trailingElements={<Tag text={formatMessage({id: 'admin.system_users.column_toggler.mysql_unavailable.label', defaultMessage: 'Not available'})}/>}
-                                    onClick={column.getToggleVisibilityHandler()}
-                                />
-                            </WithTooltip>
                         );
                     }
 

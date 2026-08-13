@@ -23,8 +23,6 @@ export type MarketplaceItemAppProps = {
     installing: boolean;
     error?: string;
 
-    trackEvent: (category: string, event: string, props?: Record<string, unknown>) => void;
-
     actions: {
         installApp: (id: string) => Promise<boolean>;
         closeMarketplaceModal: () => void;
@@ -33,10 +31,6 @@ export type MarketplaceItemAppProps = {
 
 export default class MarketplaceItemApp extends React.PureComponent <MarketplaceItemAppProps> {
     onInstall = (): void => {
-        this.props.trackEvent('plugins', 'ui_marketplace_install_app', {
-            app_id: this.props.id,
-        });
-
         this.props.actions.installApp(this.props.id).then((res) => {
             if (res) {
                 this.props.actions.closeMarketplaceModal();

@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import UserPropertyValues from './user_properties_values';
 
@@ -19,6 +18,11 @@ describe('UserPropertyValues', () => {
         create_at: 1736541716295,
         delete_at: 0,
         update_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             sort_order: 0,
             visibility: 'when_set',
@@ -32,18 +36,15 @@ describe('UserPropertyValues', () => {
 
     const updateField = jest.fn();
 
-    const renderComponent = (field: UserPropertyField = baseField) => {
+    const renderComponent = (field: UserPropertyField = baseField, autoFocus = false) => {
         return renderWithContext(
             <UserPropertyValues
                 field={field}
                 updateField={updateField}
+                autoFocus={autoFocus}
             />,
         );
     };
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
     it('renders correctly for select/multiselect field types', () => {
         renderComponent();
@@ -68,8 +69,9 @@ describe('UserPropertyValues', () => {
         renderComponent();
 
         const input = screen.getByRole('combobox');
-        fireEvent.change(input, {target: {value: 'New Option'}});
-        fireEvent.keyDown(input, {key: 'Enter'});
+        await userEvent.clear(input);
+        await userEvent.type(input, 'New Option');
+        await userEvent.keyboard('{Enter}');
 
         expect(updateField).toHaveBeenCalledWith({
             ...baseField,
@@ -87,7 +89,10 @@ describe('UserPropertyValues', () => {
         renderComponent();
 
         const input = screen.getByRole('combobox');
-        fireEvent.change(input, {target: {value: 'New Option'}});
+        await userEvent.clear(input);
+        await userEvent.type(input, 'New Option');
+
+        // Trigger blur to save the new option value - fireEvent used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(input);
 
         expect(updateField).toHaveBeenCalledWith({
@@ -107,7 +112,7 @@ describe('UserPropertyValues', () => {
 
         // Find and click the first remove button (x)
         const removeButtons = screen.getAllByRole('button');
-        fireEvent.click(removeButtons[0]);
+        await userEvent.click(removeButtons[0]);
 
         expect(updateField).toHaveBeenCalledWith({
             ...baseField,
@@ -122,13 +127,14 @@ describe('UserPropertyValues', () => {
         renderComponent();
 
         const input = screen.getByRole('combobox');
-        fireEvent.change(input, {target: {value: 'Option 1'}}); // This already exists
+        await userEvent.clear(input);
+        await userEvent.type(input, 'Option 1'); // This already exists
 
         // Error message should appear
         expect(screen.getByText('Values must be unique.')).toBeInTheDocument();
 
         // Pressing Enter shouldn't add the duplicate
-        fireEvent.keyDown(input, {key: 'Enter'});
+        await userEvent.keyboard('{Enter}');
         expect(updateField).not.toHaveBeenCalled();
     });
 
@@ -160,10 +166,9 @@ describe('UserPropertyValues', () => {
         const ldapLink = screen.getByText('AD/LDAP: ldapAttribute');
         expect(ldapLink).toBeInTheDocument();
 
-        // Check that the link points to the correct location
+        // Check that the clickable element is present (no longer checking href)
         const linkElement = screen.getByTestId(`user-property-field-values__ldap-${ldapField.name}`);
         expect(linkElement).toBeInTheDocument();
-        expect(linkElement).toHaveAttribute('href', `/admin_console/authentication/ldap#custom_profile_attribute-${baseField.name}`);
     });
 
     it('shows SAML sync information when field has SAML attribute', () => {
@@ -182,10 +187,9 @@ describe('UserPropertyValues', () => {
         const samlLink = screen.getByText('SAML: samlAttribute');
         expect(samlLink).toBeInTheDocument();
 
-        // Check that the link points to the correct location
+        // Check that the clickable element is present (no longer checking href)
         const linkElement = screen.getByTestId(`user-property-field-values__saml-${samlField.name}`);
         expect(linkElement).toBeInTheDocument();
-        expect(linkElement).toHaveAttribute('href', `/admin_console/authentication/saml#custom_profile_attribute-${baseField.name}`);
     });
 
     it('shows both LDAP and SAML sync information when field has both attributes', () => {
@@ -209,11 +213,114 @@ describe('UserPropertyValues', () => {
         const samlLink = screen.getByText('SAML: samlAttribute');
         expect(samlLink).toBeInTheDocument();
 
-        // Check that both links point to the correct locations
+        // Check that both clickable elements are present (no longer checking href)
         const ldapLinkElement = screen.getByTestId(`user-property-field-values__ldap-${baseField.name}`);
         expect(ldapLinkElement).toBeInTheDocument();
 
-        const samlLinkElement = screen.getByTestId(`user-property-field-values__ldap-${baseField.name}`);
+        const samlLinkElement = screen.getByTestId(`user-property-field-values__saml-${baseField.name}`);
         expect(samlLinkElement).toBeInTheDocument();
+    });
+
+    it('shows owner provenance and editable options for owner-managed select fields', () => {
+        const ownedField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                owners: [
+                    {id: 'com.mattermost.scim', type: 'plugin' as const, scopes: ['entra']},
+                ],
+            },
+        };
+
+        renderComponent(ownedField);
+
+        expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
+        expect(screen.getByTestId(`user-property-field-values__owner-${ownedField.name}-com.mattermost.scim`)).toBeInTheDocument();
+        expect(screen.getByText('com.mattermost.scim: entra')).toBeInTheDocument();
+
+        // Options remain visible and editable for owner-managed select fields.
+        expect(screen.getByText('Option 1')).toBeInTheDocument();
+        expect(screen.getByText('Option 2')).toBeInTheDocument();
+        expect(screen.getByRole('combobox')).toBeInTheDocument();
+    });
+
+    it('shows badge only for owner-managed text fields', () => {
+        const ownedTextField: UserPropertyField = {
+            ...baseField,
+            type: 'text',
+            attrs: {
+                ...baseField.attrs,
+                options: undefined,
+                owners: [
+                    {id: 'com.mattermost.scim', type: 'plugin' as const, scopes: ['entra']},
+                ],
+            },
+        };
+
+        renderComponent(ownedTextField);
+
+        expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
+        expect(screen.getByText('com.mattermost.scim: entra')).toBeInTheDocument();
+        expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+        expect(screen.queryByText('-')).not.toBeInTheDocument();
+    });
+
+    it('hides options editor for LDAP-synced select fields', () => {
+        const ldapField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                ldap: 'ldapAttribute',
+            },
+        };
+
+        renderComponent(ldapField);
+
+        expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
+        expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    });
+
+    it('allows adding options on owner-managed select fields', async () => {
+        const ownedField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                owners: [
+                    {id: 'com.mattermost.scim', type: 'plugin' as const, scopes: ['entra']},
+                ],
+            },
+        };
+
+        renderComponent(ownedField);
+
+        const input = screen.getByRole('combobox');
+        await userEvent.clear(input);
+        await userEvent.type(input, 'New Option');
+        await userEvent.keyboard('{Enter}');
+
+        expect(updateField).toHaveBeenCalledWith({
+            ...ownedField,
+            attrs: {
+                ...ownedField.attrs,
+                options: [
+                    ...ownedField.attrs.options || [],
+                    {id: '', name: 'New Option'},
+                ],
+            },
+        });
+    });
+
+    it('applies autoFocus when prop is true', () => {
+        renderComponent(baseField, true);
+
+        const input = screen.getByRole('combobox');
+        expect(document.activeElement).toBe(input);
+    });
+
+    it('does not autoFocus when prop is false', () => {
+        renderComponent(baseField, false);
+
+        const input = screen.getByRole('combobox');
+        expect(document.activeElement).not.toBe(input);
     });
 });

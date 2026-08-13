@@ -29,19 +29,19 @@ export type AppManifest = {
     description?: string;
     requested_permissions?: Permission[];
     requested_locations?: Locations[];
-}
+};
 
 export type AppModalState = {
     form: AppForm;
     call: AppCallRequest;
-}
+};
 
-export type AppCommandFormMap = { [location: string]: AppForm }
+export type AppCommandFormMap = {[location: string]: AppForm};
 
 export type BindingsInfo = {
     bindings: AppBinding[];
     forms: AppCommandFormMap;
-}
+};
 
 export type AppsState = {
     main: BindingsInfo;
@@ -203,7 +203,7 @@ export type AppCallResponse<Res = unknown> = {
 export type AppMetadataForClient = {
     bot_user_id: string;
     bot_username: string;
-}
+};
 
 export type AppContext = {
     app_id: string;
@@ -223,13 +223,14 @@ export type AppContextProps = {
     [name: string]: string;
 };
 
-export type AppExpandLevel = ''
-| 'none'
-| 'summary'
-| '+summary'
-| 'all'
-| '+all'
-| 'id';
+export type AppExpandLevel =
+    '' |
+    'none' |
+    'summary' |
+    '+summary' |
+    'all' |
+    '+all' |
+    'id';
 
 export type AppExpand = {
     app?: AppExpandLevel;
@@ -309,6 +310,7 @@ export type AppForm = {
     header?: string;
     footer?: string;
     icon?: string;
+    submit_label?: string;
     submit_buttons?: string;
     cancel_button?: boolean;
     submit_on_cancel?: boolean;
@@ -351,6 +353,10 @@ function isAppForm(v: unknown): v is AppForm {
         return false;
     }
 
+    if (form.submit_label !== undefined && typeof form.submit_label !== 'string') {
+        return false;
+    }
+
     if (form.submit_buttons !== undefined && typeof form.submit_buttons !== 'string') {
         return false;
     }
@@ -382,7 +388,7 @@ function isAppForm(v: unknown): v is AppForm {
     return true;
 }
 
-export type AppFormValue = string | AppSelectOption | boolean | null;
+export type AppFormValue = string | AppSelectOption | AppSelectOption[] | boolean | null;
 
 function isAppFormValue(v: unknown): v is AppFormValue {
     if (typeof v === 'string') {
@@ -397,10 +403,14 @@ function isAppFormValue(v: unknown): v is AppFormValue {
         return true;
     }
 
+    if (Array.isArray(v)) {
+        return v.every(isAppSelectOption);
+    }
+
     return isAppSelectOption(v);
 }
 
-export type AppFormValues = { [name: string]: AppFormValue };
+export type AppFormValues = {[name: string]: AppFormValue};
 
 export type AppSelectOption = {
     label: string;
@@ -408,7 +418,7 @@ export type AppSelectOption = {
     icon_data?: string;
 };
 
-function isAppSelectOption(v: unknown): v is AppSelectOption {
+export function isAppSelectOption(v: unknown): v is AppSelectOption {
     if (typeof v !== 'object' || v === null) {
         return false;
     }
@@ -427,6 +437,18 @@ function isAppSelectOption(v: unknown): v is AppSelectOption {
 }
 
 export type AppFieldType = string;
+
+// DateTime field configuration
+export type DateTimeConfig = {
+    min_date?: string; // Minimum allowed date (ISO date, datetime, or relative like "+2H", "today")
+    max_date?: string; // Maximum allowed date (ISO date, datetime, or relative like "+7d", "tomorrow")
+    time_interval?: number; // Minutes between time options (default: 60)
+    location_timezone?: string; // IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
+    manual_time_entry?: boolean; // Allow text entry for time
+
+    /** @deprecated Use manual_time_entry instead. Kept for backward compatibility. */
+    allow_manual_time_entry?: boolean;
+};
 
 // This should go in mattermost-redux
 export type AppField = {
@@ -454,11 +476,52 @@ export type AppField = {
     multiselect?: boolean;
     lookup?: AppCall;
 
+    // File props
+    allow_multiple?: boolean;
+
     // Text props
     subtype?: string;
     min_length?: number;
     max_length?: number;
+
+    // Date/datetime configuration
+    datetime_config?: DateTimeConfig;
+
+    /** @deprecated Use datetime_config.min_date instead. Kept for backward compatibility. */
+    min_date?: string;
+
+    /** @deprecated Use datetime_config.max_date instead. Kept for backward compatibility. */
+    max_date?: string;
+
+    /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
+    time_interval?: number;
+
+    // Action button props
+    action_button_url?: string;
+    action_button_context?: Record<string, string>;
 };
+
+/**
+ * Validates if a string is a valid date format (ISO date, datetime, or relative reference)
+ * Uses native Date constructor which is permissive - server-side validation is authoritative
+ */
+function isValidDateString(dateStr: string): boolean {
+    const relativePatterns = [
+        /^today$/,
+        /^tomorrow$/,
+        /^yesterday$/,
+        /^[+-]\d{1,3}[dwmHMS]$/,
+    ];
+
+    for (const pattern of relativePatterns) {
+        if (pattern.test(dateStr)) {
+            return true;
+        }
+    }
+
+    const date = new Date(dateStr);
+    return !isNaN(date.getTime());
+}
 
 function isAppField(v: unknown): v is AppField {
     if (typeof v !== 'object' || v === null) {
@@ -515,6 +578,10 @@ function isAppField(v: unknown): v is AppField {
         return false;
     }
 
+    if (field.allow_multiple !== undefined && typeof field.allow_multiple !== 'boolean') {
+        return false;
+    }
+
     if (field.lookup !== undefined && !isAppCall(field.lookup)) {
         return false;
     }
@@ -531,6 +598,71 @@ function isAppField(v: unknown): v is AppField {
         return false;
     }
 
+    // Validate datetime_config fields
+    if (field.datetime_config !== undefined) {
+        if (typeof field.datetime_config !== 'object' || field.datetime_config === null) {
+            return false;
+        }
+        if (field.datetime_config.min_date !== undefined) {
+            if (typeof field.datetime_config.min_date !== 'string' || !isValidDateString(field.datetime_config.min_date)) {
+                return false;
+            }
+        }
+        if (field.datetime_config.max_date !== undefined) {
+            if (typeof field.datetime_config.max_date !== 'string' || !isValidDateString(field.datetime_config.max_date)) {
+                return false;
+            }
+        }
+        if (field.datetime_config.time_interval !== undefined && typeof field.datetime_config.time_interval !== 'number') {
+            return false;
+        }
+        if (field.datetime_config.manual_time_entry !== undefined && typeof field.datetime_config.manual_time_entry !== 'boolean') {
+            return false;
+        }
+        if (field.datetime_config.allow_manual_time_entry !== undefined && typeof field.datetime_config.allow_manual_time_entry !== 'boolean') {
+            return false;
+        }
+    }
+
+    // Validate deprecated top-level fields (kept for backward compatibility)
+    if (field.min_date !== undefined) {
+        if (typeof field.min_date !== 'string') {
+            return false;
+        }
+
+        if (!isValidDateString(field.min_date)) {
+            return false;
+        }
+    }
+
+    if (field.max_date !== undefined) {
+        if (typeof field.max_date !== 'string') {
+            return false;
+        }
+
+        if (!isValidDateString(field.max_date)) {
+            return false;
+        }
+    }
+
+    if (field.time_interval !== undefined && typeof field.time_interval !== 'number') {
+        return false;
+    }
+
+    // Validate action button fields
+    if (field.action_button_url !== undefined && typeof field.action_button_url !== 'string') {
+        return false;
+    }
+
+    if (field.action_button_context !== undefined) {
+        if (typeof field.action_button_context !== 'object' || field.action_button_context === null) {
+            return false;
+        }
+        if (!Object.values(field.action_button_context).every((value) => typeof value === 'string')) {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -540,11 +672,11 @@ export type AutocompleteSuggestion = {
     description?: string;
     hint?: string;
     iconData?: string;
-}
+};
 
 export type AutocompleteSuggestionWithComplete = AutocompleteSuggestion & {
     complete: string;
-}
+};
 
 export type AutocompleteElement = AppField;
 export type AutocompleteStaticSelect = AutocompleteElement & {
@@ -561,8 +693,8 @@ export type FormResponseData = {
     errors?: {
         [field: string]: string;
     };
-}
+};
 
 export type AppLookupResponse = {
     items: AppSelectOption[];
-}
+};

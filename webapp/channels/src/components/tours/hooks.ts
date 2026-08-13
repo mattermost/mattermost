@@ -5,22 +5,18 @@ import {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
 
-import {close as closeLhs, open as openLhs} from 'actions/views/lhs';
+import {open as openLhs} from 'actions/views/lhs';
 import {switchToChannels} from 'actions/views/onboarding_tasks';
 
 import {openMenu, dismissMenu} from 'components/menu';
 import {OnboardingTaskCategory, OnboardingTaskList, OnboardingTasksName} from 'components/onboarding_tasks';
 import {ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON} from 'components/sidebar/sidebar_header/sidebar_browse_or_add_channel_menu';
 
-import {getHistory} from 'utils/browser_history';
-
 import type {GlobalState} from 'types/store';
 
 import {
-    CrtTutorialSteps,
     FINISHED,
     OnboardingTourSteps,
     TTNameMapToTourSteps,
@@ -42,7 +38,6 @@ export const useGetTourSteps = (tourCategory: string) => {
 export const useHandleNavigationAndExtraActions = (tourCategory: string) => {
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
-    const teamUrl = useSelector((state: GlobalState) => getCurrentRelativeTeamUrl(state));
 
     const nextStepActions = useCallback((step: number) => {
         if (tourCategory === TutorialTourName.ONBOARDING_TUTORIAL_STEP) {
@@ -85,24 +80,8 @@ export const useHandleNavigationAndExtraActions = (tourCategory: string) => {
             }
             default:
             }
-        } else if (tourCategory === TutorialTourName.CRT_TUTORIAL_STEP) {
-            switch (step) {
-            case CrtTutorialSteps.WELCOME_POPOVER : {
-                dispatch(openLhs());
-                break;
-            }
-            case CrtTutorialSteps.LIST_POPOVER : {
-                const nextUrl = `${teamUrl}/threads`;
-                getHistory().push(nextUrl);
-                break;
-            }
-            case CrtTutorialSteps.UNREAD_POPOVER : {
-                break;
-            }
-            default:
-            }
         }
-    }, [currentUserId, teamUrl, tourCategory]);
+    }, [currentUserId, tourCategory]);
 
     const lastStepActions = useCallback((lastStep: number) => {
         if (tourCategory === TutorialTourName.ONBOARDING_TUTORIAL_STEP) {
@@ -113,14 +92,6 @@ export const useHandleNavigationAndExtraActions = (tourCategory: string) => {
             }
             case OnboardingTourSteps.INVITE_PEOPLE : {
                 dismissMenu();
-                break;
-            }
-            default:
-            }
-        } else if (tourCategory === TutorialTourName.CRT_TUTORIAL_STEP) {
-            switch (lastStep) {
-            case CrtTutorialSteps.WELCOME_POPOVER : {
-                dispatch(closeLhs());
                 break;
             }
             default:

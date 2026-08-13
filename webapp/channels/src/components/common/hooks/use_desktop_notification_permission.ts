@@ -3,9 +3,10 @@
 
 import {useCallback, useEffect, useState} from 'react';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+
 import type {NotificationPermissionNeverGranted} from 'utils/notifications';
 import {isNotificationAPISupported} from 'utils/notifications';
-import {isDesktopApp} from 'utils/user_agent';
 
 export type DesktopNotificationPermission = Exclude<NotificationPermission, typeof NotificationPermissionNeverGranted> | undefined;
 

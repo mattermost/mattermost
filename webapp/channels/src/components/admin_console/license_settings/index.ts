@@ -10,9 +10,10 @@ import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getServerLimits as selectServerLimits} from 'mattermost-redux/selectors/entities/limits';
 import {getFilteredUsersStats as selectFilteredUserStats} from 'mattermost-redux/selectors/entities/users';
 
-import {requestTrialLicense, upgradeToE0Status, upgradeToE0, restartServer, ping} from 'actions/admin_actions';
+import {requestTrialLicense, upgradeToE0Status, upgradeToE0, restartServer, ping, isAllowedToUpgradeToEnterprise} from 'actions/admin_actions';
 import {openModal} from 'actions/views/modals';
 
 import type {GlobalState} from 'types/store';
@@ -23,10 +24,9 @@ function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
 
     return {
-        totalUsers: selectFilteredUserStats(state)?.total_users_count || 0,
+        totalUsers: selectServerLimits(state)?.activeUserCount ?? selectFilteredUserStats(state)?.total_users_count ?? 0,
         upgradedFromTE: config.UpgradedFromTE === 'true',
         prevTrialLicense: state.entities.admin.prevTrialLicense,
-        isMySql: config.SQLDriverName === 'mysql',
     };
 }
 
@@ -45,6 +45,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             openModal,
             getFilteredUsersStats,
             getServerLimits,
+            isAllowedToUpgradeToEnterprise,
         }, dispatch),
     };
 }

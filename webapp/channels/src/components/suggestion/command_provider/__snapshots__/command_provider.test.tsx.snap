@@ -1,42 +1,39 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`CommandSuggestion should match snapshot 1`] = `
-<SuggestionContainer
-  isSelection={true}
-  item={
-    Object {
-      "Complete": "/invite",
-      "Description": "Invite a user to a channel",
-      "Hint": "@[username] ~[channel]",
-      "IconData": "",
-      "Suggestion": "/invite",
-    }
-  }
-  matchedPretext=""
-  onClick={[MockFunction]}
-  onMouseMove={[MockFunction]}
-  term="/"
->
-  <div
-    className="slash-command__icon"
-  >
-    <span>
-      /
-    </span>
-  </div>
-  <div
-    className="slash-command__info"
+<div>
+  <li
+    aria-describedby="test-suggestion-description"
+    aria-labelledby="test-suggestion-label"
+    class="suggestion-list__item suggestion--selected"
+    data-testid="suggestion-selected"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
   >
     <div
-      className="slash-command__title"
+      class="slash-command__icon"
     >
-      invite @[username] ~[channel]
+      <span>
+        /
+      </span>
     </div>
     <div
-      className="slash-command__desc"
+      class="slash-command__info"
     >
-      Invite a user to a channel
+      <div
+        class="slash-command__title"
+        id="test-suggestion-label"
+      >
+        invite @[username] ~[channel]
+      </div>
+      <div
+        class="slash-command__desc"
+        id="test-suggestion-description"
+      >
+        Invite a user to a channel
+      </div>
     </div>
-  </div>
-</SuggestionContainer>
+  </li>
+</div>
 `;

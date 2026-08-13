@@ -7,12 +7,13 @@ body {
 }
 
 .LoadingScreen {
-    --background-color: #f4f4f6;
-    --background-color-highlight: #ffffff;
-    --stipple-color: #1e325c;
-    --stipple-opacity: 0.08;
+    --background-color: #ffffff;
+    --background-gradient: linear-gradient(152deg, rgba(63, 67, 80, 0.00) 0%, rgba(63, 67, 80, 0.04) 80%, #FFFFFF);
+    --background-texture: rgba(63, 67, 80, 0.04);
+    --gradient-center-color: #FFF;
+    --gradient-edge-color: rgba(255, 255, 255, 0);
     position: absolute;
-    z-index: 100;
+    z-index: 1000;
     top: 0px;
     bottom: 0px;
     display: flex;
@@ -25,13 +26,25 @@ body {
     transition: opacity 150ms 0ms ease-out, visibility 150ms 0ms step-start;
     vertical-align: middle;
     visibility: visible;
+
+    .LoadingScreen__background-gradient {
+        background-image: var(--background-gradient);
+    }
+
+    .LoadingScreen__background-texture {
+        fill: var(--background-texture);
+    }
 }
 
-.LoadingScreen--darkMode {
-    --background-color-highlight: #28427b;
-    --background-color: #1e325c;
-    --stipple-color: #14213e;
-    --stipple-opacity: 0.8;
+/* Apply dark mode based on OS preference automatically */
+@media (prefers-color-scheme: dark) {
+    .LoadingScreen {
+        --background-color: #191B1F;
+        --background-gradient: linear-gradient(152deg, rgba(221, 223, 228, 0.00) 0%, rgba(221, 223, 228, 0.04) 80, #191B1F);
+        --background-texture: rgba(221, 223, 228, 0.04);
+        --gradient-center-color: #1B1D22;
+        --gradient-edge-color: rgba(27, 29, 34, 0);
+    }
 }
 
 .LoadingScreen__background,
@@ -46,31 +59,18 @@ body {
     background: var(--background-color);
 }
 
-.LoadingScreen .Pill__stipple {
-    fill: var(--stipple-color);
-    fill-opacity: var(--stipple-opacity);
-}
-
-.LoadingScreen .Pill__gradient {
-    stop-color: var(--background-color);
-}
-
-.LoadingScreen .Pill__gradientHighlight {
-    stop-color: var(--background-color-highlight);
-}
-
 .LoadingScreen--loaded {
     opacity: 0;
-    transition: opacity 150ms 0ms ease-in, visibility 150ms 0ms step-end;
+    transition: opacity 400ms 0ms ease-in, visibility 400ms 0ms step-end;
     visibility: hidden;
 }
 
 .LoadingAnimation {
     --fade-duration: 150ms;
     --colour: #1E325C;
-    --animation-initial-delay: 750ms;
-    --animation-start-duration: 750ms;
-    --animation-end-duration: 600ms;
+    --animation-initial-delay: 50ms;
+    --animation-start-duration: 400ms;
+    --animation-end-duration: 500ms;
     --animation-spinner-speed: 500ms;
     --animation-spinner-mask-stroke-length: 169.6;
     --ease-in-cubic: cubic-bezier(0.32, 0, 0.67, 0);
@@ -83,8 +83,11 @@ body {
     transform: scale3d(1, 1, 1);
 }
 
-.LoadingAnimation--darkMode {
-    --colour: white;
+/* Apply dark mode based on OS preference automatically */
+@media (prefers-color-scheme: dark) {
+    .LoadingAnimation {
+        --colour: white;
+    }
 }
 
 .LoadingAnimation g,
@@ -208,7 +211,7 @@ body {
 }
 
 .LoadingAnimation--loaded {
-    --duration: 150ms;
+    --duration: 400ms;
     --delay: 0ms;
 
     animation: LoadingAnimation__fade-out var(--duration) var(--delay) var(--ease-in) forwards, LoadingAnimation__shrink var(--duration) var(--delay) var(--ease-in) forwards;

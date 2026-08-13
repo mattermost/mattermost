@@ -5,11 +5,17 @@ import {defineConfig, devices} from '@playwright/test';
 
 import {duration, testConfig} from '@mattermost/playwright-lib';
 
+const chromeUse = {
+    browserName: 'chromium' as const,
+    permissions: ['notifications', 'clipboard-read', 'clipboard-write'] as string[],
+    viewport: {width: 1280, height: 1024},
+};
+
 export default defineConfig({
     globalSetup: './global_setup.ts',
     forbidOnly: testConfig.isCI,
     outputDir: './results/output',
-    retries: testConfig.isCI ? 2 : 0,
+    retries: testConfig.isCI ? 1 : 0,
     testDir: 'specs',
     timeout: duration.one_min,
     workers: testConfig.workers,
@@ -19,6 +25,9 @@ export default defineConfig({
             threshold: 0.4,
             maxDiffPixelRatio: 0.0001,
             animations: 'disabled',
+        },
+        toMatchAriaSnapshot: {
+            pathTemplate: '{testDir}/{testFilePath}-snapshots-a11y/{arg}{ext}',
         },
     },
     use: {
@@ -36,8 +45,8 @@ export default defineConfig({
             slowMo: testConfig.slowMo,
         },
         screenshot: 'only-on-failure',
-        timezoneId: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        trace: 'off',
+        timezoneId: new Intl.DateTimeFormat().resolvedOptions().timeZone,
+        trace: 'retain-on-failure',
         video: 'retain-on-failure',
         actionTimeout: duration.half_min,
     },
@@ -54,11 +63,7 @@ export default defineConfig({
         },
         {
             name: 'chrome',
-            use: {
-                browserName: 'chromium',
-                permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
-                viewport: {width: 1280, height: 1024},
-            },
+            use: chromeUse,
             dependencies: ['setup'],
         },
         {
@@ -72,6 +77,7 @@ export default defineConfig({
         },
     ],
     reporter: [
+        ...(testConfig.isCI ? [['blob', {outputDir: './results/blob-report'}] as const] : []),
         ['html', {open: 'never', outputFolder: './results/reporter'}],
         ['json', {outputFile: './results/reporter/results.json'}],
         ['junit', {outputFile: './results/reporter/results.xml'}],

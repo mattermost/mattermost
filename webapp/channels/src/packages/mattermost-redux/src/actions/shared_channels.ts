@@ -59,7 +59,7 @@ export function fetchChannelRemotes(channelId: string, forceRefresh = false): Ac
     };
 }
 
-export function fetchRemoteClusterInfo(remoteId: string, forceRefresh = false): ActionFuncAsync<RemoteClusterInfo> {
+export function fetchRemoteClusterInfo(remoteId: string, includeDeleted?: boolean, forceRefresh = false): ActionFuncAsync<RemoteClusterInfo> {
     return async (dispatch: any, getState: () => GlobalState) => {
         // Check if we already have the remote info cached
         const state = getState();
@@ -71,7 +71,7 @@ export function fetchRemoteClusterInfo(remoteId: string, forceRefresh = false): 
 
         let data;
         try {
-            data = await Client4.getRemoteClusterInfo(remoteId);
+            data = await Client4.getRemoteClusterInfo(remoteId, includeDeleted);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));

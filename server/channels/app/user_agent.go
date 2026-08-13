@@ -107,28 +107,39 @@ func getOSName(ua *uasurfer.UserAgent, userAgentString string) string {
 	return osNames[uasurfer.OSUnknown]
 }
 
+const desktopAppVersionPrefix = "Mattermost/"
+
+var versionPrefixes = []string{
+	"Mattermost Mobile/",
+	desktopAppVersionPrefix,
+	"mmctl/",
+	"Franz/",
+}
+
+func GetDesktopAppVersion(userAgentString string) (version string, ok bool) {
+	idx := strings.Index(userAgentString, desktopAppVersionPrefix)
+	if idx == -1 {
+		return "", false
+	}
+	if idx > 0 && userAgentString[idx-1] != ' ' {
+		return "", false
+	}
+	after := userAgentString[idx+len(desktopAppVersionPrefix):]
+	if fields := strings.Fields(after); len(fields) > 0 {
+		return limitStringLength(fields[0], maxUserAgentVersionLength), true
+	}
+	return "", false
+}
+
 func getBrowserVersion(ua *uasurfer.UserAgent, userAgentString string) string {
-	if index := strings.Index(userAgentString, "Mattermost Mobile/"); index != -1 {
-		afterVersion := userAgentString[index+len("Mattermost Mobile/"):]
-		// MM-55320: limitStringLength prevents potential DOS caused by filling an unbounded string with junk data
-		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
+	for _, prefix := range versionPrefixes {
+		if _, after, ok := strings.Cut(userAgentString, prefix); ok {
+			if fields := strings.Fields(after); len(fields) > 0 {
+				// MM-55320: limitStringLength prevents potential DOS caused by filling an unbounded string with junk data
+				return limitStringLength(fields[0], maxUserAgentVersionLength)
+			}
+		}
 	}
-
-	if index := strings.Index(userAgentString, "Mattermost/"); index != -1 {
-		afterVersion := userAgentString[index+len("Mattermost/"):]
-		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
-	}
-
-	if index := strings.Index(userAgentString, "mmctl/"); index != -1 {
-		afterVersion := userAgentString[index+len("mmctl/"):]
-		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
-	}
-
-	if index := strings.Index(userAgentString, "Franz/"); index != -1 {
-		afterVersion := userAgentString[index+len("Franz/"):]
-		return limitStringLength(strings.Fields(afterVersion)[0], maxUserAgentVersionLength)
-	}
-
 	return getUAVersion(ua.Browser.Version)
 }
 

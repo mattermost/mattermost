@@ -1,15 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+
+import type {Channel} from '@mattermost/types/channels';
 import {CollapsedThreads} from '@mattermost/types/config';
+import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {Preferences} from 'mattermost-redux/constants';
+import {General, Preferences} from 'mattermost-redux/constants';
 
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
+import Constants, {StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import SwitchChannelProvider from './switch_channel_provider';
+import SwitchChannelProvider, {ConnectedSwitchChannelSuggestion} from './switch_channel_provider';
 
 const latestPost = TestHelper.getPostMock({
     id: 'latest_post_id',
@@ -165,7 +171,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'other';
 
         switchProvider.startNewRequest('');
-        const result = switchProvider.formatList(searchText, channels, users);
+        const result = switchProvider.formatGroup(searchText, channels, users);
 
         const set = new Set(result.terms);
         expect(set.size).toEqual(result.items.length);
@@ -202,7 +208,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'other';
 
         switchProvider.startNewRequest('');
-        const result = switchProvider.formatList(searchText, channels, users);
+        const result = switchProvider.formatGroup(searchText, channels, users);
 
         const set = new Set(result.terms);
         expect(set.size).toEqual(result.items.length);
@@ -216,6 +222,123 @@ describe('components/SwitchChannelProvider', () => {
         }));
         expect(set2.size).toEqual(1);
         expect(result.items.length).toEqual(2);
+    });
+
+    it('flags discoverable non-member private channels in the recent list for the request-to-join flow (MM-68764)', () => {
+        const switchProvider = new SwitchChannelProvider();
+        const store = mockStore({
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                general: {config: {FeatureFlagDiscoverableChannels: 'true'}},
+                channels: {
+                    ...defaultState.entities.channels,
+                    joinRequests: {
+                        myPendingByChannel: {},
+                        byChannel: {},
+                        countsByChannel: {},
+                        myList: [],
+                    },
+                },
+            },
+        });
+        switchProvider.store = store;
+
+        const discoverableChannel = TestHelper.getChannelMock({
+            id: 'discoverable_channel_id',
+            type: 'P',
+            name: 'discoverable-ops',
+            display_name: 'Discoverable Ops',
+            discoverable: true,
+            delete_at: 0,
+        });
+
+        const wrapped = switchProvider.wrapChannels([discoverableChannel], Constants.MENTION_RECENT_CHANNELS);
+
+        expect(wrapped).toHaveLength(1);
+        expect(wrapped[0].discoverableNonMember).toBe(true);
+        expect(wrapped[0].hasPendingJoinRequest).toBe(false);
+    });
+
+    it('marks a discoverable recent-list channel with a pending request so the row offers Withdraw', () => {
+        const switchProvider = new SwitchChannelProvider();
+        const store = mockStore({
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                general: {config: {FeatureFlagDiscoverableChannels: 'true'}},
+                channels: {
+                    ...defaultState.entities.channels,
+                    joinRequests: {
+                        myPendingByChannel: {
+                            discoverable_channel_id: {
+                                id: 'req1',
+                                channel_id: 'discoverable_channel_id',
+                                user_id: 'current_user_id',
+                                message: '',
+                                status: 'pending',
+                                denial_reason: '',
+                                create_at: 1,
+                                update_at: 1,
+                                reviewed_by: '',
+                                reviewed_at: 0,
+                            },
+                        },
+                        byChannel: {},
+                        countsByChannel: {},
+                        myList: [],
+                    },
+                },
+            },
+        });
+        switchProvider.store = store;
+
+        const discoverableChannel = TestHelper.getChannelMock({
+            id: 'discoverable_channel_id',
+            type: 'P',
+            name: 'discoverable-ops',
+            display_name: 'Discoverable Ops',
+            discoverable: true,
+            delete_at: 0,
+        });
+
+        const wrapped = switchProvider.wrapChannels([discoverableChannel], Constants.MENTION_RECENT_CHANNELS);
+
+        expect(wrapped[0].discoverableNonMember).toBe(true);
+        expect(wrapped[0].hasPendingJoinRequest).toBe(true);
+    });
+
+    it('does not flag discoverable channels when the feature flag is off', () => {
+        const switchProvider = new SwitchChannelProvider();
+        const store = mockStore({
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    joinRequests: {
+                        myPendingByChannel: {},
+                        byChannel: {},
+                        countsByChannel: {},
+                        myList: [],
+                    },
+                },
+            },
+        });
+        switchProvider.store = store;
+
+        const discoverableChannel = TestHelper.getChannelMock({
+            id: 'discoverable_channel_id',
+            type: 'P',
+            name: 'discoverable-ops',
+            display_name: 'Discoverable Ops',
+            discoverable: true,
+            delete_at: 0,
+        });
+
+        const wrapped = switchProvider.wrapChannels([discoverableChannel], Constants.MENTION_RECENT_CHANNELS);
+
+        expect(wrapped[0].discoverableNonMember).toBeUndefined();
     });
 
     it('should not fail if nothing matches', () => {
@@ -243,7 +366,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'something else';
 
         switchProvider.startNewRequest('');
-        const results = switchProvider.formatList(searchText, channels, users);
+        const results = switchProvider.formatGroup(searchText, channels, users);
 
         expect(results.terms.length).toEqual(0);
         expect(results.items.length).toEqual(0);
@@ -388,7 +511,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'other';
 
         switchProvider.startNewRequest('');
-        const results = switchProvider.formatList(searchText, channels, users);
+        const results = switchProvider.formatGroup(searchText, channels, users);
 
         const expectedOrder = [
             'other_user1',
@@ -505,7 +628,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'other';
 
         switchProvider.startNewRequest('');
-        const results = switchProvider.formatList(searchText, channels, users);
+        const results = switchProvider.formatGroup(searchText, channels, users);
 
         const expectedOrder = [
             'other_user4',
@@ -580,8 +703,13 @@ describe('components/SwitchChannelProvider', () => {
             'channel_other_user1',
         ];
 
-        expect(resultsCallback).toBeCalledWith(expect.objectContaining({
-            terms: expectedOrder,
+        expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
+            groups: expect.arrayContaining([
+                expect.objectContaining({
+                    key: 'channels',
+                    terms: expectedOrder,
+                }),
+            ]),
         }));
     });
 
@@ -663,8 +791,13 @@ describe('components/SwitchChannelProvider', () => {
             'other_gm_channel',
         ];
 
-        expect(resultsCallback).toBeCalledWith(expect.objectContaining({
-            terms: expectedOrder,
+        expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
+            groups: expect.arrayContaining([
+                expect.objectContaining({
+                    key: 'channels',
+                    terms: expectedOrder,
+                }),
+            ]),
         }));
     });
 
@@ -750,8 +883,13 @@ describe('components/SwitchChannelProvider', () => {
             'other_gm_channel',
             'channel_other_user1',
         ];
-        expect(resultsCallback).toBeCalledWith(expect.objectContaining({
-            terms: expectedOrder,
+        expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
+            groups: expect.arrayContaining([
+                expect.objectContaining({
+                    key: 'channels',
+                    terms: expectedOrder,
+                }),
+            ]),
         }));
     });
 
@@ -845,7 +983,7 @@ describe('components/SwitchChannelProvider', () => {
         const searchText = 'other current';
 
         switchProvider.startNewRequest('');
-        const results = switchProvider.formatList(searchText, channels, users);
+        const results = switchProvider.formatGroup(searchText, channels, users);
 
         const expectedOrder = [
             'other_gm_channel',
@@ -899,8 +1037,13 @@ describe('components/SwitchChannelProvider', () => {
             'channel_1',
         ];
 
-        expect(resultsCallback).toBeCalledWith(expect.objectContaining({
-            terms: channelsFromActiveTeams,
+        expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
+            groups: expect.arrayContaining([
+                expect.objectContaining({
+                    key: 'channels',
+                    terms: channelsFromActiveTeams,
+                }),
+            ]),
         }));
     });
 
@@ -985,8 +1128,649 @@ describe('components/SwitchChannelProvider', () => {
             'thread_gm_channel',
         ];
 
-        expect(resultsCallback).toBeCalledWith(expect.objectContaining({
-            terms: expectedOrder,
+        expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
+            groups: expect.arrayContaining([
+                expect.objectContaining({
+                    key: 'channels',
+                    terms: expectedOrder,
+                }),
+            ]),
         }));
+    });
+
+    describe('Smart Email Search Functionality', () => {
+        let switchProvider: SwitchChannelProvider;
+        let store: any;
+        let modifiedState: any;
+
+        beforeEach(() => {
+            const userWithEmail = TestHelper.getUserMock({
+                id: 'user_with_email',
+                username: 'testuser',
+                email: 'prefix-search@domain1.org',
+                first_name: 'Test',
+                last_name: 'User',
+            });
+
+            const userWithCommonDomain = TestHelper.getUserMock({
+                id: 'user_with_common_domain',
+                username: 'anotheruser',
+                email: 'different@domain2.org',
+                first_name: 'Another',
+                last_name: 'User',
+            });
+
+            modifiedState = {
+                ...defaultState,
+                entities: {
+                    ...defaultState.entities,
+                    users: {
+                        ...defaultState.entities.users,
+                        profiles: {
+                            ...defaultState.entities.users.profiles,
+                            [userWithEmail.id]: userWithEmail,
+                            [userWithCommonDomain.id]: userWithCommonDomain,
+                        },
+                        profilesInChannel: {
+                            ...defaultState.entities.users.profilesInChannel,
+                            dm_channel_1: new Set([userWithEmail.id]),
+                            dm_channel_2: new Set([userWithCommonDomain.id]),
+                        },
+                    },
+                    channels: {
+                        ...defaultState.entities.channels,
+                        channels: {
+                            ...defaultState.entities.channels.channels,
+                            dm_channel_1: TestHelper.getChannelMock({
+                                id: 'dm_channel_1',
+                                type: 'D',
+                                name: `current_user_id__${userWithEmail.id}`,
+                                display_name: userWithEmail.username,
+                            }),
+                            dm_channel_2: TestHelper.getChannelMock({
+                                id: 'dm_channel_2',
+                                type: 'D',
+                                name: `current_user_id__${userWithCommonDomain.id}`,
+                                display_name: userWithCommonDomain.username,
+                            }),
+                        },
+                        myMembers: {
+                            ...defaultState.entities.channels.myMembers,
+                            dm_channel_1: {
+                                channel_id: 'dm_channel_1',
+                                user_id: 'current_user_id',
+                            },
+                            dm_channel_2: {
+                                channel_id: 'dm_channel_2',
+                                user_id: 'current_user_id',
+                            },
+                        },
+                        profilesInChannel: {
+                            dm_channel_1: new Set([userWithEmail.id]),
+                            dm_channel_2: new Set([userWithCommonDomain.id]),
+                        },
+                    },
+                },
+            };
+
+            switchProvider = new SwitchChannelProvider();
+            store = mockStore(modifiedState);
+            switchProvider.store = store;
+        });
+
+        it('should match by email prefix when searching without @', () => {
+            const channels = [
+                modifiedState.entities.channels.channels.dm_channel_1,
+                modifiedState.entities.channels.channels.dm_channel_2,
+            ];
+            const users = [
+                modifiedState.entities.users.profiles.user_with_email,
+                modifiedState.entities.users.profiles.user_with_common_domain,
+            ];
+
+            // These should work - searching by email prefix (before @)
+            switchProvider.startNewRequest('');
+            let results = switchProvider.formatGroup('prefix-search', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+
+            results = switchProvider.formatGroup('different', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
+        });
+
+        it('should match by full email when searching WITH @ symbol', () => {
+            const channels = [
+                modifiedState.entities.channels.channels.dm_channel_1,
+                modifiedState.entities.channels.channels.dm_channel_2,
+            ];
+            const users = [
+                modifiedState.entities.users.profiles.user_with_email,
+                modifiedState.entities.users.profiles.user_with_common_domain,
+            ];
+
+            // These should work - searching by full email when @ is present
+            switchProvider.startNewRequest('');
+            let results = switchProvider.formatGroup('prefix-search@domain1.org', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+
+            results = switchProvider.formatGroup('different@domain2.org', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
+
+            results = switchProvider.formatGroup('prefix-search@', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+        });
+
+        it('should match by partial email with @ symbol', () => {
+            const channels = [
+                modifiedState.entities.channels.channels.dm_channel_1,
+                modifiedState.entities.channels.channels.dm_channel_2,
+            ];
+            const users = [
+                modifiedState.entities.users.profiles.user_with_email,
+                modifiedState.entities.users.profiles.user_with_common_domain,
+            ];
+
+            // Partial email searches with @ should work
+            switchProvider.startNewRequest('');
+            let results = switchProvider.formatGroup('prefix-search@', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+
+            results = switchProvider.formatGroup('different@', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
+        });
+
+        it('should handle @ at the beginning correctly', () => {
+            const channels = [
+                modifiedState.entities.channels.channels.dm_channel_1,
+                modifiedState.entities.channels.channels.dm_channel_2,
+            ];
+            const users = [
+                modifiedState.entities.users.profiles.user_with_email,
+                modifiedState.entities.users.profiles.user_with_common_domain,
+            ];
+
+            // @ at the beginning should be stripped and then apply smart logic
+            switchProvider.startNewRequest('');
+            let results = switchProvider.formatGroup('@prefix-search', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+
+            results = switchProvider.formatGroup('@different', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
+        });
+
+        it('should match domain when @ is present in search term', () => {
+            const channels = [
+                modifiedState.entities.channels.channels.dm_channel_1,
+                modifiedState.entities.channels.channels.dm_channel_2,
+            ];
+            const users = [
+                modifiedState.entities.users.profiles.user_with_email,
+                modifiedState.entities.users.profiles.user_with_common_domain,
+            ];
+
+            // When @ is present, domain matching should work
+            switchProvider.startNewRequest('');
+            let results = switchProvider.formatGroup('@domain1', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+
+            results = switchProvider.formatGroup('@domain2', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_2')).toBe(true);
+
+            results = switchProvider.formatGroup('domain1@', channels, users);
+            expect(results.items.length).toBe(2); // formatGroup processes both channels and users separately
+            expect(results.items.some((item) => item.channel.id === 'dm_channel_1')).toBe(true);
+        });
+    });
+});
+
+describe('SwitchChannelSuggestion', () => {
+    const baseProps = {
+        id: 'test-suggestion',
+        matchedPretext: '',
+        isSelection: false,
+        onClick: jest.fn(),
+        onMouseMove: jest.fn(),
+    };
+
+    const currentUserId = 'currentUser';
+
+    const team1 = TestHelper.getTeamMock({id: 'team1', display_name: 'Team One'});
+    const team2 = TestHelper.getTeamMock({id: 'team2', display_name: 'Team Two'});
+
+    function getBaseState(teams: Team[], channels: Channel[]): any {
+        return {
+            entities: {
+                channels: {
+                    channels: channels.reduce((channelsMap, channel) => ({...channelsMap, [channel.id]: channel}), {}),
+                    myMembers: channels.reduce((membersMap, channel) => ({
+                        ...membersMap,
+                        [channel.id]: TestHelper.getChannelMembershipMock({channel_id: channel.id, user_id: currentUserId}),
+                    }), {}),
+                },
+                teams: {
+                    teams: teams.reduce((teamsMap, team) => ({...teamsMap, [team.id]: team}), {}),
+                    myMembers: teams.reduce((membersMap, team) => ({
+                        ...membersMap,
+                        [team.id]: TestHelper.getTeamMembershipMock({team_id: team.id, user_id: currentUserId}),
+                    }), {}),
+                },
+            },
+        };
+    }
+
+    test('should show the team name for channels if the user is on multiple teams', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One'});
+
+        const {replaceStoreState} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            getBaseState([team1], [channel1]),
+        );
+
+        const suggestion = document.getElementById(baseProps.id);
+
+        // When the user is on only a single team, the channel's URL name is displayed
+        expect(screen.getByText(`~${channel1.name}`)).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel1.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel1.name} Public channel`);
+
+        replaceStoreState(getBaseState([team1, team2], [channel1]));
+
+        // When the user is on multiple teams, we show the team's display name instead
+        expect(screen.getByText(team1.display_name)).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel1.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`${team1.display_name} Public channel`);
+    });
+
+    test('should show the type of channel', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One', type: General.OPEN_CHANNEL});
+        const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: 'team1', name: 'channel_two', display_name: 'Channel Two', type: General.PRIVATE_CHANNEL});
+
+        const {rerender} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            getBaseState([team1], [channel1, channel2]),
+        );
+
+        const suggestion = document.getElementById(baseProps.id);
+
+        expect(screen.getByLabelText('Public channel')).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel1.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel1.name} Public channel`);
+
+        rerender(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel2.name}
+                item={{
+                    channel: channel2,
+                    name: channel2.name,
+                    deactivated: false,
+                }}
+            />,
+        );
+
+        expect(screen.getByLabelText('Private channel')).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel2.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel2.name} Private channel`);
+    });
+
+    test('should show if the channel has a draft instead of the channel type', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One'});
+        const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: 'team1', name: 'channel_two', display_name: 'Channel Two'});
+
+        const testState = getBaseState([team1], [channel1, channel2]);
+        testState.storage = {
+            storage: {
+                [`${StoragePrefixes.DRAFT}${channel2.id}`]: {
+                    value: TestHelper.getPostDraftMock({message: 'post draft'}),
+                },
+            },
+        };
+
+        const {rerender} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            testState,
+        );
+
+        const suggestion = document.getElementById(baseProps.id);
+
+        expect(screen.queryByLabelText('Has draft')).not.toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel1.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel1.name} Public channel`);
+
+        rerender(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel2.name}
+                item={{
+                    channel: channel2,
+                    name: channel2.name,
+                    deactivated: false,
+                }}
+            />,
+        );
+
+        expect(screen.queryByLabelText('Has draft')).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel2.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel2.name} Has draft`);
+    });
+
+    test('should show if the channel is archived instead of the channel type', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One'});
+        const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: 'team1', name: 'channel_two', display_name: 'Channel Two', delete_at: 1});
+
+        const {rerender} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            getBaseState([team1], [channel1, channel2]),
+        );
+
+        const suggestion = document.getElementById(baseProps.id);
+
+        expect(screen.queryByLabelText('Archved channel')).not.toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel1.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel1.name} Public channel`);
+
+        rerender(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel2.name}
+                item={{
+                    channel: channel2,
+                    name: channel2.name,
+                    deactivated: false,
+                }}
+            />,
+        );
+
+        expect(screen.queryByLabelText('Archived channel')).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel2.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel2.name} Archived channel`);
+    });
+
+    test('should show if the channel has unread mentions', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One'});
+        const channel2 = TestHelper.getChannelMock({id: 'channel2', team_id: 'team1', name: 'channel_two', display_name: 'Channel Two'});
+        const channel3 = TestHelper.getChannelMock({id: 'channel3', team_id: 'team1', name: 'channel_three', display_name: 'Channel Three'});
+
+        const testState = getBaseState([team1], [channel1, channel2, channel3]);
+        testState.entities.channels.myMembers[channel1.id].mention_count = 0;
+        testState.entities.channels.myMembers[channel2.id].mention_count = 1;
+        testState.entities.channels.myMembers[channel3.id].mention_count = 5;
+
+        const {rerender} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            testState,
+        );
+
+        const suggestion = document.getElementById(baseProps.id);
+
+        expect(screen.queryByLabelText(/unread/, {exact: false})).not.toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel1.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`~${channel1.name} Public channel`);
+
+        rerender(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel2.name}
+                item={{
+                    channel: channel2,
+                    name: channel2.name,
+                    deactivated: false,
+                }}
+            />,
+        );
+
+        expect(screen.queryByLabelText('1 unread notification')).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel2.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`1 unread notification ~${channel2.name} Public channel`);
+
+        rerender(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel3.name}
+                item={{
+                    channel: channel3,
+                    name: channel3.name,
+                    deactivated: false,
+                }}
+            />,
+        );
+
+        expect(screen.queryByLabelText('5 unread notifications')).toBeInTheDocument();
+        expect(suggestion).toHaveAccessibleName(channel3.display_name);
+        expect(suggestion).toHaveAccessibleDescription(`5 unread notifications ~${channel3.name} Public channel`);
+    });
+
+    describe('layout and tooltip behavior for long names', () => {
+        const longTeam1 = TestHelper.getTeamMock({
+            id: 'team1',
+            display_name: 'A Very Long Team Display Name That Will Likely Overflow Its Slot In The Switcher',
+        });
+        const longTeam2 = TestHelper.getTeamMock({
+            id: 'team2',
+            display_name: 'Another Long Team Two',
+        });
+        const longChannel = TestHelper.getChannelMock({
+            id: 'channel1',
+            team_id: 'team1',
+            name: 'super_long_channel_name',
+            display_name: 'Super Extremely Long Channel Display Name That Should Truncate With An Ellipsis',
+        });
+
+        afterEach(() => {
+            // reset prototype overrides between tests
+            Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 0});
+            Object.defineProperty(HTMLElement.prototype, 'clientWidth', {configurable: true, value: 0});
+        });
+
+        test('should render team name as a sibling of the primary column wrapper inside .suggestion-list__flex when on multiple teams', () => {
+            renderWithContext(
+                <ConnectedSwitchChannelSuggestion
+                    {...baseProps}
+                    term={longChannel.name}
+                    item={{
+                        channel: longChannel,
+                        name: longChannel.name,
+                        deactivated: false,
+                    }}
+                />,
+                getBaseState([longTeam1, longTeam2], [longChannel]),
+            );
+
+            const suggestion = document.getElementById(baseProps.id) as HTMLElement;
+            expect(suggestion).toBeInTheDocument();
+
+            // Both nodes (channel name and team name) are present
+            expect(screen.getByText(longChannel.display_name)).toBeInTheDocument();
+            expect(screen.getByText(longTeam1.display_name)).toBeInTheDocument();
+
+            // The flex row contains the primary column wrapper and the team name as siblings
+            const flexRow = suggestion.querySelector('.suggestion-list__flex') as HTMLElement;
+            expect(flexRow).not.toBeNull();
+
+            const primaryColumn = flexRow.querySelector(':scope > .suggestion-list__switch-channel-primary');
+            expect(primaryColumn).not.toBeNull();
+
+            const teamNameNode = flexRow.querySelector('.suggestion-list__team-name');
+            expect(teamNameNode).not.toBeNull();
+            expect(teamNameNode).toHaveTextContent(longTeam1.display_name);
+
+            // Team name must live outside the primary column so it remains a flex sibling that doesn't shrink with the channel name.
+            expect(primaryColumn!.contains(teamNameNode)).toBe(false);
+
+            // Channel name span should live inside the primary column with the truncation class
+            const channelNameNode = primaryColumn!.querySelector('.suggestion-list__channel-name-text');
+            expect(channelNameNode).not.toBeNull();
+            expect(channelNameNode).toHaveTextContent(longChannel.display_name);
+        });
+
+        test('should disable the channel-name and team-name tooltips when the names fit their containers', async () => {
+            jest.useFakeTimers();
+
+            Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 100});
+            Object.defineProperty(HTMLElement.prototype, 'clientWidth', {configurable: true, value: 100});
+
+            renderWithContext(
+                <ConnectedSwitchChannelSuggestion
+                    {...baseProps}
+                    term={longChannel.name}
+                    item={{
+                        channel: longChannel,
+                        name: longChannel.name,
+                        deactivated: false,
+                    }}
+                />,
+                getBaseState([longTeam1, longTeam2], [longChannel]),
+            );
+
+            const channelNameNode = screen.getByText(longChannel.display_name);
+            await userEvent.hover(channelNameNode, {advanceTimers: jest.advanceTimersByTime});
+            jest.advanceTimersByTime(1000);
+            expect(screen.queryAllByText(longChannel.display_name)).toHaveLength(1);
+
+            const teamNameNode = screen.getByText(longTeam1.display_name);
+            await userEvent.hover(teamNameNode, {advanceTimers: jest.advanceTimersByTime});
+            jest.advanceTimersByTime(1000);
+            expect(screen.queryAllByText(longTeam1.display_name)).toHaveLength(1);
+
+            jest.useRealTimers();
+        });
+
+        test('should enable the channel-name and team-name tooltips when the names overflow their containers', async () => {
+            jest.useFakeTimers();
+
+            Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 500});
+            Object.defineProperty(HTMLElement.prototype, 'clientWidth', {configurable: true, value: 100});
+
+            renderWithContext(
+                <ConnectedSwitchChannelSuggestion
+                    {...baseProps}
+                    term={longChannel.name}
+                    item={{
+                        channel: longChannel,
+                        name: longChannel.name,
+                        deactivated: false,
+                    }}
+                />,
+                getBaseState([longTeam1, longTeam2], [longChannel]),
+            );
+
+            const channelNameNode = screen.getByText(longChannel.display_name);
+            await userEvent.hover(channelNameNode, {advanceTimers: jest.advanceTimersByTime});
+            await waitFor(() => {
+                expect(screen.queryAllByText(longChannel.display_name)).toHaveLength(2);
+            });
+
+            await userEvent.unhover(channelNameNode, {advanceTimers: jest.advanceTimersByTime});
+            await waitFor(() => {
+                expect(screen.queryAllByText(longChannel.display_name)).toHaveLength(1);
+            });
+
+            const teamNameNode = screen.getByText(longTeam1.display_name);
+            await userEvent.hover(teamNameNode, {advanceTimers: jest.advanceTimersByTime});
+            await waitFor(() => {
+                expect(screen.queryAllByText(longTeam1.display_name)).toHaveLength(2);
+            });
+
+            jest.useRealTimers();
+        });
+    });
+
+    test('should render override icon when matcher matches', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One', type: 'O'});
+        const overrideState = {
+            ...getBaseState([team1], [channel1]),
+            plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'mbe', matcher: () => true, iconName: 'shield-outline'}]}},
+        };
+
+        const {container} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            overrideState,
+        );
+
+        const icon = container.querySelector('.suggestion-list__icon i');
+        expect(icon).toHaveClass('icon', 'icon-shield-outline');
+        expect(icon).not.toHaveClass('icon-globe');
+    });
+
+    test('should render fallback globe icon when matcher returns false', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One', type: 'O'});
+        const overrideState = {
+            ...getBaseState([team1], [channel1]),
+            plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'mbe', matcher: () => false, iconName: 'shield-outline'}]}},
+        };
+
+        const {container} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            overrideState,
+        );
+
+        const icon = container.querySelector('.suggestion-list__icon i');
+        expect(icon).toHaveClass('icon', 'icon-globe');
     });
 });

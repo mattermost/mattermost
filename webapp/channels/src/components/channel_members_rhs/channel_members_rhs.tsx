@@ -2,14 +2,17 @@
 // See LICENSE.txt for license information.
 
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
-import type {Channel} from '@mattermost/types/channels';
+import type {Channel, ChannelJoinRequest} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {ProfilesInChannelSortBy} from 'mattermost-redux/actions/users';
+
+import {areChannelAccessControlIndicatorsEnabled, getConnectionId} from 'selectors/general';
 
 import AlertBanner from 'components/alert_banner';
 import ChannelInviteModal from 'components/channel_invite_modal';
@@ -19,7 +22,9 @@ import MoreDirectChannels from 'components/more_direct_channels';
 import AlertTag from 'components/widgets/tag/alert_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
+import {isMembershipPolicyEnforced} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import {formatAttributeName} from 'utils/format_attribute_name';
 
 import type {ModalData} from 'types/actions';
 
@@ -27,6 +32,7 @@ import ActionBar from './action_bar';
 import Header from './header';
 import MemberList, {ListItemType} from './member_list';
 import type {ChannelMember, ListItem} from './member_list';
+import PendingJoinRequests from './pending_join_requests';
 import SearchBar from './search';
 
 import './channel_members_rhs.scss';
@@ -44,16 +50,23 @@ export interface Props {
     canManageMembers: boolean;
     editing: boolean;
 
+    // Discoverable Private Channels — admin pending join requests queue
+    canManageJoinRequests: boolean;
+    pendingJoinRequests: ChannelJoinRequest[];
+
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
         openDirectChannelToUserId: (userId: string) => Promise<{data: Channel}>;
         closeRightHandSide: () => void;
         goBack: () => void;
         setChannelMembersRhsSearchTerm: (terms: string) => void;
-        loadProfilesAndReloadChannelMembers: (page: number, perParge: number, channelId: string, sort: string) => void;
+        loadProfilesAndReloadChannelMembers: (page: number, perParge: number, channelId: string, sort: string, options?: Record<string, unknown>, reconcile?: boolean) => void;
         loadMyChannelMemberAndRole: (channelId: string) => void;
         setEditChannelMembers: (active: boolean) => void;
         searchProfilesAndChannelMembers: (term: string, options: any) => Promise<{data: UserProfile[]}>;
+        fetchRemoteClusterInfo: (remoteId: string, includeDeleted?: boolean, forceRefresh?: boolean) => void;
+        getChannelJoinRequests: (channelId: string, opts?: {status?: string}) => Promise<unknown>;
+        countPendingChannelJoinRequests: (channelId: string) => Promise<unknown>;
     };
 }
 
@@ -67,6 +80,8 @@ export default function ChannelMembersRHS({
     channelMembers,
     canManageMembers,
     editing = false,
+    canManageJoinRequests,
+    pendingJoinRequests,
     actions,
 }: Props) {
     const history = useHistory();
@@ -77,20 +92,48 @@ export default function ChannelMembersRHS({
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
     const {formatMessage} = useIntl();
 
+    // Only channels whose policy controls membership surface attribute
+    // tags in the RHS — a permission-only policy (e.g. file upload) has
+    // no bearing on who can be a member.
+    const isMembershipPolicy = isMembershipPolicyEnforced(channel);
+
+    // Admins can disable the attribute indicators to avoid leaking policy
+    // details; when off we skip fetching/rendering the tags entirely.
+    const indicatorsEnabled = useSelector(areChannelAccessControlIndicatorsEnabled);
+
+    // The websocket connection id changes whenever we get a fresh connection that
+    // could not be resumed (e.g. after a server restart), meaning membership events
+    // emitted while we were disconnected were not replayed. Reload the roster then.
+    const connectionId = useSelector(getConnectionId);
     const {structuredAttributes, loading} = useAccessControlAttributes(
         EntityType.Channel,
         channel.id,
-        channel.policy_enforced,
+        isMembershipPolicy && indicatorsEnabled,
     );
 
-    // Helper function to format attribute names for tooltips
-    const formatAttributeName = (name: string): string => {
-        // Convert snake_case or camelCase to Title Case with spaces
-        return name.
-            replace(/_/g, ' ').
-            replace(/([A-Z])/g, ' $1').
-            replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
-    };
+    // Memoise the rendered access-control tags so they don't re-render on
+    // every unrelated state change in the centre channel.
+    const accessControlTags = useMemo(() => {
+        if (structuredAttributes.length === 0) {
+            return null;
+        }
+        return (
+            <TagGroup>
+                {structuredAttributes.flatMap((attribute) =>
+                    attribute.values.map((value) => {
+                        const attributeLabel = formatAttributeName(attribute.name);
+                        return (
+                            <AlertTag
+                                key={`${attribute.name}-${value}`}
+                                tooltipTitle={attributeLabel}
+                                text={`${attributeLabel}: ${value}`}
+                            />
+                        );
+                    }),
+                )}
+            </TagGroup>
+        );
+    }, [structuredAttributes]);
 
     const searching = searchTerms !== '';
 
@@ -167,17 +210,27 @@ export default function ChannelMembersRHS({
         setPage(0);
         setIsNextPageLoading(false);
         actions.setChannelMembersRhsSearchTerm('');
-        actions.loadProfilesAndReloadChannelMembers(0, USERS_PER_PAGE, channel.id, ProfilesInChannelSortBy.Admin);
+        actions.loadProfilesAndReloadChannelMembers(0, USERS_PER_PAGE, channel.id, ProfilesInChannelSortBy.Admin, {}, true);
         actions.loadMyChannelMemberAndRole(channel.id);
-    }, [channel.id, channel.type]);
+
+        if (canManageJoinRequests) {
+            actions.getChannelJoinRequests(channel.id, {status: 'pending'});
+            actions.countPendingChannelJoinRequests(channel.id);
+        }
+
+    // connectionId is included so the roster is reloaded on a fresh websocket
+    // connection: adds/removes that happened while we were disconnected (e.g. a
+    // shared-channel membership sync during a server restart) are otherwise never
+    // reflected, since the missed websocket events are not replayed.
+    }, [channel.id, channel.type, canManageJoinRequests, connectionId]);
 
     const setSearchTerms = async (terms: string) => {
         actions.setChannelMembersRhsSearchTerm(terms);
     };
 
-    const doSearch = useCallback(debounce(async (terms: string) => {
+    const doSearch = useMemo(() => debounce(async (terms: string) => {
         await actions.searchProfilesAndChannelMembers(terms, {in_team_id: channel.team_id, in_channel_id: channel.id});
-    }, Constants.SEARCH_TIMEOUT_MILLISECONDS), [actions.searchProfilesAndChannelMembers]);
+    }, Constants.SEARCH_TIMEOUT_MILLISECONDS), [actions.searchProfilesAndChannelMembers, channel]);
 
     useEffect(() => {
         if (searchTerms) {
@@ -221,6 +274,8 @@ export default function ChannelMembersRHS({
     }, [actions.loadProfilesAndReloadChannelMembers, page, channel.id],
     );
 
+    const showPendingJoinRequests = canManageJoinRequests;
+
     return (
         <div
             id='rhsContainer'
@@ -233,30 +288,21 @@ export default function ChannelMembersRHS({
                 onClose={actions.closeRightHandSide}
                 goBack={actions.goBack}
             />
-            {/* Show banner for policy-enforced channels */}
-            {channel.policy_enforced && (
+            {/* Show banner only for channels whose policy gates membership. */}
+            {isMembershipPolicy && (
                 <div className='channel-members-rhs__alert-container policy-enforced'>
                     <AlertBanner
                         mode='info'
                         variant='app'
-                        title={formatMessage({
+                        title={channel.type === Constants.OPEN_CHANNEL ? formatMessage({
+                            id: 'channel_members_rhs.policy_recommended_description',
+                            defaultMessage: 'This channel has recommended members based on user attributes',
+                        }) : formatMessage({
                             id: 'channel_members_rhs.policy_enforced_restrictions',
                             defaultMessage: 'Channel access is restricted by user attributes',
                         })}
                     >
-                        {structuredAttributes.length > 0 && (
-                            <TagGroup>
-                                {structuredAttributes.flatMap((attribute) =>
-                                    attribute.values.map((value) => (
-                                        <AlertTag
-                                            key={`${attribute.name}-${value}`}
-                                            tooltipTitle={formatAttributeName(attribute.name)}
-                                            text={value}
-                                        />
-                                    )),
-                                )}
-                            </TagGroup>
-                        )}
+                        {accessControlTags}
                         {loading && <span className='loading-indicator'>{'Loading...'}</span>}
                     </AlertBanner>
                 </div>
@@ -305,6 +351,12 @@ export default function ChannelMembersRHS({
             )}
 
             <div className='channel-members-rhs__members-container'>
+                {showPendingJoinRequests && (
+                    <PendingJoinRequests
+                        channelId={channel.id}
+                        requests={pendingJoinRequests}
+                    />
+                )}
                 {channelMembers.length > 0 && (
                     <MemberList
                         searchTerms={searchTerms}
@@ -312,6 +364,7 @@ export default function ChannelMembersRHS({
                         editing={editing}
                         channel={channel}
                         openDirectMessage={openDirectMessage}
+                        fetchRemoteClusterInfo={actions.fetchRemoteClusterInfo}
                         loadMore={loadMore}
                         hasNextPage={channelMembers.length < membersCount}
                         isNextPageLoading={isNextPageLoading}

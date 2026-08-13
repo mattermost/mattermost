@@ -11,6 +11,7 @@ import (
 const (
 	ScheduledPostErrorUnknownError            = "unknown"
 	ScheduledPostErrorCodeChannelArchived     = "channel_archived"
+	ScheduledPostErrorCodeRestrictedDM        = "restricted_dm"
 	ScheduledPostErrorCodeChannelNotFound     = "channel_not_found"
 	ScheduledPostErrorCodeUserDoesNotExist    = "user_missing"
 	ScheduledPostErrorCodeUserDeleted         = "user_deleted"
@@ -83,7 +84,7 @@ func (s *ScheduledPost) PreUpdate() {
 	s.Draft.PreCommit()
 }
 
-// ToPost converts a scheduled post toa  regular, mattermost post object.
+// ToPost converts a scheduled post to a regular, mattermost post object.
 func (s *ScheduledPost) ToPost() (*Post, error) {
 	post := &Post{
 		UserId:    s.UserId,
@@ -92,6 +93,7 @@ func (s *ScheduledPost) ToPost() (*Post, error) {
 		FileIds:   s.FileIds,
 		RootId:    s.RootId,
 		Metadata:  s.Metadata,
+		Type:      s.Type,
 	}
 
 	for key, value := range s.GetProps() {
@@ -119,9 +121,9 @@ func (s *ScheduledPost) ToPost() (*Post, error) {
 		}
 
 		post.Metadata.Priority = &PostPriority{
-			Priority:                NewPointer(priority),
-			RequestedAck:            NewPointer(requestedAck),
-			PersistentNotifications: NewPointer(persistentNotifications),
+			Priority:                new(priority),
+			RequestedAck:            new(requestedAck),
+			PersistentNotifications: new(persistentNotifications),
 		}
 	}
 
@@ -153,6 +155,7 @@ func (s *ScheduledPost) RestoreNonUpdatableFields(originalScheduledPost *Schedul
 	s.UserId = originalScheduledPost.UserId
 	s.ChannelId = originalScheduledPost.ChannelId
 	s.RootId = originalScheduledPost.RootId
+	s.Type = originalScheduledPost.Type
 }
 
 func (s *ScheduledPost) SanitizeInput() {

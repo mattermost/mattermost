@@ -151,6 +151,13 @@
                     line-height: 28px;
                 }
 
+                .signup-body-card-preset-name {
+                    margin: 8px 0 0;
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
+                    font-size: 14px;
+                    line-height: 20px;
+                }
+
                 .signup-body-custom-branding-markdown,
                 .signup-body-message-subtitle {
                     display: none;
@@ -165,22 +172,6 @@
                     .signup-body-card-form-name-input,
                     .signup-body-card-form-password-input {
                         margin-top: 22px;
-                    }
-
-                    .newsletter {
-                        margin-top: 24px;
-                        margin-bottom: 32px;
-                        color: rgba(var(--center-channel-color-rgb), 0.75);
-                        font-family: 'Open Sans';
-                        font-size: 12px;
-                        font-style: normal;
-                        font-weight: 400;
-                        line-height: 16px;
-
-                        .interested {
-                            display: block;
-                            color: var(--center-channel-color);
-                        }
                     }
 
                     .signup-body-card-form-button-submit {
@@ -220,19 +211,6 @@
                         flex-direction: column;
                         margin-top: 22px;
                         row-gap: 24px;
-                    }
-                }
-
-                .signup-body-card-agreement {
-                    margin-top: 32px;
-                    color: rgba(var(--center-channel-color-rgb), 0.75);
-                    font-size: 11px;
-                    line-height: 16px;
-
-                    a {
-                        @include mixins.link;
-
-                        font-size: 11px;
                     }
                 }
             }

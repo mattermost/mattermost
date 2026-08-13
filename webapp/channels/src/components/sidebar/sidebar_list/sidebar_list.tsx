@@ -4,10 +4,8 @@
 import classNames from 'classnames';
 import debounce from 'lodash/debounce';
 import React, {lazy} from 'react';
-import type {CSSProperties} from 'react';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 import type {DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
-import Scrollbars from 'react-custom-scrollbars';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 import {SpringSystem} from 'rebound';
 import type {Spring} from 'rebound';
@@ -17,65 +15,32 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
 import {General} from 'mattermost-redux/constants';
-
-import {trackEvent} from 'actions/telemetry_actions';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 import {makeAsyncComponent} from 'components/async_load';
+import Scrollbars from 'components/common/scrollbars';
+import MarkAllAsReadModal from 'components/mark_all_as_read_modal';
+import type {Props as MarkAllAsReadModalProps} from 'components/mark_all_as_read_modal';
 import SidebarCategory from 'components/sidebar/sidebar_category';
 
 import {findNextUnreadChannelId} from 'utils/channel_utils';
-import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
+import {Constants, DraggingStates, DraggingStateTypes, ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed, cmdOrCtrlPressed} from 'utils/keyboard';
 import {mod} from 'utils/utils';
 
+import type {ModalData} from 'types/actions';
 import type {DraggingState} from 'types/store';
 import type {StaticPage} from 'types/store/lhs';
 
 const DraftsLink = makeAsyncComponent('DraftsLink', lazy(() => import('components/drafts/drafts_link/drafts_link')));
 const GlobalThreadsLink = makeAsyncComponent('GlobalThreadsLink', lazy(() => import('components/threading/global_threads_link')));
+const RecapsLink = makeAsyncComponent('RecapsLink', lazy(() => import('components/recaps_link')));
 const UnreadChannelIndicator = makeAsyncComponent('UnreadChannelIndicator', lazy(() => import('../unread_channel_indicator')));
 const UnreadChannels = makeAsyncComponent('UnreadChannels', lazy(() => import('../unread_channels')));
 
-export function renderView(props: React.HTMLProps<HTMLDivElement>) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--view'
-        />
-    );
-}
-
-export function renderThumbHorizontal(props: React.HTMLProps<HTMLDivElement>) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--horizontal'
-        />
-    );
-}
-
-export function renderTrackVertical(props: React.HTMLProps<HTMLDivElement>) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--verticalTrack'
-        />
-    );
-}
-
-export function renderThumbVertical(props: React.HTMLProps<HTMLDivElement>) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--vertical'
-        />
-    );
-}
-
-const scrollbarStyles: CSSProperties = {position: 'absolute'};
-
 type Props = WrappedComponentProps & {
     currentTeam?: Team;
+    currentUserId: string;
     currentChannelId: string;
     categories: ChannelCategory[];
     unreadChannelIds: string[];
@@ -93,6 +58,8 @@ type Props = WrappedComponentProps & {
     handleOpenMoreDirectChannelsModal: (e: Event) => void;
     onDragStart: (initial: DragStart) => void;
     onDragEnd: (result: DropResult) => void;
+    markAllAsReadWithoutConfirm: boolean;
+    markAllAsReadShortcutEnabled: boolean;
 
     actions: {
         moveChannelsInSidebar: (categoryId: string, targetIndex: number, draggableChannelId: string) => void;
@@ -103,13 +70,16 @@ type Props = WrappedComponentProps & {
         setDraggingState: (data: DraggingState) => void;
         stopDragging: () => void;
         clearChannelSelection: () => void;
+        readAllMessages: (userId: string) => void;
+        markAllInTeamAsRead: (userId: string, teamId: string) => void;
+        setMarkAllAsReadWithoutConfirm: (userId: string, value: boolean) => void;
+        openModal: <P>(modalData: ModalData<P>) => void;
     };
 };
 
 type State = {
     showTopUnread: boolean;
     showBottomUnread: boolean;
-    autoHide: boolean;
 };
 
 // scrollMargin is the margin at the edge of the channel list that we leave when scrolling to a channel.
@@ -124,10 +94,9 @@ const scrollMarginWithUnread = 55;
 
 export class SidebarList extends React.PureComponent<Props, State> {
     channelRefs: Map<string, HTMLLIElement>;
-    scrollbar: React.RefObject<Scrollbars>;
+    scrollbar: React.RefObject<HTMLDivElement>;
     animate: SpringSystem;
     scrollAnimation: Spring;
-    channelsListScrollTimeout: NodeJS.Timeout | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -136,7 +105,6 @@ export class SidebarList extends React.PureComponent<Props, State> {
         this.state = {
             showTopUnread: false,
             showBottomUnread: false,
-            autoHide: true,
         };
         this.scrollbar = React.createRef();
 
@@ -149,11 +117,17 @@ export class SidebarList extends React.PureComponent<Props, State> {
     componentDidMount() {
         document.addEventListener('keydown', this.navigateChannelShortcut);
         document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
+        if (this.props.markAllAsReadShortcutEnabled) {
+            document.addEventListener('keydown', this.markAllChannelsAsReadShortcut);
+        }
     }
 
     componentWillUnmount() {
         document.removeEventListener('keydown', this.navigateChannelShortcut);
         document.removeEventListener('keydown', this.navigateUnreadChannelShortcut);
+        if (this.props.markAllAsReadShortcutEnabled) {
+            document.removeEventListener('keydown', this.markAllChannelsAsReadShortcut);
+        }
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -163,7 +137,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
 
         // reset the scrollbar upon switching teams
         if (this.props.currentTeam !== prevProps.currentTeam) {
-            this.scrollbar.current!.scrollToTop();
+            this.scrollbar.current!.scrollTo({top: 0});
         }
 
         // Scroll to selected channel so it's in view
@@ -205,7 +179,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
 
     handleScrollAnimationUpdate = (spring: Spring) => {
         const val = spring.getCurrentValue();
-        this.scrollbar.current!.scrollTop(val);
+        this.scrollbar.current!.scrollTo?.({top: val});
     };
 
     scrollToFirstUnreadChannel = () => {
@@ -229,8 +203,8 @@ export class SidebarList extends React.PureComponent<Props, State> {
         const top = element.offsetTop;
         const bottom = top + element.offsetHeight;
 
-        const scrollTop = this.scrollbar.current!.getScrollTop();
-        const scrollHeight = this.scrollbar.current!.getClientHeight();
+        const scrollTop = this.scrollbar.current!.scrollTop;
+        const clientHeight = this.scrollbar.current!.clientHeight;
 
         if (top < (scrollTop + categoryHeaderHeight)) {
             // Scroll up to the item
@@ -246,10 +220,10 @@ export class SidebarList extends React.PureComponent<Props, State> {
             }
 
             this.scrollToPosition(scrollEnd);
-        } else if (bottom > scrollTop + scrollHeight) {
+        } else if (bottom > scrollTop + clientHeight) {
             // Scroll down to the item
             const margin = (scrollingToUnread || !this.state.showBottomUnread) ? scrollMargin : scrollMarginWithUnread;
-            const scrollEnd = (bottom - scrollHeight) + margin;
+            const scrollEnd = (bottom - clientHeight) + margin;
 
             this.scrollToPosition(scrollEnd);
         }
@@ -257,7 +231,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
 
     scrollToPosition = (scrollEnd: number) => {
         // Stop the current animation before scrolling
-        this.scrollAnimation.setCurrentValue(this.scrollbar.current!.getScrollTop()).setAtRest();
+        this.scrollAnimation.setCurrentValue(this.scrollbar.current!.scrollTop).setAtRest();
 
         this.scrollAnimation.setEndValue(scrollEnd);
     };
@@ -281,7 +255,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
         if (firstUnreadChannel) {
             const firstUnreadElement = this.channelRefs.get(firstUnreadChannel);
 
-            if (firstUnreadElement && ((firstUnreadElement.offsetTop + firstUnreadElement.offsetHeight) - scrollMargin - categoryHeaderHeight) < this.scrollbar.current!.getScrollTop()) {
+            if (firstUnreadElement && ((firstUnreadElement.offsetTop + firstUnreadElement.offsetHeight) - scrollMargin - categoryHeaderHeight) < this.scrollbar.current!.scrollTop) {
                 showTopUnread = true;
             }
         }
@@ -289,7 +263,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
         if (lastUnreadChannel) {
             const lastUnreadElement = this.channelRefs.get(lastUnreadChannel);
 
-            if (lastUnreadElement && (lastUnreadElement.offsetTop + scrollMargin) > (this.scrollbar.current!.getScrollTop() + this.scrollbar.current!.getClientHeight())) {
+            if (lastUnreadElement && (lastUnreadElement.offsetTop + scrollMargin) > (this.scrollbar.current!.scrollTop + this.scrollbar.current!.clientHeight)) {
                 showBottomUnread = true;
             }
         }
@@ -382,6 +356,23 @@ export class SidebarList extends React.PureComponent<Props, State> {
         }
     };
 
+    markAllChannelsAsReadShortcut = (e: KeyboardEvent) => {
+        if (!e.altKey && e.shiftKey && !e.ctrlKey && !e.metaKey && isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
+            e.preventDefault();
+            if (this.props.markAllAsReadWithoutConfirm) {
+                this.markAllAsRead();
+            } else {
+                this.props.actions.openModal<MarkAllAsReadModalProps>({
+                    modalId: ModalIdentifiers.MARK_ALL_AS_READ,
+                    dialogType: MarkAllAsReadModal,
+                    dialogProps: {
+                        onConfirm: this.onMarkAllAsReadConfirm,
+                    },
+                });
+            }
+        }
+    };
+
     renderCategory = (category: ChannelCategory, index: number) => {
         return (
             <SidebarCategory
@@ -456,28 +447,36 @@ export class SidebarList extends React.PureComponent<Props, State> {
         if (result.reason === 'DROP' && result.destination) {
             if (result.type === 'SIDEBAR_CHANNEL') {
                 this.props.actions.moveChannelsInSidebar(result.destination.droppableId, result.destination.index, result.draggableId);
-                trackEvent('ui', 'ui_sidebar_dragdrop_dropped_channel');
             } else if (result.type === 'SIDEBAR_CATEGORY') {
                 this.props.actions.moveCategory(this.props.currentTeam!.id, result.draggableId, result.destination.index);
-                trackEvent('ui', 'ui_sidebar_dragdrop_dropped_category');
             }
         }
 
         this.props.actions.stopDragging();
     };
 
-    showChannelListScrollbar = () => {
-        if (this.channelsListScrollTimeout !== null) {
-            clearTimeout(this.channelsListScrollTimeout);
-        }
-
-        this.setState({autoHide: false});
+    hasAnyUnreads = () => {
+        return this.props.unreadChannelIds.length > 0 || this.props.hasUnreadThreads;
     };
 
-    hideChannelListScrollbar = () => {
-        this.channelsListScrollTimeout = setTimeout(() => {
-            this.setState({autoHide: true});
-        }, 300);
+    markAllAsRead = () => {
+        if (this.hasAnyUnreads()) {
+            // I'm not sure if a user can ever _not_ be in a team, but this just
+            // feels safe in case that functionality is ever introduced, so the
+            // hotkey still marks all DMs as read.
+            if (this.props.currentTeam?.id) {
+                this.props.actions.markAllInTeamAsRead(this.props.currentUserId, this.props.currentTeam.id);
+            }
+            this.props.actions.readAllMessages(this.props.currentUserId);
+        }
+    };
+
+    onMarkAllAsReadConfirm = (dontShowAgain: boolean) => {
+        this.markAllAsRead();
+        this.props.actions.setMarkAllAsReadWithoutConfirm(
+            this.props.currentUserId,
+            dontShowAgain,
+        );
     };
 
     render() {
@@ -500,11 +499,16 @@ export class SidebarList extends React.PureComponent<Props, State> {
                 );
             }
 
-            const renderedCategories = categories.map(this.renderCategory);
+            const managedCategories = categories.filter((c) => c.type === CategoryTypes.MANAGED);
+            const nonManagedCategories = categories.filter((c) => c.type !== CategoryTypes.MANAGED);
+
+            const renderedManagedCategories = managedCategories.map(this.renderCategory);
+            const renderedNonManagedCategories = nonManagedCategories.map(this.renderCategory);
 
             channelList = (
                 <>
                     {unreadsCategory}
+                    {renderedManagedCategories}
                     <DragDropContext
                         onDragEnd={this.onDragEnd}
                         onBeforeDragStart={this.onBeforeDragStart}
@@ -522,7 +526,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
                                     >
-                                        {renderedCategories}
+                                        {renderedNonManagedCategories}
                                         {provided.placeholder}
                                     </div>
                                 );
@@ -555,6 +559,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
             <>
                 <GlobalThreadsLink/>
                 <DraftsLink/>
+                <RecapsLink/>
                 <div
                     id='sidebar-left'
                     role='application'
@@ -580,23 +585,12 @@ export class SidebarList extends React.PureComponent<Props, State> {
                         extraClass='nav-pills__unread-indicator-bottom'
                         content={below}
                     />
-                    <div
-                        onPointerLeave={this.hideChannelListScrollbar}
-                        onPointerOver={this.showChannelListScrollbar}
+                    <Scrollbars
+                        ref={this.scrollbar}
+                        onScroll={this.onScroll}
                     >
-                        <Scrollbars
-                            ref={this.scrollbar}
-                            autoHide={this.state.autoHide}
-                            renderThumbHorizontal={renderThumbHorizontal}
-                            renderThumbVertical={renderThumbVertical}
-                            renderTrackVertical={renderTrackVertical}
-                            renderView={renderView}
-                            onScroll={this.onScroll}
-                            style={scrollbarStyles}
-                        >
-                            {channelList}
-                        </Scrollbars>
-                    </div>
+                        {channelList}
+                    </Scrollbars>
                 </div>
             </>
         );

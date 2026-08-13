@@ -11,7 +11,7 @@ type Props = {
     text: string | React.ReactNode;
 };
 
-export const MenuItemBlockableLinkImpl: React.SFC<Props> = (props: Props): JSX.Element => {
+export const MenuItemBlockableLinkImpl = (props: Props): JSX.Element => {
     const {to, text} = props;
     return (
         <BlockableLink to={to}>{text}</BlockableLink>

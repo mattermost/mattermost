@@ -1,69 +1,59 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/emoji_picker/components/EmojiPickerHeader handleEmojiPickerClose, should have called props.handleEmojiPickerClose 1`] = `
-<div
-  className="emoji-picker__header"
->
-  <button
-    className="close emoji-picker__header-close-button"
-    onClick={[MockFunction]}
-    type="button"
+<div>
+  <div
+    class="emoji-picker__header"
   >
-    <span
-      aria-hidden="true"
+    <button
+      class="close emoji-picker__header-close-button"
+      type="button"
     >
-      ×
-    </span>
-    <span
-      className="sr-only"
+      <span
+        aria-hidden="true"
+      >
+        ×
+      </span>
+      <span
+        class="sr-only"
+      >
+        Close
+      </span>
+    </button>
+    <h4
+      class="modal-title emoji-picker__header-title"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Close"
-        id="emoji_picker.close"
-      />
-    </span>
-  </button>
-  <h4
-    className="modal-title emoji-picker__header-title"
-  >
-    <MemoizedFormattedMessage
-      defaultMessage="Emoji Picker"
-      id="emoji_picker.header"
-    />
-  </h4>
+      Emoji Picker
+    </h4>
+  </div>
 </div>
 `;
 
 exports[`components/emoji_picker/components/EmojiPickerHeader should match snapshot,  1`] = `
-<div
-  className="emoji-picker__header"
->
-  <button
-    className="close emoji-picker__header-close-button"
-    onClick={[MockFunction]}
-    type="button"
+<div>
+  <div
+    class="emoji-picker__header"
   >
-    <span
-      aria-hidden="true"
+    <button
+      class="close emoji-picker__header-close-button"
+      type="button"
     >
-      ×
-    </span>
-    <span
-      className="sr-only"
+      <span
+        aria-hidden="true"
+      >
+        ×
+      </span>
+      <span
+        class="sr-only"
+      >
+        Close
+      </span>
+    </button>
+    <h4
+      class="modal-title emoji-picker__header-title"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="Close"
-        id="emoji_picker.close"
-      />
-    </span>
-  </button>
-  <h4
-    className="modal-title emoji-picker__header-title"
-  >
-    <MemoizedFormattedMessage
-      defaultMessage="Emoji Picker"
-      id="emoji_picker.header"
-    />
-  </h4>
+      Emoji Picker
+    </h4>
+  </div>
 </div>
 `;

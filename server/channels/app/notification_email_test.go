@@ -6,7 +6,9 @@ package app
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"html/template"
+	"net/url"
 	"regexp"
 	"testing"
 	"time"
@@ -18,8 +20,51 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
+
+// Helper function to create PostNotification for testing
+func buildTestPostNotification(post *model.Post, channel *model.Channel, sender *model.User) *PostNotification {
+	return &PostNotification{
+		Channel:    channel,
+		Post:       post,
+		Sender:     sender,
+		ProfileMap: make(map[string]*model.User),
+	}
+}
+
+// Helper function to create test user
+func buildTestUser(id, username, displayName string, useMilitaryTime bool) *model.User {
+	return &model.User{
+		Id:       id,
+		Username: username,
+		Nickname: displayName,
+		Locale:   "en",
+	}
+}
+
+// Helper function to create test team
+func buildTestTeam(id, name, displayName string) *model.Team {
+	return &model.Team{
+		Id:          id,
+		Name:        name,
+		DisplayName: displayName,
+	}
+}
+
+// Helper function to set up preference mocks
+func setupPreferenceMocks(th *TestHelper, userId string, useMilitaryTime bool) {
+	preferenceStoreMock := mocks.PreferenceStore{}
+	if useMilitaryTime {
+		preferenceStoreMock.On("Get", userId, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime).Return(&model.Preference{Value: "true"}, nil)
+	} else {
+		preferenceStoreMock.On("Get", userId, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime).Return(&model.Preference{Value: "false"}, nil)
+	}
+	// Mock the name format preference as well
+	preferenceStoreMock.On("Get", userId, model.PreferenceCategoryDisplaySettings, model.PreferenceNameNameFormat).Return(&model.Preference{Value: model.ShowUsername}, nil)
+	th.App.Srv().Store().(*mocks.Store).On("Preference").Return(&preferenceStoreMock)
+}
 
 func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -74,161 +119,175 @@ func TestGetNotificationEmailSubject(t *testing.T) {
 func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
-	recipient := &model.User{}
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
+		Id:      "test-post-id",
 		Message: "This is the message",
 	}
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeOpen,
 	}
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "mentioned you in a message", fmt.Sprintf("Expected email text 'mentioned you in a message. Got %s", body))
 	require.Contains(t, body, post.Message, fmt.Sprintf("Expected email text '%s'. Got %s", post.Message, body))
-	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
+	require.Contains(t, body, team.Name, fmt.Sprintf("Expected email text '%s'. Got %s", team.Name, body))
 }
 
 func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
-	recipient := &model.User{}
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
+		Id:      "test-post-id",
 		Message: "This is the message",
 	}
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeGroup,
 	}
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "sent you a new message", fmt.Sprintf("Expected email text 'sent you a new message. Got %s", body))
 	require.Contains(t, body, post.Message, fmt.Sprintf("Expected email text '%s'. Got %s", post.Message, body))
-	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
+	require.Contains(t, body, team.Name, fmt.Sprintf("Expected email text '%s'. Got %s", team.Name, body))
 }
 
 func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
-	recipient := &model.User{}
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
+		Id:      "test-post-id",
 		Message: "This is the message",
 	}
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypePrivate,
 	}
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "mentioned you in a message", fmt.Sprintf("Expected email text 'mentioned you in a message. Got %s", body))
 	require.Contains(t, body, post.Message, fmt.Sprintf("Expected email text '%s'. Got %s", post.Message, body))
-	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
+	require.Contains(t, body, team.Name, fmt.Sprintf("Expected email text '%s'. Got %s", team.Name, body))
 }
 
 func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
-	recipient := &model.User{}
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
+		Id:      "test-post-id",
 		Message: "This is the message",
 	}
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeDirect,
 	}
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "sent you a new message", fmt.Sprintf("Expected email text 'sent you a new message. Got %s", body))
 	require.Contains(t, body, post.Message, fmt.Sprintf("Expected email text '%s'. Got %s", post.Message, body))
-	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
+	require.Contains(t, body, team.Name, fmt.Sprintf("Expected email text '%s'. Got %s", team.Name, body))
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := &model.User{
+		Id:       "test-recipient-id",
+		Username: "recipient",
+		Nickname: "Recipient User",
+		Locale:   "en",
 		Timezone: timezones.DefaultUserTimezone(),
 	}
 	recipient.Timezone["automaticTimezone"] = "America/New_York"
 	post := &model.Post{
+		Id:       "test-post-id",
 		CreateAt: 1524663790000,
 		Message:  "This is the message",
 	}
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeDirect,
 	}
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, false, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, false)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	r, _ := regexp.Compile("E([S|D]+)T")
 	zone := r.FindString(body)
@@ -238,30 +297,34 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testi
 func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := &model.User{
+		Id:       "test-recipient-id",
+		Username: "recipient",
+		Nickname: "Recipient User",
+		Locale:   "en",
 		Timezone: timezones.DefaultUserTimezone(),
 	}
 	post := &model.Post{
+		Id:       "test-post-id",
 		CreateAt: 1524681000000,
 		Message:  "This is the message",
 	}
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeDirect,
 	}
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
+
+	setupPreferenceMocks(th, recipient.Id, true)
 
 	tm := time.Unix(post.CreateAt/1000, 0)
 	zone, _ := tm.Zone()
@@ -278,7 +341,9 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 	err = tmp.Execute(&text, fmt.Sprintf("%s:%s %s", formattedTime.Hour, formattedTime.Minute, formattedTime.TimeZone))
 	require.NoError(t, err)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	postTimeLine := text.String()
 	require.Contains(t, body, postTimeLine, fmt.Sprintf("Expected email text '%s'. Got %s", postTimeLine, body))
@@ -287,33 +352,39 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := &model.User{
+		Id:       "test-recipient-id",
+		Username: "recipient",
+		Nickname: "Recipient User",
+		Locale:   "en",
 		Timezone: timezones.DefaultUserTimezone(),
 	}
 	recipient.Timezone["automaticTimezone"] = "America/New_York"
 	post := &model.Post{
+		Id:       "test-post-id",
 		CreateAt: 1524681000000, // 1524681000 // 1524681000000
 		Message:  "This is the message",
 	}
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeDirect,
 	}
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, false, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, false)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "2:30 PM", fmt.Sprintf("Expected email text '2:30 PM'. Got %s", body))
 }
@@ -321,33 +392,39 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) 
 func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := &model.User{
+		Id:       "test-recipient-id",
+		Username: "recipient",
+		Nickname: "Recipient User",
+		Locale:   "en",
 		Timezone: timezones.DefaultUserTimezone(),
 	}
 	recipient.Timezone["automaticTimezone"] = "America/New_York"
 	post := &model.Post{
+		Id:       "test-post-id",
 		CreateAt: 1524681000000,
 		Message:  "This is the message",
 	}
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeDirect,
 	}
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "14:30", fmt.Sprintf("Expected email text '14:30'. Got %s", body))
 }
@@ -355,29 +432,31 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) 
 func TestGetNotificationEmailBodyWithUserPreference(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	recipient := &model.User{
+		Id:       "test-recipient-id",
+		Username: "recipient",
+		Nickname: "Recipient User",
+		Locale:   "en",
 		Timezone: timezones.DefaultUserTimezone(),
 	}
 	recipient.Timezone["automaticTimezone"] = "America/New_York"
 
 	post := &model.Post{
+		Id:       "test-post-id",
 		CreateAt: 1524681000000,
 		Message:  "This is the message",
 	}
 
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeDirect,
 	}
 
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
@@ -392,22 +471,26 @@ func TestGetNotificationEmailBodyWithUserPreference(t *testing.T) {
 		expectedTimeFormat = "14:30"
 	}
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, is24HourFormat, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, is24HourFormat)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, expectedTimeFormat, fmt.Sprintf("Expected email text '%s'. Got %s", expectedTimeFormat, body))
 }
 
-func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing.T) {
+func TestGetNotificationEmailBodyFullNotificationWithMessageAttachments(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
-	recipient := &model.User{}
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
+		Id:      "test-post-id",
 		Message: "This is the message",
 	}
 
-	messageAttachments := []*model.SlackAttachment{
+	messageAttachments := []*model.MessageAttachment{
 		{
 			Color:      "#FF0000",
 			Pretext:    "message attachment 1 pretext",
@@ -419,7 +502,7 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 			Text:       "message attachment 1 text",
 			ImageURL:   "https://example.com/slack_attachment_1/image",
 			ThumbURL:   "https://example.com/slack_attachment_1/thumb",
-			Fields: []*model.SlackAttachmentField{
+			Fields: []*model.MessageAttachmentField{
 				{
 					Short: true,
 					Title: "message attachment 1 field 1 title",
@@ -450,26 +533,28 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 		},
 	}
 
-	model.ParseSlackAttachment(post, messageAttachments)
+	model.ParseMessageAttachment(post, messageAttachments)
 
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeOpen,
 	}
 
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "#FF0000")
 	require.Contains(t, body, "message attachment 1 pretext")
@@ -499,189 +584,298 @@ func TestGetNotificationEmailBodyFullNotificationWithSlackAttachments(t *testing
 func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
-	recipient := &model.User{}
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
+		Id:      "test-post-id",
 		Message: "This is the message",
 	}
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeOpen,
 	}
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsGeneric
-	translateFunc := i18n.GetUserTranslations("en")
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "mentioned you in a message", fmt.Sprintf("Expected email text 'mentioned you in a message. Got %s", body))
-	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
+	require.Contains(t, body, team.Name, fmt.Sprintf("Expected email text '%s'. Got %s", team.Name, body))
 }
 
 func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
-	recipient := &model.User{}
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
+		Id:      "test-post-id",
 		Message: "This is the message",
 	}
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeGroup,
 	}
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsGeneric
-	translateFunc := i18n.GetUserTranslations("en")
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "sent you a new message", fmt.Sprintf("Expected email text 'sent you a new message. Got %s", body))
-	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
+	require.Contains(t, body, team.Name, fmt.Sprintf("Expected email text '%s'. Got %s", team.Name, body))
 }
 
 func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
-	recipient := &model.User{}
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
+		Id:      "test-post-id",
 		Message: "This is the message",
 	}
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypePrivate,
 	}
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsGeneric
-	translateFunc := i18n.GetUserTranslations("en")
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "mentioned you in a message", fmt.Sprintf("Expected email text 'mentioned you in a message. Got %s", body))
-	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
+	require.Contains(t, body, team.Name, fmt.Sprintf("Expected email text '%s'. Got %s", team.Name, body))
 }
 
 func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
-	recipient := &model.User{}
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
+		Id:      "test-post-id",
 		Message: "This is the message",
 	}
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeDirect,
 	}
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsGeneric
-	translateFunc := i18n.GetUserTranslations("en")
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, "sent you a new message", fmt.Sprintf("Expected email text 'sent you a new message. Got %s", body))
-	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
+	require.Contains(t, body, team.Name, fmt.Sprintf("Expected email text '%s'. Got %s", team.Name, body))
 }
 
 func TestGetNotificationEmailEscapingChars(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
-	ch := &model.Channel{
-		DisplayName: "ChannelName",
-		Type:        model.ChannelTypeOpen,
-	}
-	channelName := "ChannelName"
-	recipient := &model.User{}
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	message := "<b>Bold Test</b>"
 	post := &model.Post{
+		Id:      "test-post-id",
 		Message: message,
 	}
 
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
+	ch := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
+		DisplayName: "ChannelName",
+		Type:        model.ChannelTypeOpen,
+	}
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, ch,
-		channelName, senderName, teamName, teamURL,
-		emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, ch, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 
 	assert.NotContains(t, body, message)
 }
 
+func TestGetNotificationEmailBodyFullNotificationFileOnlyPostEscapesFilenameHTML(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
+	dangerousFilename := "<b>owned</b>.txt"
+	post := &model.Post{
+		Id:      "test-post-id",
+		Message: "",
+		FileIds: []string{"test-file-id"},
+	}
+	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
+		DisplayName: "ChannelName",
+		Type:        model.ChannelTypeOpen,
+	}
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
+
+	storeMock := th.App.Srv().Store().(*mocks.Store)
+	fileInfoStoreMock := mocks.FileInfoStore{}
+	fileInfoStoreMock.On("GetForPost", post.Id, true, false, true).Return([]*model.FileInfo{{
+		Id:        "test-file-id",
+		PostId:    post.Id,
+		Name:      dangerousFilename,
+		Extension: "txt",
+		MimeType:  "text/plain",
+	}}, nil)
+	storeMock.On("FileInfo").Return(&fileInfoStoreMock)
+
+	setupPreferenceMocks(th, recipient.Id, true)
+	th.App.Srv().EmailService.SetStore(storeMock)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "")
+	require.NoError(t, err)
+
+	require.Contains(t, body, html.EscapeString(dangerousFilename))
+	require.NotContains(t, body, dangerousFilename)
+}
+
+func TestGetNotificationEmailBodyFullNotificationImageOnlyPostNormalizesAndEscapesFilenamesHTML(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
+	rawDangerousFilename := "<img src=x onerror=alert(1)>.png"
+	encodedDangerousFilename := url.QueryEscape(rawDangerousFilename)
+	secondFilename := "photo & notes.png"
+	post := &model.Post{
+		Id:      "test-post-id",
+		Message: "",
+		FileIds: []string{"test-file-id-1", "test-file-id-2"},
+	}
+	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
+		DisplayName: "ChannelName",
+		Type:        model.ChannelTypeOpen,
+	}
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
+
+	storeMock := th.App.Srv().Store().(*mocks.Store)
+	fileInfoStoreMock := mocks.FileInfoStore{}
+	fileInfoStoreMock.On("GetForPost", post.Id, true, false, true).Return([]*model.FileInfo{
+		{
+			Id:        "test-file-id-1",
+			PostId:    post.Id,
+			Name:      encodedDangerousFilename,
+			Extension: "png",
+			MimeType:  "image/png",
+		},
+		{
+			Id:        "test-file-id-2",
+			PostId:    post.Id,
+			Name:      secondFilename,
+			Extension: "png",
+			MimeType:  "image/png",
+		},
+	}, nil)
+	storeMock.On("FileInfo").Return(&fileInfoStoreMock)
+
+	setupPreferenceMocks(th, recipient.Id, true)
+	th.App.Srv().EmailService.SetStore(storeMock)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "")
+	require.NoError(t, err)
+
+	expectedFilenames := fmt.Sprintf("%s, %s", html.EscapeString(rawDangerousFilename), html.EscapeString(secondFilename))
+	require.Contains(t, body, "2 images sent:")
+	require.Contains(t, body, expectedFilenames)
+	require.NotContains(t, body, rawDangerousFilename)
+	require.NotContains(t, body, encodedDangerousFilename)
+}
+
 func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	ch := &model.Channel{
+		Id:          "test-channel-id",
 		Name:        "channelname",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeOpen,
 	}
 	id := model.NewId()
 	recipient := &model.User{
+		Id:            "test-recipient-id",
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
+		Locale:        "en",
 	}
 	post := &model.Post{
+		Id:      "test-post-id",
 		Message: "This is the message ~" + ch.Name,
 	}
 
-	senderName := "user1"
-	teamName := "testteam"
+	sender := buildTestUser("test-sender-id", "user1", "user1", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 	teamURL := th.App.GetSiteURL() + "/landing#" + "/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
@@ -692,11 +886,13 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name}, true).Return([]*model.Channel{ch}, nil)
 	storeMock.On("Channel").Return(&channelStoreMock)
 
+	setupPreferenceMocks(th, recipient.Id, true)
+
 	th.App.Srv().EmailService.SetStore(storeMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, ch,
-		ch.Name, senderName, teamName, teamURL,
-		emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	notification := buildTestPostNotification(post, ch, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	channelURL := teamURL + "/channels/" + ch.Name
 	mention := "~" + ch.Name
@@ -706,7 +902,6 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	ch := &model.Channel{
 		Id:          model.NewId(),
@@ -734,23 +929,11 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 
 	message := fmt.Sprintf("This is the message Channel1: %s; Channel2: %s;"+
 		" Channel3: %s", mention, mention2, mention3)
-	id := model.NewId()
-	recipient := &model.User{
-		Email:         "success+" + id + "@simulator.amazonses.com",
-		Username:      "un_" + id,
-		Nickname:      "nn_" + id,
-		Password:      "Password1",
-		EmailVerified: true,
-	}
 	post := &model.Post{
 		Message: message,
 	}
 
-	senderName := "user1"
-	teamName := "testteam"
 	teamURL := th.App.GetSiteURL() + "/landing#" + "/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
@@ -763,46 +946,53 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 
 	th.App.Srv().EmailService.SetStore(storeMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, ch,
-		ch.Name, senderName, teamName, teamURL,
-		emailNotificationContentsType, true, translateFunc, "user-avatar.png")
-	require.NoError(t, err)
 	channelURL := teamURL + "/channels/" + ch.Name
 	channelURL2 := teamURL + "/channels/" + ch2.Name
 	channelURL3 := teamURL + "/channels/" + ch3.Name
 	expMessage := fmt.Sprintf("This is the message Channel1: <a href='%s'>%s</a>;"+
 		" Channel2: <a href='%s'>%s</a>; Channel3: <a href='%s'>%s</a>",
 		channelURL, mention, channelURL2, mention2, channelURL3, mention3)
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
+	sender := buildTestUser("test-sender-id", "user1", "user1", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
+
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, ch, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
+	require.NoError(t, err)
 	assert.Contains(t, body, expMessage)
 }
 
 func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	ch := &model.Channel{
+		Id:          "test-channel-id",
 		Name:        "channelname",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypePrivate,
 	}
 	id := model.NewId()
 	recipient := &model.User{
+		Id:            "test-recipient-id",
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
+		Locale:        "en",
 	}
 	post := &model.Post{
+		Id:      "test-post-id",
 		Message: "This is the message ~" + ch.Name,
 	}
 
-	senderName := "user1"
-	teamName := "testteam"
+	sender := buildTestUser("test-sender-id", "user1", "user1", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 	teamURL := "http://localhost:8065/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
@@ -813,11 +1003,13 @@ func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 	channelStoreMock.On("GetByNames", "test", []string{ch.Name}, true).Return([]*model.Channel{ch}, nil)
 	storeMock.On("Channel").Return(&channelStoreMock)
 
+	setupPreferenceMocks(th, recipient.Id, true)
+
 	th.App.Srv().EmailService.SetStore(storeMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, ch,
-		ch.Name, senderName, teamName, teamURL,
-		emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	notification := buildTestPostNotification(post, ch, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	channelURL := teamURL + "/channels/" + ch.Name
 	mention := "~" + ch.Name
@@ -827,7 +1019,6 @@ func TestGetNotificationEmailBodyPrivateChannelMention(t *testing.T) {
 func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	ch := &model.Channel{
 		Name:        "channelname",
@@ -859,7 +1050,6 @@ func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
 func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	// TODO: Fix the case where the first channel name contains the other channel names (for example here channelnameone)"
 	ch := &model.Channel{
@@ -916,7 +1106,6 @@ func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	ch := &model.Channel{
 		Name:        "channelname",
@@ -945,63 +1134,79 @@ func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
 
 func TestLandingLink(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
-	recipient := &model.User{}
+	// Create a minimal helper that sets the site URL
+	mockStore := testlib.GetMockStoreForSetupFunctions()
+	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false,
+		func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = new("http://localhost:8065")
+		}, nil, t)
+
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
+		Id:      "test-post-id",
 		Message: "This is the message",
 	}
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeOpen,
 	}
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 	teamURL := "http://localhost:8065/landing#/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
 	require.Contains(t, body, teamURL, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
 }
 
 func TestLandingLinkPermalink(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
-	recipient := &model.User{}
+	// Create a minimal helper that sets the site URL
+	mockStore := testlib.GetMockStoreForSetupFunctions()
+	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false,
+		func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = new("http://localhost:8065")
+		}, nil, t)
+
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	post := &model.Post{
 		Id:      "Test_id",
 		Message: "This is the message",
 	}
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeOpen,
 	}
-	channelName := "ChannelName"
-	senderName := "sender"
-	teamName := "testteam"
-	teamURL := "http://localhost:8065/landing#/testteam"
-	emailNotificationContentsType := model.EmailNotificationContentsFull
-	translateFunc := i18n.GetUserTranslations("en")
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
 
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 
-	body, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, channelName, senderName, teamName, teamURL, emailNotificationContentsType, true, translateFunc, "user-avatar.png")
+	setupPreferenceMocks(th, recipient.Id, true)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 	require.NoError(t, err)
-	require.Contains(t, body, teamURL+"/pl/"+post.Id, fmt.Sprintf("Expected email text '%s'. Got %s", teamURL, body))
+	require.Contains(t, body, "/pl/"+post.Id, fmt.Sprintf("Expected email text to contain permalink '/pl/%s'. Got %s", post.Id, body))
 }
 
 func TestMarkdownConversion(t *testing.T) {
@@ -1089,17 +1294,22 @@ func TestMarkdownConversion(t *testing.T) {
 	}
 
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
-	recipient := &model.User{}
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
 	storeMock := th.App.Srv().Store().(*mocks.Store)
 	teamStoreMock := mocks.TeamStore{}
 	teamStoreMock.On("GetByName", "testteam").Return(&model.Team{Name: "testteam"}, nil)
 	storeMock.On("Team").Return(&teamStoreMock)
 	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
 		DisplayName: "ChannelName",
 		Type:        model.ChannelTypeOpen,
 	}
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
+
+	setupPreferenceMocks(th, recipient.Id, true)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1107,7 +1317,9 @@ func TestMarkdownConversion(t *testing.T) {
 				Id:      "Test_id",
 				Message: tt.args,
 			}
-			got, err := th.App.getNotificationEmailBody(th.Context, recipient, post, channel, "ChannelName", "sender", "testteam", "http://localhost:8065/landing#/testteam", model.EmailNotificationContentsFull, true, i18n.GetUserTranslations("en"), "user-avatar.png")
+			notification := buildTestPostNotification(post, channel, sender)
+			emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+			got, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "user-avatar.png")
 			require.NoError(t, err)
 			require.Contains(t, got, tt.want)
 		})

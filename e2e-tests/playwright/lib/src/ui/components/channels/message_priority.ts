@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class MessagePriority {
     readonly container: Locator;
@@ -20,12 +21,12 @@ export default class MessagePriority {
         // Priority menu that opens when clicking the icon
         this.priorityMenu = container.locator('[role="menu"]');
 
-        // Standard priority option in the menu (id comes from webapp implementation)
-        this.standardPriorityOption = this.priorityMenu.locator('#menu-item-priority-standard');
-
         // Priority dialog elements
         this.priorityDialog = container.page().getByRole('menu');
         this.dialogHeader = container.page().locator('h4.modal-title');
+
+        // Standard priority option in the menu
+        this.standardPriorityOption = this.priorityDialog.getByRole('menuitemradio', {name: 'Standard'});
     }
 
     async clickPriorityIcon() {
@@ -46,7 +47,7 @@ export default class MessagePriority {
     async verifyPriorityMenuVisible() {
         await expect(this.priorityMenu).toBeVisible();
         // Look for beta text in header
-        await expect(this.priorityMenu.locator('text=Message Priority')).toBeVisible();
+        await expect(this.priorityMenu.getByText('Message Priority')).toBeVisible();
     }
 
     async closePriorityMenu() {
@@ -55,7 +56,7 @@ export default class MessagePriority {
     }
 
     async verifyNoPriorityLabel(postText: string) {
-        const post = this.container.locator(`text=${postText}`);
+        const post = this.container.getByText(postText);
         await expect(post).toBeVisible();
 
         // Verify no priority label exists
@@ -66,11 +67,5 @@ export default class MessagePriority {
     async verifyPriorityDialog() {
         await expect(this.priorityDialog).toBeVisible();
         await expect(this.dialogHeader).toHaveText('Message priority');
-    }
-
-    async verifyStandardOptionSelected() {
-        const standardOption = this.priorityDialog.getByRole('menuitemradio', {name: 'Standard'});
-        await expect(standardOption).toBeVisible();
-        await expect(standardOption.locator('svg.StyledCheckIcon-dFKfoY')).toBeVisible();
     }
 }

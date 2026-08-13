@@ -29,6 +29,7 @@ func TestSharedChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("GetSharedChannelRemote", func(t *testing.T) { testGetSharedChannelRemote(t, rctx, ss) })
 	t.Run("GetSharedChannelRemoteByIds", func(t *testing.T) { testGetSharedChannelRemoteByIds(t, rctx, ss) })
 	t.Run("GetSharedChannelRemotes", func(t *testing.T) { testGetSharedChannelRemotes(t, rctx, ss) })
+	t.Run("GetRemotesStatus", func(t *testing.T) { testGetRemotesStatus(t, rctx, ss) })
 	t.Run("HasRemote", func(t *testing.T) { testHasRemote(t, rctx, ss) })
 	t.Run("GetRemoteForUser", func(t *testing.T) { testGetRemoteForUser(t, rctx, ss) })
 	t.Run("UpdateSharedChannelRemoteNextSyncAt", func(t *testing.T) { testUpdateSharedChannelRemoteCursor(t, rctx, ss) })
@@ -389,7 +390,7 @@ func testDeleteSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err, "couldn't save shared channel", err)
 
 	// add some remotes
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		remote := &model.SharedChannelRemote{
 			ChannelId:         channel.Id,
 			CreatorId:         model.NewId(),
@@ -762,6 +763,185 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 	})
 }
 
+func testGetRemotesStatus(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Create a channel and share it
+	channel, err := createTestChannel(ss, rctx, "test_remotes_status")
+	require.NoError(t, err)
+
+	_, scErr := shareChannel(ss, channel, true, "")
+	require.NoError(t, scErr)
+
+	// Create remote clusters
+	rc1 := &model.RemoteCluster{
+		RemoteId:    model.NewId(),
+		Name:        "remote_status_1",
+		DisplayName: "Remote Status 1",
+		SiteURL:     "http://example1.com",
+		CreatorId:   model.NewId(),
+	}
+	rc1, err = ss.RemoteCluster().Save(rc1)
+	require.NoError(t, err)
+
+	rc2 := &model.RemoteCluster{
+		RemoteId:    model.NewId(),
+		Name:        "remote_status_2",
+		DisplayName: "Remote Status 2",
+		SiteURL:     "http://example2.com",
+		CreatorId:   model.NewId(),
+	}
+	rc2, err = ss.RemoteCluster().Save(rc2)
+	require.NoError(t, err)
+
+	// Add remotes to the shared channel
+	scr1 := &model.SharedChannelRemote{
+		Id:                model.NewId(),
+		ChannelId:         channel.Id,
+		RemoteId:          rc1.RemoteId,
+		CreatorId:         rc1.CreatorId,
+		IsInviteAccepted:  true,
+		IsInviteConfirmed: true,
+	}
+	_, err = ss.SharedChannel().SaveRemote(scr1)
+	require.NoError(t, err)
+
+	scr2 := &model.SharedChannelRemote{
+		Id:                model.NewId(),
+		ChannelId:         channel.Id,
+		RemoteId:          rc2.RemoteId,
+		CreatorId:         rc2.CreatorId,
+		IsInviteAccepted:  false,
+		IsInviteConfirmed: true,
+	}
+	_, err = ss.SharedChannel().SaveRemote(scr2)
+	require.NoError(t, err)
+
+	// Advance the sync cursors so the reported LastSyncAt reflects real activity.
+	// scr1's members sync is newer than its post sync, so LastSyncAt must track the
+	// members cursor. scr2's post-create cursor is the newest of all three cursors,
+	// so LastSyncAt must track it. The post-create cursor advances independently of
+	// the post-update cursor (see GetPostsSinceForSync), so it can be the most recent
+	// sync activity and must be one of the GREATEST operands.
+	now := model.GetMillis()
+	scr1PostSyncAt := now - 5000
+	scr1MembersSyncAt := now - 1000
+	scr2PostCreateAt := now - 500
+	scr2PostUpdateAt := now - 3000
+	scr2MembersSyncAt := now - 7000
+
+	err = ss.SharedChannel().UpdateRemoteCursor(scr1.Id, model.GetPostsSinceForSyncCursor{
+		LastPostUpdateAt: scr1PostSyncAt,
+		LastPostUpdateID: model.NewId(),
+	})
+	require.NoError(t, err)
+	err = ss.SharedChannel().UpdateRemoteMembershipCursor(scr1.Id, scr1MembersSyncAt)
+	require.NoError(t, err)
+
+	err = ss.SharedChannel().UpdateRemoteCursor(scr2.Id, model.GetPostsSinceForSyncCursor{
+		LastPostCreateAt: scr2PostCreateAt,
+		LastPostCreateID: model.NewId(),
+		LastPostUpdateAt: scr2PostUpdateAt,
+		LastPostUpdateID: model.NewId(),
+	})
+	require.NoError(t, err)
+	err = ss.SharedChannel().UpdateRemoteMembershipCursor(scr2.Id, scr2MembersSyncAt)
+	require.NoError(t, err)
+
+	t.Run("Get remotes status for channel", func(t *testing.T) {
+		statuses, err := ss.SharedChannel().GetRemotesStatus(channel.Id)
+		require.NoError(t, err)
+		require.Len(t, statuses, 2)
+
+		// Build a map by RemoteId for easier assertion
+		statusMap := make(map[string]*model.SharedChannelRemoteStatus)
+		for _, s := range statuses {
+			statusMap[s.RemoteId] = s
+		}
+
+		s1 := statusMap[rc1.RemoteId]
+		require.NotNil(t, s1)
+		assert.Equal(t, channel.Id, s1.ChannelId)
+		assert.Equal(t, rc1.RemoteId, s1.RemoteId)
+		assert.Equal(t, rc1.DisplayName, s1.DisplayName)
+		assert.Equal(t, rc1.SiteURL, s1.SiteURL)
+		assert.True(t, s1.IsInviteAccepted)
+		// LastSyncAt is the greater of the post and members cursors.
+		assert.Equal(t, scr1MembersSyncAt, s1.LastSyncAt)
+
+		s2 := statusMap[rc2.RemoteId]
+		require.NotNil(t, s2)
+		assert.Equal(t, channel.Id, s2.ChannelId)
+		assert.Equal(t, rc2.RemoteId, s2.RemoteId)
+		assert.Equal(t, rc2.DisplayName, s2.DisplayName)
+		assert.Equal(t, rc2.SiteURL, s2.SiteURL)
+		assert.False(t, s2.IsInviteAccepted)
+		// The post-create cursor is the newest cursor, so LastSyncAt tracks it. If the
+		// post-create cursor were excluded from GREATEST, this would report the older
+		// post-update cursor instead.
+		assert.Equal(t, scr2PostCreateAt, s2.LastSyncAt)
+	})
+
+	t.Run("Reports zero last sync when the remote has never synced", func(t *testing.T) {
+		unsyncedChannel, err := createTestChannel(ss, rctx, "test_remotes_status_unsynced")
+		require.NoError(t, err)
+
+		_, scErr := shareChannel(ss, unsyncedChannel, true, "")
+		require.NoError(t, scErr)
+
+		scrUnsynced := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         unsyncedChannel.Id,
+			RemoteId:          rc1.RemoteId,
+			CreatorId:         rc1.CreatorId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+		}
+		_, err = ss.SharedChannel().SaveRemote(scrUnsynced)
+		require.NoError(t, err)
+
+		statuses, err := ss.SharedChannel().GetRemotesStatus(unsyncedChannel.Id)
+		require.NoError(t, err)
+		require.Len(t, statuses, 1)
+		assert.Zero(t, statuses[0].LastSyncAt)
+	})
+
+	t.Run("Get remotes status for channel with no remotes", func(t *testing.T) {
+		emptyChannel, err := createTestChannel(ss, rctx, "test_remotes_status_empty")
+		require.NoError(t, err)
+
+		_, scErr := shareChannel(ss, emptyChannel, true, "")
+		require.NoError(t, scErr)
+
+		statuses, err := ss.SharedChannel().GetRemotesStatus(emptyChannel.Id)
+		require.NoError(t, err)
+		require.Empty(t, statuses)
+	})
+
+	t.Run("Get remotes status excludes deleted remotes", func(t *testing.T) {
+		// Create another channel with a deleted remote
+		channel2, err := createTestChannel(ss, rctx, "test_remotes_status_deleted")
+		require.NoError(t, err)
+
+		_, scErr := shareChannel(ss, channel2, true, "")
+		require.NoError(t, scErr)
+
+		scrDeleted := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channel2.Id,
+			RemoteId:          rc1.RemoteId,
+			CreatorId:         rc1.CreatorId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			DeleteAt:          model.GetMillis(),
+		}
+		_, err = ss.SharedChannel().SaveRemote(scrDeleted)
+		require.NoError(t, err)
+
+		statuses, err := ss.SharedChannel().GetRemotesStatus(channel2.Id)
+		require.NoError(t, err)
+		require.Empty(t, statuses)
+	})
+}
+
 func testHasRemote(t *testing.T, rctx request.CTX, ss store.Store) {
 	channel, err := createTestChannel(ss, rctx, "test_remotes_get2")
 	require.NoError(t, err)
@@ -850,7 +1030,7 @@ func testGetRemoteForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("user is member", func(t *testing.T) {
 		for _, rc := range remotes {
 			for _, userId := range users {
-				rcFound, err := ss.SharedChannel().GetRemoteForUser(rc.RemoteId, userId)
+				rcFound, err := ss.SharedChannel().GetRemoteForUser(rc.RemoteId, userId, false)
 				assert.NoError(t, err, "remote should be found for user")
 				assert.Equal(t, rc.RemoteId, rcFound.RemoteId, "remoteIds should match")
 			}
@@ -859,15 +1039,49 @@ func testGetRemoteForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t.Run("user is not a member", func(t *testing.T) {
 		for _, rc := range remotes {
-			rcFound, err := ss.SharedChannel().GetRemoteForUser(rc.RemoteId, model.NewId())
+			rcFound, err := ss.SharedChannel().GetRemoteForUser(rc.RemoteId, model.NewId(), false)
 			assert.Error(t, err, "remote should not be found for user")
 			assert.Nil(t, rcFound)
 		}
 	})
 
 	t.Run("unknown remote id", func(t *testing.T) {
-		rcFound, err := ss.SharedChannel().GetRemoteForUser(model.NewId(), users[0])
+		rcFound, err := ss.SharedChannel().GetRemoteForUser(model.NewId(), users[0], false)
 		assert.Error(t, err, "remote should not be found for unknown remote id")
+		assert.Nil(t, rcFound)
+	})
+
+	t.Run("deleted remote with includeDeleted false", func(t *testing.T) {
+		// Get the shared channel remote to delete
+		scr, err := ss.SharedChannel().GetRemoteByIds(channel.Id, remotes[0].RemoteId)
+		require.NoError(t, err)
+		require.NotEmpty(t, scr.Id)
+
+		// Delete the shared channel remote
+		deleted, err := ss.SharedChannel().DeleteRemote(scr.Id)
+		require.NoError(t, err)
+		require.True(t, deleted)
+
+		// Should not find the remote without includeDeleted
+		rcFound, err := ss.SharedChannel().GetRemoteForUser(remotes[0].RemoteId, users[0], false)
+		assert.Error(t, err, "deleted remote should not be found without includeDeleted")
+		assert.Nil(t, rcFound)
+	})
+
+	t.Run("deleted remote with includeDeleted true", func(t *testing.T) {
+		// Should find the remote with includeDeleted
+		rcFound, err := ss.SharedChannel().GetRemoteForUser(remotes[0].RemoteId, users[0], true)
+		assert.NoError(t, err, "deleted remote should be found with includeDeleted")
+		assert.NotNil(t, rcFound)
+		assert.Equal(t, remotes[0].RemoteId, rcFound.RemoteId, "remoteIds should match")
+	})
+
+	t.Run("deleted remote with includeDeleted true but user not a member", func(t *testing.T) {
+		// A user who is not a member of the channel should not be able to see
+		// the deleted remote, even with includeDeleted=true
+		nonMemberUserId := model.NewId()
+		rcFound, err := ss.SharedChannel().GetRemoteForUser(remotes[0].RemoteId, nonMemberUserId, true)
+		assert.Error(t, err, "deleted remote should not be found for non-member user even with includeDeleted")
 		assert.Nil(t, rcFound)
 	})
 }
@@ -1022,7 +1236,7 @@ func createSharedTestChannel(ss store.Store, rctx request.CTX, name string, shar
 		Header:      name + " header",
 		Purpose:     name + "purpose",
 		CreatorId:   model.NewId(),
-		Shared:      model.NewPointer(shared),
+		Shared:      new(shared),
 	}
 	channel, err := ss.Channel().Save(rctx, channel, 10000)
 	if err != nil {
@@ -1144,11 +1358,22 @@ func testGetSingleSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Sto
 }
 
 func testGetSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Store) {
+	// GetUsersForUser only returns rows whose remote cluster still exists and
+	// is not deleted, so point the rows at a live remote.
+	liveRemote := &model.RemoteCluster{
+		RemoteId:  model.NewId(),
+		SiteURL:   "http://example.com",
+		CreatorId: model.NewId(),
+		Name:      "live-remote",
+	}
+	_, err := ss.RemoteCluster().Save(liveRemote)
+	require.NoError(t, err, "couldn't save remote cluster", err)
+
 	userId := model.NewId()
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		scUser := &model.SharedChannelUser{
 			UserId:    userId,
-			RemoteId:  model.NewId(),
+			RemoteId:  liveRemote.RemoteId,
 			ChannelId: model.NewId(),
 		}
 		_, err := ss.SharedChannel().SaveUser(scUser)
@@ -1168,6 +1393,53 @@ func testGetSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err, "should not error when not found")
 		require.Empty(t, scus, "should be empty")
 	})
+
+	t.Run("Excludes rows for deleted or missing remote clusters", func(t *testing.T) {
+		deletedRemote := &model.RemoteCluster{
+			RemoteId:  model.NewId(),
+			SiteURL:   "http://example.com",
+			CreatorId: model.NewId(),
+			Name:      "deleted-remote",
+		}
+		_, err := ss.RemoteCluster().Save(deletedRemote)
+		require.NoError(t, err)
+
+		mixedUserId := model.NewId()
+		// Two rows for the live remote: these should be returned.
+		for range 2 {
+			_, err = ss.SharedChannel().SaveUser(&model.SharedChannelUser{
+				UserId:    mixedUserId,
+				RemoteId:  liveRemote.RemoteId,
+				ChannelId: model.NewId(),
+			})
+			require.NoError(t, err)
+		}
+		// One row for a soft-deleted remote: should be excluded.
+		_, err = ss.SharedChannel().SaveUser(&model.SharedChannelUser{
+			UserId:    mixedUserId,
+			RemoteId:  deletedRemote.RemoteId,
+			ChannelId: model.NewId(),
+		})
+		require.NoError(t, err)
+		// One row for a remote that never existed: should be excluded.
+		_, err = ss.SharedChannel().SaveUser(&model.SharedChannelUser{
+			UserId:    mixedUserId,
+			RemoteId:  model.NewId(),
+			ChannelId: model.NewId(),
+		})
+		require.NoError(t, err)
+
+		deleted, err := ss.RemoteCluster().Delete(deletedRemote.RemoteId)
+		require.NoError(t, err)
+		require.True(t, deleted)
+
+		scus, err := ss.SharedChannel().GetUsersForUser(mixedUserId)
+		require.NoError(t, err)
+		require.Len(t, scus, 2, "should only return rows pointing at the live remote")
+		for _, scu := range scus {
+			require.Equal(t, liveRemote.RemoteId, scu.RemoteId)
+		}
+	})
 }
 
 func testGetSharedChannelUsersForSync(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1177,7 +1449,7 @@ func testGetSharedChannelUsersForSync(t *testing.T, rctx request.CTX, ss store.S
 	later := model.GetMillis() + 300000
 
 	var users []*model.User
-	for i := 0; i < 10; i++ { // need real users
+	for range 10 { // need real users
 		u := &model.User{
 			Username:          model.NewUsername(),
 			Email:             model.NewId() + "@example.com",

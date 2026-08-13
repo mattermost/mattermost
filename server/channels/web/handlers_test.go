@@ -335,7 +335,43 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self'"}, response.Header()["Content-Security-Policy"])
+	})
+
+	t.Run("static, with EnableConcurrentReact enabled", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		// Feature flags are read-only in the config store, so mutate the live config directly.
+		th.App.Config().FeatureFlags.EnableConcurrentReact = true
+
+		web := New(th.Server)
+
+		// NewStaticHandler computes the CSP SHA directive from the current config, so the
+		// concurrent React inline script's hash must be present in the script-src directive.
+		handler := web.NewStaticHandler(handlerForCSPHeader)
+
+		request := httptest.NewRequest("POST", "/", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, 200, response.Code)
+		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self' 'sha256-VKORZJUo6WeDwDHwpxEgzZDt8C1kBbDOmUq72sfrx8M='"}, response.Header()["Content-Security-Policy"])
+	})
+
+	t.Run("static, with EnableConcurrentReact disabled", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		// Feature flags are read-only in the config store, so mutate the live config directly.
+		th.App.Config().FeatureFlags.EnableConcurrentReact = false
+
+		web := New(th.Server)
+
+		handler := web.NewStaticHandler(handlerForCSPHeader)
+
+		request := httptest.NewRequest("POST", "/", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, 200, response.Code)
+		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self'"}, response.Header()["Content-Security-Policy"])
 	})
 
 	t.Run("static, with subpath and frame ancestors", func(t *testing.T) {
@@ -376,12 +412,12 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self'"}, response.Header()["Content-Security-Policy"])
 
 		// TODO: It's hard to unit test this now that the CSP directive is effectively
 		// decided in Setup(). Circle back to this in master once the memory store is
 		// merged, allowing us to mock the desired initial config to take effect in Setup().
-		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='")
+		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='")
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = *cfg.ServiceSettings.SiteURL + "/subpath2"
@@ -391,9 +427,9 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response = httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self' cdn.rudderlabs.com"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self'"}, response.Header()["Content-Security-Policy"])
 		// TODO: See above.
-		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.rudderlabs.com 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='", "csp header incorrectly changed after subpath changed")
+		// assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='", "csp header incorrectly changed after subpath changed")
 	})
 
 	t.Run("dev mode", func(t *testing.T) {
@@ -420,7 +456,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self' cdn.rudderlabs.com 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
+		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self' 'unsafe-eval' 'unsafe-inline'"}, response.Header()["Content-Security-Policy"])
 	})
 }
 
@@ -585,6 +621,72 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 	}
 }
 
+func TestHandlerServeCSRFFailureClearsAuthCookie(t *testing.T) {
+	testCases := []struct {
+		Description                       string
+		SiteURL                           string
+		ExpectedSetCookieHeaderRegexp     string
+		ExperimentalStrictCSRFEnforcement bool
+	}{
+		{"no subpath", "http://localhost:8065", "^MMAUTHTOKEN=; Path=/", false},
+		{"subpath", "http://localhost:8065/subpath", "^MMAUTHTOKEN=; Path=/subpath", false},
+		{"no subpath", "http://localhost:8065", "^MMAUTHTOKEN=; Path=/", true},
+		{"subpath", "http://localhost:8065/subpath", "^MMAUTHTOKEN=; Path=/subpath", true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Description, func(t *testing.T) {
+			th := Setup(t).InitBasic(t)
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.SiteURL = tc.SiteURL
+				*cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement = tc.ExperimentalStrictCSRFEnforcement
+			})
+
+			session := &model.Session{
+				UserId:   th.BasicUser.Id,
+				CreateAt: model.GetMillis(),
+				Roles:    model.SystemUserRoleId,
+				IsOAuth:  false,
+			}
+			session.GenerateCSRF()
+			th.App.SetSessionExpireInHours(session, 24)
+			var err *model.AppError
+			session, err = th.App.CreateSession(th.Context, session)
+			require.Nil(t, err)
+
+			web := New(th.Server)
+			handler := Handler{
+				Srv:            web.srv,
+				HandleFunc:     handlerForCSRFToken,
+				RequireSession: true,
+				TrustRequester: false,
+				RequireMfa:     false,
+				IsStatic:       false,
+			}
+
+			cookie := &http.Cookie{
+				Name:  model.SessionCookieToken,
+				Value: session.Token,
+			}
+
+			request := httptest.NewRequest("POST", "/api/v4/test", nil)
+			request.AddCookie(cookie)
+			request.Header.Add(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
+			response := httptest.NewRecorder()
+			handler.ServeHTTP(response, request)
+
+			if tc.ExperimentalStrictCSRFEnforcement {
+				require.Equal(t, http.StatusUnauthorized, response.Code)
+				cookies := response.Header().Get("Set-Cookie")
+				assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
+			} else {
+				require.Equal(t, http.StatusOK, response.Code)
+			}
+		})
+	}
+}
+
 func TestCheckCSRFToken(t *testing.T) {
 	t.Run("should allow a POST request with a valid CSRF token header", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
@@ -609,7 +711,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			},
 		}
 
-		checked, passed := h.checkCSRFToken(c, r, token, tokenLocation, session)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, session)
 
 		assert.True(t, checked)
 		assert.True(t, passed)
@@ -640,7 +742,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			},
 		}
 
-		checked, passed := h.checkCSRFToken(c, r, token, tokenLocation, session)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, session)
 
 		assert.True(t, checked)
 		assert.True(t, passed)
@@ -690,11 +792,11 @@ func TestCheckCSRFToken(t *testing.T) {
 			},
 		}
 
-		checked, passed := h.checkCSRFToken(c, r, token, tokenLocation, session)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, session)
 
 		assert.True(t, checked)
 		assert.False(t, passed)
-		assert.NotNil(t, c.Err)
+		assert.Nil(t, c.Err)
 	})
 
 	t.Run("should not allow a POST request without either header", func(t *testing.T) {
@@ -719,11 +821,11 @@ func TestCheckCSRFToken(t *testing.T) {
 			},
 		}
 
-		checked, passed := h.checkCSRFToken(c, r, token, tokenLocation, session)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, session)
 
 		assert.True(t, checked)
 		assert.False(t, passed)
-		assert.NotNil(t, c.Err)
+		assert.Nil(t, c.Err)
 	})
 
 	t.Run("should not check GET requests", func(t *testing.T) {
@@ -748,7 +850,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			},
 		}
 
-		checked, passed := h.checkCSRFToken(c, r, token, tokenLocation, session)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, session)
 
 		assert.False(t, checked)
 		assert.False(t, passed)
@@ -777,7 +879,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			},
 		}
 
-		checked, passed := h.checkCSRFToken(c, r, token, tokenLocation, session)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, session)
 
 		assert.False(t, checked)
 		assert.False(t, passed)
@@ -802,7 +904,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		r, _ := http.NewRequest(http.MethodPost, "", nil)
 		r.Header.Set(model.HeaderCsrfToken, token)
 
-		checked, passed := h.checkCSRFToken(c, r, token, tokenLocation, nil)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, nil)
 
 		assert.False(t, checked)
 		assert.False(t, passed)
@@ -832,7 +934,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			},
 		}
 
-		checked, passed := h.checkCSRFToken(c, r, token, tokenLocation, session)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, session)
 
 		assert.True(t, checked)
 		assert.True(t, passed)
@@ -945,7 +1047,7 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.ServiceSettings.MaximumURLLength = model.NewPointer(10)
+			config.ServiceSettings.MaximumURLLength = new(10)
 		})
 
 		web := New(th.Server)
@@ -976,7 +1078,7 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.ServiceSettings.MaximumURLLength = model.NewPointer(20)
+			config.ServiceSettings.MaximumURLLength = new(20)
 		})
 
 		web := New(th.Server)
@@ -1038,7 +1140,7 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.App.UpdateConfig(func(config *model.Config) {
-			config.ServiceSettings.MaximumPayloadSizeBytes = model.NewPointer(int64(1))
+			config.ServiceSettings.MaximumPayloadSizeBytes = new(int64(1))
 		})
 
 		web := New(th.Server)
@@ -1053,5 +1155,107 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 		handler.ServeHTTP(response, request)
 
 		assert.Equal(t, http.StatusRequestEntityTooLarge, response.Code)
+	})
+}
+
+func TestHandlerConnectionIdHeader(t *testing.T) {
+	t.Run("should set connection id from header on request context", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		connectionId := "test-connection-id-12345"
+		var capturedConnectionId string
+
+		handlerFunc := func(c *Context, w http.ResponseWriter, r *http.Request) {
+			capturedConnectionId = c.AppContext.ConnectionId()
+		}
+
+		web := New(th.Server)
+		handler := web.NewHandler(handlerFunc)
+
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		request.Header.Set(model.ConnectionId, connectionId)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		assert.Equal(t, http.StatusOK, response.Code)
+		assert.Equal(t, connectionId, capturedConnectionId)
+	})
+
+	t.Run("should have empty connection id when header not present", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		var capturedConnectionId string
+
+		handlerFunc := func(c *Context, w http.ResponseWriter, r *http.Request) {
+			capturedConnectionId = c.AppContext.ConnectionId()
+		}
+
+		web := New(th.Server)
+		handler := web.NewHandler(handlerFunc)
+
+		request := httptest.NewRequest("GET", "/api/v4/test", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+
+		assert.Equal(t, http.StatusOK, response.Code)
+		assert.Empty(t, capturedConnectionId)
+	})
+}
+
+func TestHandleContextErrorZeroStatusCode(t *testing.T) {
+	t.Run("should set StatusCode to 500 when AppError has zero StatusCode", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		appErr := &model.AppError{
+			Message:       "Cannot add a permission that is restricted by the team or system permission scheme",
+			StatusCode:    0,
+			Id:            "test.error",
+			Where:         "TestFunction",
+			DetailedError: "test details",
+		}
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
+			Err:        appErr,
+		}
+
+		request := httptest.NewRequest("POST", "/api/v4/test", nil)
+		response := httptest.NewRecorder()
+
+		h := Handler{
+			Srv: th.Server,
+		}
+
+		h.handleContextError(c, response, request)
+
+		assert.Equal(t, http.StatusInternalServerError, c.Err.StatusCode)
+		assert.Equal(t, http.StatusInternalServerError, response.Code)
+	})
+
+	t.Run("should not modify StatusCode when AppError has valid StatusCode", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		appErr := model.NewAppError("TestFunction", "test.error", nil, "test details", http.StatusBadRequest)
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
+			Err:        appErr,
+		}
+
+		request := httptest.NewRequest("POST", "/api/v4/test", nil)
+		response := httptest.NewRecorder()
+
+		h := Handler{
+			Srv: th.Server,
+		}
+
+		h.handleContextError(c, response, request)
+
+		assert.Equal(t, http.StatusBadRequest, c.Err.StatusCode)
+		assert.Equal(t, http.StatusBadRequest, response.Code)
 	})
 }

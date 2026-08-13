@@ -13,14 +13,10 @@ import (
 	"strconv"
 	"sync"
 
-	sqlUtils "github.com/mattermost/mattermost/server/public/utils/sql"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/db"
 	"github.com/mattermost/morph"
-	"github.com/mattermost/morph/drivers"
-	ms "github.com/mattermost/morph/drivers/mysql"
 	ps "github.com/mattermost/morph/drivers/postgres"
 	"github.com/mattermost/morph/models"
 	mbindata "github.com/mattermost/morph/sources/embedded"
@@ -51,14 +47,8 @@ func NewMigrator(settings model.SqlSettings, logger mlog.LoggerIFace, dryRun boo
 		return nil, fmt.Errorf("error while getting DB version: %w", err)
 	}
 
-	ok, err := ss.ensureMinimumDBVersion(ver)
-	if !ok {
+	if err = ss.checkVersion(ver); err != nil {
 		return nil, fmt.Errorf("error while checking DB version: %w", err)
-	}
-
-	err = ss.ensureDatabaseCollation()
-	if err != nil {
-		return nil, fmt.Errorf("error while checking DB collation: %w", err)
 	}
 
 	engine, err := ss.initMorph(dryRun, true)
@@ -119,33 +109,7 @@ func (ss *SqlStore) initMorph(dryRun, enableLogging bool) (*morph.Morph, error) 
 		return nil, err
 	}
 
-	var driver drivers.Driver
-	switch ss.DriverName() {
-	case model.DatabaseDriverMysql:
-		dataSource, rErr := sqlUtils.ResetReadTimeout(*ss.settings.DataSource)
-		if rErr != nil {
-			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(rErr), mlog.String("src", *ss.settings.DataSource))
-			return nil, rErr
-		}
-		dataSource, err = sqlUtils.AppendMultipleStatementsFlag(dataSource)
-		if err != nil {
-			return nil, err
-		}
-		db, err2 := sqlUtils.SetupConnection(ss.Logger(), "master", dataSource, ss.settings, DBPingAttempts)
-		if err2 != nil {
-			return nil, err2
-		}
-
-		driver, err = ms.WithInstance(db)
-		if err != nil {
-			return nil, err
-		}
-		defer db.Close()
-	case model.DatabaseDriverPostgres:
-		driver, err = ps.WithInstance(ss.GetMaster().DB.DB)
-	default:
-		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
-	}
+	driver, err := ps.WithInstance(ss.GetMaster().DB().DB)
 	if err != nil {
 		return nil, err
 	}
@@ -205,6 +169,18 @@ func (m *Migrator) GeneratePlan(shouldRecover bool) (*models.Plan, error) {
 // MigrateWithPlan migrates the database to the latest version using the provided plan.
 func (m *Migrator) MigrateWithPlan(plan *models.Plan, dryRun bool) error {
 	return m.engine.ApplyPlan(plan)
+}
+
+// PreMigrate runs the pre-migration handlers that normally execute during
+// server startup. Callers on the CLI up-migration path (e.g. `mattermost db
+// migrate`, used by cloud upgrades) must invoke this before MigrateWithPlan so
+// the same fixes apply outside of server startup. Skipped under dryRun because
+// preMigration writes directly via GetMaster().Exec and does not participate
+// in Morph's dry-run.
+// This is intentionally only called for forward migrations and skipped for
+// downgrades.
+func (m *Migrator) PreMigrate() error {
+	return m.store.preMigration()
 }
 
 func (m *Migrator) DowngradeMigrations(dryRun bool, versions ...string) error {

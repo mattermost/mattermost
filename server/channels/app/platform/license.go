@@ -81,9 +81,11 @@ func (ps *PlatformService) LoadLicense() {
 	}
 
 	licenseId := ""
-	props, nErr := ps.Store.System().Get()
+	// Read from master: SaveLicense writes the active license ID then calls
+	// LoadLicense, so a replica read can return a stale ID and revert the license.
+	activeLicense, nErr := ps.Store.System().GetByNameWithContext(sqlstore.RequestContextWithMaster(c), model.SystemActiveLicenseId)
 	if nErr == nil {
-		licenseId = props[model.SystemActiveLicenseId]
+		licenseId = activeLicense.Value
 	}
 
 	if !model.IsValidId(licenseId) {
@@ -102,8 +104,20 @@ func (ps *PlatformService) LoadLicense() {
 
 	record, nErr := ps.Store.License().Get(sqlstore.RequestContextWithMaster(c), licenseId)
 	if nErr != nil {
-		ps.logger.Warn("License key from https://mattermost.com required to unlock enterprise features.", mlog.Err(nErr))
-		ps.SetLicense(nil)
+		if ps.Config().FeatureFlags.EnableMattermostEntry && model.BuildEnterpriseReady == "true" {
+			ps.logger.Info("Mattermost Entry is enabled. Unlocking enterprise features.")
+
+			if ps.LicenseManager() == nil {
+				ps.logger.Warn("License manager not available, setting license to nil.")
+				ps.SetLicense(nil)
+				return
+			}
+
+			ps.SetLicense(ps.LicenseManager().NewMattermostEntryLicense(ps.telemetryId))
+		} else {
+			ps.logger.Warn("License key from https://mattermost.com required to unlock enterprise features.", mlog.Err(nErr))
+			ps.SetLicense(nil)
+		}
 		return
 	}
 
@@ -118,7 +132,7 @@ func (ps *PlatformService) LoadLicense() {
 func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
 	licenseStr, err := utils.LicenseValidator.ValidateLicense(licenseBytes)
 	if err != nil {
-		return nil, model.NewAppError("addLicense", model.InvalidLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, utils.NewLicenseValidationAppError("addLicense", err)
 	}
 
 	var license model.License
@@ -134,17 +148,19 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(errors.New("license.Features.Users is nil"))
 	}
 
-	if license.SkuShortName == model.LicenseShortSkuEnterpriseAdvanced && *ps.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
-		return nil, model.NewAppError("addLicense", "api.license.add_license.mysql.app_error", nil, "", http.StatusBadRequest).Wrap(errors.New("mysql is not supported for this license"))
-	}
-
 	uniqueUserCount, err := ps.Store.User().Count(model.UserCountOptions{})
 	if err != nil {
 		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid_count.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	if uniqueUserCount > int64(*license.Features.Users) {
-		return nil, model.NewAppError("addLicense", "api.license.add_license.unique_users.app_error", map[string]any{"Users": *license.Features.Users, "Count": uniqueUserCount}, "", http.StatusBadRequest)
+	// Single-channel guests are free and should not count against licensed seats.
+	effectiveUserCount := uniqueUserCount
+	if scgCount, scgErr := ps.Store.User().AnalyticsGetSingleChannelGuestCount(); scgErr == nil {
+		effectiveUserCount = max(uniqueUserCount-scgCount, 0)
+	}
+
+	if effectiveUserCount > int64(*license.Features.Users) {
+		return nil, model.NewAppError("addLicense", "api.license.add_license.unique_users.app_error", map[string]any{"Users": *license.Features.Users, "Count": effectiveUserCount}, "", http.StatusBadRequest)
 	}
 
 	if license.IsExpired() {
@@ -229,13 +245,6 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 }
 
 func (ps *PlatformService) SetLicense(license *model.License) bool {
-	if license != nil && license.SkuShortName == model.LicenseShortSkuEnterpriseAdvanced && *ps.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
-		if ps.logger != nil {
-			ps.logger.Error("MySQL is not supported for this license", mlog.String("sku_short_name", license.SkuShortName))
-		}
-		return false
-	}
-
 	oldLicense := ps.licenseValue.Load()
 
 	defer func() {
@@ -403,6 +412,7 @@ func (ps *PlatformService) logLicense(message string, license *model.License) {
 		mlog.String("sku_short_name", license.SkuShortName),
 		mlog.Bool("is_trial", license.IsTrial),
 		mlog.Bool("is_gov_sku", license.IsGovSku),
+		mlog.Bool("is_non_production", license.IsNonProduction),
 	)
 
 	if license.Customer != nil {

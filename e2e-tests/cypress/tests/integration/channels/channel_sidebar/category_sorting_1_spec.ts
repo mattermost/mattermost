@@ -10,13 +10,13 @@
 // Stage: @prod
 // Group: @channels @channel_sidebar
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId} from '../../../utils';
-
 import {clickSortCategoryMenuItem} from './helpers';
 
-let testTeam;
-let testUser;
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
+
+let testTeam: Cypress.Team;
+let testUser: Cypress.UserProfile;
 
 describe('Category sorting', () => {
     beforeEach(() => {
@@ -36,7 +36,7 @@ describe('Category sorting', () => {
         // # Create 5 channels and add them to a custom category
         for (let i = 0; i < 5; i++) {
             channelNames.push(createChannelAndAddToCategory(categoryName));
-            cy.get('#SidebarContainer .scrollbar--view').scrollTo('bottom', {ensureScrollable: false});
+            cy.get('#SidebarContainer .simplebar-content-wrapper').scrollTo('bottom', {ensureScrollable: false});
         }
 
         // # Sort alphabetically
@@ -47,7 +47,7 @@ describe('Category sorting', () => {
 
         // # Add another channel
         channelNames.push(createChannelAndAddToCategory(categoryName));
-        cy.get('#SidebarContainer .scrollbar--view').scrollTo('bottom', {ensureScrollable: false});
+        cy.get('#SidebarContainer .simplebar-content-wrapper').scrollTo('bottom', {ensureScrollable: false});
 
         // * Verify channels are still sorted alphabetically
         verifyAlphabeticalSortingOrder(categoryName, channelNames.length);
@@ -64,7 +64,7 @@ describe('Category sorting', () => {
 
         // # Add another channel
         channelNames.push(createChannelAndAddToCategory(categoryName));
-        cy.get('#SidebarContainer .scrollbar--view').scrollTo('bottom', {ensureScrollable: false});
+        cy.get('#SidebarContainer .simplebar-content').scrollTo('bottom', {ensureScrollable: false});
 
         // # Sort channel names in reverse order that they were created (ie. most recent to least)
         sortedByRecencyChannelNames = channelNames.concat().reverse();
@@ -98,14 +98,14 @@ describe('Category sorting', () => {
 
         // # Add another channel
         channelNames.push(createChannelAndAddToCategory(categoryName));
-        cy.get('#SidebarContainer .scrollbar--view').scrollTo('bottom', {ensureScrollable: false});
+        cy.get('#SidebarContainer .simplebar-content').scrollTo('bottom', {ensureScrollable: false});
 
         // * Verify that the channel has been placed at the bottom of the category
         cy.get(`.SidebarChannelGroup:contains(${categoryName}) .NavGroupContent li:nth-child(1) a[id^="sidebarItem_${channelNames[channelNames.length - 1]}"]`).should('be.visible');
     });
 });
 
-function createChannelAndAddToCategory(categoryName) {
+function createChannelAndAddToCategory(categoryName: string) {
     const channelName = `channel-${getRandomId()}`;
     const userId = testUser.id;
     cy.apiCreateChannel(testTeam.id, channelName, 'New Test Channel').then(({channel}) => {
@@ -118,9 +118,9 @@ function createChannelAndAddToCategory(categoryName) {
     return channelName;
 }
 
-function verifyAlphabeticalSortingOrder(categoryName, length) {
+function verifyAlphabeticalSortingOrder(categoryName: string, length: number) {
     // # Go through each channel to get its name
-    const sortedAlphabeticalChannelNames = [];
+    const sortedAlphabeticalChannelNames: string[] = [];
     for (let i = 0; i < length; i++) {
         // Grab the elements in the order that they appear in the sidebar
         cy.get(`.SidebarChannelGroup:contains(${categoryName}) .NavGroupContent li:nth-child(${i + 1}) .SidebarChannelLinkLabel`).should('be.visible').invoke('text').then((text) => {

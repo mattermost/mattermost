@@ -6,11 +6,12 @@ package model
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/md5"
+	"crypto/pbkdf2"
 	"crypto/rand"
-	"encoding/base32"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -26,7 +27,11 @@ const (
 	RemoteNameMaxLength      = 64
 
 	SiteURLPending = "pending_"
-	SiteURLPlugin  = "plugin_"
+
+	// Deprecated: SiteURLPlugin was used as a prefix for plugin-based remote SiteURLs.
+	// New registrations store the plugin-provided SiteURL directly. Use PluginID field
+	// to identify plugin-based remotes.
+	SiteURLPlugin = "plugin_"
 
 	BitflagOptionAutoShareDMs Bitmask = 1 << iota // Any new DM/GM is automatically shared
 	BitflagOptionAutoInvited                      // Remote is automatically invited to all shared channels
@@ -91,11 +96,7 @@ func (rc *RemoteCluster) Auditable() map[string]any {
 
 func (rc *RemoteCluster) PreSave() {
 	if rc.RemoteId == "" {
-		if rc.PluginID != "" {
-			rc.RemoteId = newIDFromBytes([]byte(rc.PluginID))
-		} else {
-			rc.RemoteId = NewId()
-		}
+		rc.RemoteId = NewId()
 	}
 
 	if rc.DisplayName == "" {
@@ -131,6 +132,10 @@ func (rc *RemoteCluster) IsValid() *AppError {
 
 	if !IsValidId(rc.CreatorId) {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "creator_id="+rc.CreatorId, http.StatusBadRequest)
+	}
+
+	if rc.SiteURL == "" {
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.site_url.app_error", nil, "site_url is empty", http.StatusBadRequest)
 	}
 
 	if rc.DefaultTeamId != "" && !IsValidId(rc.DefaultTeamId) {
@@ -178,16 +183,6 @@ type RemoteClusterWithInvite struct {
 	Password      string         `json:"password,omitempty"`
 }
 
-func newIDFromBytes(b []byte) string {
-	hash := md5.New()
-	_, _ = hash.Write(b)
-	buf := hash.Sum(nil)
-
-	var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPadding(base32.NoPadding)
-	id := encoding.EncodeToString(buf)
-	return id[:26]
-}
-
 func (rc *RemoteCluster) IsOptionFlagSet(flag Bitmask) bool {
 	return rc.Options.IsBitSet(flag)
 }
@@ -205,6 +200,35 @@ func IsValidRemoteName(s string) bool {
 		return false
 	}
 	return validRemoteNameChars.MatchString(s)
+}
+
+// CleanRemoteName converts an arbitrary string into a slug compatible with
+// IsValidRemoteName: lowercased, with spaces and other disallowed characters
+// replaced by hyphens. The result is truncated to RemoteNameMaxLength. If
+// the cleaned value is still invalid (e.g. empty input), a new ID is
+// substituted so the caller always receives a valid name.
+func CleanRemoteName(s string) string {
+	s = strings.ToLower(strings.ReplaceAll(s, " ", "-"))
+	s = strings.TrimSpace(s)
+
+	for _, c := range s {
+		char := fmt.Sprintf("%c", c)
+		if !validRemoteNameChars.MatchString(char) {
+			s = strings.ReplaceAll(s, char, "-")
+		}
+	}
+
+	s = strings.Trim(s, "-")
+
+	if len(s) > RemoteNameMaxLength {
+		s = strings.Trim(s[:RemoteNameMaxLength], "-")
+	}
+
+	if !IsValidRemoteName(s) {
+		s = NewId()
+	}
+
+	return s
 }
 
 func (rc *RemoteCluster) PreUpdate() {
@@ -234,10 +258,7 @@ func (rc *RemoteCluster) IsConfirmed() bool {
 }
 
 func (rc *RemoteCluster) IsPlugin() bool {
-	if rc.PluginID != "" || strings.HasPrefix(rc.SiteURL, SiteURLPlugin) {
-		return true // local plugins are automatically confirmed
-	}
-	return false
+	return rc.PluginID != ""
 }
 
 func (rc *RemoteCluster) GetSiteURL() string {
@@ -262,8 +283,8 @@ func (rc *RemoteCluster) fixTopics() {
 	var sb strings.Builder
 	sb.WriteString(" ")
 
-	ss := strings.Split(rc.Topics, " ")
-	for _, c := range ss {
+	ss := strings.SplitSeq(rc.Topics, " ")
+	for c := range ss {
 		cc := strings.TrimSpace(c)
 		if cc != "" {
 			sb.WriteString(cc)
@@ -275,11 +296,13 @@ func (rc *RemoteCluster) fixTopics() {
 
 func (rc *RemoteCluster) ToRemoteClusterInfo() RemoteClusterInfo {
 	return RemoteClusterInfo{
+		RemoteId:    rc.RemoteId,
 		Name:        rc.Name,
 		DisplayName: rc.DisplayName,
 		CreateAt:    rc.CreateAt,
 		DeleteAt:    rc.DeleteAt,
 		LastPingAt:  rc.LastPingAt,
+		SiteURL:     rc.SiteURL,
 	}
 }
 
@@ -289,11 +312,13 @@ func NormalizeRemoteName(name string) string {
 
 // RemoteClusterInfo provides a subset of RemoteCluster fields suitable for sending to clients.
 type RemoteClusterInfo struct {
+	RemoteId    string `json:"remote_id"`
 	Name        string `json:"name"`
 	DisplayName string `json:"display_name"`
 	CreateAt    int64  `json:"create_at"`
 	DeleteAt    int64  `json:"delete_at"`
 	LastPingAt  int64  `json:"last_ping_at"`
+	SiteURL     string `json:"site_url,omitempty"`
 }
 
 // RemoteClusterFrame wraps a `RemoteClusterMsg` with credentials specific to a remote cluster.
@@ -401,9 +426,19 @@ func (rci *RemoteClusterInvite) Encrypt(password string) ([]byte, error) {
 		return nil, err
 	}
 
-	key, err := scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
-	if err != nil {
-		return nil, err
+	var key []byte
+	if rci.Version >= 3 {
+		// Use PBKDF2 for version 3 and above
+		key, err = pbkdf2.Key(sha256.New, password, salt, 600000, 32)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// Use scrypt for older versions
+		key, err = scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	block, err := aes.NewCipher(key[:])
@@ -437,9 +472,31 @@ func (rci *RemoteClusterInvite) Decrypt(encrypted []byte, password string) error
 	salt := encrypted[:16]
 	encrypted = encrypted[16:]
 
-	key, err := scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
-	if err != nil {
-		return err
+	// Try PBKDF2 first (for version 3+)
+	if err := rci.tryDecrypt(encrypted, password, salt, true); err == nil {
+		return nil
+	}
+
+	// Fall back to scrypt (for older versions)
+	return rci.tryDecrypt(encrypted, password, salt, false)
+}
+
+func (rci *RemoteClusterInvite) tryDecrypt(encrypted []byte, password string, salt []byte, usePBKDF2 bool) error {
+	var key []byte
+	var err error
+
+	if usePBKDF2 {
+		// Use PBKDF2 for version 3 and above
+		key, err = pbkdf2.Key(sha256.New, password, salt, 600000, 32)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Use scrypt for older versions
+		key, err = scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
+		if err != nil {
+			return err
+		}
 	}
 
 	block, err := aes.NewCipher(key[:])

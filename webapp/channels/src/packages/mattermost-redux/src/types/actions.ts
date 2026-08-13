@@ -9,11 +9,12 @@ import type {GlobalState} from '@mattermost/types/store';
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 
 /**
- * This file extends Redux's Dispatch type and bindActionCreators function to support Thunk actions by default.
+ * These files extends Redux's Dispatch type and bindActionCreators function to support Thunk actions by default.
  *
  * It specifically requires those action creators to return ThunkAction-derived types.
  */
-import 'redux-thunk/extend-redux';
+import './extend_redux.d.ts';
+import './extend_react_redux.d.ts';
 
 export type DispatchFunc<TAction extends Action = MMReduxAction> = Dispatch<TAction>;
 export type GetStateFunc<State = GlobalState> = () => State;
@@ -33,7 +34,7 @@ export type ActionResult<Data = any, Error = any> = {
 export type ActionFunc<
     Data = unknown,
     State extends GlobalState = GlobalState,
-    TAction extends Action = MMReduxAction
+    TAction extends Action = MMReduxAction,
 > = ThunkAction<ActionResult<Data>, State, unknown, TAction>;
 
 /**
@@ -43,7 +44,7 @@ export type ActionFunc<
 export type ActionFuncAsync<
     Data = unknown,
     State extends GlobalState = GlobalState,
-    TAction extends Action = MMReduxAction
+    TAction extends Action = MMReduxAction,
 > = ThunkAction<Promise<ActionResult<Data>>, State, unknown, TAction>;
 
 /**
@@ -55,5 +56,5 @@ export type ActionFuncAsync<
 export type ThunkActionFunc<
     ReturnType,
     State extends GlobalState = GlobalState,
-    TAction extends Action = MMReduxAction
+    TAction extends Action = MMReduxAction,
 > = ThunkAction<ReturnType, State, unknown, TAction>;

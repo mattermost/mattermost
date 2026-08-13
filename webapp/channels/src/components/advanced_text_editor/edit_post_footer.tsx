@@ -5,15 +5,15 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {isMac} from '@mattermost/shared/utils/user_agent';
+
 import {unsetEditingPost} from 'actions/post_actions';
 import {isSendOnCtrlEnter} from 'selectors/preferences';
-
-import {isMac} from 'utils/user_agent';
 
 type Props = {
     onSave: () => void;
     onCancel?: () => void;
-}
+};
 
 export default function EditPostFooter(props: Props) {
     const dispatch = useDispatch();
@@ -51,7 +51,7 @@ export default function EditPostFooter(props: Props) {
                 defaultMessage='<strong>{key}ENTER</strong> to Save, <strong>ESC</strong> to Cancel'
                 values={{
                     key: sendOnCtrlEnter ? ctrlSendKey : '',
-                    strong: (x: string) => <strong>{x}</strong>,
+                    strong: (x) => <strong>{x}</strong>,
                 }}
             />
         </div>

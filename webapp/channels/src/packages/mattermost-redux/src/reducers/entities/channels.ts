@@ -7,6 +7,8 @@ import {combineReducers} from 'redux';
 
 import type {
     Channel,
+    ChannelJoinRequest,
+    ChannelJoinRequestsState,
     ChannelMembership,
     ChannelStats,
     ChannelMemberCountByGroup,
@@ -942,6 +944,182 @@ function roles(state: RelationOneToOne<Channel, Set<string>> = {}, action: MMRed
     }
 }
 
+function restrictedDMs(state: ChannelsState['restrictedDMs'] = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case ChannelTypes.RECEIVED_IS_DM_RESTRICTED: {
+        return {
+            ...state,
+            [action.data.channelId]: action.data.isRestricted,
+        };
+    }
+    case ChannelTypes.RESTRICTED_DMS_TEAMS_CHANGED:
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
+// Discoverable Private Channels — join requests reducer.
+//
+// One slice tracks four orthogonal projections of the same underlying rows:
+// - myPendingByChannel: the user's own pending row per channel (drives Browse
+//   row state machine + Request to Join modal pending state).
+// - byChannel: full admin-queue listings keyed by channel id (drives the
+//   admin queue UI in PR 4).
+// - countsByChannel: lightweight pending count per channel (drives the
+//   indicator triad).
+// - myList: the user's pending requests across channels (drives the My
+//   Pending Requests tab in PR 4).
+//
+// WebSocket events (channel_join_request_created / _updated) and the local
+// action thunks both feed this slice. Terminal status transitions
+// (approved / denied / withdrawn) clear the myPending entry but keep the row
+// in byChannel so the admin's Past tab can show it.
+const initialJoinRequestsState: ChannelJoinRequestsState = {
+    myPendingByChannel: {},
+    byChannel: {},
+    countsByChannel: {},
+    myList: [],
+};
+
+function isTerminal(status: ChannelJoinRequest['status']) {
+    return status === 'approved' || status === 'denied' || status === 'withdrawn';
+}
+
+export function joinRequests(state: ChannelJoinRequestsState = initialJoinRequestsState, action: MMReduxAction): ChannelJoinRequestsState {
+    switch (action.type) {
+    case ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUEST: {
+        const req: ChannelJoinRequest = action.data;
+        if (isTerminal(req.status)) {
+            const rest = {...state.myPendingByChannel};
+            Reflect.deleteProperty(rest, req.channel_id);
+            return {...state, myPendingByChannel: rest};
+        }
+        return {
+            ...state,
+            myPendingByChannel: {...state.myPendingByChannel, [req.channel_id]: req},
+        };
+    }
+
+    case ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUESTS: {
+        const rows: ChannelJoinRequest[] = action.data.requests ?? [];
+        const myPending: Record<string, ChannelJoinRequest> = {};
+        rows.forEach((req) => {
+            if (req.status === 'pending') {
+                myPending[req.channel_id] = req;
+            }
+        });
+
+        // This is the authoritative full list of the user's requests, so
+        // rebuild myPendingByChannel from it rather than merging — a request
+        // that resolved while the client missed the WebSocket event would
+        // otherwise linger as a stale pending entry.
+        return {
+            ...state,
+            myList: rows,
+            myPendingByChannel: myPending,
+        };
+    }
+
+    case ChannelTypes.RECEIVED_CHANNEL_JOIN_REQUESTS: {
+        const {channel_id: channelId, list} = action.data;
+        return {
+            ...state,
+            byChannel: {...state.byChannel, [channelId]: list.requests ?? []},
+        };
+    }
+
+    case ChannelTypes.RECEIVED_CHANNEL_JOIN_REQUEST_COUNT: {
+        const {channel_id: channelId, count} = action.data;
+        return {
+            ...state,
+            countsByChannel: {...state.countsByChannel, [channelId]: count},
+        };
+    }
+
+    case ChannelTypes.CHANNEL_JOIN_REQUEST_CREATED: {
+        const req: ChannelJoinRequest = action.data;
+        const existing = state.byChannel[req.channel_id] ?? [];
+        const alreadyTracked = existing.some((r) => r.id === req.id);
+        const dedup = existing.filter((r) => r.id !== req.id);
+
+        // Only bump the pending count for a genuinely new pending row. A
+        // re-delivered CREATED event (same id) must not inflate the count.
+        const counts = (alreadyTracked || req.status !== 'pending') ? state.countsByChannel : {
+            ...state.countsByChannel,
+            [req.channel_id]: (state.countsByChannel[req.channel_id] ?? 0) + 1,
+        };
+        return {
+            ...state,
+            byChannel: {...state.byChannel, [req.channel_id]: [req, ...dedup]},
+            countsByChannel: counts,
+        };
+    }
+
+    case ChannelTypes.CHANNEL_JOIN_REQUEST_UPDATED: {
+        const req: ChannelJoinRequest = action.data;
+        const existing = state.byChannel[req.channel_id] ?? [];
+        const prev = existing.find((r) => r.id === req.id);
+
+        // Persist the row even when it wasn't tracked yet, so a re-delivered
+        // terminal event finds it and becomes a terminal -> terminal no-op
+        // rather than decrementing the count a second time.
+        const replaced = prev ?
+            existing.map((r) => (r.id === req.id ? req : r)) :
+            [req, ...existing];
+        const myPending = {...state.myPendingByChannel};
+        if (isTerminal(req.status)) {
+            delete myPending[req.channel_id];
+        }
+        const myList = state.myList.map((r) => (r.id === req.id ? req : r));
+
+        // Adjust the pending count from the actual status transition rather
+        // than the incoming status alone. This keeps the count correct when
+        // the acting admin receives BOTH the optimistic local dispatch and
+        // the server's WebSocket echo for a single approve/deny: the first
+        // dispatch flips the tracked row to terminal, so the echo becomes a
+        // terminal -> terminal no-op. When the row isn't tracked (only the
+        // count is loaded, not the full queue) there is no local echo to
+        // double-count, so fall back to a single decrement on a terminal
+        // update. The floor at 0 guards against any missed CREATED bump.
+        let counts = state.countsByChannel;
+        const leftPending = isTerminal(req.status) && (prev ? prev.status === 'pending' : true);
+        if (leftPending) {
+            const next = (counts[req.channel_id] ?? 0) - 1;
+            counts = {...counts, [req.channel_id]: Math.max(0, next)};
+        }
+        return {
+            ...state,
+            byChannel: {...state.byChannel, [req.channel_id]: replaced},
+            myPendingByChannel: myPending,
+            myList,
+            countsByChannel: counts,
+        };
+    }
+
+    case ChannelTypes.CHANNEL_JOIN_REQUEST_REMOVED: {
+        const {channel_id: channelId, request_id: requestId} = action.data;
+        const rest = {...state.myPendingByChannel};
+        Reflect.deleteProperty(rest, channelId);
+        const filtered = requestId ? (state.byChannel[channelId] ?? []).filter((r) => r.id !== requestId) : state.byChannel[channelId];
+        const myList = requestId ? state.myList.filter((r) => r.id !== requestId) : state.myList;
+        return {
+            ...state,
+            myPendingByChannel: rest,
+            byChannel: filtered ? {...state.byChannel, [channelId]: filtered} : state.byChannel,
+            myList,
+        };
+    }
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return initialJoinRequestsState;
+
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
 
     // the current selected channel
@@ -983,4 +1161,9 @@ export default combineReducers({
 
     // object where key is the channel id and value is the member count for the channel
     channelsMemberCount,
+
+    restrictedDMs,
+
+    // Discoverable Private Channels — join requests slice
+    joinRequests,
 });

@@ -5,6 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -15,11 +16,11 @@ type Props = {
     onExited: () => void;
     channel: Channel;
     actions: ChannelDetailsActions;
-}
+};
 
 type State = {
     show: boolean;
-}
+};
 
 export type ChannelDetailsActions = {
     unarchiveChannel: (channelId: string) => Promise<ActionResult>;
@@ -73,25 +74,25 @@ export default class UnarchiveChannelModal extends React.PureComponent<Props, St
                             defaultMessage={'Are you sure you wish to unarchive the <b>{display_name}</b> channel?'}
                             values={{
                                 display_name: this.props.channel.display_name,
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='unarchive_channel.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type='button'
-                        className='btn btn-danger'
+                        variant='destructive'
                         data-dismiss='modal'
                         onClick={this.handleUnarchive}
                         autoFocus={true}
@@ -101,7 +102,7 @@ export default class UnarchiveChannelModal extends React.PureComponent<Props, St
                             id='unarchive_channel.del'
                             defaultMessage='Unarchive'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );

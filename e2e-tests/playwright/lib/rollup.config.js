@@ -9,7 +9,7 @@ export default {
     output: [
         {
             dir: 'dist',
-            format: 'cjs', // CommonJS for Playwright
+            format: 'esm',
             sourcemap: true,
             preserveModules: true, // Keep file structure
             preserveModulesRoot: 'src',
@@ -18,7 +18,10 @@ export default {
     plugins: [
         typescript(),
         copy({
-            targets: [{src: 'src/asset/**/*', dest: 'dist/asset'}], // Copy assets to dist/
+            targets: [
+                {src: 'src/asset/**/*', dest: 'dist/asset'}, // Copy assets to dist/
+                {src: 'src/containers/assets/**/*', dest: 'dist/containers/assets'},
+            ],
         }),
     ],
     external: [
@@ -26,14 +29,22 @@ export default {
         '@mattermost/client',
         '@mattermost/types/config',
         '@axe-core/playwright',
+        '@azure/storage-blob',
         '@percy/playwright',
+        '@testcontainers/postgresql',
         'dotenv',
+        'ldapts',
         'luxon',
-        'node:fs/promises',
+        'minio',
+        'node:child_process',
         'node:path',
         'node:fs',
+        'node:fs/promises',
         'node:os',
+        'node:url',
+        'node:util',
         'mime-types',
+        'testcontainers',
         'uuid',
         'async-wait-until',
         'chalk',

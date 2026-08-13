@@ -21,7 +21,7 @@ type Props = {
     userCurrentTimezone: string;
     tomorrow9amTime: number;
     nextMonday: number;
-}
+};
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
@@ -80,13 +80,13 @@ function RecentUsedCustomDate({handleOnSelect, userCurrentTimezone, nextMonday, 
         if (recentlyUsedCustomDate) {
             try {
                 return JSON.parse(recentlyUsedCustomDate) as RecentlyUsedCustomDate;
-            } catch (e) {
+            } catch {
                 return {};
             }
         }
         return {};
     }, [recentlyUsedCustomDate]);
-    const handleRecentlyUsedCustomTime = useCallback((e) => handleOnSelect(e, recentlyUsedCustomDateVal.timestamp!), [handleOnSelect, recentlyUsedCustomDateVal.timestamp]);
+    const handleRecentlyUsedCustomTime = useCallback((e: React.UIEvent) => handleOnSelect(e, recentlyUsedCustomDateVal.timestamp!), [handleOnSelect, recentlyUsedCustomDateVal.timestamp]);
 
     if (
         !shouldShowRecentlyUsedCustomTime(now.toMillis(), recentlyUsedCustomDateVal, userCurrentTimezone, tomorrow9amTime, nextMonday)

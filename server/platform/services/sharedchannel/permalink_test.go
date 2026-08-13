@@ -4,7 +4,6 @@
 package sharedchannel
 
 import (
-	"context"
 	"net/url"
 	"testing"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -29,7 +29,7 @@ func TestProcessPermalinkToRemote(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)
 
 	pl := &model.PostList{}
-	mockPostStore.On("Get", context.Background(), "postID", model.GetPostsOptions{SkipFetchThreads: true}, "", map[string]bool{}).Return(pl, nil)
+	mockPostStore.On("Get", mock.MatchedBy(func(ctx *request.Context) bool { return true }), "postID", model.GetPostsOptions{SkipFetchThreads: true}, "", map[string]bool{}).Return(pl, nil)
 
 	mockStore.On("Post").Return(&mockPostStore)
 
@@ -38,7 +38,7 @@ func TestProcessPermalinkToRemote(t *testing.T) {
 	mockServer.On("Log").Return(logger)
 
 	mockApp := scs.app.(*MockAppIface)
-	mockApp.On("SendEphemeralPost", mock.Anything, "user", mock.AnythingOfType("*model.Post")).Return(&model.Post{}).Times(1)
+	mockApp.On("SendEphemeralPost", mock.Anything, "user", mock.AnythingOfType("*model.Post")).Return(&model.Post{}, true).Times(1)
 	defer mockApp.AssertExpectations(t)
 
 	t.Run("same channel", func(t *testing.T) {

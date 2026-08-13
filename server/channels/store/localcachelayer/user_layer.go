@@ -5,12 +5,12 @@ package localcachelayer
 
 import (
 	"bytes"
-	"context"
 	"sort"
 	"sync"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
@@ -140,7 +140,7 @@ func (s *LocalCacheUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 	return s.UserStore.GetAllProfiles(options)
 }
 
-func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, channelId string, allowFromCache bool) (map[string]*model.User, error) {
+func (s *LocalCacheUserStore) GetAllProfilesInChannel(rctx request.CTX, channelId string, allowFromCache bool) (map[string]*model.User, error) {
 	if allowFromCache {
 		var cachedMap model.UserMap
 		if err := s.rootStore.doStandardReadCache(s.rootStore.profilesInChannelCache, channelId, &cachedMap); err == nil {
@@ -148,7 +148,7 @@ func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, chann
 		}
 	}
 
-	userMap, err := s.UserStore.GetAllProfilesInChannel(ctx, channelId, allowFromCache)
+	userMap, err := s.UserStore.GetAllProfilesInChannel(rctx, channelId, allowFromCache)
 	if err != nil {
 		return nil, err
 	}
@@ -160,9 +160,9 @@ func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, chann
 	return userMap, nil
 }
 
-func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
+func (s *LocalCacheUserStore) GetProfileByIds(rctx request.CTX, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
 	if !allowFromCache {
-		return s.UserStore.GetProfileByIds(ctx, userIds, options, false)
+		return s.UserStore.GetProfileByIds(rctx, userIds, options, false)
 	}
 
 	if options == nil {
@@ -201,9 +201,9 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 
 	if len(remainingUserIds) > 0 {
 		if fromMaster {
-			ctx = sqlstore.WithMaster(ctx)
+			rctx = sqlstore.RequestContextWithMaster(rctx)
 		}
-		remainingUsers, err := s.UserStore.GetProfileByIds(ctx, remainingUserIds, options, false)
+		remainingUsers, err := s.UserStore.GetProfileByIds(rctx, remainingUserIds, options, false)
 		if err != nil {
 			return nil, err
 		}
@@ -221,11 +221,30 @@ func (s *LocalCacheUserStore) UpdateFailedPasswordAttempts(userID string, attemp
 	return s.UserStore.UpdateFailedPasswordAttempts(userID, attempts)
 }
 
+func (s *LocalCacheUserStore) TryIncrementFailedPasswordAttempts(userID string, maxAttempts int) (bool, error) {
+	claimed, err := s.UserStore.TryIncrementFailedPasswordAttempts(userID, maxAttempts)
+	if err != nil {
+		return false, err
+	}
+	if claimed {
+		s.InvalidateProfileCacheForUser(userID)
+	}
+	return claimed, nil
+}
+
+func (s *LocalCacheUserStore) DecrementFailedPasswordAttempts(userID string) error {
+	if err := s.UserStore.DecrementFailedPasswordAttempts(userID); err != nil {
+		return err
+	}
+	s.InvalidateProfileCacheForUser(userID)
+	return nil
+}
+
 // Get is a cache wrapper around the SqlStore method to get a user profile by id.
 // It checks if the user entry is present in the cache, returning the entry from cache
 // if it is present. Otherwise, it fetches the entry from the store and stores it in the
 // cache.
-func (s *LocalCacheUserStore) Get(ctx context.Context, id string) (*model.User, error) {
+func (s *LocalCacheUserStore) Get(rctx request.CTX, id string) (*model.User, error) {
 	var cacheItem model.User
 	if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cacheItem); err == nil {
 		return &cacheItem, nil
@@ -234,13 +253,13 @@ func (s *LocalCacheUserStore) Get(ctx context.Context, id string) (*model.User, 
 	// If it was invalidated, then we need to query master.
 	s.userProfileByIdsMut.Lock()
 	if s.userProfileByIdsInvalidations[id] {
-		ctx = sqlstore.WithMaster(ctx)
+		rctx = sqlstore.RequestContextWithMaster(rctx)
 		// And then remove the key from the map.
 		delete(s.userProfileByIdsInvalidations, id)
 	}
 	s.userProfileByIdsMut.Unlock()
 
-	user, err := s.UserStore.Get(ctx, id)
+	user, err := s.UserStore.Get(rctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +271,7 @@ func (s *LocalCacheUserStore) Get(ctx context.Context, id string) (*model.User, 
 // It checks if the user entries are present in the cache, returning the entries from cache
 // if it is present. Otherwise, it fetches the entries from the store and stores it in the
 // cache.
-func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, error) {
+func (s *LocalCacheUserStore) GetMany(rctx request.CTX, ids []string) ([]*model.User, error) {
 	// we are doing a loop instead of caching the full set in the cache because the number of permutations that we can have
 	// in this func is making caching of the total set not beneficial.
 	var cachedUsers []*model.User
@@ -288,9 +307,9 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 
 	if len(notCachedUserIds) > 0 {
 		if fromMaster {
-			ctx = sqlstore.WithMaster(ctx)
+			rctx = sqlstore.RequestContextWithMaster(rctx)
 		}
-		dbUsers, err := s.UserStore.GetMany(ctx, notCachedUserIds)
+		dbUsers, err := s.UserStore.GetMany(rctx, notCachedUserIds)
 		if err != nil {
 			return nil, err
 		}

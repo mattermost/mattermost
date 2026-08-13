@@ -19,6 +19,43 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
+func (s *MmctlUnitTestSuite) TestNukeUsersCmd() {
+	s.Run("Delete all users", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		s.client.
+			EXPECT().
+			PermanentDeleteAllUsers(context.TODO()).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+
+		err := nukeUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(printer.GetLines()[0], "All users successfully deleted")
+	})
+
+	s.Run("Delete all users call fails", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		s.client.
+			EXPECT().
+			PermanentDeleteAllUsers(context.TODO()).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
+			Times(1)
+
+		err := nukeUsersCmdF(s.client, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
+
 func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 	s.Run("GetBusy when not set", func() {
 		printer.Clean()
@@ -160,7 +197,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], map[string]string{"version": expectedVersion})
+		s.Require().Equal(map[string]string{"version": expectedVersion}, printer.GetLines()[0])
 	})
 
 	s.Run("Request to the server fails", func() {
@@ -180,10 +217,34 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
-	s.Run("Print server status", func() {
+	s.Run("Print server status - all healthy", func() {
 		printer.Clean()
 
-		expectedStatus := map[string]string{"status": "OK"}
+		expectedStatus := map[string]any{
+			"status":           model.StatusOk,
+			"database_status":  model.StatusOk,
+			"filestore_status": model.StatusOk,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(expectedStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], expectedStatus)
+	})
+
+	s.Run("Status fields missing - should succeed", func() {
+		printer.Clean()
+
+		expectedStatus := map[string]any{"status": "OK"}
 		s.client.
 			EXPECT().
 			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
@@ -216,6 +277,125 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Missing database status is ignored", func() {
+		printer.Clean()
+
+		emptyDbStatus := map[string]any{
+			"status":           model.StatusOk,
+			"filestore_status": model.StatusOk,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(emptyDbStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+	})
+
+	s.Run("filestore database status is ignored", func() {
+		printer.Clean()
+
+		emptyDbStatus := map[string]any{
+			"status":          model.StatusOk,
+			"database_status": model.StatusOk,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(emptyDbStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+	})
+
+	s.Run("Unhealthy server status should return true", func() {
+		printer.Clean()
+
+		unhealthyStatus := map[string]any{
+			"status":           model.StatusUnhealthy,
+			"database_status":  model.StatusOk,
+			"filestore_status": model.StatusOk,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(unhealthyStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "server status is unhealthy")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], unhealthyStatus)
+	})
+
+	s.Run("Unhealthy database status should return true", func() {
+		printer.Clean()
+
+		unhealthyStatus := map[string]any{
+			"status":           model.StatusOk,
+			"database_status":  model.StatusUnhealthy,
+			"filestore_status": model.StatusOk,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(unhealthyStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "database status is unhealthy")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], unhealthyStatus)
+	})
+
+	s.Run("Unhealthy filestore status should return true", func() {
+		printer.Clean()
+
+		unhealthyStatus := map[string]any{
+			"status":           model.StatusOk,
+			"database_status":  model.StatusOk,
+			"filestore_status": model.StatusUnhealthy,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(unhealthyStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "filestore status is unhealthy")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], unhealthyStatus)
 	})
 }
 

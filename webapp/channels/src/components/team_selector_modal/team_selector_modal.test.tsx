@@ -1,18 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {IntlShape} from 'react-intl';
 
+import {renderWithContext, screen, waitFor, act} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import TeamSelectorModal from './team_selector_modal';
 import type {Props} from './team_selector_modal';
 
 describe('components/TeamSelectorModal', () => {
+    // Flush any pending requestAnimationFrame callbacks between tests
+    afterEach(async () => {
+        await act(async () => {
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+        });
+    });
+
     const defaultProps: Props = {
-        currentSchemeId: 'xxx',
         alreadySelected: ['id1'],
         intl: {} as IntlShape,
         searchTerm: '',
@@ -59,19 +65,38 @@ describe('components/TeamSelectorModal', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(<TeamSelectorModal {...defaultProps}/>);
+    test('should render available teams excluding already selected and deleted teams', async () => {
+        renderWithContext(<TeamSelectorModal {...defaultProps}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        // Wait for all expected teams to be visible (Team 1 is already selected, Team 2 is deleted)
+        await waitFor(() => {
+            expect(screen.getByText('Team 3')).toBeInTheDocument();
+            expect(screen.getByText('Team 4')).toBeInTheDocument();
+            expect(screen.getByText('Team 5')).toBeInTheDocument();
+        });
+
+        // Verify filtered teams are not shown
+        expect(screen.queryByText('Team 1')).not.toBeInTheDocument();
+        expect(screen.queryByText('Team 2')).not.toBeInTheDocument();
     });
 
-    test('should hide group constrained teams when excludeGroupConstrained is true', () => {
-        const wrapper = shallow(
-            <TeamSelectorModal {...defaultProps}/>,
+    test('should hide group constrained teams when excludeGroupConstrained is true', async () => {
+        renderWithContext(
+            <TeamSelectorModal
+                {...defaultProps}
+                excludeGroupConstrained={true}
+            />,
         );
 
-        wrapper.setProps({excludeGroupConstrained: true});
+        // Wait for all expected teams (Team 1 is already selected, Team 2 is deleted, Team 5 is group constrained)
+        await waitFor(() => {
+            expect(screen.getByText('Team 3')).toBeInTheDocument();
+            expect(screen.getByText('Team 4')).toBeInTheDocument();
+            expect(screen.queryByText('Team 5')).not.toBeInTheDocument();
+        });
 
-        expect(wrapper).toMatchSnapshot();
+        // Verify filtered teams are not shown
+        expect(screen.queryByText('Team 1')).not.toBeInTheDocument();
+        expect(screen.queryByText('Team 2')).not.toBeInTheDocument();
     });
 });

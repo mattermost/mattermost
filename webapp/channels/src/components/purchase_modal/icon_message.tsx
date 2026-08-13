@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 
 import './icon_message.scss';
+import {Button} from '@mattermost/shared/components/button';
 
 type Props = {
     icon: JSX.Element;
@@ -19,12 +20,12 @@ type Props = {
     footer?: JSX.Element;
     testId?: string;
     className?: string;
-}
+};
 
 export default function IconMessage(props: Props) {
     const {
         icon,
-        error,
+        error = false,
         formattedButtonText,
         formattedTertiaryButonText,
         formattedTitle,
@@ -34,19 +35,19 @@ export default function IconMessage(props: Props) {
         tertiaryButtonHandler,
         footer,
         testId,
-        className,
+        className = '',
     } = props;
 
     let button = null;
     if (formattedButtonText && buttonHandler) {
         button = (
             <div className={classNames('IconMessage-button', error ? 'error' : '')}>
-                <button
-                    className='btn btn-primary Form-btn'
+                <Button
+                    emphasis='primary'
                     onClick={buttonHandler}
                 >
                     {formattedButtonText}
-                </button>
+                </Button>
             </div>
         );
     }
@@ -55,12 +56,12 @@ export default function IconMessage(props: Props) {
     if (formattedTertiaryButonText && tertiaryButtonHandler) {
         tertiaryBtn = (
             <div className={classNames('IconMessage-tertiary-button', error ? 'error' : '')}>
-                <button
-                    className='btn Form-btn'
+                <Button
+                    emphasis='tertiary'
                     onClick={tertiaryButtonHandler}
                 >
                     {formattedTertiaryButonText}
-                </button>
+                </Button>
             </div>
         );
     }
@@ -104,10 +105,3 @@ export default function IconMessage(props: Props) {
         </div>
     );
 }
-
-IconMessage.defaultProps = {
-    error: false,
-    subtitle: '',
-    date: '',
-    className: '',
-};

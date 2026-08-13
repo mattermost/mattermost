@@ -15,4 +15,5 @@ export default keyMirror({
     RECEIVED_FILE_PUBLIC_LINK: null,
 
     REMOVED_FILE: null,
+    FILE_DOWNLOAD_REJECTED: null,
 });

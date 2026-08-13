@@ -21,6 +21,10 @@ type Condition struct {
 	Value any `json:"value"`
 	// Type of the Value (LiteralValue or AttributeValue). Needed for comparisons like user.attr1 == user.attr2.
 	ValueType ValueType `json:"value_type"`
+	// Type of the Attribute (e.g., "text", "select", "multiselect").
+	AttributeType string `json:"attribute_type"`
+	// HasMaskedValues is true when non-held values were omitted from this condition.
+	HasMaskedValues bool `json:"has_masked_values,omitempty"`
 }
 
 // VisualExpression represents a series of conditions combined with logical AND.

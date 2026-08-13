@@ -1,0 +1,408 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.Help {
+    max-width: 800px;
+    min-height: 100vh;
+    padding: 40px;
+    margin: 0 auto;
+    background-color: var(--center-channel-bg, #fff);
+    color: var(--center-channel-color, #3d3c40);
+    font-family: 'Open Sans', 'Helvetica Neue', sans-serif;
+
+    &__header {
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.16);
+        margin-bottom: 32px;
+
+        h1 {
+            margin: 0;
+            color: var(--center-channel-color, #3d3c40);
+            font-size: 28px;
+            font-weight: 600;
+        }
+    }
+
+    &__content {
+        font-size: 14px;
+        line-height: 1.6;
+
+        > p {
+            margin-bottom: 16px;
+            color: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.8);
+        }
+    }
+
+    &__section {
+        margin-bottom: 24px;
+
+        &:last-of-type {
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            margin-bottom: 12px;
+            color: var(--center-channel-color, #3d3c40);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        h3 {
+            margin-top: 20px;
+            margin-bottom: 8px;
+            color: var(--center-channel-color, #3d3c40);
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: var(--center-channel-color-rgb, 61, 60, 64);
+
+            code {
+                padding: 2px 6px;
+                border-radius: 4px;
+                background: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.08);
+                font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+                font-size: 13px;
+            }
+        }
+
+        ul, ol {
+            padding-left: 24px;
+            margin-bottom: 16px;
+
+            li {
+                margin-bottom: 8px;
+                color: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.9);
+            }
+        }
+
+        a {
+            color: var(--button-bg, #166de0);
+            text-decoration: none;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    &__table {
+        width: 100%;
+        margin: 16px 0;
+        border-collapse: collapse;
+
+        th,
+        td {
+            padding: 12px 16px;
+            border: 1px solid rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.16);
+            text-align: left;
+        }
+
+        th {
+            background: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.04);
+            font-weight: 600;
+        }
+
+        td {
+            code {
+                padding: 2px 6px;
+                border-radius: 4px;
+                background: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.08);
+                font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+                font-size: 13px;
+            }
+
+            a {
+                color: var(--button-bg, #166de0);
+                text-decoration: none;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+        }
+
+        &--example {
+            max-width: 500px;
+        }
+    }
+
+    &__code-block {
+        padding: 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.16);
+        border-radius: 4px;
+        margin: 12px 0;
+        background: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.04);
+        overflow-x: auto;
+
+        code {
+            color: var(--center-channel-color, #3d3c40);
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+    }
+
+    &__code-preview {
+        padding: 8px 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.16);
+        border-radius: 4px;
+        margin: 0;
+        background: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.04);
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+        font-size: 13px;
+        overflow-x: auto;
+
+        &--go {
+            display: flex;
+            flex-direction: column;
+        }
+    }
+
+    &__code-line {
+        display: flex;
+        align-items: center;
+    }
+
+    &__code-line-number {
+        width: 24px;
+        margin-right: 12px;
+        color: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.4);
+        text-align: right;
+        user-select: none;
+    }
+
+    &__code-keyword {
+        color: #0086b3;
+    }
+
+    &__inline-code {
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.08);
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+        font-size: 13px;
+    }
+
+    &__inline-image {
+        max-width: 150px;
+        height: auto;
+    }
+
+    &__heading-large {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 22px;
+        font-weight: 600;
+    }
+
+    &__heading-medium {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    &__heading-small {
+        display: block;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    &__hr {
+        border: none;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.16);
+        margin: 0;
+    }
+
+    &__blockquote {
+        padding-left: 12px;
+        border-left: 4px solid rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.2);
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.7);
+        font-style: italic;
+    }
+
+    &__task-list {
+        padding-left: 0;
+        list-style: none;
+
+        li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type='checkbox'] {
+            margin: 0;
+        }
+    }
+
+    &__badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin-right: 2px;
+        background: #4a4a4a;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 500;
+
+        &--secondary {
+            background: #9a9a9a;
+        }
+    }
+
+    // Learn more about section
+    &__learn-more {
+        padding-top: 24px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.16);
+        margin-top: 32px;
+
+        h2 {
+            margin-bottom: 12px;
+            color: var(--center-channel-color, #3d3c40);
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        ul {
+            padding-left: 24px;
+            margin: 0;
+            list-style: disc;
+
+            li {
+                margin-bottom: 8px;
+
+                a {
+                    color: var(--button-bg, #166de0);
+                    text-decoration: none;
+
+                    &:hover {
+                        text-decoration: underline;
+                    }
+                }
+            }
+        }
+    }
+
+    // Example message box (for mentions page)
+    &__example-box {
+        padding: 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.12);
+        border-radius: 4px;
+        margin: 16px 0;
+        background: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.02);
+    }
+
+    &__example-message {
+        display: flex;
+        gap: 12px;
+    }
+
+    &__example-avatar {
+        position: relative;
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+
+        svg {
+            width: 36px;
+            height: 36px;
+        }
+    }
+
+    &__example-content {
+        flex: 1;
+
+        p {
+            margin: 4px 0 0;
+            color: var(--center-channel-color, #3d3c40);
+
+            a {
+                color: var(--button-bg, #166de0);
+                font-weight: 500;
+                text-decoration: none;
+
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+        }
+    }
+
+    &__example-name {
+        margin-right: 8px;
+        color: var(--center-channel-color, #3d3c40);
+        font-weight: 600;
+    }
+
+    &__example-time {
+        color: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.6);
+        font-size: 12px;
+    }
+
+    // Commands page styling
+    &__commands-example {
+        max-width: 550px;
+        border: 1px solid rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.16);
+        border-radius: 4px;
+        margin: 16px 0;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    &__commands-header {
+        padding: 12px 16px;
+        color: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.6);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    &__commands-list {
+        border-top: 1px solid rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.08);
+    }
+
+    &__command-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 10px 16px;
+        gap: 12px;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.04);
+        }
+    }
+
+    &__command-icon {
+        display: flex;
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        background: rgba(63, 67, 80, 0.08);
+        color: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.7);
+        font-weight: 500;
+    }
+
+    &__command-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__command-name {
+        color: var(--center-channel-color, #3d3c40);
+        font-weight: 500;
+    }
+
+    &__command-desc {
+        color: rgba(var(--center-channel-color-rgb, 61, 60, 64), 0.6);
+        font-size: 12px;
+    }
+}

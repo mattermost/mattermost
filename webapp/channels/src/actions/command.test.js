@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import {Client4} from 'mattermost-redux/client';
 import {Permissions} from 'mattermost-redux/constants';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
@@ -13,7 +15,6 @@ import UserSettingsModal from 'components/user_settings/modal';
 
 import mockStore from 'tests/test_store';
 import {ActionTypes, Constants, ModalIdentifiers} from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import {executeCommand} from './command';
@@ -28,11 +29,6 @@ const initialState = {
                 'com.mattermost.apps': {
                     state: 2,
                 },
-            },
-        },
-        general: {
-            config: {
-                ExperimentalViewArchivedChannels: 'false',
             },
         },
         posts: {
@@ -124,6 +120,9 @@ const initialState = {
             },
             pluginEnabled: true,
         },
+        general: {
+            config: {},
+        },
     },
     views: {
         rhs: {
@@ -134,7 +133,11 @@ const initialState = {
     },
 };
 
-jest.mock('utils/user_agent');
+const isMobileMock = jest.mocked(UserAgent.isMobile);
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isDesktopApp: jest.fn(),
+    isMobile: jest.fn(),
+}));
 jest.mock('actions/global_actions');
 
 describe('executeCommand', () => {
@@ -153,28 +156,28 @@ describe('executeCommand', () => {
                 {type: 'UPDATE_RHS_SEARCH_RESULTS_TERMS', terms: ''},
                 {type: 'UPDATE_RHS_SEARCH_RESULTS_TYPE', searchType: ''},
                 {type: 'SEARCH_POSTS_REQUEST', isGettingMore: false},
+                {data: {firstInaccessiblePostTime: 0, searchType: 'posts'}, type: 'RECEIVED_SEARCH_TRUNCATION_INFO'},
                 {type: 'SEARCH_FILES_REQUEST', isGettingMore: false},
+                {data: {firstInaccessiblePostTime: 0, searchType: 'files'}, type: 'RECEIVED_SEARCH_TRUNCATION_INFO'},
             ]);
         });
     });
 
     describe('shortcuts', () => {
-        UserAgent.isMobile = jest.fn();
-
         test('should return error in case of mobile', async () => {
-            UserAgent.isMobile.mockReturnValueOnce(true);
+            isMobileMock.mockReturnValueOnce(true);
 
             const result = await store.dispatch(executeCommand('/shortcuts', []));
 
             expect(result).toEqual({
                 error: {
-                    message: 'Keyboard shortcuts are not supported on your device',
+                    message: 'Keyboard shortcuts are not supported on your device.',
                 },
             });
         });
 
         test('should open shortcut modal in case of no mobile', async () => {
-            UserAgent.isMobile.mockReturnValueOnce(false);
+            isMobileMock.mockReturnValueOnce(false);
 
             const result = await store.dispatch(executeCommand('/shortcuts', []));
 

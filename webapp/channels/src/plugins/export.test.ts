@@ -7,6 +7,40 @@ import './export';
 
 jest.mock('utils/message_html_to_component');
 
+describe('window.Components exposes plugin modals', () => {
+    test('EditChannelHeaderModal is defined', () => {
+        expect((window as any).Components.EditChannelHeaderModal).toBeDefined();
+    });
+
+    test('ChannelNotificationsModal is defined', () => {
+        expect((window as any).Components.ChannelNotificationsModal).toBeDefined();
+    });
+});
+
+describe('window.Components exposes ABAC policy editors', () => {
+    test('AccessControlTableEditor is defined', () => {
+        expect((window as any).Components.AccessControlTableEditor).toBeDefined();
+    });
+
+    test('AccessControlCELEditor is defined', () => {
+        expect((window as any).Components.AccessControlCELEditor).toBeDefined();
+    });
+});
+
+describe('window.WebappUtils.channels exposes channel actions', () => {
+    test('favoriteChannel is defined', () => {
+        expect((window as any).WebappUtils.channels.favoriteChannel).toBeDefined();
+    });
+
+    test('unfavoriteChannel is defined', () => {
+        expect((window as any).WebappUtils.channels.unfavoriteChannel).toBeDefined();
+    });
+
+    test('isFavoriteChannel is defined', () => {
+        expect((window as any).WebappUtils.channels.isFavoriteChannel).toBeDefined();
+    });
+});
+
 describe('messageHtmlToComponent wrapper', () => {
     const message = 'test';
     const options = {emoji: true, images: false};
@@ -34,5 +68,35 @@ describe('messageHtmlToComponent wrapper', () => {
         (window as any).PostUtils.messageHtmlToComponent(message, isRHS, options);
 
         expect(messageHtmlToComponent).toHaveBeenCalledWith(message, options);
+    });
+});
+
+describe('window.WebappUtils.modals.openModalById', () => {
+    test('opens an allowlisted modal by id with the given props', () => {
+        const action = (window as any).WebappUtils.modals.openModalById('team_settings', {focusOriginElement: 'channel-header'});
+
+        expect(action.modalId).toBe('team_settings');
+        expect(action.dialogProps).toEqual({focusOriginElement: 'channel-header'});
+        expect(typeof action.dialogType).toBe('function');
+    });
+});
+
+describe('window.WebappUtils.modals.canOpenModalId', () => {
+    test('is true for an allowlisted modal id', () => {
+        expect((window as any).WebappUtils.modals.canOpenModalId('team_settings')).toBe(true);
+    });
+
+    test('is false for an id the web app does not publish', () => {
+        expect((window as any).WebappUtils.modals.canOpenModalId('channel_invite')).toBe(false);
+        expect((window as any).WebappUtils.modals.canOpenModalId('not_a_real_modal')).toBe(false);
+    });
+});
+
+describe('window.WebappUtils.openUserSettings', () => {
+    test('opens the user settings modal', () => {
+        const action = (window as any).WebappUtils.openUserSettings({isContentProductSettings: false});
+
+        expect(action.modalId).toBe('user_settings');
+        expect(action.dialogProps).toEqual({isContentProductSettings: false});
     });
 });

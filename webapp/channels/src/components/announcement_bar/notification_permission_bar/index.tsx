@@ -4,6 +4,8 @@
 import React from 'react';
 import {useSelector} from 'react-redux';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -34,7 +36,8 @@ export default function NotificationPermissionBar() {
     }
 
     // When browser does not support notification API, we show the notification bar to update browser
-    if (!isNotificationAPISupported()) {
+    // Don't show for MS 365 mobile apps (Teams, Outlook) as they intentionally don't support notifications
+    if (!isNotificationAPISupported() && !UserAgent.isM365Mobile()) {
         return <NotificationPermissionUnsupportedBar/>;
     }
 

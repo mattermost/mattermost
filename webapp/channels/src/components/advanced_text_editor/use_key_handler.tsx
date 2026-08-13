@@ -5,6 +5,7 @@ import type React from 'react';
 import {useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
@@ -19,10 +20,9 @@ import type TextboxClass from 'components/textbox/textbox';
 
 import Constants, {A11yClassNames, Locations, Preferences} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import {type ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 import {pasteHandler} from 'utils/paste';
 import {isWithinCodeBlock, postMessageOnKeyPress} from 'utils/post_utils';
-import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -34,13 +34,12 @@ const useKeyHandler = (
     draft: PostDraft,
     channelId: string,
     postId: string,
-    caretPosition: number,
     isValidPersistentNotifications: boolean,
     location: string,
     textboxRef: React.RefObject<TextboxClass>,
     showFormattingBar: boolean,
     focusTextbox: (forceFocus?: boolean) => void,
-    applyMarkdown: (params: ApplyMarkdownOptions) => void,
+    applyFormatting: (mode: MarkdownMode) => void,
     handleDraftChange: (draft: PostDraft, options?: {instant?: boolean; show?: boolean}) => void,
     handleSubmit: (submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo) => void,
     emitTypingEvent: () => void,
@@ -50,9 +49,9 @@ const useKeyHandler = (
     isInEditMode?: boolean,
     onCancel?: () => void,
 ): [
-        (e: React.KeyboardEvent<TextboxElement>) => void,
-        (e: React.KeyboardEvent<TextboxElement>) => void,
-    ] => {
+    (e: React.KeyboardEvent<TextboxElement>) => void,
+    (e: React.KeyboardEvent<TextboxElement>) => void,
+] => {
     const dispatch = useDispatch();
 
     const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
@@ -119,7 +118,7 @@ const useKeyHandler = (
             codeBlockOnCtrlEnter,
             postId ? 0 : Date.now(),
             postId ? 0 : lastChannelSwitchAt.current,
-            caretPosition,
+            textboxRef.current?.getInputBox()?.selectionStart ?? undefined,
         );
 
         if (ignoreKeyPress) {
@@ -135,7 +134,7 @@ const useKeyHandler = (
         }
 
         emitTypingEvent();
-    }, [draft, ctrlSend, codeBlockOnCtrlEnter, caretPosition, postId, emitTypingEvent, handleSubmit, isValidPersistentNotifications]);
+    }, [draft, ctrlSend, codeBlockOnCtrlEnter, postId, emitTypingEvent, handleSubmit, isValidPersistentNotifications, textboxRef]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<TextboxElement>) => {
         const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
@@ -193,6 +192,8 @@ const useKeyHandler = (
         const upKeyOnly = !ctrlOrMetaKeyPressed && !e.altKey && !e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.UP);
         const messageIsEmpty = draft.message.length === 0;
         const allowHistoryNavigation = draft.message.length === 0 || draft.message === messageHistory[messageHistoryIndex.current];
+
+        const caretPosition = (e.target as HTMLTextAreaElement).selectionStart;
         const caretIsWithinCodeBlock = caretPosition && isWithinCodeBlock(draft.message, caretPosition); // REVIEW
 
         if (upKeyOnly && messageIsEmpty) {
@@ -203,12 +204,6 @@ const useKeyHandler = (
 
             onEditLatestPost(e);
         }
-
-        const {
-            selectionStart,
-            selectionEnd,
-            value,
-        } = e.target as TextboxElement;
 
         if (ctrlKeyCombo && !caretIsWithinCodeBlock) {
             if (allowHistoryNavigation && Keyboard.isKeyPressed(e, KeyCodes.UP)) {
@@ -222,50 +217,25 @@ const useKeyHandler = (
             } else if (Keyboard.isKeyPressed(e, KeyCodes.B)) {
                 e.stopPropagation();
                 e.preventDefault();
-                applyMarkdown({
-                    markdownMode: 'bold',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
+                applyFormatting('bold');
             } else if (Keyboard.isKeyPressed(e, KeyCodes.I)) {
                 e.stopPropagation();
                 e.preventDefault();
-                applyMarkdown({
-                    markdownMode: 'italic',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
+                applyFormatting('italic');
             } else if (Utils.isTextSelectedInPostOrReply(e) && Keyboard.isKeyPressed(e, KeyCodes.K)) {
                 e.stopPropagation();
                 e.preventDefault();
-                applyMarkdown({
-                    markdownMode: 'link',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
+                applyFormatting('link');
             }
         } else if (ctrlAltCombo && !caretIsWithinCodeBlock) {
             if (Keyboard.isKeyPressed(e, KeyCodes.K)) {
                 e.stopPropagation();
                 e.preventDefault();
-                applyMarkdown({
-                    markdownMode: 'link',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
+                applyFormatting('link');
             } else if (Keyboard.isKeyPressed(e, KeyCodes.C)) {
                 e.stopPropagation();
                 e.preventDefault();
-                applyMarkdown({
-                    markdownMode: 'code',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
+                applyFormatting('code');
             } else if (Keyboard.isKeyPressed(e, KeyCodes.E)) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -283,36 +253,16 @@ const useKeyHandler = (
             if (Keyboard.isKeyPressed(e, KeyCodes.X)) {
                 e.stopPropagation();
                 e.preventDefault();
-                applyMarkdown({
-                    markdownMode: 'strike',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
+                applyFormatting('strike');
             } else if (Keyboard.isKeyPressed(e, KeyCodes.SEVEN)) {
                 e.preventDefault();
-                applyMarkdown({
-                    markdownMode: 'ol',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
+                applyFormatting('ol');
             } else if (Keyboard.isKeyPressed(e, KeyCodes.EIGHT)) {
                 e.preventDefault();
-                applyMarkdown({
-                    markdownMode: 'ul',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
+                applyFormatting('ul');
             } else if (Keyboard.isKeyPressed(e, KeyCodes.NINE)) {
                 e.preventDefault();
-                applyMarkdown({
-                    markdownMode: 'quote',
-                    selectionStart,
-                    selectionEnd,
-                    message: value,
-                });
+                applyFormatting('quote');
             }
         } else if (ctrlShiftCombo && !caretIsWithinCodeBlock) {
             if (Keyboard.isKeyPressed(e, KeyCodes.P) && draft.message.length && UserAgent.isMac()) { // REVIEW
@@ -346,8 +296,7 @@ const useKeyHandler = (
             }
         }
     }, [
-        applyMarkdown,
-        caretPosition,
+        applyFormatting,
         codeBlockOnCtrlEnter,
         ctrlSend,
         dispatch,
@@ -364,19 +313,21 @@ const useKeyHandler = (
         toggleAdvanceTextEditor,
         toggleEmojiPicker,
         toggleShowPreview,
+        isInEditMode,
+        location,
     ]);
 
     // Register paste events
     useEffect(() => {
         function onPaste(event: ClipboardEvent) {
-            pasteHandler(event, location, draft.message, isNonFormattedPaste.current, caretPosition);
+            pasteHandler(event, location, draft.message, isNonFormattedPaste.current, isInEditMode);
         }
 
         document.addEventListener('paste', onPaste);
         return () => {
             document.removeEventListener('paste', onPaste);
         };
-    }, [location, draft.message, caretPosition]);
+    }, [location, draft.message, isInEditMode]);
 
     const reactToLastMessage = useCallback((e: KeyboardEvent) => {
         e.preventDefault();

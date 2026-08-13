@@ -9,10 +9,11 @@
 
 // Group: @channels @channel
 
-import {UserProfile} from '@mattermost/types/users';
-import {getAdminAccount} from '../../../support/env';
+import type {UserProfile} from '@mattermost/types/users';
 
-const demoteToChannelMember = (user, channelId, admin) => {
+import {getAdminAccount} from '@/support/env';
+
+const demoteToChannelMember = (user: Pick<UserProfile, 'id'>, channelId: string, admin: Pick<UserProfile, 'username' | 'password'>) => {
     cy.externalRequest({
         user: admin,
         method: 'put',
@@ -24,7 +25,7 @@ const demoteToChannelMember = (user, channelId, admin) => {
     });
 };
 
-const promoteToChannelAdmin = (user, channelId, admin) => {
+const promoteToChannelAdmin = (user: Pick<UserProfile, 'id'>, channelId: string, admin: Pick<UserProfile, 'username' | 'password'>) => {
     cy.externalRequest({
         user: admin,
         method: 'put',

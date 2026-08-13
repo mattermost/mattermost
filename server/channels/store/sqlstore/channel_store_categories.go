@@ -16,8 +16,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (s SqlChannelStore) CreateInitialSidebarCategories(c request.CTX, userId string, teamID string) (_ *model.OrderedSidebarCategories, err error) {
-	transaction, err := s.GetMaster().Beginx()
+func (s SqlChannelStore) CreateInitialSidebarCategories(rctx request.CTX, userId string, teamID string) (_ *model.OrderedSidebarCategories, err error) {
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "CreateInitialSidebarCategories: begin_transaction")
 	}
@@ -183,7 +183,7 @@ func (s SqlChannelStore) migrateFavoritesToSidebarT(transaction *sqlxTxWrapper, 
 // MigrateFavoritesToSidebarChannels populates the SidebarChannels table by analyzing existing user preferences for favorites
 // **IMPORTANT** This function should only be called from the migration task and shouldn't be used by itself
 func (s SqlChannelStore) MigrateFavoritesToSidebarChannels(lastUserId string, runningOrder int64) (_ map[string]any, err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +230,7 @@ type sidebarCategoryForJoin struct {
 }
 
 func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategory *model.SidebarCategoryWithChannels) (_ *model.SidebarCategoryWithChannels, err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -278,31 +278,16 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 	if len(newCategory.Channels) > 0 {
 		placeHolder, channelIdArgs := constructArrayArgs(newCategory.Channels)
 		// Remove any channels from their previous categories and add them to the new one
-		var deleteQuery string
-		if s.DriverName() == model.DatabaseDriverMysql {
-			deleteQuery = `
-				DELETE
-					SidebarChannels
-				FROM
-					SidebarChannels
-				JOIN
-					SidebarCategories ON SidebarChannels.CategoryId = SidebarCategories.Id
-				WHERE
-					SidebarChannels.UserId = ?
-					AND SidebarChannels.ChannelId IN ` + placeHolder + `
-					AND SidebarCategories.TeamId = ?`
-		} else {
-			deleteQuery = `
-				DELETE FROM
-					SidebarChannels
-				USING
-					SidebarCategories
-				WHERE
-					SidebarChannels.CategoryId = SidebarCategories.Id
-					AND SidebarChannels.UserId = ?
-					AND SidebarChannels.ChannelId IN ` + placeHolder + `
-					AND SidebarCategories.TeamId = ?`
-		}
+		deleteQuery := `
+			DELETE FROM
+				SidebarChannels
+			USING
+				SidebarCategories
+			WHERE
+				SidebarChannels.CategoryId = SidebarCategories.Id
+				AND SidebarChannels.UserId = ?
+				AND SidebarChannels.ChannelId IN ` + placeHolder + `
+				AND SidebarCategories.TeamId = ?`
 
 		args := []any{userId}
 		args = append(args, channelIdArgs...)
@@ -416,8 +401,6 @@ func (s SqlChannelStore) getOrphanedSidebarChannels(db sqlxExecutor, userId stri
 		return nil, nil
 	}
 
-	isMySQL := s.DriverName() == model.DatabaseDriverMysql
-
 	channelTypeFilter := sq.Or{}
 	if selectDMs {
 		// any DM/GM channels that aren't in any category should be returned as part of the Direct Messages category
@@ -432,21 +415,11 @@ func (s SqlChannelStore) getOrphanedSidebarChannels(db sqlxExecutor, userId stri
 	}
 
 	// A subquery that is true if the channel does not have a SidebarChannel entry for the current user on the current team
-	var doesNotHaveSidebarChannel sq.SelectBuilder
-	if isMySQL {
-		doesNotHaveSidebarChannel = sq.Select("/*+ QB_NAME(subq1) */ 1").
-			Prefix("NOT EXISTS (").
-			From("SidebarChannels").
-			// we have to use an index hint for MySQL.
-			Join("SidebarCategories USE INDEX(idx_sidebarcategories_userid_teamid) on SidebarChannels.CategoryId=SidebarCategories.Id").
-			Suffix(")")
-	} else {
-		doesNotHaveSidebarChannel = sq.Select("1").
-			Prefix("NOT EXISTS (").
-			From("SidebarChannels").
-			Join("SidebarCategories on SidebarChannels.CategoryId=SidebarCategories.Id").
-			Suffix(")")
-	}
+	doesNotHaveSidebarChannel := sq.Select("1").
+		Prefix("NOT EXISTS (").
+		From("SidebarChannels").
+		Join("SidebarCategories on SidebarChannels.CategoryId=SidebarCategories.Id").
+		Suffix(")")
 
 	doesNotHaveSidebarChannel = doesNotHaveSidebarChannel.Where(sq.And{
 		sq.Expr("SidebarChannels.ChannelId = ChannelMembers.ChannelId"),
@@ -455,17 +428,8 @@ func (s SqlChannelStore) getOrphanedSidebarChannels(db sqlxExecutor, userId stri
 	})
 
 	channels := []*OrphanedSidebarChannel{}
-	var col string
-	if isMySQL {
-		// This is a materialization hint for MySQL to materialize
-		// the doesNotHaveSidebarChannel sub-query
-		// Without this hint, MySQL is unable to come up with this plan by itself.
-		col = "/*+ SEMIJOIN(@subq1 MATERIALIZATION) */ Id, Channels.Type"
-	} else {
-		col = "Id, Channels.Type"
-	}
 	sql, args, err := s.getQueryBuilder().
-		Select(col).
+		Select("Id, Channels.Type").
 		From("ChannelMembers").
 		LeftJoin("Channels ON Channels.Id=ChannelMembers.ChannelId").
 		Where(sq.And{
@@ -626,7 +590,7 @@ func (s SqlChannelStore) updateSidebarCategoryOrderT(transaction *sqlxTxWrapper,
 }
 
 func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categoryOrder []string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
@@ -644,13 +608,7 @@ func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categ
 	}
 
 	for _, originalCategoryId := range existingOrder {
-		found := false
-		for _, newCategoryId := range categoryOrder {
-			if newCategoryId == originalCategoryId {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(categoryOrder, originalCategoryId)
 		if !found {
 			return store.NewErrInvalidInput("SidebarCategories", "id", fmt.Sprintf("%v", categoryOrder))
 		}
@@ -669,7 +627,7 @@ func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categ
 
 //nolint:unparam
 func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) (updated []*model.SidebarCategoryWithChannels, original []*model.SidebarCategoryWithChannels, err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "begin_transaction")
 	}
@@ -774,11 +732,7 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			Insert("SidebarChannels").
 			Columns("ChannelId", "UserId", "CategoryId", "SortOrder")
 
-		if s.DriverName() == model.DatabaseDriverMysql {
-			insertQuery = insertQuery.Suffix("ON DUPLICATE KEY UPDATE SortOrder = VALUES(SortOrder)")
-		} else {
-			insertQuery = insertQuery.Suffix("ON CONFLICT (ChannelId, UserId, CategoryId) DO UPDATE SET SortOrder = excluded.SortOrder")
-		}
+		insertQuery = insertQuery.Suffix("ON CONFLICT (ChannelId, UserId, CategoryId) DO UPDATE SET SortOrder = excluded.SortOrder")
 
 		for _, channelID := range category.Channels {
 			insertQuery = insertQuery.Values(channelID, userId, category.Id, int64(runningOrder))
@@ -866,15 +820,13 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 // UpdateSidebarChannelsByPreferences is called when the Preference table is being updated to keep SidebarCategories in sync
 // At the moment, it's only handling Favorites and NOT DMs/GMs (those will be handled client side)
 func (s SqlChannelStore) UpdateSidebarChannelsByPreferences(preferences model.Preferences) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "UpdateSidebarChannelsByPreferences: begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
 	for _, preference := range preferences {
-		preference := preference
-
 		if preference.Category != model.PreferenceCategoryFavoriteChannel {
 			continue
 		}
@@ -904,31 +856,16 @@ func (s SqlChannelStore) removeSidebarEntriesForPreferenceT(transaction *sqlxTxW
 	}
 
 	// Delete any corresponding SidebarChannels entries in a Favorites category corresponding to this preference.
-	var query string
-	if s.DriverName() == model.DatabaseDriverMysql {
-		query = `
-			DELETE
-				SidebarChannels
-			FROM
-				SidebarChannels
-			JOIN
-				SidebarCategories ON SidebarChannels.CategoryId = SidebarCategories.Id
-			WHERE
-				SidebarChannels.UserId = ?
-				AND SidebarChannels.ChannelId = ?
-				AND SidebarCategories.Type = ?`
-	} else {
-		query = `
-			DELETE FROM
-				SidebarChannels
-			USING
-				SidebarCategories
-			WHERE
-				SidebarChannels.CategoryId = SidebarCategories.Id
-				AND SidebarChannels.UserId = ?
-				AND SidebarChannels.ChannelId = ?
-				AND SidebarCategories.Type = ?`
-	}
+	query := `
+		DELETE FROM
+			SidebarChannels
+		USING
+			SidebarCategories
+		WHERE
+			SidebarChannels.CategoryId = SidebarCategories.Id
+			AND SidebarChannels.UserId = ?
+			AND SidebarChannels.ChannelId = ?
+			AND SidebarCategories.Type = ?`
 
 	if _, err := transaction.Exec(query, preference.UserId, preference.Name, model.SidebarCategoryFavorites); err != nil {
 		return errors.Wrap(err, "Failed to remove sidebar entries for preference")
@@ -1014,15 +951,13 @@ func (s SqlChannelStore) addChannelToFavoritesCategoryT(transaction *sqlxTxWrapp
 // DeleteSidebarChannelsByPreferences is called when the Preference table is being updated to keep SidebarCategories in sync
 // At the moment, it's only handling Favorites and NOT DMs/GMs (those will be handled client side)
 func (s SqlChannelStore) DeleteSidebarChannelsByPreferences(preferences model.Preferences) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "DeleteSidebarChannelsByPreferences: begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
 	for _, preference := range preferences {
-		preference := preference
-
 		if preference.Category != model.PreferenceCategoryFavoriteChannel {
 			continue
 		}
@@ -1050,25 +985,20 @@ func (s SqlChannelStore) UpdateSidebarChannelCategoryOnMove(channel *model.Chann
 
 func (s SqlChannelStore) ClearSidebarOnTeamLeave(userId, teamId string) error {
 	// if user leaves the team, clean their team related entries in sidebar channels and categories
-	var deleteQuery string
-	if s.DriverName() == model.DatabaseDriverMysql {
-		deleteQuery = "DELETE SidebarChannels FROM SidebarChannels LEFT JOIN SidebarCategories ON SidebarCategories.Id = SidebarChannels.CategoryId WHERE SidebarCategories.TeamId=? AND SidebarCategories.UserId=?"
-	} else {
-		deleteQuery = `
-			DELETE FROM
-				SidebarChannels
-			WHERE
-				CategoryId IN (
-					SELECT
-						CategoryId
-					FROM
-						SidebarChannels,
-						SidebarCategories
-					WHERE
-						SidebarChannels.CategoryId = SidebarCategories.Id
-						AND SidebarCategories.TeamId = ?
-						AND SidebarChannels.UserId = ?)`
-	}
+	deleteQuery := `
+		DELETE FROM
+			SidebarChannels
+		WHERE
+			CategoryId IN (
+				SELECT
+					CategoryId
+				FROM
+					SidebarChannels,
+					SidebarCategories
+				WHERE
+					SidebarChannels.CategoryId = SidebarCategories.Id
+					AND SidebarCategories.TeamId = ?
+					AND SidebarChannels.UserId = ?)`
 	if _, err := s.GetMaster().Exec(deleteQuery, teamId, userId); err != nil {
 		return errors.Wrap(err, "failed to delete from SidebarChannels")
 	}
@@ -1081,7 +1011,7 @@ func (s SqlChannelStore) ClearSidebarOnTeamLeave(userId, teamId string) error {
 // DeleteSidebarCategory removes a custom category and moves any channels into it into the Channels and Direct Messages
 // categories respectively. Assumes that the provided user ID and team ID match the given category ID.
 func (s SqlChannelStore) DeleteSidebarCategory(categoryId string) (err error) {
-	transaction, err := s.GetMaster().Beginx()
+	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}

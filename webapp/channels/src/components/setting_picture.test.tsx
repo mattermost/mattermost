@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import SettingPicture from 'components/setting_picture';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 const helpText: ReactNode = (
     <FormattedMessage
@@ -34,160 +35,185 @@ describe('components/SettingItemMin', () => {
     const mockFile = new File([new Blob()], 'image.jpeg', {
         type: 'image/jpeg',
     });
+
     test('should match snapshot, profile picture on source', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SettingPicture {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, profile picture on file', () => {
         const props = {...baseProps, file: mockFile, src: ''};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, user icon on source', () => {
         const props = {...baseProps, onSetDefault: jest.fn()};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, team icon on source', () => {
         const props = {...baseProps, onRemove: jest.fn(), imageContext: 'team'};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, team icon on file', () => {
         const props = {...baseProps, onRemove: jest.fn(), imageContext: 'team', file: mockFile, src: ''};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, on loading picture', () => {
         const props = {...baseProps, loadingPicture: true};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with active Save button', () => {
         const props = {...baseProps, submitActive: true};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
 
-        wrapper.setState({removeSrc: false});
-        expect(wrapper).toMatchSnapshot();
-
-        wrapper.setProps({submitActive: false});
-        wrapper.setState({removeSrc: true});
-
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match state and call props.updateSection on handleCancel', () => {
-        const props = {...baseProps, updateSection: jest.fn()};
-        const wrapper = shallow(
-            <SettingPicture {...props}/>,
-        );
-        wrapper.setState({removeSrc: true});
-        const instance = wrapper.instance() as SettingPicture;
-        const evt = {preventDefault: jest.fn()} as unknown as React.MouseEvent<HTMLButtonElement>;
-
-        instance.handleCancel(evt);
-        expect(props.updateSection).toHaveBeenCalledTimes(1);
-        expect(props.updateSection).toHaveBeenCalledWith(evt);
-
-        wrapper.update();
-        expect(wrapper.state('removeSrc')).toEqual(false);
-    });
-
-    test('should call props.onRemove on handleSave', () => {
+    test('should match snapshot with removeSrc state active', async () => {
         const props = {...baseProps, onRemove: jest.fn()};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
-        wrapper.setState({removeSrc: true});
-        const instance = wrapper.instance() as SettingPicture;
-        const evt = {preventDefault: jest.fn()} as unknown as React.MouseEvent;
 
-        instance.handleSave(evt);
+        // Click the remove button to set removeSrc state
+        const removeButton = screen.getByTestId('removeSettingPicture');
+        await userEvent.click(removeButton);
+
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match state and call props.updateSection on handleCancel', async () => {
+        const props = {...baseProps, updateSection: jest.fn(), onRemove: jest.fn()};
+        const {container} = renderWithContext(
+            <SettingPicture {...props}/>,
+        );
+
+        // First click remove to set removeSrc state
+        const removeButton = screen.getByTestId('removeSettingPicture');
+        await userEvent.click(removeButton);
+
+        // Then click cancel
+        const cancelButton = screen.getByTestId('cancelSettingPicture');
+        await userEvent.click(cancelButton);
+
+        expect(props.updateSection).toHaveBeenCalledTimes(1);
+
+        // Image should be visible again (removeSrc reset to false)
+        expect(container.querySelector('.profile-img')).toBeInTheDocument();
+    });
+
+    test('should call props.onRemove on handleSave', async () => {
+        const props = {...baseProps, onRemove: jest.fn()};
+        renderWithContext(
+            <SettingPicture {...props}/>,
+        );
+
+        // First click remove to set removeSrc state
+        const removeButton = screen.getByTestId('removeSettingPicture');
+        await userEvent.click(removeButton);
+
+        // Then click save
+        const saveButton = screen.getByTestId('saveSettingPicture');
+        await userEvent.click(saveButton);
+
         expect(props.onRemove).toHaveBeenCalledTimes(1);
     });
 
-    test('should call props.onSetDefault on handleSave', () => {
+    test('should call props.onSetDefault on handleSave', async () => {
         const props = {...baseProps, onSetDefault: jest.fn()};
-        const wrapper = shallow(
+        renderWithContext(
             <SettingPicture {...props}/>,
         );
-        wrapper.setState({setDefaultSrc: true});
-        const instance = wrapper.instance() as SettingPicture;
-        const evt = {preventDefault: jest.fn()} as unknown as React.MouseEvent;
 
-        instance.handleSave(evt);
+        // First click remove/setDefault button to set setDefaultSrc state
+        const removeButton = screen.getByTestId('removeSettingPicture');
+        await userEvent.click(removeButton);
+
+        // Then click save
+        const saveButton = screen.getByTestId('saveSettingPicture');
+        await userEvent.click(saveButton);
+
         expect(props.onSetDefault).toHaveBeenCalledTimes(1);
     });
 
-    test('should match state and call props.onSubmit on handleSave', () => {
-        const props = {...baseProps, onSubmit: jest.fn()};
-        const wrapper = shallow(
+    test('should match state and call props.onSubmit on handleSave', async () => {
+        const props = {...baseProps, onSubmit: jest.fn(), submitActive: true};
+        renderWithContext(
             <SettingPicture {...props}/>,
         );
-        wrapper.setState({removeSrc: false});
 
-        const instance = wrapper.instance() as SettingPicture;
-        const evt = {preventDefault: jest.fn()} as unknown as React.MouseEvent;
-        instance.handleSave(evt);
+        const saveButton = screen.getByTestId('saveSettingPicture');
+        await userEvent.click(saveButton);
+
         expect(props.onSubmit).toHaveBeenCalledTimes(1);
-
-        wrapper.update();
-        expect(wrapper.state('removeSrc')).toEqual(false);
     });
 
-    test('should match state on handleRemoveSrc', () => {
-        const props = {...baseProps, onSubmit: jest.fn()};
-        const wrapper = shallow(
+    test('should match state on handleRemoveSrc', async () => {
+        const props = {...baseProps, onRemove: jest.fn()};
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
-        wrapper.setState({removeSrc: false});
-        const instance = wrapper.instance() as SettingPicture;
-        const evt = {preventDefault: jest.fn()} as unknown as React.MouseEvent;
-        instance.handleRemoveSrc(evt);
-        wrapper.update();
-        expect(wrapper.state('removeSrc')).toEqual(true);
+
+        // Initially image should be visible
+        expect(container.querySelector('.profile-img')).toBeInTheDocument();
+
+        // Click remove
+        const removeButton = screen.getByTestId('removeSettingPicture');
+        await userEvent.click(removeButton);
+
+        // Image should be hidden (removeSrc is true)
+        expect(container.querySelector('.profile-img')).not.toBeInTheDocument();
     });
 
-    test('should match state and call props.onFileChange on handleFileChange', () => {
-        const props = {...baseProps, onFileChange: jest.fn()};
-        const wrapper = shallow(
+    test('should match state and call props.onFileChange on handleFileChange', async () => {
+        const props = {...baseProps, onFileChange: jest.fn(), onRemove: jest.fn()};
+        const {container} = renderWithContext(
             <SettingPicture {...props}/>,
         );
-        wrapper.setState({removeSrc: true});
-        const instance = wrapper.instance() as SettingPicture;
-        const evt = {preventDefault: jest.fn()} as unknown as React.ChangeEvent<HTMLInputElement>;
 
-        instance.handleFileChange(evt);
+        // First click remove to set removeSrc state
+        const removeButton = screen.getByTestId('removeSettingPicture');
+        await userEvent.click(removeButton);
+
+        // Verify image is hidden
+        expect(container.querySelector('.profile-img')).not.toBeInTheDocument();
+
+        // Trigger file change
+        const fileInput = screen.getByTestId('uploadPicture');
+        await userEvent.upload(fileInput, mockFile);
+
         expect(props.onFileChange).toHaveBeenCalledTimes(1);
-        expect(props.onFileChange).toHaveBeenCalledWith(evt);
 
-        wrapper.update();
-        expect(wrapper.state('removeSrc')).toEqual(false);
+        // Image should be visible again (removeSrc reset to false)
+        expect(container.querySelector('.profile-img')).toBeInTheDocument();
     });
 });

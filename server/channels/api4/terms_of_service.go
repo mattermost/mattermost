@@ -40,7 +40,7 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createTermsOfService", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateTermsOfService, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	props := model.MapFromJSON(r.Body)

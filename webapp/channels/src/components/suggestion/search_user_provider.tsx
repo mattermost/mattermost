@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {defineMessage} from 'react-intl';
 
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {UserProfile} from '@mattermost/types/users';
@@ -49,9 +50,13 @@ export const SearchUserSuggestion = React.forwardRef<HTMLLIElement, SuggestionPr
                 size='sm'
                 username={username}
                 url={Utils.imageURLForUser(item.id, item.last_picture_update)}
+                alt=''
             />
             <div className='suggestion-list__ellipsis'>
-                <span className='suggestion-list__main'>
+                <span
+                    data-testid='suggestion-list__main'
+                    className='suggestion-list__main'
+                >
                     {'@'}{username}
                 </span>
                 {item.is_bot && <BotTag/>}
@@ -103,9 +108,16 @@ export default class SearchUserProvider extends Provider {
 
         resultsCallback({
             matchedPretext: usernamePrefix,
-            terms: mentions,
-            items: users,
-            component: SearchUserSuggestion,
+            groups: [{
+                key: 'users',
+                label: defineMessage({
+                    id: 'suggestion.users',
+                    defaultMessage: 'Users',
+                }),
+                terms: mentions,
+                items: users,
+                component: SearchUserSuggestion,
+            }],
         });
     }
 

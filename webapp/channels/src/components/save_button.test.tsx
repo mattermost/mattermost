@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import SaveButton from 'components/save_button';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 describe('components/SaveButton', () => {
     const baseProps = {
@@ -12,30 +13,40 @@ describe('components/SaveButton', () => {
     };
 
     test('should match snapshot, on defaultMessage', () => {
-        const wrapper = shallow(<SaveButton {...baseProps}/>);
+        const {rerender, container} = renderWithContext(<SaveButton {...baseProps}/>);
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('button').first().props().disabled).toBe(false);
+        expect(container).toMatchSnapshot();
+        expect(screen.getByRole('button')).not.toBeDisabled();
 
-        wrapper.setProps({defaultMessage: 'Go'});
-        expect(wrapper).toMatchSnapshot();
+        rerender(
+            <SaveButton
+                {...baseProps}
+                defaultMessage='Go'
+            />,
+        );
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, on savingMessage', () => {
         const props = {...baseProps, saving: true, disabled: true};
-        const wrapper = shallow(<SaveButton {...props}/>);
+        const {rerender, container} = renderWithContext(<SaveButton {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('button').first().props().disabled).toBe(true);
+        expect(container).toMatchSnapshot();
+        expect(screen.getByRole('button')).toBeDisabled();
 
-        wrapper.setProps({savingMessage: 'Saving Config...'});
-        expect(wrapper).toMatchSnapshot();
+        rerender(
+            <SaveButton
+                {...props}
+                savingMessage='Saving Config...'
+            />,
+        );
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, extraClasses', () => {
         const props = {...baseProps, extraClasses: 'some-class'};
-        const wrapper = shallow(<SaveButton {...props}/>);
+        const {container} = renderWithContext(<SaveButton {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

@@ -10,7 +10,8 @@
 // Stage: @prod
 // Group: @channels @team_settings
 
-import {getRandomId, stubClipboard} from '../../../utils';
+import {getRandomId, stubClipboard, newTestPassword} from '@/utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Team Settings', () => {
     const randomId = getRandomId();
@@ -60,6 +61,8 @@ describe('Team Settings', () => {
             cy.findByText('Save').should('be.visible').click();
         });
 
+        cy.wait(TIMEOUTS.ONE_HUNDRED_MILLIS);
+
         cy.uiClose();
 
         // # Open team menu and click 'Invite People'
@@ -76,7 +79,7 @@ describe('Team Settings', () => {
 
             const email = `user${randomId}@sample.gmail.com`;
             const username = `user${randomId}`;
-            const password = 'passwd';
+            const password = newTestPassword();
             const errorMessage = `The following email addresses do not belong to an accepted domain: ${emailDomain}. Please contact your System Administrator for details.`;
 
             // # Type email, username and password
@@ -84,8 +87,11 @@ describe('Team Settings', () => {
             cy.get('#input_name').type(username);
             cy.get('#input_password-input').type(password);
 
+            // # Check the terms and privacy checkbox
+            cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
             // # Attempt to create an account by clicking on the 'Create Account' button
-            cy.findByText('Create Account').click();
+            cy.findByText('Create account').click();
 
             // * Assert that the expected error message from creating an account with an email not from the allowed email domain exists and is visible
             cy.findByText(errorMessage).should('be.visible');
@@ -101,10 +107,8 @@ describe('Team Settings', () => {
             // # Go to Access section
             cy.get('#accessButton').click();
 
-            cy.get('.access-invite-domains-section').should('exist').within(() => {
-                // # Enable any user with an account on the server to join the team
-                cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
-            });
+            // # Click 'Public Team' card to allow any user to join the team
+            cy.get('#public-private-selector-button-O').should('exist').click();
 
             // # Click on the 'Allow only users with a specific email domain to join this team' edit button
             cy.get('.access-allowed-domains-section').should('exist').within(() => {
@@ -124,7 +128,7 @@ describe('Team Settings', () => {
         });
 
         // # Create a new user
-        cy.apiCreateUser({user: {email: `user${randomId}@sample.gmail.com`, username: `user${randomId}`, password: 'passwd'}}).then(({user}) => {
+        cy.apiCreateUser({user: {email: `user${randomId}@sample.gmail.com`, username: `user${randomId}`, password: newTestPassword()}}).then(({user}) => {
             // # Create a second team
             cy.apiCreateTeam('other-team', 'Other Team').then(({team: otherTeam}) => {
                 // # Add user to the other team

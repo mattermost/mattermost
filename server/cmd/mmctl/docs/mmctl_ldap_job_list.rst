@@ -20,7 +20,7 @@ Examples
 
 ::
 
-    ldap job list
+  mmctl ldap job list
 
 Options
 ~~~~~~~

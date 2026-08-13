@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {ArrowDownIcon, ArrowUpIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {LogFilter, LogLevelEnum, LogObject} from '@mattermost/types/admin';
 import type {ChannelSearchOpts} from '@mattermost/types/channels';
 
@@ -22,7 +23,6 @@ type Props = {
     onFiltersChange: (filters: LogFilter) => void;
     onSearchChange: (term: string) => void;
     search: string;
-    filters: LogFilter;
 };
 
 type State = {
@@ -30,7 +30,7 @@ type State = {
     modalOpen: boolean;
     page: number;
     dateAsc: boolean;
-}
+};
 
 const PAGE_SIZE = 50;
 
@@ -207,15 +207,16 @@ export default class LogList extends React.PureComponent<Props, State> {
                         </span>
                     ),
                     options: (
-                        <button
+                        <Button
                             type='submit'
-                            className='btn btn-secondary btn-sm'
+                            emphasis='secondary'
+                            size='sm'
                         >
                             <FormattedMessage
                                 id='admin.logs.fullEvent'
                                 defaultMessage='Full Log event'
                             />
-                        </button>
+                        </Button>
                     ),
                 },
                 onClick: () => this.showFullLogEvent(log),
@@ -272,7 +273,7 @@ export default class LogList extends React.PureComponent<Props, State> {
         const placeholderEmpty: JSX.Element = (
             <FormattedMessage
                 id='admin.channel_settings.channel_list.no_logs_found'
-                defaultMessage='No logs found'
+                defaultMessage='No logs found. Ensure log files are within the logging root directory (configured via MM_LOG_PATH or the default logs directory).'
             />
         );
 
@@ -281,8 +282,10 @@ export default class LogList extends React.PureComponent<Props, State> {
         };
 
         const errorsButton: JSX.Element = (
-            <button
-                className='btn btn-tertiary btn-sm ml-2'
+            <Button
+                emphasis='tertiary'
+                size='sm'
+                className='ml-2'
                 onClick={this.showErrors}
             >
                 <FormattedMessage
@@ -290,7 +293,7 @@ export default class LogList extends React.PureComponent<Props, State> {
                     defaultMessage='Show last {n} errors'
                     values={{n: this.getErrorCount()}}
                 />
-            </button>
+            </Button>
         );
 
         const filterOptions: FilterOptions = {
@@ -366,7 +369,6 @@ export default class LogList extends React.PureComponent<Props, State> {
                     term={search}
                     placeholderEmpty={placeholderEmpty}
                     rowsContainerStyles={rowsContainerStyles}
-                    page={this.state.page}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
                     filterProps={filterProps}

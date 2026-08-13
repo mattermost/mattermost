@@ -52,15 +52,15 @@ export type Props = {
         loadProfilesMissingStatus: (users: UserProfile[]) => void;
         getTotalUsersStats: () => void;
         loadStatusesForProfilesList: (users: UserProfile[]) => void;
-        loadProfilesForGroupChannels: (groupChannels: Channel[]) => void;
         openDirectChannelToUserId: (userId: string) => Promise<ActionResult>;
         openGroupChannelToUserIds: (userIds: string[]) => Promise<ActionResult>;
         searchProfiles: (term: string, options: any) => Promise<ActionResult<UserProfile[]>>;
         searchGroupChannels: (term: string) => Promise<ActionResult<Channel[]>>;
         setModalSearchTerm: (term: string) => void;
+        canUserDirectMessage: (userId: string, otherUserId: string) => Promise<ActionResult<{can_dm: boolean}>>;
     };
     focusOriginElement: string;
-}
+};
 
 type State = {
     values: OptionValue[];
@@ -68,7 +68,8 @@ type State = {
     search: boolean;
     saving: boolean;
     loadingUsers: boolean;
-}
+    directMessageCapabilityCache: Record<string, boolean>;
+};
 
 export default class MoreDirectChannels extends React.PureComponent<Props, State> {
     searchTimeoutId: any;
@@ -100,6 +101,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
             search: false,
             saving: false,
             loadingUsers: true,
+            directMessageCapabilityCache: {},
         };
     }
 
@@ -107,6 +109,38 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         this.getUserProfiles();
         this.props.actions.getTotalUsersStats();
         this.props.actions.loadProfilesMissingStatus(this.props.users);
+        this.checkDMCapabilities(this.props.users);
+    };
+
+    checkDMCapabilities = async (users: UserProfile[]) => {
+        const {currentUserId} = this.props;
+        const {directMessageCapabilityCache} = this.state;
+        const usersToCheck = users.filter((user) =>
+            user.id !== currentUserId &&
+            user.remote_id &&
+            !(user.id in directMessageCapabilityCache),
+        );
+
+        if (usersToCheck.length === 0) {
+            return;
+        }
+
+        const promises = usersToCheck.map(async (user) => {
+            try {
+                const result = await this.props.actions.canUserDirectMessage(currentUserId, user.id);
+                return {userId: user.id, canDM: result.data?.can_dm ?? false};
+            } catch {
+                return {userId: user.id, canDM: false};
+            }
+        });
+
+        const results = await Promise.all(promises);
+        const newCache = {...directMessageCapabilityCache};
+        results.forEach(({userId, canDM}) => {
+            newCache[userId] = canDM;
+        });
+
+        this.setState({directMessageCapabilityCache: newCache});
     };
 
     updateFromProps(prevProps: Props) {
@@ -122,15 +156,12 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 this.searchTimeoutId = setTimeout(
                     async () => {
                         this.setUsersLoadingState(true);
-                        const [{data: profilesData}, {data: groupChannelsData}] = await Promise.all([
+                        const [{data: profilesData}] = await Promise.all([
                             this.props.actions.searchProfiles(searchTerm, {team_id: teamId}),
                             this.props.actions.searchGroupChannels(searchTerm),
                         ]);
                         if (profilesData) {
                             this.props.actions.loadStatusesForProfilesList(profilesData);
-                        }
-                        if (groupChannelsData) {
-                            this.props.actions.loadProfilesForGroupChannels(groupChannelsData);
                         }
                         this.resetPaging();
                         this.setUsersLoadingState(false);
@@ -142,6 +173,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
 
         if (prevProps.users.length !== this.props.users.length) {
             this.props.actions.loadProfilesMissingStatus(this.props.users);
+            this.checkDMCapabilities(this.props.users);
         }
     }
 
@@ -257,7 +289,29 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
         this.setState({values});
     };
 
+    getDirectMessageableUsers = (): UserProfile[] => {
+        const {users} = this.props;
+        const {directMessageCapabilityCache} = this.state;
+
+        return users.filter((user) => {
+            // For remote users, check if they can be DMed
+            if (user.remote_id) {
+                // If we haven't checked this user yet, hide them until we have the result
+                if (!(user.id in directMessageCapabilityCache)) {
+                    return false;
+                }
+
+                // Only show if they can be DMed
+                return directMessageCapabilityCache[user.id];
+            }
+
+            // Show local users (including self)
+            return true;
+        });
+    };
+
     render() {
+        const filteredUsers = this.getDirectMessageableUsers();
         const body = (
             <List
                 addValue={this.addValue}
@@ -272,7 +326,7 @@ export default class MoreDirectChannels extends React.PureComponent<Props, State
                 search={this.search}
                 selectedItemRef={this.selectedItemRef}
                 totalCount={this.props.totalCount}
-                users={this.props.users}
+                users={filteredUsers}
                 values={this.state.values}
             />
         );

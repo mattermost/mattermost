@@ -5,12 +5,12 @@ package localcachelayer
 
 import (
 	"bytes"
-	"context"
 	"sort"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
@@ -44,13 +44,21 @@ func (s LocalCacheRoleStore) Save(role *model.Role) (*model.Role, error) {
 	return s.RoleStore.Save(role)
 }
 
-func (s LocalCacheRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
+func (s LocalCacheRoleStore) SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error) {
+	if role.Name != "" {
+		defer s.rootStore.doInvalidateCacheCluster(s.rootStore.roleCache, role.Name, nil)
+		defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
+	}
+	return s.RoleStore.SavePreservingUnknownPermissions(role)
+}
+
+func (s LocalCacheRoleStore) GetByName(rctx request.CTX, name string) (*model.Role, error) {
 	var role *model.Role
 	if err := s.rootStore.doStandardReadCache(s.rootStore.roleCache, name, &role); err == nil {
 		return role, nil
 	}
 
-	role, err := s.RoleStore.GetByName(ctx, name)
+	role, err := s.RoleStore.GetByName(rctx, name)
 	if err != nil {
 		return nil, err
 	}

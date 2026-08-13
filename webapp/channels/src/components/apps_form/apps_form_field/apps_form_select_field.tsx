@@ -21,6 +21,7 @@ import {SelectChannelOption} from './select_channel_option';
 import {SelectUserOption} from './select_user_option';
 
 export type Props = {
+    id: string;
     field: AppField;
     label: React.ReactNode;
     helpText: React.ReactNode;
@@ -37,7 +38,7 @@ export type Props = {
 export type State = {
     refreshNonce: string;
     field: AppField;
-}
+};
 
 const reactStyles = {
     menuPortal: (provided) => ({
@@ -47,7 +48,7 @@ const reactStyles = {
 } satisfies StylesConfig<AppSelectOption | UserProfile | Channel >;
 
 const commonComponents = {
-    MultiValueLabel: (props: { data: { label: string } }) => (
+    MultiValueLabel: (props: {data: {label: string}}) => (
         <div className='react-select__padded-component'>
             {props.data.label}
         </div>
@@ -226,6 +227,7 @@ export default class AppsFormSelectField extends React.PureComponent<Props, Stat
 
         return (
             <div
+                data-testid={this.props.id}
                 className='form-group'
             >
                 {label && (

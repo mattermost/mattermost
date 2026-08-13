@@ -2,12 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {JobType, JobTypeBase, Job} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import {isTeamMembershipAccessControlEnabled} from 'selectors/general';
+
 import JobsTable from 'components/admin_console/jobs';
+import SectionNotice from 'components/section_notice';
 
 import {JobTypes} from 'utils/constants';
 
@@ -23,22 +29,18 @@ type Props = {
 };
 
 export default function AccessControlSyncJobTable(props: Props): JSX.Element {
+    const {formatMessage} = useIntl();
+
+    // This button syncs channel membership only; when team ABAC is on, name the
+    // scope so a green success isn't mistaken for a team re-sync.
+    const teamAbacEnabled = useSelector(isTeamMembershipAccessControlEnabled);
+
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        // Load jobs when component mounts
         props.actions.getJobsByType(JobTypes.ACCESS_CONTROL_SYNC);
-
-        // Set up polling interval
-        const interval = setInterval(() => {
-            props.actions.getJobsByType(JobTypes.ACCESS_CONTROL_SYNC);
-        }, 15000);
-
-        return () => {
-            clearInterval(interval);
-        };
     }, [props.actions]);
 
     const handleCreateJob = async (e?: React.SyntheticEvent) => {
@@ -77,28 +79,90 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
         setSelectedJob(null);
     };
 
+    const renderButtonLabel = (): JSX.Element => {
+        if (isSubmitting) {
+            return (
+                <FormattedMessage
+                    id='admin.access_control.sync_jobs.running'
+                    defaultMessage='Running Job...'
+                />
+            );
+        }
+        if (teamAbacEnabled) {
+            return (
+                <FormattedMessage
+                    id='admin.access_control.sync_jobs.run_channel'
+                    defaultMessage='Run Channel Sync'
+                />
+            );
+        }
+        return (
+            <FormattedMessage
+                id='admin.access_control.sync_jobs.run'
+                defaultMessage='Run Sync Job'
+            />
+        );
+    };
+
     return (
         <div className='AccessControlSyncJobTable'>
             <div className='policy-header'>
                 <div className='policy-header-text'>
-                    <h1>{'Access Control Sync Jobs'}</h1>
-                    <p>{'Synchronize access control policies with system resources and permissions.'}</p>
+                    <h1>
+                        <FormattedMessage
+                            id='admin.access_control.sync_jobs.title'
+                            defaultMessage='Membership Sync Jobs'
+                        />
+                    </h1>
+                    <p>
+                        {teamAbacEnabled ? (
+                            <FormattedMessage
+                                id='admin.access_control.sync_jobs.description_channel_scope'
+                                defaultMessage='Re-sync channel membership for channels assigned to a membership policy.'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='admin.access_control.sync_jobs.description'
+                                defaultMessage='Apply membership policies to their assigned resources.'
+                            />
+                        )}
+                    </p>
                 </div>
-                <button
-                    className='btn btn-primary'
+                <Button
+                    emphasis='primary'
                     onClick={handleCreateJob}
                     disabled={isSubmitting}
                 >
                     <i className='icon icon-plus'/>
-                    <span>{isSubmitting ? 'Running Job...' : 'Run Sync Job'}</span>
-                </button>
+                    <span>
+                        {renderButtonLabel()}
+                    </span>
+                </Button>
             </div>
+            {teamAbacEnabled && (
+                <div className='team-sync-note'>
+                    <SectionNotice
+                        type='info'
+                        title={formatMessage({
+                            id: 'admin.access_control.sync_jobs.team_sync_note.title',
+                            defaultMessage: 'This syncs channel membership only',
+                        })}
+                        text={formatMessage({
+                            id: 'admin.access_control.sync_jobs.team_sync_note',
+                            defaultMessage: 'To re-sync team membership, use **Sync now** in Team Settings → Team Membership or the team’s page in the System Console.',
+                        })}
+                    />
+                </div>
+            )}
             <JobsTable
                 perPage={5}
                 jobType={JobTypes.ACCESS_CONTROL_SYNC}
                 hideJobCreateButton={true}
                 className={'job-table__access-control'}
-                createJobButtonText={'Create Job'}
+                createJobButtonText={formatMessage({
+                    id: 'admin.access_control.sync_jobs.create_job',
+                    defaultMessage: 'Create Job',
+                })}
                 disabled={false}
                 createJobHelpText={<></>}
                 onRowClick={handleRowClick}

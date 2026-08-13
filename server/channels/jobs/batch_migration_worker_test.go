@@ -75,11 +75,14 @@ func TestBatchMigrationWorker(t *testing.T) {
 		waitDone(t, stopped, "worker did not stop")
 	}
 
-	assertJobReset := func(t *testing.T, th *TestHelper, job *model.Job) {
-		actualJob, appErr := th.Server.Jobs.GetJob(th.Context, job.Id)
-		require.Nil(t, appErr)
-		assert.Empty(t, actualJob.Progress)
-		assert.Empty(t, actualJob.Data)
+	assertJobResetEventually := func(t *testing.T, th *TestHelper, job *model.Job) {
+		t.Helper()
+		assert.EventuallyWithT(t, func(t *assert.CollectT) {
+			actualJob, appErr := th.Server.Jobs.GetJob(th.Context, job.Id)
+			require.Nil(t, appErr)
+			assert.Empty(t, actualJob.Progress, "expected no job progress")
+			assert.Empty(t, actualJob.Data, "expected no job data")
+		}, 5*time.Second, 250*time.Millisecond, "job never reset")
 	}
 
 	getBatchNumberFromData := func(t *testing.T, data model.StringMap) int {
@@ -142,14 +145,11 @@ func TestBatchMigrationWorker(t *testing.T) {
 			return nil, false, nil
 		})
 
-		// Give the worker time to start running
-		time.Sleep(500 * time.Millisecond)
-
 		// Queue the work to be done
 		worker.JobChannel() <- *job
 
 		th.WaitForJobStatus(t, job, model.JobStatusPending)
-		assertJobReset(t, th, job)
+		assertJobResetEventually(t, th, job)
 
 		stopWorker(t, worker)
 	})
@@ -171,14 +171,11 @@ func TestBatchMigrationWorker(t *testing.T) {
 			return getDataFromBatchNumber(batchNumber), false, nil
 		})
 
-		// Give the worker time to start running
-		time.Sleep(500 * time.Millisecond)
-
 		// Queue the work to be done
 		worker.JobChannel() <- *job
 
 		th.WaitForJobStatus(t, job, model.JobStatusPending)
-		assertJobReset(t, th, job)
+		assertJobResetEventually(t, th, job)
 
 		stopWorker(t, worker)
 	})

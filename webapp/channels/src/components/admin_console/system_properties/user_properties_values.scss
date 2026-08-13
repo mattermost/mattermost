@@ -1,8 +1,54 @@
 .user-property-field-values {
     display: flex;
     align-items: center;
+    padding: 0 12px;
     color: rgba(var(--center-channel-color-rgb), 0.75);
     gap: 4px;
+
+    // Owner-managed select/multiselect/rank: provenance above, options below.
+    &--with-owners {
+        flex-direction: column;
+        align-items: stretch;
+        padding-top: 12px;
+        padding-bottom: 12px;
+        gap: 4px;
+    }
+}
+
+.user-property-field-values__sync {
+    display: flex;
+    min-height: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 12px;
+    gap: 4px;
+    line-height: 16px;
+}
+
+.user-property-field-values__options {
+    // Pull the creatable select flush with the cell so option chips align with
+    // the sync row above; react-select's control provides its own padding.
+    margin: 0 -12px;
+}
+
+.user-property-field-values__chip {
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
+}
+
+// In the options cell the sync source (e.g. "SCIM: Entra") reads as plain
+// emphasized text, not a pill — chips are reserved for the editable values below.
+.user-property-field-values__owner {
+    color: var(--center-channel-color);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 600;
 }
 
 .user-property-field-values__chip-link {

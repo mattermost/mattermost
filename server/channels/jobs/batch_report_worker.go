@@ -49,7 +49,7 @@ func MakeBatchReportWorker(
 	return worker
 }
 
-func (worker *BatchReportWorker) doBatch(rctx *request.Context, job *model.Job) bool {
+func (worker *BatchReportWorker) doBatch(rctx request.CTX, job *model.Job) bool {
 	reportData, nextData, done, err := worker.getData(job.Data)
 	if err != nil {
 		worker.logger.Error("Worker: Failed to get data for report batch. Exiting", mlog.Err(err))
@@ -106,7 +106,7 @@ func (worker *BatchReportWorker) processChunk(job *model.Job, reportData []model
 
 	appErr := worker.app.SaveReportChunk(worker.reportFormat, job.Id, fileCount, reportData)
 	if appErr != nil {
-		return err
+		return appErr
 	}
 
 	fileCount++

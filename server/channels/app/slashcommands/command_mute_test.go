@@ -130,13 +130,14 @@ func TestMuteCommandNotMember(t *testing.T) {
 
 	cmd := &MuteProvider{}
 
-	// First mute the channel
+	// Muting a channel that the user is not a member of should return
+	// the same error as a non-existent channel to prevent channel enumeration
 	resp := cmd.DoCommand(th.App, th.Context, &model.CommandArgs{
 		T:         i18n.IdentityTfunc(),
 		ChannelId: channel1.Id,
 		UserId:    th.BasicUser.Id,
 	}, channel2.Name)
-	assert.Equal(t, "api.command_mute.not_member.error", resp.Text)
+	assert.Equal(t, "api.command_mute.error", resp.Text)
 }
 
 func TestMuteCommandNotChannel(t *testing.T) {

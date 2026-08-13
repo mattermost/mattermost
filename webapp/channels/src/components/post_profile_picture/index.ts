@@ -20,7 +20,7 @@ import PostProfilePicture from './post_profile_picture';
 type Props = {
     userId: string;
     post: Post;
-}
+};
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
     const config = getConfig(state);

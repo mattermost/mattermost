@@ -4,9 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {trackEvent} from 'actions/telemetry_actions';
+import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 
-import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import CloudTrialSvg from 'components/common/svg_images_components/cloud_trial_svg';
 import PrivateCloudSvg from 'components/common/svg_images_components/private_cloud_svg';
@@ -17,8 +16,8 @@ import {CloudLinks, CloudProducts} from 'utils/constants';
 type Props = {
     isFreeTrial: boolean;
     subscriptionPlan: string | undefined;
-    onUpgradeMattermostCloud: (telemetryProps?: TelemetryProps | undefined) => void;
-}
+    onUpgradeMattermostCloud: () => void;
+};
 
 const ContactSalesCard = (props: Props) => {
     const [openSalesLink, contactSalesLink] = useOpenSalesLink();
@@ -35,7 +34,6 @@ const ContactSalesCard = (props: Props) => {
             location='contact_sales_card'
             href={CloudLinks.PRICING}
             rel='noopener noreferrer'
-            onClick={() => trackEvent('cloud_admin', 'click_pricing_link')}
         >
             {CloudLinks.PRICING}
         </ExternalLink>
@@ -145,8 +143,7 @@ const ContactSalesCard = (props: Props) => {
                     <ExternalLink
                         location='contact_sales_card'
                         href={contactSalesLink}
-                        className='btn btn-tertiary PrivateCloudCard__actionButton'
-                        onClick={() => trackEvent('cloud_admin', 'click_contact_sales')}
+                        className={buttonClassNames({emphasis: 'tertiary'}, 'PrivateCloudCard__actionButton')}
                     >
                         <FormattedMessage
                             id='admin.billing.subscription.privateCloudCard.contactSales'
@@ -156,16 +153,17 @@ const ContactSalesCard = (props: Props) => {
                     </ExternalLink>
                 }
                 {(!isFreeTrial && subscriptionPlan !== CloudProducts.ENTERPRISE && subscriptionPlan !== CloudProducts.LEGACY) &&
-                    <button
+                    <Button
                         type='button'
                         onClick={() => {
                             if (subscriptionPlan === CloudProducts.STARTER) {
-                                onUpgradeMattermostCloud({trackingLocation: 'admin_console_subscription_card_upgrade_now_button'});
+                                onUpgradeMattermostCloud();
                             } else {
                                 openSalesLink();
                             }
                         }}
-                        className='btn btn-tertiary PrivateCloudCard__actionButton'
+                        emphasis='tertiary'
+                        className='PrivateCloudCard__actionButton'
                     >
                         {subscriptionPlan === CloudProducts.STARTER ? (
                             <FormattedMessage
@@ -181,7 +179,7 @@ const ContactSalesCard = (props: Props) => {
 
                         }
 
-                    </button>
+                    </Button>
                 }
             </div>
             <div className='PrivateCloudCard__image'>

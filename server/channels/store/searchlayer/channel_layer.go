@@ -4,8 +4,6 @@
 package searchlayer
 
 import (
-	"context"
-
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -37,6 +35,11 @@ func (c *SearchChannelStore) deleteChannelIndex(rctx request.CTX, channel *model
 }
 
 func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Channel) {
+	// Space backing channels are internal and never surface in channel search.
+	if channel.IsSpace() {
+		return
+	}
+
 	var userIDs, teamMemberIDs []string
 	var err error
 	if channel.Type == model.ChannelTypePrivate {
@@ -47,7 +50,7 @@ func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Chann
 		}
 	}
 
-	teamMemberIDs, err = c.GetTeamMembersForChannel(channel.Id)
+	teamMemberIDs, err = c.GetTeamMembersForChannel(rctx, channel.Id)
 	if err != nil {
 		rctx.Logger().Warn("Encountered error while indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 		return
@@ -66,6 +69,30 @@ func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Chann
 	}
 }
 
+func (c *SearchChannelStore) bulkIndexChannels(rctx request.CTX, channels []*model.Channel, teamMemberIDs []string) {
+	// Util function to get userIDs, only for private channels
+	getUserIDsForPrivateChannel := func(channel *model.Channel) ([]string, error) {
+		if channel.Type != model.ChannelTypePrivate {
+			return []string{}, nil
+		}
+		return c.GetAllChannelMemberIdsByChannelId(channel.Id)
+	}
+
+	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
+		if !engine.IsIndexingEnabled() {
+			continue
+		}
+
+		runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
+			appErr := engineCopy.SyncBulkIndexChannels(rctx, channels, getUserIDsForPrivateChannel, teamMemberIDs)
+			if appErr != nil {
+				rctx.Logger().Error("Failed to synchronously bulk-index channels.", mlog.String("search_engine", engineCopy.GetName()), mlog.Err(appErr))
+				return
+			}
+		})
+	}
+}
+
 func (c *SearchChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannels int64, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	newChannel, err := c.ChannelStore.Save(rctx, channel, maxChannels, channelOptions...)
 	if err == nil {
@@ -75,11 +102,44 @@ func (c *SearchChannelStore) Save(rctx request.CTX, channel *model.Channel, maxC
 }
 
 func (c *SearchChannelStore) Update(rctx request.CTX, channel *model.Channel) (*model.Channel, error) {
+	// Fetch existing channel to detect type changes for post reindexing.
+	oldChannel, getErr := c.ChannelStore.Get(channel.Id, true)
+	if getErr != nil {
+		rctx.Logger().Warn("Failed to fetch channel before update; channel type change detection skipped",
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(getErr))
+	}
+
 	updatedChannel, err := c.ChannelStore.Update(rctx, channel)
 	if err == nil {
 		c.indexChannel(rctx, updatedChannel)
+		// If channel type changed, reindex all posts so their channel_type field is updated.
+		if getErr == nil && oldChannel.Type != updatedChannel.Type {
+			c.reindexChannelPosts(rctx, channel.Id, updatedChannel.Type)
+		}
 	}
 	return updatedChannel, err
+}
+
+func (c *SearchChannelStore) reindexChannelPosts(rctx request.CTX, channelID string, channelType model.ChannelType) {
+	for _, engine := range c.rootStore.searchEngine.GetActiveEngines() {
+		if engine.IsIndexingEnabled() {
+			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
+				rctx.Logger().Info("Starting reindexChannelPosts",
+					mlog.String("channel_id", channelID),
+					mlog.String("channel_type", string(channelType)),
+					mlog.String("search_engine", engineCopy.GetName()))
+
+				if err := engineCopy.UpdatePostsChannelTypeByChannelId(rctx, channelID, string(channelType)); err != nil {
+					rctx.Logger().Error("Failed to update channel_type on posts in reindexChannelPosts. Consider running a full bulk index",
+						mlog.String("channel_id", channelID),
+						mlog.String("channel_type", string(channelType)),
+						mlog.String("search_engine", engineCopy.GetName()),
+						mlog.Err(err))
+				}
+			})
+		}
+	}
 }
 
 func (c *SearchChannelStore) UpdateMember(rctx request.CTX, cm *model.ChannelMember) (*model.ChannelMember, error) {
@@ -118,8 +178,11 @@ func (c *SearchChannelStore) RemoveMember(rctx request.CTX, channelID, userIdToR
 		c.rootStore.indexUserFromID(rctx, userIdToRemove)
 	}
 
-	channel, err := c.ChannelStore.Get(channelID, true)
-	if err == nil {
+	// return the removal result, not the re-index Get's — that Get returns
+	// not-found for space backing channels (excluded from the generic Get)
+	// and must not mask a successful removal.
+	channel, getErr := c.ChannelStore.Get(channelID, true)
+	if getErr == nil {
 		c.indexChannel(rctx, channel)
 	}
 
@@ -160,6 +223,11 @@ func (c *SearchChannelStore) SaveDirectChannel(rctx request.CTX, directchannel *
 		c.indexChannel(rctx, channel)
 	}
 	return channel, err
+}
+
+func (c *SearchChannelStore) SaveBoardChannel(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, view *model.View) (*model.Channel, *model.View, error) {
+	// Board channels are not indexed — they must stay invisible to channel search/autocomplete.
+	return c.ChannelStore.SaveBoardChannel(rctx, channel, maxChannelsPerTeam, view)
 }
 
 func (c *SearchChannelStore) Autocomplete(rctx request.CTX, userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error) {
@@ -284,7 +352,7 @@ func (c *SearchChannelStore) PermanentDeleteMembersByUser(rctx request.CTX, user
 }
 
 func (c *SearchChannelStore) RemoveAllDeactivatedMembers(rctx request.CTX, channelId string) error {
-	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(context.Background(), channelId, true)
+	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(rctx, channelId, true)
 	if errProfiles != nil {
 		rctx.Logger().Warn("Encountered error indexing users for channel", mlog.String("channel_id", channelId), mlog.Err(errProfiles))
 	}
@@ -301,7 +369,7 @@ func (c *SearchChannelStore) RemoveAllDeactivatedMembers(rctx request.CTX, chann
 }
 
 func (c *SearchChannelStore) PermanentDeleteMembersByChannel(rctx request.CTX, channelId string) error {
-	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(context.Background(), channelId, true)
+	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(rctx, channelId, true)
 	if errProfiles != nil {
 		rctx.Logger().Warn("Encountered error indexing users for channel", mlog.String("channel_id", channelId), mlog.Err(errProfiles))
 	}

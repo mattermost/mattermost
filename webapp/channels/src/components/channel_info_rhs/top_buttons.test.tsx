@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import TopButtons from './top_buttons';
@@ -27,6 +27,7 @@ describe('channel_info_rhs/top_buttons', () => {
         isFavorite: false,
         isMuted: false,
         isInvitingPeople: false,
+        isInManagedCategory: false,
         canAddPeople: true,
         actions: {
             addPeople: jest.fn(),
@@ -35,7 +36,7 @@ describe('channel_info_rhs/top_buttons', () => {
         },
     };
 
-    test('should display and toggle Favorite', () => {
+    test('should display and toggle Favorite', async () => {
         const toggleFavorite = jest.fn();
 
         // Favorite to Favorited
@@ -54,7 +55,7 @@ describe('channel_info_rhs/top_buttons', () => {
         );
 
         expect(screen.getByText('Favorite')).toBeInTheDocument();
-        fireEvent.click(screen.getByText('Favorite'));
+        await userEvent.click(screen.getByText('Favorite'));
         expect(toggleFavorite).toHaveBeenCalled();
 
         // Favorited to Favorite
@@ -67,11 +68,11 @@ describe('channel_info_rhs/top_buttons', () => {
         );
 
         expect(screen.getByText('Favorited')).toBeInTheDocument();
-        fireEvent.click(screen.getByText('Favorited'));
+        await userEvent.click(screen.getByText('Favorited'));
         expect(toggleFavorite).toHaveBeenCalled();
     });
 
-    test('should display and toggle Mute', () => {
+    test('should display and toggle Mute', async () => {
         const toggleMute = jest.fn();
 
         // Mute to Muted
@@ -90,7 +91,7 @@ describe('channel_info_rhs/top_buttons', () => {
         );
 
         expect(screen.getByText('Mute')).toBeInTheDocument();
-        fireEvent.click(screen.getByText('Mute'));
+        await userEvent.click(screen.getByText('Mute'));
         expect(toggleMute).toHaveBeenCalled();
 
         // Muted to Mute
@@ -103,11 +104,11 @@ describe('channel_info_rhs/top_buttons', () => {
         );
 
         expect(screen.getByText('Muted')).toBeInTheDocument();
-        fireEvent.click(screen.getByText('Muted'));
+        await userEvent.click(screen.getByText('Muted'));
         expect(toggleMute).toHaveBeenCalled();
     });
 
-    test('should display and active call Add People', () => {
+    test('should display and active call Add People', async () => {
         const addPeople = jest.fn();
 
         const testProps = {
@@ -125,7 +126,7 @@ describe('channel_info_rhs/top_buttons', () => {
         );
 
         expect(screen.getByText('Add People')).toBeInTheDocument();
-        fireEvent.click(screen.getByText('Add People'));
+        await userEvent.click(screen.getByText('Add People'));
         expect(addPeople).toHaveBeenCalled();
     });
     test('should not Add People in DM', () => {
@@ -158,7 +159,7 @@ describe('channel_info_rhs/top_buttons', () => {
         expect(screen.queryByText('Add People')).not.toBeInTheDocument();
     });
 
-    test('can copy link', () => {
+    test('can copy link', async () => {
         renderWithContext(
             <TopButtons
                 {...topButtonDefaultProps}
@@ -166,8 +167,29 @@ describe('channel_info_rhs/top_buttons', () => {
         );
 
         expect(screen.getByText('Copy Link')).toBeInTheDocument();
-        fireEvent.click(screen.getByText('Copy Link'));
+        await userEvent.click(screen.getByText('Copy Link'));
         expect(mockOnCopyTextClick).toHaveBeenCalled();
+    });
+
+    test('should disable favorite button when channel is in a managed category', () => {
+        const toggleFavorite = jest.fn();
+        const testProps: Props = {
+            ...topButtonDefaultProps,
+            isInManagedCategory: true,
+            actions: {
+                ...topButtonDefaultProps.actions,
+                toggleFavorite,
+            },
+        };
+
+        renderWithContext(
+            <TopButtons
+                {...testProps}
+            />,
+        );
+
+        const favoriteButton = screen.getByRole('button', {name: 'Favorite'});
+        expect(favoriteButton).toBeDisabled();
     });
 
     test('cannot copy link in DM or GM', () => {

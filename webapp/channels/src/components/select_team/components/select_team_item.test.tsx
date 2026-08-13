@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {Team} from '@mattermost/types/teams';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import SelectTeamItem from './select_team_item';
 
@@ -15,71 +16,90 @@ describe('components/select_team/components/SelectTeamItem', () => {
         loading: false,
         canJoinPublicTeams: true,
         canJoinPrivateTeams: false,
-        intl: {
-            formatMessage: jest.fn(),
-        },
     };
 
     test('should match snapshot, on public joinable', () => {
-        const wrapper = shallow(<SelectTeamItem {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<SelectTeamItem {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, on public not joinable', () => {
         const props = {...baseProps, canJoinPublicTeams: false};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SelectTeamItem {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, on private joinable', () => {
         const props = {...baseProps, team: {...baseProps.team, allow_open_invite: false}, canJoinPrivateTeams: true};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SelectTeamItem {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, on private not joinable', () => {
         const props = {...baseProps, team: {...baseProps.team, allow_open_invite: false}};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SelectTeamItem {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, on loading', () => {
         const props = {...baseProps, loading: true};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SelectTeamItem {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with description', () => {
+        // Suppress console error for ref warning from WithTooltip component
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
         const props = {...baseProps, team: {...baseProps.team, description: 'description'}};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SelectTeamItem {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
+
+        consoleSpy.mockRestore();
     });
 
-    test('should call onTeamClick on click when joinable', () => {
-        const wrapper = shallow(
-            <SelectTeamItem {...baseProps}/>,
-        );
-        wrapper.find('a').simulate('click', {preventDefault: jest.fn()});
-        expect(baseProps.onTeamClick).toHaveBeenCalledTimes(1);
-        expect(baseProps.onTeamClick).toHaveBeenCalledWith(baseProps.team);
-    });
-
-    test('should not call onTeamClick on click when you cant join the team', () => {
-        const props = {...baseProps, canJoinPublicTeams: false};
-        const wrapper = shallow(
+    test('should call onTeamClick on click when joinable', async () => {
+        const onTeamClick = jest.fn();
+        const props = {...baseProps, onTeamClick};
+        renderWithContext(
             <SelectTeamItem {...props}/>,
         );
-        wrapper.find('a').simulate('click', {preventDefault: jest.fn()});
-        expect(baseProps.onTeamClick).not.toHaveBeenCalled();
+        await userEvent.click(screen.getByRole('link'));
+        expect(onTeamClick).toHaveBeenCalledTimes(1);
+        expect(onTeamClick).toHaveBeenCalledWith(props.team);
+    });
+
+    test('should not call onTeamClick on click when you cant join the team', async () => {
+        const onTeamClick = jest.fn();
+        const props = {...baseProps, canJoinPublicTeams: false, onTeamClick};
+        renderWithContext(
+            <SelectTeamItem {...props}/>,
+        );
+        await userEvent.click(screen.getByRole('link'));
+        expect(onTeamClick).not.toHaveBeenCalled();
+    });
+
+    test('shows the Recommended chip with an accessible label when the team is recommended', () => {
+        const props = {...baseProps, team: {...baseProps.team, recommended: true} as Team};
+        renderWithContext(<SelectTeamItem {...props}/>);
+
+        expect(screen.getByText('Recommended')).toBeInTheDocument();
+        expect(screen.getByLabelText('Recommended based on your attributes')).toBeInTheDocument();
+    });
+
+    test('does not show the Recommended chip when the team is not recommended', () => {
+        renderWithContext(<SelectTeamItem {...baseProps}/>);
+
+        expect(screen.queryByText('Recommended')).not.toBeInTheDocument();
     });
 });

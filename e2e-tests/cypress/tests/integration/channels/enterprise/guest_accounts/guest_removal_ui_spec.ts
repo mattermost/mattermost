@@ -7,16 +7,15 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @guest_account
 
 /**
  * Note: This test requires Enterprise license to be uploaded
  */
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
-function removeUserFromAllChannels(verifyAlert, user) {
+function removeUserFromAllChannels(verifyAlert: boolean, user: Cypress.UserProfile) {
     // # Remove the Guest user from all channels of a team as a sysadmin
     const channels = ['Town Square', 'Off-Topic'];
 

@@ -9,9 +9,13 @@ type Props = {
     loading?: React.ReactNode;
     progress?: number;
     containerClass?: string;
-}
+};
 
-const LoadingImagePreview: React.FC<Props> = ({loading, progress, containerClass}: Props) => {
+const LoadingImagePreview: React.FC<Props> = ({
+    loading,
+    progress,
+    containerClass = 'view-image__loading',
+}: Props) => {
     let progressView: JSX.Element = (
         <span className='loader-percent'/>
     );
@@ -31,10 +35,6 @@ const LoadingImagePreview: React.FC<Props> = ({loading, progress, containerClass
             {progressView}
         </div>
     );
-};
-
-LoadingImagePreview.defaultProps = {
-    containerClass: 'view-image__loading',
 };
 
 export default LoadingImagePreview;

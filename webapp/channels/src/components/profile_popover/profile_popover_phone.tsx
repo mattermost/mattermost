@@ -3,19 +3,24 @@
 
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
 type Props = {
     attribute: UserPropertyField;
     userProfile: UserProfile;
-}
+};
 
 const ProfilePopoverPhone = ({attribute, userProfile}: Props) => {
     const phone = userProfile.custom_profile_attributes?.[attribute.id] as string;
 
     if (!phone) {
         return null;
+    }
+
+    function handlePhoneClick(e: React.MouseEvent<HTMLAnchorElement>) {
+        e.preventDefault();
+        window.open(`tel:${phone}`);
     }
 
     return (
@@ -29,7 +34,8 @@ const ProfilePopoverPhone = ({attribute, userProfile}: Props) => {
                 aria-label='phone icon'
             />
             <a
-                href={'tel:' + phone}
+                href={`tel:${phone}`}
+                onClick={handlePhoneClick}
             >
                 {phone}
             </a>

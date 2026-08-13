@@ -41,12 +41,23 @@ func (*InvitePeopleProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model
 	}
 }
 
-func (*InvitePeopleProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	if !a.HasPermissionToTeam(c, args.UserId, args.TeamId, model.PermissionInviteUser) {
+func parseEmailList(message string) []string {
+	var emails []string
+	for token := range strings.FieldsSeq(message) {
+		token = strings.Trim(token, ",")
+		if strings.Contains(token, "@") {
+			emails = append(emails, token)
+		}
+	}
+	return emails
+}
+
+func (*InvitePeopleProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+	if !a.HasPermissionToTeam(rctx, args.UserId, args.TeamId, model.PermissionInviteUser) {
 		return &model.CommandResponse{Text: args.T("api.command_invite_people.permission.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
-	if !a.HasPermissionToTeam(c, args.UserId, args.TeamId, model.PermissionAddUserToTeam) {
+	if !a.HasPermissionToTeam(rctx, args.UserId, args.TeamId, model.PermissionAddUserToTeam) {
 		return &model.CommandResponse{Text: args.T("api.command_invite_people.permission.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
@@ -62,21 +73,14 @@ func (*InvitePeopleProvider) DoCommand(a *app.App, c request.CTX, args *model.Co
 		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command.invite_people.email_invitations_off")}
 	}
 
-	emailList := strings.Fields(message)
-
-	for i := len(emailList) - 1; i >= 0; i-- {
-		emailList[i] = strings.Trim(emailList[i], ",")
-		if !strings.Contains(emailList[i], "@") {
-			emailList = append(emailList[:i], emailList[i+1:]...)
-		}
-	}
+	emailList := parseEmailList(message)
 
 	if len(emailList) == 0 {
 		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command.invite_people.no_email")}
 	}
 
-	if err := a.InviteNewUsersToTeam(c, emailList, args.TeamId, args.UserId); err != nil {
-		c.Logger().Error(err.Error())
+	if err := a.InviteNewUsersToTeam(rctx, emailList, args.TeamId, args.UserId); err != nil {
+		rctx.Logger().Error(err.Error())
 		return &model.CommandResponse{ResponseType: model.CommandResponseTypeEphemeral, Text: args.T("api.command.invite_people.fail")}
 	}
 

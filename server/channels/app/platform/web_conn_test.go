@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
@@ -35,36 +36,34 @@ func (h *hookRunner) GetPluginsEnvironment() *plugin.Environment {
 
 func TestWebConnAddDeadQueue(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	wc := th.Service.NewWebConn(&WebConnConfig{
 		WebSocket: &websocket.Conn{},
 	}, th.Suite, &hookRunner{})
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		msg := &model.WebSocketEvent{}
 		msg = msg.SetSequence(int64(i))
 		wc.addToDeadQueue(msg)
 	}
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		assert.Equal(t, int64(i), wc.deadQueue[i].GetSequence())
 	}
 
 	// Should push out the first two elements
-	for i := 0; i < deadQueueSize; i++ {
+	for i := range deadQueueSize {
 		msg := &model.WebSocketEvent{}
 		msg = msg.SetSequence(int64(i + 2))
 		wc.addToDeadQueue(msg)
 	}
-	for i := 0; i < deadQueueSize; i++ {
+	for i := range deadQueueSize {
 		assert.Equal(t, int64(i+2), wc.deadQueue[(i+2)%deadQueueSize].GetSequence())
 	}
 }
 
 func TestWebConnIsInDeadQueue(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	wc := th.Service.NewWebConn(&WebConnConfig{
 		WebSocket: &websocket.Conn{},
@@ -125,7 +124,6 @@ func TestWebConnIsInDeadQueue(t *testing.T) {
 
 func TestWebConnClearDeadQueue(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	wc := th.Service.NewWebConn(&WebConnConfig{
 		WebSocket: &websocket.Conn{},
@@ -145,7 +143,6 @@ func TestWebConnClearDeadQueue(t *testing.T) {
 
 func TestWebConnDrainDeadQueue(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	var dialConn = func(t *testing.T, th *TestHelper, addr net.Addr) *WebConn {
 		d := websocket.Dialer{}
@@ -214,7 +211,7 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		wc := dialConn(t, th, s.Listener.Addr())
 		defer wc.WebSocket.Close()
 
-		for i := 0; i < limit; i++ {
+		for i := range limit {
 			msg := model.NewWebSocketEvent("", "", "", "", map[string]bool{}, "")
 			msg = msg.SetSequence(int64(i))
 			wc.addToDeadQueue(msg)
@@ -240,4 +237,49 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 		t.Run("Cycled End", func(t *testing.T) { run(int64(137), deadQueueSize+10) })
 		t.Run("Overwritten First", func(t *testing.T) { run(int64(128), deadQueueSize+10) })
 	})
+}
+
+func TestWebConnRejectBinaryFrameUnauthenticated(t *testing.T) {
+	th := Setup(t)
+
+	readPumpDone := make(chan struct{})
+	upgradeErrCh := make(chan error, 1)
+
+	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		upgrader := &websocket.Upgrader{}
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			upgradeErrCh <- err
+			return
+		}
+		upgradeErrCh <- nil
+
+		wc := th.Service.NewWebConn(&WebConnConfig{
+			WebSocket: conn,
+		}, th.Suite, &hookRunner{})
+
+		require.False(t, wc.IsAuthenticated())
+
+		go func() {
+			wc.readPump()
+			close(readPumpDone)
+		}()
+	}))
+	defer s.Close()
+
+	d := websocket.Dialer{}
+	clientConn, _, err := d.Dial("ws://"+s.Listener.Addr().String()+"/ws", nil)
+	require.NoError(t, err)
+	defer clientConn.Close()
+
+	require.NoError(t, <-upgradeErrCh)
+
+	err = clientConn.WriteMessage(websocket.BinaryMessage, []byte{0x01, 0x02, 0x03})
+	require.NoError(t, err)
+
+	select {
+	case <-readPumpDone:
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "readPump did not exit after receiving binary frame")
+	}
 }

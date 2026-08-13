@@ -6,6 +6,7 @@ package app
 // TODO: platform: remove this and use from platform package
 import (
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
@@ -26,7 +27,10 @@ type SharedChannelServiceIFace interface {
 	CheckChannelNotShared(channelID string) error
 	CheckChannelIsShared(channelID string) error
 	CheckCanInviteToSharedChannel(channelId string) error
-	HandleMembershipChange(channelID, userID string, isAdd bool, remoteID string)
+	NotifyMembershipChanged(channelID string, originRemoteID string)
+	IsRemoteClusterDirectlyConnected(remoteId string) bool
+	ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
+	TransformMentionsOnReceiveForTesting(rctx request.CTX, post *model.Post, targetChannel *model.Channel, rc *model.RemoteCluster, mentionTransforms map[string]string)
 }
 
 func NewMockSharedChannelService(service SharedChannelServiceIFace) *mockSharedChannelService {
@@ -34,6 +38,7 @@ func NewMockSharedChannelService(service SharedChannelServiceIFace) *mockSharedC
 		SharedChannelServiceIFace: service,
 		channelNotifications:      []string{},
 		userProfileNotifications:  []string{},
+		membershipNotifications:   []string{},
 		numInvitations:            0,
 	}
 	return mrcs
@@ -43,6 +48,7 @@ type mockSharedChannelService struct {
 	SharedChannelServiceIFace
 	channelNotifications     []string
 	userProfileNotifications []string
+	membershipNotifications  []string
 	numInvitations           int
 }
 
@@ -93,8 +99,17 @@ func (mrcs *mockSharedChannelService) NumInvitations() int {
 	return mrcs.numInvitations
 }
 
-func (mrcs *mockSharedChannelService) HandleMembershipChange(channelID, userID string, isAdd bool, remoteID string) {
+func (mrcs *mockSharedChannelService) NotifyMembershipChanged(channelID string, originRemoteID string) {
+	mrcs.membershipNotifications = append(mrcs.membershipNotifications, channelID)
 	if mrcs.SharedChannelServiceIFace != nil {
-		mrcs.SharedChannelServiceIFace.HandleMembershipChange(channelID, userID, isAdd, remoteID)
+		mrcs.SharedChannelServiceIFace.NotifyMembershipChanged(channelID, originRemoteID)
 	}
+}
+
+func (mrcs *mockSharedChannelService) IsRemoteClusterDirectlyConnected(remoteId string) bool {
+	if mrcs.SharedChannelServiceIFace != nil {
+		return mrcs.SharedChannelServiceIFace.IsRemoteClusterDirectlyConnected(remoteId)
+	}
+	// Default behavior for mock: Local server is always connected
+	return remoteId == ""
 }

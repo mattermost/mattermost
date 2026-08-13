@@ -28,7 +28,6 @@ import (
 
 func TestGetPing(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		t.Run("healthy", func(t *testing.T) {
@@ -68,9 +67,9 @@ func TestGetPing(t *testing.T) {
 		_, ok := respMap["TestFeatureFlag"]
 		assert.Equal(t, false, ok)
 
-		// Run the environment variable override code to test
-		os.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
-		defer os.Unsetenv("MM_FEATUREFLAGS_TESTFEATURE")
+		// Feature flags in ping response come from env var overrides, not config.
+		// Must use real env vars + ReloadConfig to test this path.
+		t.Setenv("MM_FEATUREFLAGS_TESTFEATURE", "testvalueunique")
 		err = th.App.ReloadConfig()
 		require.NoError(t, err)
 
@@ -113,7 +112,6 @@ func TestGetPing(t *testing.T) {
 func TestGetAudits(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	audits, _, err := th.SystemAdminClient.GetAudits(context.Background(), 0, 100, "")
@@ -146,7 +144,6 @@ func TestGetAudits(t *testing.T) {
 func TestEmailTest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	dir, err := os.MkdirTemp("", "")
@@ -156,27 +153,27 @@ func TestEmailTest(t *testing.T) {
 	es := model.EmailSettings{}
 	es.SetDefaults(false)
 
-	es.SMTPServer = model.NewPointer("")
-	es.SMTPPort = model.NewPointer("")
-	es.SMTPPassword = model.NewPointer("")
-	es.FeedbackName = model.NewPointer("")
-	es.FeedbackEmail = model.NewPointer("some-addr@test.com")
-	es.ReplyToAddress = model.NewPointer("some-addr@test.com")
-	es.ConnectionSecurity = model.NewPointer("")
-	es.SMTPUsername = model.NewPointer("")
-	es.EnableSMTPAuth = model.NewPointer(false)
-	es.SkipServerCertificateVerification = model.NewPointer(true)
-	es.SendEmailNotifications = model.NewPointer(false)
-	es.SMTPServerTimeout = model.NewPointer(15)
+	es.SMTPServer = new("")
+	es.SMTPPort = new("")
+	es.SMTPPassword = new("")
+	es.FeedbackName = new("")
+	es.FeedbackEmail = new("some-addr@test.com")
+	es.ReplyToAddress = new("some-addr@test.com")
+	es.ConnectionSecurity = new("")
+	es.SMTPUsername = new("")
+	es.EnableSMTPAuth = new(false)
+	es.SkipServerCertificateVerification = new(true)
+	es.SendEmailNotifications = new(false)
+	es.SMTPServerTimeout = new(15)
 
 	config := model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: model.NewPointer(""),
+			SiteURL: new(""),
 		},
 		EmailSettings: es,
 		FileSettings: model.FileSettings{
 			DriverName: model.NewPointer(model.ImageDriverLocal),
-			Directory:  model.NewPointer(dir),
+			Directory:  new(dir),
 		},
 	}
 
@@ -228,8 +225,8 @@ func TestEmailTest(t *testing.T) {
 func TestGenerateSupportPacket(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	th.LoginSystemManager()
-	defer th.TearDown()
+
+	th.LoginSystemManager(t)
 
 	t.Run("system admin and local client can generate Support Packet", func(t *testing.T) {
 		l := model.NewTestLicense()
@@ -323,7 +320,6 @@ func TestSupportPacketFileName(t *testing.T) {
 func TestSiteURLTest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -370,7 +366,6 @@ func TestSiteURLTest(t *testing.T) {
 func TestDatabaseRecycle(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
@@ -396,7 +391,6 @@ func TestDatabaseRecycle(t *testing.T) {
 func TestInvalidateCaches(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	t.Run("as system user", func(t *testing.T) {
@@ -422,22 +416,48 @@ func TestInvalidateCaches(t *testing.T) {
 func TestGetLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	for i := 0; i < 20; i++ {
-		th.TestLogger.Info(strconv.Itoa(i))
+	testID := model.NewId()
+	expectedMessages := make([]string, 0, 20)
+	for i := range 20 {
+		message := fmt.Sprintf("getlogs_verify_%s_%d", testID, i)
+		expectedMessages = append(expectedMessages, message)
+		th.TestLogger.Info(message)
 	}
 
 	err := th.TestLogger.Flush()
 	require.NoError(t, err, "failed to flush log")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		logs, _, err2 := c.GetLogs(context.Background(), 0, 10)
-		require.NoError(t, err2)
-		require.Len(t, logs, 10)
+		var logs []string
+		containsLogMessage := func(logs []string, expected string) bool {
+			for _, logLine := range logs {
+				if strings.Contains(logLine, expected) {
+					return true
+				}
+			}
+			return false
+		}
+		containsExpectedMessages := func(logs []string) bool {
+			for _, expected := range expectedMessages {
+				if !containsLogMessage(logs, expected) {
+					return false
+				}
+			}
+			return true
+		}
 
-		for i := 10; i < 20; i++ {
-			assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
+		require.Eventually(t, func() bool {
+			logs, _, err = c.GetLogs(context.Background(), 0, 200)
+			if err != nil {
+				return false
+			}
+
+			return containsExpectedMessages(logs)
+		}, 5*time.Second, 25*time.Millisecond)
+
+		for _, expected := range expectedMessages {
+			assert.Truef(t, containsLogMessage(logs, expected), "Log lines don't contain %q", expected)
 		}
 
 		logs, _, err = c.GetLogs(context.Background(), 1, 10)
@@ -471,9 +491,8 @@ func TestGetLogs(t *testing.T) {
 func TestDownloadLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		th.TestLogger.Info(strconv.Itoa(i))
 	}
 	err := th.TestLogger.Flush()
@@ -487,7 +506,7 @@ func TestDownloadLogs(t *testing.T) {
 		require.Contains(t, resp.Header.Get("Content-Disposition"), "attachment;filename=\"mattermost.log\"")
 
 		bodyString := string(resData)
-		for i := 0; i < 20; i++ {
+		for i := range 20 {
 			assert.Contains(t, bodyString, fmt.Sprintf(`"msg":"%d"`, i))
 		}
 	})
@@ -514,7 +533,6 @@ func TestDownloadLogs(t *testing.T) {
 func TestPostLog(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	enableDev := *th.App.Config().ServiceSettings.EnableDeveloper
@@ -556,8 +574,7 @@ func TestPostLog(t *testing.T) {
 
 func TestGetAnalyticsOld(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	rows, resp, err := client.GetAnalyticsOld(context.Background(), "", "")
@@ -631,7 +648,6 @@ func TestGetAnalyticsOld(t *testing.T) {
 func TestS3TestConnection(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	s3Host := os.Getenv("CI_MINIO_HOST")
@@ -652,11 +668,11 @@ func TestS3TestConnection(t *testing.T) {
 	fs.DriverName = model.NewPointer(model.ImageDriverS3)
 	fs.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
 	fs.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
-	fs.AmazonS3Bucket = model.NewPointer("")
-	fs.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
-	fs.AmazonS3Region = model.NewPointer("")
-	fs.AmazonS3PathPrefix = model.NewPointer("")
-	fs.AmazonS3SSL = model.NewPointer(false)
+	fs.AmazonS3Bucket = new("")
+	fs.AmazonS3Endpoint = new(s3Endpoint)
+	fs.AmazonS3Region = new("")
+	fs.AmazonS3PathPrefix = new("")
+	fs.AmazonS3SSL = new(false)
 
 	config := model.Config{
 		FileSettings: fs,
@@ -675,26 +691,26 @@ func TestS3TestConnection(t *testing.T) {
 		// If this fails, check the test configuration to ensure minio is setup with the
 		// `mattermost-test` bucket defined by model.MINIO_BUCKET.
 		*config.FileSettings.AmazonS3Bucket = model.MinioBucket
-		config.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+		config.FileSettings.AmazonS3PathPrefix = new("")
 		*config.FileSettings.AmazonS3Region = "us-east-1"
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		config.FileSettings.AmazonS3Region = model.NewPointer("")
+		config.FileSettings.AmazonS3Region = new("")
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		config.FileSettings.AmazonS3Bucket = model.NewPointer("Wrong_bucket")
+		config.FileSettings.AmazonS3Bucket = new("Wrong_bucket")
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_no_bucket.app_error")
 
 		*config.FileSettings.AmazonS3Bucket = "shouldnotcreatenewbucket"
 		resp, err = th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.file.test_connection_s3_bucket_does_not_exist.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_no_bucket.app_error")
 	})
 
 	t.Run("with incorrect credentials", func(t *testing.T) {
@@ -702,22 +718,117 @@ func TestS3TestConnection(t *testing.T) {
 		*configCopy.FileSettings.AmazonS3AccessKeyId = "invalidaccesskey"
 		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &configCopy)
 		CheckInternalErrorStatus(t, resp)
-		CheckErrorID(t, err, "api.file.test_connection_s3_auth.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_auth.app_error")
 	})
 
 	t.Run("empty file settings", func(t *testing.T) {
 		config.FileSettings = model.FileSettings{}
 		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.file.test_connection_s3_settings_nil.app_error")
+		CheckErrorID(t, err, "api.file.test_connection_settings_nil.app_error")
 		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("desanitizes FakeSetting using running config", func(t *testing.T) {
+		// Seed the running config with valid Minio credentials so the
+		// running config's AmazonS3SecretAccessKey is the real secret.
+		th.App.UpdateConfig(func(c *model.Config) {
+			c.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)
+			c.FileSettings.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
+			c.FileSettings.AmazonS3SecretAccessKey = model.NewPointer(model.MinioSecretKey)
+			c.FileSettings.AmazonS3Bucket = model.NewPointer(model.MinioBucket)
+			c.FileSettings.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
+			c.FileSettings.AmazonS3Region = model.NewPointer("us-east-1")
+			c.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+			c.FileSettings.AmazonS3SSL = model.NewPointer(false)
+		})
+
+		// Build a request body that mirrors what the System Console sends
+		// after the admin clicks Test Connection without re-entering the
+		// secret: every field present, but the secret slot is the
+		// FakeSetting placeholder.
+		body := model.Config{FileSettings: model.FileSettings{}}
+		body.FileSettings.SetDefaults(false)
+		body.FileSettings.DriverName = model.NewPointer(model.ImageDriverS3)
+		body.FileSettings.AmazonS3AccessKeyId = model.NewPointer(model.MinioAccessKey)
+		body.FileSettings.AmazonS3SecretAccessKey = model.NewPointer(model.FakeSetting)
+		body.FileSettings.AmazonS3Bucket = model.NewPointer(model.MinioBucket)
+		body.FileSettings.AmazonS3Endpoint = model.NewPointer(s3Endpoint)
+		body.FileSettings.AmazonS3Region = model.NewPointer("us-east-1")
+		body.FileSettings.AmazonS3PathPrefix = model.NewPointer("")
+		body.FileSettings.AmazonS3SSL = model.NewPointer(false)
+
+		// If desanitize is not running, the server tests with the literal
+		// "********" string as the secret and Minio returns a 403 auth
+		// error. A 200 here proves the placeholder was swapped for the
+		// real running-config value before the connection test.
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &body)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("unsupported driver", func(t *testing.T) {
+		unsupported := model.FileSettings{}
+		unsupported.SetDefaults(false)
+		unsupported.DriverName = model.NewPointer("bogus")
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: unsupported})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.file.test_connection_unsupported_driver.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("empty driver name", func(t *testing.T) {
+		empty := model.FileSettings{}
+		empty.SetDefaults(false)
+		empty.DriverName = model.NewPointer("")
+		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: empty})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.file.test_connection_unsupported_driver.app_error")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("azure missing mandatory fields", func(t *testing.T) {
+		// CheckMandatoryAzureFields rejects requests that don't carry an
+		// Azure storage account, container, and access key. Each missing
+		// field path must produce the same 400 with the dedicated error
+		// ID so admins get a clear signal in the System Console toast.
+		base := model.FileSettings{}
+		base.SetDefaults(false)
+		base.DriverName = model.NewPointer(model.ImageDriverAzure)
+
+		cases := []struct {
+			name string
+			mut  func(*model.FileSettings)
+		}{
+			{"missing storage account", func(fs *model.FileSettings) {
+				fs.AzureContainer = model.NewPointer("mattermost")
+				fs.AzureAccessKey = model.NewPointer("secret")
+			}},
+			{"missing container", func(fs *model.FileSettings) {
+				fs.AzureStorageAccount = model.NewPointer("acmemattermost")
+				fs.AzureAccessKey = model.NewPointer("secret")
+			}},
+			{"missing access key", func(fs *model.FileSettings) {
+				fs.AzureStorageAccount = model.NewPointer("acmemattermost")
+				fs.AzureContainer = model.NewPointer("mattermost")
+			}},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				fs := base
+				tc.mut(&fs)
+				resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &model.Config{FileSettings: fs})
+				require.Error(t, err)
+				CheckErrorID(t, err, "api.admin.test_azure.missing_azure_field")
+				CheckBadRequestStatus(t, resp)
+			})
+		}
 	})
 }
 
 func TestSupportedTimezones(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	supportedTimezonesFromConfig := th.App.Timezones().GetSupported()
@@ -742,7 +853,6 @@ func TestRedirectLocation(t *testing.T) {
 	mockBitlyLink := testServer.URL
 
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
 	defer func() {
@@ -821,7 +931,6 @@ func TestRedirectLocation(t *testing.T) {
 func TestSetServerBusy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	const secs = 30
 
@@ -842,7 +951,6 @@ func TestSetServerBusy(t *testing.T) {
 func TestSetServerBusyInvalidParam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
 		params := []int{-1, 0, MaxServerBusySeconds + 1}
@@ -858,7 +966,6 @@ func TestSetServerBusyInvalidParam(t *testing.T) {
 func TestClearServerBusy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.Srv().Platform().Busy.Set(time.Second * 30)
 	t.Run("as system user", func(t *testing.T) {
@@ -879,7 +986,6 @@ func TestClearServerBusy(t *testing.T) {
 func TestGetServerBusy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.Srv().Platform().Busy.Set(time.Second * 30)
 
@@ -900,7 +1006,6 @@ func TestGetServerBusy(t *testing.T) {
 func TestServerBusy503(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.Srv().Platform().Busy.Set(time.Second * 30)
 
@@ -925,13 +1030,6 @@ func TestServerBusy503(t *testing.T) {
 		CheckServiceUnavailableStatus(t, resp)
 	})
 
-	t.Run("search archived channels while busy", func(t *testing.T) {
-		cs := &model.ChannelSearch{}
-		_, resp, err := th.SystemAdminClient.SearchArchivedChannels(context.Background(), "foo", cs)
-		require.Error(t, err)
-		CheckServiceUnavailableStatus(t, resp)
-	})
-
 	th.App.Srv().Platform().Busy.Clear()
 
 	t.Run("search users while not busy", func(t *testing.T) {
@@ -943,11 +1041,12 @@ func TestServerBusy503(t *testing.T) {
 
 func TestPushNotificationAck(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
+
 	api, err := Init(th.Server)
 	require.NoError(t, err)
-	session, _ := th.App.GetSession(th.Client.AuthToken)
-	defer th.TearDown()
+	session, appErr := th.App.GetSession(th.Client.AuthToken)
+	require.Nil(t, appErr)
 
 	t.Run("should return error when the ack body is not passed", func(t *testing.T) {
 		handler := api.APIHandler(pushNotificationAck)
@@ -961,8 +1060,8 @@ func TestPushNotificationAck(t *testing.T) {
 	})
 
 	t.Run("should return error when the ack post is not authorized for the user", func(t *testing.T) {
-		privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
-		privatePost := th.CreatePostWithClient(th.SystemAdminClient, privateChannel)
+		privateChannel := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypePrivate)
+		privatePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
 
 		handler := api.APIHandler(pushNotificationAck)
 		resp := httptest.NewRecorder()
@@ -1038,7 +1137,6 @@ func TestPushNotificationAck(t *testing.T) {
 func TestCompleteOnboarding(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	path, _ := fileutils.FindDir("tests")
 	signatureFilename := "testplugin2.tar.gz.sig"
@@ -1172,7 +1270,6 @@ func TestCompleteOnboarding(t *testing.T) {
 func TestGetAppliedSchemaMigrations(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("as a regular user", func(t *testing.T) {
 		_, resp, err := th.Client.GetAppliedSchemaMigrations(context.Background())
@@ -1183,7 +1280,7 @@ func TestGetAppliedSchemaMigrations(t *testing.T) {
 	t.Run("as a system manager role", func(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser2.Id, model.SystemManagerRoleId, false)
 		require.Nil(t, appErr)
-		th.LoginBasic2()
+		th.LoginBasic2(t)
 
 		_, resp, err := th.Client.GetAppliedSchemaMigrations(context.Background())
 		require.NoError(t, err)

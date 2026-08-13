@@ -64,6 +64,21 @@ func TestMoveCommand(t *testing.T) {
 	retrievedCommand, err = th.App.GetCommand(command.Id)
 	assert.Nil(t, err)
 	assert.EqualValues(t, targetTeam.Id, retrievedCommand.TeamId)
+
+	// Move a command to a team where the trigger already exists should fail.
+	command2 := &model.Command{}
+	command2.CreatorId = model.NewId()
+	command2.Method = model.CommandMethodPost
+	command2.TeamId = sourceTeam.Id
+	command2.URL = "http://nowhere.com/"
+	command2.Trigger = "trigger1"
+
+	command2, err = th.App.CreateCommand(command2)
+	assert.Nil(t, err)
+
+	moveErr := th.App.MoveCommand(targetTeam, command2)
+	assert.NotNil(t, moveErr)
+	assert.Equal(t, "api.command.duplicate_trigger.app_error", moveErr.Id)
 }
 
 func TestCreateCommandPost(t *testing.T) {
@@ -235,6 +250,17 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Equal(t, resp.IconURL, post.GetProp(model.PostPropsOverrideIconURL))
 	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
+	resp.IconURL = ""
+
+	// When both command and response icon URLs are empty and EnablePostIconOverride is enabled,
+	// override_icon_url must not be set (avoids spurious "prop must be a valid URL" warning).
+	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
+	assert.Nil(t, err)
+	assert.Nil(t, post.GetProp(model.PostPropsOverrideIconURL))
+	assert.NotContains(t, post.GetProps(), model.PostPropsOverrideIconURL)
+
+	resp.IconURL = "Response icon url"
+
 	// Test Slack text conversion.
 	resp.Text = "<!channel>"
 
@@ -244,7 +270,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
 	// Test Slack attachments text conversion.
-	resp.Attachments = []*model.SlackAttachment{
+	resp.Attachments = []*model.MessageAttachment{
 		{
 			Text: "<!here>",
 		},
@@ -270,7 +296,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	command.Trigger = "code"
 	resp.ChannelId = ""
 	resp.Text = "<test.com|test website>"
-	resp.Attachments = []*model.SlackAttachment{
+	resp.Attachments = []*model.MessageAttachment{
 		{
 			Text: "<!here>",
 		},
@@ -347,8 +373,8 @@ func TestDoCommandRequest(t *testing.T) {
 	th := setup(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("127.0.0.1")
-		cfg.ServiceSettings.EnableCommands = model.NewPointer(true)
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
+		cfg.ServiceSettings.EnableCommands = new(true)
 	})
 
 	t.Run("with a valid text response", func(t *testing.T) {
@@ -433,7 +459,7 @@ func TestDoCommandRequest(t *testing.T) {
 		t.Cleanup(server.Close)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(1))
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(1))
 		})
 
 		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
@@ -452,7 +478,7 @@ func TestDoCommandRequest(t *testing.T) {
 		t.Cleanup(server.Close)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewPointer(int64(2))
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(2))
 		})
 
 		_, resp, appErr := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
@@ -465,7 +491,7 @@ func TestDoCommandRequest(t *testing.T) {
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
 		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
-		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewPointer(true)
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = new(true)
 		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
 			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig

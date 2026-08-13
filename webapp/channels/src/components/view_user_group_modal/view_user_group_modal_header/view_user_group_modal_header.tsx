@@ -5,6 +5,8 @@ import React, {useCallback} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {Group} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -38,7 +40,7 @@ export type Props = {
         archiveGroup: (groupId: string) => Promise<ActionResult>;
         restoreGroup: (groupId: string) => Promise<ActionResult>;
     };
-}
+};
 
 const ViewUserGroupModalHeader = ({
     groupId,
@@ -86,12 +88,12 @@ const ViewUserGroupModalHeader = ({
             return (
                 <Modal.Title
                     componentClass='h1'
-                    id='userGroupsModalLabel'
+                    id='viewUserGroupModalLabel'
                 >
                     {group.display_name}
                     {
                         group.delete_at > 0 &&
-                        <i className='icon icon-archive-outline'/>
+                        <ArchiveOutlineIcon size={18}/>
                     }
                 </Modal.Title>
             );
@@ -102,15 +104,17 @@ const ViewUserGroupModalHeader = ({
     const addPeopleButton = useCallback(() => {
         if (permissionToJoinGroup) {
             return (
-                <button
-                    className='mr-2 btn btn-secondary btn-sm'
+                <Button
+                    emphasis='secondary'
+                    size='sm'
+                    className='mr-2'
                     onClick={goToAddPeopleModal}
                 >
                     <FormattedMessage
                         id='user_groups_modal.addPeople'
                         defaultMessage='Add people'
                     />
-                </button>
+                </Button>
             );
         }
         return (<></>);
@@ -119,15 +123,16 @@ const ViewUserGroupModalHeader = ({
     const restoreGroupButton = useCallback(() => {
         if (permissionToRestoreGroup) {
             return (
-                <button
-                    className='user-groups-create btn btn-md btn-primary'
+                <Button
+                    emphasis='secondary'
+                    size='sm'
                     onClick={restoreGroup}
                 >
                     <FormattedMessage
                         id='user_groups_modal.button.restoreGroup'
                         defaultMessage='Restore Group'
                     />
-                </button>
+                </Button>
             );
         }
         return (<></>);

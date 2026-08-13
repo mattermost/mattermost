@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import ImagePreview from 'components/file_preview_modal/image_preview';
 
+import {render, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/view_image/ImagePreview', () => {
@@ -16,11 +17,11 @@ describe('components/view_image/ImagePreview', () => {
     };
 
     test('should match snapshot, without preview', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <ImagePreview {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with preview', () => {
@@ -33,11 +34,11 @@ describe('components/view_image/ImagePreview', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <ImagePreview {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, without preview, cannot download', () => {
@@ -46,11 +47,11 @@ describe('components/view_image/ImagePreview', () => {
             canDownloadFiles: false,
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <ImagePreview {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, with preview, cannot download', () => {
@@ -64,11 +65,46 @@ describe('components/view_image/ImagePreview', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {container} = render(
             <ImagePreview {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should apply transform when scale is provided and not 1', () => {
+        const props = {
+            ...baseProps,
+            scale: 2,
+        };
+
+        render(<ImagePreview {...props}/>);
+
+        expect(screen.getByTestId('imagePreview')).toHaveStyle('transform: scale(2)');
+    });
+
+    test('should not apply transform when scale is 1', () => {
+        const props = {
+            ...baseProps,
+            scale: 1,
+        };
+
+        render(<ImagePreview {...props}/>);
+
+        expect(screen.getByTestId('imagePreview').getAttribute('style') || '').not.toContain('transform');
+    });
+
+    test('should call onWheel handler when wheel event fires on image', () => {
+        const onWheel = jest.fn();
+        const props = {
+            ...baseProps,
+            onWheel,
+        };
+
+        render(<ImagePreview {...props}/>);
+
+        fireEvent.wheel(screen.getByRole('link'), {deltaY: -100});
+        expect(onWheel).toHaveBeenCalledTimes(1);
     });
 
     test('should not download link for external file', () => {
@@ -82,11 +118,11 @@ describe('components/view_image/ImagePreview', () => {
             },
         };
 
-        const wrapper = shallow(
+        render(
             <ImagePreview {...props}/>,
         );
 
-        expect(wrapper.find('a').prop('href')).toBe('#');
-        expect(wrapper.find('img').prop('src')).toBe(props.fileInfo.link);
+        expect(screen.getByRole('link')).toHaveAttribute('href', '#');
+        expect(screen.getByTestId('imagePreview')).toHaveAttribute('src', props.fileInfo.link);
     });
 });

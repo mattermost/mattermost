@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app/featureflag"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
@@ -30,7 +31,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
-	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
@@ -67,8 +67,7 @@ type PlatformService struct {
 	isFirstUserAccountLock sync.Mutex
 	isFirstUserAccount     atomic.Bool
 
-	logger              *mlog.Logger
-	notificationsLogger *mlog.Logger
+	logger *mlog.Logger
 
 	startMetrics bool
 	metrics      *platformMetrics
@@ -96,7 +95,10 @@ type PlatformService struct {
 	searchConfigListenerId  string
 	searchLicenseListenerId string
 
+	esWatcher *searchEngineWatcher
+
 	ldapDiagnostic einterfaces.LdapDiagnosticInterface
+	samlDiagnostic einterfaces.SamlDiagnosticInterface
 
 	Jobs *jobs.JobServer
 
@@ -106,6 +108,13 @@ type PlatformService struct {
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
 	goroutineBuffered   chan struct{}
+
+	// Document content extraction runs on a dedicated, bounded worker pool so
+	// that expensive extractions cannot saturate the generic worker pool and
+	// block the request goroutines that dispatch them.
+	extractionQueue chan func()
+	extractionStop  chan struct{}
+	extractionWG    sync.WaitGroup
 
 	additionalClusterHandlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
 
@@ -119,6 +128,24 @@ type PlatformService struct {
 	forceEnableRedis bool
 
 	pdpService einterfaces.PolicyDecisionPointInterface
+
+	startTime time.Time
+
+	// installTypeOverride overrides MM_INSTALL_TYPE in support packet diagnostics.
+	installTypeOverride string
+
+	// logRootPathOverride overrides MM_LOG_PATH for log root path validation.
+	logRootPathOverride string
+}
+
+// SetInstallTypeOverride sets the install type override for support packet diagnostics.
+func (ps *PlatformService) SetInstallTypeOverride(v string) {
+	ps.installTypeOverride = v
+}
+
+// SetLogRootPathOverride sets the log root path override for log file validation.
+func (ps *PlatformService) SetLogRootPathOverride(v string) {
+	ps.logRootPathOverride = v
 }
 
 type HookRunner interface {
@@ -134,8 +161,11 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		Store:               sc.Store,
 		clusterIFace:        sc.Cluster,
 		hashSeed:            maphash.MakeSeed(),
+		startTime:           time.Now(),
 		goroutineExitSignal: make(chan struct{}, 1),
 		goroutineBuffered:   make(chan struct{}, runtime.NumCPU()),
+		extractionQueue:     make(chan func(), runtime.NumCPU()),
+		extractionStop:      make(chan struct{}),
 		WebSocketRouter: &WebSocketRouter{
 			handlers: make(map[string]webSocketHandler),
 		},
@@ -171,9 +201,41 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.configStore = configStore
 	}
 
-	// Step 1: Cache provider.
+	// Step 1: Start logging.
+	err := ps.initLogging()
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize logging: %w", err)
+	}
+
+	ps.Log().Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
+
+	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
+	ps.Log().Info(
+		logCurrentVersion,
+		mlog.String("current_version", model.CurrentVersion),
+		mlog.String("build_number", model.BuildNumber),
+		mlog.String("build_date", model.BuildDate),
+		mlog.String("build_hash", model.BuildHash),
+		mlog.String("build_hash_enterprise", model.BuildHashEnterprise),
+		mlog.String("service_environment", model.GetServiceEnvironment()),
+	)
+
+	if model.BuildEnterpriseReady == "true" {
+		isTrial := false
+		if licence := ps.License(); licence != nil {
+			isTrial = licence.IsTrial
+		}
+		ps.Log().Info(
+			"Enterprise Build",
+			mlog.Bool("enterprise_build", true),
+			mlog.Bool("is_trial", isTrial),
+		)
+	} else {
+		ps.Log().Info("Team Edition Build", mlog.Bool("enterprise_build", false))
+	}
+
+	// Step 2: Cache provider.
 	cacheConfig := ps.configStore.Get().CacheSettings
-	var err error
 	if *cacheConfig.CacheType == model.CacheTypeLRU {
 		ps.cacheProvider = cache.NewProvider()
 	} else if *cacheConfig.CacheType == model.CacheTypeRedis {
@@ -191,29 +253,15 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		return nil, fmt.Errorf("unable to create cache provider: %w", err)
 	}
 
-	// The value of res is used later, after the logger is initialized.
-	// There's a certain order of steps we need to follow in the server startup phase.
 	res, err := ps.cacheProvider.Connect()
 	if err != nil {
 		return nil, fmt.Errorf("unable to connect to cache provider: %w", err)
 	}
 
-	// Step 2: Start logging.
-	if err2 := ps.initLogging(); err2 != nil {
-		return nil, fmt.Errorf("failed to initialize logging: %w", err2)
-	}
 	ps.Log().Info("Successfully connected to cache backend", mlog.String("backend", *cacheConfig.CacheType), mlog.String("result", res))
-
-	// This is called after initLogging() to avoid a race condition.
-	ps.Log().Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
 	// Step 3: Search Engine
 	searchEngine := searchengine.NewBroker(ps.Config())
-	bleveEngine := bleveengine.NewBleveEngine(ps.Config())
-	if err := bleveEngine.Start(); err != nil {
-		return nil, err
-	}
-	searchEngine.RegisterBleveEngine(bleveEngine)
 	ps.SearchEngine = searchEngine
 
 	// Step 4: Init Enterprise
@@ -241,7 +289,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// Timer layer
 			// |
 			// Cache layer
-			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace, ps.storeOptions...)
+			opts := append(ps.storeOptions, sqlstore.WithFeatureFlags(func() *model.FeatureFlags {
+				return ps.Config().FeatureFlags
+			}))
+			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace, opts...)
 			if err != nil {
 				return nil, err
 			}
@@ -281,6 +332,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot create store: %w", err)
 	}
+
+	// The markdown package needs to know what the maximum post size is, so we
+	// let it know once the store is created.
+	markdown.SetMaxPostRunes(ps.MaxPostSize())
 
 	// Step 7: initialize status and session cache.
 	// We need to do this because ps.LoadLicense() called in step 8, could
@@ -329,7 +384,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Step 9: Initialize filestore
 	if ps.filestore == nil {
 		insecure := ps.Config().ServiceSettings.EnableInsecureOutgoingConnections
-		backend, err2 := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+		allowedUntrustedInternalConnections := model.SafeDereference(ps.Config().ServiceSettings.AllowedUntrustedInternalConnections)
+		backend, err2 := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure, allowedUntrustedInternalConnections))
 		if err2 != nil {
 			return nil, fmt.Errorf("failed to initialize filebackend: %w", err2)
 		}
@@ -341,7 +397,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.exportFilestore = ps.filestore
 		if *ps.Config().FileSettings.DedicatedExportStore {
 			mlog.Info("Setting up dedicated export filestore", mlog.String("driver_name", *ps.Config().FileSettings.ExportDriverName))
-			backend, errFileBack := filestore.NewExportFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, false))
+			allowedUntrustedInternalConnections := model.SafeDereference(ps.Config().ServiceSettings.AllowedUntrustedInternalConnections)
+			backend, errFileBack := filestore.NewExportFileBackend(filestore.NewExportFileBackendSettingsFromConfig(&ps.Config().FileSettings, license != nil && *license.Features.Compliance, false, allowedUntrustedInternalConnections))
 			if errFileBack != nil {
 				return nil, fmt.Errorf("failed to initialize export filebackend: %w", errFileBack)
 			}
@@ -401,6 +458,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	ps.searchConfigListenerId = searchConfigListenerId
 	ps.searchLicenseListenerId = searchLicenseListenerId
 
+	ps.startExtractionWorkers()
+
 	return ps, nil
 }
 
@@ -445,6 +504,14 @@ func (ps *PlatformService) ShutdownMetrics() error {
 	return nil
 }
 
+// GetMetricsRouter returns the metrics router. This is primarily used for testing.
+func (ps *PlatformService) GetMetricsRouter() http.Handler {
+	if ps.metrics != nil {
+		return ps.metrics.router
+	}
+	return nil
+}
+
 func (ps *PlatformService) ShutdownConfig() error {
 	ps.RemoveConfigListener(ps.configListenerId)
 
@@ -486,6 +553,10 @@ func (ps *PlatformService) initEnterprise() {
 		ps.ldapDiagnostic = ldapDiagnosticInterface(ps)
 	}
 
+	if samlDiagnosticInterface != nil {
+		ps.samlDiagnostic = samlDiagnosticInterface(ps)
+	}
+
 	if licenseInterface != nil {
 		ps.licenseManager = licenseInterface(ps)
 	}
@@ -507,6 +578,16 @@ func (ps *PlatformService) TotalWebsocketConnections() int {
 }
 
 func (ps *PlatformService) Shutdown() error {
+	// Deferred so it still runs even if a later step below returns early
+	// (e.g. cacheProvider.Close failing). Must run last: every other step
+	// below (notably HubStop) is a candidate to still attempt a cluster send
+	// after StopInterNodeCommunication has already run, so the cluster
+	// interface's own shutdown accounting needs everything below to have
+	// already happened, which defer guarantees regardless of the early return.
+	if ps.clusterIFace != nil {
+		defer ps.clusterIFace.Shutdown()
+	}
+
 	ps.HubStop()
 
 	// Shutdown status processor.
@@ -516,6 +597,10 @@ func (ps *PlatformService) Shutdown() error {
 	<-ps.statusUpdateDoneSignal
 
 	ps.RemoveLicenseListener(ps.licenseListenerId)
+
+	// Stop the document extraction workers and wait for any in-flight
+	// extraction to finish before closing the store it depends on.
+	ps.stopExtractionWorkers()
 
 	// we need to wait the goroutines to finish before closing the store
 	// and this needs to be called after hub stop because hub generates goroutines
@@ -619,7 +704,11 @@ func (ps *PlatformService) LdapDiagnostic() einterfaces.LdapDiagnosticInterface 
 	return ps.ldapDiagnostic
 }
 
-// DatabaseTypeAndSchemaVersion returns the Database type (postgres or mysql) and current version of the schema
+func (ps *PlatformService) SamlDiagnostic() einterfaces.SamlDiagnosticInterface {
+	return ps.samlDiagnostic
+}
+
+// DatabaseTypeAndSchemaVersion returns the database type and current version of the schema
 func (ps *PlatformService) DatabaseTypeAndSchemaVersion() (string, string, error) {
 	schemaVersion, err := ps.Store.GetDBSchemaVersion()
 	if err != nil {

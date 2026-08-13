@@ -5,23 +5,17 @@ import React from 'react';
 
 import SuggestionList from 'components/suggestion/suggestion_list';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface SuggestionItem {}
+import type {SuggestionResults} from './suggestion_results';
 
 type SuggestionListProps = {
     ariaLiveRef?: React.RefObject<HTMLDivElement>;
-    renderDividers?: string[];
     renderNoResults?: boolean;
     preventClose?: () => void;
     onItemHover: (term: string) => void;
     onCompleteWord: (term: string, matchedPretext: string, e?: React.KeyboardEventHandler<HTMLDivElement>) => boolean;
     pretext: string;
-    matchedPretext: string[];
-    items: SuggestionItem[];
-    terms: string[];
+    results: SuggestionResults;
     selection: string;
-    components: Array<React.FunctionComponent<any>>;
-    wrapperHeight?: number;
 
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret
     // as the user is typing.
@@ -30,7 +24,7 @@ type SuggestionListProps = {
         pixelsToMoveX: number;
         pixelsToMoveY: number;
     };
-}
+};
 
 type Props = SuggestionListProps & {
     open: boolean;
@@ -47,7 +41,7 @@ type State = {
     position: 'top' | 'bottom' | undefined;
     open?: boolean;
     cleared?: boolean;
-}
+};
 
 export default class ModalSuggestionList extends React.PureComponent<Props, State> {
     container: React.RefObject<HTMLDivElement>;
@@ -150,7 +144,7 @@ export default class ModalSuggestionList extends React.PureComponent<Props, Stat
         return inputBounds;
     };
 
-    updatePosition = (newInputBounds: { top: number; bottom: number; width: number}) => {
+    updatePosition = (newInputBounds: {top: number; bottom: number; width: number}) => {
         let inputBounds = newInputBounds;
         if (!newInputBounds) {
             inputBounds = this.state.inputBounds;

@@ -5,25 +5,22 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
-import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 
 export type Props = {
     onExited: () => void;
     channel: Channel;
-    currentTeamDetails?: {name: string};
-    canViewArchivedChannels?: boolean;
-    penultimateViewedChannelName: string;
     actions: {
         deleteChannel: (channelId: string) => void;
     };
-}
+};
 
 type State = {
     show: boolean;
-}
+};
 
 export default class DeleteChannelModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -35,12 +32,6 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
         if (this.props.channel.id.length !== Constants.CHANNEL_ID_LENGTH) {
             return;
         }
-        if (!this.props.canViewArchivedChannels) {
-            const {penultimateViewedChannelName} = this.props;
-            if (this.props.currentTeamDetails) {
-                getHistory().push('/' + this.props.currentTeamDetails.name + '/channels/' + penultimateViewedChannelName);
-            }
-        }
         this.props.actions.deleteChannel(this.props.channel.id);
         this.onHide();
     };
@@ -50,7 +41,6 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
     };
 
     render() {
-        const {canViewArchivedChannels} = this.props;
         return (
             <Modal
                 dialogClassName='a11y__modal'
@@ -74,62 +64,38 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                 </Modal.Header>
                 <Modal.Body>
                     <div className='alert alert-danger'>
-                        {!canViewArchivedChannels &&
-                            <>
-                                <p>
-                                    <FormattedMessage
-                                        id='deleteChannelModal.cannotViewArchivedChannelsWarning'
-                                        defaultMessage='This will archive the channel from the team and remove it from the user interface. Archived channels can be unarchived if needed again.'
-                                    />
-                                </p>
-                                <p>
-                                    <FormattedMessage
-                                        id='deleteChannelModal.confirmArchive'
-                                        defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
-                                        values={{
-                                            display_name: this.props.channel.display_name,
-                                            strong: (chunks: string) => <strong>{chunks}</strong>,
-                                        }}
-                                    />
-                                </p>
-                            </>
-                        }
-                        {canViewArchivedChannels &&
-                            <>
-                                <p>
-                                    <FormattedMessage
-                                        id='deleteChannelModal.canViewArchivedChannelsWarning'
-                                        defaultMessage='This will archive the channel from the team. Channel contents will still be accessible by channel members.'
-                                    />
-                                </p>
-                                <p>
-                                    <FormattedMessage
-                                        id='deleteChannelModal.confirmArchive'
-                                        defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
-                                        values={{
-                                            display_name: this.props.channel.display_name,
-                                            strong: (chunks: string) => <strong>{chunks}</strong>,
-                                        }}
-                                    />
-                                </p>
-                            </>
-                        }
+                        <p>
+                            <FormattedMessage
+                                id='deleteChannelModal.canViewArchivedChannelsWarning'
+                                defaultMessage='This will archive the channel from the team. Channel contents will still be accessible by channel members.'
+                            />
+                        </p>
+                        <p>
+                            <FormattedMessage
+                                id='deleteChannelModal.confirmArchive'
+                                defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
+                                values={{
+                                    display_name: this.props.channel.display_name,
+                                    strong: (chunks) => <strong>{chunks}</strong>,
+                                }}
+                            />
+                        </p>
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='delete_channel.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type='button'
-                        className='btn btn-danger'
+                        variant='destructive'
                         data-dismiss='modal'
                         onClick={this.handleDelete}
                         autoFocus={true}
@@ -139,7 +105,7 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                             id='delete_channel.del'
                             defaultMessage='Archive'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );

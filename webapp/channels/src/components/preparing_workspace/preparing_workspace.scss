@@ -90,12 +90,12 @@
     &__invite-members-illustration {
         position: absolute;
         top: 25%;
-        right: -651px;
+        right: -697px;
         animation-duration: 0.3s;
         animation-fill-mode: forwards;
         animation-timing-function: ease-in-out;
 
-        @include mixins.sideIllustrationKeyframe(invitation, -651, 0);
+        @include mixins.sideIllustrationKeyframe(invitation, -697, 48);
 
         &.enter {
             animation-name: invitationSlideInRight;
@@ -136,9 +136,9 @@
     }
 }
 
-@media screen and (min-width: 1200px) and (max-width: 1500px) {
+@media screen and (min-width: 1200px) and (max-width: 1680px) {
     .PreparingWorkspace__invite-members-illustration {
-        @include mixins.sideIllustrationKeyframe(invitation, -651, -200);
+        @include mixins.sideIllustrationKeyframe(invitation, -697, -200);
 
         &.enter {
             animation-name: invitationSlideInRight;

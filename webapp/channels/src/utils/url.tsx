@@ -8,7 +8,6 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {getModule} from 'module_registry';
 import Constants from 'utils/constants';
 import {latinise} from 'utils/latinise';
-import * as TextFormatting from 'utils/text_formatting';
 
 import {unescapeHtmlEntities} from './markdown/renderer';
 
@@ -20,7 +19,7 @@ type WindowObject = {
         port: string;
     };
     basename?: string;
-}
+};
 
 export function cleanUpUrlable(input: string): string {
     let cleaned: string = latinise(input);
@@ -82,7 +81,7 @@ export function isUrlSafe(url: string): boolean {
 
     try {
         unescaped = decodeURIComponent(url);
-    } catch (e) {
+    } catch {
         unescaped = unescape(url);
     }
 
@@ -143,7 +142,7 @@ export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.R
             errors.push(formattedError(
                 defineMessage({
                     id: 'change_url.longer',
-                    defaultMessage: 'URLs must have at least 2 characters.',
+                    defaultMessage: 'URLs must have at least 1 character.',
                 }),
                 intl,
             ));
@@ -224,7 +223,7 @@ export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.R
 
 // Returns true when the URL could possibly cause any external requests.
 // Currently returns false only for permalinks
-const permalinkPath = new RegExp('^/[0-9a-z_-]{1,64}/pl/[0-9a-z_-]{26}$');
+const permalinkPath = new RegExp('^/[0-9a-z_-]{1,64}/pl/[0-9a-z_-]{26}(\\?view=citation)?$');
 export function mightTriggerExternalRequest(url: string, siteURL?: string): boolean {
     if (siteURL && siteURL !== '') {
         let standardSiteURL = siteURL;
@@ -264,7 +263,7 @@ export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourc
     // Paths managed by another service shouldn't be handled by the web app either
     if (managedResourcePaths) {
         for (const managedPath of managedResourcePaths) {
-            unhandledPaths.push(TextFormatting.escapeRegex(managedPath));
+            unhandledPaths.push(RegExp.escape(managedPath));
         }
     }
 
@@ -293,7 +292,7 @@ export function isStringContainingUrl(text: string): boolean {
 export type UrlValidationCheck = {
     url: string;
     error: typeof BadUrlReasons[keyof typeof BadUrlReasons] | false;
-}
+};
 
 export const BadUrlReasons = {
     Empty: 'Empty',

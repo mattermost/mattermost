@@ -15,14 +15,14 @@ import ErrorTitle from './error_title';
 
 type Location = {
     search: string;
-}
+};
 
 type Props = {
     location: Location;
     asymmetricSigningPublicKey?: string;
     siteName?: string;
     isGuest?: boolean;
-}
+};
 
 export default class ErrorPage extends React.PureComponent<Props> {
     public componentDidMount() {
@@ -98,7 +98,7 @@ export default class ErrorPage extends React.PureComponent<Props> {
             );
         } else if (type === ErrorPageTypes.CHANNEL_NOT_FOUND) {
             backButton = (
-                <Link to={params.get('returnTo') as string}>
+                <Link to={returnTo}>
                     <FormattedMessage
                         id='error.channelNotFound.link'
                         defaultMessage='Back to {defaultChannelName}'

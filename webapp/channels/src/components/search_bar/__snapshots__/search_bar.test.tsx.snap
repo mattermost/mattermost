@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/search_bar/SearchBar should match snapshot with search 1`] = `
 <div>
@@ -174,7 +174,6 @@ exports[`components/search_bar/SearchBar should match snapshot without search 1`
             type="search"
             value=""
           />
-          
         </div>
       </div>
     </form>
@@ -232,7 +231,6 @@ exports[`components/search_bar/SearchBar should match snapshot without search, w
             type="search"
             value=""
           />
-          
         </div>
       </div>
     </form>
@@ -282,7 +280,6 @@ exports[`components/search_bar/SearchBar should match snapshot without search, w
             type="search"
             value=""
           />
-          
         </div>
       </div>
     </form>

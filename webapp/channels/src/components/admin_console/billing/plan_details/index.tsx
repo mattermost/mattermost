@@ -17,14 +17,13 @@ import {
     PlanDetailsTopElements,
     currentPlanText,
 } from './plan_details';
-import PlanPricing from './plan_pricing';
 
 import './plan_details.scss';
 
 type Props = {
     isFreeTrial: boolean;
     subscriptionPlan: string | undefined;
-}
+};
 const PlanDetails = ({isFreeTrial, subscriptionPlan}: Props) => {
     const subscription = useSelector(getCloudSubscription);
     const product = useSelector(getSubscriptionProduct);
@@ -46,9 +45,6 @@ const PlanDetails = ({isFreeTrial, subscriptionPlan}: Props) => {
                 subscriptionPlan={subscriptionPlan}
                 daysLeftOnTrial={daysLeftOnTrial}
                 isYearly={product.recurring_interval === 'year'}
-            />
-            <PlanPricing
-                product={product}
             />
             <div className='PlanDetails__teamAndChannelCount'>
                 <FormattedMessage

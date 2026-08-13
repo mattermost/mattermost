@@ -3,8 +3,9 @@
 
 import type {GlobalState} from '@mattermost/types/store';
 
+import {WebSocketTypes} from 'mattermost-redux/action_types';
 import {getMissingProfilesByIds, getStatusesByIds} from 'mattermost-redux/actions/users';
-import {General, Preferences, WebsocketEvents} from 'mattermost-redux/constants';
+import {General, Preferences} from 'mattermost-redux/constants';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
@@ -30,7 +31,7 @@ export function userStartedTyping(userId: string, channelId: string, rootId: str
         }
 
         dispatch({
-            type: WebsocketEvents.TYPING,
+            type: WebSocketTypes.TYPING,
             data: {
                 id: channelId + rootId,
                 userId,
@@ -72,7 +73,7 @@ function fillInMissingInfo(userId: string): ActionFuncAsync {
 
 export function userStoppedTyping(userId: string, channelId: string, rootId: string, now: number) {
     return {
-        type: WebsocketEvents.STOP_TYPING,
+        type: WebSocketTypes.STOPPED_TYPING,
         data: {
             id: channelId + rootId,
             userId,

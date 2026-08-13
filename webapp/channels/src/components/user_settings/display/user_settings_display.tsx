@@ -14,8 +14,6 @@ import type {UserProfile, UserTimezone} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import ThemeSetting from 'components/user_settings/display/user_settings_theme';
@@ -66,9 +64,9 @@ type Option = {
         more?: MessageDescriptor;
     };
     childOption?: ChildOption;
-}
+};
 
-type SectionProps ={
+type SectionProps = {
     section: string;
     display: string;
     defaultDisplay: string;
@@ -80,13 +78,13 @@ type SectionProps ={
     description: MessageDescriptor;
     disabled?: boolean;
     onSubmit?: () => void;
-}
+};
 
 export type OwnProps = {
     user: UserProfile;
     adminMode?: boolean;
     userPreferences?: PreferencesType;
-}
+};
 
 type Props = OwnProps & {
     user: UserProfile;
@@ -128,7 +126,7 @@ type Props = OwnProps & {
         updateMe: (user: UserProfile) => Promise<ActionResult>;
         patchUser: (user: UserProfile) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     [key: string]: any;
@@ -147,7 +145,7 @@ type State = {
     clickToReply: string;
     handleSubmit?: () => void;
     serverError?: string;
-}
+};
 
 export default class UserSettingsDisplay extends React.PureComponent<Props, State> {
     public prevSections: {
@@ -189,17 +187,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     componentDidUpdate(prevProps: Props) {
         if (this.props.teammateNameDisplay !== prevProps.teammateNameDisplay) {
             this.updateState();
-        }
-    }
-
-    trackChangeIfNecessary(preference: PreferenceType, oldValue: any): void {
-        const props = {
-            field: 'display.' + preference.name,
-            value: preference.value,
-        };
-
-        if (preference.value !== oldValue) {
-            trackEvent('settings', 'user_settings_update', props);
         }
     }
 
@@ -318,8 +305,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             oneClickReactionsOnPostsPreference,
             colorizeUsernamesPreference,
         ];
-
-        this.trackChangeIfNecessary(collapsedReplyThreadsPreference, this.props.collapsedReplyThreads);
 
         await this.props.actions.savePreferences(userId, preferences);
 
@@ -842,7 +827,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             defaultDisplay: 'true',
             title: defineMessage({
                 id: 'user.settings.display.availabilityStatusOnPostsTitle',
-                defaultMessage: 'Show user availability on posts',
+                defaultMessage: 'Show online availability on profile images',
             }),
             firstOption: {
                 value: 'true',
@@ -1144,7 +1129,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 },
                 description: defineMessage({
                     id: 'user.settings.display.oneClickReactionsOnPostsDescription',
-                    defaultMessage: 'When enabled, you can react in one-click with recently used reactions when hovering over a message.',
+                    defaultMessage: 'When enabled, you can react quickly with recently used reactions when hovering over a message.',
                 }),
             });
         }
@@ -1180,8 +1165,6 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                             renderEmoticonsAsEmoji={this.props.renderEmoticonsAsEmoji}
                             user={this.props.user}
                             updateSection={this.updateSection}
-                            adminMode={this.props.adminMode}
-                            userPreferences={this.props.userPreferences}
                         />
                     )}
                 />

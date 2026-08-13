@@ -13,6 +13,7 @@ import {
     ViewGridPlusOutlineIcon,
     WebhookIncomingIcon,
 } from '@mattermost/compass-icons/components';
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -30,7 +31,6 @@ import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_i
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
 import {makeUrlSafe} from 'utils/url';
-import * as UserAgent from 'utils/user_agent';
 
 import type {ModalData} from 'types/actions';
 
@@ -203,14 +203,13 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                         modalId={ModalIdentifiers.PLUGIN_MARKETPLACE}
                         show={isMessaging && !isMobile && enablePluginMarketplace}
                         dialogType={MarketplaceModal}
-                        dialogProps={{openedFrom: 'product_menu'}}
                         text={formatMessage({id: 'navbar_dropdown.marketplace', defaultMessage: 'App Marketplace'})}
                         icon={<ViewGridPlusOutlineIcon size={18}/>}
                     />
                 </TeamPermissionGate>
                 <Menu.ItemExternalLink
                     id='nativeAppLink'
-                    show={appDownloadLink && !UserAgent.isMobileApp()}
+                    show={Boolean(appDownloadLink) && !isDesktopApp()}
                     url={makeUrlSafe(appDownloadLink)}
                     text={formatMessage({id: 'navbar_dropdown.nativeApps', defaultMessage: 'Download Apps'})}
                     icon={<DownloadOutlineIcon size={18}/>}

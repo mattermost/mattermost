@@ -36,7 +36,7 @@ type Props = {
     currentUser: UserProfile;
     userDisplayName: string;
     userStatus: UserStatus['status'];
-}
+};
 
 export default function DraftsAndSchedulePostsTabs(props: Props) {
     const history = useHistory();
@@ -51,7 +51,7 @@ export default function DraftsAndSchedulePostsTabs(props: Props) {
     const getScheduledPostsByTeam = useMemo(() => makeGetScheduledPostsByTeam(), []);
     const scheduledPosts = useSelector((state: GlobalState) => getScheduledPostsByTeam(state, currentTeamId, true));
 
-    const handleSwitchTabs = useCallback((key) => {
+    const handleSwitchTabs = useCallback((key: string) => {
         if (key === TAB_KEYS.DRAFTS) {
             history.push(`/${currentTeamName}/drafts`);
         } else if (key === TAB_KEYS.SCHEDULED_POSTS) {
@@ -70,6 +70,7 @@ export default function DraftsAndSchedulePostsTabs(props: Props) {
                     <Badge
                         className='badge'
                         badgeContent={scheduledPosts.length}
+                        slotProps={{badge: {'data-testid': 'scheduled-posts-tab-counter-badge'} as React.HTMLAttributes<HTMLSpanElement>}}
                     />
                 )}
             </div>
@@ -87,6 +88,7 @@ export default function DraftsAndSchedulePostsTabs(props: Props) {
                     <Badge
                         className='badge'
                         badgeContent={props.drafts.length}
+                        slotProps={{badge: {'data-testid': 'drafts-tab-counter-badge'} as React.HTMLAttributes<HTMLSpanElement>}}
                     />
                 )}
             </div>
@@ -108,6 +110,8 @@ export default function DraftsAndSchedulePostsTabs(props: Props) {
             activeKey={activeTab}
             mountOnEnter={true}
             unmountOnExit={true}
+
+            // @ts-expect-error The types that we have for React Bootstrap are for a newer version than we use
             onSelect={handleSwitchTabs}
         >
             <Tab

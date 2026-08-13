@@ -6,7 +6,7 @@ import type {AriaRole, AriaAttributes} from 'react';
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 type Props = {
 
@@ -30,7 +30,7 @@ const SharedUserIndicator = (props: Props) => {
         <i
             data-testid='SharedUserIcon'
             className={classNames('icon icon-circle-multiple-outline', props.className)}
-            aria-label={props.ariaLabel || intl.formatMessage({id: 'shared_user_indicator.aria_label', defaultMessage: 'shared user indicator'})}
+            aria-label={props.ariaLabel || intl.formatMessage({id: 'shared_user_indicator.aria_label', defaultMessage: 'shared user'})}
             role={props?.role}
         />
     );

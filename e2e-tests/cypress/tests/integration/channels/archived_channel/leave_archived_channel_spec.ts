@@ -11,15 +11,9 @@
 // Group: @channels @channel
 
 describe('Leaving archived channels', () => {
-    let testTeam;
+    let testTeam: Cypress.Team;
 
     before(() => {
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         cy.apiInitSetup({loginAfter: true}).then(({team}) => {
             testTeam = team;
         });

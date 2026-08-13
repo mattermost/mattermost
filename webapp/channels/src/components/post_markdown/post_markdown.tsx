@@ -9,7 +9,9 @@ import type {Post} from '@mattermost/types/posts';
 import {Posts} from 'mattermost-redux/constants';
 
 import Markdown from 'components/markdown';
+import {DataSpillageReport} from 'components/post_view/data_spillage_report/data_spillage_report';
 
+import {PostTypes} from 'utils/constants';
 import {isChannelNamesMap, type TextFormattingOptions} from 'utils/text_formatting';
 
 import {renderReminderSystemBotMessage, renderSystemMessage, renderWranglerSystemMessage} from './system_message_helpers';
@@ -45,6 +47,11 @@ export type OwnProps = {
      * Whether or not to render text emoticons (:D) as emojis
      */
     renderEmoticonsAsEmoji?: boolean;
+
+    isRHS?: boolean;
+
+    /** Permalink previews and similar read-only surfaces. */
+    disableInteractions?: boolean;
 };
 
 type Props = PropsFromRedux & OwnProps;
@@ -96,8 +103,17 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             return <div>{renderedWranglerMessage}</div>;
         }
 
-        // Proxy images if we have an image proxy and the server hasn't already rewritten the this.props.post's image URLs.
-        const proxyImages = !this.props.post || !this.props.post.message_source || this.props.post.message === this.props.post.message_source;
+        if (this.props.post && this.props.post.type === PostTypes.CUSTOM_DATA_SPILLAGE_REPORT) {
+            return (
+                <div>
+                    <DataSpillageReport
+                        post={this.props.post}
+                        isRHS={this.props.isRHS}
+                    />
+                </div>
+            );
+        }
+
         const channelNamesMap = isChannelNamesMap(this.props.post?.props?.channel_mentions) ? this.props.post?.props?.channel_mentions : undefined;
 
         this.props.pluginHooks?.forEach((o) => {
@@ -110,6 +126,17 @@ export default class PostMarkdown extends React.PureComponent<Props> {
         if (this.props.post && this.props.post.props) {
             mentionHighlight = !this.props.post.props.mentionHighlightDisabled;
         }
+
+        const isBot = this.props.post?.props?.from_bot === 'true';
+        const isWebhook = this.props.post?.props?.from_webhook === 'true';
+        const isPlugin = this.props.post?.props?.from_plugin === 'true';
+
+        const allowInlineActions = !this.props.disableInteractions && (isBot || isWebhook || isPlugin);
+        const postProps = this.props.post?.props as Record<string, unknown> | undefined;
+        const mmBlocksActionsCookie = typeof postProps?.mm_blocks_actions === 'string' ?
+            postProps.mm_blocks_actions :
+            undefined;
+        const integrationFormat = mmBlocksActionsCookie ? 'mm_block' : undefined;
 
         const options = this.getOptions(
             this.props.options,
@@ -128,7 +155,6 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             <Markdown
                 imageProps={this.props.imageProps}
                 message={message}
-                proxyImages={proxyImages}
                 mentionKeys={this.props.mentionKeys}
                 highlightKeys={highlightKeys}
                 options={options}
@@ -137,6 +163,9 @@ export default class PostMarkdown extends React.PureComponent<Props> {
                 imagesMetadata={this.props.post?.metadata?.images}
                 postId={this.props.post?.id}
                 editedAt={this.props.showPostEditedIndicator ? this.props.post?.edit_at : undefined}
+                allowInlineActions={allowInlineActions}
+                mmBlocksActionCookie={mmBlocksActionsCookie}
+                integrationFormat={integrationFormat}
             />
         );
     }

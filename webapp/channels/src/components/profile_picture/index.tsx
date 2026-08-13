@@ -27,7 +27,7 @@ type Props = {
     overwriteName?: string;
     newStatusIcon?: boolean;
     statusClass?: string;
-}
+};
 
 function ProfilePicture(props: Props) {
     // profileSrc will, if possible, be the original user profile picture even if the icon
@@ -53,12 +53,15 @@ function ProfilePicture(props: Props) {
                 triggerComponentAs='button'
                 triggerComponentStyle={{
                     borderRadius: '50%',
-                    width: `${getAvatarWidth(props?.size ?? 'md')}px`,
-                    height: `${getAvatarWidth(props?.size ?? 'md')}px`,
+                    width: getAvatarWidth(props?.size ?? 'md'),
+                    height: getAvatarWidth(props?.size ?? 'md'),
                 }}
             >
                 <>
-                    <span className={profileIconClass}>
+                    <span
+                        className={profileIconClass}
+                        data-testid='profile-icon'
+                    >
                         <Avatar
                             username={props.username}
                             size={props.size}
@@ -75,7 +78,10 @@ function ProfilePicture(props: Props) {
         <span
             className={classNames('status-wrapper', 'style--none', props.wrapperClass)}
         >
-            <span className={profileIconClass}>
+            <span
+                className={profileIconClass}
+                data-testid='profile-icon'
+            >
                 <Avatar
                     size={props?.size ?? 'md'}
                     url={props.src}

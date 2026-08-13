@@ -14,7 +14,6 @@ import {getChannelByName, getUnreadChannelIds, getChannel} from 'mattermost-redu
 import {getCurrentTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded, loadProfilesForSidebar} from 'actions/user_actions';
 
 import {getHistory} from 'utils/browser_history';
@@ -34,7 +33,6 @@ export function openDirectChannelToUserId(userId: UserProfile['id']): ActionFunc
             return dispatch(ChannelActions.createDirectChannel(currentUserId, userId));
         }
 
-        trackEvent('api', 'api_channels_join_direct');
         const now = Date.now();
         const prefDirect = {
             category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,

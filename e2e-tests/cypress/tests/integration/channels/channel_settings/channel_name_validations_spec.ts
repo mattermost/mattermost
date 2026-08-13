@@ -10,12 +10,12 @@
 // Stage: @prod
 // Group: @channels @channel @channel_settings
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 describe('Channel routing', () => {
-    let testTeam: any;
-    let testUser: any;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
 
     before(() => {
         cy.apiInitSetup().then(({team, user}) => {
@@ -48,6 +48,9 @@ describe('Channel routing', () => {
         // # Assert the error occurred with the appropriate message
         cy.get('.SaveChangesPanel').should('contain', 'There are errors in the form above');
         cy.get('.url-input-error').should('contain', 'User IDs are not allowed in channel URLs.');
+
+        // # Reset the changes so modal can be closed
+        cy.get('[data-testid="SaveChangesPanel__cancel-btn"]').click();
 
         // # Close the modal
         cy.get('.GenericModal .modal-header button[aria-label="Close"]').click();
@@ -111,6 +114,11 @@ describe('Channel routing', () => {
         // # Change the channel name to {26 alphanumeric characters}[insert 2 spaces]{26 alphanumeric characters}
         //   i.e. a total of 54 characters separated by 2 spaces
         cy.get('#input_channel-settings-name').clear().type(`${firstWord}${Cypress._.repeat(' ', 2)}${secondWord}`);
+
+        // # Since channel name no longer auto-updates URL, manually set the URL to test the space handling
+        cy.get('.url-input-button').click();
+        cy.get('.url-input-container input').clear().type(`${firstWord}${Cypress._.repeat(' ', 2)}${secondWord}`);
+        cy.get('.url-input-container button.url-input-button').click();
 
         // # Save changes
         cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();

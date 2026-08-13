@@ -19,6 +19,7 @@ type Draft struct {
 
 	Message string `json:"message"`
 
+	Type     string          `json:"type"`
 	propsMu  sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Draft.Props.
 	Props    StringInterface `json:"props"` // Deprecated: use GetProps()
 	FileIds  StringArray     `json:"file_ids,omitempty"`

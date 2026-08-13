@@ -18,6 +18,10 @@ export type SearchState = {
     matches: {
         [x: string]: string[];
     };
+    truncationInfo?: {
+        posts: number;
+        files: number;
+    };
 };
 
 export type SearchParameter = {
@@ -27,4 +31,4 @@ export type SearchParameter = {
     page: number;
     per_page: number;
     include_deleted_channels: boolean;
-}
+};

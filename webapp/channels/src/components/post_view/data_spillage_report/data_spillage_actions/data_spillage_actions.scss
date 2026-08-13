@@ -1,0 +1,18 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.DataSpillageAction {
+    display: flex;
+    max-width: 100%;
+    flex-wrap: wrap;
+    gap: 4px;
+
+    .btn + .btn {
+        margin-left: 0;
+    }
+}
+
+.PropertyCardView_fields > .row > .value:has(> .DataSpillageAction) {
+    min-width: 0;
+    flex: 1;
+}

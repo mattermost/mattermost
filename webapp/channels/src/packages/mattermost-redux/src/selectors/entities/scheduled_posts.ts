@@ -13,7 +13,7 @@ const emptyList: string[] = [];
 export type ChannelScheduledPostIndicatorData = {
     scheduledPost?: ScheduledPost;
     count: number;
-}
+};
 
 export function makeGetScheduledPostsByTeam(): (state: GlobalState, teamId: string, includeDirectChannels: boolean) => ScheduledPost[] {
     return createSelector(

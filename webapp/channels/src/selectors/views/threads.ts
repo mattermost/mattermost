@@ -10,7 +10,7 @@ import type {UserThread} from '@mattermost/types/threads';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {makeGetPostsForIds} from 'mattermost-redux/selectors/entities/posts';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeam, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThreads} from 'mattermost-redux/selectors/entities/threads';
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 import {DATE_LINE, makeCombineUserActivityPosts, START_OF_NEW_MESSAGES} from 'mattermost-redux/utils/post_list';
@@ -18,7 +18,8 @@ import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 import {getIsRhsOpen, getSelectedPostId} from 'selectors/rhs';
 
-import {isFromWebhook} from 'utils/post_utils';
+import {isThreadPopoutWindow} from 'utils/popouts/popout_windows';
+import {isFromWebhook, isNotificationSuppressed} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
 import type {ViewsState} from 'types/store/views';
@@ -79,7 +80,8 @@ export function makeGetThreadLastViewedAt(): (state: GlobalState, threadId: Post
 export const isThreadOpen = (state: GlobalState, threadId: UserThread['id']): boolean => {
     return (
         threadId === getSelectedThreadIdInCurrentTeam(state) ||
-        (getIsRhsOpen(state) && threadId === getSelectedPostId(state))
+        (getIsRhsOpen(state) && threadId === getSelectedPostId(state)) ||
+        isThreadPopoutWindow(getCurrentTeam(state)?.name || '', threadId)
     );
 };
 
@@ -144,6 +146,7 @@ export function makeFilterRepliesAndAddSeparators() {
                     post.create_at >= lastViewedAt &&
                     (i < posts.length - 1) &&
                     (post.user_id !== currentUser.id || isFromWebhook(post)) &&
+                    !isNotificationSuppressed(post) &&
                     !addedNewMessagesIndicator
                 ) {
                     out.push(START_OF_NEW_MESSAGES);

@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/avct/uasurfer"
 	"github.com/gorilla/mux"
 
@@ -33,6 +34,7 @@ func New(srv *app.Server) *Web {
 	web.InitOAuth()
 	web.InitWebhooks()
 	web.InitSaml()
+	web.InitMagicLink()
 	web.InitStatic()
 
 	return web
@@ -55,6 +57,25 @@ func CheckClientCompatibility(agentString string) bool {
 	}
 
 	return true
+}
+
+func CheckDesktopAppCompatibility(agentString string, minVersion *string) bool {
+	if minVersion == nil || *minVersion == "" {
+		return true
+	}
+	clientVersionStr, ok := app.GetDesktopAppVersion(agentString)
+	if !ok {
+		return true
+	}
+	clientVersion, err := semver.NewVersion(clientVersionStr)
+	if err != nil {
+		return true
+	}
+	required, err := semver.StrictNewVersion(*minVersion)
+	if err != nil {
+		return true
+	}
+	return clientVersion.GreaterThanEqual(required)
 }
 
 func Handle404(a *app.App, w http.ResponseWriter, r *http.Request) {
@@ -96,7 +117,8 @@ func IsOAuthAPICall(a *app.App, r *http.Request) bool {
 
 	if r.URL.Path == path.Join(subpath, "oauth", "apps", "authorized") ||
 		r.URL.Path == path.Join(subpath, "oauth", "deauthorize") ||
-		r.URL.Path == path.Join(subpath, "oauth", "access_token") {
+		r.URL.Path == path.Join(subpath, "oauth", "access_token") ||
+		r.URL.Path == path.Join(subpath, "oauth", "intune") {
 		return true
 	}
 	return false

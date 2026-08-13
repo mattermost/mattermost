@@ -10,10 +10,10 @@
 // Stage: @prod
 // Group: @channels @commands
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Leave Channel Command', () => {
-    let testChannel;
+    let testChannel: Cypress.Channel;
 
     before(() => {
         // # Login as test user and go to town-square
@@ -32,7 +32,7 @@ describe('Leave Channel Command', () => {
 
         // # Post /leave command in center channel
         cy.postMessage('/leave ');
-        cy.wait(TIMEOUTS.TWO_SEC); // eslint-disable-line cypress/no-unnecessary-waiting
+        cy.wait(TIMEOUTS.TWO_SEC);
 
         // * Assert that user is redirected to townsquare
         cy.url().should('include', '/channels/town-square');

@@ -1,17 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable max-lines */
+
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
-import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus, UserAccessToken} from '@mattermost/types/users';
+import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus, UserAccessToken, UserAuthUpdate} from '@mattermost/types/users';
 
 import {UserTypes, AdminTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
-import {setServerVersion, getClientConfig, getLicenseConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
+import {setServerVersion, getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
 import {bindClientFunc, forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {getMyPreferences} from 'mattermost-redux/actions/preferences';
@@ -20,7 +22,7 @@ import {getMyTeams, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/a
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getServerVersion, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUser as selectUser, getUsers, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
@@ -81,10 +83,6 @@ export function loadMe(): ActionFuncAsync<boolean> {
                 dispatch(getMyTeamMembers()),
             ]);
 
-            if (getFeatureFlagValue(getState(), 'CustomProfileAttributes') === 'true') {
-                dispatch(getCustomProfileAttributeFields());
-            }
-
             const isCollapsedThreads = isCollapsedThreadsEnabled(getState());
             await dispatch(getMyTeamUnreads(isCollapsedThreads));
 
@@ -104,7 +102,7 @@ export function logout(): ActionFuncAsync {
 
         try {
             await Client4.logout();
-        } catch (error) {
+        } catch {
             // nothing to do here
         }
 
@@ -321,32 +319,6 @@ export function getProfilesNotInTeam(teamId: string, groupConstrained: boolean, 
     };
 }
 
-export function getProfilesWithoutTeam(page: number, perPage: number = General.PROFILE_CHUNK_SIZE, options: any = {}): ActionFuncAsync<UserProfile[]> {
-    return async (dispatch, getState) => {
-        let profiles = null;
-        try {
-            profiles = await Client4.getProfilesWithoutTeam(page, perPage, options);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-
-        dispatch(batchActions([
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST_WITHOUT_TEAM,
-                data: profiles,
-            },
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST,
-                data: profiles,
-            },
-        ]));
-
-        return {data: profiles};
-    };
-}
-
 export enum ProfilesInChannelSortBy {
     None = '',
     Admin = 'admin',
@@ -380,17 +352,17 @@ export function getProfilesInChannel(channelId: string, page: number, perPage: n
     };
 }
 
-export function batchGetProfilesInChannel(channelId: string): ActionFuncAsync<Array<Channel['id']>> {
+export function batchGetProfilesInGroupChannel(channelId: string): ActionFuncAsync<Array<Channel['id']>> {
     return async (dispatch, getState, {loaders}: any) => {
-        if (!loaders.profilesInChannelLoader) {
-            loaders.profilesInChannelLoader = new DelayedDataLoader<Channel['id']>({
-                fetchBatch: (channelIds) => dispatch(getProfilesInChannel(channelIds[0], 0)),
-                maxBatchSize: 1,
+        if (!loaders.profilesInGroupChannelLoader) {
+            loaders.profilesInGroupChannelLoader = new DelayedDataLoader<Channel['id']>({
+                fetchBatch: (channelIds) => dispatch(getProfilesInGroupChannels(channelIds)),
+                maxBatchSize: General.MAX_GROUP_CHANNELS_FOR_PROFILES,
                 wait: missingProfilesWait,
             });
         }
 
-        await loaders.profilesInChannelLoader.queueAndWait([channelId]);
+        await loaders.profilesInGroupChannelLoader.queueAndWait([channelId]);
         return {};
     };
 }
@@ -646,6 +618,19 @@ export function getUserByEmail(email: string) {
     });
 }
 
+export function canUserDirectMessage(userId: string, otherUserId: string): ActionFuncAsync<{can_dm: boolean}> {
+    return async (dispatch, getState) => {
+        try {
+            const result = await Client4.canUserDirectMessage(userId, otherUserId);
+            return {data: result};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
 export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncAsync<UserStatus[]> {
     return async (dispatch, getState) => {
         if (!userIds || userIds.length === 0) {
@@ -700,19 +685,19 @@ export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncA
 
 export function setStatus(status: UserStatus): ActionFuncAsync<UserStatus> {
     return async (dispatch, getState) => {
-        let recievedStatus: UserStatus;
+        let receivedStatus: UserStatus;
         try {
-            recievedStatus = await Client4.updateStatus(status);
+            receivedStatus = await Client4.updateStatus(status);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
         }
 
-        const updatedStatus = {[recievedStatus.user_id]: recievedStatus.status};
-        const dndEndTimes = {[recievedStatus.user_id]: recievedStatus?.dnd_end_time ?? 0};
-        const isManualStatus = {[recievedStatus.user_id]: recievedStatus?.manual ?? false};
-        const lastActivity = {[recievedStatus.user_id]: recievedStatus?.last_activity_at ?? 0};
+        const updatedStatus = {[receivedStatus.user_id]: receivedStatus.status};
+        const dndEndTimes = {[receivedStatus.user_id]: receivedStatus?.dnd_end_time ?? 0};
+        const isManualStatus = {[receivedStatus.user_id]: receivedStatus?.manual ?? false};
+        const lastActivity = {[receivedStatus.user_id]: receivedStatus?.last_activity_at ?? 0};
 
         dispatch(batchActions([
             {
@@ -733,7 +718,7 @@ export function setStatus(status: UserStatus): ActionFuncAsync<UserStatus> {
             },
         ], 'BATCHING_STATUS'));
 
-        return {data: recievedStatus};
+        return {data: receivedStatus};
     };
 }
 
@@ -996,11 +981,23 @@ export function saveCustomProfileAttribute(userID: string, attributeID: string, 
     return async (dispatch) => {
         try {
             const values = {[attributeID]: attributeValue || ''};
-            const data = await Client4.updateCustomProfileAttributeValues(values);
+
+            const data = await Client4.updateUserCustomProfileAttributesValues(userID, values);
             return {data};
         } catch (error) {
-            dispatch(logError(error));
-            return {error};
+            // Extract user-friendly error message from server response
+            let errorMessage = 'Failed to update user attribute';
+            if (error && typeof error === 'object' && 'message' in error && error.message) {
+                errorMessage = error.message;
+            }
+
+            const serverError = {
+                ...error,
+                message: errorMessage,
+            };
+
+            dispatch(logError(serverError));
+            return {error: serverError};
         }
     };
 }
@@ -1016,6 +1013,25 @@ export function patchUser(user: UserProfile): ActionFuncAsync<UserProfile> {
         }
 
         dispatch({type: UserTypes.RECEIVED_PROFILE, data});
+
+        return {data};
+    };
+}
+
+export function updateUserAuth(userId: string, userAuth: UserAuthUpdate): ActionFuncAsync<UserAuthUpdate> {
+    return async (dispatch, getState) => {
+        let data: UserAuthUpdate;
+        try {
+            data = await Client4.updateUserAuth(userId, userAuth);
+        } catch (error) {
+            dispatch(logError(error));
+            return {error};
+        }
+
+        const profile = getState().entities.users.profiles[userId];
+        if (profile) {
+            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, auth_data: data.auth_data, auth_service: data.auth_service}});
+        }
 
         return {data};
     };
@@ -1038,7 +1054,7 @@ export function updateUserRoles(userId: string, roles: string): ActionFuncAsync 
     };
 }
 
-export function updateUserMfa(userId: string, activate: boolean, code = ''): ActionFuncAsync {
+export function updateUserMfa(userId: string, activate: boolean, code = ''): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {
             await Client4.updateUserMfa(userId, activate, code);
@@ -1231,12 +1247,12 @@ export function switchLdapToEmail(ldapPassword: string, email: string, emailPass
     });
 }
 
-export function createUserAccessToken(userId: string, description: string): ActionFuncAsync<UserAccessToken> {
+export function createUserAccessToken(userId: string, description: string, expiresAt?: number): ActionFuncAsync<UserAccessToken> {
     return async (dispatch, getState) => {
         let data;
 
         try {
-            data = await Client4.createUserAccessToken(userId, description);
+            data = await Client4.createUserAccessToken(userId, description, expiresAt);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -1388,6 +1404,41 @@ export function enableUserAccessToken(tokenId: string): ActionFuncAsync {
     };
 }
 
+export function rotateUserAccessToken(tokenId: string, expiresAt?: number): ActionFuncAsync<UserAccessToken> {
+    return async (dispatch, getState) => {
+        let data;
+
+        try {
+            data = await Client4.rotateUserAccessToken(tokenId, expiresAt);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        const actions: AnyAction[] = [{
+            type: AdminTypes.RECEIVED_USER_ACCESS_TOKEN,
+            data: {...data,
+                token: '',
+            },
+        }];
+
+        const {currentUserId} = getState().entities.users;
+        if (data.user_id === currentUserId) {
+            actions.push(
+                {
+                    type: UserTypes.RECEIVED_MY_USER_ACCESS_TOKEN,
+                    data: {...data, token: ''},
+                },
+            );
+        }
+
+        dispatch(batchActions(actions));
+
+        return {data};
+    };
+}
+
 export function getKnownUsers() {
     return bindClientFunc({
         clientFunc: Client4.getKnownUsers,
@@ -1437,6 +1488,7 @@ export default {
     getUserAudits,
     searchProfiles,
     updateMe,
+    updateUserAuth,
     updateUserRoles,
     updateUserMfa,
     updateUserPassword,
@@ -1459,5 +1511,6 @@ export default {
     revokeUserAccessToken,
     disableUserAccessToken,
     enableUserAccessToken,
+    rotateUserAccessToken,
     checkForModifiedUsers,
 };

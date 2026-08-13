@@ -30,6 +30,7 @@ const (
 	// - "join_leave"
 	// - "unread_scroll_position"
 	// - "sync_drafts"
+	// - "attach_app_logs"
 	// - "feature_enabled_markdown_preview" <- deprecated in favor of "formatting"
 	PreferenceCategoryAdvancedSettings = "advanced_settings"
 	// PreferenceCategoryFlaggedPost is used to store the user's saved posts.
@@ -79,6 +80,7 @@ const (
 	// PreferenceCategoryThemeDark has the name for the team id where dark theme is set.
 	PreferenceCategoryThemeDark = "theme_dark"
 
+	PreferenceNameAttachAppLogs           = "attach_app_logs"
 	PreferenceNameCollapsedThreadsEnabled = "collapsed_reply_threads"
 	PreferenceNameChannelDisplayMode      = "channel_display_mode"
 	PreferenceNameCollapseSetting         = "collapse_previews"

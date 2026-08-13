@@ -23,7 +23,13 @@ interface Props {
     withinBrackets?: boolean;
 }
 
-const ExpiryTime = ({time, timezone, className, showPrefix, withinBrackets}: Props) => {
+const ExpiryTime = ({
+    time,
+    timezone,
+    className,
+    showPrefix = true,
+    withinBrackets = false,
+}: Props) => {
     const currentMomentTime = getCurrentMomentForTimezone(timezone);
     const timestampProps: Partial<TimestampProps> = {
         value: time,
@@ -51,32 +57,24 @@ const ExpiryTime = ({time, timezone, className, showPrefix, withinBrackets}: Pro
         timestampProps.year = 'numeric';
     }
 
-    const prefix = showPrefix && (
-        <>
+    let timestamp = <Timestamp {...timestampProps}/>;
+    if (showPrefix) {
+        timestamp = (
             <FormattedMessage
                 id='custom_status.expiry.until'
                 defaultMessage='Until {time}'
-                values={{time: ''}}
+                values={{time: timestamp}}
             />
-            {' '}
-        </>
-    );
+        );
+    }
 
     return (
         <span className={className}>
             {withinBrackets && '('}
-            {prefix}
-            <Timestamp
-                {...timestampProps}
-            />
+            {timestamp}
             {withinBrackets && ')'}
         </span>
     );
-};
-
-ExpiryTime.defaultProps = {
-    showPrefix: true,
-    withinBrackets: false,
 };
 
 export default React.memo(ExpiryTime);

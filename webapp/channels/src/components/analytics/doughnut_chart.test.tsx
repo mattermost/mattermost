@@ -2,18 +2,17 @@
 // See LICENSE.txt for license information.
 
 import type {ChartData} from 'chart.js';
-import {shallow, mount} from 'enzyme';
 import React from 'react';
 
 import DoughnutChart from 'components/analytics/doughnut_chart';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 jest.mock('chart.js');
 
 describe('components/analytics/doughnut_chart.tsx', () => {
     test('should match snapshot, on loading', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -21,14 +20,14 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded without data', () => {
         const Chart = jest.requireMock('chart.js');
         const data: ChartData | undefined = undefined;
 
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -37,8 +36,8 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             />,
         );
 
-        expect(Chart).not.toBeCalled();
-        expect(wrapper).toMatchSnapshot();
+        expect(Chart).not.toHaveBeenCalled();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with data', () => {
@@ -49,7 +48,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             ],
         };
 
-        const wrapper = mount(
+        const {container} = renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -58,8 +57,8 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             />,
         );
 
-        expect(Chart).toBeCalledWith(expect.anything(), {data, options: {}, type: 'doughnut'});
-        expect(wrapper).toMatchSnapshot();
+        expect(Chart).toHaveBeenCalledWith(expect.anything(), {data, options: {}, type: 'doughnut'});
+        expect(container).toMatchSnapshot();
     });
 
     test('should create and destroy the chart on mount and unmount with data', () => {
@@ -72,7 +71,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3'],
         };
 
-        const wrapper = mountWithIntl(
+        const {unmount} = renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -81,8 +80,8 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             />,
         );
 
-        expect(Chart).toBeCalled();
-        wrapper.unmount();
+        expect(Chart).toHaveBeenCalled();
+        unmount();
     });
 
     test('should update the chart on data change', () => {
@@ -102,7 +101,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             labels: ['test1', 'test2', 'test3', 'test4'],
         };
 
-        const wrapper = mountWithIntl(
+        const {rerender} = renderWithContext(
             <DoughnutChart
                 title='Test'
                 height={400}
@@ -111,13 +110,27 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             />,
         );
 
-        expect(Chart).toBeCalled();
-        expect(Chart.mock.instances[0].update).not.toBeCalled();
+        expect(Chart).toHaveBeenCalled();
+        expect(Chart.mock.instances[0].update).not.toHaveBeenCalled();
 
-        wrapper.setProps({title: 'new title'});
-        expect(Chart.mock.instances[0].update).not.toBeCalled();
+        rerender(
+            <DoughnutChart
+                title='new title'
+                height={400}
+                width={600}
+                data={oldData}
+            />,
+        );
+        expect(Chart.mock.instances[0].update).not.toHaveBeenCalled();
 
-        wrapper.setProps({data: newData});
-        expect(Chart.mock.instances[0].update).toBeCalled();
+        rerender(
+            <DoughnutChart
+                title='new title'
+                height={400}
+                width={600}
+                data={newData}
+            />,
+        );
+        expect(Chart.mock.instances[0].update).toHaveBeenCalled();
     });
 });

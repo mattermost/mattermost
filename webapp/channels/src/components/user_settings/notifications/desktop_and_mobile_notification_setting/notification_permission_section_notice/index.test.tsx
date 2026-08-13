@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import * as useDesktopAppNotificationPermission from 'components/common/hooks/use_desktop_notification_permission';
 import type {DesktopNotificationPermission} from 'components/common/hooks/use_desktop_notification_permission';
 
@@ -10,6 +12,12 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import * as utilsNotifications from 'utils/notifications';
 
 import NotificationPermissionSectionNotice from './index';
+
+const isM365MobileMock = jest.mocked(UserAgent.isM365Mobile);
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isDesktopApp: jest.fn(() => false),
+    isM365Mobile: jest.fn(() => false),
+}));
 
 describe('NotificationPermissionSectionNotice', () => {
     afterEach(() => {
@@ -22,6 +30,15 @@ describe('NotificationPermissionSectionNotice', () => {
         renderWithContext(<NotificationPermissionSectionNotice/>);
 
         expect(screen.getByText('Browser notifications unsupported')).toBeInTheDocument();
+    });
+
+    test('should not render "Unsupported" notice for MS 365 mobile apps even when notifications are not supported', () => {
+        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(false);
+        isM365MobileMock.mockReturnValue(true);
+
+        const {container} = renderWithContext(<NotificationPermissionSectionNotice/>);
+
+        expect(container).toBeEmptyDOMElement();
     });
 
     test('should render "Never granted" notice when notifications are never granted', () => {

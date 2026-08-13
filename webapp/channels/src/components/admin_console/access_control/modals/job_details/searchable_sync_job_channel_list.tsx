@@ -4,18 +4,16 @@
 import React, {useState, useRef, useEffect} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
-import {ArchiveOutlineIcon, GlobeIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
-import {isPrivateChannel} from 'mattermost-redux/utils/channel_utils';
-
+import {ChannelIcon} from 'components/channel_type_icon';
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
 import QuickInput from 'components/quick_input';
 
-import {isArchivedChannel} from 'utils/channel_utils';
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
@@ -82,15 +80,12 @@ const SearchableSyncJobChannelList = (props: Props) => {
 
     const createChannelRow = (channel: Channel) => {
         const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
-        let channelTypeIcon;
 
-        if (isArchivedChannel(channel)) {
-            channelTypeIcon = <ArchiveOutlineIcon size={18}/>;
-        } else if (isPrivateChannel(channel)) {
-            channelTypeIcon = <LockOutlineIcon size={18}/>;
-        } else {
-            channelTypeIcon = <GlobeIcon size={18}/>;
-        }
+        const channelTypeIcon = (
+            <ChannelIcon
+                channel={channel}
+                size={18}
+            />);
 
         const team = props.teams[channel.team_id];
 
@@ -169,12 +164,22 @@ const SearchableSyncJobChannelList = (props: Props) => {
     };
 
     const getEmptyStateMessage = () => {
+        if (channelSearchValue) {
+            return (
+                <FormattedMessage
+                    id='more_channels.noMore'
+                    tagName='strong'
+                    defaultMessage='No results for "{text}"'
+                    values={{text: channelSearchValue}}
+                />
+            );
+        }
+
         return (
             <FormattedMessage
-                id='more_channels.noMore'
+                id='admin.jobTable.syncResults.noChanges'
                 tagName='strong'
-                defaultMessage='No results for {text}'
-                values={{text: channelSearchValue}}
+                defaultMessage='No channels were affected by this job.'
             />
         );
     };
@@ -190,14 +195,13 @@ const SearchableSyncJobChannelList = (props: Props) => {
         listContent = (
             <div
                 className='no-channel-message channel-switcher__suggestion-box'
-                aria-label={channelSearchValue.length > 0 ? props.intl.formatMessage(messages.noMore, {text: channelSearchValue}) : props.intl.formatMessage({id: 'widgets.channels_input.empty', defaultMessage: 'No channels found'})
-                }
+                aria-label={channelSearchValue.length > 0 ? props.intl.formatMessage(messages.noMore, {text: channelSearchValue}) : props.intl.formatMessage(messages.noChanges)}
             >
                 <MagnifyingGlassSVG/>
                 <h3 className='primary-message'>
                     {getEmptyStateMessage()}
                 </h3>
-                {props.noResultsText}
+                {channelSearchValue.length > 0 && props.noResultsText}
             </div>
         );
     } else {
@@ -208,8 +212,10 @@ const SearchableSyncJobChannelList = (props: Props) => {
 
         if (channelsToDisplay.length >= props.channelsPerPage && pageEnd < props.channels.length) {
             nextButton = (
-                <button
-                    className='btn btn-sm btn-tertiary filter-control filter-control__next'
+                <Button
+                    emphasis='tertiary'
+                    size='sm'
+                    className='filter-control filter-control__next'
                     onClick={nextPage}
                     disabled={nextDisabled}
                     aria-label={props.intl.formatMessage({id: 'more_channels.next', defaultMessage: 'Next'})}
@@ -218,14 +224,16 @@ const SearchableSyncJobChannelList = (props: Props) => {
                         id='more_channels.next'
                         defaultMessage='Next'
                     />
-                </button>
+                </Button>
             );
         }
 
         if (page > 0) {
             previousButton = (
-                <button
-                    className='btn btn-sm btn-tertiary filter-control filter-control__prev'
+                <Button
+                    emphasis='tertiary'
+                    size='sm'
+                    className='filter-control filter-control__prev'
                     onClick={previousPage}
                     aria-label={props.intl.formatMessage({id: 'more_channels.prev', defaultMessage: 'Previous'})}
                 >
@@ -233,13 +241,13 @@ const SearchableSyncJobChannelList = (props: Props) => {
                         id='more_channels.prev'
                         defaultMessage='Previous'
                     />
-                </button>
+                </Button>
             );
         }
     }
 
     const input = (
-        <div className='filter-row filter-row--full'>
+        <div className='filter-row'>
             <span
                 id='searchIcon'
                 aria-hidden='true'
@@ -254,7 +262,7 @@ const SearchableSyncJobChannelList = (props: Props) => {
                 clearable={true}
                 onClear={handleClear}
                 value={channelSearchValue}
-                aria-label={props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search Channels'})}
+                aria-label={props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search channels'})}
             />
         </div>
     );
@@ -306,7 +314,11 @@ const messages = defineMessages({
     },
     noMore: {
         id: 'more_channels.noMore',
-        defaultMessage: 'No results for {text}',
+        defaultMessage: 'No results for "{text}"',
+    },
+    noChanges: {
+        id: 'admin.jobTable.syncResults.noChanges',
+        defaultMessage: 'No channels were affected by this job.',
     },
 });
 

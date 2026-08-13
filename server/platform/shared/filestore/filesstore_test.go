@@ -123,11 +123,17 @@ func (s *FileBackendTestSuite) SetupTest() {
 	require.NoError(s.T(), err)
 	s.backend = backend
 
-	// This is needed to create the bucket if it doesn't exist.
+	// This is needed to create the bucket / container if it doesn't exist.
 	err = s.backend.TestConnection()
-	if _, ok := err.(*S3FileBackendNoBucketError); ok {
-		s3Backend := s.backend.(*S3FileBackend)
-		s.NoError(s3Backend.MakeBucket())
+	if _, ok := err.(*FileBackendNoBucketError); ok {
+		switch b := s.backend.(type) {
+		case *S3FileBackend:
+			s.NoError(b.MakeBucket())
+		case *AzureFileBackend:
+			s.NoError(b.MakeContainer())
+		default:
+			s.NoError(err)
+		}
 	} else {
 		s.NoError(err)
 	}
@@ -699,7 +705,7 @@ func BenchmarkFileStore(b *testing.B) {
 
 	// Create bucket if it doesn't exist
 	err = s3Backend.TestConnection()
-	if _, ok := err.(*S3FileBackendNoBucketError); ok {
+	if _, ok := err.(*FileBackendNoBucketError); ok {
 		require.NoError(b, s3Backend.(*S3FileBackend).MakeBucket())
 	} else {
 		require.NoError(b, err)
@@ -736,13 +742,13 @@ func BenchmarkFileStore(b *testing.B) {
 // benchmarkWriteFile benchmarks writing a file of the given size
 func benchmarkWriteFile(b *testing.B, backend FileBackend, tcName string, size int) {
 	b.Run("Write_"+tcName, func(b *testing.B) {
+		b.ReportAllocs()
+
 		bufferSize := 1024 * 1024 * 4 // 4 MB
 		buffer := make([]byte, bufferSize)
 
-		b.ResetTimer()
-		b.ReportAllocs()
-
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
+			b.StopTimer()
 			rd, wr := io.Pipe()
 			go func() {
 				defer wr.Close()
@@ -758,7 +764,6 @@ func benchmarkWriteFile(b *testing.B, backend FileBackend, tcName string, size i
 
 			b.StartTimer()
 			written, err := backend.WriteFile(rd, "tests/"+tcName)
-			b.StopTimer()
 			require.NoError(b, err)
 			require.Equal(b, int64(size), written)
 		}
@@ -768,14 +773,12 @@ func benchmarkWriteFile(b *testing.B, backend FileBackend, tcName string, size i
 // benchmarkReadFile benchmarks reading a file of the given size
 func benchmarkReadFile(b *testing.B, backend FileBackend, tcName string, size int) {
 	b.Run("Read_"+tcName, func(b *testing.B) {
+		b.ReportAllocs()
+
 		bufferSize := 1024 * 1024 * 4 // 4 MB
 		buffer := make([]byte, bufferSize)
 
-		b.ResetTimer()
-		b.ReportAllocs()
-
-		for i := 0; i < b.N; i++ {
-			b.StartTimer()
+		for b.Loop() {
 			rd, err := backend.Reader("tests/" + tcName)
 			require.NoError(b, err)
 			var total int
@@ -787,7 +790,6 @@ func benchmarkReadFile(b *testing.B, backend FileBackend, tcName string, size in
 				}
 				require.NoError(b, err)
 			}
-			b.StopTimer()
 			require.Equal(b, size, total)
 		}
 	})
@@ -855,7 +857,7 @@ func BenchmarkS3WriteFile(b *testing.B) {
 
 		// This is needed to create the bucket if it doesn't exist.
 		err = backend.TestConnection()
-		if _, ok := err.(*S3FileBackendNoBucketError); ok {
+		if _, ok := err.(*FileBackendNoBucketError); ok {
 			require.NoError(b, backend.(*S3FileBackend).MakeBucket())
 		} else {
 			require.NoError(b, err)
@@ -872,7 +874,9 @@ func BenchmarkS3WriteFile(b *testing.B) {
 			backend := backendMap[partSize]
 			b.Run(fmt.Sprintf("FileSize-%dMB_PartSize-%dMB", int(math.Round(float64(size)/1024/1024)), int(math.Round(float64(partSize)/1024/1024))), func(b *testing.B) {
 				b.ReportAllocs()
-				for i := 0; i < b.N; i++ {
+				for b.Loop() {
+					// Setup
+					b.StopTimer()
 					rd, wr := io.Pipe()
 					go func() {
 						defer wr.Close()
@@ -885,13 +889,17 @@ func BenchmarkS3WriteFile(b *testing.B) {
 						}
 					}()
 					path := "tests/" + randomString()
+
 					b.StartTimer()
 					written, err := backend.WriteFile(rd, path)
+
+					// Cleanup
 					b.StopTimer()
 					require.NoError(b, err)
 					require.Equal(b, size, int(written))
 					err = backend.RemoveFile(path)
 					require.NoError(b, err)
+					b.StartTimer()
 				}
 			})
 		}
@@ -922,9 +930,9 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 		}
 
 		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
-			ExportDriverName: model.NewPointer(driverLocal),
-			ExportDirectory:  model.NewPointer("directory"),
-		}, enableComplianceFeature, skipVerify)
+			ExportDriverName: new(driverLocal),
+			ExportDirectory:  new("directory"),
+		}, enableComplianceFeature, skipVerify, "")
 
 		require.Equal(t, expected, actual)
 	})
@@ -953,22 +961,58 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 		}
 
 		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
-			ExportDriverName:                         model.NewPointer(driverS3),
-			ExportAmazonS3AccessKeyId:                model.NewPointer("minioaccesskey"),
-			ExportAmazonS3SecretAccessKey:            model.NewPointer("miniosecretkey"),
-			ExportAmazonS3Bucket:                     model.NewPointer("mattermost-test"),
-			ExportAmazonS3Region:                     model.NewPointer("region"),
-			ExportAmazonS3Endpoint:                   model.NewPointer("s3.example.com"),
-			ExportAmazonS3PathPrefix:                 model.NewPointer("prefix"),
-			ExportAmazonS3SSL:                        model.NewPointer(true),
-			ExportAmazonS3SignV2:                     model.NewPointer(true),
-			ExportAmazonS3SSE:                        model.NewPointer(true),
-			ExportAmazonS3Trace:                      model.NewPointer(true),
-			ExportAmazonS3RequestTimeoutMilliseconds: model.NewPointer(int64(1000)),
-			ExportAmazonS3PresignExpiresSeconds:      model.NewPointer(int64(60000)),
+			ExportDriverName:                         new(driverS3),
+			ExportAmazonS3AccessKeyId:                new("minioaccesskey"),
+			ExportAmazonS3SecretAccessKey:            new("miniosecretkey"),
+			ExportAmazonS3Bucket:                     new("mattermost-test"),
+			ExportAmazonS3Region:                     new("region"),
+			ExportAmazonS3Endpoint:                   new("s3.example.com"),
+			ExportAmazonS3PathPrefix:                 new("prefix"),
+			ExportAmazonS3SSL:                        new(true),
+			ExportAmazonS3SignV2:                     new(true),
+			ExportAmazonS3SSE:                        new(true),
+			ExportAmazonS3Trace:                      new(true),
+			ExportAmazonS3RequestTimeoutMilliseconds: new(int64(1000)),
+			ExportAmazonS3PresignExpiresSeconds:      new(int64(60000)),
 			ExportAmazonS3UploadPartSizeBytes:        model.NewPointer(int64(model.FileSettingsDefaultS3ExportUploadPartSizeBytes)),
-			ExportAmazonS3StorageClass:               model.NewPointer(""),
-		}, enableComplianceFeature, skipVerify)
+			ExportAmazonS3StorageClass:               new(""),
+		}, enableComplianceFeature, skipVerify, "")
+
+		require.Equal(t, expected, actual)
+	})
+
+	t.Run("azure filestore", func(t *testing.T) {
+		skipVerify := false
+		enableComplianceFeature := false
+
+		expected := FileBackendSettings{
+			DriverName:                          driverAzure,
+			AzureStorageAccount:                 "anaccount",
+			AzureAuthMode:                       model.AzureAuthModeSharedKey,
+			AzureAccessKey:                      "akey",
+			AzureContainer:                      "acontainer",
+			AzurePathPrefix:                     "prefix",
+			AzureCloud:                          model.AzureCloudCommercial,
+			AzureEndpoint:                       "",
+			AzureSSL:                            true,
+			AzureRequestTimeoutMilliseconds:     30000,
+			AzurePresignExpiresSeconds:          21600,
+			AllowedUntrustedInternalConnections: "10.0.0.0/8 internal.example.com",
+		}
+
+		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
+			ExportDriverName:                      new(driverAzure),
+			ExportAzureStorageAccount:             new("anaccount"),
+			ExportAzureAuthMode:                   new(model.AzureAuthModeSharedKey),
+			ExportAzureAccessKey:                  new("akey"),
+			ExportAzureContainer:                  new("acontainer"),
+			ExportAzurePathPrefix:                 new("prefix"),
+			ExportAzureCloud:                      new(model.AzureCloudCommercial),
+			ExportAzureEndpoint:                   new(""),
+			ExportAzureSSL:                        new(true),
+			ExportAzureRequestTimeoutMilliseconds: new(int64(30000)),
+			ExportAzurePresignExpiresSeconds:      new(int64(21600)),
+		}, enableComplianceFeature, skipVerify, "10.0.0.0/8 internal.example.com")
 
 		require.Equal(t, expected, actual)
 	})
@@ -998,22 +1042,22 @@ func TestNewExportFileBackendSettingsFromConfig(t *testing.T) {
 		}
 
 		actual := NewExportFileBackendSettingsFromConfig(&model.FileSettings{
-			ExportDriverName:                         model.NewPointer(driverS3),
-			ExportAmazonS3AccessKeyId:                model.NewPointer("minioaccesskey"),
-			ExportAmazonS3SecretAccessKey:            model.NewPointer("miniosecretkey"),
-			ExportAmazonS3Bucket:                     model.NewPointer("mattermost-test"),
-			ExportAmazonS3Region:                     model.NewPointer("region"),
-			ExportAmazonS3Endpoint:                   model.NewPointer("s3.example.com"),
-			ExportAmazonS3PathPrefix:                 model.NewPointer("prefix"),
-			ExportAmazonS3SSL:                        model.NewPointer(true),
-			ExportAmazonS3SignV2:                     model.NewPointer(true),
-			ExportAmazonS3SSE:                        model.NewPointer(true),
-			ExportAmazonS3Trace:                      model.NewPointer(true),
-			ExportAmazonS3RequestTimeoutMilliseconds: model.NewPointer(int64(1000)),
-			ExportAmazonS3PresignExpiresSeconds:      model.NewPointer(int64(60000)),
+			ExportDriverName:                         new(driverS3),
+			ExportAmazonS3AccessKeyId:                new("minioaccesskey"),
+			ExportAmazonS3SecretAccessKey:            new("miniosecretkey"),
+			ExportAmazonS3Bucket:                     new("mattermost-test"),
+			ExportAmazonS3Region:                     new("region"),
+			ExportAmazonS3Endpoint:                   new("s3.example.com"),
+			ExportAmazonS3PathPrefix:                 new("prefix"),
+			ExportAmazonS3SSL:                        new(true),
+			ExportAmazonS3SignV2:                     new(true),
+			ExportAmazonS3SSE:                        new(true),
+			ExportAmazonS3Trace:                      new(true),
+			ExportAmazonS3RequestTimeoutMilliseconds: new(int64(1000)),
+			ExportAmazonS3PresignExpiresSeconds:      new(int64(60000)),
 			ExportAmazonS3UploadPartSizeBytes:        model.NewPointer(int64(model.FileSettingsDefaultS3ExportUploadPartSizeBytes)),
-			ExportAmazonS3StorageClass:               model.NewPointer(""),
-		}, enableComplianceFeature, skipVerify)
+			ExportAmazonS3StorageClass:               new(""),
+		}, enableComplianceFeature, skipVerify, "")
 
 		require.Equal(t, expected, actual)
 	})

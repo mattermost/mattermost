@@ -12,12 +12,6 @@
 
 describe('Archive channel members spec', () => {
     before(() => {
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         // # Login as test user and visit create channel
         cy.apiInitSetup({loginAfter: true, promoteNewUserAsAdmin: true}).then(({team, channel}) => {
             cy.visit(`/${team.name}/channels/${channel.name}`);

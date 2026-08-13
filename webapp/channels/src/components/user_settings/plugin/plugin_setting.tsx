@@ -24,7 +24,7 @@ type Props = {
     updateSection: (section: string) => void;
     activeSection: string;
     section: PluginConfigurationSection;
-}
+};
 
 const PluginSetting = ({
     pluginId,

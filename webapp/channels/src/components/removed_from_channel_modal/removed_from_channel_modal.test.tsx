@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import RemovedFromChannelModal from 'components/removed_from_channel_modal/removed_from_channel_modal';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 describe('components/RemoveFromChannelModal', () => {
     const baseProps = {
@@ -17,39 +16,45 @@ describe('components/RemoveFromChannelModal', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <RemovedFromChannelModal {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should have state "show" equals true on mount', () => {
-        const wrapper = shallow(
+        renderWithContext(
             <RemovedFromChannelModal {...baseProps}/>,
         );
 
-        expect(wrapper.state('show')).toBe(true);
+        // Modal should be visible on mount (show state is true)
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
 
     test('should display correct props on Modal.Title and Modal.Body', () => {
-        const wrapper = mountWithIntl(
+        renderWithContext(
             <RemovedFromChannelModal {...baseProps}/>,
         );
 
-        expect(wrapper.find('.modal-title').text()).toBe('Removed from test-channel');
-        expect(wrapper.find('.modal-body').text()).toBe('Administrator removed you from test-channel');
+        expect(screen.getByText(/Removed from/)).toBeInTheDocument();
+        expect(screen.getByText('test-channel')).toBeInTheDocument();
+        expect(screen.getByText(/Administrator removed you from test-channel/)).toBeInTheDocument();
     });
 
     test('should fallback to default text on Modal.Body', () => {
-        baseProps.channelName = '';
-        baseProps.remover = '';
+        const props = {
+            ...baseProps,
+            channelName: '',
+            remover: '',
+        };
 
-        const wrapper = mountWithIntl(
-            <RemovedFromChannelModal {...baseProps}/>,
+        renderWithContext(
+            <RemovedFromChannelModal {...props}/>,
         );
 
-        expect(wrapper.find('.modal-title').text()).toBe('Removed from the channel');
-        expect(wrapper.find('.modal-body').text()).toBe('Someone removed you from the channel');
+        expect(screen.getByText(/Removed from/)).toBeInTheDocument();
+        expect(screen.getByText('the channel')).toBeInTheDocument();
+        expect(screen.getByText(/Someone removed you from the channel/)).toBeInTheDocument();
     });
 });

@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {render, screen} from 'tests/react_testing_utils';
 
 import menuItem from './menu_item';
 
 describe('components/MenuItem', () => {
-    const TestComponent = menuItem(() => null);
+    const TestComponent = menuItem(({text}: {text: React.ReactNode}) => <div>{text}</div>);
 
     const defaultProps = {
         show: true,
@@ -16,62 +17,47 @@ describe('components/MenuItem', () => {
         otherProp: 'extra-prop',
     };
 
-    test('should match snapshot not shown', () => {
+    test('should not render when show is false', () => {
         const props = {...defaultProps, show: false};
-        const wrapper = shallow(<TestComponent {...props}/>);
+        const {container} = render(<TestComponent {...props}/>);
 
-        expect(wrapper).toMatchInlineSnapshot('""');
+        expect(container.firstChild).toBeNull();
     });
 
-    test('should match snapshot shown with icon', () => {
+    test('should render with icon and appropriate classes', () => {
         const props = {...defaultProps, icon: 'test-icon'};
-        const wrapper = shallow(<TestComponent {...props}/>);
+        const {container} = render(<TestComponent {...props}/>);
 
-        expect(wrapper).toMatchInlineSnapshot(`
-            <li
-              className="MenuItem MenuItem--with-icon"
-              id="test-id"
-              role="menuitem"
-            >
-              <Component
-                ariaLabel="test-text"
-                id="test-id-button"
-                otherProp="extra-prop"
-                text={
-                  <React.Fragment>
-                    <span
-                      className="icon"
-                    >
-                      test-icon
-                    </span>
-                    <div
-                      className="text"
-                    >
-                      test-text
-                    </div>
-                  </React.Fragment>
-                }
-              />
-            </li>
-        `);
+        const menuItem = screen.getByRole('menuitem');
+        expect(menuItem).toBeInTheDocument();
+        expect(menuItem).toHaveAttribute('id', 'test-id');
+        expect(menuItem).toHaveClass('MenuItem', 'MenuItem--with-icon');
+
+        // Icon is rendered inside the menuitem
+        const iconSpan = container.querySelector('.icon');
+        expect(iconSpan).toBeInTheDocument();
+        expect(iconSpan).toHaveTextContent('test-icon');
+
+        // Text is in a div with class "text"
+        const textDiv = container.querySelector('.text');
+        expect(textDiv).toBeInTheDocument();
+        expect(textDiv).toHaveTextContent('test-text');
     });
 
-    test('should match snapshot shown without icon', () => {
-        const wrapper = shallow(<TestComponent {...defaultProps}/>);
+    test('should render without icon when icon prop is not provided', () => {
+        const {container} = render(<TestComponent {...defaultProps}/>);
 
-        expect(wrapper).toMatchInlineSnapshot(`
-            <li
-              className="MenuItem"
-              id="test-id"
-              role="menuitem"
-            >
-              <Component
-                ariaLabel="test-text"
-                id="test-id-button"
-                otherProp="extra-prop"
-                text="test-text"
-              />
-            </li>
-        `);
+        const menuItem = screen.getByRole('menuitem');
+        expect(menuItem).toBeInTheDocument();
+        expect(menuItem).toHaveAttribute('id', 'test-id');
+        expect(menuItem).toHaveClass('MenuItem');
+        expect(menuItem).not.toHaveClass('MenuItem--with-icon');
+
+        // Should not have icon span
+        const iconSpan = container.querySelector('.icon');
+        expect(iconSpan).not.toBeInTheDocument();
+
+        // Text should be present in the rendered component
+        expect(container).toHaveTextContent('test-text');
     });
 });

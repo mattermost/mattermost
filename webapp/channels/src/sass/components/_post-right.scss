@@ -92,6 +92,15 @@
             }
         }
 
+        &.current--user {
+            &.other--root,
+            &.post--root {
+                .post__header-set-custom-status {
+                    display: none;
+                }
+            }
+        }
+
         &.post--comment {
             .post__body {
                 border-left: none;
@@ -125,6 +134,12 @@
 
                         .post__time {
                             opacity: 0.73;
+                        }
+                    }
+
+                    &.same--user.post--bot {
+                        .post__header {
+                            float: none;
                         }
                     }
                 }

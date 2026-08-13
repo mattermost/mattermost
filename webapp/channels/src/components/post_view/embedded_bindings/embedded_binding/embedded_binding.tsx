@@ -38,13 +38,13 @@ type Props = {
     options?: Partial<TextFormattingOptions>;
 
     currentRelativeTeamUrl: string;
-}
+};
 
 type State = {
     checkOverflow: number;
     embed: AppBinding;
     bindings: AppBinding[];
-}
+};
 
 export default class EmbeddedBinding extends React.PureComponent<Props, State> {
     private imageProps: Record<string, any>;
@@ -161,7 +161,6 @@ export default class EmbeddedBinding extends React.PureComponent<Props, State> {
                         options={{
                             mentionHighlight: false,
                             renderer: new LinkOnlyRenderer(),
-                            autolinkedUrlSchemes: [],
                         }}
                         postId={this.props.post.id}
                     />

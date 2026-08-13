@@ -6,7 +6,6 @@ package api4
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strings"
 	"testing"
 
@@ -19,7 +18,6 @@ import (
 func TestGetAllRoles(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	roles, err := th.App.Srv().Store().Role().GetAll()
 	require.NoError(t, err)
@@ -42,7 +40,6 @@ func TestGetAllRoles(t *testing.T) {
 func TestGetRole(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	role := &model.Role{
 		Name:          model.NewId(),
@@ -85,7 +82,6 @@ func TestGetRole(t *testing.T) {
 func TestGetRoleByName(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	role := &model.Role{
 		Name:          model.NewId(),
@@ -128,7 +124,6 @@ func TestGetRoleByName(t *testing.T) {
 func TestGetRolesByNames(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	role1 := &model.Role{
 		Name:          model.NewId(),
@@ -208,7 +203,7 @@ func TestGetRolesByNames(t *testing.T) {
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		// too many roles should error with bad request
 		roles := []string{}
-		for i := 0; i < GetRolesByNamesMax+10; i++ {
+		for i := range GetRolesByNamesMax + 10 {
 			roles = append(roles, fmt.Sprintf("role1.Name%v", i))
 		}
 
@@ -221,7 +216,6 @@ func TestGetRolesByNames(t *testing.T) {
 func TestPatchRole(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	role := &model.Role{
 		Name:          model.NewId(),
@@ -244,7 +238,7 @@ func TestPatchRole(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		// Cannot edit a system admin
-		adminRole, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_admin")
+		adminRole, err := th.App.Srv().Store().Role().GetByName(th.Context, "system_admin")
 		assert.NoError(t, err)
 		defer func() {
 			_, err = th.App.Srv().Store().Job().Delete(adminRole.Id)
@@ -256,7 +250,7 @@ func TestPatchRole(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 
 		// Cannot give other roles read / write to system roles or manage roles because only system admin can do these actions
-		systemManager, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_manager")
+		systemManager, err := th.App.Srv().Store().Role().GetByName(th.Context, "system_manager")
 		assert.NoError(t, err)
 		defer func() {
 			_, err = th.App.Srv().Store().Job().Delete(systemManager.Id)
@@ -304,9 +298,8 @@ func TestPatchRole(t *testing.T) {
 		assert.Equal(t, received.Name, role.Name)
 		assert.Equal(t, received.DisplayName, role.DisplayName)
 		assert.Equal(t, received.Description, role.Description)
-		perms := []string{"create_direct_channel", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
-		sort.Strings(perms)
-		assert.EqualValues(t, received.Permissions, perms)
+		expectedPermissions := []string{"create_direct_channel", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
+		assert.ElementsMatch(t, expectedPermissions, received.Permissions)
 		assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
 		// Check a no-op patch succeeds.
@@ -330,6 +323,63 @@ func TestPatchRole(t *testing.T) {
 		Permissions: &[]string{"create_direct_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"},
 	}
 
+	t.Run("system manager cannot patch system_user", func(t *testing.T) {
+		systemUserRole, appErr := th.App.GetRoleByName(th.Context, model.SystemUserRoleId)
+		require.Nil(t, appErr)
+
+		originalPermissions := append([]string{}, systemUserRole.Permissions...)
+		require.NotContains(t, originalPermissions, model.PermissionEditOtherUsers.Id)
+
+		patchedPermissions := append([]string{}, originalPermissions...)
+		patchedPermissions = append(patchedPermissions, model.PermissionEditOtherUsers.Id)
+
+		th.LoginSystemManager(t)
+
+		_, systemUserResp, err := th.SystemManagerClient.PatchRole(context.Background(), systemUserRole.Id, &model.RolePatch{
+			Permissions: &patchedPermissions,
+		})
+		if assert.Error(t, err, "system_manager must not be able to patch system_user") {
+			CheckForbiddenStatus(t, systemUserResp)
+		}
+
+		systemUserRole, appErr = th.App.GetRoleByName(th.Context, model.SystemUserRoleId)
+		require.Nil(t, appErr)
+		assert.ElementsMatch(t, originalPermissions, systemUserRole.Permissions)
+		assert.NotContains(t, systemUserRole.Permissions, model.PermissionEditOtherUsers.Id, "system_manager must not be able to inject privileged permissions into system_user")
+	})
+
+	t.Run("system manager cannot patch system_guest", func(t *testing.T) {
+		license := model.NewTestLicense()
+		license.Features.GuestAccountsPermissions = new(true)
+		th.App.Srv().SetLicense(license)
+		t.Cleanup(func() {
+			th.App.Srv().SetLicense(nil)
+		})
+
+		systemGuestRole, appErr := th.App.GetRoleByName(th.Context, model.SystemGuestRoleId)
+		require.Nil(t, appErr)
+
+		originalPermissions := append([]string{}, systemGuestRole.Permissions...)
+		require.NotContains(t, originalPermissions, model.PermissionEditOtherUsers.Id)
+
+		patchedPermissions := append([]string{}, originalPermissions...)
+		patchedPermissions = append(patchedPermissions, model.PermissionEditOtherUsers.Id)
+
+		th.LoginSystemManager(t)
+
+		_, systemGuestResp, err := th.SystemManagerClient.PatchRole(context.Background(), systemGuestRole.Id, &model.RolePatch{
+			Permissions: &patchedPermissions,
+		})
+		if assert.Error(t, err, "system_manager must not be able to patch system_guest") {
+			CheckForbiddenStatus(t, systemGuestResp)
+		}
+
+		systemGuestRole, appErr = th.App.GetRoleByName(th.Context, model.SystemGuestRoleId)
+		require.Nil(t, appErr)
+		assert.ElementsMatch(t, originalPermissions, systemGuestRole.Permissions)
+		assert.NotContains(t, systemGuestRole.Permissions, model.PermissionEditOtherUsers.Id, "system_manager must not be able to inject privileged permissions into system_guest")
+	})
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		received, _, err := client.PatchRole(context.Background(), role.Id, patch)
 		require.NoError(t, err)
@@ -338,17 +388,16 @@ func TestPatchRole(t *testing.T) {
 		assert.Equal(t, received.Name, role.Name)
 		assert.Equal(t, received.DisplayName, role.DisplayName)
 		assert.Equal(t, received.Description, role.Description)
-		perms := []string{"create_direct_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
-		sort.Strings(perms)
-		assert.EqualValues(t, received.Permissions, perms)
+		expectedPermissions := []string{"create_direct_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"}
+		assert.ElementsMatch(t, expectedPermissions, received.Permissions)
 		assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
 		t.Run("Check guest permissions editing without E20 license", func(t *testing.T) {
 			license := model.NewTestLicense()
-			license.Features.GuestAccountsPermissions = model.NewPointer(false)
+			license.Features.GuestAccountsPermissions = new(false)
 			th.App.Srv().SetLicense(license)
 
-			guestRole, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_guest")
+			guestRole, err := th.App.Srv().Store().Role().GetByName(th.Context, "system_guest")
 			require.NoError(t, err)
 			received, resp, err = client.PatchRole(context.Background(), guestRole.Id, patch)
 			require.Error(t, err)
@@ -357,9 +406,9 @@ func TestPatchRole(t *testing.T) {
 
 		t.Run("Check guest permissions editing with E20 license", func(t *testing.T) {
 			license := model.NewTestLicense()
-			license.Features.GuestAccountsPermissions = model.NewPointer(true)
+			license.Features.GuestAccountsPermissions = new(true)
 			th.App.Srv().SetLicense(license)
-			guestRole, err := th.App.Srv().Store().Role().GetByName(context.Background(), "system_guest")
+			guestRole, err := th.App.Srv().Store().Role().GetByName(th.Context, "system_guest")
 			require.NoError(t, err)
 			_, _, err = client.PatchRole(context.Background(), guestRole.Id, patch)
 			require.NoError(t, err)

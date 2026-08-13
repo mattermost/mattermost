@@ -9,14 +9,14 @@ import (
 )
 
 type Reaction struct {
-	UserId    string  `json:"user_id"`
-	PostId    string  `json:"post_id"`
-	EmojiName string  `json:"emoji_name"`
-	CreateAt  int64   `json:"create_at"`
-	UpdateAt  int64   `json:"update_at"`
-	DeleteAt  int64   `json:"delete_at"`
-	RemoteId  *string `json:"remote_id"`
-	ChannelId string  `json:"channel_id"`
+	UserId    string  `json:"user_id" xml:"UserId"`
+	PostId    string  `json:"post_id" xml:"PostId"`
+	EmojiName string  `json:"emoji_name" xml:"EmojiName"`
+	CreateAt  int64   `json:"create_at" xml:"CreateAt"`
+	UpdateAt  int64   `json:"update_at" xml:"UpdateAt"`
+	DeleteAt  int64   `json:"delete_at" xml:"DeleteAt"`
+	RemoteId  *string `json:"remote_id" xml:"RemoteId"`
+	ChannelId string  `json:"channel_id" xml:"ChannelId"`
 }
 
 func (o *Reaction) IsValid() *AppError {
@@ -53,7 +53,7 @@ func (o *Reaction) PreSave() {
 	o.DeleteAt = 0
 
 	if o.RemoteId == nil {
-		o.RemoteId = NewPointer("")
+		o.RemoteId = new("")
 	}
 }
 
@@ -61,7 +61,7 @@ func (o *Reaction) PreUpdate() {
 	o.UpdateAt = GetMillis()
 
 	if o.RemoteId == nil {
-		o.RemoteId = NewPointer("")
+		o.RemoteId = new("")
 	}
 }
 

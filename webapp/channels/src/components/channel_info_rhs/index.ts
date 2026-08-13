@@ -7,6 +7,7 @@ import type {AnyAction, Dispatch} from 'redux';
 
 import {unfavoriteChannel, favoriteChannel, getChannelStats} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
+import {isChannelInManagedCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getCurrentChannel, isCurrentChannelFavorite, isCurrentChannelMuted, isCurrentChannelArchived, getCurrentChannelStats} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -52,6 +53,8 @@ function mapStateToProps(state: GlobalState) {
 
     const channelMembers = getProfilesInCurrentChannel(state);
 
+    const isInManagedCategory = channel ? isChannelInManagedCategory(state, channel.id) : false;
+
     const props = {
         channel,
         currentUser,
@@ -61,6 +64,7 @@ function mapStateToProps(state: GlobalState) {
         isMuted,
         isInvitingPeople,
         isMobile,
+        isInManagedCategory,
         canManageMembers,
         canManageProperties,
         channelStats,

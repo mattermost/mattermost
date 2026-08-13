@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @enterprise @permissions
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 const deleteExistingTeamOverrideSchemes = () => {
     cy.apiGetSchemes('team').then(({schemes}) => {

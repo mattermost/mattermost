@@ -28,8 +28,13 @@ const (
 type SuiteIFace interface {
 	GetSession(token string) (*model.Session, *model.AppError)
 	RolesGrantPermission(roleNames []string, permissionId string) bool
-	HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool
-	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
+	HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool)
+	HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool
+	HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool
+	UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError)
+	MFARequired(rctx request.CTX) *model.AppError
+	MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord
+	LogAuditRec(rctx request.CTX, auditRec *model.AuditRecord, err error)
 }
 
 type webConnActivityMessage struct {
@@ -82,6 +87,7 @@ type Hub struct {
 	stop            chan struct{}
 	didStop         chan struct{}
 	invalidateUser  chan string
+	invalidateAll   chan struct{}
 	activity        chan *webConnActivityMessage
 	directMsg       chan *webConnDirectMessage
 	explicitStop    bool
@@ -104,6 +110,7 @@ func newWebHub(ps *PlatformService) *Hub {
 		stop:            make(chan struct{}),
 		didStop:         make(chan struct{}),
 		invalidateUser:  make(chan string),
+		invalidateAll:   make(chan struct{}),
 		activity:        make(chan *webConnActivityMessage),
 		directMsg:       make(chan *webConnDirectMessage),
 		checkRegistered: make(chan *webConnSessionMessage),
@@ -123,7 +130,7 @@ func (ps *PlatformService) hubStart(broadcastHooks map[string]BroadcastHook) {
 
 	hubs := make([]*Hub, numberOfHubs)
 
-	for i := 0; i < numberOfHubs; i++ {
+	for i := range numberOfHubs {
 		hubs[i] = newWebHub(ps)
 		hubs[i].connectionIndex = i
 		hubs[i].broadcastHooks = broadcastHooks
@@ -158,7 +165,7 @@ func (ps *PlatformService) GetHubForUserId(userID string) *Hub {
 	// https://mattermost.atlassian.net/browse/MM-26629.
 	var hash maphash.Hash
 	hash.SetSeed(ps.hashSeed)
-	_, err := hash.Write([]byte(userID))
+	_, err := hash.WriteString(userID)
 	if err != nil {
 		ps.logger.Error("Unable to write userID to hash", mlog.String("userID", userID), mlog.Err(err))
 	}
@@ -213,6 +220,14 @@ func (ps *PlatformService) InvalidateCacheForChannelMembersNotifyProps(channelID
 func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
 	ps.Store.Channel().InvalidatePinnedPostCount(channelID)
 	ps.Store.Post().InvalidateLastPostTimeCache(channelID)
+}
+
+func (ps *PlatformService) InvalidateCacheForReadReceipts(postID string) {
+	ps.Store.ReadReceipt().InvalidateReadReceiptForPostsCache(postID)
+}
+
+func (ps *PlatformService) InvalidateCacheForTemporaryPost(id string) {
+	ps.Store.TemporaryPost().InvalidateTemporaryPost(id)
 }
 
 func (ps *PlatformService) InvalidateCacheForUser(userID string) {
@@ -451,6 +466,15 @@ func (h *Hub) InvalidateUser(userID string) {
 	}
 }
 
+// InvalidateAll invalidates the cached session state of every WebConn
+// registered with this hub. Global counterpart of InvalidateUser.
+func (h *Hub) InvalidateAll() {
+	select {
+	case h.invalidateAll <- struct{}{}:
+	case <-h.stop:
+	}
+}
+
 // UpdateActivity sets the LastUserActivityAt field for the connection
 // of the user.
 func (h *Hub) UpdateActivity(userID, sessionToken string, activityAt int64) {
@@ -505,7 +529,7 @@ func (h *Hub) Stop() {
 	<-h.didStop
 	// Ensure that all remaining elements are processed
 	// before shutting down.
-	for i := 0; i < hubSemaphoreCount; i++ {
+	for range hubSemaphoreCount {
 		h.hubSemaphore <- struct{}{}
 	}
 }
@@ -572,7 +596,7 @@ func (h *Hub) Start() {
 				}
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 
-				if webConnReg.conn.IsAuthenticated() && webConnReg.conn.reuseCount == 0 {
+				if webConnReg.conn.IsBasicAuthenticated() && webConnReg.conn.reuseCount == 0 {
 					// The hello message should only be sent when the reuseCount is 0.
 					// i.e in server restart, or long timeout, or fresh connection case.
 					// In case of seq number not found in dead queue, it is handled by
@@ -651,6 +675,18 @@ func (h *Hub) Start() {
 					for webConn := range connIndex.ForUser(userID) {
 						closeAndRemoveConn(connIndex, webConn)
 					}
+				}
+			case <-h.invalidateAll:
+				// Mirrors the invalidateUser arm across every conn,
+				// also clearing the session token so the next
+				// IsBasicAuthenticated check short-circuits instead
+				// of re-fetching from the cache.
+				for webConn := range connIndex.All() {
+					webConn.InvalidateCache()
+					webConn.SetSessionToken("")
+				}
+				if *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+					connIndex.clearChannels()
 				}
 			case activity := <-h.activity:
 				for webConn := range connIndex.ForUser(activity.userID) {
@@ -943,6 +979,16 @@ func (i *hubConnectionIndex) ForUser(id string) iter.Seq[*WebConn] {
 // ForChannel returns all connections for a channelID.
 func (i *hubConnectionIndex) ForChannel(channelID string) iter.Seq[*WebConn] {
 	return maps.Keys(i.byChannelID[channelID])
+}
+
+// clearChannels empties the channel-routing index in one shot. Intended
+// for paths that have already invalidated every conn registered with
+// the hub: any broadcast addressed to a channel will be filtered out
+// upstream by ShouldSendEvent, so the routing entries are dead weight
+// until conns either re-handshake or fully reconnect (both of which
+// repopulate the index via Add).
+func (i *hubConnectionIndex) clearChannels() {
+	clear(i.byChannelID)
 }
 
 // ForUserActiveCount returns the number of active connections for a userID

@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {trackEvent} from 'actions/telemetry_actions';
+import {Button} from '@mattermost/shared/components/button';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
@@ -12,7 +12,6 @@ import './purchase_link.scss';
 export interface Props {
     buttonTextElement: JSX.Element;
     eventID?: string;
-    className?: string;
 }
 
 const PurchaseLink: React.FC<Props> = (props: Props) => {
@@ -20,25 +19,21 @@ const PurchaseLink: React.FC<Props> = (props: Props) => {
 
     const handlePurchaseLinkClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         e.preventDefault();
-        trackEvent('admin', props.eventID || 'in_trial_purchase_license');
 
         openSalesLink();
     };
 
-    // Default classes for feature discovery context
-    const defaultClassName = 'btn btn-primary';
-
-    // Use provided className or default
-    const buttonClassName = props.className || defaultClassName;
-
     return (
-        <button
+        <Button
             id={props.eventID}
-            className={buttonClassName}
+            emphasis='tertiary'
+            size='xs'
+            variant='inverted'
+            className='annnouncementBar__purchaseNow'
             onClick={handlePurchaseLinkClick}
         >
             {props.buttonTextElement}
-        </button>
+        </Button>
     );
 };
 

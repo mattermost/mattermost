@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChainableT} from '../../types';
+import type {ChainableT} from '../../types';
 
 function uiGetPostTextBox(option = {exist: true}): ChainableT<JQuery> {
     if (option.exist) {
@@ -54,16 +54,53 @@ function uiGetPostEmbedContainer(postId: string): ChainableT<JQuery> {
 }
 Cypress.Commands.add('uiGetPostEmbedContainer', uiGetPostEmbedContainer);
 
+function getCenterPostById(postId: string): ChainableT<JQuery> {
+    // Prefer postView rows: virtualized lists may detach #post_<id> from a bare cy.get() query.
+    return cy.findAllByTestId('postView', {timeout: 20000}).
+        filter(`#post_${postId}`).
+        should('have.length.at.least', 1).
+        first().
+        scrollIntoView().
+        should('be.visible');
+}
+
 function getPost(postId: string): ChainableT<JQuery> {
     if (postId) {
-        return cy.get(`#post_${postId}`).should('be.visible');
+        return getCenterPostById(postId);
     }
 
     return cy.getLastPost();
 }
 Cypress.Commands.add('getPost', getPost);
 
-export function verifySavedPost(postId, message) {
+function getPostMmBlocks(postId: string): ChainableT<JQuery> {
+    return getCenterPostById(postId).find('.mm-blocks').should('exist');
+}
+Cypress.Commands.add('getPostMmBlocks', getPostMmBlocks);
+
+function getRhsPostMmBlocks(postId: string): ChainableT<JQuery> {
+    return cy.findAllByTestId('rhsPostView', {timeout: 20000}).
+        filter(`#rhsPost_${postId}`).
+        should('have.length.at.least', 1).
+        first().
+        find('.mm-blocks').
+        should('exist');
+}
+Cypress.Commands.add('getRhsPostMmBlocks', getRhsPostMmBlocks);
+
+function editLastPostWithNewMessage(message: string) {
+    cy.uiGetPostTextBox().type('{uparrow}');
+
+    // * Edit Post Input should appear
+    cy.get('#edit_textbox').should('be.visible');
+
+    // # Update the post message and click Save
+    cy.get('#edit_textbox').clear().type(message);
+    cy.get('#create_post').findByText('Save').scrollIntoView().click();
+}
+Cypress.Commands.add('editLastPostWithNewMessage', editLastPostWithNewMessage);
+
+export function verifySavedPost(postId: string, message: string) {
     // * Check that the center save icon has been updated correctly
     cy.get(`#post_${postId}`).trigger('mouseover', {force: true});
     cy.get(`#CENTER_flagIcon_${postId}`).
@@ -124,7 +161,7 @@ export function verifySavedPost(postId, message) {
     cy.get('#searchResultsCloseButton').should('be.visible').click();
 }
 
-export function verifyUnsavedPost(postId) {
+export function verifyUnsavedPost(postId: string) {
     // * Check that the center save icon has been updated correctly
     cy.get(`#post_${postId}`).trigger('mouseover', {force: true});
     cy.get(`#CENTER_flagIcon_${postId}`).
@@ -181,6 +218,16 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace Cypress {
         interface Chainable {
+
+            /**
+             * Edit last post with a new message
+             *
+             * @param {string} - message
+             *
+             * @example
+             *   cy.editLastPostWithNewMessage('new message');
+             */
+            editLastPostWithNewMessage: typeof editLastPostWithNewMessage;
 
             /**
              * Get post profile image of a given post ID or the last post if post ID is not given
@@ -253,6 +300,26 @@ declare global {
             uiGetReplyTextBox: typeof uiGetReplyTextBox;
 
             getPost: typeof getPost;
+
+            /**
+             * Get mm_blocks root within a center-channel post.
+             *
+             * @param {string} postId
+             *
+             * @example
+             *   cy.getPostMmBlocks(postId).within(() => { ... });
+             */
+            getPostMmBlocks: typeof getPostMmBlocks;
+
+            /**
+             * Get mm_blocks root within an RHS/thread post row.
+             *
+             * @param {string} postId
+             *
+             * @example
+             *   cy.getRhsPostMmBlocks(postId).within(() => { ... });
+             */
+            getRhsPostMmBlocks: typeof getRhsPostMmBlocks;
         }
     }
 }

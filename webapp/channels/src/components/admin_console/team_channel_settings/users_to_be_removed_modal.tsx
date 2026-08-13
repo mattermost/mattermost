@@ -5,6 +5,7 @@ import React, {useCallback, useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {UserProfile} from '@mattermost/types/users';
 
 import GroupsUsers from './group/group_users';
@@ -47,7 +48,7 @@ const UsersToBeRemovedModal = ({total, scope, scopeId, users, onExited}: Props) 
             defaultMessage='<b>{total, number} {total, plural, one {User} other {Users}}</b> To Be Removed'
             values={{
                 total,
-                b: (chunks: string) => <b>{chunks}</b>,
+                b: (chunks) => <b>{chunks}</b>,
             }}
         />
     );
@@ -103,15 +104,15 @@ const UsersToBeRemovedModal = ({total, scope, scopeId, users, onExited}: Props) 
                 />
             </Modal.Body>
             <Modal.Footer>
-                <button
+                <Button
                     type='button'
                     autoFocus={true}
-                    className='btn btn-primary'
+                    emphasis='primary'
                     onClick={handleHide}
                     id='closeModalButton'
                 >
                     {button}
-                </button>
+                </Button>
             </Modal.Footer>
         </Modal>
     );

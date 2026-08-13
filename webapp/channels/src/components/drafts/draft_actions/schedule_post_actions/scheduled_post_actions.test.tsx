@@ -82,12 +82,6 @@ describe('ScheduledPostActions Component', () => {
     let getMyChannelMembershipsnMock: jest.SpyInstance;
 
     beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-
         isCurrentUserSystemAdminMock = jest.spyOn(usersSelectors, 'isCurrentUserSystemAdmin');
         getMyChannelMembershipsnMock = jest.spyOn(commonSelectors, 'getMyChannelMemberships');
 

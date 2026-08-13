@@ -40,7 +40,7 @@ func applyEnvKey(key, value string, rValueSubject reflect.Value) {
 		return
 	}
 
-	if rFieldValue.Kind() == reflect.Ptr {
+	if rFieldValue.Kind() == reflect.Pointer {
 		rFieldValue = rFieldValue.Elem()
 		if !rFieldValue.IsValid() {
 			return
@@ -73,7 +73,7 @@ func applyEnvKey(key, value string, rValueSubject reflect.Value) {
 			rFieldValue.Set(reflect.ValueOf(intVal))
 		}
 	case reflect.Slice:
-		if rFieldValue.Type() == reflect.TypeOf(json.RawMessage{}) {
+		if rFieldValue.Type() == reflect.TypeFor[json.RawMessage]() {
 			rFieldValue.Set(reflect.ValueOf([]byte(value)))
 			break
 		}
@@ -100,7 +100,7 @@ func applyEnvironmentMap(inputConfig *model.Config, env map[string]string) *mode
 // generateEnvironmentMap creates a map[string]any containing true at the leaves mirroring the
 // configuration structure so the client can know which env variables are overridden
 func generateEnvironmentMap(env map[string]string, filter func(reflect.StructField) bool) map[string]any {
-	rType := reflect.TypeOf(model.Config{})
+	rType := reflect.TypeFor[model.Config]()
 	return generateEnvironmentMapWithBaseKey(env, rType, "MM", filter)
 }
 
@@ -110,8 +110,7 @@ func generateEnvironmentMapWithBaseKey(env map[string]string, rType reflect.Type
 	}
 
 	mapRepresentation := make(map[string]any)
-	for i := 0; i < rType.NumField(); i++ {
-		rField := rType.Field(i)
+	for rField := range rType.Fields() {
 		if filter != nil && !filter(rField) {
 			continue
 		}
@@ -183,12 +182,12 @@ func getVal(src any, path []string) reflect.Value {
 	}
 
 	// Move into the struct
-	if val.Kind() == reflect.Ptr {
+	if val.Kind() == reflect.Pointer {
 		val = val.Elem().FieldByName(path[0])
 	} else {
 		val = val.FieldByName(path[0])
 	}
-	if val.Kind() == reflect.Ptr {
+	if val.Kind() == reflect.Pointer {
 		val = val.Elem()
 	}
 	if val.Kind() == reflect.Struct {

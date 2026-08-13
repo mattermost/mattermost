@@ -1,17 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import debounce from 'lodash/debounce';
 import type {ReactNode} from 'react';
-import React, {memo, useEffect, useRef} from 'react';
+import React, {memo, useLayoutEffect, useRef} from 'react';
 
 import {ListItemSizeObserver} from './list_item_size_observer';
 
-const RESIZE_DEBOUNCE_TIME = 200; // in ms
-
 const listItemSizeObserver = ListItemSizeObserver.getInstance();
 
-interface Props {
+export interface Props {
     item: ReactNode;
     itemId: string;
     index: number;
@@ -35,43 +32,33 @@ const ListItem = (props: Props) => {
     // This prevents stale closures in the ResizeObserver callback
     // and ensures event handlers always have the latest values
     // we also update these refs whenever their source values change
-    useEffect(() => {
+    useLayoutEffect(() => {
         heightRef.current = props.height;
         widthRef.current = props.width;
         indexRef.current = props.index;
     }, [props.itemId, props.height, props.width, props.index]);
 
     // This effect is used to measure the height of the row as soon as the component mounts
-    useEffect(() => {
+    useLayoutEffect(() => {
         const newHeight = Math.ceil(rowRef?.current?.offsetHeight ?? 0);
         props.onHeightChange(props.itemId, newHeight, false);
     }, [props.itemId]);
 
-    // This effects adds the observer which calls height change callback debounced
-    useEffect(() => {
-        const debouncedOnHeightChange = debounce((changedHeight: number) => {
-            // Check if component is still mounted as it may have been
-            // unmounted by the time the debounced function is called
-            if (!rowRef.current) {
-                return;
-            }
-
-            // If width of container has changed then scroll bar position will be out of sync
-            // so we need to force a scroll correction
-            const forceScrollCorrection = rowRef.current.offsetWidth !== widthRef.current;
-
-            heightRef.current = changedHeight;
-
-            props.onHeightChange(props.itemId, changedHeight, forceScrollCorrection);
-        }, RESIZE_DEBOUNCE_TIME);
-
+    // This effects adds the observer which calls height change callback
+    useLayoutEffect(() => {
         function itemRowSizeObserverCallback(changedHeight: number) {
             if (!rowRef.current) {
                 return;
             }
 
             if (changedHeight !== heightRef.current) {
-                debouncedOnHeightChange(changedHeight);
+            // If width of container has changed then scroll bar position will be out of sync
+            // so we need to force a scroll correction
+                const forceScrollCorrection = rowRef.current.offsetWidth !== widthRef.current;
+
+                heightRef.current = changedHeight;
+
+                props.onHeightChange(props.itemId, changedHeight, forceScrollCorrection);
             }
         }
 
@@ -85,7 +72,6 @@ const ListItem = (props: Props) => {
         return () => {
             // We remove the observer here from a row
             cleanupSizeObserver?.();
-            debouncedOnHeightChange?.cancel();
             props.onUnmount(props.itemId, indexRef.current);
         };
     }, [props.itemId]);

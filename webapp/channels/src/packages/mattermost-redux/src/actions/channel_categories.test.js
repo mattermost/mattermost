@@ -525,6 +525,32 @@ describe('addChannelToInitialCategory', () => {
         expect(categoriesById.dmCategory2.channel_ids).toEqual(['gmChannel', 'dmChannel1', 'dmChannel2']);
         expect(categoriesById.channelsCategory1.channel_ids).toEqual(['publicChannel1', 'gmChannel']);
     });
+
+    test('should not add channel to Channels category when default_category_name is set', async () => {
+        const channelsCategory1 = {id: 'channelsCategory1', team_id: 'team1', type: CategoryTypes.CHANNELS, channel_ids: ['publicChannel1', 'privateChannel1']};
+
+        const store = configureStore({
+            entities: {
+                channelCategories: {
+                    byId: {
+                        channelsCategory1,
+                    },
+                    orderByTeam: {
+                        team1: ['channelsCategory1'],
+                    },
+                },
+            },
+        });
+
+        const newChannel = {id: 'newChannel', type: General.OPEN_CHANNEL, team_id: 'team1', default_category_name: 'My Category'};
+
+        const result = await store.dispatch(Actions.addChannelToInitialCategory(newChannel));
+
+        expect(result).toEqual({data: false});
+
+        const categoriesById = getAllCategoriesByIds(store.getState());
+        expect(categoriesById.channelsCategory1.channel_ids).toEqual(['publicChannel1', 'privateChannel1']);
+    });
 });
 
 describe('addChannelToCategory', () => {

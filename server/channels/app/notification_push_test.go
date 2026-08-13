@@ -33,6 +33,7 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 		userNotifySetting    string
 		channelNotifySetting string
 		withSystemPost       bool
+		withSilentPost       bool
 		wasMentioned         bool
 		isMuted              bool
 		expected             model.NotificationReason
@@ -56,6 +57,16 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			wasMentioned:         true,
 			isMuted:              false,
 			expected:             model.NotificationReasonSystemMessage,
+			isGM:                 false,
+		},
+		{
+			name:                 "When post is a silent notification",
+			userNotifySetting:    model.UserNotifyAll,
+			channelNotifySetting: "",
+			withSilentPost:       true,
+			wasMentioned:         true,
+			isMuted:              false,
+			expected:             model.NotificationReasonSilent,
 			isGM:                 false,
 		},
 		{
@@ -418,6 +429,10 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			if tc.withSystemPost {
 				post.Type = model.PostTypeJoinChannel
 			}
+			if tc.withSilentPost {
+				post.AddProp(model.PostPropsSilentNotification, true)
+				post.AddProp(model.PostPropsFromWebhook, "true")
+			}
 
 			channelNotifyProps := make(map[string]string)
 			if tc.channelNotifySetting != "" {
@@ -433,8 +448,6 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 
 func TestDoesStatusAllowPushNotification(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
 
 	userID := model.NewId()
 	channelID := model.NewId()
@@ -650,7 +663,6 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 func TestGetPushNotificationMessage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
@@ -1032,29 +1044,28 @@ func TestGetPushNotificationMessage(t *testing.T) {
 
 func TestBuildPushNotificationMessageMentions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	team := th.CreateTeam()
-	sender := th.CreateUser()
-	receiver := th.CreateUser()
-	th.LinkUserToTeam(sender, team)
-	th.LinkUserToTeam(receiver, team)
-	channel1 := th.CreateChannel(th.Context, team)
-	th.AddUserToChannel(sender, channel1)
-	th.AddUserToChannel(receiver, channel1)
+	team := th.CreateTeam(t)
+	sender := th.CreateUser(t)
+	receiver := th.CreateUser(t)
+	th.LinkUserToTeam(t, sender, team)
+	th.LinkUserToTeam(t, receiver, team)
+	channel1 := th.CreateChannel(t, team)
+	th.AddUserToChannel(t, sender, channel1)
+	th.AddUserToChannel(t, receiver, channel1)
 
-	channel2 := th.CreateChannel(th.Context, team)
-	th.AddUserToChannel(sender, channel2)
-	th.AddUserToChannel(receiver, channel2)
+	channel2 := th.CreateChannel(t, team)
+	th.AddUserToChannel(t, sender, channel2)
+	th.AddUserToChannel(t, receiver, channel2)
 
 	// Create three mention posts and two non-mention posts
-	th.CreateMessagePost(channel1, "@channel Hello")
-	th.CreateMessagePost(channel1, "@all Hello")
-	th.CreateMessagePost(channel1, fmt.Sprintf("@%s Hello in channel 1", receiver.Username))
-	th.CreateMessagePost(channel2, fmt.Sprintf("@%s Hello in channel 2", receiver.Username))
-	th.CreatePost(channel1)
-	post := th.CreatePost(channel1)
+	th.CreateMessagePost(t, channel1, "@channel Hello")
+	th.CreateMessagePost(t, channel1, "@all Hello")
+	th.CreateMessagePost(t, channel1, fmt.Sprintf("@%s Hello in channel 1", receiver.Username))
+	th.CreateMessagePost(t, channel2, fmt.Sprintf("@%s Hello in channel 2", receiver.Username))
+	th.CreatePost(t, channel1)
+	post := th.CreatePost(t, channel1)
 
 	for name, tc := range map[string]struct {
 		explicitMention    bool
@@ -1089,8 +1100,8 @@ func TestBuildPushNotificationMessageMentions(t *testing.T) {
 
 func TestSendPushNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	_, err := th.App.CreateSession(th.Context, &model.Session{
 		UserId:    th.BasicUser.Id,
 		DeviceId:  "test",
@@ -1108,10 +1119,196 @@ func TestSendPushNotifications(t *testing.T) {
 	})
 }
 
+func TestSendPushNotificationsTransportRouting(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	const (
+		standardToken = model.PushNotifyAppleReactNative + ":standardtoken"
+		voIPToken     = model.PushNotifyAppleReactNative + ":voiptoken"
+	)
+
+	for _, tc := range []struct {
+		name              string
+		deviceId          string
+		voIPDeviceId      string
+		sessionProps      map[string]string
+		transport         model.PushTransport
+		expectSent        bool
+		expectedDeviceID  string
+		expectedTransport model.PushTransport
+	}{
+		{
+			name:              "VoIP transport with VoIP token registered uses VoIP token",
+			deviceId:          standardToken,
+			voIPDeviceId:      voIPToken,
+			transport:         model.PushTransportVoIP,
+			expectSent:        true,
+			expectedDeviceID:  "voiptoken",
+			expectedTransport: model.PushTransportVoIP,
+		},
+		{
+			name:              "VoIP transport without VoIP token downgrades to standard",
+			deviceId:          standardToken,
+			voIPDeviceId:      "",
+			transport:         model.PushTransportVoIP,
+			expectSent:        true,
+			expectedDeviceID:  "standardtoken",
+			expectedTransport: model.PushTransportStandard,
+		},
+		{
+			name:         "VoIP transport with invalidated VoIP token downgrades to standard",
+			deviceId:     standardToken,
+			voIPDeviceId: voIPToken,
+			// The proxy previously reported "remove" for this VoIP token, so
+			// the session is marked. Subsequent VoIP-transport pushes must
+			// fall back to the standard alert path on the standard token.
+			sessionProps:      map[string]string{model.SessionPropLastRemovedVoIPDeviceId: voIPToken},
+			transport:         model.PushTransportVoIP,
+			expectSent:        true,
+			expectedDeviceID:  "standardtoken",
+			expectedTransport: model.PushTransportStandard,
+		},
+		{
+			name:              "standard transport ignores VoIP token even when present",
+			deviceId:          standardToken,
+			voIPDeviceId:      voIPToken,
+			transport:         model.PushTransportStandard,
+			expectSent:        true,
+			expectedDeviceID:  "standardtoken",
+			expectedTransport: model.PushTransportStandard,
+		},
+		{
+			// "Silence chat, keep ringing": iOS user turned off notifications,
+			// the standard alert token went 410 (last_removed_device_id set),
+			// but PushKit registration is independent and stays alive.
+			name:              "VoIP transport with dead standard but live VoIP uses VoIP",
+			deviceId:          standardToken,
+			voIPDeviceId:      voIPToken,
+			sessionProps:      map[string]string{model.SessionPropLastRemovedDeviceId: standardToken},
+			transport:         model.PushTransportVoIP,
+			expectSent:        true,
+			expectedDeviceID:  "voiptoken",
+			expectedTransport: model.PushTransportVoIP,
+		},
+		{
+			// Companion to "silence chat, keep ringing": a chat push must NOT
+			// fall through to the VoIP token; the user explicitly opted out.
+			name:         "standard transport with dead standard token sends nothing",
+			deviceId:     standardToken,
+			voIPDeviceId: voIPToken,
+			sessionProps: map[string]string{model.SessionPropLastRemovedDeviceId: standardToken},
+			transport:    model.PushTransportStandard,
+			expectSent:   false,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			th := Setup(t).InitBasic(t)
+
+			handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+			pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+			defer pushServer.Close()
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+			})
+
+			_, err := th.App.CreateSession(th.Context, &model.Session{
+				UserId:       th.BasicUser.Id,
+				DeviceId:     tc.deviceId,
+				VoIPDeviceId: tc.voIPDeviceId,
+				Props:        tc.sessionProps,
+				ExpiresAt:    model.GetMillis() + 100000,
+			})
+			require.Nil(t, err)
+
+			msg := &model.PushNotification{
+				Type:      model.PushTypeMessage,
+				SubType:   model.PushSubTypeCalls,
+				Transport: tc.transport,
+			}
+			appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "")
+			require.Nil(t, appErr)
+
+			if !tc.expectSent {
+				assert.Never(t, func() bool {
+					return len(handler.notifications()) > 0
+				}, 500*time.Millisecond, 10*time.Millisecond, "expected no push notifications")
+				return
+			}
+
+			require.Eventually(t, func() bool {
+				return len(handler.notifications()) == 1
+			}, 2*time.Second, 10*time.Millisecond, "expected exactly one push notification")
+
+			notifications := handler.notifications()
+			assert.Equal(t, tc.expectedDeviceID, notifications[0].DeviceId)
+			assert.Equal(t, tc.expectedTransport, notifications[0].Transport)
+		})
+	}
+}
+
+func TestSendPushNotificationsVoIPRemoveTracking(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	handler := &testPushNotificationHandler{t: t, behavior: "always_remove"}
+	pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+	defer pushServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+	})
+
+	session, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId:       th.BasicUser.Id,
+		DeviceId:     model.PushNotifyAppleReactNative + ":standardtoken",
+		VoIPDeviceId: model.PushNotifyAppleReactNative + ":voiptoken",
+		ExpiresAt:    model.GetMillis() + 100000,
+	})
+	require.Nil(t, err)
+
+	msg := &model.PushNotification{
+		Type:      model.PushTypeMessage,
+		SubType:   model.PushSubTypeCalls,
+		Transport: model.PushTransportVoIP,
+	}
+	appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "")
+	require.Nil(t, appErr)
+
+	require.Eventually(t, func() bool {
+		return len(handler.notifications()) == 1
+	}, 2*time.Second, 10*time.Millisecond)
+
+	// The recorded "last removed" prop should be VoIP-specific, not the standard one.
+	updated, err := th.App.GetSession(session.Token)
+	require.Nil(t, err)
+	assert.Equal(t, session.VoIPDeviceId, updated.Props[model.SessionPropLastRemovedVoIPDeviceId])
+	assert.Empty(t, updated.Props[model.SessionPropLastRemovedDeviceId], "standard remove prop must not be touched")
+
+	// Send a second VoIP push: the VoIP token is now marked removed, so the
+	// dispatch should downgrade to the standard transport and use DeviceId.
+	msg2 := &model.PushNotification{
+		Type:      model.PushTypeMessage,
+		SubType:   model.PushSubTypeCalls,
+		Transport: model.PushTransportVoIP,
+	}
+	appErr = th.App.sendPushNotificationToAllSessions(th.Context, msg2, th.BasicUser.Id, "")
+	require.Nil(t, appErr)
+
+	require.Eventually(t, func() bool {
+		return len(handler.notifications()) == 2
+	}, 2*time.Second, 10*time.Millisecond)
+
+	second := handler.notifications()[1]
+	assert.Equal(t, "standardtoken", second.DeviceId, "should have downgraded to the standard token")
+	assert.Equal(t, model.PushTransportStandard, second.Transport, "Transport should have been downgraded")
+}
+
 func TestShouldSendPushNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	t.Run("should return true if forced", func(t *testing.T) {
 		user := &model.User{Id: model.NewId(), Email: "unit@test.com", NotifyProps: make(map[string]string)}
 		user.NotifyProps[model.PushNotifyProp] = model.UserNotifyNone
@@ -1123,8 +1320,44 @@ func TestShouldSendPushNotifications(t *testing.T) {
 
 		status := &model.Status{UserId: user.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: post.ChannelId}
 
-		result := th.App.ShouldSendPushNotification(user, channelNotifyProps, false, status, post, false)
+		result := th.App.ShouldSendPushNotification(th.Context, user, channelNotifyProps, false, status, post, false)
 		assert.True(t, result)
+	})
+
+	t.Run("should return false for silent post without force", func(t *testing.T) {
+		// User and channel are both configured to receive all-activity push;
+		// silent must suppress the push regardless of preferences.
+		user := &model.User{Id: model.NewId(), Email: "unit@test.com", NotifyProps: make(map[string]string)}
+		user.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		post := &model.Post{UserId: model.NewId(), ChannelId: model.NewId()}
+		post.AddProp(model.PostPropsSilentNotification, true)
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyAll}
+
+		status := &model.Status{UserId: user.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+
+		result := th.App.ShouldSendPushNotification(th.Context, user, channelNotifyProps, true, status, post, false)
+		assert.False(t, result, "silent post must suppress push even when all-activity push is enabled")
+	})
+
+	t.Run("force notification overrides silent for push", func(t *testing.T) {
+		// Core override semantic: force must win over silent. User and
+		// channel push are both Off; force must still produce a push, even
+		// when silent is also set.
+		user := &model.User{Id: model.NewId(), Email: "unit@test.com", NotifyProps: make(map[string]string)}
+		user.NotifyProps[model.PushNotifyProp] = model.UserNotifyNone
+
+		post := &model.Post{UserId: model.NewId(), ChannelId: model.NewId()}
+		post.AddProp(model.PostPropsSilentNotification, true)
+		post.AddProp(model.PostPropsForceNotification, model.NewId())
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyNone, model.MarkUnreadNotifyProp: model.ChannelMarkUnreadMention}
+
+		status := &model.Status{UserId: user.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: post.ChannelId}
+
+		result := th.App.ShouldSendPushNotification(th.Context, user, channelNotifyProps, false, status, post, false)
+		assert.True(t, result, "force must win over silent — IsNotificationSuppressed returns false when both are set")
 	})
 
 	t.Run("should return false if force undefined", func(t *testing.T) {
@@ -1137,8 +1370,52 @@ func TestShouldSendPushNotifications(t *testing.T) {
 
 		status := &model.Status{UserId: user.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: post.ChannelId}
 
-		result := th.App.ShouldSendPushNotification(user, channelNotifyProps, false, status, post, false)
+		result := th.App.ShouldSendPushNotification(th.Context, user, channelNotifyProps, false, status, post, false)
 		assert.False(t, result)
+	})
+
+	t.Run("should return false if recipient is a bot", func(t *testing.T) {
+		botUser := &model.User{Id: model.NewId(), Email: "bot@test.com", IsBot: true, NotifyProps: make(map[string]string)}
+		botUser.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		post := &model.Post{UserId: model.NewId(), ChannelId: model.NewId()}
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyAll}
+
+		status := &model.Status{UserId: botUser.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+
+		result := th.App.ShouldSendPushNotification(th.Context, botUser, channelNotifyProps, true, status, post, false)
+		assert.False(t, result)
+	})
+
+	t.Run("should return false if recipient is a bot even with force notification", func(t *testing.T) {
+		botUser := &model.User{Id: model.NewId(), Email: "bot@test.com", IsBot: true, NotifyProps: make(map[string]string)}
+		botUser.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		post := &model.Post{UserId: model.NewId(), ChannelId: model.NewId()}
+		post.AddProp(model.PostPropsForceNotification, model.NewId())
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyAll}
+
+		status := &model.Status{UserId: botUser.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+
+		result := th.App.ShouldSendPushNotification(th.Context, botUser, channelNotifyProps, true, status, post, false)
+		assert.False(t, result)
+	})
+
+	t.Run("should return true for regular user even when post author is a bot", func(t *testing.T) {
+		botId := model.NewId()
+		regularUser := &model.User{Id: model.NewId(), Email: "user@test.com", IsBot: false, NotifyProps: make(map[string]string)}
+		regularUser.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		post := &model.Post{UserId: botId, ChannelId: model.NewId()}
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyAll}
+
+		status := &model.Status{UserId: regularUser.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+
+		result := th.App.ShouldSendPushNotification(th.Context, regularUser, channelNotifyProps, true, status, post, false)
+		assert.True(t, result)
 	})
 }
 
@@ -1206,9 +1483,14 @@ func (h *testPushNotificationHandler) handleReq(w http.ResponseWriter, r *http.R
 		}
 
 		var resp model.PushResponse
-		if h.behavior == "simple" {
+		switch h.behavior {
+		case "simple":
 			resp = model.NewOkPushResponse()
-		} else {
+		case "fail":
+			resp = model.NewErrorPushResponse("device error")
+		case "always_remove":
+			resp = model.NewRemovePushResponse()
+		default:
 			// alternating between ok and remove response to test both code paths.
 			if h._numReqs%2 == 0 {
 				resp = model.NewOkPushResponse()
@@ -1246,9 +1528,8 @@ func (h *testPushNotificationHandler) notificationAcks() []*model.PushNotificati
 func TestClearPushNotificationSync(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
-	handler := &testPushNotificationHandler{t: t}
+	handler := &testPushNotificationHandler{t: t, behavior: "simple"}
 	pushServer := httptest.NewServer(
 		http.HandlerFunc(handler.handleReq),
 	)
@@ -1277,6 +1558,10 @@ func TestClearPushNotificationSync(t *testing.T) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
+
+	diagnosticID := model.NewId()
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	mockSystemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
 
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("GetSessionsWithActiveDeviceIds", mock.AnythingOfType("string")).Return([]*model.Session{sess1, sess2}, nil)
@@ -1323,7 +1608,6 @@ func TestClearPushNotificationSync(t *testing.T) {
 func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	handler := &testPushNotificationHandler{t: t}
 	pushServer := httptest.NewServer(
@@ -1355,6 +1639,10 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
+	diagnosticID := model.NewId()
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	mockSystemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
+
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("GetSessionsWithActiveDeviceIds", mock.AnythingOfType("string")).Return([]*model.Session{sess1, sess2}, nil)
 	mockSessionStore.On("UpdateProps", mock.Anything).Return(nil)
@@ -1383,7 +1671,6 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 func TestSendTestPushNotification(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	handler := &testPushNotificationHandler{t: t}
 	pushServer := httptest.NewServer(
@@ -1396,9 +1683,9 @@ func TestSendTestPushNotification(t *testing.T) {
 	})
 
 	// Per mock definition, first time will send remove, second time will send OK
-	result := th.App.SendTestPushNotification("platform:id")
+	result := th.App.SendTestPushNotification(th.Context, "platform:id")
 	assert.Equal(t, "false", result)
-	result = th.App.SendTestPushNotification("platform:id")
+	result = th.App.SendTestPushNotification(th.Context, "platform:id")
 	assert.Equal(t, "true", result)
 
 	// Server side verification.
@@ -1411,7 +1698,6 @@ func TestSendTestPushNotification(t *testing.T) {
 func TestSendAckToPushProxy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	handler := &testPushNotificationHandler{t: t}
 	pushServer := httptest.NewServer(
@@ -1429,6 +1715,10 @@ func TestSendAckToPushProxy(t *testing.T) {
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
+	diagnosticID := model.NewId()
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	mockSystemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
+
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
 	mockStore.On("System").Return(&mockSystemStore)
@@ -1442,7 +1732,7 @@ func TestSendAckToPushProxy(t *testing.T) {
 		Id:               "testid",
 		NotificationType: model.PushTypeMessage,
 	}
-	err := th.App.SendAckToPushProxy(ack)
+	err := th.App.SendAckToPushProxy(th.Context, ack)
 	require.NoError(t, err)
 	// Server side verification.
 	// We verify that 1 request has been sent, and also check the message contents.
@@ -1459,8 +1749,7 @@ func TestAllPushNotifications(t *testing.T) {
 		t.Skip("skipping all push notifications test in short mode")
 	}
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Create 10 users, each having 2 sessions.
 	type userSession struct {
@@ -1468,24 +1757,24 @@ func TestAllPushNotifications(t *testing.T) {
 		session *model.Session
 	}
 	var testData []userSession
-	for i := 0; i < 10; i++ {
-		u := th.CreateUser()
+	for range 10 {
+		u := th.CreateUser(t)
 		sess, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
-			DeviceId:  "deviceID" + u.Id,
+			DeviceId:  "deviceId" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		})
 		require.Nil(t, err)
 		// We don't need to track the 2nd session.
 		_, err = th.App.CreateSession(th.Context, &model.Session{
 			UserId:    u.Id,
-			DeviceId:  "deviceID" + u.Id,
+			DeviceId:  "deviceId" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		})
 		require.Nil(t, err)
 		_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, u.Id)
 		require.Nil(t, err)
-		th.AddUserToChannel(u, th.BasicChannel)
+		th.AddUserToChannel(t, u, th.BasicChannel)
 		testData = append(testData, userSession{
 			user:    u,
 			session: sess,
@@ -1515,7 +1804,7 @@ func TestAllPushNotifications(t *testing.T) {
 			go func(user model.User) {
 				defer wg.Done()
 				notification := &PostNotification{
-					Post:    th.CreatePost(th.BasicChannel),
+					Post:    th.CreatePost(t, th.BasicChannel),
 					Channel: th.BasicChannel,
 					ProfileMap: map[string]*model.User{
 						user.Id: &user,
@@ -1567,7 +1856,6 @@ func TestAllPushNotifications(t *testing.T) {
 func TestPushNotificationRace(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	memoryStore := config.NewTestMemoryStore()
 	mockStore := testlib.GetMockStoreForSetupFunctions()
@@ -1624,13 +1912,12 @@ func TestPushNotificationRace(t *testing.T) {
 func TestPushNotificationAttachment(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	originalMessage := "hello world"
 	post := &model.Post{
 		Message: originalMessage,
 		Props: map[string]any{
-			model.PostPropsAttachments: []*model.SlackAttachment{
+			model.PostPropsAttachments: []*model.MessageAttachment{
 				{
 					AuthorName: "testuser",
 					Text:       "test attachment",
@@ -1655,7 +1942,6 @@ func TestPushNotificationAttachment(t *testing.T) {
 // Run it with | grep -v '{"level"' to prevent spamming the console.
 func BenchmarkPushNotificationThroughput(b *testing.B) {
 	th := SetupWithStoreMock(b)
-	defer th.TearDown()
 
 	handler := &testPushNotificationHandler{
 		t:        b,
@@ -1677,6 +1963,10 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
 
+	diagnosticID := model.NewId()
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	mockSystemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
+
 	mockSessionStore := mocks.SessionStore{}
 	mockPreferenceStore := mocks.PreferenceStore{}
 	mockPreferenceStore.On("Get", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Preference{Value: "test"}, nil)
@@ -1693,26 +1983,26 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 		session *model.Session
 	}
 	var testData []userSession
-	for i := 0; i < 50; i++ {
+	for range 50 {
 		id := model.NewId()
 		u := &model.User{
 			Id:            id,
 			Email:         "success+" + id + "@simulator.amazonses.com",
 			Username:      "un_" + id,
 			Nickname:      "nn_" + id,
-			Password:      "Password1",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 		sess1 := &model.Session{
 			Id:        "id1",
 			UserId:    u.Id,
-			DeviceId:  "deviceID" + u.Id,
+			DeviceId:  "deviceId" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		}
 		sess2 := &model.Session{
 			Id:        "id2",
 			UserId:    u.Id,
-			DeviceId:  "deviceID" + u.Id,
+			DeviceId:  "deviceId" + u.Id,
 			ExpiresAt: model.GetMillis() + 100000,
 		}
 		mockSessionStore.On("GetSessionsWithActiveDeviceIds", u.Id).Return([]*model.Session{sess1, sess2}, nil)
@@ -1727,7 +2017,6 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
 		*cfg.LogSettings.EnableConsole = false
-		*cfg.NotificationLogSettings.EnableConsole = false
 	})
 
 	ch := &model.Channel{
@@ -1737,12 +2026,11 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 		Name:     "testch",
 	}
 
-	b.ResetTimer()
 	// We have an inner loop which ranges the testdata slice
 	// and we just repeat that.
 	then := time.Now()
 	cnt := 0
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		cnt++
 		var wg sync.WaitGroup
 		for j, data := range testData {
@@ -1783,6 +2071,5 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 		wg.Wait()
 	}
 	b.Logf("throughput: %f reqs/s", float64(len(testData)*cnt)/time.Since(then).Seconds())
-	b.StopTimer()
 	time.Sleep(2 * time.Second)
 }

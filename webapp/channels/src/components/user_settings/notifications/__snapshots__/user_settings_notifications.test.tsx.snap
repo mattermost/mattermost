@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot 1`] = `
 Object {
@@ -85,9 +85,10 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -122,9 +123,10 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -158,9 +160,10 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -194,9 +197,47 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
+            >
+              <h4
+                class="section-min__title"
+                id="channelMentionAutoFollowTitle"
+              >
+                Auto-follow threads on channel-wide mentions
+              </h4>
+              <button
+                aria-expanded="false"
+                aria-labelledby="channelMentionAutoFollowTitle channelMentionAutoFollowEdit"
+                class="color--link style--none section-min__edit"
+                id="channelMentionAutoFollowEdit"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
+            </div>
+            <div
+              class="section-min__describe"
+              id="channelMentionAutoFollowDesc"
+            >
+              On
+            </div>
+          </div>
+          <div
+            class="divider-light"
+          />
+          <div
+            class="section-min"
+            data-testid="section-min"
+          >
+            <div
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -230,9 +271,10 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -294,12 +336,12 @@ Object {
                     class="sectionNoticeActions"
                   >
                     <button
-                      class="btn btn-sm sectionNoticeButton btn-primary"
+                      class="btn btn-primary btn-sm sectionNoticeButton"
                     >
                       Send a test notification
                     </button>
                     <button
-                      class="btn btn-sm sectionNoticeButton btn-tertiary"
+                      class="btn btn-tertiary btn-sm sectionNoticeButton"
                     >
                       Troubleshooting docs
                       <i
@@ -396,9 +438,10 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -433,9 +476,10 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -469,9 +513,10 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -505,9 +550,47 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="channelMentionAutoFollowTitle"
+            >
+              Auto-follow threads on channel-wide mentions
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="channelMentionAutoFollowTitle channelMentionAutoFollowEdit"
+              class="color--link style--none section-min__edit"
+              id="channelMentionAutoFollowEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="channelMentionAutoFollowDesc"
+          >
+            On
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -541,9 +624,10 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -605,12 +689,12 @@ Object {
                   class="sectionNoticeActions"
                 >
                   <button
-                    class="btn btn-sm sectionNoticeButton btn-primary"
+                    class="btn btn-primary btn-sm sectionNoticeButton"
                   >
                     Send a test notification
                   </button>
                   <button
-                    class="btn btn-sm sectionNoticeButton btn-tertiary"
+                    class="btn btn-tertiary btn-sm sectionNoticeButton"
                   >
                     Troubleshooting docs
                     <i
@@ -676,6 +760,13 @@ Object {
   "queryByTitle": [Function],
   "replaceStoreState": [Function],
   "rerender": [Function],
+  "store": Object {
+    "@@observable": [Function],
+    "dispatch": [Function],
+    "getState": [Function],
+    "replaceReducer": [Function],
+    "subscribe": [Function],
+  },
   "unmount": [Function],
   "updateStoreState": [Function],
 }
@@ -766,9 +857,10 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -803,9 +895,10 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -839,9 +932,10 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -875,9 +969,47 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
+            >
+              <h4
+                class="section-min__title"
+                id="channelMentionAutoFollowTitle"
+              >
+                Auto-follow threads on channel-wide mentions
+              </h4>
+              <button
+                aria-expanded="false"
+                aria-labelledby="channelMentionAutoFollowTitle channelMentionAutoFollowEdit"
+                class="color--link style--none section-min__edit"
+                id="channelMentionAutoFollowEdit"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
+            </div>
+            <div
+              class="section-min__describe"
+              id="channelMentionAutoFollowDesc"
+            >
+              On
+            </div>
+          </div>
+          <div
+            class="divider-light"
+          />
+          <div
+            class="section-min"
+            data-testid="section-min"
+          >
+            <div
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -914,9 +1046,10 @@ Object {
           />
           <div
             class="section-min isDisabled"
+            data-testid="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title isDisabled"
@@ -977,12 +1110,12 @@ Object {
                     class="sectionNoticeActions"
                   >
                     <button
-                      class="btn btn-sm sectionNoticeButton btn-primary"
+                      class="btn btn-primary btn-sm sectionNoticeButton"
                     >
                       Send a test notification
                     </button>
                     <button
-                      class="btn btn-sm sectionNoticeButton btn-tertiary"
+                      class="btn btn-tertiary btn-sm sectionNoticeButton"
                     >
                       Troubleshooting docs
                       <i
@@ -1079,9 +1212,10 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1116,9 +1250,10 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1152,9 +1287,10 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1188,9 +1324,47 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="channelMentionAutoFollowTitle"
+            >
+              Auto-follow threads on channel-wide mentions
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="channelMentionAutoFollowTitle channelMentionAutoFollowEdit"
+              class="color--link style--none section-min__edit"
+              id="channelMentionAutoFollowEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="channelMentionAutoFollowDesc"
+          >
+            On
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1227,9 +1401,10 @@ Object {
         />
         <div
           class="section-min isDisabled"
+          data-testid="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title isDisabled"
@@ -1290,12 +1465,12 @@ Object {
                   class="sectionNoticeActions"
                 >
                   <button
-                    class="btn btn-sm sectionNoticeButton btn-primary"
+                    class="btn btn-primary btn-sm sectionNoticeButton"
                   >
                     Send a test notification
                   </button>
                   <button
-                    class="btn btn-sm sectionNoticeButton btn-tertiary"
+                    class="btn btn-tertiary btn-sm sectionNoticeButton"
                   >
                     Troubleshooting docs
                     <i
@@ -1361,6 +1536,13 @@ Object {
   "queryByTitle": [Function],
   "replaceStoreState": [Function],
   "rerender": [Function],
+  "store": Object {
+    "@@observable": [Function],
+    "dispatch": [Function],
+    "getState": [Function],
+    "replaceReducer": [Function],
+    "subscribe": [Function],
+  },
   "unmount": [Function],
   "updateStoreState": [Function],
 }
@@ -1451,9 +1633,10 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1488,9 +1671,10 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1524,9 +1708,10 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1560,9 +1745,47 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
+            >
+              <h4
+                class="section-min__title"
+                id="channelMentionAutoFollowTitle"
+              >
+                Auto-follow threads on channel-wide mentions
+              </h4>
+              <button
+                aria-expanded="false"
+                aria-labelledby="channelMentionAutoFollowTitle channelMentionAutoFollowEdit"
+                class="color--link style--none section-min__edit"
+                id="channelMentionAutoFollowEdit"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
+            </div>
+            <div
+              class="section-min__describe"
+              id="channelMentionAutoFollowDesc"
+            >
+              On
+            </div>
+          </div>
+          <div
+            class="divider-light"
+          />
+          <div
+            class="section-min"
+            data-testid="section-min"
+          >
+            <div
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1624,12 +1847,12 @@ Object {
                     class="sectionNoticeActions"
                   >
                     <button
-                      class="btn btn-sm sectionNoticeButton btn-primary"
+                      class="btn btn-primary btn-sm sectionNoticeButton"
                     >
                       Send a test notification
                     </button>
                     <button
-                      class="btn btn-sm sectionNoticeButton btn-tertiary"
+                      class="btn btn-tertiary btn-sm sectionNoticeButton"
                     >
                       Troubleshooting docs
                       <i
@@ -1726,9 +1949,10 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1763,9 +1987,10 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1799,9 +2024,10 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1835,9 +2061,47 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="channelMentionAutoFollowTitle"
+            >
+              Auto-follow threads on channel-wide mentions
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="channelMentionAutoFollowTitle channelMentionAutoFollowEdit"
+              class="color--link style--none section-min__edit"
+              id="channelMentionAutoFollowEdit"
+            >
+              <i
+                aria-hidden="true"
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="channelMentionAutoFollowDesc"
+          >
+            On
+          </div>
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="section-min"
+          data-testid="section-min"
+        >
+          <div
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1899,12 +2163,12 @@ Object {
                   class="sectionNoticeActions"
                 >
                   <button
-                    class="btn btn-sm sectionNoticeButton btn-primary"
+                    class="btn btn-primary btn-sm sectionNoticeButton"
                   >
                     Send a test notification
                   </button>
                   <button
-                    class="btn btn-sm sectionNoticeButton btn-tertiary"
+                    class="btn btn-tertiary btn-sm sectionNoticeButton"
                   >
                     Troubleshooting docs
                     <i
@@ -1970,6 +2234,13 @@ Object {
   "queryByTitle": [Function],
   "replaceStoreState": [Function],
   "rerender": [Function],
+  "store": Object {
+    "@@observable": [Function],
+    "dispatch": [Function],
+    "getState": [Function],
+    "replaceReducer": [Function],
+    "subscribe": [Function],
+  },
   "unmount": [Function],
   "updateStoreState": [Function],
 }

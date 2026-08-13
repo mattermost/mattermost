@@ -5,6 +5,7 @@ package commands
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -50,7 +51,7 @@ func (s *MmctlE2ETestSuite) TestExportListCmdF() {
 		cmd := &cobra.Command{}
 
 		numExports := 3
-		for i := 0; i < numExports; i++ {
+		for i := range numExports {
 			exportName := fmt.Sprintf("export_%d.zip", i)
 			err := utils.CopyFile(importFilePath, filepath.Join(exportPath, exportName))
 			s.Require().Nil(err)
@@ -256,6 +257,10 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().True(strings.HasPrefix(printer.GetLines()[0].(string), "Export file downloaded to "))
 		s.Require().Empty(printer.GetErrorLines())
+
+		info, err := os.Stat(downloadPath)
+		s.Require().Nil(err)
+		s.Require().Equal(fs.FileMode(0600), info.Mode().Perm(), fmt.Sprintf("expected %o, got %o", fs.FileMode(0600), info.Mode().Perm()))
 	})
 
 	s.RunForSystemAdminAndLocal("MM-T3842 - full download", func(c client.Client) {
@@ -285,11 +290,15 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		s.Require().Nil(err)
 
 		s.Require().Equal(expected, actual)
+
+		info, err := os.Stat(downloadPath)
+		s.Require().Nil(err)
+		s.Require().Equal(fs.FileMode(0600), info.Mode().Perm(), fmt.Sprintf("expected %o, got %o", fs.FileMode(0600), info.Mode().Perm()))
 	})
 }
 
 func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	job, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 		Type: model.JobTypeExportProcess,
@@ -333,7 +342,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("MM-T3887 - no permissions", func() {
 		printer.Clean()
@@ -402,7 +411,7 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("Cancel an export job without permissions", func() {
 		printer.Clean()

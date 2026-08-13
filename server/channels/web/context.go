@@ -35,6 +35,9 @@ func (c *Context) LogAuditRec(rec *model.AuditRecord) {
 	if rec.Actor.SessionId == "" {
 		rec.Actor.SessionId = c.AppContext.Session().Id
 	}
+	if _, exists := rec.Meta[model.SessionPropUserAccessTokenId]; !exists && c.AppContext.Session().IsUserAccessToken() {
+		rec.Meta[model.SessionPropUserAccessTokenId] = c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]
+	}
 
 	c.LogAuditRecWithLevel(rec, app.LevelAPI)
 }
@@ -59,6 +62,14 @@ func (c *Context) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
 
 // MakeAuditRecord creates an audit record pre-populated with data from this context.
 func (c *Context) MakeAuditRecord(event string, initialStatus string) *model.AuditRecord {
+	meta := map[string]any{
+		model.AuditKeyAPIPath:   c.AppContext.Path(),
+		model.AuditKeyClusterID: c.App.GetClusterId(),
+	}
+	if c.AppContext.Session().IsUserAccessToken() {
+		meta[model.SessionPropUserAccessTokenId] = c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]
+	}
+
 	rec := &model.AuditRecord{
 		EventName: event,
 		Status:    initialStatus,
@@ -69,10 +80,7 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *model.Aud
 			IpAddress:     c.AppContext.IPAddress(),
 			XForwardedFor: c.AppContext.XForwardedFor(),
 		},
-		Meta: map[string]any{
-			model.AuditKeyAPIPath:   c.AppContext.Path(),
-			model.AuditKeyClusterID: c.App.GetClusterId(),
-		},
+		Meta: meta,
 		EventData: model.AuditEventData{
 			Parameters:  map[string]any{},
 			PriorState:  map[string]any{},
@@ -296,6 +304,17 @@ func (c *Context) RequireUserId() *Context {
 
 	if !model.IsValidId(c.Params.UserId) {
 		c.SetInvalidURLParam("user_id")
+	}
+	return c
+}
+
+func (c *Context) RequireOtherUserId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.OtherUserId) {
+		c.SetInvalidURLParam("other_user_id")
 	}
 	return c
 }
@@ -656,6 +675,39 @@ func (c *Context) RequireFieldId() *Context {
 	return c
 }
 
+func (c *Context) RequireGroupName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidPropertyGroupName(c.Params.GroupName) {
+		c.SetInvalidURLParam("group_name")
+	}
+	return c
+}
+
+func (c *Context) RequireObjectType() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidPropertyFieldObjectType(c.Params.ObjectType) {
+		c.SetInvalidURLParam("object_type")
+	}
+	return c
+}
+
+func (c *Context) RequireTargetId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.TargetId) {
+		c.SetInvalidURLParam("target_id")
+	}
+	return c
+}
+
 func (c *Context) RequireSchemeId() *Context {
 	if c.Err != nil {
 		return c
@@ -743,6 +795,86 @@ func (c *Context) RequireInvoiceId() *Context {
 		c.SetInvalidURLParam("invoice_id")
 	}
 
+	return c
+}
+
+func (c *Context) RequireContentReviewerId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.ContentReviewerId) {
+		c.SetInvalidURLParam("content_reviewer_id")
+	}
+	return c
+}
+
+func (c *Context) RequireRecapId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.RecapId) {
+		c.SetInvalidURLParam("recap_id")
+	}
+	return c
+}
+
+func (c *Context) RequireScheduledRecapId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.ScheduledRecapId) {
+		c.SetInvalidURLParam("scheduled_recap_id")
+	}
+	return c
+}
+
+func (c *Context) RequireViewId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.ViewId) {
+		c.SetInvalidURLParam("view_id")
+	}
+	return c
+}
+
+func (c *Context) RequirePermissionToManageSecureConnections() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSecureConnections) {
+		c.SetPermissionError(model.PermissionManageSecureConnections)
+	}
+	return c
+}
+
+func (c *Context) RequirePermissionToManageSharedChannels() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSharedChannels) {
+		c.SetPermissionError(model.PermissionManageSharedChannels)
+	}
+	return c
+}
+
+func (c *Context) RequirePermissionToManageSecureConnectionsOrSharedChannels() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), []*model.Permission{
+		model.PermissionManageSecureConnections,
+		model.PermissionManageSharedChannels,
+	}) {
+		c.SetPermissionError(model.PermissionManageSecureConnections, model.PermissionManageSharedChannels)
+	}
 	return c
 }
 

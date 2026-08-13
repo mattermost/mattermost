@@ -17,7 +17,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {getGroupMessageMembersCommonTeams} from 'actions/team_actions';
-import {trackEvent} from 'actions/telemetry_actions';
 
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
@@ -39,7 +38,7 @@ export type Props = {
     profilesInChannel: UserProfile[];
     teammateNameDisplaySetting: string;
     currentUserId: string;
-}
+};
 
 const ConvertGmToChannelModal = (props: Props) => {
     const intl = useIntl();
@@ -134,7 +133,6 @@ const ConvertGmToChannelModal = (props: Props) => {
         }
 
         setConversionError(undefined);
-        trackEvent('actions', 'convert_group_message_to_private_channel', {channel_id: props.channel.id});
         props.onExited();
     }, [selectedTeamId, props, channelName, formatMessage]);
 
@@ -154,7 +152,7 @@ const ConvertGmToChannelModal = (props: Props) => {
         );
     } else {
         modalProps.handleCancel = showLoader ? undefined : props.onExited;
-        modalProps.isDeleteModal = true;
+        modalProps.confirmButtonVariant = 'destructive';
         modalProps.cancelButtonText = formatMessage({id: 'channel_modal.cancel', defaultMessage: 'Cancel'});
         modalProps.confirmButtonText = formatMessage({id: 'sidebar_left.sidebar_channel_modal.confirmation_text', defaultMessage: 'Convert to private channel'});
         modalProps.isConfirmDisabled = !canCreate;

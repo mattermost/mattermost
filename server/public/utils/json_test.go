@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/utils"
 )
 
@@ -52,7 +51,7 @@ func TestHumanizeJsonError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			&json.UnmarshalTypeError{
 				Value:  "bool",
-				Type:   reflect.TypeOf(testType{}),
+				Type:   reflect.TypeFor[testType](),
 				Offset: 17,
 				Struct: "struct",
 				Field:  "field",
@@ -319,27 +318,27 @@ func TestStringPtrToJSON(t *testing.T) {
 		},
 		{
 			"Zero length string",
-			model.NewPointer(""),
+			new(""),
 			[]byte("{}"),
 		},
 		{
 			"JSON map",
-			model.NewPointer("{\"foo\":7}"),
+			new("{\"foo\":7}"),
 			[]byte("{\"foo\":7}"),
 		},
 		{
 			"JSON array",
-			model.NewPointer("[1,2,3]"),
+			new("[1,2,3]"),
 			[]byte("[1,2,3]"),
 		},
 		{
 			"JSON string",
-			model.NewPointer("\"hello\""),
+			new("\"hello\""),
 			[]byte("\"hello\""),
 		},
 		{
 			"bare string",
-			model.NewPointer("hello"),
+			new("hello"),
 			[]byte("\"hello\""),
 		},
 	}

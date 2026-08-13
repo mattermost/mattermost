@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
 import type {PostImage, PostType} from '@mattermost/types/posts';
 
 import type {HighlightWithoutNotificationKey} from 'mattermost-redux/selectors/entities/users';
@@ -24,11 +25,6 @@ export type OwnProps = {
      * Any additional text formatting options to be used
      */
     options?: Partial<TextFormattingOptions>;
-
-    /**
-     * Whether or not to proxy image URLs
-     */
-    proxyImages?: boolean;
 
     /**
      * prop for passed down to image component for dimensions
@@ -76,19 +72,24 @@ export type OwnProps = {
     emojiMap?: EmojiMap;
 
     /**
-     * Some components processed by messageHtmlToComponent e.g. AtSumOfMembersMention require to have a list of userIds
+     * Whether or not to render mmaction:// links as inline action buttons.
+     * Set per-post by the caller (e.g. enabled for bot/webhook/plugin posts).
+     * Defaults to false.
      */
-    userIds?: string[];
+    allowInlineActions?: boolean;
 
     /**
-     * Some additional data to pass down to rendered component to aid in rendering decisions
+     * Encrypted mm_blocks_actions cookie from post.props (ephemeral and client wire format).
+     * When set, mmaction:// clicks use doPostActionWithCookie.
      */
-    messageMetadata?: Record<string, string>;
-}
+    mmBlocksActionCookie?: string;
+
+    /** integration_format for doPostActionWithCookie when mmBlocksActionCookie is set. */
+    integrationFormat?: PostActionIntegrationFormat;
+};
 
 function Markdown({
     options = {},
-    proxyImages = true,
     imagesMetadata = {},
     postId = '', // Needed to avoid proptypes console errors for cases like channel header, which doesn't have a proper value
     editedAt = 0,
@@ -101,12 +102,11 @@ function Markdown({
     hasPluginTooltips,
     postType,
     emojiMap,
-    userIds,
-    messageMetadata,
+    allowInlineActions,
+    mmBlocksActionCookie,
+    integrationFormat,
     enableFormatting,
-    autolinkedUrlSchemes,
     siteURL,
-    hasImageProxy,
     team,
     minimumHashtagLength,
     managedResourcePaths,
@@ -124,13 +124,11 @@ function Markdown({
     }
 
     const inputOptions = Object.assign({
-        autolinkedUrlSchemes,
         siteURL,
         mentionKeys,
         highlightKeys,
         atMentions: true,
         channelNamesMap,
-        proxyImages: hasImageProxy && proxyImages,
         team,
         minimumHashtagLength,
         managedResourcePaths,
@@ -145,15 +143,14 @@ function Markdown({
         imagesMetadata,
         hasPluginTooltips,
         postId,
-        userIds,
-        messageMetadata,
         channelId,
         postType,
         mentionHighlight: options?.mentionHighlight,
         disableGroupHighlight: options?.disableGroupHighlight,
         editedAt,
-        atSumOfMembersMentions: options?.atSumOfMembersMentions,
-        atPlanMentions: options?.atPlanMentions,
+        allowInlineActions,
+        mmBlocksActionCookie,
+        integrationFormat,
     });
 }
 

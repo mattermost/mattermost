@@ -6,7 +6,7 @@ import React from 'react';
 type SvgProps = {
     width: number;
     height: number;
-}
+};
 
 const PrivateCloudSvg = (props: SvgProps) => (
     <svg

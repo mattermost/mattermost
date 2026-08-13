@@ -5,23 +5,24 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import FlagIcon from 'components/widgets/icons/flag_icon';
 import FlagIconFilled from 'components/widgets/icons/flag_icon_filled';
-import WithTooltip from 'components/with_tooltip';
 
 import {Locations, A11yCustomEventTypes} from 'utils/constants';
 
 export type Actions = {
     flagPost: (postId: string) => void;
     unflagPost: (postId: string) => void;
-}
+};
 
 type Props = {
     location?: keyof typeof Locations;
     postId: string;
     isFlagged: boolean;
     actions: Actions;
-}
+};
 
 const PostFlagIcon = ({
     actions: {
@@ -100,7 +101,7 @@ const PostFlagIcon = ({
             <button
                 ref={buttonRef}
                 id={`${location}_flagIcon_${postId}`}
-                aria-label={isFlagged ? intl.formatMessage({id: 'flag_post.unflag', defaultMessage: 'Remove from Saved'}).toLowerCase() : intl.formatMessage({id: 'flag_post.flag', defaultMessage: 'Save'}).toLowerCase()}
+                aria-label={isFlagged ? intl.formatMessage({id: 'flag_post.unflag', defaultMessage: 'Remove from Saved'}).toLowerCase() : intl.formatMessage({id: 'flag_post.flag', defaultMessage: 'Save Message'}).toLowerCase()}
                 className='post-menu__item'
                 onClick={handlePress}
             >

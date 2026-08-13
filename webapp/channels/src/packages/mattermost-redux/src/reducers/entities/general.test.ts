@@ -4,13 +4,13 @@
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import reducer from 'mattermost-redux/reducers/entities/general';
 
-type ReducerState = ReturnType<typeof reducer>
+type ReducerState = ReturnType<typeof reducer>;
 
 describe('reducers.entities.general', () => {
     describe('firstAdminVisitMarketplaceStatus', () => {
         it('initial state', () => {
             const state = {};
-            const action = {type: undefined};
+            const action = {type: 'testinit'};
             const expectedState = {};
 
             const actualState = reducer({firstAdminVisitMarketplaceStatus: state} as ReducerState, action);
@@ -45,7 +45,7 @@ describe('reducers.entities.general', () => {
     describe('customProfileAttributes', () => {
         it('initial state', () => {
             const state = {};
-            const action = {type: undefined};
+            const action = {type: 'testinit'};
             const expectedState = {};
 
             const actualState = reducer({firstAdminVisitMarketplaceStatus: state} as ReducerState, action);

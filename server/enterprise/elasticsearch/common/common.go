@@ -34,7 +34,16 @@ const (
 	// At the moment, this number is hardcoded. If needed, we can expose
 	// this to the config.
 	BulkFlushInterval = 5 * time.Second
+
+	// Size of the largest request to be done, in bytes
+	BulkFlushBytes = 10 * 1024 * 1024 // 10 MiB
 )
+
+type BulkSettings struct {
+	FlushBytes    int
+	FlushInterval time.Duration
+	FlushNumReqs  int
+}
 
 var (
 	urlRe          = regexp.MustCompile(URLRegexpRE)
@@ -52,6 +61,7 @@ type ESPost struct {
 	Hashtags    []string `json:"hashtags"`
 	Attachments string   `json:"attachments"`
 	URLs        []string `json:"urls"`
+	ChannelType string   `json:"channel_type"`
 }
 
 type ESFile struct {
@@ -85,58 +95,47 @@ type ESUser struct {
 	ChannelsIds                []string `json:"channel_id"`
 }
 
-func ESPostFromPost(post *model.Post, teamId string) (*ESPost, error) {
+func ESPostFromPost(post *model.Post, teamId string, channelType string, mmBlocksEnabled bool) (*ESPost, error) {
 	p := &model.PostForIndexing{
-		TeamId: teamId,
+		TeamId:      teamId,
+		ChannelType: channelType,
 	}
 	err := post.ShallowCopy(&p.Post)
 	if err != nil {
 		return nil, err
 	}
-	return ESPostFromPostForIndexing(p), nil
+	return ESPostFromPostForIndexing(p, mmBlocksEnabled), nil
 }
 
-func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
+func ESPostFromPostForIndexing(post *model.PostForIndexing, mmBlocksEnabled bool) *ESPost {
 	searchPost := ESPost{
-		Id:        post.Id,
-		TeamId:    post.TeamId,
-		ChannelId: post.ChannelId,
-		UserId:    post.UserId,
-		CreateAt:  post.CreateAt,
-		Message:   post.Message,
-		Type:      post.Type,
-		Hashtags:  strings.Fields(post.Hashtags),
+		Id:          post.Id,
+		TeamId:      post.TeamId,
+		ChannelId:   post.ChannelId,
+		UserId:      post.UserId,
+		CreateAt:    post.CreateAt,
+		Message:     post.Message,
+		Type:        post.Type,
+		Hashtags:    strings.Fields(post.Hashtags),
+		ChannelType: post.ChannelType,
 	}
 
-	var searchAttachments []string
-
-	if attachments := post.GetProp(model.PostPropsAttachments); attachments != nil {
-		attachmentsInterfaceArray, ok := attachments.([]any)
-		if ok {
-			for _, attachment := range attachmentsInterfaceArray {
-				if attachment != nil {
-					if attachmentText := attachment.(map[string]any)["text"]; attachmentText != nil {
-						searchAttachments = append(searchAttachments, attachmentText.(string))
-					}
-				}
-			}
-		}
-
-		attachmentsArray, ok := attachments.([]*model.SlackAttachment)
-		if ok {
-			for _, attachment := range attachmentsArray {
-				if attachment != nil {
-					searchAttachments = append(searchAttachments, attachment.Text)
-				}
-			}
-		}
+	// Message stays in its own field; everything else searchable (attachments, mm_blocks, Block Kit blocks,
+	// Adaptive cards) comes from model.Post.AllStrings (attachment Fallback is omitted), omitting the leading message segment when it is
+	// the same bytes as post.Message so it is not duplicated in the ES "attachments" text field.
+	allStrings := post.AllStrings(model.AllStringsOptions{OmitInteractiveBlocks: !mmBlocksEnabled})
+	allStringsButMessage := allStrings
+	if len(allStringsButMessage) > 0 && strings.TrimSpace(post.Message) != "" && allStringsButMessage[0] == post.Message {
+		allStringsButMessage = allStringsButMessage[1:]
 	}
+	searchPost.Attachments = strings.Join(allStringsButMessage, " ")
 
-	searchPost.Attachments = strings.Join(searchAttachments, " ")
-
-	urls := extractURLsFromMessage(post.Message)
-	if len(urls) > 0 {
-		searchPost.URLs = urls
+	var urlAccum []string
+	for _, s := range allStrings {
+		urlAccum = append(urlAccum, extractURLsFromMessage(s)...)
+	}
+	if len(urlAccum) > 0 {
+		searchPost.URLs = model.RemoveDuplicateStringsNonSort(urlAccum)
 	}
 
 	if searchPost.Type == "" {

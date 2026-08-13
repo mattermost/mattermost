@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Page, expect} from '@playwright/test';
+import type {Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import {duration, wait} from '@/util';
 import {components} from '@/ui/components';
@@ -16,16 +17,16 @@ export default class SignupPage {
     readonly usernameInput;
     readonly passwordInput;
     readonly passwordToggleButton;
-    readonly newsLetterCheckBox;
-    readonly newsLetterPrivacyPolicyLink;
-    readonly newsLetterUnsubscribeLink;
-    readonly agreementTermsOfUseLink;
-    readonly agreementPrivacyPolicyLink;
+    readonly termsAndPrivacyCheckBox;
+    readonly termsAndPrivacyAcceptableUsePolicyLink;
+    readonly termsAndPrivacyPrivacyPolicyLink;
     readonly createAccountButton;
     readonly loginLink;
     readonly emailError;
     readonly usernameError;
     readonly passwordError;
+    readonly adminChosenUsernameMessage;
+    readonly presetName;
 
     readonly header;
     readonly footer;
@@ -33,32 +34,32 @@ export default class SignupPage {
     constructor(page: Page) {
         this.page = page;
 
-        this.title = page.locator('h1:has-text("Let’s get started")');
-        this.subtitle = page.locator('text=Create your Mattermost account to start collaborating with your team');
-        this.bodyCard = page.locator('.signup-body-card-content');
-        this.loginLink = page.locator('text=Log in');
+        this.title = page.getByRole('heading', {name: 'Let’s get started'});
+        this.subtitle = page.getByText('Create your Mattermost account to start collaborating with your team');
+        this.bodyCard = page.getByTestId('signup-body-card');
+        this.loginLink = page.getByText('Log in');
         this.emailInput = page.locator('#input_email');
         this.usernameInput = page.locator('#input_name');
         this.passwordInput = page.locator('#input_password-input');
         this.passwordToggleButton = page.locator('#password_toggle');
-        this.createAccountButton = page.locator('button:has-text("Create Account")');
-        this.emailError = page.locator('text=Please enter a valid email address');
-        this.usernameError = page.locator(
-            'text=Usernames have to begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.',
+        this.createAccountButton = page.getByRole('button', {name: 'Create account'});
+        this.emailError = page.getByText('Please enter a valid email address');
+        this.usernameError = page.getByText(
+            'Usernames have to begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.',
         );
-        this.passwordError = page.locator('text=Must be 5-72 characters long.');
+        this.passwordError = page.getByText(/Must be \d+-72 characters long\./);
+        this.adminChosenUsernameMessage = page.getByText('Your username was chosen by your admin.');
+        this.presetName = page.getByTestId('signup-body-card-preset-name');
 
-        const newsletterBlock = page.locator('.check-input');
-        this.newsLetterCheckBox = newsletterBlock.getByRole('checkbox', {name: 'newsletter checkbox'});
-        this.newsLetterPrivacyPolicyLink = newsletterBlock.locator('text=Privacy Policy');
-        this.newsLetterUnsubscribeLink = newsletterBlock.locator('text=unsubscribe');
+        const signupBodyCard = page.getByTestId('signup-body-card');
+        this.termsAndPrivacyCheckBox = signupBodyCard.getByRole('checkbox', {
+            name: 'Terms and privacy policy checkbox',
+        });
+        this.termsAndPrivacyAcceptableUsePolicyLink = signupBodyCard.getByText('Acceptable Use Policy');
+        this.termsAndPrivacyPrivacyPolicyLink = signupBodyCard.getByText('Privacy Policy');
 
-        const agreementBlock = page.locator('.signup-body-card-agreement');
-        this.agreementTermsOfUseLink = agreementBlock.locator('text=Terms of Use');
-        this.agreementPrivacyPolicyLink = agreementBlock.locator('text=Privacy Policy');
-
-        this.header = new components.MainHeader(page.locator('.hfroute-header'));
-        this.footer = new components.Footer(page.locator('.hfroute-footer'));
+        this.header = new components.MainHeader(page.getByTestId('hfroute-header'));
+        this.footer = new components.Footer(page.getByTestId('hfroute-footer'));
     }
 
     async toBeVisible() {
@@ -71,18 +72,26 @@ export default class SignupPage {
         await expect(this.passwordInput).toBeVisible();
     }
 
-    async goto() {
-        await this.page.goto('/signup_user_complete');
+    async goto(url = '/signup_user_complete') {
+        await this.page.goto(url);
     }
 
     async create(user: {email: string; username: string; password: string}, waitForRedirect = true) {
         await this.emailInput.fill(user.email);
         await this.usernameInput.fill(user.username);
         await this.passwordInput.fill(user.password);
+        await this.termsAndPrivacyCheckBox.check();
         await this.createAccountButton.click();
 
         if (waitForRedirect) {
             await this.page.waitForNavigation();
         }
+    }
+
+    async createInvitedUser(password: string) {
+        await this.passwordInput.fill(password);
+        await this.termsAndPrivacyCheckBox.check();
+        await this.createAccountButton.click();
+        await this.page.waitForURL((url) => !url.pathname.startsWith('/signup_user_complete'));
     }
 }

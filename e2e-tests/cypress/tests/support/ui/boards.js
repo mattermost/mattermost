@@ -3,7 +3,6 @@
 
 import timeouts from '../../fixtures/timeouts';
 
-/* eslint-disable cypress/no-unnecessary-waiting */
 Cypress.Commands.add('uiCreateBoard', (item) => {
     cy.log(`Create new board: ${item}`);
 

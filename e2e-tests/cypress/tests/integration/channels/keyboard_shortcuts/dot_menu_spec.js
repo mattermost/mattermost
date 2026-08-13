@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @keyboard_shortcuts
 
-import {beUnread} from '../../../support/assertions';
-import {stubClipboard} from '../../../utils';
+import {beUnread} from '@/support/assertions';
+import {stubClipboard} from '@/utils';
 
 describe('Keyboard Shortcuts', () => {
     let testTeam;
@@ -69,7 +69,7 @@ describe('Keyboard Shortcuts', () => {
 
             // # add test to the message
             cy.get('#edit_textbox').type(postEditMessage);
-            cy.get('#edit_textbox').type('{enter}');
+            cy.get('#create_post').findByText('Save').should('be.visible').click();
 
             // * Verify edited message
             cy.uiWaitUntilMessagePostedIncludes(postMessage + postEditMessage);

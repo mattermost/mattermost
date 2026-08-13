@@ -12,7 +12,6 @@
 //   - plugins prepackged with the server in the prepackaged_plugins/ directory
 //   - plugins transitionally prepackaged with the server in the prepackaged_plugins/ directory
 //   - plugins installed to the filestore (amazons3 or local, alongisde files and images)
-//   - unmanaged plugins manually extracted to the confgured local directory
 //     ┌────────────────────────────┐
 //     │ ┌────────────────────────┐ │
 //     │ │prepackaged_plugins/    │ │
@@ -23,14 +22,11 @@
 //     │              │             │
 //     │              ▼             │
 //     │ ┌────────────────────────┐ │
-//     │ │plugins/                │ │
-//     │ │    unmanaged/          │ │
-//     │ │    filestore/          │ │   ┌────────────────────────┐
-//     │ │      .filestore        │ │   │s3://bucket/plugins/    │
+//     │ │plugins/                │ │   ┌────────────────────────┐
+//     │ │    filestore/          │ │   │s3://bucket/plugins/    │
 //     │ │    prepackaged/        │◀┼───│    filestore.tar.gz    │
-//     │ │      .filestore        │ │   │    transitional.tar.gz │
-//     │ │    transitional/       │ │   └────────────────────────┘
-//     │ │      .filestore        │ │
+//     │ │    transitional/       │ │   │    transitional.tar.gz │
+//     │ │                        │ │   └────────────────────────┘
 //     │ └────────────────────────┘ │
 //     │                   ┌────────┤
 //     │                   │ server │
@@ -45,13 +41,8 @@
 // release. On first startup, they are unpacked just like prepackaged plugins, but also get copied
 // to the filestore. On future startups, the server uses the version in the filestore.
 //
-// Plugins are installed to the filestore when the user installs via the marketplace or manually
-// uploads a plugin bundle. (Or because the plugin is transitionally prepackaged).
-//
-// Unmanaged plugins were manually extracted by into the configured local directory. This legacy
-// method of installing plugins is distinguished from other extracted plugins by the absence of a
-// flag file (.filestore). Managed plugins unconditionally override unmanaged plugins. A future
-// version of Mattermost will likely drop support for unmanaged plugins.
+// Plugins are installed to the filestore when the user installs via the marketplace or system
+// console. (Or because the plugin is transitionally prepackaged).
 //
 // ### Enabling a Plugin
 //
@@ -90,17 +81,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
-
-// managedPluginFileName is the file name of the flag file that marks
-// a local plugin folder as "managed" by the file store.
-const managedPluginFileName = ".filestore"
 
 // fileStorePluginFolder is the folder name in the file store of the plugin bundles installed.
 const fileStorePluginFolder = "plugins"
@@ -163,9 +150,7 @@ func (ch *Channels) installPluginFromClusterMessage(pluginID string) {
 		logger.Error("Failed notify plugin enabled", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Error("Failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 }
 
 // removePluginFromClusterMessage is called when a peer removes a plugin, signalling all other
@@ -179,12 +164,10 @@ func (ch *Channels) removePluginFromClusterMessage(pluginID string) {
 		logger.Error("Failed to remove plugin locally", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Error("failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 }
 
-// InstallPlugin unpacks and installs a plugin but does not enable or activate it unless the the
+// InstallPlugin unpacks and installs a plugin but does not enable or activate it unless the
 // plugin was already enabled.
 func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	installationStrategy := installPluginLocallyOnlyIfNew
@@ -221,9 +204,7 @@ func (ch *Channels) installPlugin(bundle, signature io.ReadSeeker, installationS
 		logger.Warn("Failed to notify plugin enabled", mlog.Err(err))
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Warn("Failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 
 	return manifest, nil
 }
@@ -314,21 +295,21 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 		}
 
 		if plugin != nil {
-			var prepackagedVersion semver.Version
+			prepackagedVersion, _ := semver.StrictNewVersion("0.0.0")
 			if prepackagedPlugin != nil {
 				var err error
-				prepackagedVersion, err = semver.Parse(prepackagedPlugin.Manifest.Version)
+				prepackagedVersion, err = semver.StrictNewVersion(prepackagedPlugin.Manifest.Version)
 				if err != nil {
 					return nil, model.NewAppError("InstallMarketplacePlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 				}
 			}
 
-			marketplaceVersion, err := semver.Parse(plugin.Manifest.Version)
+			marketplaceVersion, err := semver.StrictNewVersion(plugin.Manifest.Version)
 			if err != nil {
 				return nil, model.NewAppError("InstallMarketplacePlugin", "app.prepackged-plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 
-			if prepackagedVersion.LT(marketplaceVersion) { // Always true if no prepackaged plugin was found
+			if prepackagedVersion.LessThan(marketplaceVersion) { // Always true if no prepackaged plugin was found
 				logger.Debug("Found upgraded plugin from remote marketplace", mlog.String("version", plugin.Manifest.Version), mlog.String("download_url", plugin.DownloadURL))
 
 				downloadedPluginBytes, err := ch.srv.downloadFromURL(plugin.DownloadURL)
@@ -475,19 +456,17 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 
 		// Skip installation if already installed and newer.
 		if installationStrategy == installPluginLocallyOnlyIfNewOrUpgrade {
-			var version, existingVersion semver.Version
-
-			version, err = semver.Parse(manifest.Version)
-			if err != nil {
-				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			version, vErr := semver.StrictNewVersion(manifest.Version)
+			if vErr != nil {
+				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(vErr)
 			}
 
-			existingVersion, err = semver.Parse(existingManifest.Version)
-			if err != nil {
-				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			existingVersion, vErr := semver.StrictNewVersion(existingManifest.Version)
+			if vErr != nil {
+				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.invalid_version.app_error", nil, "", http.StatusInternalServerError).Wrap(vErr)
 			}
 
-			if version.LTE(existingVersion) {
+			if version.LessThanEqual(existingVersion) {
 				logger.Warn("Skipping local installation of plugin since not a newer version", mlog.String("version", version.String()), mlog.String("existing_version", existingVersion.String()))
 				return nil, model.NewAppError("installExtractedPlugin", "app.plugin.skip_installation.app_error", map[string]any{"Id": manifest.Id}, "", http.StatusInternalServerError)
 			}
@@ -505,13 +484,6 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	if err != nil {
 		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.mvdir.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
-	// Flag plugin locally as managed by the filestore.
-	f, err := os.Create(filepath.Join(bundlePath, managedPluginFileName))
-	if err != nil {
-		return nil, model.NewAppError("installExtractedPlugin", "app.plugin.flag_managed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	f.Close()
 
 	if manifest.HasWebapp() {
 		updatedManifest, err := pluginsEnvironment.UnpackWebappBundle(manifest.Id)
@@ -577,9 +549,7 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 		},
 	)
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		logger.Warn("Failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 
 	return nil
 }

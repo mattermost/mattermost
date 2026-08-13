@@ -5,6 +5,7 @@ import moment from 'moment-timezone';
 
 import type {ActivityEntry, Post} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
 import {isStringArray, isArrayOf} from '@mattermost/types/utilities';
 
 import {Posts} from 'mattermost-redux/constants';
@@ -14,7 +15,7 @@ import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {shouldShowJoinLeaveMessages} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {createIdsSelector, memoizeResult} from 'mattermost-redux/utils/helpers';
-import {isUserActivityPost, shouldFilterJoinLeavePost, isFromWebhook, ensureString} from 'mattermost-redux/utils/post_utils';
+import {isUserActivityPost, shouldFilterJoinLeavePost, isFromWebhook, isNotificationSuppressed, ensureString} from 'mattermost-redux/utils/post_utils';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 export const COMBINED_USER_ACTIVITY = 'user-activity-';
@@ -78,28 +79,24 @@ export function makeFilterPostsAndAddSeparators() {
                     continue;
                 }
 
-                // Push on a date header if the last post was on a different day than the current one
-                const postDate = new Date(post.create_at);
-                const currentOffset = postDate.getTimezoneOffset() * 60 * 1000;
-                const timezone = getUserCurrentTimezone(currentUser.timezone);
-                if (timezone) {
-                    const zone = moment.tz.zone(timezone);
-                    if (zone) {
-                        const timezoneOffset = zone.utcOffset(postDate.getTime()) * 60 * 1000;
-                        postDate.setTime(postDate.getTime() + (currentOffset - timezoneOffset));
+                // Filter out expired burn-on-read posts
+                // Note: BoR posts should display regardless of feature flag being enabled/disabled
+                // The feature flag only controls creation of NEW BoR messages, not display of existing ones
+                if (post.type === Posts.POST_TYPES.BURN_ON_READ) {
+                    // Skip if already expired and deleted
+                    const expireAt = post.metadata?.expire_at;
+                    if (expireAt && typeof expireAt === 'number' && expireAt <= Date.now()) {
+                        continue;
                     }
                 }
 
-                if (!lastDate || lastDate.toDateString() !== postDate.toDateString()) {
-                    out.push(DATE_LINE + postDate.getTime());
-
-                    lastDate = postDate;
-                }
+                lastDate = pushPostDateIfNeeded(post, currentUser, out, lastDate);
 
                 if (
                     lastViewedAt &&
                     post.create_at > lastViewedAt &&
                     (post.user_id !== currentUser.id || isFromWebhook(post)) &&
+                    !isNotificationSuppressed(post) &&
                     !addedNewMessagesIndicator &&
                     indicateNewMessages
                 ) {
@@ -112,6 +109,52 @@ export function makeFilterPostsAndAddSeparators() {
 
             // Flip it back to newest to oldest
             return out.reverse();
+        },
+    );
+}
+
+function pushPostDateIfNeeded(post: Post, currentUser: UserProfile, out: Array<Post | string>, lastDate?: Date) {
+    // Push on a date header if the last post was on a different day than the current one
+    const postDate = new Date(post.create_at);
+    const currentOffset = postDate.getTimezoneOffset() * 60 * 1000;
+    const timezone = getUserCurrentTimezone(currentUser.timezone);
+    if (timezone) {
+        const zone = moment.tz.zone(timezone);
+        if (zone) {
+            const timezoneOffset = zone.utcOffset(postDate.getTime()) * 60 * 1000;
+            postDate.setTime(postDate.getTime() + (currentOffset - timezoneOffset));
+        }
+    }
+
+    if (!lastDate || lastDate.toDateString() !== postDate.toDateString()) {
+        out.push(DATE_LINE + postDate.getTime());
+
+        return postDate;
+    }
+
+    return lastDate;
+}
+
+export function makeAddDateSeparatorsForSearchResults() {
+    return createIdsSelector(
+        'makeAddDateSeparatorsForSearchResults',
+        (state: GlobalState, posts: Post[]) => posts,
+        getCurrentUser,
+        (posts, currentUser) => {
+            if (posts.length === 0 || !currentUser) {
+                return [];
+            }
+
+            const out: Array<Post | string> = [];
+            let lastDate;
+
+            for (const post of posts) {
+                lastDate = pushPostDateIfNeeded(post, currentUser, out, lastDate);
+
+                out.push(post);
+            }
+
+            return out;
         },
     );
 }
@@ -449,7 +492,7 @@ export type MessageData = {
     actorId?: string;
     postType: string;
     userIds: string[];
-}
+};
 
 function isMessageData(v: unknown): v is MessageData {
     if (typeof v !== 'object' || !v) {
@@ -475,7 +518,7 @@ type UserActivityProp = {
     allUserIds: string[];
     allUsernames: string[];
     messageData: MessageData[];
-}
+};
 
 export function isUserActivityProp(v: unknown): v is UserActivityProp {
     if (typeof v !== 'object' || !v) {

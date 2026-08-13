@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"maps"
 	"testing"
 	"time"
 )
@@ -21,9 +22,7 @@ func (l *testLogger) With(logContext LogContext) Logger {
 	if len(newl.logContext) == 0 {
 		newl.logContext = map[string]any{}
 	}
-	for k, v := range logContext {
-		newl.logContext[k] = v
-	}
+	maps.Copy(newl.logContext, logContext)
 	return &newl
 }
 

@@ -9,9 +9,9 @@
 
 // Group: @channels @enterprise @system_console @group_mentions
 
-import {Team} from '@mattermost/types/teams';
-import ldapUsers from '../../../../fixtures/ldap_users.json';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {Group} from '@mattermost/types/groups';
 
 import {
     disablePermission,
@@ -19,12 +19,13 @@ import {
 } from '../system_console/channel_moderation/helpers';
 
 import {enableGroupMention} from './helpers';
-import {UserProfile} from '@mattermost/types/users';
-import {Group} from '@mattermost/types/groups';
+
+import ldapUsers from '@/fixtures/ldap_users.json';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Group Mentions', () => {
     let groupID: string;
-    let boardUser;
+    let boardUser: Cypress.UserProfile;
     let regularUser: UserProfile;
     let testTeam: Team;
 
@@ -74,7 +75,7 @@ describe('Group Mentions', () => {
         });
 
         // # Login once as board user to ensure the user is created in the system
-        boardUser = ldapUsers['board-1'];
+        boardUser = ldapUsers['board-1'] as unknown as Cypress.UserProfile;
         cy.apiLogin(boardUser);
 
         // # Login as sysadmin
@@ -277,7 +278,7 @@ describe('Group Mentions', () => {
 
         // # Create a new channel as a sysadmin
         cy.apiCreateChannel(testTeam.id, 'group-mention', 'Group Mentions').then(({channel}) => {
-            cy.apiCreateUser().then(({user}) => { // eslint-disable-line
+            cy.apiCreateUser().then(({user}) => {
                 // # Add user to the team and channel
                 cy.apiAddUserToTeam(testTeam.id, user.id).then(() => {
                     cy.apiAddUserToChannel(channel.id, user.id);

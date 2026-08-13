@@ -7,8 +7,6 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import {ArchiveOutlineIcon, GlobeIcon, LockIcon} from '@mattermost/compass-icons/components';
-import type IconProps from '@mattermost/compass-icons/components/props';
 import {GenericModal} from '@mattermost/components';
 import type {Channel, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
@@ -16,10 +14,10 @@ import type {ServerError} from '@mattermost/types/errors';
 import {searchAllChannels} from 'mattermost-redux/actions/channels';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 
+import {ChannelIcon} from 'components/channel_type_icon';
 import SectionNotice from 'components/section_notice';
 import ChannelsInput from 'components/widgets/inputs/channels_input';
 
-import {isArchivedChannel} from 'utils/channel_utils';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -35,7 +33,7 @@ type Props = {
     onExited: () => void;
     remoteId: string;
     onHide: () => void;
-}
+};
 
 const noop = () => {};
 
@@ -136,6 +134,13 @@ function SharedChannelsAddModal({
                     defaultMessage='Select channels'
                 />
             )}
+            modalSubheaderText={(
+                <FormattedMessage
+                    tagName={ModalParagraph}
+                    id={'admin.secure_connections.shared_channels.add.message'}
+                    defaultMessage={'Please select a team and channels to share'}
+                />
+            )}
             confirmButtonText={done ? (
                 <FormattedMessage
                     id='admin.secure_connections.shared_channels.add.close.button'
@@ -157,12 +162,6 @@ function SharedChannelsAddModal({
             isConfirmDisabled={!channels.length}
         >
             <ModalBody>
-                <FormattedMessage
-                    tagName={ModalParagraph}
-                    id={'admin.secure_connections.shared_channels.add.message'}
-                    defaultMessage={'Please select a team and channels to share'}
-                />
-
                 <ChannelsInput
                     placeholder={
                         <FormattedMessage
@@ -237,11 +236,14 @@ const ChannelLabelWrapper = styled.span`
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+    align-items: center;
+    display: flex;
 
     svg {
         vertical-align: middle;
-        margin-left: 6px;
-        margin-right: 10px;
+        margin-left: 8px;
+        margin-right: 6px;
+        width: 16px;
     }
 
     .channels-input__multi-value__label & {
@@ -261,25 +263,6 @@ const ChannelLabel = ({channel, bold}: {channel: Channel; bold?: boolean}) => {
             />
             <ChannelDisplayName>{channel?.display_name}</ChannelDisplayName>
         </ChannelLabelWrapper>
-    );
-};
-
-const ChannelIcon = ({channel, size = 16, ...otherProps}: {channel: Channel} & IconProps) => {
-    let Icon = GlobeIcon;
-
-    if (channel?.type === Constants.PRIVATE_CHANNEL) {
-        Icon = LockIcon;
-    }
-
-    if (isArchivedChannel(channel)) {
-        Icon = ArchiveOutlineIcon;
-    }
-
-    return (
-        <Icon
-            size={size}
-            {...otherProps}
-        />
     );
 };
 
@@ -336,5 +319,8 @@ export const useLatest = <TArgs extends unknown[], TResult>(func: (signal: Abort
                 func(currentRequest.controller.signal, ...args).then(resolve, reject);
             }, opts?.delay || TYPING_DELAY_MS);
         });
+
+        // These types are complicated and make it hard to memoize this correctly.
+        // eslint-disable-next-line react-hooks/use-memo
     }, [start, cancel, ...deps]);
 };

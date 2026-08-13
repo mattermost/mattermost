@@ -4,19 +4,22 @@
 import React, {useState} from 'react';
 import {useSelector} from 'react-redux';
 
-import {isCustomStatusEnabled} from 'selectors/views/custom_status';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import WithTooltip from 'components/with_tooltip';
+import {isCustomStatusEnabled} from 'selectors/views/custom_status';
 
 import type {GlobalState} from 'types/store';
 
 interface ComponentProps {
-    text: string;
+    text?: string;
     className?: string;
 }
 
 const CustomStatusText = (props: ComponentProps) => {
-    const {text, className} = props;
+    const {
+        text = '',
+        className = '',
+    } = props;
     const customStatusEnabled = useSelector((state: GlobalState) => {
         return isCustomStatusEnabled(state);
     });
@@ -53,11 +56,6 @@ const CustomStatusText = (props: ComponentProps) => {
             {customStatusTextComponent}
         </WithTooltip>
     );
-};
-
-CustomStatusText.defaultProps = {
-    text: '',
-    className: '',
 };
 
 export default CustomStatusText;

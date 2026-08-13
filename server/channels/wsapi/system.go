@@ -25,7 +25,7 @@ func ping(req *model.WebSocketRequest) (map[string]any, *model.AppError) {
 
 func (api *API) websocketNotificationAck(req *model.WebSocketRequest) (map[string]any, *model.AppError) {
 	// Log the ACKs if necessary
-	api.App.NotificationsLog().Debug("Websocket notification acknowledgment",
+	api.App.Log().LogM(mlog.MlvlNotificationDebug, "Websocket notification acknowledgment",
 		mlog.String("type", model.NotificationTypeWebsocket),
 		mlog.String("user_id", req.Session.UserId),
 		mlog.Any("user_agent", req.Data["user_agent"]),

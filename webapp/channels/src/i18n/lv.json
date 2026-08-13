@@ -1,4 +1,6 @@
 {
+  "about.cloudEdition": "Mākonis",
+  "about.copyright": "Copyright 2015 - {currentYear} Mattermost, Inc. Visas tiesības aizsargātas",
   "about.database": "Datubāze:",
   "about.dbversion": "Datubāzes shēmas versija:",
   "about.privacy": "Privātuma politika",

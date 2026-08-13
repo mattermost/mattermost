@@ -9,8 +9,8 @@
 
 // Group: @channels @enterprise @saml
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {getRandomId} from '../../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 // assumes that E20 license is uploaded
 // Update config.mk to make sure docker images for openldap and keycloak
@@ -28,11 +28,13 @@ describe('SAML Guest', () => {
         email: 'guest.test@mmtest.com',
         firstname: 'Guest',
         lastname: 'OneSaml',
+        ldapfirstname: 'Guest',
+        ldaplastname: 'OneSaml',
         keycloakId: '',
     };
     const userFilter = `username=${guestUser.username}`;
-    const keycloakBaseUrl = Cypress.env('keycloakBaseUrl') || 'http://localhost:8484';
-    const keycloakAppName = Cypress.env('keycloakAppName') || 'mattermost';
+    const keycloakBaseUrl = Cypress.expose('keycloakBaseUrl') || 'http://localhost:8484';
+    const keycloakAppName = Cypress.expose('keycloakAppName') || 'mattermost';
     const idpUrl = `${keycloakBaseUrl}/auth/realms/${keycloakAppName}/protocol/saml`;
     const idpDescriptorUrl = `${keycloakBaseUrl}/auth/realms/${keycloakAppName}`;
 
@@ -69,7 +71,8 @@ describe('SAML Guest', () => {
         },
     };
 
-    let testSettings;
+    // TestSettings type is not exported from saml_commands; uses SAMLUser | null for user field
+    let testSettings: any;
 
     before(() => {
         // * Check if server has license for SAML

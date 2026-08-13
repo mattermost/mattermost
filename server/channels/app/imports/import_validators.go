@@ -8,12 +8,21 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
+
+// IsRootJsonlFile reports whether the given zip entry name refers to a .jsonl
+// file at the root of the archive (no directory component). This is used to
+// locate the import manifest while ignoring .jsonl files that may exist as
+// exported attachments in subdirectories.
+func IsRootJsonlFile(name string) bool {
+	return filepath.Ext(name) == ".jsonl" && filepath.Dir(name) == "."
+}
 
 func ValidateSchemeImportData(data *SchemeImportData) *model.AppError {
 	if data.Scope == nil {
@@ -266,8 +275,8 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.roles_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
-	if !isValidGuestRoles(*data) {
-		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.guest_roles_conflict.error", nil, "", http.StatusBadRequest)
+	if err := validateGuestRoles(*data); err != nil {
+		return err
 	}
 
 	if data.NotifyProps != nil {
@@ -371,10 +380,8 @@ func validateAuthService(authService *string) *model.AppError {
 	if authService == nil {
 		return nil
 	}
-	for _, valid := range validAuthServices {
-		if *authService == valid {
-			return nil
-		}
+	if slices.Contains(validAuthServices, *authService) {
+		return nil
 	}
 
 	return model.NewAppError("BulkImport", "app.import.validate_user_teams_import_data.invalid_auth_service.error", map[string]any{"AuthService": *authService}, "", http.StatusBadRequest)
@@ -490,7 +497,6 @@ func ValidateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPos
 
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
-			reaction := reaction
 			if err := ValidateReactionImportData(&reaction, *data.CreateAt); err != nil {
 				return err
 			}
@@ -535,7 +541,6 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
-			reaction := reaction
 			if err := ValidateReactionImportData(&reaction, *data.CreateAt); err != nil {
 				return err
 			}
@@ -544,7 +549,6 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
-			reply := reply
 			if err := ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize); err != nil {
 				return err
 			}
@@ -559,6 +563,14 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 		for _, attachment := range *data.Attachments {
 			if err := ValidateAttachmentImportData(&attachment); err != nil {
 				return model.NewAppError("BulkImport", "app.import.validate_post_import_data.attachment.error", nil, "", http.StatusNotFound).Wrap(err)
+			}
+		}
+	}
+
+	if data.ThreadFollowers != nil {
+		for _, follower := range *data.ThreadFollowers {
+			if err := ValidateThreadFollowerImportData(&follower); err != nil {
+				return model.NewAppError("BulkImport", "app.import.validate_post_import_data.thread_follower.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 		}
 	}
@@ -601,11 +613,8 @@ func ValidateDirectChannelImportData(data *DirectChannelImportData) *model.AppEr
 				}
 			}
 			if data.Members != nil {
-				for _, member := range *data.Members {
-					if favoriter == member {
-						found = true
-						break
-					}
+				if slices.Contains(*data.Members, favoriter) {
+					found = true
 				}
 			}
 			if !found {
@@ -648,13 +657,7 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 
 	if data.FlaggedBy != nil {
 		for _, flagger := range *data.FlaggedBy {
-			found := false
-			for _, member := range *data.ChannelMembers {
-				if flagger == member {
-					found = true
-					break
-				}
-			}
+			found := slices.Contains(*data.ChannelMembers, flagger)
 			if !found {
 				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.unknown_flagger.error", map[string]any{"Username": flagger}, "", http.StatusBadRequest)
 			}
@@ -663,7 +666,6 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
-			reaction := reaction
 			if err := ValidateReactionImportData(&reaction, *data.CreateAt); err != nil {
 				return err
 			}
@@ -672,7 +674,6 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
-			reply := reply
 			if err := ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize); err != nil {
 				return err
 			}
@@ -683,6 +684,14 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 		for _, attachment := range *data.Attachments {
 			if err := ValidateAttachmentImportData(&attachment); err != nil {
 				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.attachment.error", nil, "", http.StatusNotFound).Wrap(err)
+			}
+		}
+	}
+
+	if data.ThreadFollowers != nil {
+		for _, follower := range *data.ThreadFollowers {
+			if err := ValidateThreadFollowerImportData(&follower); err != nil {
+				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.thread_follower.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 		}
 	}
@@ -717,6 +726,18 @@ func ValidateEmojiImportData(data *EmojiImportData) *model.AppError {
 	return nil
 }
 
+func ValidateThreadFollowerImportData(data *ThreadFollowerImportData) *model.AppError {
+	if data == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_thread_follower_data.empty.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.User == nil || *data.User == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_thread_follower_data.user_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 func isValidTrueOrFalseString(value string) bool {
 	return value == "true" || value == "false"
 }
@@ -745,48 +766,77 @@ func isValidEmailBatchingInterval(emailInterval string) bool {
 		emailInterval == model.PreferenceEmailIntervalHour
 }
 
-// isValidGuestRoles checks if the user has both guest roles in the same team or channel.
-// at this point we assume that the user has a valid role scheme.
-func isValidGuestRoles(data UserImportData) bool {
+// validateGuestRoles checks if the user has guest roles consistently across system, team, and channel levels.
+// At this point, we assume that the user has a valid role scheme.
+func validateGuestRoles(data UserImportData) *model.AppError {
 	if data.Roles == nil {
-		return true
+		return nil
 	}
 	isSystemGuest := model.IsInRole(*data.Roles, model.SystemGuestRoleId)
 
+	// If user has no teams, they can still be a system guest without issue
+	if data.Teams == nil || len(*data.Teams) == 0 {
+		return nil
+	}
+
 	var isTeamGuest, isChannelGuest bool
-	if data.Teams != nil {
-		// counters for guest roles for teams and channels
-		// we expect the total count of guest roles to be equal to the total count of teams and channels
-		var gtc, ctc int
-		for _, team := range *data.Teams {
-			if team.Roles != nil && model.IsInRole(*team.Roles, model.TeamGuestRoleId) {
-				gtc++
-			}
+	var hasChannels bool // hasChannels indicates if the user has any channels within their teams
 
-			if *team.Channels != nil {
-				for _, channel := range *team.Channels {
-					if channel.Roles != nil && model.IsInRole(*channel.Roles, model.ChannelGuestRoleId) {
-						ctc++
-					}
-				}
+	var teamGuestCount, channelGuestCount int
+	var totalTeams, totalChannels int
 
-				if ctc == len(*team.Channels) {
-					isChannelGuest = true
+	totalTeams = len(*data.Teams)
+	for _, team := range *data.Teams {
+		if team.Roles != nil && model.IsInRole(*team.Roles, model.TeamGuestRoleId) {
+			teamGuestCount++
+		}
+
+		if len(model.SafeDereference(team.Channels)) > 0 {
+			hasChannels = true
+			totalChannels += len(*team.Channels)
+
+			for _, channel := range *team.Channels {
+				if channel.Roles != nil && model.IsInRole(*channel.Roles, model.ChannelGuestRoleId) {
+					channelGuestCount++
 				}
 			}
 		}
-		if gtc == len(*data.Teams) {
-			isTeamGuest = true
+	}
+
+	// Set flags based on whether all available teams/channels have guest roles
+	if totalTeams > 0 && teamGuestCount == totalTeams {
+		isTeamGuest = true
+	}
+
+	if hasChannels && channelGuestCount == totalChannels {
+		isChannelGuest = true
+	}
+
+	// If the user is a system guest, they must have consistent guest roles in any teams/channels they belong to
+	if isSystemGuest {
+		// If they have teams, they must be a team guest in all teams
+		if totalTeams > 0 && !isTeamGuest {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.system_guest_missing_team_guest_roles.error", map[string]any{"TeamGuestCount": teamGuestCount, "TotalTeams": totalTeams}, "", http.StatusBadRequest)
 		}
+
+		// If they have channels, they must be a channel guest in all channels
+		if hasChannels && !isChannelGuest {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.system_guest_missing_channel_guest_roles.error", map[string]any{"ChannelGuestCount": channelGuestCount, "TotalChannels": totalChannels}, "", http.StatusBadRequest)
+		}
+
+		return nil
 	}
 
-	// basically we want to be sure if the user either fully guest in all 3 places or not at all
-	// (a | b | c) & !(a & b & c) -> 3-way XOR?
-	if (isSystemGuest || isTeamGuest || isChannelGuest) && !(isSystemGuest && isTeamGuest && isChannelGuest) {
-		return false
+	// If not a system guest, ensure consistency in the other direction
+	// If they're a team or channel guest, they must be a system guest
+	if (isTeamGuest || isChannelGuest) && !isSystemGuest {
+		if isTeamGuest {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.team_guest_missing_system_guest_role.error", nil, "", http.StatusBadRequest)
+		}
+		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.channel_guest_missing_system_guest_role.error", nil, "", http.StatusBadRequest)
 	}
 
-	return true
+	return nil
 }
 
 // ValidateAttachmentPathForImport joins 'path' to 'basePath' (defaulting to "." if empty) and ensures

@@ -9,7 +9,7 @@
 
 // Group: @channels @notifications
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Notifications', () => {
     let testTeam;
@@ -66,25 +66,6 @@ describe('Notifications', () => {
         // * Assert the channel is unread with no mentions
         cy.get(`#sidebarItem_${channelA.name}`).wait(TIMEOUTS.ONE_SEC).should('have.class', 'unread-title');
         cy.get(`#sidebarItem_${channelA.name} > #unreadMentions`).should('not.exist');
-    });
-
-    it('MM-T568 - Channel Notifications - Turn off Ignore mentions for @channel, @here and @all', () => {
-        cy.visit(`/${testTeam.name}/channels/${channelA.name}`);
-
-        // # Unset ignore mentions
-        setIgnoreMentions(false);
-
-        // # Go to a different channel
-        cy.visit(`/${testTeam.name}/channels/${channelB.name}`);
-
-        // # Post messages as another user on the first channel
-        cy.postMessageAs({sender: userB, message: '@all test', channelId: channelA.id});
-        cy.postMessageAs({sender: userB, message: '@channel test', channelId: channelA.id});
-        cy.postMessageAs({sender: userB, message: '@here test', channelId: channelA.id});
-
-        // * Assert the channel is unread with 3 mentions
-        cy.get(`#sidebarItem_${channelA.name}`).should('have.class', 'unread-title');
-        cy.get(`#sidebarItem_${channelA.name} > #unreadMentions`).should('exist').wait(TIMEOUTS.ONE_SEC).should('contain', '3');
     });
 });
 

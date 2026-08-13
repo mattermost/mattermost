@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, Page, ViewportSize} from '@playwright/test';
+import type {Locator, Page, ViewportSize} from '@playwright/test';
 
 export type TestArgs = {
     page: Page;
+    locator?: Locator;
     browserName: string;
     viewport?: ViewportSize | null;
 };
@@ -62,7 +63,7 @@ export type ScreenshotOptions = {
      * Specify locators that should be masked when the screenshot is taken. Masked elements will be overlaid with a pink
      * box `#FF00FF` (customized by `maskColor`) that completely covers its bounding box.
      */
-    mask?: Array<Locator>;
+    mask?: Locator[];
 
     /**
      * Specify the color of the overlay box for masked elements, in

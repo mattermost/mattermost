@@ -70,18 +70,15 @@ describe('selectors/i18n', () => {
         });
 
         describe('locale from query parameter', () => {
-            // Helper function to mock window.location.search with locale query parameter
             const setWindowLocaleQueryParameter = (locale) => {
-                window.location.search = `?locale=${locale}`;
-            };
-
-            // Helper function to reset window.location.search
-            const resetWindowLocationSearch = () => {
-                window.location.search = '';
+                const url = new URL(window.location.href);
+                url.searchParams.set('locale', locale);
+                window.history.replaceState({}, '', url.toString());
             };
 
             afterEach(() => {
-                resetWindowLocationSearch();
+                // Reset the URL
+                window.history.replaceState({}, '', 'http://localhost:8065/');
             });
 
             test('returns locale from query parameter if provided and not logged in', () => {

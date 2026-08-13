@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
-import type {AppField, AppSelectOption} from '@mattermost/types/apps';
+import {isAppSelectOption, type AppField, type AppFormValue, type AppSelectOption} from '@mattermost/types/apps';
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 
@@ -13,11 +14,19 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import type AutocompleteSelector from 'components/autocomplete_selector';
 import Markdown from 'components/markdown';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import BoolSetting from 'components/widgets/settings/bool_setting';
+import RadioSetting from 'components/widgets/settings/radio_setting';
 import TextSetting from 'components/widgets/settings/text_setting';
 import type {InputTypes} from 'components/widgets/settings/text_setting';
 
 import AppsFormSelectField from './apps_form_select_field';
+
+import AppsFormActionButton from '../apps_form_action_button';
+import AppsFormDateField from '../apps_form_date_field';
+import AppsFormDateTimeField from '../apps_form_datetime_field';
+
+const AppsFormFileUpload = React.lazy(() => import('components/apps_form/apps_form_file_upload'));
 
 const TEXT_DEFAULT_MAX_LENGTH = 150;
 const TEXTAREA_DEFAULT_MAX_LENGTH = 3000;
@@ -28,8 +37,10 @@ export interface Props {
     errorText?: React.ReactNode;
     teammateNameDisplay?: string;
 
-    value: AppSelectOption | string | boolean | number | null;
+    value: AppFormValue;
     onChange: (name: string, value: any) => void;
+    setIsInteracting?: (isInteracting: boolean) => void;
+    setFieldUploading?: (fieldName: string, uploading: boolean) => void;
     autoFocus?: boolean;
     listComponent?: React.ComponentProps<typeof AutocompleteSelector>['listComponent'];
     performLookup: (name: string, userInput: string) => Promise<AppSelectOption[]>;
@@ -42,6 +53,22 @@ export interface Props {
 export default class AppsFormField extends React.PureComponent<Props> {
     static defaultProps = {
         listComponent: ModalSuggestionList,
+    };
+
+    componentWillUnmount() {
+        // Clear this field's pending-upload flag if it unmounts mid-upload (e.g. a
+        // multi-step form drops the field) so submit isn't left blocked.
+        this.props.setFieldUploading?.(this.props.name, false);
+    }
+
+    handleFileSelected = (fileIds: string[]) => {
+        this.props.onChange(this.props.name, fileIds.join(','));
+    };
+
+    // Stable per-field handler (class property → same reference across renders) so the
+    // file component's onPendingChange effect dependency doesn't change every render.
+    handlePendingChange = (uploading: boolean) => {
+        this.props.setFieldUploading?.(this.props.name, uploading);
     };
 
     handleSelected = (selected: AppSelectOption | AppSelectOption[]) => {
@@ -72,16 +99,27 @@ export default class AppsFormField extends React.PureComponent<Props> {
 
         const displayName = (field.modal_label || field.label) as string;
         let displayNameContent: React.ReactNode = (field.modal_label || field.label) as string;
-        displayNameContent = (
-            <>
-                {displayName}
-                {!field.is_required && (
+        if (field.is_required) {
+            displayNameContent = (
+                <>
+                    {displayName}
+                    <span className='error-text'>{' *'}</span>
+                </>
+            );
+        } else {
+            displayNameContent = (
+                <>
+                    {displayName}
                     <span className='light'>
-                        {' (optional)'}
+                        {' '}
+                        <FormattedMessage
+                            id='interactive_dialog.element.optional'
+                            defaultMessage='(optional)'
+                        />
                     </span>
-                )}
-            </>
-        );
+                </>
+            );
+        }
 
         const helpText = field.description;
         let helpTextContent: React.ReactNode = <Markdown message={helpText}/>;
@@ -97,6 +135,23 @@ export default class AppsFormField extends React.PureComponent<Props> {
         }
 
         switch (field.type) {
+        case AppFieldTypes.FILE: {
+            return (
+                <React.Suspense fallback={<LoadingSpinner/>}>
+                    <AppsFormFileUpload
+                        id={name}
+                        label={displayNameContent}
+                        helpText={helpTextContent}
+                        placeholder={placeholder}
+                        onFileSelected={this.handleFileSelected}
+                        onPendingChange={this.handlePendingChange}
+                        disabled={field.readonly}
+                        value={value ? (value as string).split(',').filter(Boolean) : []}
+                        allowMultiple={field.allow_multiple}
+                    />
+                </React.Suspense>
+            );
+        }
         case AppFieldTypes.TEXT: {
             const subtype = field.subtype || 'text';
 
@@ -133,6 +188,7 @@ export default class AppsFormField extends React.PureComponent<Props> {
             return (
                 <AppsFormSelectField
                     {...this.props}
+                    id={name}
                     teammateNameDisplay={this.props.teammateNameDisplay}
                     field={field}
                     label={displayNameContent}
@@ -157,10 +213,78 @@ export default class AppsFormField extends React.PureComponent<Props> {
                 />
             );
         }
+        case AppFieldTypes.RADIO: {
+            // Radio values may be stored as AppSelectOption objects (from initial default)
+            // or plain strings (after user interaction via RadioSetting.onChange)
+            const radioValue = isAppSelectOption(value) ? value.value : (value as string) ?? '';
+            return (
+                <RadioSetting
+                    id={name}
+                    label={displayNameContent}
+                    helpText={helpTextContent}
+                    options={field.options?.map((o) => ({text: o.label, value: o.value}))}
+                    value={radioValue}
+                    onChange={onChange}
+                />
+            );
+        }
         case AppFieldTypes.MARKDOWN: {
             return (
                 <Markdown
                     message={field.description}
+                />
+            );
+        }
+        case AppFieldTypes.DATE: {
+            return (
+                <div className='form-group'>
+                    {field.label && (
+                        <label className='control-label'>
+                            {displayNameContent}
+                        </label>
+                    )}
+                    <AppsFormDateField
+                        field={field}
+                        value={value as string | null}
+                        onChange={onChange}
+                        setIsInteracting={this.props.setIsInteracting}
+                    />
+                    {helpTextContent && (
+                        <div className='help-text'>
+                            {helpTextContent}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        case AppFieldTypes.DATETIME: {
+            return (
+                <div className='form-group'>
+                    {field.label && (
+                        <label className='control-label'>
+                            {displayNameContent}
+                        </label>
+                    )}
+                    <AppsFormDateTimeField
+                        field={field}
+                        value={value as string | null}
+                        onChange={onChange}
+                        setIsInteracting={this.props.setIsInteracting}
+                    />
+                    {helpTextContent && (
+                        <div className='help-text'>
+                            {helpTextContent}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        case AppFieldTypes.ACTION_BUTTON: {
+            return (
+                <AppsFormActionButton
+                    label={field.label || field.name}
+                    url={field.action_button_url || ''}
+                    context={field.action_button_context}
                 />
             );
         }

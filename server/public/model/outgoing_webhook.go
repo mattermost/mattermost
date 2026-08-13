@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -66,14 +67,14 @@ type OutgoingWebhookPayload struct {
 }
 
 type OutgoingWebhookResponse struct {
-	Text         *string            `json:"text"`
-	Username     string             `json:"username"`
-	IconURL      string             `json:"icon_url"`
-	Props        StringInterface    `json:"props"`
-	Attachments  []*SlackAttachment `json:"attachments"`
-	Type         string             `json:"type"`
-	ResponseType string             `json:"response_type"`
-	Priority     *PostPriority      `json:"priority"`
+	Text         *string              `json:"text"`
+	Username     string               `json:"username"`
+	IconURL      string               `json:"icon_url"`
+	Props        StringInterface      `json:"props"`
+	Attachments  []*MessageAttachment `json:"attachments"`
+	Type         string               `json:"type"`
+	ResponseType string               `json:"response_type"`
+	Priority     *PostPriority        `json:"priority"`
 }
 
 const OutgoingHookResponseTypeComment = "comment"
@@ -130,10 +131,8 @@ func (o *OutgoingWebhook) IsValid() *AppError {
 	}
 
 	if len(o.TriggerWords) != 0 {
-		for _, triggerWord := range o.TriggerWords {
-			if triggerWord == "" {
-				return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.trigger_words.app_error", nil, "", http.StatusBadRequest)
-			}
+		if slices.Contains(o.TriggerWords, "") {
+			return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.trigger_words.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
@@ -196,13 +195,7 @@ func (o *OutgoingWebhook) TriggerWordExactMatch(word string) bool {
 		return false
 	}
 
-	for _, trigger := range o.TriggerWords {
-		if trigger == word {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(o.TriggerWords, word)
 }
 
 func (o *OutgoingWebhook) TriggerWordStartsWith(word string) bool {

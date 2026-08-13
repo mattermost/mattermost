@@ -14,9 +14,14 @@ import {
     saveCustomProfileAttribute,
     getCustomProfileAttributeValues,
 } from 'mattermost-redux/actions/users';
-import {getConfig, getCustomProfileAttributes, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {Permissions} from 'mattermost-redux/constants';
+import {getConfig, getCustomProfileAttributes, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {getIsMobileView} from 'selectors/views/browser';
+
+import {normalizeLockProfileFieldsSetting} from 'utils/constants';
+import {isEnterpriseLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -37,7 +42,11 @@ function mapStateToProps(state: GlobalState) {
     const samlPositionAttributeSet = config.SamlPositionAttributeSet === 'true';
     const ldapPositionAttributeSet = config.LdapPositionAttributeSet === 'true';
     const ldapPictureAttributeSet = config.LdapPictureAttributeSet === 'true';
-    const enableCustomProfileAttributes = getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true';
+    const lockProfileFieldsForEmailUsers = normalizeLockProfileFieldsSetting(config.LockProfileFieldsForEmailUsers);
+
+    const license = getLicense(state);
+    const isEnterprise = isEnterpriseLicense(license);
+    const enableCustomProfileAttributes = isEnterprise;
 
     return {
         isMobileView: getIsMobileView(state),
@@ -53,6 +62,8 @@ function mapStateToProps(state: GlobalState) {
         samlPositionAttributeSet,
         ldapPositionAttributeSet,
         ldapPictureAttributeSet,
+        lockProfileFieldsForEmailUsers,
+        canEditOtherUsers: haveISystemPermission(state, {permission: Permissions.EDIT_OTHER_USERS}),
         enableCustomProfileAttributes,
     };
 }

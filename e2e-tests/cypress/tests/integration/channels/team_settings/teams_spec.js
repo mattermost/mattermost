@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @team_settings
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
 
 describe('Teams Suite', () => {
     let testTeam;
@@ -248,6 +248,8 @@ describe('Teams Suite', () => {
         // Save and close
         cy.uiSaveAndClose();
 
+        cy.wait(TIMEOUTS.ONE_HUNDRED_MILLIS);
+
         // # Open team menu and click "Team Settings"
         cy.uiOpenTeamMenu('Team settings');
 
@@ -265,10 +267,8 @@ describe('Teams Suite', () => {
         // # Go to Access section
         cy.get('#accessButton').click();
 
-        cy.get('.access-invite-domains-section').should('exist').within(() => {
-            // # Click on the 'Allow any user with an account on this server to join this team' checkbox
-            cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
-        });
+        // # Click 'Public Team' card to allow any user to join this team
+        cy.get('#public-private-selector-button-O').should('exist').and('not.have.class', 'selected').click();
 
         // # Save and close
         cy.uiSaveAndClose();
@@ -304,10 +304,8 @@ describe('Teams Suite', () => {
         // # Go to Access section
         cy.get('#accessButton').click();
 
-        cy.get('.access-invite-domains-section').should('exist').within(() => {
-            // # Click on the 'Allow any user with an account on this server to join this team' checkbox
-            cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked');
-        });
+        // * Verify Private Team card is selected (open joining disabled by default)
+        cy.get('#public-private-selector-button-P').should('exist').and('have.class', 'selected');
 
         // # Save and close
         cy.uiClose();

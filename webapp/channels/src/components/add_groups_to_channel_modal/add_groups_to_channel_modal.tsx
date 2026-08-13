@@ -44,7 +44,7 @@ export type Props = {
         getTeam: (teamId: string) => Promise<ActionResult>;
         getAllGroupsAssociatedToTeam: (teamID: string, filterAllowReference: boolean, includeMemberCount: boolean) => Promise<ActionResult>;
     };
-}
+};
 
 type State = {
     values: GroupValue[];
@@ -53,7 +53,7 @@ type State = {
     saving: boolean;
     addError: string | null;
     loadingGroups: boolean;
-}
+};
 
 export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;
@@ -227,7 +227,7 @@ export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
         );
     };
 
-    renderValue(props: { data: Partial<Value> }) {
+    renderValue(props: {data: Partial<Value>}) {
         return props.data.display_name;
     }
 

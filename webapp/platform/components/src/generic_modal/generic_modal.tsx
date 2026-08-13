@@ -6,7 +6,10 @@ import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button, type ButtonVariant} from '@mattermost/shared/components/button';
+
 import {useFocusTrap} from '../hooks/useFocusTrap';
+import {useStackedModal} from '../hooks/useStackedModal';
 import './generic_modal.scss';
 
 export type ModalLocation = 'top' | 'center' | 'bottom';
@@ -16,7 +19,9 @@ export type Props = {
     onExited?: () => void;
     onEntered?: () => void;
     onHide?: () => void;
+    preventClose?: boolean;
     modalHeaderText?: React.ReactNode;
+    modalHeaderTextId?: string;
     modalSubheaderText?: React.ReactNode;
     show?: boolean;
     handleCancel?: () => void;
@@ -24,11 +29,9 @@ export type Props = {
     handleEnterKeyPress?: () => void;
     handleKeydown?: (event?: React.KeyboardEvent<HTMLDivElement>) => void;
     confirmButtonText?: React.ReactNode;
-    confirmButtonClassName?: string;
+    confirmButtonVariant?: ButtonVariant;
     cancelButtonText?: React.ReactNode;
-    cancelButtonClassName?: string;
     isConfirmDisabled?: boolean;
-    isDeleteModal?: boolean;
     id?: string;
     autoCloseOnCancelButton?: boolean;
     autoCloseOnConfirmButton?: boolean;
@@ -54,6 +57,13 @@ export type Props = {
     headerButton?: React.ReactNode;
     showCloseButton?: boolean;
     showHeader?: boolean;
+
+    /**
+     * Whether this modal is stacked on top of another modal.
+     * When true, the modal will not render its own backdrop and will
+     * adjust the z-index of the parent modal's backdrop.
+     */
+    isStacked?: boolean;
 
     /*
      * Controls the vertical location of the modal.
@@ -96,18 +106,18 @@ export const GenericModal: React.FC<Props> = ({
     onExited,
     onEntered,
     onHide,
+    preventClose = false,
     modalHeaderText,
+    modalHeaderTextId,
     modalSubheaderText,
     handleCancel,
     handleConfirm,
     handleEnterKeyPress,
     handleKeydown,
     confirmButtonText,
-    confirmButtonClassName,
+    confirmButtonVariant,
     cancelButtonText,
-    cancelButtonClassName,
     isConfirmDisabled,
-    isDeleteModal,
     container,
     ariaLabel,
     ariaLabelledby,
@@ -126,6 +136,7 @@ export const GenericModal: React.FC<Props> = ({
     headerButton,
     dataTestId,
     delayFocusTrap,
+    isStacked = false,
 }) => {
     const intl = useIntl();
 
@@ -134,19 +145,32 @@ export const GenericModal: React.FC<Props> = ({
 
     const [showState, setShowState] = useState(show);
 
+    const onHideCallback = useCallback(() => {
+        if (!preventClose) {
+            setShowState(false);
+        }
+        onHide?.();
+    }, [onHide, preventClose]);
+
     // Use focus trap to keep focus within the modal when it's open
     useFocusTrap(showState, containerRef, {
         delayMs: delayFocusTrap ? 500 : undefined,
     });
 
+    // Use stacked modal hook to manage backdrop and z-index. Pass the
+    // portal container (when it resolves to a DOM element) so backdrop
+    // discovery stays scoped to this modal's own stack rather than every
+    // backdrop in the document.
+    const stackedModalContainer = container instanceof HTMLElement ? container : undefined;
+    const {
+        shouldRenderBackdrop,
+        modalStyle,
+        backdropStyle,
+    } = useStackedModal(Boolean(isStacked), showState, stackedModalContainer);
+
     useEffect(() => {
         setShowState(show);
     }, [show]);
-
-    const onHideCallback = useCallback(() => {
-        setShowState(false);
-        onHide?.();
-    }, [onHide]);
 
     const handleCancelCallback = useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         event.preventDefault();
@@ -180,7 +204,7 @@ export const GenericModal: React.FC<Props> = ({
     // Build confirm button if provided.
     let confirmButtonElement;
     if (handleConfirm) {
-        const buttonTypeClass = isDeleteModal ? 'delete' : 'confirm';
+        const buttonTypeClass = confirmButtonVariant === 'destructive' ? 'delete' : 'confirm';
         let confirmButtonTextContent: React.ReactNode = (
             <FormattedMessage
                 id='generic_modal.confirm'
@@ -191,17 +215,19 @@ export const GenericModal: React.FC<Props> = ({
             confirmButtonTextContent = confirmButtonText;
         }
         confirmButtonElement = (
-            <button
+            <Button
                 autoFocus={autoFocusConfirmButton}
                 type='submit'
-                className={classNames('GenericModal__button btn btn-primary', buttonTypeClass, confirmButtonClassName, {
+                emphasis='primary'
+                variant={confirmButtonVariant}
+                className={classNames('GenericModal__button', buttonTypeClass, {
                     disabled: isConfirmDisabled,
                 })}
                 onClick={handleConfirmCallback}
                 disabled={isConfirmDisabled}
             >
                 {confirmButtonTextContent}
-            </button>
+            </Button>
         );
     }
 
@@ -218,20 +244,20 @@ export const GenericModal: React.FC<Props> = ({
             cancelButtonTextContent = cancelButtonText;
         }
         cancelButtonElement = (
-            <button
+            <Button
                 type='button'
-                className={classNames('GenericModal__button btn btn-tertiary', cancelButtonClassName)}
+                emphasis='tertiary'
                 onClick={handleCancelCallback}
             >
                 {cancelButtonTextContent}
-            </button>
+            </Button>
         );
     }
 
     // Build header text if provided.
     const headerText = modalHeaderText && (
         <div className='GenericModal__header'>
-            <h1 id='genericModalLabel' className='modal-title'>
+            <h1 id={modalHeaderTextId || 'genericModalLabel'} className='modal-title'>
                 {modalHeaderText}
             </h1>
             {headerButton}
@@ -277,12 +303,14 @@ export const GenericModal: React.FC<Props> = ({
             enforceFocus={enforceFocus}
             onHide={onHideCallback}
             onExited={onExited}
-            backdrop={backdrop}
+            backdrop={shouldRenderBackdrop ? backdrop : false}
+            backdropStyle={backdropStyle}
             backdropClassName={backdropClassName}
             container={container}
             keyboard={keyboardEscape}
             onEntered={onEntered}
             data-testid={dataTestId}
+            style={modalStyle}
         >
             <div
                 ref={containerRef}

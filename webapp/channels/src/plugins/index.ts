@@ -11,7 +11,6 @@ import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selecto
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {unregisterAdminConsolePlugin} from 'actions/admin_actions';
-import {trackPluginInitialization} from 'actions/telemetry_actions';
 import {unregisterPluginTranslationsSource} from 'actions/views/root';
 import {unregisterAllPluginWebSocketEvents, unregisterPluginReconnectHandler} from 'actions/websocket_actions';
 import store from 'stores/redux_store';
@@ -68,6 +67,8 @@ function registerPlugin(id: string, plugin: Plugin): void {
     }
 
     window.plugins[id] = plugin;
+
+    onPluginRegistered(id);
 }
 window.registerPlugin = registerPlugin;
 
@@ -107,8 +108,6 @@ export async function initializePlugins(): Promise<void> {
             console.error(loadErr.message); //eslint-disable-line no-console
         });
     }));
-
-    trackPluginInitialization(data);
 }
 
 // getPlugins queries the server for all enabled plugins
@@ -128,7 +127,7 @@ export function getPlugins(): ActionFuncAsync<ClientPluginManifest[]> {
 }
 
 // loadedPlugins tracks which plugins have been added as script tags to the page
-const loadedPlugins: { [key: string]: PluginManifest } = {};
+const loadedPlugins: {[key: string]: PluginManifest} = {};
 
 // describePlugin takes a manifest and spits out a string suitable for console.log messages.
 const describePlugin = (manifest: PluginManifest): string => (
@@ -171,6 +170,8 @@ export function loadPlugin(manifest: PluginManifest): Promise<void> {
             bundlePath = bundlePath.replace('/static/', '/static/plugins/');
         }
 
+        addPluginRegisteredHandler(manifest.id, onLoad);
+
         console.log('Loading ' + describePlugin(manifest)); //eslint-disable-line no-console
 
         const script = document.createElement('script');
@@ -178,7 +179,6 @@ export function loadPlugin(manifest: PluginManifest): Promise<void> {
         script.type = 'text/javascript';
         script.src = getSiteURL() + bundlePath;
         script.defer = true;
-        script.onload = onLoad;
         script.onerror = onError;
 
         document.getElementsByTagName('head')[0].appendChild(script);
@@ -230,6 +230,26 @@ export function removePlugin(manifest: PluginManifest): void {
     console.log('Removed ' + describePlugin(manifest)); //eslint-disable-line no-console
 }
 
+type PluginRegisteredListener = () => void;
+
+const pluginRegisteredHandlers = new Map<string, PluginRegisteredListener>();
+
+function addPluginRegisteredHandler(pluginId: string, listener: PluginRegisteredListener) {
+    pluginRegisteredHandlers.set(pluginId, listener);
+}
+
+function onPluginRegistered(pluginId: string) {
+    const listener = pluginRegisteredHandlers.get(pluginId);
+
+    if (listener) {
+        pluginRegisteredHandlers.delete(pluginId);
+        listener();
+    } else {
+        // eslint-disable-next-line no-console
+        console.error('A plugin was registered, but no listener has been registered for it. It won\'t be loaded correctly.');
+    }
+}
+
 // loadPluginsIfNecessary synchronizes the current state of loaded plugins with that of the server,
 // loading any newly added plugins and unloading any removed ones.
 export async function loadPluginsIfNecessary(): Promise<void> {
@@ -237,7 +257,7 @@ export async function loadPluginsIfNecessary(): Promise<void> {
         return;
     }
 
-    const oldManifests = store.getState().plugins.plugins as { [key: string]: PluginManifest };
+    const oldManifests = store.getState().plugins.plugins as {[key: string]: PluginManifest};
 
     const {error} = await store.dispatch(getPlugins());
     if (error) {
@@ -245,7 +265,7 @@ export async function loadPluginsIfNecessary(): Promise<void> {
         return;
     }
 
-    const newManifests = store.getState().plugins.plugins as { [key: string]: PluginManifest };
+    const newManifests = store.getState().plugins.plugins as {[key: string]: PluginManifest};
 
     // Get new plugins and update existing plugins if version changed
     Object.values(newManifests).forEach((newManifest: PluginManifest) => {

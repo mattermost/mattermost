@@ -153,7 +153,7 @@ func testUploadSessionStoreGetForUser(t *testing.T, rctx request.CTX, ss store.S
 		require.Empty(t, us)
 	})
 
-	for i := 0; i < len(sessions); i++ {
+	for i := range sessions {
 		us, err := ss.UploadSession().Save(sessions[i])
 		require.NoError(t, err)
 		require.NotNil(t, us)

@@ -5,6 +5,7 @@ package platform
 
 import (
 	"encoding/json"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -20,7 +21,6 @@ import (
 func TestLoadLicense(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.Service.LoadLicense()
 	require.Nil(t, th.Service.License(), "shouldn't have a valid license")
@@ -29,7 +29,6 @@ func TestLoadLicense(t *testing.T) {
 func TestSaveLicense(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	b1 := []byte("junk")
 
@@ -37,9 +36,23 @@ func TestSaveLicense(t *testing.T) {
 	require.NotNil(t, err, "shouldn't have saved license")
 }
 
+func TestSaveLicenseWrongEnvironment(t *testing.T) {
+	// t.Setenv prevents t.Parallel — the service environment has no config equivalent.
+	th := Setup(t)
+
+	t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentProduction)
+
+	// validTestLicense is signed with the test key, so uploading it to a server running
+	// in the production service environment must report an environment mismatch rather
+	// than the generic invalid-license error.
+	_, appErr := th.Service.SaveLicense(validTestLicense)
+	require.NotNil(t, appErr, "shouldn't have saved a license signed for another environment")
+	require.Equal(t, model.WrongEnvironmentTestLicenseError, appErr.Id)
+	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+}
+
 func TestSaveEnterpriseAdvancedLicense(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	defer testutils.ResetLicenseValidator()
 	mockLicenseValidator := mocks2.LicenseValidatorIface{}
@@ -47,7 +60,7 @@ func TestSaveEnterpriseAdvancedLicense(t *testing.T) {
 	license := &model.License{
 		Id: model.NewId(),
 		Features: &model.Features{
-			Users: model.NewPointer(100),
+			Users: new(100),
 		},
 		Customer: &model.Customer{
 			Name:  "TestName",
@@ -68,18 +81,12 @@ func TestSaveEnterpriseAdvancedLicense(t *testing.T) {
 
 	_, appErr := th.Service.SaveLicense(licenseBytes)
 
-	if *th.Service.Config().SqlSettings.DriverName == model.DatabaseDriverMysql {
-		require.NotNil(t, appErr, "shouldn't have saved license")
-		require.Equal(t, "addLicense: api.license.add_license.mysql.app_error, mysql is not supported for this license", appErr.Error())
-	} else {
-		require.Nil(t, appErr, "should have saved license")
-	}
+	require.Nil(t, appErr, "should have saved license")
 }
 
 func TestRemoveLicense(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	err := th.Service.RemoveLicense()
 	require.Nil(t, err, "should have removed license")
@@ -88,7 +95,6 @@ func TestRemoveLicense(t *testing.T) {
 func TestSetLicense(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	l1 := &model.License{}
 	l1.Features = &model.Features{}
@@ -110,7 +116,6 @@ func TestSetLicense(t *testing.T) {
 func TestGetSanitizedClientLicense(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	setLicense(th, nil)
 

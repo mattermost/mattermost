@@ -3,29 +3,45 @@
 mmctl completion bash
 ---------------------
 
-Generates the bash autocompletion scripts
+Generate the autocompletion script for bash
 
 Synopsis
 ~~~~~~~~
 
 
-To load completion, run
+Generate the autocompletion script for the bash shell.
 
-. <(mmctl completion bash)
+This script depends on the 'bash-completion' package.
+If it is not installed already, you can install it via your OS's package manager.
 
-To configure your bash shell to load completions for each session, add the above line to your ~/.bashrc
+To load completions in your current shell session:
+
+	source <(mmctl completion bash)
+
+To load completions for every new session, execute once:
+
+#### Linux:
+
+	mmctl completion bash > /etc/bash_completion.d/mmctl
+
+#### macOS:
+
+	mmctl completion bash > $(brew --prefix)/etc/bash_completion.d/mmctl
+
+You will need to start a new shell for this setup to take effect.
 
 
 ::
 
-  mmctl completion bash [flags]
+  mmctl completion bash
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for bash
+  -h, --help              help for bash
+      --no-descriptions   disable completion descriptions
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,5 +61,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl completion <mmctl_completion.rst>`_ 	 - Generates autocompletion scripts for bash and zsh
+* `mmctl completion <mmctl_completion.rst>`_ 	 - Generate the autocompletion script for the specified shell
 

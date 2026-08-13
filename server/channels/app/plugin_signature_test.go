@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
@@ -19,7 +21,6 @@ import (
 func TestPluginPublicKeys(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
@@ -119,5 +120,93 @@ func TestVerifySignature(t *testing.T) {
 		require.NoError(t, err)
 		defer signatureFileReader.Close()
 		require.NoError(t, verifySignature(publicKeyFileReader, pluginFileReader, signatureFileReader))
+	})
+}
+
+func TestVerifySignatureMFIPluginPublicKey(t *testing.T) {
+	mainHelper.Parallel(t)
+	path, _ := fileutils.FindDir("tests")
+	pluginFilename := "testplugin-mfi.tar.gz"
+	signatureFilename := "testplugin-mfi.tar.gz.sig"
+	armoredSignatureFilename := "testplugin-mfi.tar.gz.asc"
+
+	t.Run("verify armored signature against the MFI public key", func(t *testing.T) {
+		pluginFileReader, err := os.Open(filepath.Join(path, pluginFilename))
+		require.NoError(t, err)
+		defer pluginFileReader.Close()
+		signatureFileReader, err := os.Open(filepath.Join(path, armoredSignatureFilename))
+		require.NoError(t, err)
+		defer signatureFileReader.Close()
+		require.NoError(t, verifySignature(bytes.NewReader(mfiPluginPublicKey), pluginFileReader, signatureFileReader))
+	})
+
+	t.Run("verify non-armored signature against the MFI public key", func(t *testing.T) {
+		pluginFileReader, err := os.Open(filepath.Join(path, pluginFilename))
+		require.NoError(t, err)
+		defer pluginFileReader.Close()
+		signatureFileReader, err := os.Open(filepath.Join(path, signatureFilename))
+		require.NoError(t, err)
+		defer signatureFileReader.Close()
+		require.NoError(t, verifySignature(bytes.NewReader(mfiPluginPublicKey), pluginFileReader, signatureFileReader))
+	})
+}
+
+// TestVerifyPluginMFIFeatureFlag covers the feature-flagged path in
+// verifyPlugin: gating by EnableMFIPluginSignaturePublicKey, reader
+// rewinding between the hard-coded Mattermost and MFI key attempts, and
+// falling back to admin-configured keys when the flag is off.
+func TestVerifyPluginMFIFeatureFlag(t *testing.T) {
+	mainHelper.Parallel(t)
+	path, _ := fileutils.FindDir("tests")
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	openPluginAndSignature := func(t *testing.T, pluginFilename, signatureFilename string) (*os.File, *os.File) {
+		t.Helper()
+		pluginFile, err := os.Open(filepath.Join(path, pluginFilename))
+		require.NoError(t, err)
+		t.Cleanup(func() { pluginFile.Close() })
+		signatureFile, err := os.Open(filepath.Join(path, signatureFilename))
+		require.NoError(t, err)
+		t.Cleanup(func() { signatureFile.Close() })
+		return pluginFile, signatureFile
+	}
+
+	t.Run("verifies against the MFI key when the flag is enabled", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableMFIPluginSignaturePublicKey = true
+		})
+
+		pluginFile, signatureFile := openPluginAndSignature(t, "testplugin-mfi.tar.gz", "testplugin-mfi.tar.gz.asc")
+		require.Nil(t, th.App.ch.verifyPlugin(logger, pluginFile, signatureFile))
+	})
+
+	t.Run("fails against the MFI key when the flag is disabled and no admin key matches", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableMFIPluginSignaturePublicKey = false
+		})
+
+		pluginFile, signatureFile := openPluginAndSignature(t, "testplugin-mfi.tar.gz", "testplugin-mfi.tar.gz.asc")
+		require.NotNil(t, th.App.ch.verifyPlugin(logger, pluginFile, signatureFile))
+	})
+
+	t.Run("fails when the flag is enabled but the signature matches neither hard-coded key", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableMFIPluginSignaturePublicKey = true
+		})
+
+		pluginFile, signatureFile := openPluginAndSignature(t, "testplugin.tar.gz", "testplugin.tar.gz.asc")
+		require.NotNil(t, th.App.ch.verifyPlugin(logger, pluginFile, signatureFile))
+	})
+
+	t.Run("falls back to an admin-configured key when the flag is disabled", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableMFIPluginSignaturePublicKey = false
+		})
+
+		appErr := th.App.AddPublicKey("mfi-admin-key.asc", bytes.NewReader(mfiPluginPublicKey))
+		require.Nil(t, appErr)
+
+		pluginFile, signatureFile := openPluginAndSignature(t, "testplugin-mfi.tar.gz", "testplugin-mfi.tar.gz.asc")
+		require.Nil(t, th.App.ch.verifyPlugin(logger, pluginFile, signatureFile))
 	})
 }

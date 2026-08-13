@@ -1,65 +1,51 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 
 import {SearchShortcut} from 'components/search_shortcut';
 
+import {render} from 'tests/react_testing_utils';
+
+const isDesktopAppMock = jest.mocked(UserAgent.isDesktopApp);
+const isMacMock = jest.mocked(UserAgent.isMac);
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isDesktopApp: jest.fn(),
+    isMac: jest.fn(),
+}));
+
 describe('components/SearchShortcut', () => {
     test('should match snapshot on Windows webapp', () => {
-        jest.mock('utils/user_agent', () => {
-            const original = jest.requireActual('utils/user_agent');
-            return {
-                ...original,
-                isDesktopApp: jest.fn(() => false),
-                isMac: jest.fn(() => false),
-            };
-        });
+        isDesktopAppMock.mockReturnValue(false);
+        isMacMock.mockReturnValue(false);
 
-        const wrapper = shallow(<SearchShortcut/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = render(<SearchShortcut/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot on Mac webapp', () => {
-        jest.mock('utils/user_agent', () => {
-            const original = jest.requireActual('utils/user_agent');
-            return {
-                ...original,
-                isDesktopApp: jest.fn(() => false),
-                isMac: jest.fn(() => true),
-            };
-        });
+        isDesktopAppMock.mockReturnValue(false);
+        isMacMock.mockReturnValue(true);
 
-        const wrapper = shallow(<SearchShortcut/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = render(<SearchShortcut/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot on Windows desktop', () => {
-        jest.mock('utils/user_agent', () => {
-            const original = jest.requireActual('utils/user_agent');
-            return {
-                ...original,
-                isDesktopApp: jest.fn(() => true),
-                isMac: jest.fn(() => true),
-            };
-        });
+        isDesktopAppMock.mockReturnValue(true);
+        isMacMock.mockReturnValue(false);
 
-        const wrapper = shallow(<SearchShortcut/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = render(<SearchShortcut/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot on Mac desktop', () => {
-        jest.mock('utils/user_agent', () => {
-            const original = jest.requireActual('utils/user_agent');
-            return {
-                ...original,
-                isDesktopApp: jest.fn(() => true),
-                isMac: jest.fn(() => true),
-            };
-        });
+        isDesktopAppMock.mockReturnValue(true);
+        isMacMock.mockReturnValue(true);
 
-        const wrapper = shallow(<SearchShortcut/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = render(<SearchShortcut/>);
+        expect(container).toMatchSnapshot();
     });
 });

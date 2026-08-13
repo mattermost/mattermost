@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @accessibility @mfa
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {isMac} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {isMac} from '@/utils';
 
 describe('Verify Accessibility Support in different sections in Settings and Profile Dialog', () => {
     const accountSettings = {
@@ -34,6 +34,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
             {key: 'desktopAndMobile', label: 'Desktop and mobile notifications', type: 'radio'},
             {key: 'desktopNotificationSound', label: 'Desktop notification sounds', type: 'radio'},
             {key: 'email', label: 'Email notifications', type: 'radio'},
+            {key: 'channelMentionAutoFollow', label: 'Auto-follow threads on channel-wide mentions', type: 'radio'},
             {key: 'keywordsAndMentions', label: 'Keywords that trigger notifications', type: 'checkbox'},
             {key: 'keywordsAndHighlight', label: 'Keywords that get highlighted (without notifications)', type: 'checkbox'},
             {key: 'replyNotifications', label: 'Reply notifications', type: 'radio'},
@@ -59,6 +60,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         ],
         advanced: [
             {key: 'advancedCtrlSend', label: `Send Messages on ${isMac() ? '⌘+ENTER' : 'CTRL+ENTER'}`, type: 'radio'},
+            {key: 'wysiwygEditor', label: 'Rich text editing (Beta)', type: 'radio', optional: true},
             {key: 'formatting', label: 'Enable Post Formatting', type: 'radio'},
             {key: 'joinLeave', label: 'Enable Join/Leave Messages', type: 'radio'},
         ],
@@ -274,7 +276,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         // * Check Tab behavior in MFA section
         cy.get('#mfaEdit').click();
         cy.get('#passwordEdit').focus().tab({shift: true}).tab().tab();
-        cy.get('.setting-list a.btn').should('have.class', 'a11y--active a11y--focused').tab();
+        cy.get('.setting-list button.btn').should('have.class', 'a11y--active a11y--focused').tab();
         cy.get('#cancelSetting').should('have.class', 'a11y--active a11y--focused');
 
         // * Check Tab behavior in Sign-In Method if its available
@@ -291,6 +293,17 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
 function verifySettings(settings) {
     settings.forEach((setting) => {
+        if (setting.optional) {
+            cy.get('body').then(($body) => {
+                if ($body.find(`#${setting.key}Edit`).length === 0) {
+                    return;
+                }
+                cy.focused().should('have.id', `${setting.key}Edit`);
+                cy.findByText(setting.label);
+                cy.focused().tab();
+            });
+            return;
+        }
         cy.focused().should('have.id', `${setting.key}Edit`);
         cy.findByText(setting.label);
         cy.focused().tab();

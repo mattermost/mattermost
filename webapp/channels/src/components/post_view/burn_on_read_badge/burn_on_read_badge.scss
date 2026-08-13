@@ -1,0 +1,39 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.BurnOnReadBadge {
+    position: relative;
+    z-index: 25;
+    display: inline-flex;
+    align-items: center;
+    padding: 0;
+    border: none;
+    margin-left: 8px;
+    background: transparent;
+    cursor: pointer;
+    pointer-events: auto;
+    vertical-align: middle;
+
+    &:disabled {
+        cursor: default;
+    }
+
+    &__icon {
+        color: var(--dnd-indicator, #D24B4E);
+    }
+
+    &:hover:not(:disabled) &__icon {
+        opacity: 0.8;
+    }
+
+    &__tooltip-content {
+        .primary-text {
+            color: rgba(255, 255, 255, 1);
+        }
+
+        .secondary-text {
+            margin-top: 4px;
+            color: rgba(255, 255, 255, 0.64);
+        }
+    }
+}

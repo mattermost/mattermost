@@ -126,7 +126,9 @@
 }
 
 .PrivateCloudCard__actionButton {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-top: 16px;
 }
 

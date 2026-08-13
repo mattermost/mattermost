@@ -1,4 +1,22 @@
-#testResultsModalLabel {
-    padding: 32px 0;
-    text-align: center;
+.TestResultsModal {
+    margin-top: 5vh !important;
+
+    .no-users-found {
+        padding: 32px 0;
+        text-align: center;
+    }
+
+    .GenericModal__body {
+        padding: 0 !important;
+
+        .filter-row {
+            padding: 0 16px;
+            margin: 5px 0 10px;
+        }
+
+        .filtered-user-list .filter-row span.member-count{
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+    }
 }

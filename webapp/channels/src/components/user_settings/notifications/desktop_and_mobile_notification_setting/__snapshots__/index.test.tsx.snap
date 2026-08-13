@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] = `
 <div>
@@ -167,7 +167,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             role="alert"
           />
           <button
-            class="btn btn-primary "
+            class="btn btn-primary"
             data-testid="saveSetting"
             id="saveSetting"
             type="submit"
@@ -178,6 +178,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           </button>
           <button
             class="btn btn-tertiary"
+            data-testid="cancelButton"
             id="cancelSetting"
           >
             Cancel
@@ -193,9 +194,10 @@ exports[`DesktopNotificationSettings should match snapshot, on min setting 1`] =
 <div>
   <div
     class="section-min"
+    data-testid="section-min"
   >
     <div
-      class="secion-min__header"
+      class="section-min__header"
     >
       <h4
         class="section-min__title"
@@ -384,7 +386,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
             role="alert"
           />
           <button
-            class="btn btn-primary "
+            class="btn btn-primary"
             data-testid="saveSetting"
             id="saveSetting"
             type="submit"
@@ -395,6 +397,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
           </button>
           <button
             class="btn btn-tertiary"
+            data-testid="cancelButton"
             id="cancelSetting"
           >
             Cancel

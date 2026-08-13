@@ -434,10 +434,4 @@ export const sectionStrings: Record<string, Record<string, MessageDescriptor>> =
             defaultMessage: 'Feature Flags',
         },
     }),
-    experimental_bleve: defineMessages({
-        name: {
-            id: 'admin.permissions.sysconsole_section_experimental_bleve.name',
-            defaultMessage: 'Bleve',
-        },
-    }),
 };

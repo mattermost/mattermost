@@ -40,16 +40,6 @@ var CommandListCmd = &cobra.Command{
 	RunE:    withClient(listCommandCmdF),
 }
 
-var CommandDeleteCmd = &cobra.Command{
-	Use:        "delete [commandID]",
-	Short:      "Delete a slash command",
-	Long:       `Delete a slash command. Commands can be specified by command ID.`,
-	Example:    `  command delete commandID`,
-	Deprecated: "please use \"mmctl channel archive\" instead",
-	Args:       cobra.ExactArgs(1),
-	RunE:       withClient(archiveCommandCmdF),
-}
-
 var CommandArchiveCmd = &cobra.Command{
 	Use:     "archive [commandID]",
 	Short:   "Archive a slash command",
@@ -113,7 +103,6 @@ func init() {
 	CommandCmd.AddCommand(
 		CommandCreateCmd,
 		CommandListCmd,
-		CommandDeleteCmd,
 		CommandModifyCmd,
 		CommandMoveCmd,
 		CommandShowCmd,

@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import EditableArea from './editable_area';
 
@@ -33,7 +33,7 @@ describe('channel_info_rhs/components/editable_area', () => {
         );
 
         expect(screen.getByLabelText('Edit')).toBeInTheDocument();
-        fireEvent.click(screen.getByLabelText('Edit'));
+        await userEvent.click(screen.getByLabelText('Edit'));
         expect(mockOnEdit).toHaveBeenCalled();
     });
 
@@ -64,10 +64,10 @@ describe('channel_info_rhs/components/editable_area', () => {
         expect(screen.getByText('No content')).toBeInTheDocument();
 
         // We should be able to click on the text...
-        fireEvent.click(screen.getByText('No content'));
+        await userEvent.click(screen.getByText('No content'));
 
         // ... or the Edit icon
-        fireEvent.click(screen.getByLabelText('Edit'));
+        await userEvent.click(screen.getByLabelText('Edit'));
         expect(mockOnEdit).toHaveBeenCalledTimes(2);
     });
 });

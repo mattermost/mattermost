@@ -2,25 +2,18 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {ReactComponentLike} from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 export type Props = {
 
     /**
-     * Whether to delay updating the value of the textbox from props. Should only be used
-     * on textboxes that to properly compose CJK characters as the user types.
-     */
-    delayInputUpdate?: boolean;
-
-    /**
      * An optional React component that will be used instead of an HTML input when rendering
      */
-    inputComponent?: ReactComponentLike;
+    inputComponent?: React.ElementType;
 
     /**
      * The string value displayed in this input
@@ -80,8 +73,9 @@ export type Props = {
     id?: string;
     onInput?: (e?: React.FormEvent<HTMLInputElement>) => void;
     tabIndex?: number;
+    size?: 'md' | 'lg';
     role?: string;
-}
+};
 
 const defaultClearableTooltipText = (
     <FormattedMessage
@@ -92,7 +86,6 @@ const defaultClearableTooltipText = (
 // A component that can be used to make controlled inputs that function properly in certain
 // environments (ie. IE11) where typing quickly would sometimes miss inputs
 export const QuickInput = React.memo(({
-    delayInputUpdate = false,
     value = '',
     clearable = false,
     autoFocus,
@@ -102,6 +95,8 @@ export const QuickInput = React.memo(({
     clearableWithoutValue,
     clearableTooltipText,
     onClear: onClearFromProps,
+    className,
+    size = 'md',
     ...restProps
 }: Props) => {
     const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
@@ -119,23 +114,11 @@ export const QuickInput = React.memo(({
     }, []);
 
     useEffect(() => {
-        const updateInputFromProps = () => {
-            if (!inputRef.current || inputRef.current.value === value) {
-                return;
-            }
-
-            inputRef.current.value = value;
-        };
-
-        if (delayInputUpdate) {
-            requestAnimationFrame(updateInputFromProps);
-        } else {
-            updateInputFromProps();
+        if (!inputRef.current || inputRef.current.value === value) {
+            return;
         }
 
-        /* eslint-disable-next-line react-hooks/exhaustive-deps --
-         * This 'useEffect' should run only when 'value' prop changes.
-         **/
+        inputRef.current.value = value;
     }, [value]);
 
     const setInputRef = useCallback((input: HTMLInputElement) => {
@@ -169,6 +152,9 @@ export const QuickInput = React.memo(({
             ...restProps,
             ref: setInputRef,
             defaultValue: value, // Only set the defaultValue since the real one will be updated using the 'useEffect' above
+            className: classNames(className, {
+                'form-control--lg': size === 'lg',
+            }),
         },
     );
 

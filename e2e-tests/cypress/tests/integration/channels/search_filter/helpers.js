@@ -7,8 +7,8 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 export function searchAndValidate(query, expectedResults = []) {
     // # Enter in search query, and hit enter

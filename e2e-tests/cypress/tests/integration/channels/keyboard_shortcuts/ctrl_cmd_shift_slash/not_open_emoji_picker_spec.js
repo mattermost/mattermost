@@ -10,12 +10,12 @@
 // Stage: @prod
 // Group: @channels @emoji @keyboard_shortcuts
 
-import * as MESSAGES from '../../../../fixtures/messages';
-
 import {
     doReactToLastMessageShortcut,
     pressEscapeKey,
 } from './helpers';
+
+import * as MESSAGES from '@/fixtures/messages';
 
 describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last message', () => {
     let testUser;
@@ -23,13 +23,6 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
     let emptyChannel;
 
     before(() => {
-        // # Enable Experimental View Archived Channels
-        cy.apiUpdateConfig({
-            TeamSettings: {
-                ExperimentalViewArchivedChannels: true,
-            },
-        });
-
         cy.apiInitSetup().then(({team, channel, user}) => {
             testUser = user;
             testTeam = team;

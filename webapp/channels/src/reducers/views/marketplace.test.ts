@@ -10,7 +10,7 @@ import {ActionTypes, ModalIdentifiers} from 'utils/constants';
 describe('marketplace', () => {
     test('initial state', () => {
         const currentState = {} as never;
-        const action = {type: undefined};
+        const action = {type: 'testinit'};
         const expectedState = {
             plugins: [],
             apps: [],

@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @search_date_filter
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Negative search filters will omit results', () => {
     const message = 'negative' + Date.now();

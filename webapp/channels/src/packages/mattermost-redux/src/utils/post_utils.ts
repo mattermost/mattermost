@@ -23,6 +23,18 @@ export function isFromWebhook(post: Post): boolean {
     return post.props?.from_webhook === 'true';
 }
 
+export function isSilentNotification(post: Post): boolean {
+    return post.props?.silent_notification === true;
+}
+
+// Mirrors server IsNotificationSuppressed: force_notification wins over silent.
+export function isNotificationSuppressed(post: Post): boolean {
+    if (post.props?.force_notification) {
+        return false;
+    }
+    return isSilentNotification(post);
+}
+
 export function isPostEphemeral(post: Post): boolean {
     return post.type === Posts.POST_TYPES.EPHEMERAL || post.type === Posts.POST_TYPES.EPHEMERAL_ADD_TO_CHANNEL || post.state === Posts.POST_DELETED;
 }
@@ -54,6 +66,10 @@ export function isEdited(post: Post): boolean {
 
 export function canEditPost(state: GlobalState, config: any, license: any, teamId: Team['id'], channelId: Channel['id'], userId: UserProfile['id'], post: Post): boolean {
     if (!post || isSystemMessage(post)) {
+        return false;
+    }
+
+    if (post.type === Posts.POST_TYPES.BURN_ON_READ) {
         return false;
     }
 

@@ -4,7 +4,7 @@
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import type {ChannelType} from '@mattermost/types/channels';
+import type {WebSocketMessages} from '@mattermost/client';
 import type {Post} from '@mattermost/types/posts';
 
 import {
@@ -20,6 +20,7 @@ import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {
     isFromWebhook,
+    isNotificationSuppressed,
     isSystemMessage,
     shouldIgnorePost,
 } from 'mattermost-redux/utils/post_utils';
@@ -33,20 +34,7 @@ import {ActionTypes} from 'utils/constants';
 
 import type {DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync} from 'types/store';
 
-export type NewPostMessageProps = {
-    channel_type: ChannelType;
-    channel_display_name: string;
-    channel_name: string;
-    sender_name: string;
-    set_online: boolean;
-    mentions?: string;
-    followers?: string;
-    team_id: string;
-    should_ack: boolean;
-    otherFile?: 'true';
-    image?: 'true';
-    post: string;
-}
+export type NewPostMessageProps = Partial<WebSocketMessages.Posted['data']>;
 
 export function completePostReceive(post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
@@ -90,7 +78,7 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
         }
         dispatch(batchActions(actions));
 
-        if (isCRTReply) {
+        if (isCRTReply && !isNotificationSuppressed(post)) {
             dispatch(setThreadRead(post));
         }
 
@@ -146,7 +134,11 @@ export function setChannelReadAndViewed(dispatch: DispatchFunc, getState: GetSta
         return actionsToMarkChannelAsRead(getState, post.channel_id);
     }
 
-    return actionsToMarkChannelAsUnread(getState, websocketMessageProps.team_id, post.channel_id, websocketMessageProps.mentions || '', fetchedChannelMember, post.root_id === '', post?.metadata?.priority?.priority);
+    if (isNotificationSuppressed(post)) {
+        return [];
+    }
+
+    return actionsToMarkChannelAsUnread(getState, websocketMessageProps.team_id || '', post.channel_id, websocketMessageProps.mentions || '', fetchedChannelMember, post.root_id === '', post?.metadata?.priority?.priority);
 }
 
 export function setThreadRead(post: Post): ActionFunc<boolean> {

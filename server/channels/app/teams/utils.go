@@ -4,6 +4,7 @@
 package teams
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -77,13 +78,7 @@ func (ts *TeamService) checkValidDomains(team *model.Team) error {
 	validDomains := normalizeDomains(*ts.config().TeamSettings.RestrictCreationToDomains)
 	if len(validDomains) > 0 {
 		for _, domain := range normalizeDomains(team.AllowedDomains) {
-			matched := false
-			for _, d := range validDomains {
-				if domain == d {
-					matched = true
-					break
-				}
-			}
+			matched := slices.Contains(validDomains, domain)
 			if !matched {
 				return &DomainError{Domain: domain}
 			}

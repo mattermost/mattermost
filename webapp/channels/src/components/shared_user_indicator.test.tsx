@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 import * as reactIntl from 'react-intl';
 
-import {renderWithContext, screen, waitFor, act} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import SharedUserIndicator from './shared_user_indicator';
 
@@ -21,7 +20,7 @@ describe('components/SharedUserIndicator', () => {
                     return `From: ${descriptor.values?.remoteNames}`;
                 }
                 if (descriptor.id === 'shared_user_indicator.aria_label') {
-                    return 'shared user indicator';
+                    return 'shared user';
                 }
                 return descriptor.defaultMessage || '';
             }),
@@ -55,13 +54,10 @@ describe('components/SharedUserIndicator', () => {
         const icon = screen.getByTestId('SharedUserIcon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
-        await act(async () => {
-            userEvent.hover(icon);
-            jest.advanceTimersByTime(1000);
+        await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
 
-            await waitFor(() => {
-                expect(screen.getByText('Custom title')).toBeInTheDocument();
-            });
+        await waitFor(() => {
+            expect(screen.getByText('Custom title')).toBeInTheDocument();
         });
     });
 
@@ -75,13 +71,10 @@ describe('components/SharedUserIndicator', () => {
         const icon = screen.getByTestId('SharedUserIcon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
-        await act(async () => {
-            userEvent.hover(icon);
-            jest.advanceTimersByTime(1000);
+        await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
 
-            await waitFor(() => {
-                expect(screen.getByText('From trusted organizations')).toBeInTheDocument();
-            });
+        await waitFor(() => {
+            expect(screen.getByText('From trusted organizations')).toBeInTheDocument();
         });
     });
 
@@ -99,13 +92,10 @@ describe('components/SharedUserIndicator', () => {
         const icon = screen.getByTestId('SharedUserIcon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
-        await act(async () => {
-            userEvent.hover(icon);
-            jest.advanceTimersByTime(1000);
+        await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
 
-            await waitFor(() => {
-                expect(screen.getByText('From: Remote 1, Remote 2')).toBeInTheDocument();
-            });
+        await waitFor(() => {
+            expect(screen.getByText('From: Remote 1, Remote 2')).toBeInTheDocument();
         });
     });
 
@@ -123,13 +113,10 @@ describe('components/SharedUserIndicator', () => {
         const icon = screen.getByTestId('SharedUserIcon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
-        await act(async () => {
-            userEvent.hover(icon);
-            jest.advanceTimersByTime(1000);
+        await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
 
-            await waitFor(() => {
-                expect(screen.getByText('From: Remote 1, Remote 2, Remote 3 and 2 others')).toBeInTheDocument();
-            });
+        await waitFor(() => {
+            expect(screen.getByText('From: Remote 1, Remote 2, Remote 3 and 2 others')).toBeInTheDocument();
         });
     });
 
@@ -147,13 +134,10 @@ describe('components/SharedUserIndicator', () => {
         const icon = screen.getByTestId('SharedUserIcon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
-        await act(async () => {
-            userEvent.hover(icon);
-            jest.advanceTimersByTime(1000);
+        await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
 
-            await waitFor(() => {
-                expect(screen.getByText('From: Remote 1, Remote 2, Remote 3 and 1 other')).toBeInTheDocument();
-            });
+        await waitFor(() => {
+            expect(screen.getByText('From: Remote 1, Remote 2, Remote 3 and 1 other')).toBeInTheDocument();
         });
     });
 
@@ -180,21 +164,18 @@ describe('components/SharedUserIndicator', () => {
         const icon = screen.getByTestId('SharedUserIcon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
-        await act(async () => {
-            userEvent.hover(icon);
-            jest.advanceTimersByTime(1000);
+        await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
 
-            await waitFor(() => {
-                // Just check that the tooltip text ends with ellipsis, indicating truncation
-                const tooltipText = screen.getByText(/From:.+\.\.\.$/);
-                expect(tooltipText).toBeInTheDocument();
+        await waitFor(() => {
+            // Just check that the tooltip text ends with ellipsis, indicating truncation
+            const tooltipText = screen.getByText(/From:.+\.\.\.$/);
+            expect(tooltipText).toBeInTheDocument();
 
-                // Verify overall tooltip length doesn't exceed the maximum length (120)
-                // Add some extra characters to account for the "From: " prefix
-                const tooltipContent = tooltipText.textContent || '';
-                const actualContent = tooltipContent.replace('From: ', '');
-                expect(actualContent.length).toBeLessThanOrEqual(120);
-            });
+            // Verify overall tooltip length doesn't exceed the maximum length (120)
+            // Add some extra characters to account for the "From: " prefix
+            const tooltipContent = tooltipText.textContent || '';
+            const actualContent = tooltipContent.replace('From: ', '');
+            expect(actualContent.length).toBeLessThanOrEqual(120);
         });
     });
 

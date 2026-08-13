@@ -12,7 +12,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestCreateIncomingWebhookCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("provided values should be consistent with the created webhook", func() {
 		printer.Clean()

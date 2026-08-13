@@ -28,7 +28,7 @@ export type Props = {
         openModal: <P>(modalData: ModalData<P>) => void;
     };
     intl: IntlShape;
-}
+};
 
 type State = {
     show: boolean;
@@ -42,7 +42,7 @@ type State = {
     showUnknownError: boolean;
     saving: boolean;
     saved: boolean;
-}
+};
 
 export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -305,7 +305,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                             <legend>
                                 <FormattedMessage
                                     id='user_groups_modal.addPeople'
-                                    defaultMessage='Add People'
+                                    defaultMessage='Add people'
                                 />
                             </legend>
                             <div className='group-add-user'>
@@ -318,7 +318,6 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                                     deleteUserCallback={this.deleteUserCallback}
                                     backButtonText={defineMessage({id: 'multiselect.cancelButton', defaultMessage: 'Cancel'})}
                                     backButtonClick={this.doHide}
-                                    backButtonClass={'multiselect-back'}
                                     saving={this.state.saving}
                                 />
                             </div>

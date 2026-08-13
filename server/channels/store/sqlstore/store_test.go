@@ -14,9 +14,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -71,7 +69,7 @@ func getStoresFromPools(t *testing.T) []*storeType {
 func newStoreType(name, driver string) *storeType {
 	return &storeType{
 		Name:        name,
-		SqlSettings: storetest.MakeSqlSettings(driver, false),
+		SqlSettings: storetest.MakeSqlSettings(driver),
 	}
 }
 
@@ -90,7 +88,6 @@ func StoreTest(t *testing.T, f func(*testing.T, request.CTX, store.Store)) {
 	}
 
 	for _, st := range stores {
-		st := st
 		rctx := request.TestContext(t)
 
 		t.Run(st.Name, func(t *testing.T) {
@@ -118,7 +115,6 @@ func StoreTestWithSearchTestEngine(t *testing.T, f func(*testing.T, store.Store,
 	}
 
 	for _, st := range stores {
-		st := st
 		searchTestEngine := &searchtest.SearchTestEngine{
 			Driver: *st.SqlSettings.DriverName,
 		}
@@ -144,7 +140,6 @@ func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, request.CTX, store.S
 	}
 
 	for _, st := range stores {
-		st := st
 		rctx := request.TestContext(t)
 
 		t.Run(st.Name, func(t *testing.T) {
@@ -165,12 +160,9 @@ func initStores(logger mlog.LoggerIFace, parallelism int) {
 	// for subtests or paused tests that might also run in parallel and initialize a new store.
 	parallelTestsPoolSize := parallelism * 2
 
-	// In CI, we already run the entire test suite for both mysql and postgres in parallel.
-	// So we just run the tests for the current database set.
+	// In CI, we run the test suite for the current database set.
 	if os.Getenv("IS_CI") == "true" {
 		switch os.Getenv("MM_SQLSETTINGS_DRIVERNAME") {
-		case "mysql":
-			storeTypes = append(storeTypes, newStoreType("MySQL", model.DatabaseDriverMysql))
 		case "postgres":
 			storeTypes = append(storeTypes, newStoreType("PostgreSQL", model.DatabaseDriverPostgres))
 			if enableFullyParallelTests {
@@ -183,7 +175,6 @@ func initStores(logger mlog.LoggerIFace, parallelism int) {
 		}
 	} else {
 		storeTypes = append(storeTypes,
-			newStoreType("MySQL", model.DatabaseDriverMysql),
 			newStoreType("PostgreSQL", model.DatabaseDriverPostgres),
 		)
 
@@ -192,11 +183,7 @@ func initStores(logger mlog.LoggerIFace, parallelism int) {
 			if err != nil {
 				panic(err)
 			}
-			msStorePool, err := NewTestPool(logger, model.DatabaseDriverMysql, parallelTestsPoolSize)
-			if err != nil {
-				panic(err)
-			}
-			storePools = append(storePools, pgStorePool, msStorePool)
+			storePools = append(storePools, pgStorePool)
 		}
 	}
 
@@ -209,10 +196,11 @@ func initStores(logger mlog.LoggerIFace, parallelism int) {
 
 	var eg errgroup.Group
 	for _, st := range storeTypes {
-		st := st
 		eg.Go(func() error {
 			var err error
-			st.SqlStore, err = New(*st.SqlSettings, logger, nil)
+			st.SqlStore, err = New(*st.SqlSettings, logger, nil, WithFeatureFlags(func() *model.FeatureFlags {
+				return &model.FeatureFlags{CJKSearch: true}
+			}))
 			if err != nil {
 				return err
 			}
@@ -238,7 +226,6 @@ func tearDownStores() {
 		var wg sync.WaitGroup
 		wg.Add(len(storeTypes))
 		for _, st := range storeTypes {
-			st := st
 			go func() {
 				if st.Store != nil {
 					st.Store.Close()
@@ -253,7 +240,6 @@ func tearDownStores() {
 		var wgPool sync.WaitGroup
 		wgPool.Add(len(storePools))
 		for _, pool := range storePools {
-			pool := pool
 			go func() {
 				defer wgPool.Done()
 				pool.Close()
@@ -393,12 +379,12 @@ func TestGetReplica(t *testing.T) {
 			store.UpdateLicense(&model.License{})
 
 			replicas := make(map[*sqlxDBWrapper]bool)
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				replicas[store.GetReplica()] = true
 			}
 
 			searchReplicas := make(map[*sqlxDBWrapper]bool)
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				searchReplicas[store.GetSearchReplicaX()] = true
 			}
 
@@ -464,12 +450,12 @@ func TestGetReplica(t *testing.T) {
 			}()
 
 			replicas := make(map[*sqlxDBWrapper]bool)
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				replicas[store.GetReplica()] = true
 			}
 
 			searchReplicas := make(map[*sqlxDBWrapper]bool)
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				searchReplicas[store.GetSearchReplicaX()] = true
 			}
 
@@ -518,7 +504,6 @@ func TestGetDbVersion(t *testing.T) {
 
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
-		model.DatabaseDriverMysql,
 	}
 
 	for _, d := range testDrivers {
@@ -540,64 +525,48 @@ func TestGetDbVersion(t *testing.T) {
 	}
 }
 
-func TestEnsureMinimumDBVersion(t *testing.T) {
+func TestCheckVersion(t *testing.T) {
 	if enableFullyParallelTests {
 		t.Parallel()
 	}
 
 	tests := []struct {
-		driver string
-		ver    string
-		ok     bool
-		err    string
+		ver            string
+		wantErr        string
+		wantLog        string
+		wantVersion    string
+		wantMinVersion string
 	}{
 		{
-			driver: model.DatabaseDriverPostgres,
-			ver:    "110001",
-			ok:     false,
-			err:    "",
+			ver:            "110001",
+			wantLog:        "Unsupported Postgres version",
+			wantVersion:    "11.1",
+			wantMinVersion: "14.0",
 		},
 		{
-			driver: model.DatabaseDriverPostgres,
-			ver:    "130001",
-			ok:     true,
-			err:    "",
+			ver:            "130001",
+			wantLog:        "Unsupported Postgres version",
+			wantVersion:    "13.1",
+			wantMinVersion: "14.0",
 		},
 		{
-			driver: model.DatabaseDriverPostgres,
-			ver:    "90603",
-			ok:     false,
-			err:    "minimum Postgres version requirements not met",
+			ver: "140000",
 		},
 		{
-			driver: model.DatabaseDriverPostgres,
-			ver:    "12.34.1",
-			ok:     false,
-			err:    "cannot parse DB version",
+			ver: "140019",
 		},
 		{
-			driver: model.DatabaseDriverMysql,
-			ver:    "10.4.5-MariaDB",
-			ok:     true,
-			err:    "",
+			ver: "150000",
 		},
 		{
-			driver: model.DatabaseDriverMysql,
-			ver:    "5.6.99-test",
-			ok:     false,
-			err:    "Minimum MySQL version requirements not met",
+			ver:            "90603",
+			wantLog:        "Unsupported Postgres version",
+			wantVersion:    "9.6.3",
+			wantMinVersion: "14.0",
 		},
 		{
-			driver: model.DatabaseDriverMysql,
-			ver:    "34-55.12",
-			ok:     false,
-			err:    "cannot parse MySQL DB version",
-		},
-		{
-			driver: model.DatabaseDriverMysql,
-			ver:    "8.0.0-log",
-			ok:     true,
-			err:    "",
+			ver:     "12.34.1",
+			wantErr: "cannot parse DB version",
 		},
 	}
 
@@ -605,23 +574,37 @@ func TestEnsureMinimumDBVersion(t *testing.T) {
 	pgSettings := &model.SqlSettings{
 		DriverName: &pg,
 	}
-	my := model.DatabaseDriverMysql
-	mySettings := &model.SqlSettings{
-		DriverName: &my,
-	}
 	for _, tc := range tests {
-		store := &SqlStore{}
-		switch tc.driver {
-		case pg:
+		t.Run(tc.ver, func(t *testing.T) {
+			logger := mlog.CreateConsoleTestLogger(t)
+			var buf mlog.Buffer
+			require.NoError(t, mlog.AddWriterTarget(logger, &buf, true, mlog.LvlError))
+
+			store := &SqlStore{}
 			store.settings = pgSettings
-		case my:
-			store.settings = mySettings
-		}
-		ok, err := store.ensureMinimumDBVersion(tc.ver)
-		assert.Equal(t, tc.ok, ok, "driver: %s, version: %s", tc.driver, tc.ver)
-		if tc.err != "" {
-			assert.Contains(t, err.Error(), tc.err)
-		}
+			store.logger = logger
+
+			err := store.checkVersion(tc.ver)
+			require.NoError(t, logger.Flush())
+
+			if tc.wantErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.wantErr)
+				return
+			}
+			require.NoError(t, err)
+
+			if tc.wantLog == "" {
+				assert.Empty(t, buf.String())
+				return
+			}
+
+			assert.Contains(t, buf.String(), tc.wantLog)
+			assert.Contains(t, buf.String(), fmt.Sprintf(`"version":%q`, tc.wantVersion))
+			if tc.wantMinVersion != "" {
+				assert.Contains(t, buf.String(), fmt.Sprintf(`"min_version":%q`, tc.wantMinVersion))
+			}
+		})
 	}
 }
 
@@ -638,25 +621,7 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 			store: SqlStore{
 				settings: &model.SqlSettings{
 					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
-					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
-				},
-			},
-			expected: true,
-		},
-		{
-			store: SqlStore{
-				settings: &model.SqlSettings{
-					DriverName: model.NewPointer(model.DatabaseDriverMysql),
-					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
-				},
-			},
-			expected: false,
-		},
-		{
-			store: SqlStore{
-				settings: &model.SqlSettings{
-					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
-					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable&binary_parameters=yes"),
+					DataSource: new("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
 				},
 			},
 			expected: true,
@@ -665,7 +630,16 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 			store: SqlStore{
 				settings: &model.SqlSettings{
 					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
-					DataSource: model.NewPointer("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable"),
+					DataSource: new("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable&binary_parameters=yes"),
+				},
+			},
+			expected: true,
+		},
+		{
+			store: SqlStore{
+				settings: &model.SqlSettings{
+					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
+					DataSource: new("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable"),
 				},
 			},
 			expected: false,
@@ -782,11 +756,9 @@ func TestIsDuplicate(t *testing.T) {
 	}
 
 	testErrors := map[error]bool{
-		&pq.Error{Code: "42P06"}:                          false,
-		&pq.Error{Code: PGDupTableErrorCode}:              true,
-		&mysql.MySQLError{Number: uint16(1000)}:           false,
-		&mysql.MySQLError{Number: MySQLDupTableErrorCode}: true,
-		errors.New("Random error"):                        false,
+		&pq.Error{Code: "42P06"}:             false,
+		&pq.Error{Code: PGDupTableErrorCode}: true,
+		errors.New("Random error"):           false,
 	}
 
 	for e, b := range testErrors {
@@ -806,39 +778,46 @@ func TestVersionString(t *testing.T) {
 
 	versions := []struct {
 		input  int
-		driver string
 		output string
 	}{
 		{
 			input:  100000,
-			driver: model.DatabaseDriverPostgres,
 			output: "10.0",
 		},
 		{
 			input:  90603,
-			driver: model.DatabaseDriverPostgres,
-			output: "9.603",
+			output: "9.6.3",
 		},
 		{
 			input:  120005,
-			driver: model.DatabaseDriverPostgres,
 			output: "12.5",
 		},
+		// Examples given by the PQserverVersion documentation.
 		{
-			input:  5708,
-			driver: model.DatabaseDriverMysql,
-			output: "5.7.8",
+			input:  100001,
+			output: "10.1",
 		},
 		{
-			input:  8000,
-			driver: model.DatabaseDriverMysql,
-			output: "8.0.0",
+			input:  110000,
+			output: "11.0",
+		},
+		{
+			input:  90105,
+			output: "9.1.5",
+		},
+		{
+			input:  90200,
+			output: "9.2.0",
+		},
+		{
+			input:  140019,
+			output: "14.19",
 		},
 	}
 
 	for _, v := range versions {
-		out := versionString(v.input, v.driver)
-		assert.Equal(t, v.output, out)
+		out := versionString(v.input)
+		assert.Equal(t, v.output, out, "input: %d", v.input)
 	}
 }
 
@@ -849,7 +828,6 @@ func TestReplicaLagQuery(t *testing.T) {
 
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
-		model.DatabaseDriverMysql,
 	}
 
 	for _, driver := range testDrivers {
@@ -865,16 +843,22 @@ func TestReplicaLagQuery(t *testing.T) {
 			case model.DatabaseDriverPostgres:
 				query = `SELECT relname, count(relname) FROM pg_class WHERE relname='posts' GROUP BY relname`
 				tableName = "posts"
-			case model.DatabaseDriverMysql:
-				query = `SELECT table_name, count(table_name) FROM information_schema.tables WHERE table_name='Posts' and table_schema=Database() GROUP BY table_name`
-				tableName = "Posts"
 			}
 
 			settings.ReplicaLagSettings = []*model.ReplicaLagSettings{{
-				DataSource:       model.NewPointer(*settings.DataSource),
-				QueryAbsoluteLag: model.NewPointer(query),
-				QueryTimeLag:     model.NewPointer(query),
+				DataSource:       new(*settings.DataSource),
+				QueryAbsoluteLag: new(query),
+				QueryTimeLag:     new(query),
 			}}
+
+			// Disable connection pool cleanup goroutines to prevent DATA RACE
+			// with testify's reflect-based argument diffing. When sql.DB's
+			// connectionCleaner goroutine is active, it writes to internal
+			// fields while testify's mock.Called() → Arguments.Diff() reads
+			// them via fmt.Sprintf("%v", *sql.DB). Setting lifetime/idle to 0
+			// prevents the cleaner goroutine from starting at all.
+			settings.ConnMaxLifetimeMilliseconds = new(0)
+			settings.ConnMaxIdleTimeMilliseconds = new(0)
 
 			mockMetrics := &mocks.MetricsInterface{}
 			mockMetrics.On("SetReplicaLagAbsolute", tableName, float64(1))
@@ -896,12 +880,12 @@ func TestReplicaLagQuery(t *testing.T) {
 			err = store.migrate(migrationsDirectionUp, false, true)
 			require.NoError(t, err)
 
-			defer store.Close()
-
 			err = store.ReplicaLagAbs()
 			require.NoError(t, err)
 			err = store.ReplicaLagTime()
 			require.NoError(t, err)
+
+			store.Close()
 			mockMetrics.AssertExpectations(t)
 		})
 	}
@@ -916,7 +900,6 @@ func TestInvalidReplicaLagDataSource(t *testing.T) {
 
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
-		model.DatabaseDriverMysql,
 	}
 
 	for _, driver := range testDrivers {
@@ -928,10 +911,14 @@ func TestInvalidReplicaLagDataSource(t *testing.T) {
 
 			// Set an invalid DataSource that will fail to connect
 			settings.ReplicaLagSettings = []*model.ReplicaLagSettings{{
-				DataSource:       model.NewPointer("invalid://connection/string"),
-				QueryAbsoluteLag: model.NewPointer("SELECT 1"),
-				QueryTimeLag:     model.NewPointer("SELECT 1"),
+				DataSource:       new("invalid://connection/string"),
+				QueryAbsoluteLag: new("SELECT 1"),
+				QueryTimeLag:     new("SELECT 1"),
 			}}
+
+			// Disable connection pool cleanup goroutines (see TestReplicaLagQuery).
+			settings.ConnMaxLifetimeMilliseconds = new(0)
+			settings.ConnMaxIdleTimeMilliseconds = new(0)
 
 			mockMetrics := &mocks.MetricsInterface{}
 			mockMetrics.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
@@ -947,10 +934,11 @@ func TestInvalidReplicaLagDataSource(t *testing.T) {
 			}
 
 			require.NoError(t, store.initConnection())
-			defer store.Close()
 
 			// Verify no replica lag handles were added despite having ReplicaLagSettings
 			assert.Equal(t, 0, len(store.replicaLagHandles))
+
+			store.Close()
 		})
 	}
 }
@@ -972,9 +960,7 @@ func makeSqlSettings(driver string) (*model.SqlSettings, error) {
 
 	switch driver {
 	case model.DatabaseDriverPostgres:
-		return storetest.MakeSqlSettings(driver, false), nil
-	case model.DatabaseDriverMysql:
-		return storetest.MakeSqlSettings(driver, false), nil
+		return storetest.MakeSqlSettings(driver), nil
 	}
 
 	return nil, errDriverUnsupported
@@ -983,46 +969,15 @@ func makeSqlSettings(driver string) (*model.SqlSettings, error) {
 func TestExecNoTimeout(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		sqlStore := ss.(*SqlStore)
-		var query string
 		timeout := sqlStore.masterX.queryTimeout
 		sqlStore.masterX.queryTimeout = 1
 		defer func() {
 			sqlStore.masterX.queryTimeout = timeout
 		}()
-		if sqlStore.DriverName() == model.DatabaseDriverMysql {
-			query = `SELECT SLEEP(2);`
-		} else if sqlStore.DriverName() == model.DatabaseDriverPostgres {
-			query = `SELECT pg_sleep(2);`
-		}
+		query := `SELECT pg_sleep(2);`
 		_, err := sqlStore.GetMaster().ExecNoTimeout(query)
 		require.NoError(t, err)
 	})
-}
-
-func TestMySQLReadTimeout(t *testing.T) {
-	settings, err := makeSqlSettings(model.DatabaseDriverMysql)
-	if err != nil {
-		t.Skip(err)
-	}
-	dataSource := *settings.DataSource
-	config, err := mysql.ParseDSN(dataSource)
-	require.NoError(t, err)
-
-	config.ReadTimeout = 1 * time.Second
-	dataSource = config.FormatDSN()
-	settings.DataSource = &dataSource
-
-	store := &SqlStore{
-		settings:    settings,
-		logger:      mlog.CreateConsoleTestLogger(t),
-		quitMonitor: make(chan struct{}),
-		wgMonitor:   &sync.WaitGroup{},
-	}
-	require.NoError(t, store.initConnection())
-	defer store.Close()
-
-	_, err = store.GetMaster().ExecNoTimeout(`SELECT SLEEP(3)`)
-	require.NoError(t, err)
 }
 
 func TestGetDBSchemaVersion(t *testing.T) {
@@ -1032,7 +987,6 @@ func TestGetDBSchemaVersion(t *testing.T) {
 
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
-		model.DatabaseDriverMysql,
 	}
 
 	logger := mlog.CreateConsoleTestLogger(t)
@@ -1076,7 +1030,6 @@ func TestGetLocalSchemaVersion(t *testing.T) {
 
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
-		model.DatabaseDriverMysql,
 	}
 
 	logger := mlog.CreateConsoleTestLogger(t)
@@ -1108,7 +1061,6 @@ func TestGetAppliedMigrations(t *testing.T) {
 
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
-		model.DatabaseDriverMysql,
 	}
 
 	logger := mlog.CreateConsoleTestLogger(t)
@@ -1160,7 +1112,6 @@ func TestSkipMigrationsOption(t *testing.T) {
 
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
-		model.DatabaseDriverMysql,
 	}
 
 	logger := mlog.CreateConsoleTestLogger(t)
@@ -1184,12 +1135,214 @@ func TestSkipMigrationsOption(t *testing.T) {
 			assert.True(t, !errors.Is(err, sql.ErrNoRows))
 
 			// And we know what each db will return:
-			if driver == model.DatabaseDriverPostgres {
-				assert.Contains(t, err.Error(), "pq: relation \"db_migrations\" does not exist")
-			} else {
-				// Mysql includes the random db name, so test the end:
-				assert.Contains(t, err.Error(), ".db_migrations' doesn't exist")
-			}
+			assert.Contains(t, err.Error(), "pq: relation \"db_migrations\" does not exist")
 		})
 	}
+}
+
+func TestIsDBMigrationApplied(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
+	logger := mlog.CreateConsoleTestLogger(t)
+	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+	if err != nil {
+		t.Skip(err)
+	}
+	ss, err := New(*settings, logger, nil)
+	require.NoError(t, err)
+
+	maxVersion, err := ss.GetDBSchemaVersion()
+	require.NoError(t, err)
+	require.Greater(t, maxVersion, 0)
+
+	t.Run("returns true for version 1", func(t *testing.T) {
+		applied, err := ss.isDBMigrationApplied(1)
+		require.NoError(t, err)
+		assert.True(t, applied)
+	})
+
+	t.Run("returns true for the current max version", func(t *testing.T) {
+		applied, err := ss.isDBMigrationApplied(maxVersion)
+		require.NoError(t, err)
+		assert.True(t, applied)
+	})
+
+	t.Run("returns false for a version beyond max", func(t *testing.T) {
+		applied, err := ss.isDBMigrationApplied(maxVersion + 1000)
+		require.NoError(t, err)
+		assert.False(t, applied)
+	})
+}
+
+func TestPreMigrationCompletionMarker(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
+	logger := mlog.CreateConsoleTestLogger(t)
+	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+	if err != nil {
+		t.Skip(err)
+	}
+	ss, err := New(*settings, logger, nil)
+	require.NoError(t, err)
+
+	const name = "test_pre_migration_marker"
+
+	done, err := ss.isPreMigrationComplete(name)
+	require.NoError(t, err)
+	assert.False(t, done, "marker should be absent before being set")
+
+	require.NoError(t, ss.markPreMigrationComplete(name))
+
+	done, err = ss.isPreMigrationComplete(name)
+	require.NoError(t, err)
+	assert.True(t, done, "marker should be present after being set")
+
+	// Idempotent: re-marking is a no-op due to ON CONFLICT.
+	require.NoError(t, ss.markPreMigrationComplete(name))
+	done, err = ss.isPreMigrationComplete(name)
+	require.NoError(t, err)
+	assert.True(t, done)
+}
+
+func TestDoRenumberRolesSchemeIdMigrations(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
+	logger := mlog.CreateConsoleTestLogger(t)
+	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+	if err != nil {
+		t.Skip(err)
+	}
+	ss, err := New(*settings, logger, nil)
+	require.NoError(t, err)
+
+	// Simulate an old install: replace the rows that Morph wrote at 156/157/158
+	// with rows at the historical numbering 142/143/144.
+	_, err = ss.GetMaster().Exec("DELETE FROM db_migrations WHERE Version IN (156, 157, 158, 142, 143, 144)")
+	require.NoError(t, err)
+	_, err = ss.GetMaster().Exec(`
+		INSERT INTO db_migrations (Version, Name) VALUES
+			(142, 'add_schemeid_to_roles'),
+			(143, 'backfill_roles_schemeid'),
+			(144, 'add_roles_schemeid_index')
+	`)
+	require.NoError(t, err)
+
+	require.NoError(t, ss.doRenumberRolesSchemeIdMigrations())
+
+	type row struct {
+		Version int
+		Name    string
+	}
+	rows := []row{}
+	require.NoError(t, ss.GetMaster().Select(&rows,
+		"SELECT Version, Name FROM db_migrations WHERE Version IN (142, 143, 144, 156, 157, 158) ORDER BY Version"))
+
+	assert.Equal(t, []row{
+		{156, "add_schemeid_to_roles"},
+		{157, "backfill_roles_schemeid"},
+		{158, "add_roles_schemeid_index"},
+	}, rows)
+
+	// Running again is a safe no-op: WHERE clauses match nothing now.
+	require.NoError(t, ss.doRenumberRolesSchemeIdMigrations())
+
+	rows = []row{}
+	require.NoError(t, ss.GetMaster().Select(&rows,
+		"SELECT Version, Name FROM db_migrations WHERE Version IN (142, 143, 144, 156, 157, 158) ORDER BY Version"))
+	assert.Equal(t, []row{
+		{156, "add_schemeid_to_roles"},
+		{157, "backfill_roles_schemeid"},
+		{158, "add_roles_schemeid_index"},
+	}, rows)
+}
+
+func TestTableExists(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
+	logger := mlog.CreateConsoleTestLogger(t)
+	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+	if err != nil {
+		t.Skip(err)
+	}
+	ss, err := New(*settings, logger, nil)
+	require.NoError(t, err)
+
+	t.Run("returns true for an existing table", func(t *testing.T) {
+		exists, err := ss.tableExists("systems")
+		require.NoError(t, err)
+		assert.True(t, exists)
+	})
+
+	t.Run("returns true for another existing table", func(t *testing.T) {
+		exists, err := ss.tableExists("db_migrations")
+		require.NoError(t, err)
+		assert.True(t, exists)
+	})
+
+	t.Run("returns false for a non-existent table", func(t *testing.T) {
+		exists, err := ss.tableExists("this_table_does_not_exist")
+		require.NoError(t, err)
+		assert.False(t, exists)
+	})
+
+	t.Run("returns false for empty table name", func(t *testing.T) {
+		exists, err := ss.tableExists("")
+		require.NoError(t, err)
+		assert.False(t, exists)
+	})
+
+	t.Run("match is case-insensitive on stored table name", func(t *testing.T) {
+		exists, err := ss.tableExists("systems")
+		require.NoError(t, err)
+		assert.True(t, exists)
+
+		exists, err = ss.tableExists("SYSTEMS")
+		require.NoError(t, err)
+		assert.True(t, exists)
+	})
+}
+
+func TestPreMigration(t *testing.T) {
+	if enableFullyParallelTests {
+		t.Parallel()
+	}
+
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	t.Run("no-op when Systems table does not exist", func(t *testing.T) {
+		settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+		if err != nil {
+			t.Skip(err)
+		}
+		ss, err := New(*settings, logger, nil, SkipMigrations())
+		require.NoError(t, err)
+
+		require.NoError(t, ss.preMigration())
+	})
+
+	t.Run("idempotent across repeated runs", func(t *testing.T) {
+		settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+		if err != nil {
+			t.Skip(err)
+		}
+		ss, err := New(*settings, logger, nil)
+		require.NoError(t, err)
+
+		// First run on a clean DB: gate passes, handler is a no-op, marker is set.
+		require.NoError(t, ss.preMigration())
+		done, err := ss.isPreMigrationComplete("renumber_roles_schemeid_migrations")
+		require.NoError(t, err)
+		assert.True(t, done)
+
+		// second run should produce no errors
+		require.NoError(t, ss.preMigration())
+	})
 }

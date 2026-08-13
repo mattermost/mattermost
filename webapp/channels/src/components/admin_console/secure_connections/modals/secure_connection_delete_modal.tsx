@@ -11,7 +11,7 @@ type Props = {
     onConfirm: () => void;
     onCancel?: () => void;
     onExited: () => void;
-}
+};
 
 const noop = () => {};
 
@@ -38,7 +38,7 @@ function SecureConnectionDeleteModal({
             id={'admin.secure_connections.confirm.delete.text'}
             defaultMessage={'Are you sure you want to delete the secure connection <strong>{displayName}</strong>?'}
             values={{
-                strong: (chunk: string) => <strong>{chunk}</strong>,
+                strong: (chunk) => <strong>{chunk}</strong>,
                 displayName,
             }}
         />
@@ -47,12 +47,12 @@ function SecureConnectionDeleteModal({
     return (
         <GenericModal
             confirmButtonText={confirmButtonText}
+            confirmButtonVariant='destructive'
             handleCancel={onCancel ?? noop}
             handleConfirm={onConfirm}
             modalHeaderText={title}
             onExited={onExited}
             compassDesign={true}
-            isDeleteModal={true}
         >
             {message}
         </GenericModal>

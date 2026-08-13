@@ -17,28 +17,27 @@ cd webapp && make run
 cd server && make run-server
 ```
 
-**Option 2: Run using Docker (recommended for testing)**
+**Option 2: Testcontainers (recommended for testing, and what CI uses)**
+
+No separate terminal or setup step needed — Playwright brings up Postgres, Inbucket, and the Mattermost server itself via [Testcontainers](https://node.testcontainers.org/), then tears them down after the run.
 
 ```bash
-# 1. Configure environment variables in e2e-tests/.ci/env
-#    Create this file if it doesn't exist
+# Run with defaults (Postgres, Inbucket, Mattermost server, minio, openldap, keycloak, elasticsearch)
+PW_USE_TESTCONTAINERS=true npm run test -- login
 
-# 2. Set the server image (optional)
-#    To use the latest master image:
-SERVER_IMAGE="mattermostdevelopment/mattermost-enterprise-edition:master"
-#    If not set, it will use the current commit: mattermostdevelopment/mattermost-enterprise-edition:$(git rev-parse --short=7 HEAD)
-#    Note: The image must exist in Docker Hub at https://hub.docker.com/r/mattermostdevelopment/mattermost-enterprise-edition/tags
+# Change which additional services start, comma-separated (or "" to start none)
+PW_USE_TESTCONTAINERS=true PW_TESTCONTAINERS_SERVICES=minio,openldap npm run test
 
-# 3. Add your license if needed
-MM_LICENSE=<your-license-key>
+# Pin a specific server image (defaults to mattermostdevelopment/mattermost-enterprise-edition:master)
+PW_USE_TESTCONTAINERS=true SERVER_IMAGE=mattermostdevelopment/mattermost-enterprise-edition:<tag> npm run test
 
-# 4. For additional configuration options, see e2e-tests/README.md
-
-# 5. Run the server and Playwright's smoke tests from the e2e-tests directory
-cd e2e-tests && TEST=playwright make
+# Pass arbitrary MM_* config overrides as comma-separated KEY=VALUE pairs
+PW_USE_TESTCONTAINERS=true MM_ENV=MM_LICENSE=<your-license-key> npm run test
 ```
 
-This approach uses the server's Docker image to create a consistent testing environment. It automatically configures the server with the necessary settings for Playwright tests and handles dependencies.
+Containers are reused across invocations by default (`PW_TESTCONTAINERS_REUSE=true`) instead of being recreated every run — tear the stack down explicitly when you're done with `npm run testcontainers:down`. Set `PW_TESTCONTAINERS_REUSE=false` for a one-off run that tears itself down when it finishes. Use `npm run testcontainers:up` to just bring the stack up (or confirm an existing one's still reachable) without running any tests.
+
+See `lib/README.md` for every available environment variable.
 
 #### 2. Install dependencies and run the test.
 
@@ -150,7 +149,7 @@ test(
 Change to the `./` project directory, then run the docker container. (See https://playwright.dev/docs/docker for reference.)
 
 ```bash
-docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.53.0-noble /bin/bash
+docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.61.0-noble /bin/bash
 ```
 
 #### 2. Inside the docker container
@@ -179,6 +178,41 @@ npm run test -- specs/visual --update-snapshots
 export PERCY_TOKEN=<your-percy-token>
 npm run percy:docker
 ```
+
+## Accessibility Testing
+
+Accessibility tests ensure Mattermost meets WCAG 2.1 AA compliance standards. Tests are located in `specs/accessibility/` and cover keyboard navigation, screen reader support, focus management, and automated accessibility scanning.
+
+For comprehensive guidelines on writing accessibility tests, aria snapshots, and folder structure, see [docs/accessibility/](docs/accessibility/).
+
+### Accessibility Locators
+
+**Playwright's accessibility locators should be the preferred approach for all tests, not just accessibility tests.** These locators query elements based on how users and assistive technologies perceive them, making tests more resilient to implementation changes and ensuring better accessibility by design.
+
+#### Why Use Accessibility Locators?
+
+- **Resilient to changes**: Tests won't break when CSS classes or data-testid attributes change
+- **Encourages accessibility**: Forces proper ARIA roles, labels, and semantic HTML
+- **Better readability**: `page.getByRole('button', {name: 'Save'})` is clearer than `page.locator('[data-testid="save-btn"]')`
+- **Aligns with user experience**: Tests what users actually perceive, not implementation details
+
+#### Preferred Locators (in order of preference)
+
+1. **Role-based**: `page.getByRole('button', {name: 'Save'})`, `page.getByRole('textbox', {name: 'Email'})`
+2. **Label-based**: `page.getByLabel('Email address')`
+3. **Text-based**: `page.getByText('Welcome')`, `page.getByPlaceholder('Enter email')`
+4. **Test IDs**: `page.locator('[data-testid="..."]')` - Use only when accessibility locators aren't possible
+5. **CSS selectors**: `page.locator('.class')` - Avoid unless absolutely necessary
+
+#### When Test IDs Are Acceptable
+
+Use `data-testid` only when:
+
+- Element has no semantic role (e.g., decorative divs)
+- Multiple identical elements need distinction
+- Component is not interactive or visible to assistive tech
+
+For all test examples, see [docs/accessibility/](docs/accessibility/) for comprehensive patterns and best practices.
 
 ## Page/Component Object Model
 

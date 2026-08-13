@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import * as MESSAGES from '../../../fixtures/messages';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import * as MESSAGES from '@/fixtures/messages';
 
 // ***************************************************************
 // [#] indicates a test step (e.g. # Go to a page)
@@ -17,8 +17,8 @@ describe('Multi-Team + DMs', () => {
     let userB;
     let testChannelUrl;
 
-    const away = {name: 'away', ariaLabel: 'Away Icon', message: 'You are now away', className: 'icon-clock'};
-    const online = {name: 'online', ariaLabel: 'Online Icon', message: 'You are now online', className: 'icon-check', profileClassName: 'icon-check-circle'};
+    const away = {name: 'away', ariaLabel: 'Away', message: 'You are now away', className: 'icon-clock'};
+    const online = {name: 'online', ariaLabel: 'Online', message: 'You are now online', className: 'icon-check', profileClassName: 'icon-check-circle'};
 
     before(() => {
         cy.apiInitSetup().then(({team, user}) => {
@@ -66,7 +66,7 @@ describe('Multi-Team + DMs', () => {
             should('be.visible').
             children('div.Avatar-IGMzc').
             children().
-            find('svg').should('have.attr', 'aria-label', 'Away Icon');
+            find('svg').should('have.attr', 'aria-label', 'Away');
     });
 });
 

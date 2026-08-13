@@ -14,12 +14,12 @@ import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
 import ActionsMenu from 'components/actions_menu';
 import CommentIcon from 'components/common/comment_icon';
-import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import DotMenu from 'components/dot_menu';
 import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostReaction from 'components/post_view/post_reaction';
 import PostRecentReactions from 'components/post_view/post_recent_reactions';
 
+import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import {Locations, Constants} from 'utils/constants';
 import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
 
@@ -33,7 +33,6 @@ type Props = {
     enableEmojiPicker?: boolean;
     isReadOnly?: boolean;
     channelIsArchived?: boolean;
-    channelIsShared?: boolean;
     handleCommentClick?: (e: React.MouseEvent) => void;
     handleJumpClick?: (e: React.MouseEvent) => void;
     handleDropdownOpened?: (e: boolean) => void;
@@ -55,6 +54,9 @@ type Props = {
     isPostBeingEdited?: boolean;
     canDelete?: boolean;
     pluginActions: PostActionComponent[];
+    isChannelAutotranslated: boolean;
+    isBurnOnReadPost?: boolean;
+    shouldDisplayBurnOnReadConcealed?: boolean;
     actions: {
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
     };
@@ -64,6 +66,7 @@ const PostOptions = (props: Props): JSX.Element => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showDotMenu, setShowDotMenu] = useState(false);
     const [showActionsMenu, setShowActionsMenu] = useState(false);
+    const [showPluginMenu, setShowPluginMenu] = useState(false);
 
     const toggleEmojiPicker = useCallback((show: boolean) => {
         setShowEmojiPicker(show);
@@ -118,11 +121,17 @@ const PostOptions = (props: Props): JSX.Element => {
         props.handleDropdownOpened!(open);
     };
 
+    const handlePluginMenuOpened = (open: boolean) => {
+        setShowPluginMenu(open);
+        props.handleDropdownOpened!(open);
+    };
+
     const isPostDeleted = post && post.state === Posts.POST_DELETED;
-    const hoverLocal = props.hover || showEmojiPicker || showDotMenu || showActionsMenu;
-    const showCommentIcon = isFromAutoResponder || (!systemMessage && (isMobileView ||
+    const hoverLocal = props.hover || showEmojiPicker || showDotMenu || showActionsMenu || showPluginMenu;
+    const isBurnOnReadPost = props.isBurnOnReadPost || false;
+    const showCommentIcon = !isBurnOnReadPost && (isFromAutoResponder || (!systemMessage && (isMobileView ||
             hoverLocal || (!post.root_id && Boolean(props.hasReplies)) ||
-            props.isFirstReply) && props.location === Locations.CENTER);
+            props.isFirstReply) && props.location === Locations.CENTER));
     const commentIconExtraClass = isMobileView ? '' : 'pull-right';
 
     let commentIcon;
@@ -139,7 +148,8 @@ const PostOptions = (props: Props): JSX.Element => {
         );
     }
 
-    const showRecentlyUsedReactions = (!isMobileView && !isReadOnly && !isEphemeral && !post.failed && !systemMessage && !channelIsArchived && oneClickReactionsEnabled && props.enableEmojiPicker && hoverLocal);
+    // Don't show reactions for unrevealed BoR posts - users can't react to concealed content
+    const showRecentlyUsedReactions = (!isMobileView && !isReadOnly && !isEphemeral && !post.failed && !systemMessage && !channelIsArchived && oneClickReactionsEnabled && props.enableEmojiPicker && hoverLocal && !props.shouldDisplayBurnOnReadConcealed);
 
     let showRecentReactions: ReactNode;
     if (showRecentlyUsedReactions) {
@@ -158,7 +168,8 @@ const PostOptions = (props: Props): JSX.Element => {
         );
     }
 
-    const showReactionIcon = !systemMessage && !isReadOnly && !isEphemeral && !post.failed && props.enableEmojiPicker && !channelIsArchived;
+    // Don't show emoji picker button for unrevealed BoR posts
+    const showReactionIcon = !systemMessage && !isReadOnly && !isEphemeral && !post.failed && props.enableEmojiPicker && !channelIsArchived && !props.shouldDisplayBurnOnReadConcealed;
     let postReaction;
     if (showReactionIcon) {
         postReaction = (
@@ -175,8 +186,9 @@ const PostOptions = (props: Props): JSX.Element => {
         );
     }
 
+    // Don't show save button for unrevealed BoR posts
     let flagIcon: ReactNode = null;
-    if (!isMobileView && (!isEphemeral && !post.failed && !systemMessage)) {
+    if (!isMobileView && (!isEphemeral && !post.failed && !systemMessage) && !props.shouldDisplayBurnOnReadConcealed) {
         flagIcon = (
             <li>
                 <PostFlagIcon
@@ -202,18 +214,20 @@ const PostOptions = (props: Props): JSX.Element => {
     );
 
     let pluginItems: ReactNode = null;
-    const pluginItemsVisible = usePluginVisibilityInSharedChannel(post.channel_id);
 
-    if ((!isEphemeral && !post.failed && !systemMessage) && hoverLocal && pluginItemsVisible) {
+    if ((!isEphemeral && !post.failed && !systemMessage && !isBurnOnReadPost) && hoverLocal) {
         pluginItems = props.pluginActions?.
             map((item) => {
                 if (item.component) {
                     const Component = item.component;
                     return (
                         <li key={item.id}>
-                            <Component
-                                post={props.post}
-                            />
+                            <PluggableErrorBoundary pluginId={item.pluginId}>
+                                <Component
+                                    post={props.post}
+                                    handleDropdownOpened={handlePluginMenuOpened}
+                                />
+                            </PluggableErrorBoundary>
                         </li>
                     );
                 }
@@ -233,6 +247,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 isReadOnly={isReadOnly || channelIsArchived}
                 isMenuOpen={showDotMenu}
                 enableEmojiPicker={props.enableEmojiPicker}
+                isChannelAutotranslated={props.isChannelAutotranslated}
             />
         </li>
     );
@@ -244,6 +259,7 @@ const PostOptions = (props: Props): JSX.Element => {
             <div className='col col__remove'>
                 <button
                     className='post__remove theme color--link style--none'
+                    data-testid='post-remove-button'
                     onClick={removePost}
                 >
                     {'×'}
@@ -255,7 +271,10 @@ const PostOptions = (props: Props): JSX.Element => {
     } else if (props.location === Locations.SEARCH) {
         const hasCRTFooter = props.collapsedThreadsEnabled && !post.root_id && (post.reply_count > 0 || post.is_following);
         options = (
-            <ul className='col__controls post-menu'>
+            <ul
+                className='col__controls post-menu'
+                data-testid={`post-menu-${props.post.id}`}
+            >
                 {dotMenu}
                 {flagIcon}
                 {props.canReply && !hasCRTFooter &&

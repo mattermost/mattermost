@@ -65,4 +65,9 @@
     svg {
         fill: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
     }
+
+    &:disabled {
+        cursor: default;
+        opacity: 0.32;
+    }
 }

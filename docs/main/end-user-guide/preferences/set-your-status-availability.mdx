@@ -1,0 +1,79 @@
+---
+title: "Set your status and availability"
+---
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<PlanAvailability slug="all-commercial" />
+
+Let your team know whether you're available by setting a [custom status](/end-user-guide/preferences/set-your-status-availability#set-a-custom-status) and your [availability](/end-user-guide/preferences/set-your-status-availability#set-your-availability) in Mattermost.
+
+## Set a custom status
+
+Set a custom status to display a descriptive status message and optional emoji next to your name in Mattermost. Other members can see your status anywhere they can see your name, such as the channel sidebar and in conversations. To set a custom status in Mattermost:
+
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
+
+1. Select your profile picture, then select **Set a custom status**.
+2. Choose from a list of suggested statuses, or enter a new emoji and status. The Speech bubble emoji 💬 is used by default if you don't specify an emoji. A custom status can be a maximum of 100 characters in length.
+3. Specify when to clear your custom status.
+4. Select **Set Status**.
+
+</TabItem>
+<TabItem value="mobile" label="Mobile">
+
+1. Select your profile picture, then select **Set a status**.
+2. Choose from a list of suggested statuses, reuse a recent status, or tap to enter a status and select an emoji. The Speech bubble emoji 💬 is used by default if you don't specify an emoji. A custom status can be a maximum of 100 characters in length.
+3. Specify when to clear your custom status.
+4. Tap **Done**.
+
+</TabItem>
+</Tabs>
+
+
+<Tip>
+
+- Custom statuses are enabled by default in Mattermost. System admins can disable this feature by going to **System Console \> Site Configuration \> Users and Teams \> Enable Custom Statuses**. Disabling this feature also removes the `Update your status` prompts in Mattermost.
+
+</Tip>
+
+### Clear a custom status
+
+To clear a custom status, select your profile picture, then select **Clear Status**, or select the **Clear** option next to your current status.
+
+![Clear your custom status.](/images/clear-custom-status.png)
+
+## Set your availability
+
+To set your availability, select your profile picture, then specify your availability as **Online**, **Away**, **Do Not Disturb**, or **Offline**.
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><blockquote><p><strong>Availability</strong> | <strong>Description</strong> |</p></blockquote><dl><dt>==================+======================================================================================================================================+</dt><dd><dl><dt><a href="mm-subst:online">online</a> | Online: |</dt><dd><div class="line-block">                                                                                                                                     |<br />- Set automatically for you when you're active on Mattermost using a browser, the desktop app, or the mobile app. |<br />- When using the desktop app, any mouse or keyboard activity keeps your availability set to <strong>Online</strong>. |<br />- By default, notifications are sent to the browser, the desktop app, and the mobile app. |</div></dd></dl></dd></dl></td>
+</tr>
+<tr>
+<td><dl><dt><a href="mm-subst:away">away</a> | Away: |</dt><dd><div class="line-block">                                                                                                                                     |<br />- Set automatically for you when you've been inactive for more than 5 minutes. System admins can change this |<br />  value using an experimental configuation setting called |<br />  `user status away timeout &lt;mm-ref:administration-guide%2Fconfigure%2Fexperimental-configuration-settings%3Auser%20status%20away%20timeout&gt;`\_\_. |<br />                                                                                                                                     |<br />- You're inactive in Mattermost when you're not: typing in or navigating between channels, switching to |<br />  another browser tab, or when you've minimized or moved the browser window to the background. |<br />                                                                                                                                     |<br />- You can manually set yourself as <strong>Away</strong> any time. |<br />- By default, notifications are sent to your Mattermost mobile app. |</div></dd></dl></td>
+</tr>
+<tr>
+<td><dl><dt><a href="mm-subst:dnd">dnd</a> | Do Not Disturb: |</dt><dd><div class="line-block">                                                                                                                                     |<br />- Set your availability as <strong>Do Not Disturb</strong> any time you don't want notifications for a period of time. |</div></dd></dl></td>
+</tr>
+<tr>
+<td><dl><dt><a href="mm-subst:offline">offline</a> | Offline:</dt><dd><div class="line-block">                                                                                                                                     |<br />- Set automatically for you when you exit the Mattermost desktop app or close the browser window, sleep or |<br />  lock your computer, or on mobile when you change apps, close the Mattermost mobile app, or lock your |<br />  mobile device screen. |<br />- You can manually set yourself as <strong>Offline</strong> any time. |<br />- By default, notifications are sent to your Mattermost mobile app. |</div></dd></dl></td>
+</tr>
+</tbody>
+</table>
+
+Other members can see your availability anywhere they can see your name, such as the channel sidebar, within conversations, and within direct messages.
+
+### Set your availability as Do Not Disturb
+
+Set your availability to **Do Not Disturb** to disable all desktop, email, and push notifications when you are unavailable or need to concentrate.
+
+You can specify how long to disable notifications by selecting a preset expiration, by setting a custom expiration, or by setting your status as **Don't clear**. Your availability automatically reverts to its previous setting once the expiration is reached (this may take up to five minutes).
+
+![Example of setting your Mattermost availability as Do Not Disturb.](/images/set-your-availability-dnd.png)

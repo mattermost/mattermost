@@ -32,7 +32,7 @@ import './data_retention_settings.scss';
 type OptionType = {
     label: string | JSX.Element;
     value: string;
-}
+};
 
 type Props = {
     config: DeepPartial<AdminConfig>;
@@ -54,7 +54,7 @@ type State = {
     page: number;
     loading: boolean;
     showEditJobTime: boolean;
-}
+};
 const PAGE_SIZE = 10;
 
 const messages = defineMessages({
@@ -535,7 +535,6 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
                                         columns={this.getGlobalPolicyColumns()}
                                         rows={this.getGlobalPolicyRows()}
                                         loading={false}
-                                        page={0}
                                         nextPage={() => {}}
                                         previousPage={() => {}}
                                         startCount={1}
@@ -573,7 +572,6 @@ class DataRetentionSettings extends React.PureComponent<Props, State> {
                                         columns={this.getCustomPolicyColumns()}
                                         rows={this.getCustomPolicyRows(startCount, endCount)}
                                         loading={this.state.customPoliciesLoading}
-                                        page={this.state.page}
                                         nextPage={this.nextPage}
                                         previousPage={this.previousPage}
                                         startCount={startCount}

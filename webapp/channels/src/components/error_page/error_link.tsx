@@ -10,9 +10,12 @@ import ExternalLink from 'components/external_link';
 type Props = {
     url: string;
     message: MessageDescriptor;
-}
+};
 
-const ErrorLink: React.FC<Props> = ({url, message}: Props) => {
+const ErrorLink: React.FC<Props> = ({
+    url = '',
+    message,
+}: Props) => {
     return (
         <ExternalLink
             href={url}
@@ -21,10 +24,6 @@ const ErrorLink: React.FC<Props> = ({url, message}: Props) => {
             <FormattedMessage {...message}/>
         </ExternalLink>
     );
-};
-
-ErrorLink.defaultProps = {
-    url: '',
 };
 
 export default ErrorLink;

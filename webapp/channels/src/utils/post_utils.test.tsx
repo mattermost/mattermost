@@ -3,9 +3,12 @@
 
 import {createIntl} from 'react-intl';
 
+import type {Post} from '@mattermost/types/posts';
+
 import {Preferences} from 'mattermost-redux/constants';
 
 import enMessages from 'i18n/en.json';
+import {makeInitialState} from 'packages/mattermost-redux/test/test_store';
 import {PostListRowListIds, Constants} from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
 import * as PostUtils from 'utils/post_utils';
@@ -472,9 +475,26 @@ describe('PostUtils.shouldFocusMainTextbox', () => {
                 expected: false,
             },
         ]) {
-            const shouldFocus = PostUtils.shouldFocusMainTextbox(data.event as unknown as KeyboardEvent, data.activeElement as unknown as Element);
+            const activeElement = data.activeElement ? document.createElement(data.activeElement.tagName) : null;
+            const shouldFocus = PostUtils.shouldFocusMainTextbox(data.event as unknown as KeyboardEvent, activeElement);
             expect(shouldFocus).toEqual(data.expected);
         }
+    });
+
+    test('does not steal focus from a rich text editor', () => {
+        const event = {key: 'a'} as unknown as KeyboardEvent;
+
+        const editor = document.createElement('div');
+        editor.setAttribute('contenteditable', 'true');
+        const paragraph = document.createElement('p');
+        editor.appendChild(paragraph);
+
+        expect(PostUtils.shouldFocusMainTextbox(event, editor)).toBe(false);
+        expect(PostUtils.shouldFocusMainTextbox(event, paragraph)).toBe(false);
+
+        const readOnly = document.createElement('div');
+        readOnly.setAttribute('contenteditable', 'false');
+        expect(PostUtils.shouldFocusMainTextbox(event, readOnly)).toBe(true);
     });
 });
 
@@ -523,10 +543,6 @@ describe('PostUtils.postMessageOnKeyPress', () => {
         name: 'no override: empty message',
         input: {event: {keyCode: 13}, message: '', sendMessageOnCtrlEnter: false, sendCodeBlockOnCtrlEnter: false},
         expected: {allowSending: true},
-    }, {
-        name: 'no override: empty message on ctrl + enter',
-        input: {event: {keyCode: 13}, message: '', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: false},
-        expected: {allowSending: true},
     }];
 
     for (const testCase of noOverrideCases) {
@@ -547,6 +563,18 @@ describe('PostUtils.postMessageOnKeyPress', () => {
 
     // on sending of message on Ctrl + Enter
     const sendMessageOnCtrlEnterCases = [{
+        name: 'sendMessageOnCtrlEnter: Test for empty message on CTRL+ENTER setting, no ctrlKey|metaKey - should not allow sending (attachment-only messages)',
+        input: {event: {keyCode: 13}, message: '', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: false},
+        expected: {allowSending: false},
+    }, {
+        name: 'sendMessageOnCtrlEnter: Test for empty message on CTRL+ENTER setting, with ctrlKey - should allow sending',
+        input: {event: {keyCode: 13, ctrlKey: true}, message: '', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: false},
+        expected: {allowSending: true},
+    }, {
+        name: 'sendMessageOnCtrlEnter: Test for empty message on CTRL+ENTER setting, with metaKey - should allow sending',
+        input: {event: {keyCode: 13, metaKey: true}, message: '', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: false},
+        expected: {allowSending: true},
+    }, {
         name: 'sendMessageOnCtrlEnter: Test for overriding sending of message on CTRL+ENTER, no ctrlKey|metaKey',
         input: {event: {keyCode: 13}, message: 'message', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: false},
         expected: {allowSending: false},
@@ -889,7 +917,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
         };
         const isFlagged = true;
 
-        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting);
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting, false);
         expect(ariaLabel.indexOf(author)).not.toBe(-1);
         expect(ariaLabel.indexOf(testPost.message)).not.toBe(-1);
         expect(ariaLabel.indexOf('3 attachments')).not.toBe(-1);
@@ -909,7 +937,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const reactions = {};
         const isFlagged = true;
 
-        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting);
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting, false);
         expect(ariaLabel.indexOf('replied')).not.toBe(-1);
     });
 
@@ -924,7 +952,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const reactions = {};
         const isFlagged = true;
 
-        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting);
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting, false);
         expect(ariaLabel.indexOf('smile emoji')).not.toBe(-1);
         expect(ariaLabel.indexOf('+1 emoji')).not.toBe(-1);
         expect(ariaLabel.indexOf('non-potable water emoji')).not.toBe(-1);
@@ -944,7 +972,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const reactions = {};
         const isFlagged = true;
 
-        expect(() => PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting)).not.toThrow();
+        expect(() => PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting, false)).not.toThrow();
     });
 
     test('Should not mention reactions if passed an empty object', () => {
@@ -959,7 +987,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const reactions = {};
         const isFlagged = true;
 
-        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting);
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting, false);
         expect(ariaLabel.indexOf('reaction')).toBe(-1);
     });
 
@@ -975,7 +1003,7 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const reactions = {};
         const isFlagged = true;
 
-        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting);
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, teammateNameDisplaySetting, false);
         expect(ariaLabel.indexOf('@benjamin.cooke')).not.toBe(-1);
     });
 
@@ -991,8 +1019,144 @@ describe('PostUtils.createAriaLabelForPost', () => {
         const reactions = {};
         const isFlagged = true;
 
-        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, 'nickname_full_name');
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, 'nickname_full_name', false);
         expect(ariaLabel.indexOf('@sysadmin')).not.toBe(-1);
+    });
+
+    test('Should show translated message', () => {
+        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+
+        const testPost = TestHelper.getPostMock({
+            message: 'test_message in Spanish',
+            create_at: (new Date().getTime() / 1000) || 0,
+            type: '',
+        });
+        testPost.metadata.translations = {
+            en: {
+                object: {
+                    message: 'test_message in English',
+                },
+                state: 'ready',
+                source_lang: 'es',
+            },
+        };
+        const author = 'test_author';
+        const reactions = {};
+        const isFlagged = true;
+
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, 'nickname_full_name', true);
+        expect(ariaLabel.indexOf('translated from Spanish to English')).not.toBe(-1);
+        expect(ariaLabel.indexOf('test_message in English')).not.toBe(-1);
+        expect(ariaLabel.indexOf('test_message in Spanish')).toBe(-1);
+    });
+
+    test('Should show original message if translation is not ready', () => {
+        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+
+        const testPost = TestHelper.getPostMock({
+            message: 'test_message in Spanish',
+            create_at: (new Date().getTime() / 1000) || 0,
+            type: '',
+        });
+        testPost.metadata.translations = {
+            en: {
+                object: {
+                    message: 'test_message in English',
+                },
+                state: 'processing',
+                source_lang: 'es',
+            },
+        };
+        const author = 'test_author';
+        const reactions = {};
+        const isFlagged = true;
+
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, 'nickname_full_name', true);
+        expect(ariaLabel.indexOf('translated from')).toBe(-1);
+        expect(ariaLabel.indexOf('test_message in Spanish')).not.toBe(-1);
+        expect(ariaLabel.indexOf('test_message in English')).toBe(-1);
+    });
+
+    test('Should show original message if there is no translation for the current language', () => {
+        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+
+        const testPost = TestHelper.getPostMock({
+            message: 'test_message in Spanish',
+            create_at: (new Date().getTime() / 1000) || 0,
+            type: '',
+        });
+        testPost.metadata.translations = {
+            de: {
+                object: {
+                    message: 'test_message in German',
+                },
+                state: 'unavailable',
+                source_lang: 'es',
+            },
+        };
+        const author = 'test_author';
+        const reactions = {};
+        const isFlagged = true;
+
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, 'nickname_full_name', true);
+        expect(ariaLabel.indexOf('translated from')).toBe(-1);
+        expect(ariaLabel.indexOf('test_message in Spanish')).not.toBe(-1);
+        expect(ariaLabel.indexOf('test_message in German')).toBe(-1);
+    });
+
+    test('Should show original message if we pass autotranslated as false', () => {
+        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+
+        const testPost = TestHelper.getPostMock({
+            message: 'test_message in Spanish',
+            create_at: (new Date().getTime() / 1000) || 0,
+            type: '',
+        });
+        testPost.metadata.translations = {
+            en: {
+                object: {
+                    message: 'test_message in English',
+                },
+                state: 'ready',
+                source_lang: 'es',
+            },
+        };
+        const author = 'test_author';
+        const reactions = {};
+        const isFlagged = true;
+
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, 'nickname_full_name', false);
+        expect(ariaLabel.indexOf('translated from')).toBe(-1);
+        expect(ariaLabel.indexOf('test_message in Spanish')).not.toBe(-1);
+        expect(ariaLabel.indexOf('test_message in English')).toBe(-1);
+    });
+
+    test('Should show original message if the post type is not empty', () => {
+        const intl = createIntl({locale: 'en', messages: enMessages, defaultLocale: 'en'});
+
+        const testPost = TestHelper.getPostMock({
+            message: 'test_message in Spanish',
+            create_at: (new Date().getTime() / 1000) || 0,
+            type: 'system_autotranslation',
+        });
+        testPost.metadata.translations = {
+            en: {
+                object: {
+                    message: 'test_message in English',
+                },
+                state: 'ready',
+                source_lang: 'es',
+            },
+        };
+
+        const author = 'test_author';
+        const reactions = {};
+        const isFlagged = true;
+
+        const ariaLabel = PostUtils.createAriaLabelForPost(testPost, author, isFlagged, reactions, intl, emojiMap, users, 'nickname_full_name', false);
+        expect(ariaLabel.indexOf('translated from')).toBe(-1);
+        expect(ariaLabel.indexOf('test_message in Spanish')).not.toBe(-1);
+        expect(ariaLabel.indexOf('test_message in English')).toBe(-1);
     });
 });
 
@@ -1354,6 +1518,49 @@ describe('makeGetIsReactionAlreadyAddedToPost', () => {
     });
 });
 
+describe('makeGetUserOrGroupMentionCountFromMessage', () => {
+    const baseState = makeInitialState({
+        entities: {
+            groups: {
+                groups: {
+                    group1: TestHelper.getGroupMock({id: 'group1', name: 'group.one', member_count: 4}),
+                },
+            },
+            users: {
+                profiles: {
+                    remoteUser: TestHelper.getUserMock({id: 'remoteUser', username: 'remote.user:org1'}),
+                    user1: TestHelper.getUserMock({id: 'user1', username: 'user.one'}),
+                    user2: TestHelper.getUserMock({id: 'user2', username: 'user.two'}),
+                },
+            },
+        },
+    });
+
+    test('should count mentioned users', () => {
+        const getUserOrGroupMentionCountFromMessage = PostUtils.makeGetUserOrGroupMentionCountFromMessage();
+
+        expect(getUserOrGroupMentionCountFromMessage(baseState, '@user.one @user.two Hello!')).toEqual(2);
+    });
+
+    test('should count mentioned groups', () => {
+        const getUserOrGroupMentionCountFromMessage = PostUtils.makeGetUserOrGroupMentionCountFromMessage();
+
+        expect(getUserOrGroupMentionCountFromMessage(baseState, '@group.one @user.one Hello!')).toEqual(5);
+    });
+
+    test('should count remote user mentions', () => {
+        const getUserOrGroupMentionCountFromMessage = PostUtils.makeGetUserOrGroupMentionCountFromMessage();
+
+        expect(getUserOrGroupMentionCountFromMessage(baseState, '@user.one @user.two @remote.user:org1 Hello!')).toEqual(3);
+    });
+
+    test('should not count non-existant users/groups', () => {
+        const getUserOrGroupMentionCountFromMessage = PostUtils.makeGetUserOrGroupMentionCountFromMessage();
+
+        expect(getUserOrGroupMentionCountFromMessage(baseState, '@not.user.three @fake.group @not.user:fake Hello!')).toEqual(0);
+    });
+});
+
 describe('makeGetUniqueEmojiNameReactionsForPost', () => {
     const baseState = {
         entities: {
@@ -1391,5 +1598,90 @@ describe('makeGetUniqueEmojiNameReactionsForPost', () => {
         const getUniqueEmojiNameReactionsForPost = PostUtils.makeGetUniqueEmojiNameReactionsForPost();
 
         expect(getUniqueEmojiNameReactionsForPost(baseState, 'post_id_1')).toEqual(['smile', 'cry']);
+    });
+});
+
+describe('PostUtils.areConsecutivePostsBySameUser', () => {
+    const userId = 'user_id_1';
+    const baseTime = 1_000_000;
+
+    const makePost = (override: Partial<Post> = {}): Post => {
+        return TestHelper.getPostMock({
+            user_id: userId,
+            create_at: baseTime,
+            type: '',
+            ...override,
+        });
+    };
+
+    test('should return true for consecutive posts from the same user', () => {
+        const previousPost = makePost({create_at: baseTime});
+        const post = makePost({create_at: baseTime + 1000});
+
+        expect(PostUtils.areConsecutivePostsBySameUser(post, previousPost)).toBe(true);
+    });
+
+    test('should return false when current post is AI-generated', () => {
+        const previousPost = makePost({create_at: baseTime});
+        const post = makePost({
+            create_at: baseTime + 1000,
+            props: {
+                ai_generated_by: 'ai_user_id',
+                ai_generated_by_username: 'aibot',
+            },
+        });
+
+        expect(PostUtils.areConsecutivePostsBySameUser(post, previousPost)).toBe(false);
+    });
+
+    test('should return false when current AI post follows another AI post from the same user', () => {
+        const aiProps = {
+            ai_generated_by: 'ai_user_id',
+            ai_generated_by_username: 'aibot',
+        };
+        const previousPost = makePost({
+            create_at: baseTime,
+            props: aiProps,
+        });
+        const post = makePost({
+            create_at: baseTime + 1000,
+            props: aiProps,
+        });
+
+        expect(PostUtils.areConsecutivePostsBySameUser(post, previousPost)).toBe(false);
+    });
+
+    test('should return false when a normal post follows an AI post from the same user', () => {
+        const previousPost = makePost({
+            create_at: baseTime,
+            props: {
+                ai_generated_by: 'ai_user_id',
+                ai_generated_by_username: 'aibot',
+            },
+        });
+        const post = makePost({create_at: baseTime + 1000});
+
+        expect(PostUtils.areConsecutivePostsBySameUser(post, previousPost)).toBe(false);
+    });
+});
+
+describe('shouldShowActionsMenu', () => {
+    const baseState = {
+        entities: {
+            general: {
+                config: {
+                    PluginsEnabled: 'true',
+                },
+            },
+        },
+    } as unknown as GlobalState;
+
+    test('should return false for burn-on-read posts', () => {
+        const borPost = TestHelper.getPostMock({
+            id: 'post_id_1',
+            type: Constants.PostTypes.BURN_ON_READ as Post['type'],
+        });
+
+        expect(PostUtils.shouldShowActionsMenu(baseState, borPost)).toBe(false);
     });
 });

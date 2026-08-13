@@ -5,6 +5,7 @@ import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 import {threadIsSynthetic} from '@mattermost/types/threads';
@@ -16,7 +17,6 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {selectPost} from 'actions/views/rhs';
 
 import Button from 'components/threading/common/button';
@@ -24,7 +24,6 @@ import FollowButton from 'components/threading/common/follow_button';
 import {THREADING_TIME} from 'components/threading/common/options';
 import Timestamp from 'components/timestamp';
 import Avatars from 'components/widgets/users/avatars';
-import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
@@ -43,7 +42,7 @@ function ThreadFooter({
     const currentTeamId = useSelector(getCurrentTeamId);
     const currentUserId = useSelector(getCurrentUserId);
     const post = useSelector((state: GlobalState) => getPost(state, threadId));
-    const getThreadOrSynthetic = useMemo(makeGetThreadOrSynthetic, [post.id]);
+    const getThreadOrSynthetic = useMemo(() => makeGetThreadOrSynthetic(), []);
     const thread = useSelector((state: GlobalState) => getThreadOrSynthetic(state, post));
 
     useEffect(() => {
@@ -64,18 +63,17 @@ function ThreadFooter({
 
     const participantIds = useMemo(() => (participants || []).map(({id}) => id).reverse(), [participants]);
 
-    const handleReply = useCallback((e) => {
+    const handleReply = useCallback((e: React.MouseEvent) => {
         if (replyClick) {
             replyClick(e);
             return;
         }
 
-        trackEvent('crt', 'replied_using_footer');
         e.stopPropagation();
         dispatch(selectPost({id: threadId, channel_id: channelId} as Post));
     }, [replyClick, threadId, channelId]);
 
-    const handleFollowing = useCallback((e) => {
+    const handleFollowing = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
     }, [isFollowing]);
@@ -85,7 +83,10 @@ function ThreadFooter({
     }
 
     return (
-        <div className='ThreadFooter'>
+        <div
+            className='ThreadFooter'
+            data-testid='thread-footer'
+        >
             {!isFollowing || threadIsSynthetic(thread) || !thread.unread_replies ? (
                 <div className='indicator'/>
             ) : (
@@ -93,7 +94,7 @@ function ThreadFooter({
                     title={
                         <FormattedMessage
                             id='threading.numNewMessages'
-                            defaultMessage='{newReplies, plural, =0 {no unread messages} =1 {one unread message} other {# unread messages}}'
+                            defaultMessage='{newReplies, plural, =0 {No unread messages} =1 {One unread message} other {# unread messages}}'
                             values={{newReplies: thread.unread_replies}}
                         />
                     }
@@ -118,6 +119,7 @@ function ThreadFooter({
                 <Button
                     onClick={handleReply}
                     className='ReplyButton separated'
+                    data-testid='thread-footer-reply-button'
                     prepend={
                         <span className='icon'>
                             <i className='icon-reply-outline'/>

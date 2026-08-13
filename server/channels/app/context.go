@@ -4,23 +4,48 @@
 package app
 
 import (
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 // RequestContextWithMaster adds the context value that master DB should be selected for this request.
-func RequestContextWithMaster(c request.CTX) request.CTX {
-	return sqlstore.RequestContextWithMaster(c)
+func RequestContextWithMaster(rctx request.CTX) request.CTX {
+	return sqlstore.RequestContextWithMaster(rctx)
 }
 
-func pluginContext(c request.CTX) *plugin.Context {
+// RequestContextWithCallerID adds the caller ID to a request.CTX for access control purposes.
+func RequestContextWithCallerID(rctx request.CTX, callerID string) request.CTX {
+	ctx := model.WithCallerID(rctx.Context(), callerID)
+	return rctx.WithContext(ctx)
+}
+
+// CallerIDFromRequestContext extracts the caller ID from a request.CTX.
+// Returns the caller ID and true if found, or empty string and false if not.
+func CallerIDFromRequestContext(rctx request.CTX) (string, bool) {
+	if rctx == nil {
+		return "", false
+	}
+	return model.CallerIDFromContext(rctx.Context())
+}
+
+// requestContextWithCallerIDAndOptions adds the caller ID and the caller's
+// per-call property request options to a request.CTX.
+func requestContextWithCallerIDAndOptions(rctx request.CTX, callerID string, options model.PropertyRequestOptions) request.CTX {
+	ctx := model.WithCallerID(rctx.Context(), callerID)
+	ctx = model.WithPropertyRequestOptions(ctx, options)
+	return rctx.WithContext(ctx)
+}
+
+func pluginContext(rctx request.CTX) *plugin.Context {
 	context := &plugin.Context{
-		RequestId:      c.RequestId(),
-		SessionId:      c.Session().Id,
-		IPAddress:      c.IPAddress(),
-		AcceptLanguage: c.AcceptLanguage(),
-		UserAgent:      c.UserAgent(),
+		RequestId:      rctx.RequestId(),
+		SessionId:      rctx.Session().Id,
+		IPAddress:      rctx.IPAddress(),
+		AcceptLanguage: rctx.AcceptLanguage(),
+		UserAgent:      rctx.UserAgent(),
+		ConnectionId:   rctx.ConnectionId(),
 	}
 	return context
 }

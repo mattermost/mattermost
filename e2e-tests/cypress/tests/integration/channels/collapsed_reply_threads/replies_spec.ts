@@ -10,11 +10,12 @@
 // Stage: @prod
 // Group: @channels @collapsed_reply_threads
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {PostMessageResp} from 'tests/support/task_commands';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {PostMessageResp} from '@/support/task_commands';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Collapsed Reply Threads', () => {
     let testTeam: Team;
@@ -170,7 +171,7 @@ describe('Collapsed Reply Threads', () => {
             // * Thumbs-up reaction displays as reaction on post
             cy.get(`#${postId}_message`).within(() => {
                 cy.findByLabelText('reactions').should('be.visible');
-                cy.findByLabelText('remove reaction +1').should('be.visible');
+                cy.findByRole('button', {name: /reacted with :\+1:/i}).should('be.visible');
             });
 
             // * Reacting to a root post should not create a thread (thread footer should not exist)

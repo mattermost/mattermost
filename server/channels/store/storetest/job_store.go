@@ -20,6 +20,7 @@ import (
 func TestJobStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("JobSaveGet", func(t *testing.T) { testJobSaveGet(t, rctx, ss) })
 	t.Run("JobSaveOnce", func(t *testing.T) { testJobSaveOnce(t, rctx, ss) })
+	t.Run("JobSaveOnceByTypeAndData", func(t *testing.T) { testJobSaveOnceByTypeAndData(t, rctx, ss) })
 	t.Run("JobGetAllByType", func(t *testing.T) { testJobGetAllByType(t, rctx, ss) })
 	t.Run("JobGetAllByTypeAndStatus", func(t *testing.T) { testJobGetAllByTypeAndStatus(t, rctx, ss) })
 	t.Run("JobGetAllByTypePage", func(t *testing.T) { testJobGetAllByTypePage(t, rctx, ss) })
@@ -32,6 +33,7 @@ func TestJobStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetCountByStatusAndType", func(t *testing.T) { testJobStoreGetCountByStatusAndType(t, rctx, ss) })
 	t.Run("JobUpdateOptimistically", func(t *testing.T) { testJobUpdateOptimistically(t, rctx, ss) })
 	t.Run("JobUpdateStatusUpdateStatusOptimistically", func(t *testing.T) { testJobUpdateStatusUpdateStatusOptimistically(t, rctx, ss) })
+	t.Run("JobGetByTypeAndData", func(t *testing.T) { testJobGetByTypeAndData(t, rctx, ss) })
 	t.Run("JobDelete", func(t *testing.T) { testJobDelete(t, rctx, ss) })
 	t.Run("JobCleanup", func(t *testing.T) { testJobCleanup(t, rctx, ss) })
 }
@@ -63,7 +65,7 @@ func testJobSaveOnce(t *testing.T, rctx request.CTX, ss store.Store) {
 	var wg sync.WaitGroup
 
 	ids := make([]string, 2)
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
@@ -102,6 +104,89 @@ func testJobSaveOnce(t *testing.T, rctx request.CTX, ss store.Store) {
 	for _, id := range ids {
 		ss.Job().Delete(id)
 	}
+}
+
+func testJobSaveOnceByTypeAndData(t *testing.T, rctx request.CTX, ss store.Store) {
+	jobType := model.NewId()
+	dedupeID1 := model.NewId()
+	dedupeID2 := model.NewId()
+	dataFilter1 := map[string]string{"scheduled_recap_id": dedupeID1}
+	dataFilter2 := map[string]string{"scheduled_recap_id": dedupeID2}
+
+	job1 := &model.Job{
+		Id:     model.NewId(),
+		Type:   jobType,
+		Status: model.JobStatusPending,
+		Data: map[string]string{
+			"scheduled_recap_id": dedupeID1,
+			"payload":            model.NewId(),
+		},
+	}
+	savedJob1, err := ss.Job().SaveOnceByTypeAndData(job1, dataFilter1)
+	require.NoError(t, err)
+	require.NotNil(t, savedJob1)
+	defer func() { _, _ = ss.Job().Delete(savedJob1.Id) }()
+
+	job2 := &model.Job{
+		Id:     model.NewId(),
+		Type:   jobType,
+		Status: model.JobStatusPending,
+		Data: map[string]string{
+			"scheduled_recap_id": dedupeID2,
+			"payload":            model.NewId(),
+		},
+	}
+	savedJob2, err := ss.Job().SaveOnceByTypeAndData(job2, dataFilter2)
+	require.NoError(t, err)
+	require.NotNil(t, savedJob2)
+	defer func() { _, _ = ss.Job().Delete(savedJob2.Id) }()
+
+	jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, dataFilter1, true, model.JobStatusPending, model.JobStatusInProgress)
+	require.NoError(t, err)
+	require.Len(t, jobs, 1)
+	jobs, err = ss.Job().GetByTypeAndData(rctx, jobType, dataFilter2, true, model.JobStatusPending, model.JobStatusInProgress)
+	require.NoError(t, err)
+	require.Len(t, jobs, 1)
+
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	duplicateIDs := make([]string, 0, 2)
+	duplicateDedupeID := model.NewId()
+	start := make(chan struct{})
+	for i := range 2 {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			<-start
+
+			job := &model.Job{
+				Id:     model.NewId(),
+				Type:   jobType,
+				Status: model.JobStatusPending,
+				Data: map[string]string{
+					"scheduled_recap_id": duplicateDedupeID,
+					"payload":            model.NewId(),
+				},
+			}
+
+			savedJob, saveErr := ss.Job().SaveOnceByTypeAndData(job, map[string]string{"scheduled_recap_id": duplicateDedupeID})
+			require.NoError(t, saveErr)
+			if savedJob != nil {
+				mu.Lock()
+				duplicateIDs = append(duplicateIDs, savedJob.Id)
+				mu.Unlock()
+			}
+		}(i)
+	}
+	close(start)
+	wg.Wait()
+	for _, id := range duplicateIDs {
+		defer func(id string) { _, _ = ss.Job().Delete(id) }(id)
+	}
+
+	jobs, err = ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{"scheduled_recap_id": duplicateDedupeID}, true, model.JobStatusPending, model.JobStatusInProgress)
+	require.NoError(t, err)
+	require.Len(t, jobs, 1)
 }
 
 func testJobGetAllByType(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -665,14 +750,15 @@ func testJobUpdateOptimistically(t *testing.T, rctx request.CTX, ss store.Store)
 		"Foo": "Bar",
 	}
 
-	updated, err := ss.Job().UpdateOptimistically(job, model.JobStatusSuccess)
-	require.False(t, err != nil && updated)
+	ret, err := ss.Job().UpdateOptimistically(job, model.JobStatusSuccess)
+	require.NoError(t, err)
+	require.Nil(t, ret)
 
 	time.Sleep(2 * time.Millisecond)
 
-	updated, err = ss.Job().UpdateOptimistically(job, model.JobStatusPending)
+	ret, err = ss.Job().UpdateOptimistically(job, model.JobStatusPending)
 	require.NoError(t, err)
-	require.True(t, updated)
+	require.NotNil(t, ret)
 
 	updatedJob, err := ss.Job().Get(rctx, job.Id)
 	require.NoError(t, err)
@@ -756,7 +842,7 @@ func testJobDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 func testJobCleanup(t *testing.T, rctx request.CTX, ss store.Store) {
 	now := model.GetMillis()
 	ids := make([]string, 0, 10)
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		job, err := ss.Job().Save(&model.Job{
 			Id:       model.NewId(),
 			CreateAt: now - int64(i),
@@ -791,4 +877,163 @@ func testJobCleanup(t *testing.T, rctx request.CTX, ss store.Store) {
 	jobs, err = ss.Job().GetAllByStatus(rctx, model.JobStatusSuccess)
 	require.NoError(t, err)
 	assert.Len(t, jobs, 0)
+}
+
+func testJobGetByTypeAndData(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Test setup - create test jobs with different types and data
+	jobType := model.JobTypeAccessControlSync
+	otherJobType := model.JobTypeDataRetention
+
+	// Job 1: Access control sync job with policy_id = "channel1"
+	job1 := &model.Job{
+		Id:     model.NewId(),
+		Type:   jobType,
+		Status: model.JobStatusPending,
+		Data: map[string]string{
+			"policy_id": "channel1",
+			"extra":     "data1",
+		},
+	}
+
+	// Job 2: Access control sync job with policy_id = "channel2"
+	job2 := &model.Job{
+		Id:     model.NewId(),
+		Type:   jobType,
+		Status: model.JobStatusInProgress,
+		Data: map[string]string{
+			"policy_id": "channel2",
+			"extra":     "data2",
+		},
+	}
+
+	// Job 3: Access control sync job with policy_id = "channel1" (same as job1)
+	job3 := &model.Job{
+		Id:     model.NewId(),
+		Type:   jobType,
+		Status: model.JobStatusSuccess,
+		Data: map[string]string{
+			"policy_id": "channel1",
+			"extra":     "data3",
+		},
+	}
+
+	// Job 4: Different job type with same policy_id
+	job4 := &model.Job{
+		Id:     model.NewId(),
+		Type:   otherJobType,
+		Status: model.JobStatusPending,
+		Data: map[string]string{
+			"policy_id": "channel1",
+		},
+	}
+
+	// Save all jobs
+	_, err := ss.Job().Save(job1)
+	require.NoError(t, err)
+	defer func() { _, _ = ss.Job().Delete(job1.Id) }()
+
+	_, err = ss.Job().Save(job2)
+	require.NoError(t, err)
+	defer func() { _, _ = ss.Job().Delete(job2.Id) }()
+
+	_, err = ss.Job().Save(job3)
+	require.NoError(t, err)
+	defer func() { _, _ = ss.Job().Delete(job3.Id) }()
+
+	_, err = ss.Job().Save(job4)
+	require.NoError(t, err)
+	defer func() { _, _ = ss.Job().Delete(job4.Id) }()
+
+	t.Run("finds jobs by type and single data field", func(t *testing.T) {
+		// Should find job1 and job3 (both have policy_id = "channel1" and correct type)
+		jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{
+			"policy_id": "channel1",
+		}, false)
+		require.NoError(t, err)
+		require.Len(t, jobs, 2)
+
+		// Should contain job1 and job3
+		jobIds := []string{jobs[0].Id, jobs[1].Id}
+		assert.Contains(t, jobIds, job1.Id)
+		assert.Contains(t, jobIds, job3.Id)
+	})
+
+	t.Run("finds jobs by type and multiple data fields", func(t *testing.T) {
+		// Should find only job1 (has both policy_id = "channel1" AND extra = "data1")
+		jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{
+			"policy_id": "channel1",
+			"extra":     "data1",
+		}, false)
+		require.NoError(t, err)
+		require.Len(t, jobs, 1)
+		assert.Equal(t, job1.Id, jobs[0].Id)
+	})
+
+	t.Run("returns empty slice when no matches", func(t *testing.T) {
+		// Should find nothing (no jobs with policy_id = "nonexistent")
+		jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{
+			"policy_id": "nonexistent",
+		}, false)
+		require.NoError(t, err)
+		assert.Len(t, jobs, 0)
+	})
+
+	t.Run("filters by job type correctly", func(t *testing.T) {
+		// Should find only job4 (different job type with same policy_id)
+		jobs, err := ss.Job().GetByTypeAndData(rctx, otherJobType, map[string]string{
+			"policy_id": "channel1",
+		}, false)
+		require.NoError(t, err)
+		require.Len(t, jobs, 1)
+		assert.Equal(t, job4.Id, jobs[0].Id)
+	})
+
+	// Test status parameter filtering
+	t.Run("filters by single status", func(t *testing.T) {
+		// Filter by single status should return only matching jobs
+		jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{
+			"policy_id": "channel1",
+		}, false, model.JobStatusPending)
+		require.NoError(t, err)
+		require.Len(t, jobs, 1)
+		assert.Equal(t, job1.Id, jobs[0].Id)
+		assert.Equal(t, model.JobStatusPending, jobs[0].Status)
+	})
+
+	t.Run("filters by multiple statuses", func(t *testing.T) {
+		// Filter by multiple statuses should return jobs matching any status
+		jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{
+			"policy_id": "channel1",
+		}, false, model.JobStatusPending, model.JobStatusSuccess)
+		require.NoError(t, err)
+		require.Len(t, jobs, 2)
+
+		// Verify both statuses are represented
+		statuses := []string{jobs[0].Status, jobs[1].Status}
+		assert.Contains(t, statuses, model.JobStatusPending)
+		assert.Contains(t, statuses, model.JobStatusSuccess)
+	})
+
+	t.Run("no status filter returns all statuses", func(t *testing.T) {
+		// No status filter should return all jobs regardless of status
+		jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{
+			"policy_id": "channel1",
+		}, false) // No status parameters
+		require.NoError(t, err)
+		require.Len(t, jobs, 2) // job1 (pending), job3 (success) - both have policy_id=channel1
+
+		// Verify both statuses are present
+		statuses := []string{jobs[0].Status, jobs[1].Status}
+		assert.Contains(t, statuses, model.JobStatusPending)
+		assert.Contains(t, statuses, model.JobStatusSuccess)
+	})
+
+	t.Run("filters by non-existent status returns empty", func(t *testing.T) {
+		// Invalid status filter should return empty result
+		jobs, err := ss.Job().GetByTypeAndData(rctx, jobType, map[string]string{
+			"policy_id": "channel1",
+		}, false, model.JobStatusError)
+		require.NoError(t, err)
+		require.Len(t, jobs, 0)
+	})
 }

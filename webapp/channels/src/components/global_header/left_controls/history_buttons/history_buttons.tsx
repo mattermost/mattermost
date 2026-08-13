@@ -6,16 +6,14 @@ import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 import styled from 'styled-components';
 
-import IconButton from '@mattermost/compass-components/components/icon-button'; // eslint-disable-line no-restricted-imports
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
+import IconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import type {
     KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'components/with_tooltip';
 
 import DesktopApp from 'utils/desktop_api';
 
@@ -44,13 +42,11 @@ const HistoryButtons = (): JSX.Element => {
     );
 
     const goBack = () => {
-        trackEvent('ui', 'ui_history_back');
         history.goBack();
         requestButtons();
     };
 
     const goForward = () => {
-        trackEvent('ui', 'ui_history_forward');
         history.goForward();
         requestButtons();
     };
@@ -78,9 +74,6 @@ const HistoryButtons = (): JSX.Element => {
                 <IconButton
                     icon={'arrow-left'}
                     onClick={goBack}
-                    size={'sm'}
-                    compact={true}
-                    inverted={true}
                     disabled={!canGoBack}
                     aria-label={intl.formatMessage({id: 'sidebar_left.channel_navigator.goBackLabel', defaultMessage: 'Back'})}
                 />
@@ -91,9 +84,6 @@ const HistoryButtons = (): JSX.Element => {
                 <IconButton
                     icon={'arrow-right'}
                     onClick={goForward}
-                    size={'sm'}
-                    compact={true}
-                    inverted={true}
                     disabled={!canGoForward}
                     aria-label={intl.formatMessage({id: 'sidebar_left.channel_navigator.goForwardLabel', defaultMessage: 'Forward'})}
                 />

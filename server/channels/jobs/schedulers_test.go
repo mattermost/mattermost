@@ -31,7 +31,7 @@ func (scheduler *MockScheduler) NextScheduleTime(cfg *model.Config, now time.Tim
 	return &nextTime
 }
 
-func (scheduler *MockScheduler) ScheduleJob(c request.CTX, cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
+func (scheduler *MockScheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs bool, lastSuccessfulJob *model.Job) (*model.Job, *model.AppError) {
 	return nil, nil
 }
 
@@ -59,10 +59,10 @@ func TestScheduler(t *testing.T) {
 			Cfg: &model.Config{
 				// mock config
 				DataRetentionSettings: model.DataRetentionSettings{
-					EnableMessageDeletion: model.NewPointer(true),
+					EnableMessageDeletion: new(true),
 				},
 				MessageExportSettings: model.MessageExportSettings{
-					EnableExport: model.NewPointer(true),
+					EnableExport: new(true),
 				},
 			},
 		},

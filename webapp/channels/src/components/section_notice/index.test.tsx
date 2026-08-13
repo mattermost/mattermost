@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
 import type {ComponentProps} from 'react';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import SectionNotice from '.';
 
@@ -38,7 +37,7 @@ function getBaseProps(): Props {
 }
 
 describe('PluginAction', () => {
-    it('does show the correct information', () => {
+    it('does show the correct information', async () => {
         const props = getBaseProps();
         renderWithContext(<SectionNotice {...props}/>);
         const primaryButton = screen.getByText(props.primaryButton!.text);
@@ -54,15 +53,15 @@ describe('PluginAction', () => {
         expect(closeButton).toBeInTheDocument();
         expect(screen.queryByText(props.text as string)).toBeInTheDocument();
         expect(screen.queryByText(props.title as string)).toBeInTheDocument();
-        fireEvent.click(primaryButton);
+        await userEvent.click(primaryButton);
         expect(props.primaryButton?.onClick).toHaveBeenCalledTimes(1);
-        fireEvent.click(secondaryButton);
+        await userEvent.click(secondaryButton);
         expect(props.secondaryButton?.onClick).toHaveBeenCalledTimes(1);
-        fireEvent.click(tertiaryButton);
+        await userEvent.click(tertiaryButton);
         expect(props.tertiaryButton?.onClick).toHaveBeenCalledTimes(1);
-        fireEvent.click(linkButton);
+        await userEvent.click(linkButton);
         expect(props.linkButton?.onClick).toHaveBeenCalledTimes(1);
-        fireEvent.click(closeButton);
+        await userEvent.click(closeButton);
         expect(props.onDismissClick).toHaveBeenCalledTimes(1);
     });
 

@@ -1,0 +1,244 @@
+---
+title: "Configure SAML with Keycloak"
+---
+import Inc0_sso_saml_ldapsync from './sso-saml-ldapsync.mdx';
+import Inc1_sso_saml_faq from './sso-saml-faq.mdx';
+
+<PlanAvailability slug="all-commercial" />
+
+The following process provides steps to configure SAML with Keycloak for Mattermost.
+
+See the encryption options documentation for details on what [encryption methods](/deployment-guide/encryption-options#saml-encryption-support) Mattermost supports for SAML.
+
+## Set up Keycloak for Mattermost SSO
+
+<Note>
+
+This was tested with Keycloak v26.4.0. We recommend adding Mattermost as a client to your primary realm.
+
+</Note>
+
+1.  Log in to Keycloak as an administrator.
+2.  Select **Clients**, then **Create client**. You'll use this client ID in a later step.
+
+> - **Client type**: `SAML`
+> - **Client ID**: `mattermost`
+
+3.  Click **Next** and update the following values:
+
+> - **Root URL**: `http://your-mattermost-url.com`
+> - **Home URL**: `/login/sso/saml`
+> - **Valid redirect URIs**: `/login/sso/saml`
+
+4.  **Save** the client.
+5.  Under the **Settings** tab, update the following values:
+
+> - **Enabled**: **On**
+> - **Name ID format**: `email`
+> - **Force Name ID format**: **On**
+>
+> ![In Keycloak, create the Mattermost client, specify the Client ID and Client Protocol, then save your changes.](/images/keycloak_1_client_settings.png)
+>
+> ![In Keycloak, create the Mattermost client, specify the Client ID and Client Protocol, then save your changes.](/images/keycloak_1_client_settings_2.png)
+
+6.  Under the **Signature and Encryption** section, update the following values:
+
+> - **Sign Documents**: **Off**
+> - **Sign Assertions**: **On**
+> - **Signature Algorithm**: `RSA_SHA1`
+> - **SAML signature key name**: `NONE`
+> - **Canonicalization Method**: `EXCLUSIVE`
+> - **Encryption Algorithm**: `AES_256_GCM`
+> - **Key Transport Algorithm**: `RSA_OAEP_MGF1P`
+> - **Digest method for RSA-OAEP**: `SHA1`
+>
+> ![In Keycloak, configure the Signature and Encryption settings for the Mattermost client.](/images/keycloak_1_client_signature_encryption.png)
+>
+> <div class="warning">
+>
+> <div class="title">
+>
+> Warning
+>
+> </div>
+>
+> Mattermost only supports `RSA_SHA1` for Keycloak SAML, because Keycloak is using `xmlenc` for `RSA_SHA512` and `RSA_SHA256`, wheras Mattermost currently only supports `xmldsig`. So make sure to use `RSA_SHA1` as the *Signature Algorithm* and *Digest Method* as described in this section.
+>
+> </div>
+
+7.  Navigate to the **Keys** tab.
+
+> - **Client signature required**: **Off**
+>
+> - **Encrypt Assertions**: **On**
+>
+>   1.  Click **Generate**
+>   2.  Download the **private.key** file.
+>   3.  Click **Confirm**
+>
+>   ![In Keycloak, on the Keys tab, generate new keys for encryption.](/images/keycloak_2_saml_keys.png)
+>
+>   <div class="warning">
+>
+>   <div class="title">
+>
+>   Warning
+>
+>   </div>
+>
+>   Mattermost does not support request signing with Keycloak so make sure to disable the Client signature setting as mentioned above.
+>
+>   </div>
+>
+>   Next, click **Export** and update the following values and download the keystore.p12 file.
+>
+>   - **Archive Format**: `PKCS12`
+>   - **Key Alias**: `mattermost`
+>   - **Key Password**: `mattermost`
+>   - **Store Password**: `mattermost`
+>
+>   ![In Keycloak, on the Keys tab, generate new keys, export using the values documented, then select Download.](/images/keycloak_2_saml_keys_2.png)
+
+8.  Navigate to the **Client scopes** tab.
+
+    First we add the predefined mappers for email, first name, and last name.
+
+    1.  Select **mattermost-dedicated**
+    2.  Click **Add predefined mapper**
+    3.  Select the **X500 email**, **X500 givenName**, and **X500 surname** attributes.
+    4.  Click **Add**.
+
+    Next, we add the mappers for username and id.
+
+    1.  Select **Add Mapper** -\> **By Configuration** -\> User Property.
+    2.  Set **Name** to `Username`.
+    3.  Set **Property** to `username` (This is case sensitive and must be lowercase).
+    4.  Set **SAML Attribute Name** to `username`.
+    5.  Select **Save**.
+
+    ![In Keycloak, on the Mappers tab, create a protocol mapper, then save your changes.](/images/keycloak_4_create_username_attribute.png)
+
+    6.  Repeat the above steps and use the custom property of `id` to create the ID Attribute.
+
+    ![In Keycloak, on the Mappers tab, create a protocol mapper for the ID attribute, then save your changes.](/images/keycloak_4_create_id_attribute.png)
+
+<Note>
+
+If you're planning to sync your SAML users with LDAP within Mattermost, the ID value used here must match with your Mattermost LDAP `ID Attribute`.
+
+</Note>
+
+Once done your Mappers should look like this:
+
+![Example of protocol mapper configuration.](/images/keycloak_4_create_username_attribute_finished.png)
+
+9.  Get the metadata URL from Keycloak:
+
+    1.  Within your Realm, select **Realm Settings**.
+    2.  At the bottom of the **General** tab you should see a **SAML 2.0 Identity Provider Metadata** endpoint. Right-click and copy this URL. Store for the next step.
+
+    ![Within your Realm, select Realm Settings. At the bottom of the General tab, you should see a SAML 2.0 Identify Provider Metadata endpoint. Copy this URL for the next step.](/images/keycloak_5_export_metadata.png)
+
+## Configure SAML in Mattermost
+
+1.  In the Mattermost **System Console** go to **Authentication \> SAML**.
+
+2.  Set the **Identity Provider Metadata URL** to the value you copied from the step above and select **Get SAML Metadata from IdP**. The metadata import will populate fields related to your Keycloak configuration.
+
+    If you have any issues with this import, you can check the `mattermost.log` file for more information. [Enable debug logging](/administration-guide/manage/logging#how-do-i-enable-debug-logging) and try again.
+
+    > ![In Mattermost, configure SAML in the System Console by going to Authentication \> SAML. Set the Identity Provider Metadata URL to the value you copied in the previous step. When you select Get SAML Metadata from IdP, fields related to your Keycloak configuration are populated.](/images/keycloak_6_get_metadata.png)
+
+<Note>
+
+- If Mattermost does not correctly pull the **Identity Provider Public Certificate** you can manually add it by opening the metadata URL in a browser, copying the certificate value, and use a tool like [OneLogin's X.509 formatter](https://www.samltool.com/format_x509cert.php) that can format the certificate for you. Then save the correctly formatted certificate to a file and upload it to the **Identity Provider Public Certificate** field in the Mattermost System Console.
+- If Mattermost can not pull the metadata and is throwing a connection issue enable debug logging and see if you need to add your Keycloak url to the **Allowed Untrusted Internal Connections** list in the System Console under **Environment \> Developer** and restart the server. See the [Allowed Untrusted Internal Connections](/administration-guide/configure/environment-configuration-settings#allow-untrusted-internal-connections) documentation for details.
+
+</Note>
+
+3.  Set the below fields:
+
+    - **Verify Signature**: **false**
+    - **Service Provider Login URL**: `http://your-mattermost-url.com/login/sso/saml`
+    - **Service Provider Identifier**: `mattermost`
+
+    The Service Provider Identifier will match the **Client ID** that you configured in the second Keycloak step.
+
+    ![In the System Console, configure SAML as documented, where the Service Provider Identifier matches the Client ID you configured in Keycloak.](/images/keycloak_7_mattermost_config.png)
+
+4.  Configure the Encryption using the key you downloaded in step 6 of the Keycloak config.
+
+    1.  Generate the `.crt` file from the `.p12` file.
+
+    ``` console
+    openssl pkcs12 -password pass:mattermost -in keystore.p12 -out mattermost.crt -nodes -legacy
+    ```
+
+    2.  Generate the `.key` file from the `.p12` file.
+
+    ``` console
+    openssl pkcs12 -password pass:mattermost -in keystore.p12 -out mattermost.key -nodes -nocerts -legacy
+    ```
+
+    3.  Upload both of these files within the Mattermost System Console. Make sure to select **Upload**.
+
+    > - **Service Provider Private Key**: `mattermost.key`
+    > - **Service Provider Private Certificate**: `mattermost.crt`
+    > - **Sign Request**: **true**
+    > - **Signature Algorithm**: `RSAwithSHA256`
+    > - **Canonicalization Algorithm**: `Exclusive XML Canonicalization 1.0 (omits comments)`
+    >
+    > ![In the System Console, upload both the Service Provider Private Key and the Service Provider Private Certificate.](/images/keycloak_8_mattermost_encryption.png)
+
+5.  Set attributes for the SAML Assertions, which will update user information in Mattermost.
+
+    The attributes below are from steps 7 and 8 above. These values must be the **SAML Attribute Name** within Keycloak. See [documentation on SAML configuration settings](/administration-guide/configure/authentication-configuration-settings#saml-20) for more details.
+
+    - **Email Attribute**: `email`
+    - **Username Attribute**: `username`
+    - **Id Attribute**: `id`
+
+    ![Set attributes for the SAML assertions which updates user information in Mattermost.](/images/keycloak_9_mattermost_attributes.png)
+
+6.  Select **Save**.
+
+To confirm SAML is working correctly, log out of Mattermost or open Mattermost in a new Incognito Browser Window and select **Sign in with SAML** on the login page and login with an existing Keycloak account.
+
+If you have existing users in Mattermost that are going to be migrated to SAML login, make sure to plan for user migration and update your users accordingly.
+
+You may also configure SAML for Keycloak by editing `config.json`. Before starting the Mattermost server, edit `config.json` to enable SAML based on [SAML configuration settings](/administration-guide/configure/authentication-configuration-settings#saml-20). You must restart the Mattermost server for the changes to take effect.
+
+## Configuing a SAML user as a Guest in Keycloak
+
+1.  In Mattermost, go to **System Console \> Authentication \> SAML**.
+
+2.  Set the **Guest Attribute** to designate which SAML users are guests.
+
+    ![In Mattermost, configure the SAML guest attribute](/images/mm-guset-config.png)
+
+3.  In the Keycloak administration interface, add a user attribute mapper for guests.
+
+> 1.  Select **Clients** from the LHS menu.
+> 2.  Select **mattermost** from the list.
+>
+> > - Select the *Client Scopes* tab
+> > - Select *mattermost dedicated* from the list of scopes
+> > - Click the *Add mapper* drop down and select *By configuration*
+> > - Select *User Attribute* on the model that opens
+> > - Add values for *Name*, *User Attribute* and *SAML Attribute Name* as shown
+> >
+> > ![\<Add attribute mapper\>](/images/keycloak-mapper-details.png)
+
+4.  In Keycloak specify which users are guest by adding the attribute under **User details**
+
+> 1.  Select **Users** from the LHS menu.
+> 2.  Select the username of the desired user.
+> 3.  Select the **Attribute** tab and select **+ add an attribute**.
+> 4.  Add the key and value.
+>
+> > ![An example of adding an attribute to a user.](/images/guest-user-attribute.png)
+
+<Inc0_sso_saml_ldapsync />
+
+<Inc1_sso_saml_faq />
+:start-after: :nosearch:

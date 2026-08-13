@@ -13,7 +13,7 @@ type Props = {
     setAllowedDomains: (domains: string[]) => void;
     setHasChanges: (hasChanges: boolean) => void;
     setSaveChangesPanelState: (state: SaveChangesPanelState) => void;
-}
+};
 
 const AllowedDomainsSelect = ({allowedDomains, setAllowedDomains, setHasChanges, setSaveChangesPanelState}: Props) => {
     const [showAllowedDomains, setShowAllowedDomains] = useState<boolean>(allowedDomains.length > 0);
@@ -32,7 +32,7 @@ const AllowedDomainsSelect = ({allowedDomains, setAllowedDomains, setHasChanges,
         setAllowedDomains([...allowedDomains, domain]);
     }, [allowedDomains, setAllowedDomains, setHasChanges, setSaveChangesPanelState]);
 
-    const handleOnChangeDomains = useCallback((allowedDomainsOptions?: SelectTextInputOption[] | null) => {
+    const handleOnChangeDomains = useCallback((allowedDomainsOptions?: readonly SelectTextInputOption[] | null) => {
         setHasChanges(true);
         setSaveChangesPanelState('editing');
         setAllowedDomains(allowedDomainsOptions?.map((domain) => domain.value) || []);

@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"testing"
 
@@ -29,9 +28,7 @@ func assertDirectoryContents(t *testing.T, dir string, expectedFiles []string) {
 	})
 	require.NoError(t, err)
 
-	sort.Strings(files)
-	sort.Strings(expectedFiles)
-	assert.Equal(t, expectedFiles, files)
+	assert.ElementsMatch(t, expectedFiles, files)
 }
 
 func TestExtractTarGz(t *testing.T) {
@@ -74,7 +71,7 @@ func TestExtractTarGz(t *testing.T) {
 
 	t.Run("huge tar", func(t *testing.T) {
 		files := make([]*tar.Header, 0, 10000)
-		for i := 0; i < 10000; i++ {
+		for i := range 10000 {
 			files = append(files, &tar.Header{
 				Name:     fmt.Sprintf("%d.txt", i),
 				Typeflag: tar.TypeReg,

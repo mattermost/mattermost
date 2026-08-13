@@ -6,18 +6,14 @@ import React from 'react';
 import type {ChannelType} from '@mattermost/types/channels';
 import type {UserCustomStatus} from '@mattermost/types/users';
 
-import ChannelInfoButton from 'components/channel_header/channel_info_button';
-
-import type {MockIntl} from 'tests/helpers/intl-test-helper';
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 import Constants, {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeader from './channel_header';
-import type {Props} from './channel_header';
 
 describe('components/ChannelHeader', () => {
-    const baseProps: Props = {
+    const baseProps = {
         actions: {
             showPinnedPosts: jest.fn(),
             showChannelFiles: jest.fn(),
@@ -27,7 +23,7 @@ describe('components/ChannelHeader', () => {
             showChannelMembers: jest.fn(),
             fetchChannelRemotes: jest.fn(),
         },
-        teamId: 'team_id',
+        team: TestHelper.getTeamMock({id: 'team_id'}),
         channel: TestHelper.getChannelMock({}),
         channelMember: TestHelper.getChannelMembershipMock({}),
         currentUser: TestHelper.getUserMock({}),
@@ -51,10 +47,9 @@ describe('components/ChannelHeader', () => {
         ],
         hideGuestTags: false,
         remoteNames: [],
-        sharedChannelsPluginsEnabled: false,
-        intl: {
-            formatMessage: jest.fn(({id, defaultMessage}) => defaultMessage || id),
-        } as MockIntl,
+
+        isChannelAutotranslated: false,
+        hasPendingJoinRequests: false,
     };
 
     const populatedProps = {
@@ -76,17 +71,29 @@ describe('components/ChannelHeader', () => {
     };
 
     test('should render properly when empty', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render properly when populated', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...populatedProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should render properly when there are pending join requests', () => {
+        const props = {
+            ...populatedProps,
+            hasPendingJoinRequests: true,
+        };
+
+        const {container} = renderWithContext(
+            <ChannelHeader {...props}/>,
+        );
+        expect(container).toMatchSnapshot();
     });
 
     test('should render properly when populated with channel props', () => {
@@ -114,10 +121,10 @@ describe('components/ChannelHeader', () => {
             }),
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render archived view', () => {
@@ -126,10 +133,10 @@ describe('components/ChannelHeader', () => {
             channel: {...populatedProps.channel, delete_at: 1234},
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render shared view', () => {
@@ -142,10 +149,10 @@ describe('components/ChannelHeader', () => {
             }),
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render correct menu when muted', () => {
@@ -154,10 +161,10 @@ describe('components/ChannelHeader', () => {
             isChannelMuted: true,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should unmute the channel when mute icon is clicked', () => {
@@ -166,12 +173,13 @@ describe('components/ChannelHeader', () => {
             isChannelMuted: true,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
 
-        wrapper.find('.channel-header__mute').simulate('click');
-        wrapper.update();
+        const muteButton = container.querySelector('.channel-header__mute');
+        expect(muteButton).not.toBeNull();
+        (muteButton as HTMLElement).click();
         expect(props.actions.updateChannelNotifyProps).toHaveBeenCalledTimes(1);
         expect(props.actions.updateChannelNotifyProps).toHaveBeenCalledWith('user_id', 'channel_id', {mark_unread: 'all'});
     });
@@ -182,10 +190,10 @@ describe('components/ChannelHeader', () => {
             rhsState: RHSStates.PIN,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render active channel files', () => {
@@ -195,10 +203,10 @@ describe('components/ChannelHeader', () => {
             showChannelFilesButton: true,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render not active channel files', () => {
@@ -208,10 +216,10 @@ describe('components/ChannelHeader', () => {
             showChannelFilesButton: true,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render active flagged posts', () => {
@@ -220,10 +228,10 @@ describe('components/ChannelHeader', () => {
             rhsState: RHSStates.FLAG,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render active mentions posts', () => {
@@ -232,10 +240,10 @@ describe('components/ChannelHeader', () => {
             rhsState: RHSStates.MENTION,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render the pinned icon with the pinned posts count', () => {
@@ -243,10 +251,10 @@ describe('components/ChannelHeader', () => {
             ...populatedProps,
             pinnedPostsCount: 2,
         };
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render properly when custom status is set', () => {
@@ -268,10 +276,10 @@ describe('components/ChannelHeader', () => {
             } as UserCustomStatus,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render properly when custom status is expired', () => {
@@ -294,19 +302,20 @@ describe('components/ChannelHeader', () => {
             } as UserCustomStatus,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should contain the channel info button', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...populatedProps}/>,
         );
-        expect(wrapper.contains(
-            <ChannelInfoButton channel={populatedProps.channel}/>,
-        )).toEqual(true);
+
+        // ChannelInfoButton renders a button with channel-info class
+        const channelInfoButton = container.querySelector('.channel-header__info');
+        expect(channelInfoButton).not.toBeNull();
     });
 
     test('should match snapshot with last active display', () => {
@@ -326,10 +335,10 @@ describe('components/ChannelHeader', () => {
             }),
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with no last active display because it is disabled', () => {
@@ -350,9 +359,9 @@ describe('components/ChannelHeader', () => {
             }),
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelHeader {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

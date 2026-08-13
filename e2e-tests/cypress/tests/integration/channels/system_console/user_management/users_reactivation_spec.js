@@ -10,13 +10,12 @@
 // Stage: @prod
 // Group: @channels @not_cloud @system_console
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import * as MESSAGES from '../../../../fixtures/messages';
-
-import {getRandomId} from '../../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import * as MESSAGES from '@/fixtures/messages';
+import {getRandomId} from '@/utils';
 
 describe('System Console > User Management > Reactivation', () => {
-    var teamName;
+    let teamName;
     before(() => {
         cy.shouldNotRunOnCloudEdition();
 

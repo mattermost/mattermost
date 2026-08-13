@@ -28,7 +28,7 @@ export type Filters = {
     roles?: string[];
     channel_roles?: string[];
     team_roles?: string[];
-}
+};
 
 export type Memberships = RelationOneToOne<UserProfile, TeamMembership> | RelationOneToOne<UserProfile, ChannelMembership>;
 
@@ -40,7 +40,6 @@ export interface Props {
     scope: 'team' | 'channel';
     scopeId: string;
     enableGuestAccounts: boolean;
-    filters: Filters;
     actions: {
         loadTeamMembersForProfilesList: (profiles: UserProfile[], teamId: string) => Promise<ActionResult>;
         loadChannelMembersForProfilesList: (profiles: UserProfile[], channelId: string) => Promise<ActionResult>;
@@ -345,7 +344,6 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}
-                    page={this.state.page}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
                     startCount={startCount}

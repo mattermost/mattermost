@@ -5,14 +5,13 @@
         "esModuleInterop": true,
         "strict": true,
         "declaration": true,
-        "moduleResolution": "node",
-        "module": "esnext",
+        "moduleResolution": "bundler",
+        "module": "ESNext",
         "resolveJsonModule": true,
         "skipLibCheck": true,
-        "downlevelIteration": true,
-        "baseUrl": "src",
+        "rootDir": "src",
         "paths": {
-            "@/*": ["*"]
+            "@/*": ["./src/*"]
         }
     },
     "include": ["src"],

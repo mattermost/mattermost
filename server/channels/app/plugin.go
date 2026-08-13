@@ -11,11 +11,12 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
 
@@ -157,20 +158,18 @@ func (ch *Channels) syncPluginsActiveState() {
 		pluginsEnvironment.Shutdown()
 	}
 
-	if err := ch.notifyPluginStatusesChanged(); err != nil {
-		ch.srv.Log().Warn("failed to notify plugin status changed", mlog.Err(err))
-	}
+	ch.notifyPluginStatusesChanged()
 }
 
-func (a *App) NewPluginAPI(c request.CTX, manifest *model.Manifest) plugin.API {
-	return NewPluginAPI(a, c, manifest)
+func (a *App) NewPluginAPI(rctx request.CTX, manifest *model.Manifest) plugin.API {
+	return NewPluginAPI(a, rctx, manifest)
 }
 
-func (a *App) InitPlugins(c request.CTX, pluginDir, webappPluginDir string) {
-	a.ch.initPlugins(c, pluginDir, webappPluginDir)
+func (a *App) InitPlugins(rctx request.CTX, pluginDir, webappPluginDir string) {
+	a.ch.initPlugins(rctx, pluginDir, webappPluginDir)
 }
 
-func (ch *Channels) initPlugins(c request.CTX, pluginDir, webappPluginDir string) {
+func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir string) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	defer func() {
 		ch.srv.Platform().SetPluginsEnvironment(ch)
@@ -200,7 +199,7 @@ func (ch *Channels) initPlugins(c request.CTX, pluginDir, webappPluginDir string
 	}
 
 	newAPIFunc := func(manifest *model.Manifest) plugin.API {
-		return New(ServerConnector(ch)).NewPluginAPI(c, manifest)
+		return New(ServerConnector(ch)).NewPluginAPI(rctx, manifest)
 	}
 
 	env, err := plugin.NewEnvironment(
@@ -284,17 +283,9 @@ func (ch *Channels) syncPlugins() *model.AppError {
 
 			logger := ch.srv.Log().With(mlog.String("plugin_id", pluginID))
 
-			// Only handle managed plugins with .filestore flag file.
-			_, err := os.Stat(filepath.Join(*ch.cfgSvc.Config().PluginSettings.Directory, pluginID, managedPluginFileName))
-			if os.IsNotExist(err) {
-				logger.Warn("Skipping sync for unmanaged plugin")
-			} else if err != nil {
-				logger.Error("Skipping sync for plugin after failure to check if managed", mlog.Err(err))
-			} else {
-				logger.Info("Removing local installation of managed plugin before sync")
-				if err := ch.removePluginLocally(pluginID); err != nil {
-					logger.Error("Failed to remove local installation of managed plugin before sync", mlog.Err(err))
-				}
+			logger.Info("Removing local installation of managed plugin before sync")
+			if err := ch.removePluginLocally(pluginID); err != nil {
+				logger.Error("Failed to remove local installation of managed plugin before sync", mlog.Err(err))
 			}
 		}(plugin.Manifest.Id)
 	}
@@ -687,22 +678,6 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 			},
 		}
 
-		// If not enterprise, check version.
-		// Playbooks is not listed in the marketplace, this only handles prepackaged.
-		if !model.MinimumEnterpriseLicense(a.License()) {
-			if prepackaged.Manifest.Id == model.PluginIdPlaybooks {
-				version, err := semver.Parse(prepackaged.Manifest.Version)
-				if err != nil {
-					mlog.Error("Unable to verify prepackaged playbooks version", mlog.Err(err))
-					continue
-				}
-				// Do not show playbooks >=v2 if we do not have an enterprise license
-				if version.GTE(SemVerV2) {
-					continue
-				}
-			}
-		}
-
 		// If not available in marketplace, add the prepackaged
 		if remoteMarketplacePlugins[prepackaged.Manifest.Id] == nil {
 			remoteMarketplacePlugins[prepackaged.Manifest.Id] = prepackagedMarketplace
@@ -710,18 +685,18 @@ func (a *App) mergePrepackagedPlugins(remoteMarketplacePlugins map[string]*model
 		}
 
 		// If available in the marketplace, only overwrite if newer.
-		prepackagedVersion, err := semver.Parse(prepackaged.Manifest.Version)
+		prepackagedVersion, err := semver.StrictNewVersion(prepackaged.Manifest.Version)
 		if err != nil {
 			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
 		marketplacePlugin := remoteMarketplacePlugins[prepackaged.Manifest.Id]
-		marketplaceVersion, err := semver.Parse(marketplacePlugin.Manifest.Version)
+		marketplaceVersion, err := semver.StrictNewVersion(marketplacePlugin.Manifest.Version)
 		if err != nil {
 			return model.NewAppError("mergePrepackagedPlugins", "app.plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
-		if prepackagedVersion.GT(marketplaceVersion) {
+		if prepackagedVersion.GreaterThan(marketplaceVersion) {
 			remoteMarketplacePlugins[prepackaged.Manifest.Id] = prepackagedMarketplace
 		}
 	}
@@ -1008,8 +983,6 @@ func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) erro
 	return nil
 }
 
-var SemVerV2 = semver.MustParse("2.0.0")
-
 // processPrepackagedPlugin will return the prepackaged plugin metadata and will also
 // install the prepackaged plugin if it had been previously enabled and AutomaticPrepackagedPlugins is true.
 func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*plugin.PrepackagedPlugin, error) {
@@ -1038,27 +1011,6 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 	}
 
 	logger = logger.With(mlog.String("plugin_id", plugin.Manifest.Id))
-
-	if plugin.Manifest.Id == model.PluginIdPlaybooks {
-		version, err := semver.Parse(plugin.Manifest.Version)
-		if err != nil {
-			return nil, errors.Wrapf(err, "Unable to verify prepackaged playbooks version")
-		}
-
-		hasEnterpriseLicense := model.MinimumEnterpriseLicense(ch.License())
-
-		// Do not install playbooks >=v2 if we do not have an enterprise license
-		if version.GTE(SemVerV2) && !hasEnterpriseLicense {
-			logger.Info("Skip installing prepackaged playbooks >=v2 because the license does not allow it")
-			return plugin, nil
-		}
-
-		// Do not install playbooks <v2 if we have an enterprise license
-		if version.LT(SemVerV2) && hasEnterpriseLicense {
-			logger.Info("Skip installing prepackaged playbooks <v2 because the license allows v2")
-			return plugin, nil
-		}
-	}
 
 	// Skip installing the plugin at all if automatic prepackaged plugins is disabled
 	if !*ch.cfgSvc.Config().PluginSettings.AutomaticPrepackagedPlugins {
@@ -1092,37 +1044,12 @@ var transitionallyPrepackagedPlugins = []string{
 	"com.mattermost.plugin-todo",
 	"com.mattermost.welcomebot",
 	"com.mattermost.apps",
-	"playbooks",
 }
 
 // pluginIsTransitionallyPrepackaged identifies plugin ids that are currently prepackaged but
 // slated for future removal.
 func (ch *Channels) pluginIsTransitionallyPrepackaged(m *model.Manifest) bool {
-	for _, id := range transitionallyPrepackagedPlugins {
-		if id == m.Id {
-			if m.Id == model.PluginIdPlaybooks {
-				return ch.playbooksIsTransitionallyPrepackaged(m)
-			}
-
-			return true
-		}
-	}
-
-	return false
-}
-
-// playbooksIsTransitionallyPrepackaged determines if the playbooks plugin is transitionally prepackaged.
-// conditions are:
-// - the server is not enterprise licensed
-// - the playbooks version is <v2
-func (ch *Channels) playbooksIsTransitionallyPrepackaged(m *model.Manifest) bool {
-	version, err := semver.Parse(m.Version)
-	if err != nil {
-		ch.srv.Log().Warn("unable to parse prepackaged playbooks version - not marking it as transitional.", mlog.String("version", m.Version), mlog.Err(err))
-		return false
-	}
-
-	return !model.MinimumEnterpriseLicense(ch.srv.License()) && version.LT(SemVerV2)
+	return slices.Contains(transitionallyPrepackagedPlugins, m.Id)
 }
 
 // shouldPersistTransitionallyPrepackagedPlugin determines if a transitionally prepackaged plugin
@@ -1146,7 +1073,7 @@ func (ch *Channels) shouldPersistTransitionallyPrepackagedPlugin(availablePlugin
 		return true
 	}
 
-	prepackagedVersion, err := semver.Parse(p.Manifest.Version)
+	prepackagedVersion, err := semver.StrictNewVersion(p.Manifest.Version)
 	if err != nil {
 		logger.Error("Should not persist transitionally prepackged plugin: invalid prepackaged version", mlog.Err(err))
 		return false
@@ -1154,14 +1081,14 @@ func (ch *Channels) shouldPersistTransitionallyPrepackagedPlugin(availablePlugin
 
 	logger = logger.With(mlog.String("existing_version", existing.Manifest.Version))
 
-	existingVersion, err := semver.Parse(existing.Manifest.Version)
+	existingVersion, err := semver.StrictNewVersion(existing.Manifest.Version)
 	if err != nil {
 		// Consider this an old version and replace with the prepackaged version instead.
 		logger.Warn("Should persist transitionally prepackged plugin: invalid existing version", mlog.Err(err))
 		return true
 	}
 
-	if prepackagedVersion.GT(existingVersion) {
+	if prepackagedVersion.GreaterThan(existingVersion) {
 		logger.Info("Should persist transitionally prepackged plugin: newer version")
 		return true
 	}

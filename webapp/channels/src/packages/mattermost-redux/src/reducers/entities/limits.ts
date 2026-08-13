@@ -8,7 +8,7 @@ import {LimitsTypes} from 'mattermost-redux/action_types';
 
 function serverLimits(state = {}, action: MMReduxAction) {
     switch (action.type) {
-    case LimitsTypes.RECIEVED_APP_LIMITS: {
+    case LimitsTypes.RECEIVED_APP_LIMITS: {
         const serverLimits = action.data;
         return {
             ...state,

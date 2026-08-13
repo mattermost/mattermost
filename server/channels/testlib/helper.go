@@ -35,6 +35,7 @@ type MainHelper struct {
 
 	status           int
 	testResourcePath string
+	testLogsPath     string
 	replicas         []string
 	storePool        *sqlstore.TestPool
 }
@@ -42,14 +43,13 @@ type MainHelper struct {
 type HelperOptions struct {
 	EnableStore     bool
 	EnableResources bool
-	WithReadReplica bool
 	RunParallel     bool
 	Parallelism     int
 }
 
 func NewMainHelper() *MainHelper {
 	// Ignore any globally defined datasource if a test dsn defined
-	if os.Getenv("TEST_DATABASE_MYSQL_DSN") != "" || os.Getenv("TEST_DATABASE_POSTGRESQL_DSN") != "" {
+	if os.Getenv("TEST_DATABASE_POSTGRESQL_DSN") != "" {
 		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
 	}
 
@@ -60,8 +60,31 @@ func NewMainHelper() *MainHelper {
 }
 
 func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
+	flag.Parse()
+
+	h := &MainHelper{
+		Logger: mlog.CreateConsoleLogger(),
+	}
+	if options != nil {
+		h.Options = *options
+	}
+	return h
+}
+
+func (h *MainHelper) Main(m *testing.M) {
+	if f := flag.Lookup("test.list"); f != nil && f.Value.String() != "" {
+		os.Exit(m.Run())
+	}
+
+	defer func() {
+		err := h.Logger.Shutdown()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	// Ignore any globally defined datasource if a test dsn defined
-	if os.Getenv("TEST_DATABASE_MYSQL_DSN") != "" || os.Getenv("TEST_DATABASE_POSTGRESQL_DSN") != "" {
+	if os.Getenv("TEST_DATABASE_POSTGRESQL_DSN") != "" {
 		os.Unsetenv("MM_SQLSETTINGS_DATASOURCE")
 	}
 
@@ -71,59 +94,47 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	os.Unsetenv("MM_SERVICESETTINGS_CONNECTIONSECURITY")
 	os.Unsetenv("MM_SERVICESETTINGS_ENABLEDEVELOPER")
 
-	logger := mlog.CreateConsoleLogger()
-
-	mainHelper := MainHelper{
-		Logger: logger,
-	}
-
-	_, err := mlog.NewLogger()
-	if err != nil {
-		log.Fatal(err)
-	}
-	flag.Parse()
-
-	err = utils.TranslationsPreInit()
-	if err != nil {
+	if _, err := mlog.NewLogger(); err != nil {
 		log.Fatal(err)
 	}
 
-	if options != nil {
-		mainHelper.Options = *options
-
-		if options.EnableStore && !testing.Short() {
-			mainHelper.setupStore(options.WithReadReplica)
-		}
-
-		if options.EnableResources {
-			mainHelper.setupResources()
-		}
-
-		if options.RunParallel && options.EnableStore {
-			driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-			if driverName == "" {
-				driverName = model.DatabaseDriverPostgres
-			}
-			// NOTE: we use a poolSize higher than the parallelism value (coming from -test.parallel flag) as we need a bit of extra buffer to cover
-			// for subtests that might also run in parallel and initialize a new store.
-			storePool, err := sqlstore.NewTestPool(mainHelper.Logger, driverName, options.Parallelism*2)
-			if err != nil {
-				panic(err)
-			}
-			mainHelper.storePool = storePool
-		}
+	if err := utils.TranslationsPreInit(); err != nil {
+		log.Fatal(err)
 	}
 
-	return &mainHelper
-}
+	// Use a fast password hasher during tests to speed up user creation.
+	setupFastTestHasher()
 
-func (h *MainHelper) Main(m *testing.M) {
-	defer func() {
-		err := h.Logger.Shutdown()
+	// Create a logs directory and set MM_LOG_PATH for tests that validate log file paths.
+	// This is done unconditionally so tests don't need to enable full resources just for logging.
+	logsDir, err := os.MkdirTemp("", "testlogs")
+	if err != nil {
+		log.Fatal("Failed to create test logs directory: " + err.Error())
+	}
+	os.Setenv("MM_LOG_PATH", logsDir)
+	h.testLogsPath = logsDir
+
+	if h.Options.EnableStore && !testing.Short() {
+		h.setupStore()
+	}
+
+	if h.Options.EnableResources {
+		h.setupResources()
+	}
+
+	if h.Options.RunParallel && h.Options.EnableStore {
+		driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+		if driverName == "" {
+			driverName = model.DatabaseDriverPostgres
+		}
+		// NOTE: we use a poolSize higher than the parallelism value (coming from -test.parallel flag) as we need a bit of extra buffer to cover
+		// for subtests that might also run in parallel and initialize a new store.
+		storePool, err := sqlstore.NewTestPool(h.Logger, driverName, h.Options.Parallelism*2)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
-	}()
+		h.storePool = storePool
+	}
 
 	if h.testResourcePath != "" {
 		prevDir, err := os.Getwd()
@@ -177,13 +188,13 @@ func (h *MainHelper) GetNewStores(tb testing.TB) (store.Store, *sqlstore.SqlStor
 	return store, sqlStore, settings, searchEngine
 }
 
-func (h *MainHelper) setupStore(withReadReplica bool) {
+func (h *MainHelper) setupStore() {
 	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
 	if driverName == "" {
 		driverName = model.DatabaseDriverPostgres
 	}
 
-	h.Settings = storetest.MakeSqlSettings(driverName, withReadReplica)
+	h.Settings = storetest.MakeSqlSettings(driverName)
 	h.replicas = h.Settings.DataSourceReplicas
 
 	config := &model.Config{}
@@ -252,7 +263,6 @@ func (h *MainHelper) setupResources() {
 //
 // Re-generate the files with:
 // pg_dump -a -h localhost -U mmuser -d <> --no-comments --inserts -t roles -t systems
-// mysqldump -u root -p <> --no-create-info --extended-insert=FALSE Systems Roles
 // And keep only the permission related rows in the systems table output.
 func preloadMigrations(driverName string, sqlStore *sqlstore.SqlStore) {
 	var buf []byte
@@ -265,17 +275,13 @@ func preloadMigrations(driverName string, sqlStore *sqlstore.SqlStore) {
 		if err != nil {
 			panic(fmt.Errorf("cannot read file: %v", err))
 		}
-	case model.DatabaseDriverMysql:
-		finalPath := filepath.Join(server.GetPackagePath(), "channels", "testlib", "testdata", "mysql_migration_warmup.sql")
-		buf, err = os.ReadFile(finalPath)
-		if err != nil {
-			panic(fmt.Errorf("cannot read file: %v", err))
-		}
+	default:
+		panic(fmt.Errorf("unsupported database driver: %s", driverName))
 	}
 	handle := sqlStore.GetMaster()
 	_, err = handle.Exec(string(buf))
 	if err != nil {
-		panic(errors.Wrap(err, "Error preloading migrations. Check if you have &multiStatements=true in your DSN if you are using MySQL. Or perhaps the schema changed? If yes, then update the warmup files accordingly"))
+		panic(errors.Wrap(err, "Error preloading migrations. Perhaps the schema changed? If yes, then update the warmup files accordingly"))
 	}
 }
 
@@ -292,6 +298,10 @@ func (h *MainHelper) Close() error {
 	}
 	if h.testResourcePath != "" {
 		os.RemoveAll(h.testResourcePath)
+	}
+	if h.testLogsPath != "" {
+		os.RemoveAll(h.testLogsPath)
+		os.Unsetenv("MM_LOG_PATH")
 	}
 
 	if h.storePool != nil {
@@ -345,39 +355,6 @@ func (h *MainHelper) GetSearchEngine() *searchengine.Broker {
 	}
 
 	return h.SearchEngine
-}
-
-func (h *MainHelper) SetReplicationLagForTesting(seconds int) error {
-	if dn := h.SQLStore.DriverName(); dn != model.DatabaseDriverMysql {
-		return fmt.Errorf("method not implemented for %q database driver, only %q is supported", dn, model.DatabaseDriverMysql)
-	}
-
-	err := h.execOnEachReplica("STOP SLAVE SQL_THREAD FOR CHANNEL ''")
-	if err != nil {
-		return err
-	}
-
-	err = h.execOnEachReplica(fmt.Sprintf("CHANGE MASTER TO MASTER_DELAY = %d", seconds))
-	if err != nil {
-		return err
-	}
-
-	err = h.execOnEachReplica("START SLAVE SQL_THREAD FOR CHANNEL ''")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (h *MainHelper) execOnEachReplica(query string, args ...any) error {
-	for _, replica := range h.SQLStore.ReplicaXs {
-		_, err := replica.Load().Exec(query, args...)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (h *MainHelper) Parallel(t *testing.T) {

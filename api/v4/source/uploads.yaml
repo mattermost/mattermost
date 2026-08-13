@@ -105,9 +105,17 @@
             type: string
       requestBody:
         content:
-          application/x-www-form-urlencoded:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+          multipart/form-data:
             schema:
               type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
       responses:
         "201":
           description: Upload successful

@@ -5,6 +5,8 @@ import React from 'react';
 import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
@@ -152,16 +154,16 @@ export class PasswordResetSendLink extends React.PureComponent<Props, State> {
                                 />
                             </div>
                             {error}
-                            <button
+                            <Button
                                 id='passwordResetButton'
                                 type='submit'
-                                className='btn btn-primary'
+                                emphasis='primary'
                             >
                                 <FormattedMessage
                                     id='password_send.reset'
                                     defaultMessage='Reset my password'
                                 />
-                            </button>
+                            </Button>
                         </form>
                     </div>
                 </div>

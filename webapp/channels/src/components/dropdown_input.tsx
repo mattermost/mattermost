@@ -19,7 +19,7 @@ import './dropdown_input.scss';
 export type ValueType = {
     label: string;
     value: string;
-}
+};
 
 type Props<T extends ValueType> = Omit<SelectProps<T>, 'onChange'> & {
     value?: T;
@@ -56,6 +56,19 @@ const baseStyles = {
         ...provided,
         zIndex: 100,
     }),
+    group: (provided) => ({
+        ...provided,
+        paddingTop: 0,
+        paddingBottom: 0,
+    }),
+    groupHeading: (provided) => ({
+        ...provided,
+        height: 1,
+        margin: '4px 0',
+        padding: 0,
+        fontSize: 0,
+        backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
+    }),
 } satisfies StylesConfig;
 
 const IndicatorsContainer = (props: any) => {
@@ -86,6 +99,15 @@ const Option = (props: any) => {
         >
             <components.Option {...props}/>
         </div>
+    );
+};
+
+const Menu = (props: any) => {
+    return (
+        <components.Menu
+            {...props}
+            innerProps={{...props.innerProps, 'data-testid': 'dropdownMenu'}}
+        />
     );
 };
 
@@ -163,6 +185,7 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
                             IndicatorsContainer,
                             Option,
                             Control,
+                            Menu,
                         }}
                         className={classNames('Input', className, {Input__focus: showLegend})}
                         classNamePrefix={'DropDown'}

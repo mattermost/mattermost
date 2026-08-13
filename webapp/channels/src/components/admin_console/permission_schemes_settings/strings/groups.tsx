@@ -105,6 +105,56 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
             defaultMessage: 'Edit own and others\' posts.',
         },
     }),
+    manage_incoming_webhooks_group: defineMessages({
+        name: {
+            id: 'admin.permissions.group.manage_incoming_webhooks.name',
+            defaultMessage: 'Manage Incoming Webhooks',
+        },
+        description: {
+            id: 'admin.permissions.group.manage_incoming_webhooks.description',
+            defaultMessage: 'Manage own and others\' incoming webhooks.',
+        },
+    }),
+    manage_outgoing_webhooks_group: defineMessages({
+        name: {
+            id: 'admin.permissions.group.manage_outgoing_webhooks.name',
+            defaultMessage: 'Manage Outgoing Webhooks',
+        },
+        description: {
+            id: 'admin.permissions.group.manage_outgoing_webhooks.description',
+            defaultMessage: 'Manage own and others\' outgoing webhooks.',
+        },
+    }),
+    manage_agents_group: defineMessages({
+        name: {
+            id: 'admin.permissions.group.manage_agents.name',
+            defaultMessage: 'Manage AI Agents',
+        },
+        description: {
+            id: 'admin.permissions.group.manage_agents.description',
+            defaultMessage: 'Manage own and others\' AI agents.',
+        },
+    }),
+    manage_slash_commands_group: defineMessages({
+        name: {
+            id: 'admin.permissions.group.manage_slash_commands.name',
+            defaultMessage: 'Manage Slash Commands',
+        },
+        description: {
+            id: 'admin.permissions.group.manage_slash_commands.description',
+            defaultMessage: 'Manage own and others\' slash commands.',
+        },
+    }),
+    manage_oauth_group: defineMessages({
+        name: {
+            id: 'admin.permissions.group.manage_oauth.name',
+            defaultMessage: 'Manage OAuth Applications',
+        },
+        description: {
+            id: 'admin.permissions.group.manage_oauth.description',
+            defaultMessage: 'Manage own and others\' OAuth 2.0 applications.',
+        },
+    }),
     teams_team_scope: defineMessages({
         name: {
             id: 'admin.permissions.group.teams_team_scope.name',
@@ -123,6 +173,16 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
         description: {
             id: 'admin.permissions.group.guest_reactions.description',
             defaultMessage: 'Add and delete reactions on posts.',
+        },
+    }),
+    guest_edit_file_attachment: defineMessages({
+        name: {
+            id: 'admin.permissions.group.guest_edit_file_attachment.name',
+            defaultMessage: 'Edit Attachments',
+        },
+        description: {
+            id: 'admin.permissions.group.guest_edit_file_attachment.description',
+            defaultMessage: 'Allow users to add or remove file attachments when editing posts.',
         },
     }),
     guest_create_post: defineMessages({

@@ -5,7 +5,6 @@ package app
 
 import (
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -17,8 +16,7 @@ import (
 func Test_SendNotifyAdminPosts(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("no error sending non trial upgrade post when no notifications are available", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -27,8 +25,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("no error sending trial upgrade post when no notifications are available", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -37,8 +34,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("successfully send upgrade notification", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -80,7 +76,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		}
 		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
 
-		postList, err := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+		postList, err := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		post := postList.Posts[postList.Order[0]]
@@ -90,8 +86,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("successfully send trial upgrade notification", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -127,7 +122,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		}
 		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
 
-		postList, err := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+		postList, err := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		post := postList.Posts[postList.Order[0]]
@@ -137,8 +132,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("error when trying to send upgrade post before end of cool off period", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -168,13 +162,12 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("can send upgrade post at the end of cool off period", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		os.Setenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS", "0.00003472222222") // set to 3 seconds
-		defer os.Unsetenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS")
+		th.App.Srv().SetNotifyAdminCoolOffDaysOverride("0.00003472222222") // set to 3 seconds
+		t.Cleanup(func() { th.App.Srv().SetNotifyAdminCoolOffDaysOverride("") })
 
 		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
@@ -203,8 +196,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	})
 
 	t.Run("can filter notifications when plan changes within cool off period", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -248,7 +240,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		}
 		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
 
-		postList, err := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+		postList, err := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		post := postList.Posts[postList.Order[0]]

@@ -7,6 +7,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {SupportPacketContent} from '@mattermost/types/admin';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -158,7 +159,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                             id='commercial_support_modal.description'
                             defaultMessage={'If you\'re experiencing issues, <supportLink>submit a support ticket</supportLink>. To help with troubleshooting, it\'s recommended to download the Support Packet below that includes more details about your Mattermost environment.'}
                             values={{
-                                supportLink: (chunks: string) => (
+                                supportLink: (chunks) => (
                                     <ExternalLink
                                         href={supportLink}
                                         location='commercialSupportModal'
@@ -176,8 +177,8 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                         id='commercial_support_modal.warning.banner'
                                         defaultMessage='Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <debugLink>here</debugLink>.'
                                         values={{
-                                            strong: (chunks: string) => <strong>{chunks}</strong>,
-                                            debugLink: (chunks: string) => <Link to='/admin_console/environment/logging'>{chunks}</Link>,
+                                            strong: (chunks) => <strong>{chunks}</strong>,
+                                            debugLink: (chunks) => <Link to='/admin_console/environment/logging'>{chunks}</Link>,
                                         }}
                                     />
                                 }
@@ -227,17 +228,17 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                     <span className='error-text'>{this.state.error}</span>
                                 </div>
                             )}
-                            <a
-                                className='btn btn-primary DownloadSupportPacket'
+                            <Button
+                                emphasis='primary'
+                                className='DownloadSupportPacket'
                                 onClick={this.downloadSupportPacket}
-                                rel='noopener noreferrer'
                             >
                                 { this.state.loading ? <LoadingSpinner/> : <i className='icon icon-download-outline'/> }
                                 <FormattedMessage
                                     id='commercial_support.download_support_packet'
                                     defaultMessage='Download Support Packet'
                                 />
-                            </a>
+                            </Button>
                         </div>
                     </div>
                 </Modal.Body>

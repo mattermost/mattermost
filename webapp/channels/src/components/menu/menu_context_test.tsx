@@ -7,7 +7,7 @@ import {MenuContext, useMenuContextValue} from './menu_context';
 
 type Props = {
     children: React.ReactNode;
-}
+};
 
 export function WithTestMenuContext({
     children,

@@ -1,15 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {useHistory} from 'react-router-dom';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import TrialBenefitsModalStepMore from 'components/trial_benefits_modal/trial_benefits_modal_step_more';
 
-import {TELEMETRY_CATEGORIES} from 'utils/constants';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 jest.mock('react-router-dom', () => {
     const original = jest.requireActual('react-router-dom');
@@ -22,14 +19,6 @@ jest.mock('react-router-dom', () => {
     };
 });
 
-jest.mock('actions/telemetry_actions.jsx', () => {
-    const original = jest.requireActual('actions/telemetry_actions.jsx');
-    return {
-        ...original,
-        trackEvent: jest.fn(),
-    };
-});
-
 describe('components/trial_benefits_modal/trial_benefits_modal_step_more', () => {
     const props = {
         id: 'thing',
@@ -38,27 +27,26 @@ describe('components/trial_benefits_modal/trial_benefits_modal_step_more', () =>
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {baseElement} = renderWithContext(
             <TrialBenefitsModalStepMore {...props}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should handle on click', () => {
+    test('should handle on click', async () => {
         const mockHistory = useHistory();
         const mockOnClick = jest.fn();
 
-        const wrapper = shallow(
+        renderWithContext(
             <TrialBenefitsModalStepMore
                 {...props}
                 onClick={mockOnClick}
             />,
         );
 
-        wrapper.find('.learn-more-button').simulate('click');
+        await userEvent.click(screen.getByText('Test Message'));
 
         expect(mockHistory.push).toHaveBeenCalledWith(props.route);
         expect(mockOnClick).toHaveBeenCalled();
-        expect(trackEvent).toHaveBeenCalledWith(TELEMETRY_CATEGORIES.SELF_HOSTED_START_TRIAL_MODAL, 'benefits_modal_section_opened_thing');
     });
 });
