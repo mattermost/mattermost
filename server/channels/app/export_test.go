@@ -1739,49 +1739,42 @@ func TestGeneratePresignURLForExport(t *testing.T) {
 	t.Run("blocked when not running in Cloud", func(t *testing.T) {
 		th := Setup(t)
 		th.App.Srv().SetLicense(model.NewTestLicense())
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.FileSettings.EnableCloudExportDirectDownload = true
-		})
 
 		resp, appErr := th.App.GeneratePresignURLForExport("export.zip")
 		assert.Nil(t, resp)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.eport.generate_presigned_url.direct_download.app_error", appErr.Id)
+		assert.Equal(t, "app.export.generate_presigned_url.direct_download.app_error", appErr.Id)
 	})
 
-	t.Run("blocked when disabled", func(t *testing.T) {
+	t.Run("blocked without a license", func(t *testing.T) {
 		th := Setup(t)
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.FileSettings.EnableCloudExportDirectDownload = false
-		})
+		th.App.Srv().SetLicense(nil)
 
 		resp, appErr := th.App.GeneratePresignURLForExport("export.zip")
 		assert.Nil(t, resp)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.eport.generate_presigned_url.direct_download.app_error", appErr.Id)
+		assert.Equal(t, "app.export.generate_presigned_url.direct_download.app_error", appErr.Id)
 	})
 
-	t.Run("passes gate when Cloud and enabled, then requires a dedicated export store", func(t *testing.T) {
+	t.Run("passes gate when Cloud, then requires a dedicated export store", func(t *testing.T) {
 		th := Setup(t)
-		// The direct-download gate is checked before the dedicated export store
-		// requirement, so a Cloud license with the setting enabled advances past
-		// it and fails on the (disabled) dedicated export store instead.
+		// The Cloud gate is checked before the dedicated export store requirement,
+		// so a Cloud license advances past it and fails on the (disabled) dedicated
+		// export store instead.
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.FileSettings.EnableCloudExportDirectDownload = true
 			*cfg.FileSettings.DedicatedExportStore = false
 		})
 
 		resp, appErr := th.App.GeneratePresignURLForExport("export.zip")
 		assert.Nil(t, resp)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.eport.generate_presigned_url.config.app_error", appErr.Id)
+		assert.Equal(t, "app.export.generate_presigned_url.config.app_error", appErr.Id)
 	})
 
 	// The full happy path against a real presign-capable (S3/minio) export store: a
-	// Cloud server with the setting enabled and a dedicated export store returns a
-	// working presigned URL. Skipped when minio isn't reachable.
+	// Cloud server with a dedicated export store returns a working presigned URL.
+	// Skipped when minio isn't reachable.
 	t.Run("succeeds against a presign-capable export store", func(t *testing.T) {
 		s3Host := os.Getenv("CI_MINIO_HOST")
 		if s3Host == "" {
@@ -1805,7 +1798,6 @@ func TestGeneratePresignURLForExport(t *testing.T) {
 		// The dedicated export filestore is built once at startup, so the export-store
 		// configuration must be applied before the server starts, not via UpdateConfig.
 		th := SetupConfig(t, func(cfg *model.Config) {
-			*cfg.FileSettings.EnableCloudExportDirectDownload = true
 			*cfg.FileSettings.DedicatedExportStore = true
 			*cfg.FileSettings.ExportDriverName = model.ImageDriverS3
 			*cfg.FileSettings.ExportAmazonS3AccessKeyId = model.MinioAccessKey

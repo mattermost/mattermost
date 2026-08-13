@@ -348,7 +348,6 @@ const defaultServerConfig: AdminConfig = {
         AzureSSL: true,
         AzureRequestTimeoutMilliseconds: 30000,
         DedicatedExportStore: false,
-        EnableCloudExportDirectDownload: false,
         ExportDriverName: 'local',
         ExportDirectory: './data/',
         ExportAmazonS3AccessKeyId: '',

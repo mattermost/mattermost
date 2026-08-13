@@ -33,7 +33,7 @@ func (*ExportLinkProvider) GetTrigger() string {
 }
 
 func (*ExportLinkProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
-	if !a.License().IsCloud() || !*a.Config().FileSettings.EnableCloudExportDirectDownload {
+	if !a.License().IsCloud() {
 		return nil
 	}
 

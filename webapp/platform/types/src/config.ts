@@ -601,7 +601,6 @@ export type FileSettings = {
     AzureSSL: boolean;
     AzureRequestTimeoutMilliseconds: number;
     DedicatedExportStore: boolean;
-    EnableCloudExportDirectDownload: boolean;
     ExportDriverName: string;
     ExportDirectory: string;
     ExportAmazonS3AccessKeyId: string;
