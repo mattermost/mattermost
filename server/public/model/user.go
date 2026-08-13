@@ -17,6 +17,7 @@ import (
 	"unicode/utf8"
 
 	"golang.org/x/text/language"
+	"golang.org/x/text/unicode/norm"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
@@ -530,6 +531,14 @@ func (u *User) PreSave(hasher UserPasswordHasher) *AppError {
 	}
 
 	if u.Password != "" {
+		// Normalize to NFC before hashing so that a password containing a
+		// character with both a precomposed and a combining-mark Unicode
+		// representation (e.g. "é" as U+00E9 vs "e"+U+0301) always hashes
+		// the same way, regardless of which form the client's input
+		// method produced. checkUserPassword performs the same
+		// normalization before comparing, so this keeps hash creation and
+		// verification consistent. See PreSave doc comment.
+		u.Password = norm.NFC.String(u.Password)
 		hashed, err := hasher.Hash(u.Password)
 		if errors.Is(err, ErrPasswordTooLong) {
 			return NewAppError("User.PreSave", "model.user.pre_save.password_too_long.app_error",
