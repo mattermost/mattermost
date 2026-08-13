@@ -963,14 +963,87 @@ func TestGetFile(t *testing.T) {
 		CheckForbiddenStatus(t, response)
 	})
 
+	t.Run("deleted file is indistinguishable from a file that never existed", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		post, fileInfo := uploadFileAndCreatePost(t, th, client)
+
+		// Soft-delete the file info directly: DeletePost does this in a background
+		// goroutine, which would make the test racy.
+		_, storeErr := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
+		require.NoError(t, storeErr)
+
+		// GetByIds caches per file ID, and nothing evicts those keys on delete, so a
+		// stale DeleteAt == 0 entry would otherwise make the request succeed.
+		th.App.Srv().Store().FileInfo().ClearCaches()
+
+		_, deletedResp, err := client.GetFile(context.Background(), fileInfo.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, deletedResp)
+		CheckErrorID(t, err, "api.file.get_file_info.app_error")
+
+		_, missingResp, err := client.GetFile(context.Background(), model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, missingResp)
+		CheckErrorID(t, err, "api.file.get_file_info.app_error")
+	})
+}
+
+func TestGetFileAsContentReviewer(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "failed to set license")
+	defer th.RemoveLicense(t)
+
+	appErr := setBasicCommonReviewerConfig(th)
+	require.Nil(t, appErr)
+
+	owningPost, fileInfo := uploadFileAndCreatePost(t, th, th.Client)
+	flagPostViaAPI(t, th.Client, owningPost.Id)
+
+	otherFlaggedPost := th.CreatePost(t)
+	flagPostViaAPI(t, th.Client, otherFlaggedPost.Id)
+
+	unflaggedPost := th.CreatePost(t)
+
+	nonReviewer := th.CreateUser(t)
+	isReviewer, appErr := th.App.IsUserTeamContentReviewer(nonReviewer.Id, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+	require.False(t, isReviewer, "test fixture is wrong: the probing user must not be a reviewer")
+
+	nonReviewerClient := th.CreateClient()
+	_, response, err := nonReviewerClient.Login(context.Background(), nonReviewer.Email, nonReviewer.Password)
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+
+	t.Run("non-reviewer cannot distinguish content flagging state", func(t *testing.T) {
+		probes := []struct {
+			name          string
+			flaggedPostId string
+		}{
+			{"file's own post, flagged", owningPost.Id},
+			{"post exists but is not flagged", unflaggedPost.Id},
+			{"post is flagged but does not own the file", otherFlaggedPost.Id},
+		}
+
+		for _, probe := range probes {
+			t.Run(probe.name, func(t *testing.T) {
+				data, response, err := nonReviewerClient.GetFileAsContentReviewer(context.Background(), fileInfo.Id, probe.flaggedPostId)
+				require.Error(t, err)
+				CheckForbiddenStatus(t, response)
+				CheckErrorID(t, err, "api.data_spillage.error.user_not_reviewer")
+				require.Empty(t, data, "no file content should be returned")
+			})
+		}
+	})
+
 	t.Run("reviewer cannot fetch a file from a DM or GM channel", func(t *testing.T) {
-		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		require.True(t, ok, "failed to set license")
-		defer th.RemoveLicense(t)
-
-		appErr := setBasicCommonReviewerConfig(th)
-		require.Nil(t, appErr)
-
 		sent, err := testutils.ReadTestFile("test.png")
 		require.NoError(t, err)
 
