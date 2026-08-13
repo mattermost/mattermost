@@ -502,9 +502,7 @@ func TestFileStoreSet(t *testing.T) {
 		defer tearDown()
 
 		newCfg := &model.Config{}
-		newCfg.FeatureFlags = &model.FeatureFlags{}
-		newCfg.FeatureFlags.SetDefaults()
-		newCfg.FeatureFlags.AppsEnabled = true
+		newCfg.FeatureFlags = &model.FeatureFlags{AppsEnabled: true}
 
 		_, _, err := configStore.Set(newCfg)
 		if assert.Error(t, err) {
