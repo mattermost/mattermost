@@ -508,50 +508,60 @@ func TestQueryLogs(t *testing.T) {
 		return c.DoAPIPost(context.Background(), "/logs/query?page=0&logs_per_page=200", string(buf))
 	}
 
-	readNodes := func(t *testing.T, resp *http.Response) map[string][]json.RawMessage {
-		t.Helper()
-		defer resp.Body.Close()
-		var nodes map[string][]json.RawMessage
-		require.NoError(t, json.NewDecoder(resp.Body).Decode(&nodes))
-		return nodes
-	}
-
-	t.Run("empty bounds return unfiltered logs", func(t *testing.T) {
-		var nodes map[string][]json.RawMessage
-		require.Eventually(t, func() bool {
-			resp, err := post(t, th.SystemAdminClient, &model.LogFilter{DateFrom: "", DateTo: ""})
-			if err != nil {
+	containsAllMessages := func(combined string) bool {
+		for _, expected := range expectedMessages {
+			if !strings.Contains(combined, expected) {
 				return false
 			}
-			require.Equal(t, http.StatusOK, resp.StatusCode)
-			nodes = readNodes(t, resp)
+		}
+		return true
+	}
+
+	// waitForFilteredLogs posts the filter, asserting a 200 response, and polls
+	// until the expected messages appear (log availability after Flush is
+	// asynchronous). It returns the per-node lines from the last response.
+	waitForFilteredLogs := func(t *testing.T, filter *model.LogFilter) map[string][]json.RawMessage {
+		t.Helper()
+		var nodes map[string][]json.RawMessage
+		require.Eventually(t, func() bool {
+			resp, err := post(t, th.SystemAdminClient, filter)
+			if err != nil || resp.StatusCode != http.StatusOK {
+				return false
+			}
+			defer resp.Body.Close()
+
+			var decoded map[string][]json.RawMessage
+			if err := json.NewDecoder(resp.Body).Decode(&decoded); err != nil {
+				return false
+			}
 
 			var combined strings.Builder
-			for _, lines := range nodes {
+			for _, lines := range decoded {
 				for _, line := range lines {
 					combined.Write(line)
 				}
 			}
-			for _, expected := range expectedMessages {
-				if !strings.Contains(combined.String(), expected) {
-					return false
-				}
+			if !containsAllMessages(combined.String()) {
+				return false
 			}
+			nodes = decoded
 			return true
-		}, 5*time.Second, 25*time.Millisecond)
+		}, 5*time.Second, 25*time.Millisecond, "expected logged messages to be returned")
+		return nodes
+	}
 
+	t.Run("empty bounds return unfiltered logs", func(t *testing.T) {
+		nodes := waitForFilteredLogs(t, &model.LogFilter{DateFrom: "", DateTo: ""})
 		require.Contains(t, nodes, "default")
 	})
 
-	t.Run("valid bounds are accepted", func(t *testing.T) {
+	t.Run("valid bounds are accepted and still return matching logs", func(t *testing.T) {
 		filter := &model.LogFilter{
 			DateFrom: "2000-01-01 00:00:00.000 +00:00",
 			DateTo:   "2100-01-01 00:00:00.000 +00:00",
 		}
-		resp, err := post(t, th.SystemAdminClient, filter)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-		resp.Body.Close()
+		nodes := waitForFilteredLogs(t, filter)
+		require.Contains(t, nodes, "default")
 	})
 
 	t.Run("malformed date_from is rejected with 400", func(t *testing.T) {

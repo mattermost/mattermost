@@ -49,6 +49,11 @@ func TestLogFilterIsValid(t *testing.T) {
 			expectedID: "model.log_filter.is_valid.date_to.app_error",
 		},
 		{
+			name:       "malformed to is rejected with valid from",
+			filter:     &LogFilter{DateFrom: validDate, DateTo: "also-not-a-date"},
+			expectedID: "model.log_filter.is_valid.date_to.app_error",
+		},
+		{
 			name:       "from is checked before to",
 			filter:     &LogFilter{DateFrom: "not-a-date", DateTo: "also-not-a-date"},
 			expectedID: "model.log_filter.is_valid.date_from.app_error",
