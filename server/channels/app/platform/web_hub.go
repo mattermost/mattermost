@@ -535,7 +535,7 @@ func (h *Hub) Stop() {
 }
 
 func (h *Hub) recordPostDelivery(marker *model.PostDeliveryMarker, userID string) {
-	if marker == nil || userID == "" || h.platform.postDeliveryRecorder == nil {
+	if marker == nil || userID == "" || userID == marker.UserId || h.platform.postDeliveryRecorder == nil {
 		return
 	}
 	h.platform.postDeliveryRecorder(marker, userID)

@@ -111,6 +111,25 @@ func TestHubBroadcastDelivery(t *testing.T) {
 		require.Empty(t, spy.calls)
 	})
 
+	t.Run("records nothing for the post's author", func(t *testing.T) {
+		spy := &deliveryRecorderSpy{}
+		th.Service.SetPostDeliveryRecorder(spy.record)
+		t.Cleanup(func() { th.Service.SetPostDeliveryRecorder(nil) })
+
+		connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+		// BasicUser wrote the post the marker describes.
+		wc := newDeliveryTestConn(t, th, connIndex, th.BasicUser.Id, 1)
+
+		authorEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", th.BasicUser.Id, nil, "")
+		authorEvent.Add("post", "{}")
+
+		hub := th.Service.GetHubForUserId(th.BasicUser.Id)
+		hub.broadcastToConn(connIndex, wc, authorEvent, marker, nil, nil)
+
+		require.Empty(t, spy.calls, "the author's own post echo is not a delivery")
+		require.Len(t, wc.send, 1, "the event still reaches the author")
+	})
+
 	t.Run("records nothing without a marker", func(t *testing.T) {
 		spy := &deliveryRecorderSpy{}
 		th.Service.SetPostDeliveryRecorder(spy.record)

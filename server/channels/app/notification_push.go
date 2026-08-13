@@ -111,6 +111,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 	}
 
 	originalTransportType := msg.Transport
+	originalMessage := msg.DeepCopy()
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 		var replacementNotification *model.PushNotification
 		replacementNotification, rejectionReason = hooks.NotificationWillBePushed(msg, userID)
@@ -258,7 +259,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		}
 
 		if recordDelivery {
-			a.RecordPushDelivery(rctx, userID, msg)
+			a.RecordPushDelivery(rctx, userID, originalMessage)
 			recordDelivery = false
 		}
 
