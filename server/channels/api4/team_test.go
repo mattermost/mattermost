@@ -591,6 +591,81 @@ func TestGetTeam(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("Content reviewer should not be able to get a team via a DM or GM post", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		contentReviewClient := th.CreateClient()
+		_, _, err := contentReviewClient.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+
+		flagRequest := model.FlagContentRequest{
+			Reason:  "Classification mismatch",
+			Comment: "This is sensitive content",
+		}
+
+		testCases := []struct {
+			name    string
+			post    *model.Post
+			flagged bool
+		}{
+			{"flagged DM post", createDmPost(t, th, contentReviewClient), true},
+			{"flagged GM post", createGmPost(t, th, contentReviewClient), true},
+			{"unflagged DM post", createDmPost(t, th, contentReviewClient), false},
+			{"unflagged GM post", createGmPost(t, th, contentReviewClient), false},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.name, func(t *testing.T) {
+				if testCase.flagged {
+					flagErr := th.App.FlagPost(th.Context, testCase.post, "", th.BasicUser.Id, flagRequest)
+					require.Nil(t, flagErr)
+				}
+
+				_, resp, err := contentReviewClient.GetTeamAsContentReviewer(context.Background(), th.BasicTeam.Id, "", testCase.post.Id)
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+				CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+			})
+		}
+	})
+
+	t.Run("Content reviewer should not be able to get a team via a post from another team", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		contentReviewClient := th.CreateClient()
+		_, _, err := contentReviewClient.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+
+		otherTeam := th.CreateTeam(t)
+		otherChannel := th.CreateChannelWithClientAndTeam(t, contentReviewClient, model.ChannelTypeOpen, otherTeam.Id)
+
+		// As above, the flagged and the unflagged post have to fail identically so the
+		// error doesn't disclose the flag status of a post outside the requested team.
+		for _, testCase := range []struct {
+			name    string
+			flagged bool
+		}{
+			{"flagged post", true},
+			{"unflagged post", false},
+		} {
+			t.Run(testCase.name, func(t *testing.T) {
+				post := th.CreatePostWithClient(t, contentReviewClient, otherChannel)
+				if testCase.flagged {
+					flagPostViaAPI(t, contentReviewClient, post.Id)
+				}
+
+				_, resp, err := contentReviewClient.GetTeamAsContentReviewer(context.Background(), th.BasicTeam.Id, "", post.Id)
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+				CheckErrorID(t, err, "api.team.get_team.flagged_post_mismatch.app_error")
+			})
+		}
+	})
 }
 
 func TestGetTeamSanitization(t *testing.T) {
