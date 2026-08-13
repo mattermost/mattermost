@@ -116,6 +116,35 @@ func TestConfigIsValid(t *testing.T) {
 	})
 }
 
+func TestFeatureFlagsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		f := &FeatureFlags{}
+		f.SetDefaults()
+		require.Nil(t, f.isValid())
+	})
+
+	t.Run("MoveThreadsEnabled is rejected", func(t *testing.T) {
+		f := &FeatureFlags{}
+		f.SetDefaults()
+		f.MoveThreadsEnabled = true
+
+		appErr := f.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.feature_flags.move_threads_enabled.app_error", appErr.Id)
+	})
+}
+
+func TestConfigIsValidMoveThreadsEnabled(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+	require.Nil(t, c.IsValid())
+
+	c.FeatureFlags.MoveThreadsEnabled = true
+	appErr := c.IsValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.feature_flags.move_threads_enabled.app_error", appErr.Id)
+}
+
 func TestAccessControlSettingsIsValid(t *testing.T) {
 	for name, test := range map[string]struct {
 		AccessControlSettings AccessControlSettings

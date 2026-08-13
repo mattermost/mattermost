@@ -4529,6 +4529,12 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if o.FeatureFlags != nil {
+		if appErr := o.FeatureFlags.isValid(); appErr != nil {
+			return appErr
+		}
+	}
+
 	return nil
 }
 

@@ -4,6 +4,7 @@
 package model
 
 import (
+	"net/http"
 	"reflect"
 	"strconv"
 )
@@ -220,6 +221,17 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableMFIPluginSignaturePublicKey = true
 
 	f.RecurringScheduledPosts = false
+}
+
+// isValid rejects feature flag combinations that are no longer supported.
+// MoveThreadsEnabled is being retired in favor of Wrangler, so the server
+// refuses to start while it is enabled.
+func (f *FeatureFlags) isValid() *AppError {
+	if f.MoveThreadsEnabled {
+		return NewAppError("FeatureFlags.IsValid", "model.config.is_valid.feature_flags.move_threads_enabled.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope
