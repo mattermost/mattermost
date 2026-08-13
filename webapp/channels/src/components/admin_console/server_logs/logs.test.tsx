@@ -104,8 +104,7 @@ describe('components/admin_console/server_logs/Logs', () => {
         expect(within(list).getAllByRole('listitem')).toHaveLength(3);
 
         // A list must not own anything other than list items
-        const nonItems = Array.from(list.children).filter((child) => child.getAttribute('role') !== 'listitem');
-        expect(nonItems).toEqual([]);
+        expect(within(list).getAllByRole('listitem')).toEqual(Array.from(list.children));
     });
 
     test('should keep the empty state outside the list', async () => {

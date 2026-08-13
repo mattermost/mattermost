@@ -290,6 +290,12 @@
         font-size: 12px;
         gap: 6px;
         white-space: nowrap;
+
+        // Undo the global bootstrap label styling
+        label {
+            margin-bottom: 0;
+            font-weight: inherit;
+        }
     }
 
     &__goto-input {

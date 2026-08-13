@@ -316,6 +316,10 @@
         border-radius: 50%;
         border-top-color: var(--button-bg);
         animation: log-spin 0.8s linear infinite;
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
     }
 
     &__loading-overlay {
@@ -336,6 +340,10 @@
         margin-right: 4px;
         animation: live-pulse 1.5s ease-in-out infinite;
         background: currentColor;
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
     }
 
     &__poll-interval-wrapper {
@@ -655,6 +663,10 @@
         padding: 8px 12px 12px 52px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.06);
         animation: log-expand 0.15s ease;
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
     }
 
     // Core fields section (timestamp, level, caller, message)

@@ -24,8 +24,8 @@ describe('System Console > Server Logs', () => {
     });
 
     it('MM-T908 Logs - Verify content categories', () => {
-        // * Verify the banner is showed.
-        cy.get('.banner__content span').should('not.empty');
+        // * Verify the log format toggle is showed.
+        cy.get('#admin\\.logs\\.LogFormat').should('be.visible');
 
         // * Verify reload button is showed.
         cy.get('.admin-logs-content .LogViewer__toolbar button').contains('Reload').should('be.visible');

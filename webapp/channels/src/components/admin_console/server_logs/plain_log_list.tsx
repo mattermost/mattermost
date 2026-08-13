@@ -526,11 +526,14 @@ export default function PlainLogList({
                     </div>
                     {showGoToPage && (
                         <div className='PlainLogViewer__goto-page'>
-                            <FormattedMessage
-                                id='admin.logs.goToPageLabel'
-                                defaultMessage='Go to page:'
-                            />
+                            <label htmlFor='plainLogsGoToPage'>
+                                <FormattedMessage
+                                    id='admin.logs.goToPageLabel'
+                                    defaultMessage='Go to page:'
+                                />
+                            </label>
                             <input
+                                id='plainLogsGoToPage'
                                 type='number'
                                 className='PlainLogViewer__goto-input'
                                 value={goToPageInput}

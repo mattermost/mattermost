@@ -73,6 +73,15 @@ function formatFilterDate(date: Date): string {
     return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}.000 +00:00`;
 }
 
+// The range covered by a time preset, ending at the current time
+function presetRange(minutes: number): {dateFrom: string; dateTo: string} {
+    const now = new Date();
+    return {
+        dateFrom: formatFilterDate(new Date(now.getTime() - (minutes * 60 * 1000))),
+        dateTo: formatFilterDate(now),
+    };
+}
+
 // The level and server-name filters are applied client side, so the query never
 // narrows them
 const ALL_SERVER_NAMES: LogServerNames = [];
@@ -143,9 +152,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             let effectiveDateFrom = dateFromRef.current;
             let effectiveDateTo = dateToRef.current;
             if (activeTimePresetRef.current !== null) {
-                const now = new Date();
-                effectiveDateFrom = formatFilterDate(new Date(now.getTime() - (activeTimePresetRef.current * 60 * 1000)));
-                effectiveDateTo = formatFilterDate(now);
+                ({dateFrom: effectiveDateFrom, dateTo: effectiveDateTo} = presetRange(activeTimePresetRef.current));
             }
             await actions.getLogs({
                 serverNames: ALL_SERVER_NAMES,
@@ -230,9 +237,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
 
     // Time presets
     const handleTimePreset = useCallback((minutes: number) => {
-        const now = new Date();
-        const newDateFrom = formatFilterDate(new Date(now.getTime() - (minutes * 60 * 1000)));
-        const newDateTo = formatFilterDate(now);
+        const {dateFrom: newDateFrom, dateTo: newDateTo} = presetRange(minutes);
 
         setActiveTimePreset(minutes);
         activeTimePresetRef.current = minutes;
@@ -262,17 +267,30 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
         }).then(() => setLoading(false));
     }, [actions]);
 
+    // `lastUpdated` only moves once per poll, so the elapsed label needs its own
+    // clock to advance in between
+    const [now, setNow] = useState(() => Date.now());
+    const showLastUpdated = liveTailEnabled && lastUpdated !== null;
+    useEffect(() => {
+        if (!showLastUpdated) {
+            return undefined;
+        }
+        setNow(Date.now());
+        const intervalId = setInterval(() => setNow(Date.now()), 1000);
+        return () => clearInterval(intervalId);
+    }, [showLastUpdated, lastUpdated]);
+
     // Format "last updated" for live tail
     const lastUpdatedText = useMemo(() => {
         if (!lastUpdated) {
             return null;
         }
-        const seconds = Math.round((Date.now() - lastUpdated) / 1000);
+        const seconds = Math.max(0, Math.round((now - lastUpdated) / 1000));
         if (seconds < 5) {
             return intl.formatMessage({id: 'admin.logs.justNow', defaultMessage: 'just now'});
         }
         return intl.formatMessage({id: 'admin.logs.secondsAgo', defaultMessage: '{n}s ago'}, {n: seconds});
-    }, [lastUpdated, intl]);
+    }, [lastUpdated, now, intl]);
 
     const displayLogs = searchFilteredLogs;
 
