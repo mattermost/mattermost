@@ -59,7 +59,7 @@ const ChannelAttributeLabels = ({channelId}: Props) => {
     const labels = useChannelLabels(channelId, 'header');
 
     const ids = useMemo(() => labels.map((attribute) => attribute.field.id), [labels]);
-    const {containerRef, registerChipRef, visibleIds, overflowIds} = useLabelsOverflow(ids);
+    const {containerRef, registerChipRef, overflowRef, visibleIds, overflowIds} = useLabelsOverflow(ids);
 
     const byId = useMemo(() => {
         const map = new Map<string, ResolvedChannelAttribute>();
@@ -141,19 +141,20 @@ const ChannelAttributeLabels = ({channelId}: Props) => {
 
     return (
         <div
+            ref={containerRef}
             className='ChannelAttributeLabels'
             data-testid='channelAttributeLabels'
         >
-            <div
-                ref={containerRef}
-                className='ChannelAttributeLabels__visible'
-            >
+            <div className='ChannelAttributeLabels__visible'>
                 {visibleIds.map(renderChip)}
             </div>
 
             {overflowIds.length > 0 && (
                 <button
-                    ref={setReference}
+                    ref={(element) => {
+                        setReference(element);
+                        overflowRef(element);
+                    }}
                     type='button'
                     className='ChannelAttributeLabels__overflow'
                     aria-label={formatMessage(

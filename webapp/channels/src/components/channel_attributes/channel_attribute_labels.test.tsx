@@ -88,7 +88,7 @@ function makeState(fields: PropertyField[], flag = 'true'): DeepPartial<GlobalSt
 // accumulate-and-split logic, which is the part with the bugs in it.
 function stubWidths(containerWidth: number, chipWidth = 60) {
     jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function(this: HTMLElement) {
-        const isContainer = this.classList.contains('ChannelAttributeLabels__visible');
+        const isContainer = this.classList.contains('ChannelAttributeLabels');
         return {width: isContainer ? containerWidth : chipWidth} as DOMRect;
     });
 }

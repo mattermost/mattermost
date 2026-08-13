@@ -367,6 +367,12 @@
 
     .channel-header__icons {
         display: flex;
+
+        // A flex item defaults to min-width:auto, which refuses to shrink below its
+        // content. Without this the channel attribute chips inside can only widen
+        // the header, never yield — so they would push the call and info controls
+        // instead of collapsing into their +N.
+        min-width: 0;
         margin-right: 8px;
         gap: 4px;
 

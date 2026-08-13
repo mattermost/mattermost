@@ -4,11 +4,10 @@ $chip-gap: 4px; // keep in sync with CHIP_GAP in use_labels_overflow.ts
     display: flex;
     min-width: 0;
 
-    // Takes only leftover space, so the controls after it keep their natural
-    // size and do not move. Growing is what lets the row below measure the space
-    // available rather than the width of whatever it currently shows — measuring
-    // its own content would make the split depend on the last split.
-    flex: 1 1 auto;
+    // Shrinkable, never growing: content-sized while there is room, squeezed to the
+    // space left when there is not. That is what makes the row yield to the header
+    // controls rather than displace them.
+    flex: 0 1 auto;
     align-items: center;
     gap: $chip-gap;
 

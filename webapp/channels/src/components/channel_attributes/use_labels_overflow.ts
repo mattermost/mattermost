@@ -7,7 +7,8 @@ import {useDebounce} from 'hooks/useDebounce';
 import {useLatest} from 'hooks/useLatest';
 import {partitionAt} from 'utils/array';
 
-// Reserved for the +N affordance, so committing a count never forces a chip out.
+// Reserved for the +N affordance. Measured against the outer container, which holds
+// both the chip row and the button, so the reserve and the width agree.
 const OVERFLOW_CHIP_WIDTH = 34;
 
 // Gap between chips, matching $chip-gap in channel_attribute_labels.scss.
@@ -30,6 +31,7 @@ export function useLabelsOverflow(ids: string[]) {
     }, []);
 
     const chipRefs = useRef<Map<string, HTMLElement>>(new Map());
+    const overflowElRef = useRef<HTMLElement | null>(null);
     const observerRef = useRef<ResizeObserver | null>(null);
 
     const idsRef = useLatest(ids);
@@ -43,12 +45,25 @@ export function useLabelsOverflow(ids: string[]) {
             return;
         }
 
-        const availableWidth = containerEl.getBoundingClientRect().width;
+        // Space left by the container's siblings, not the container's own width. The
+        // container is content-sized, so measuring it would measure the chips we are
+        // deciding about — the split would then depend on the previous split.
+        const parent = containerEl.parentElement;
+        let availableWidth = 0;
+        if (parent) {
+            let siblingWidth = 0;
+            for (const child of Array.from(parent.children)) {
+                if (child !== containerEl) {
+                    siblingWidth += child.getBoundingClientRect().width + CHIP_GAP;
+                }
+            }
+            availableWidth = parent.getBoundingClientRect().width - siblingWidth;
+        }
 
         // Not laid out yet. Show everything rather than bailing: the row holds only
         // the chips it is allowed to show, so bailing deadlocks — no visible chips
         // means no width, means no measurement, means the chips never come back.
-        if (availableWidth === 0) {
+        if (availableWidth <= 0) {
             setOverflowStartIndex(currentIds.length);
             return;
         }
@@ -64,9 +79,13 @@ export function useLabelsOverflow(ids: string[]) {
 
             const chipWidth = chipEl.getBoundingClientRect().width + (i === 0 ? 0 : CHIP_GAP);
 
+            // Measured from the rendered button where there is one: a constant that
+            // undershoots its real width clips the last chip by the difference.
+            const overflowWidth = overflowElRef.current?.getBoundingClientRect().width || OVERFLOW_CHIP_WIDTH;
+
             // The reserve only applies while chips remain after this one.
             const isLast = i === currentIds.length - 1;
-            const reserve = isLast ? 0 : OVERFLOW_CHIP_WIDTH + CHIP_GAP;
+            const reserve = isLast ? 0 : overflowWidth + CHIP_GAP;
 
             if (usedWidth + chipWidth + reserve > availableWidth) {
                 // At least one chip: a header showing only "+3" names no marking.
@@ -126,5 +145,9 @@ export function useLabelsOverflow(ids: string[]) {
         [ids, overflowStartIndex],
     );
 
-    return {containerRef, registerChipRef, visibleIds, overflowIds};
+    const overflowRef = useCallback((element: HTMLElement | null) => {
+        overflowElRef.current = element;
+    }, []);
+
+    return {containerRef, registerChipRef, overflowRef, visibleIds, overflowIds};
 }

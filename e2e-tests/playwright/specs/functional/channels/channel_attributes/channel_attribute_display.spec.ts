@@ -108,18 +108,40 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             }
 
             const {page, channelsPage} = await pw.testBrowser.login(user);
-            await page.setViewportSize({width: 900, height: 800});
             await channelsPage.goto(team.name, channel.name);
             await channelsPage.toBeVisible();
 
             const infoButton = page.locator('#channel-info-btn');
-            const before = await infoButton.boundingBox();
+            const row = page.getByTestId('channelAttributeLabels').locator('.ChannelAttributeLabels__visible');
+
+            await expect(page.getByTestId('attributeChip').first()).toBeVisible();
+            const wideX = (await infoButton.boundingBox())?.x ?? 0;
+
+            // The invariant, at every width: the row never scrolls. A chip clipped by
+            // overflow:hidden with no +N beside it is a marking silently hidden.
+            // Narrow, but still desktop: below 768px the header switches to the mobile
+            // layout and the icon row is not rendered at all.
+            await page.setViewportSize({width: 800, height: 800});
 
             await expect(page.getByTestId('channelAttributeLabelsOverflow')).toBeVisible();
 
-            // Chips yield space rather than claiming it.
-            const after = await infoButton.boundingBox();
-            expect(after?.x).toBeCloseTo(before?.x ?? 0, 0);
+            // Fewer chips shown than exist, and the remainder is reachable.
+            const shown = await page.getByTestId('attributeChip').count();
+            expect(shown).toBeGreaterThan(0);
+            expect(shown).toBeLessThan(5);
+
+            // The row yields space rather than claiming it, so the controls after it
+            // are not pushed further right as the window narrows.
+            const narrowX = (await infoButton.boundingBox())?.x ?? 0;
+            expect(narrowX).toBeLessThanOrEqual(wideX);
+
+            // The row is bounded by its container: whatever it cannot show goes to
+            // the popover rather than spilling across the header.
+            const spill = await row.evaluate((el) => {
+                const parent = el.parentElement!.parentElement!;
+                return el.getBoundingClientRect().right - parent.getBoundingClientRect().right;
+            });
+            expect(spill).toBeLessThanOrEqual(1);
 
             await page.getByTestId('channelAttributeLabelsOverflow').click();
             await expect(page.getByTestId('channelAttributeLabelsPopover')).toBeVisible();
@@ -324,7 +346,15 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
 
             await expect(page.getByTestId(`channelInfoAttributeRow-${adminOnly.name}`)).toContainText('SET');
             await expect(page.getByTestId(`channelInfoAttributeEdit-${adminOnly.name}`)).toHaveCount(0);
-            await expect(page.getByTestId('channelInfoAddAttributeButton')).toHaveCount(0);
+
+            // Asserted per attribute rather than on the button as a whole: the button
+            // is shared, so any other attribute this user *can* set would keep it on
+            // screen and say nothing about this one.
+            const addButton = page.getByTestId('channelInfoAddAttributeButton');
+            if (await addButton.count()) {
+                await addButton.click();
+                await expect(page.getByTestId(`channelInfoAddAttribute-${adminOnly.name}`)).toHaveCount(0);
+            }
         } finally {
             await deleteAttributes(adminClient, created);
         }
