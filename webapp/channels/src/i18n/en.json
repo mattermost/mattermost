@@ -2096,7 +2096,6 @@
   "admin.log.locationTitle": "File Log Directory:",
   "admin.log.logLevel": "Log Level",
   "admin.logs.allLevels": "All",
-  "admin.logs.bannerDesc": "To look up users by User ID or Token ID, go to User Management > Users and paste the ID into the search filter.",
   "admin.logs.clearFilters": "Clear filters",
   "admin.logs.clearTimePreset": "Clear time preset",
   "admin.logs.copied": "Copied!",

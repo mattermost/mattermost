@@ -34,7 +34,6 @@ type Props = {
 
 const messages = defineMessages({
     title: {id: 'admin.logs.title', defaultMessage: 'Server Logs'},
-    bannerDesc: {id: 'admin.logs.bannerDesc', defaultMessage: 'To look up users by User ID or Token ID, go to User Management > Users and paste the ID into the search filter.'},
     logFormatTitle: {id: 'admin.logs.logFormatTitle', defaultMessage: 'Log Format:'},
     logFormatStructured: {id: 'admin.logs.logFormatStructured', defaultMessage: 'Structured'},
     logFormatPlain: {id: 'admin.logs.logFormatPlain', defaultMessage: 'Plain text'},
@@ -42,7 +41,6 @@ const messages = defineMessages({
 
 export const searchableStrings = [
     messages.title,
-    messages.bannerDesc,
 ];
 
 const POLL_INTERVALS = [2000, 5000, 10000, 30000] as const;
@@ -356,16 +354,11 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-logs-content admin-console__content'>
-                    <div className='logs-banner'>
-                        <div className='logs-banner__top'>
-                            <div className='banner'>
-                                <div className='banner__content'>
-                                    <FormattedMessage {...messages.bannerDesc}/>
-                                </div>
-                            </div>
+                    {toggleLogFormat && (
+                        <div className='logs-banner'>
                             {toggleLogFormat}
                         </div>
-                    </div>
+                    )}
                     {list}
                 </div>
             </div>

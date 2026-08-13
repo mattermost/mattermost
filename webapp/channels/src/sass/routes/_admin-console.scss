@@ -580,15 +580,12 @@
     }
 
     .logs-banner {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
         margin-bottom: 12px;
-
-        &__top {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
+        gap: 12px;
 
         &__format {
             display: flex;
