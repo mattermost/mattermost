@@ -143,6 +143,10 @@ func TestConfigIsValidMoveThreadsEnabled(t *testing.T) {
 	appErr := c.IsValid()
 	require.NotNil(t, appErr)
 	require.Equal(t, "model.config.is_valid.feature_flags.move_threads_enabled.app_error", appErr.Id)
+
+	// A nil FeatureFlags must not panic the validation chain.
+	c.FeatureFlags = nil
+	require.Nil(t, c.IsValid())
 }
 
 func TestAccessControlSettingsIsValid(t *testing.T) {
