@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"syscall"
 	"time"
@@ -60,7 +61,11 @@ func main() {
 	}
 
 	log.Printf("installed current signed MBE demo bundle from %s", pluginURL)
-	if err := syscall.Exec(os.Args[1], os.Args[1:], os.Environ()); err != nil {
+	commandPath, err := exec.LookPath(os.Args[1])
+	if err != nil {
+		log.Fatalf("resolve Mattermost command: %v", err)
+	}
+	if err := syscall.Exec(commandPath, os.Args[1:], os.Environ()); err != nil {
 		log.Fatalf("start Mattermost: %v", err)
 	}
 }
