@@ -107,7 +107,7 @@ const ManageTeamsModal = ({locale, onExited, user, actions}: Props) => {
 
         let teamList;
         if (teams && teamMembers) {
-            teamList = teams.map((team) => {
+            teamList = teams.map((team, index) => {
                 const teamMember = teamMembers.find((member: TeamMembership) => member.team_id === team.id);
                 if (!teamMember) {
                     return null;
@@ -123,6 +123,8 @@ const ManageTeamsModal = ({locale, onExited, user, actions}: Props) => {
                         user={user}
                         team={team}
                         teamMember={teamMember}
+                        index={index}
+                        totalTeams={teams.length}
                         onError={handleError}
                         onMemberChange={handleMemberChange}
                         updateTeamMemberSchemeRoles={actions.updateTeamMemberSchemeRoles}

@@ -7,11 +7,16 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
 	elastic "github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -223,4 +228,187 @@ func (s *ElasticsearchInterfaceTestSuite) TestTemplateCreationClientError() {
 		// clean up after test
 		_, _ = s.client.Indices.DeleteIndexTemplate("test-invalid-template").Do(s.ctx)
 	})
+}
+
+func TestStartPostsTemplateFailureDoesNotCreateProcessors(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == "/":
+			_, _ = w.Write([]byte(`{"name":"test","version":{"number":"8.19.0"}}`))
+		case r.Method == http.MethodGet && r.URL.Path == "/_nodes/plugins":
+			_, _ = w.Write([]byte(`{"_nodes":{"total":2,"successful":1,"failed":1},"nodes":{"node-1":{"name":"node-1","plugins":[]}}}`))
+		case r.Method == http.MethodPut && strings.Contains(r.URL.Path, "/_index_template/"):
+			w.WriteHeader(http.StatusBadRequest)
+			_, _ = w.Write([]byte(`{"error":{"type":"illegal_argument_exception","reason":"composable template [posts] template after composition is invalid","caused_by":{"type":"illegal_argument_exception","reason":"Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]"}},"status":400}`))
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}))
+	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsESBackend)
+
+	th := api4.SetupEnterprise(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.LiveIndexingBatchSize = 10
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+	})
+
+	es := &ElasticsearchInterfaceImpl{Platform: th.Server.Platform()}
+	defer func() { require.Nil(t, es.Stop()) }()
+	appErr := es.Start(context.Background())
+	require.NotNil(t, appErr)
+	require.Contains(t, appErr.Error(), "failed to find tokenizer under name [icu_tokenizer]")
+	require.Equal(t, int32(0), es.ready.Load())
+	require.Nil(t, es.bulkProcessor)
+	require.Nil(t, es.syncBulkProcessor)
+}
+
+func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
+	templateRequested := make(chan struct{}, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == "/":
+			_, _ = w.Write([]byte(`{"name":"test","version":{"number":"8.19.0"}}`))
+		case r.Method == http.MethodGet && r.URL.Path == "/_nodes/plugins":
+			_, _ = w.Write([]byte(`{"_nodes":{"total":2,"successful":2,"failed":0},"nodes":{"node-1":{"name":"node-1","plugins":[{"name":"analysis-icu"}]},"node-2":{"name":"node-2","plugins":[]}}}`))
+		case r.Method == http.MethodPut && strings.Contains(r.URL.Path, "/_index_template/"):
+			templateRequested <- struct{}{}
+			_, _ = w.Write([]byte(`{"acknowledged":true}`))
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}))
+	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsESBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+	})
+
+	es := &ElasticsearchInterfaceImpl{Platform: th.Server.Platform()}
+	defer func() { require.Nil(t, es.Stop()) }()
+	appErr := es.Start(context.Background())
+	require.NotNil(t, appErr)
+	require.Equal(t, "ent.elasticsearch.analysis_icu_required", appErr.Id)
+	require.Equal(t, int32(0), es.ready.Load())
+	require.Nil(t, es.bulkProcessor)
+	require.Nil(t, es.syncBulkProcessor)
+	select {
+	case <-templateRequested:
+		require.Fail(t, "template creation should not be attempted without analysis-icu on every node")
+	default:
+	}
+}
+
+func TestWrapElasticsearchTemplateError(t *testing.T) {
+	nestedReason := "Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]"
+	nested := &types.ErrorCause{Type: "illegal_argument_exception", Reason: &nestedReason}
+	outerReason := "failed to build posts template"
+	stackTrace := "stack trace"
+	original := &types.ElasticsearchError{
+		ErrorCause: types.ErrorCause{
+			Type:       "illegal_argument_exception",
+			Reason:     &outerReason,
+			CausedBy:   nested,
+			StackTrace: &stackTrace,
+			Metadata: map[string]json.RawMessage{
+				"arbitrary": json.RawMessage(`"metadata"`),
+			},
+		},
+		Status: 400,
+	}
+	wrapped := fmt.Errorf("request context: %w", original)
+
+	formatted := wrapElasticsearchTemplateError(wrapped)
+	require.Contains(t, formatted.Error(), "status: 400, failed: [illegal_argument_exception], reason: failed to build posts template")
+	require.Contains(t, formatted.Error(), "caused by: [illegal_argument_exception] Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]")
+	require.NotContains(t, formatted.Error(), "stack trace")
+	require.NotContains(t, formatted.Error(), "arbitrary metadata")
+	require.ErrorIs(t, formatted, wrapped)
+	var extracted *types.ElasticsearchError
+	require.True(t, errors.As(formatted, &extracted))
+	require.Same(t, original, extracted)
+
+	generic := errors.New("template request failed")
+	require.Same(t, generic, wrapElasticsearchTemplateError(generic))
+	require.NoError(t, wrapElasticsearchTemplateError(nil))
+}
+
+type testBulkClient struct {
+	stopCalls int
+	stopErr   error
+}
+
+func (b *testBulkClient) IndexOp(types.IndexOperation, any) error {
+	return nil
+}
+
+func (b *testBulkClient) DeleteOp(types.DeleteOperation) error {
+	return nil
+}
+
+func (b *testBulkClient) Flush() error {
+	return nil
+}
+
+func (b *testBulkClient) Stop() error {
+	b.stopCalls++
+	return b.stopErr
+}
+
+func TestElasticsearchStopCleansUpProcessors(t *testing.T) {
+	tests := []struct {
+		name       string
+		ready      bool
+		firstError bool
+	}{
+		{name: "ready", ready: true},
+		{name: "ready first stop error", ready: true, firstError: true},
+		{name: "partially initialized", ready: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bulk := &testBulkClient{}
+			syncBulk := &testBulkClient{}
+			if tt.firstError {
+				bulk.stopErr = errors.New("bulk stop failed")
+			}
+
+			es := &ElasticsearchInterfaceImpl{
+				client:            &elastic.TypedClient{},
+				bulkProcessor:     bulk,
+				syncBulkProcessor: syncBulk,
+			}
+			if tt.ready {
+				es.ready.Store(1)
+				es.healthy.Store(1)
+			}
+
+			require.Nil(t, es.Stop())
+			require.Equal(t, int32(0), es.ready.Load())
+			require.Equal(t, int32(0), es.healthy.Load())
+			require.Nil(t, es.client)
+			require.Nil(t, es.bulkProcessor)
+			require.Nil(t, es.syncBulkProcessor)
+			require.Equal(t, 1, bulk.stopCalls)
+			require.Equal(t, 1, syncBulk.stopCalls)
+
+			require.Nil(t, es.Stop())
+			require.Equal(t, 1, bulk.stopCalls)
+			require.Equal(t, 1, syncBulk.stopCalls)
+		})
+	}
 }
