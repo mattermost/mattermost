@@ -361,6 +361,22 @@ func (c *Client4) aiBridgeTestHelperRoute() clientRoute {
 	return c.systemRoute().Join("e2e", "ai_bridge")
 }
 
+func (c *Client4) recapsRoute() clientRoute {
+	return newClientRoute("recaps")
+}
+
+func (c *Client4) recapRoute(recapId string) clientRoute {
+	return c.recapsRoute().Join(recapId)
+}
+
+func (c *Client4) scheduledRecapsRoute() clientRoute {
+	return newClientRoute("scheduled_recaps")
+}
+
+func (c *Client4) scheduledRecapRoute(scheduledRecapId string) clientRoute {
+	return c.scheduledRecapsRoute().Join(scheduledRecapId)
+}
+
 func (c *Client4) cloudRoute() clientRoute {
 	return newClientRoute("cloud")
 }
@@ -7862,6 +7878,167 @@ func (c *Client4) DeleteAIBridgeTestHelper(ctx context.Context) (*Response, erro
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+// AI Recaps Section
+
+// CreateRecap creates a new recap for the given channels. The recap is
+// processed asynchronously; the returned recap starts in the pending status.
+func (c *Client4) CreateRecap(ctx context.Context, request *CreateRecapRequest) (*Recap, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.recapsRoute(), request)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Recap](r)
+}
+
+// GetRecap returns a recap owned by the current user, including its per-channel summaries.
+func (c *Client4) GetRecap(ctx context.Context, recapId string) (*Recap, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.recapRoute(recapId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Recap](r)
+}
+
+// GetRecaps returns a page of the current user's recaps.
+func (c *Client4) GetRecaps(ctx context.Context, page, perPage int) ([]*Recap, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.doAPIGetWithQuery(ctx, c.recapsRoute(), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*Recap](r)
+}
+
+// GetRecapLimitStatus returns the current user's recap limits, daily usage and cooldown state.
+func (c *Client4) GetRecapLimitStatus(ctx context.Context) (*RecapLimitStatus, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.recapsRoute().Join("limit_status"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*RecapLimitStatus](r)
+}
+
+// MarkRecapsAsViewed marks all of the current user's unviewed recaps as viewed
+// and returns the affected recap IDs.
+func (c *Client4) MarkRecapsAsViewed(ctx context.Context) (*MarkRecapsViewedResponse, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.recapsRoute().Join("mark_viewed"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*MarkRecapsViewedResponse](r)
+}
+
+// MarkRecapAsRead marks a recap owned by the current user as read.
+func (c *Client4) MarkRecapAsRead(ctx context.Context, recapId string) (*Recap, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.recapRoute(recapId).Join("read"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Recap](r)
+}
+
+// RegenerateRecap re-runs processing for a recap owned by the current user.
+func (c *Client4) RegenerateRecap(ctx context.Context, recapId string) (*Recap, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.recapRoute(recapId).Join("regenerate"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Recap](r)
+}
+
+// DeleteRecap soft-deletes a recap owned by the current user.
+func (c *Client4) DeleteRecap(ctx context.Context, recapId string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.recapRoute(recapId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// CreateScheduledRecap creates a recurring or one-shot recap schedule for the current user.
+func (c *Client4) CreateScheduledRecap(ctx context.Context, scheduledRecap *ScheduledRecap) (*ScheduledRecap, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.scheduledRecapsRoute(), scheduledRecap)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ScheduledRecap](r)
+}
+
+// GetScheduledRecaps returns a page of the current user's scheduled recaps.
+func (c *Client4) GetScheduledRecaps(ctx context.Context, page, perPage int) ([]*ScheduledRecap, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.doAPIGetWithQuery(ctx, c.scheduledRecapsRoute(), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*ScheduledRecap](r)
+}
+
+// GetScheduledRecap returns a scheduled recap owned by the current user.
+func (c *Client4) GetScheduledRecap(ctx context.Context, scheduledRecapId string) (*ScheduledRecap, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.scheduledRecapRoute(scheduledRecapId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ScheduledRecap](r)
+}
+
+// UpdateScheduledRecap updates a scheduled recap owned by the current user.
+// The ID is taken from the given scheduled recap.
+func (c *Client4) UpdateScheduledRecap(ctx context.Context, scheduledRecap *ScheduledRecap) (*ScheduledRecap, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.scheduledRecapRoute(scheduledRecap.Id), scheduledRecap)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ScheduledRecap](r)
+}
+
+// DeleteScheduledRecap soft-deletes a scheduled recap owned by the current user.
+func (c *Client4) DeleteScheduledRecap(ctx context.Context, scheduledRecapId string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.scheduledRecapRoute(scheduledRecapId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// PauseScheduledRecap disables future runs of a scheduled recap owned by the current user.
+func (c *Client4) PauseScheduledRecap(ctx context.Context, scheduledRecapId string) (*ScheduledRecap, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.scheduledRecapRoute(scheduledRecapId).Join("pause"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ScheduledRecap](r)
+}
+
+// ResumeScheduledRecap re-enables a paused scheduled recap owned by the current user.
+func (c *Client4) ResumeScheduledRecap(ctx context.Context, scheduledRecapId string) (*ScheduledRecap, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.scheduledRecapRoute(scheduledRecapId).Join("resume"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ScheduledRecap](r)
 }
 
 // Usage Section
