@@ -890,7 +890,7 @@ type RoleStore interface {
 	SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error)
 	Get(roleID string) (*model.Role, error)
 	GetAll() ([]*model.Role, error)
-	GetByName(ctx context.Context, name string) (*model.Role, error)
+	GetByName(rctx request.CTX, name string) (*model.Role, error)
 	GetByNames(names []string) ([]*model.Role, error)
 	Delete(roleID string) (*model.Role, error)
 	PermanentDeleteAll() error
