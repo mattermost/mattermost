@@ -76,7 +76,7 @@ const DEFAULT_PREFS: StoredPrefs = {
     pageSize: DEFAULT_PAGE_SIZE,
     wrapText: true,
     enabledLevels: [...LEVEL_ORDER],
-    sortAsc: true,
+    sortAsc: false,
 };
 
 // Stored prefs may predate the current shape, so every field is validated
@@ -418,7 +418,10 @@ export default function LogList({
                             onClick={onClearTimePreset}
                             aria-label={intl.formatMessage({id: 'admin.logs.clearTimePreset', defaultMessage: 'Clear time preset'})}
                         >
-                            <i className='icon icon-close'/>
+                            <i
+                                className='icon icon-close'
+                                aria-hidden='true'
+                            />
                         </button>
                     )}
                 </div>
@@ -443,7 +446,10 @@ export default function LogList({
                             onClick={onTogglePollDropdown}
                         >
                             {pollIntervalLabels[pollInterval]}
-                            <i className='icon icon-chevron-down'/>
+                            <i
+                                className='icon icon-chevron-down'
+                                aria-hidden='true'
+                            />
                         </button>
                         {showPollDropdown && (
                             <div className='LogViewer__poll-dropdown'>
@@ -478,7 +484,10 @@ export default function LogList({
                         className='LogViewer__action-btn'
                         onClick={onReload}
                     >
-                        <i className='icon icon-refresh'/>
+                        <i
+                            className='icon icon-refresh'
+                            aria-hidden='true'
+                        />
                         <FormattedMessage
                             id='admin.logs.ReloadLogs'
                             defaultMessage='Reload'
@@ -489,7 +498,10 @@ export default function LogList({
                         className='LogViewer__action-btn'
                         href={downloadUrl}
                     >
-                        <i className='icon icon-download-outline'/>
+                        <i
+                            className='icon icon-download-outline'
+                            aria-hidden='true'
+                        />
                         <FormattedMessage
                             id='admin.logs.DownloadLogs'
                             defaultMessage='Download'
@@ -501,7 +513,10 @@ export default function LogList({
             {/* Toolbar row 2: Search + levels + wrap */}
             <div className='LogViewer__filterbar'>
                 <div className='LogViewer__search'>
-                    <i className='icon icon-magnify LogViewer__search-icon'/>
+                    <i
+                        className='icon icon-magnify LogViewer__search-icon'
+                        aria-hidden='true'
+                    />
                     <input
                         className='LogViewer__search-input'
                         type='text'
@@ -516,7 +531,10 @@ export default function LogList({
                             type='button'
                             aria-label={intl.formatMessage({id: 'admin.logs.search.clear', defaultMessage: 'Clear search'})}
                         >
-                            <i className='icon icon-close'/>
+                            <i
+                                className='icon icon-close'
+                                aria-hidden='true'
+                            />
                         </button>
                     )}
                     {matchCount !== null && (
@@ -599,7 +617,10 @@ export default function LogList({
                         id='admin.logs.header.time'
                         defaultMessage='Time'
                     />
-                    <i className={`icon ${sortAsc ? 'icon-arrow-up' : 'icon-arrow-down'}`}/>
+                    <i
+                        className={`icon ${sortAsc ? 'icon-arrow-up' : 'icon-arrow-down'}`}
+                        aria-hidden='true'
+                    />
                 </button>
                 <span className='LogViewer__header-message'>
                     <FormattedMessage
@@ -701,7 +722,10 @@ export default function LogList({
                             type='button'
                             aria-label={intl.formatMessage({id: 'admin.logs.prevPage', defaultMessage: 'Previous page'})}
                         >
-                            <i className='icon icon-chevron-left'/>
+                            <i
+                                className='icon icon-chevron-left'
+                                aria-hidden='true'
+                            />
                         </button>
                         <span className='LogViewer__page-indicator'>
                             <FormattedMessage
@@ -717,7 +741,10 @@ export default function LogList({
                             type='button'
                             aria-label={intl.formatMessage({id: 'admin.logs.nextPage', defaultMessage: 'Next page'})}
                         >
-                            <i className='icon icon-chevron-right'/>
+                            <i
+                                className='icon icon-chevron-right'
+                                aria-hidden='true'
+                            />
                         </button>
                     </div>
                     <div className='LogViewer__footer-pagesize'>

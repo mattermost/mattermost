@@ -92,6 +92,13 @@ function storedPrefs() {
     return JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}');
 }
 
+// Pins the sort order to ascending for suites whose tests don't depend on
+// sort direction, so their expectations stay readable regardless of the
+// current default.
+function pinAscendingSort(extraPrefs: Record<string, unknown> = {}) {
+    localStorage.setItem(PREFS_KEY, JSON.stringify({sortAsc: true, ...extraPrefs}));
+}
+
 describe('components/admin_console/server_logs/LogList', () => {
     beforeEach(() => {
         localStorage.clear();
@@ -106,6 +113,8 @@ describe('components/admin_console/server_logs/LogList', () => {
     const third = makeLog('msg 3', '2026-03-12T10:00:03.000Z');
 
     describe('selection', () => {
+        beforeEach(pinAscendingSort);
+
         test('should move the selection with the arrow keys', () => {
             renderList([first, second, third]);
 
@@ -190,6 +199,8 @@ describe('components/admin_console/server_logs/LogList', () => {
     });
 
     describe('level filters', () => {
+        beforeEach(pinAscendingSort);
+
         const mixedLevels = [
             makeLog('an error', '2026-03-12T10:00:01.000Z', LogLevelEnum.ERROR),
             makeLog('a warning', '2026-03-12T10:00:02.000Z', LogLevelEnum.WARN),
@@ -239,20 +250,24 @@ describe('components/admin_console/server_logs/LogList', () => {
     });
 
     describe('sorting', () => {
+        test('should default to showing the newest entries first', () => {
+            renderList([first, second, third]);
+
+            expect(rowMessages()).toEqual(['msg 3', 'msg 2', 'msg 1']);
+        });
+
         test('should reverse the rows when the time header is clicked', () => {
             renderList([first, second, third]);
 
-            expect(rowMessages()).toEqual(['msg 1', 'msg 2', 'msg 3']);
+            expect(rowMessages()).toEqual(['msg 3', 'msg 2', 'msg 1']);
 
             fireEvent.click(screen.getByRole('button', {name: /^Time/}));
-            expect(rowMessages()).toEqual(['msg 3', 'msg 2', 'msg 1']);
+            expect(rowMessages()).toEqual(['msg 1', 'msg 2', 'msg 3']);
         });
     });
 
     describe('pagination', () => {
-        beforeEach(() => {
-            localStorage.setItem(PREFS_KEY, JSON.stringify({pageSize: 50}));
-        });
+        beforeEach(() => pinAscendingSort({pageSize: 50}));
 
         function footerInfo(): string {
             return document.querySelector('.LogViewer__footer-info')?.textContent ?? '';
@@ -339,7 +354,7 @@ describe('components/admin_console/server_logs/LogList', () => {
                 pageSize: 200,
                 wrapText: false,
                 enabledLevels: ['error', 'warn', 'info', 'debug'],
-                sortAsc: true,
+                sortAsc: false,
             });
         });
 
@@ -351,7 +366,7 @@ describe('components/admin_console/server_logs/LogList', () => {
                 pageSize: 200,
                 wrapText: true,
                 enabledLevels: ['error', 'warn', 'info', 'debug'],
-                sortAsc: true,
+                sortAsc: false,
             });
         });
 
@@ -369,12 +384,14 @@ describe('components/admin_console/server_logs/LogList', () => {
                 pageSize: 200,
                 wrapText: true,
                 enabledLevels: ['error', 'warn', 'info', 'debug'],
-                sortAsc: true,
+                sortAsc: false,
             });
         });
     });
 
     describe('keyboard shortcuts', () => {
+        beforeEach(pinAscendingSort);
+
         const withErrors = [
             makeLog('info 1', '2026-03-12T10:00:01.000Z'),
             makeLog('error 1', '2026-03-12T10:00:02.000Z', LogLevelEnum.ERROR),
