@@ -23,10 +23,13 @@ import {
     CLASSIFICATIONS_GROUP_NAME,
 } from 'components/admin_console/classification_markings/utils';
 import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
+import BannerTokenControls from 'components/channel_attributes/banner_token_controls';
 import ColorInput from 'components/color_input';
+import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
 import useChannelClassificationBanner from 'components/common/hooks/useChannelClassificationBanner';
 import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
+import useResolvedChannelAttributes from 'components/common/hooks/useResolvedChannelAttributes';
 import ConfirmModal from 'components/confirm_modal';
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
@@ -132,7 +135,15 @@ function ChannelSettingsConfigurationTab({
     const canManageClassification = classification.available && canManageChannelRoles;
     const [classificationEnabled, setClassificationEnabled] = useState(classificationBanner.hasClassification);
     const [selectedClassificationId, setSelectedClassificationId] = useState(classificationBanner.classificationId || '');
-    const bannerLockedByClassification = classificationEnabled && Boolean(selectedClassificationId);
+
+    const {enabled: channelAttributesEnabled} = useChannelAttributes();
+    const resolvedAttributes = useResolvedChannelAttributes(channel.id);
+
+    // With channel attributes on, the banner is authored per channel — a
+    // classification only prefills its colour and text. Locking the fields would
+    // make the token composer unreachable on exactly the channels most likely to
+    // want it. Flag off keeps the shipped lock, so rollback is real.
+    const bannerLockedByClassification = !channelAttributesEnabled && classificationEnabled && Boolean(selectedClassificationId);
 
     const classificationOptions = useMemo(() => {
         return classification.levels.
@@ -247,6 +258,19 @@ function ChannelSettingsConfigurationTab({
     }, [resetFormErrors]);
 
     const toggleBannerTextPreview = useCallback(() => setShowBannerTextPreview((show) => !show), []);
+
+    // Appended rather than inserted at the caret: the textbox is a controlled
+    // component whose selection is not tracked here, and guessing a caret
+    // position is worse than a predictable append the author can then move.
+    const handleInsertBannerToken = useCallback((token: string) => {
+        setUpdatedChannelBanner((prev) => {
+            const current = prev.text ?? '';
+            const separator = current && !current.endsWith(' ') ? ' ' : '';
+            return {...prev, text: `${current}${separator}${token}`};
+        });
+        resetFormErrors();
+        setCharacterLimitExceeded(false);
+    }, [resetFormErrors]);
 
     // Auto-translation section
     const autoTranslationHeading = formatMessage({id: 'channel_translation.label.name', defaultMessage: 'Auto-translation'});
@@ -810,6 +834,15 @@ function ChannelSettingsConfigurationTab({
                                         maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
                                         minLength={CHANNEL_BANNER_MIN_CHARACTER_LIMIT}
                                     />
+
+                                    {channelAttributesEnabled && (
+                                        <BannerTokenControls
+                                            template={updatedChannelBanner.text ?? ''}
+                                            attributes={resolvedAttributes}
+                                            onInsertToken={handleInsertBannerToken}
+                                            disabled={bannerLockedByClassification}
+                                        />
+                                    )}
                                 </div>
                             </div>
 
