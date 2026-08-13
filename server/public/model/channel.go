@@ -114,11 +114,12 @@ type Channel struct {
 	// PolicyActions[action] and fall back to PolicyEnforced only when the
 	// stronger meaning is acceptable. Empty/nil means either no policy or
 	// no hydration was performed.
-	PolicyActions       map[string]bool `json:"policy_actions,omitempty"`
-	PolicyIsActive      bool            `json:"policy_is_active"`
-	DefaultCategoryName string          `json:"default_category_name"`
-	ManagedCategoryName string          `json:"managed_category_name"`
-	Discoverable        bool            `json:"discoverable"`
+	PolicyActions            map[string]bool `json:"policy_actions,omitempty"`
+	PolicyIsActive           bool            `json:"policy_is_active"`
+	DefaultCategoryName      string          `json:"default_category_name"`
+	ManagedCategoryName      string          `json:"managed_category_name"`
+	Discoverable             bool            `json:"discoverable"`
+	DisableJoinLeaveMessages bool            `json:"disable_join_leave_messages"`
 }
 
 // HasPolicyAction reports whether the channel's policy declares the given
@@ -142,27 +143,28 @@ func (o *Channel) HasMembershipPolicyAction() bool {
 
 func (o *Channel) Auditable() map[string]any {
 	return map[string]any{
-		"create_at":            o.CreateAt,
-		"creator_id":           o.CreatorId,
-		"delete_at":            o.DeleteAt,
-		"extra_group_at":       o.ExtraUpdateAt,
-		"group_constrained":    o.GroupConstrained,
-		"id":                   o.Id,
-		"last_post_at":         o.LastPostAt,
-		"last_root_post_at":    o.LastRootPostAt,
-		"policy_id":            o.PolicyID,
-		"props":                o.Props,
-		"scheme_id":            o.SchemeId,
-		"shared":               o.Shared,
-		"team_id":              o.TeamId,
-		"total_msg_count_root": o.TotalMsgCountRoot,
-		"type":                 o.Type,
-		"update_at":            o.UpdateAt,
-		"policy_enforced":      o.PolicyEnforced,
-		"policy_actions":       o.PolicyActions, // hydrated lazily; only populated on selected read paths
-		"autotranslation":      o.AutoTranslation,
-		"policy_is_active":     o.PolicyIsActive, // this field is only for logging purposes
-		"discoverable":         o.Discoverable,
+		"create_at":                   o.CreateAt,
+		"creator_id":                  o.CreatorId,
+		"delete_at":                   o.DeleteAt,
+		"extra_group_at":              o.ExtraUpdateAt,
+		"group_constrained":           o.GroupConstrained,
+		"id":                          o.Id,
+		"last_post_at":                o.LastPostAt,
+		"last_root_post_at":           o.LastRootPostAt,
+		"policy_id":                   o.PolicyID,
+		"props":                       o.Props,
+		"scheme_id":                   o.SchemeId,
+		"shared":                      o.Shared,
+		"team_id":                     o.TeamId,
+		"total_msg_count_root":        o.TotalMsgCountRoot,
+		"type":                        o.Type,
+		"update_at":                   o.UpdateAt,
+		"policy_enforced":             o.PolicyEnforced,
+		"policy_actions":              o.PolicyActions, // hydrated lazily; only populated on selected read paths
+		"autotranslation":             o.AutoTranslation,
+		"policy_is_active":            o.PolicyIsActive, // this field is only for logging purposes
+		"discoverable":                o.Discoverable,
+		"disable_join_leave_messages": o.DisableJoinLeaveMessages,
 	}
 }
 
@@ -183,26 +185,28 @@ type ChannelsWithCount struct {
 }
 
 type ChannelPatch struct {
-	DisplayName         *string            `json:"display_name"`
-	Name                *string            `json:"name"`
-	Header              *string            `json:"header"`
-	Purpose             *string            `json:"purpose"`
-	GroupConstrained    *bool              `json:"group_constrained"`
-	BannerInfo          *ChannelBannerInfo `json:"banner_info"`
-	AutoTranslation     *bool              `json:"autotranslation"`
-	ManagedCategoryName *string            `json:"managed_category_name"`
-	DefaultCategoryName *string            `json:"default_category_name"`
-	Discoverable        *bool              `json:"discoverable"`
+	DisplayName              *string            `json:"display_name"`
+	Name                     *string            `json:"name"`
+	Header                   *string            `json:"header"`
+	Purpose                  *string            `json:"purpose"`
+	GroupConstrained         *bool              `json:"group_constrained"`
+	BannerInfo               *ChannelBannerInfo `json:"banner_info"`
+	AutoTranslation          *bool              `json:"autotranslation"`
+	ManagedCategoryName      *string            `json:"managed_category_name"`
+	DefaultCategoryName      *string            `json:"default_category_name"`
+	Discoverable             *bool              `json:"discoverable"`
+	DisableJoinLeaveMessages *bool              `json:"disable_join_leave_messages"`
 }
 
 func (c *ChannelPatch) Auditable() map[string]any {
 	return map[string]any{
-		"header":                c.Header,
-		"group_constrained":     c.GroupConstrained,
-		"purpose":               c.Purpose,
-		"default_category_name": c.DefaultCategoryName,
-		"managed_category_name": c.ManagedCategoryName,
-		"discoverable":          c.Discoverable,
+		"header":                      c.Header,
+		"group_constrained":           c.GroupConstrained,
+		"purpose":                     c.Purpose,
+		"default_category_name":       c.DefaultCategoryName,
+		"managed_category_name":       c.ManagedCategoryName,
+		"discoverable":                c.Discoverable,
+		"disable_join_leave_messages": c.DisableJoinLeaveMessages,
 	}
 }
 
@@ -514,6 +518,19 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 	if patch.Discoverable != nil {
 		o.Discoverable = *patch.Discoverable
 	}
+
+	if patch.DisableJoinLeaveMessages != nil {
+		o.DisableJoinLeaveMessages = *patch.DisableJoinLeaveMessages
+	}
+}
+
+// ShouldChannelExcludeMembershipSystemPosts reports whether membership system posts should be
+// hidden on end-user read paths for channel.
+func ShouldChannelExcludeMembershipSystemPosts(channel *Channel) bool {
+	if channel == nil || channel.IsGroupOrDirect() {
+		return false
+	}
+	return channel.DisableJoinLeaveMessages
 }
 
 func (o *Channel) MakeNonNil() {

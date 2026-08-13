@@ -56,6 +56,12 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		return []string{}, nil
 	}
 
+	// Do not send any notification (push, email, websocket) for a membership
+	// system post in a channel where join/leave messages are suppressed.
+	if a.shouldSuppressMembershipSystemPost(rctx, channel, post) {
+		return []string{}, nil
+	}
+
 	suppressNotifications := post.IsNotificationSuppressed()
 
 	isCRTAllowed := *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled

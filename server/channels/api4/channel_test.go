@@ -6908,6 +6908,83 @@ func TestGetChannelModerations(t *testing.T) {
 	})
 }
 
+func TestPatchChannelDisableJoinLeaveMessages(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	t.Run("patch only disable_join_leave_messages succeeds", func(t *testing.T) {
+		disableJoinLeave := true
+		patch := &model.ChannelPatch{
+			DisableJoinLeaveMessages: &disableJoinLeave,
+		}
+
+		channel, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.True(t, channel.DisableJoinLeaveMessages)
+	})
+
+	t.Run("patch can re-enable join/leave messages", func(t *testing.T) {
+		disableJoinLeave := false
+		patch := &model.ChannelPatch{
+			DisableJoinLeaveMessages: &disableJoinLeave,
+		}
+
+		channel, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.False(t, channel.DisableJoinLeaveMessages)
+	})
+
+	t.Run("cannot patch on direct channel", func(t *testing.T) {
+		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		disableJoinLeave := true
+		patch := &model.ChannelPatch{
+			DisableJoinLeaveMessages: &disableJoinLeave,
+		}
+
+		_, resp, err := client.PatchChannel(context.Background(), dm.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("cannot patch on group channel", func(t *testing.T) {
+		user3 := th.CreateUser(t)
+		gm, _, gmErr := th.SystemAdminClient.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, gmErr)
+
+		disableJoinLeave := true
+		patch := &model.ChannelPatch{
+			DisableJoinLeaveMessages: &disableJoinLeave,
+		}
+
+		_, resp, err := client.PatchChannel(context.Background(), gm.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("non-member cannot patch", func(t *testing.T) {
+		// manage_public_channel_properties is in the default channel_user role,
+		// so any channel member can change this setting. Test with a non-member.
+		nonMember := th.CreateUser(t)
+		nonMemberClient := th.CreateClient()
+		_, _, loginErr := nonMemberClient.Login(context.Background(), nonMember.Email, nonMember.Password)
+		require.NoError(t, loginErr)
+
+		disableJoinLeave := true
+		patch := &model.ChannelPatch{
+			DisableJoinLeaveMessages: &disableJoinLeave,
+		}
+
+		_, resp, err := nonMemberClient.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
 func TestPatchChannelModerations(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
