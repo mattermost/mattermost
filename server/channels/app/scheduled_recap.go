@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -261,6 +262,9 @@ func (a *App) CreateRecapFromSchedule(rctx request.CTX, sr *model.ScheduledRecap
 		"agent_id":            sr.AgentId,
 		"time_period":         sr.TimePeriod,
 		"custom_instructions": sr.CustomInstructions,
+		// NextRunAt is still the due time for this run because MarkExecuted
+		// advances the schedule only after this method returns.
+		"scheduled_for": strconv.FormatInt(sr.NextRunAt, 10),
 	}
 
 	_, jobErr := a.CreateJob(rctx, &model.Job{

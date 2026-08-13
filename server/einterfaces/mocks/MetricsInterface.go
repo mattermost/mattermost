@@ -47,6 +47,11 @@ func (_m *MetricsInterface) DecrementJobActive(jobType string) {
 	_m.Called(jobType)
 }
 
+// DecrementRecapLLMInFlight provides a mock function with no fields
+func (_m *MetricsInterface) DecrementRecapLLMInFlight() {
+	_m.Called()
+}
+
 // DecrementWebSocketBroadcastBufferSize provides a mock function with given fields: hub, amount
 func (_m *MetricsInterface) DecrementWebSocketBroadcastBufferSize(hub string, amount float64) {
 	_m.Called(hub, amount)
@@ -249,6 +254,11 @@ func (_m *MetricsInterface) IncrementPostSentPush() {
 
 // IncrementPostsSearchCounter provides a mock function with no fields
 func (_m *MetricsInterface) IncrementPostsSearchCounter() {
+	_m.Called()
+}
+
+// IncrementRecapLLMInFlight provides a mock function with no fields
+func (_m *MetricsInterface) IncrementRecapLLMInFlight() {
 	_m.Called()
 }
 
@@ -540,6 +550,21 @@ func (_m *MetricsInterface) ObservePluginWebappPerf(platform string, agent strin
 // ObservePostsSearchDuration provides a mock function with given fields: elapsed
 func (_m *MetricsInterface) ObservePostsSearchDuration(elapsed float64) {
 	_m.Called(elapsed)
+}
+
+// ObserveRecapChannelProcessTime provides a mock function with given fields: success, seconds
+func (_m *MetricsInterface) ObserveRecapChannelProcessTime(success bool, seconds float64) {
+	_m.Called(success, seconds)
+}
+
+// ObserveRecapDeliveryDelay provides a mock function with given fields: seconds
+func (_m *MetricsInterface) ObserveRecapDeliveryDelay(seconds float64) {
+	_m.Called(seconds)
+}
+
+// ObserveRecapScheduledBacklog provides a mock function with given fields: count
+func (_m *MetricsInterface) ObserveRecapScheduledBacklog(count int64) {
+	_m.Called(count)
 }
 
 // ObserveRedisEndpointDuration provides a mock function with given fields: cacheName, operation, elapsed

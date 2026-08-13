@@ -1796,14 +1796,14 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeRecap,
-		recap.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		recap.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels())), func() einterfaces.MetricsInterface { return s.GetMetrics() }),
 		recap.MakeScheduler(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 	)
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeScheduledRecap,
 		scheduled_recap.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
-		scheduled_recap.MakeScheduler(s.Jobs, s.Store()),
+		scheduled_recap.MakeScheduler(s.Jobs, s.Store(), func() einterfaces.MetricsInterface { return s.GetMetrics() }),
 	)
 
 	s.Jobs.RegisterJobType(
