@@ -4803,6 +4803,10 @@
     "translation": "Update password failed because context user_id did not match provided user's id."
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Unable to switch to email authentication using an integration session."
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "Magic Link is the only sign-in method available for this account."
   },
