@@ -90,6 +90,9 @@ func (a *App) recordPostDeliveryToPlugin(rctx request.CTX, pluginID string, post
 	a.emitPluginDeliveryRecord(pluginID, post)
 }
 
+// RecordPostDelivery, RecordPostsDelivery and RecordPostListDelivery record that a post's content
+// reached userID. Request handlers must call these only after the response body was written
+// successfully, so that a failed write doesn't claim a delivery that never happened.
 func (a *App) RecordPostDelivery(rctx request.CTX, userID string, post *model.Post, mechanism string) {
 	if !a.deliveryTrackingEnabled() {
 		return
