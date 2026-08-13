@@ -264,13 +264,15 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 		references = referencesVal
 	}
 
+	recordPostDelivery := emailNotification.MessageHTML != ""
+
 	a.Srv().Go(func() {
 		if nErr := a.Srv().EmailService.SendMailWithEmbeddedFiles(user.Email, html.UnescapeString(emailNotification.Subject), bodyText, embeddedFiles, messageID, inReplyTo, references, "Notification"); nErr != nil {
 			rctx.Logger().Error("Error while sending the email", mlog.String("user_email", user.Email), mlog.Err(nErr))
 			return
 		}
 
-		if a.emailNotificationContentsType() == model.EmailNotificationContentsFull {
+		if recordPostDelivery {
 			a.RecordPostDelivery(rctx, user.Id, post, model.DeliveryMechanismEmail)
 		}
 	})
