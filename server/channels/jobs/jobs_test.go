@@ -799,7 +799,9 @@ func TestPublishJobStatus(t *testing.T) {
 				jobServer.publishJobStatus(job, model.JobStatusSuccess)
 
 				assertPublishedJob(t, captured, model.JobStatusSuccess)
-				require.False(t, captured.GetBroadcast().ContainsSensitiveData)
+				// ContainsSensitiveData stays true as a fail-closed fallback for nodes that
+				// predate RequiredPermissions during a mixed-version cluster rollout.
+				require.True(t, captured.GetBroadcast().ContainsSensitiveData)
 				require.Equal(t, []string{testCase.permission.Id}, captured.GetBroadcast().RequiredPermissions)
 			})
 		}
@@ -819,7 +821,7 @@ func TestPublishJobStatus(t *testing.T) {
 		jobServer.publishJobStatus(job, model.JobStatusSuccess)
 
 		assertPublishedJob(t, captured, model.JobStatusSuccess)
-		require.False(t, captured.GetBroadcast().ContainsSensitiveData)
+		require.True(t, captured.GetBroadcast().ContainsSensitiveData)
 		require.Equal(t, []string{model.PermissionReadComplianceExportJob.Id}, captured.GetBroadcast().RequiredPermissions)
 	})
 

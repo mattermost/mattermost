@@ -172,10 +172,15 @@ func (srv *JobServer) publishJobStatus(job *model.Job, status string) {
 	case model.JobTypeAccessControlTeamSync:
 		permission = model.PermissionManageTeamAccessRules
 	}
+	// TODO: ContainsSensitiveData is set unconditionally as a temporary workaround for mixed-version
+	// cluster rollouts. Older nodes don't know about RequiredPermissions and silently drop it when
+	// decoding the cluster message, so this makes them fail closed (sysadmin-only) instead of
+	// broadcasting the unfiltered job to everyone. ShouldSendEvent on upgraded nodes ignores
+	// ContainsSensitiveData whenever RequiredPermissions is set. Remove once permission-scoped
+	// WebSocket delivery no longer needs to interoperate with pre-MM-69403 nodes.
+	message.GetBroadcast().ContainsSensitiveData = true
 	if permission != nil {
 		message.GetBroadcast().RequiredPermissions = []string{permission.Id}
-	} else {
-		message.GetBroadcast().ContainsSensitiveData = true
 	}
 	srv.publish(message)
 }

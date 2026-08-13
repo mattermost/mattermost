@@ -939,8 +939,12 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 	}
 
-	// If the event contains sensitive data, only send to users with permission to see it
-	if msg.GetBroadcast().ContainsSensitiveData {
+	// If the event contains sensitive data, only send to users with permission to see it.
+	// RequiredPermissions, when set, takes precedence over this fallback: it is the more
+	// specific check, and ContainsSensitiveData is only kept alongside it so that nodes
+	// running a version that predates RequiredPermissions still fail closed (sysadmin-only)
+	// instead of broadcasting the event unfiltered during a mixed-version cluster rollout.
+	if msg.GetBroadcast().ContainsSensitiveData && len(msg.GetBroadcast().RequiredPermissions) == 0 {
 		if !sessionHasPermission(model.PermissionManageSystem.Id) {
 			return false
 		}

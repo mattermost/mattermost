@@ -134,6 +134,7 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 		{"should only send to users with required permission", &model.WebsocketBroadcast{RequiredPermissions: []string{model.PermissionReadDataRetentionJob.Id}}, false, true, true, false},
 		{"should require all permissions", &model.WebsocketBroadcast{RequiredPermissions: []string{model.PermissionReadDataRetentionJob.Id, model.PermissionReadComplianceExportJob.Id}}, false, false, true, false},
 		{"should treat manage_system as a required permission", &model.WebsocketBroadcast{RequiredPermissions: []string{model.PermissionManageSystem.Id}}, false, false, true, false},
+		{"required permissions take precedence over sensitive data fallback", &model.WebsocketBroadcast{ContainsSensitiveData: true, RequiredPermissions: []string{model.PermissionReadDataRetentionJob.Id}}, false, true, true, false},
 		{"should only send to non-admins", &model.WebsocketBroadcast{ContainsSanitizedData: true}, true, true, false, true},
 		{"should send to nobody", &model.WebsocketBroadcast{ContainsSensitiveData: true, ContainsSanitizedData: true}, false, false, false, false},
 		{"should omit basic user 2 by connection id", &model.WebsocketBroadcast{OmitConnectionId: user2ConnID}, true, false, true, true},
