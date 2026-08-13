@@ -505,18 +505,30 @@ describe('getChannelAttributeFields', () => {
         expect(getChannelAttributeFields(state)).toEqual([]);
     });
 
-    test('orders by sort_order, falling back to create_at', () => {
+    test('orders by sort_order, unranked fields last', () => {
         const state = makeAttrState([
             attrField({id: 'third', attrs: {sort_order: 30}}),
             attrField({id: 'first', attrs: {sort_order: 10}}),
-            attrField({id: 'unranked_older', create_at: 5}),
+            attrField({id: 'unranked_b', create_at: 5}),
             attrField({id: 'second', attrs: {sort_order: 20}}),
-            attrField({id: 'unranked_newer', create_at: 9}),
+            attrField({id: 'unranked_a', create_at: 9}),
         ]);
 
         expect(getChannelAttributeFields(state).map((f) => f.id)).toEqual([
-            'first', 'second', 'third', 'unranked_older', 'unranked_newer',
+            'first', 'second', 'third', 'unranked_a', 'unranked_b',
         ]);
+    });
+
+    // Order is what a viewer is told to read, so it has to be a property of the
+    // configuration alone. Breaking ties on create_at would let two servers
+    // restored from one export disagree.
+    test('breaks sort_order ties on field name, not creation time', () => {
+        const state = makeAttrState([
+            attrField({id: 'zulu', name: 'zulu', attrs: {sort_order: 10}, create_at: 1}),
+            attrField({id: 'alpha', name: 'alpha', attrs: {sort_order: 10}, create_at: 9}),
+        ]);
+
+        expect(getChannelAttributeFields(state).map((f) => f.id)).toEqual(['alpha', 'zulu']);
     });
 
     test('omits a deleted field, which must not be offered for assignment', () => {

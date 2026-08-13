@@ -3,7 +3,12 @@
 
 import type {PropertyField} from '@mattermost/types/properties';
 
-import {isPSAv1PropertyField} from './property_utils';
+import {
+    getPropertyFieldLabel,
+    isPropertyFieldEditable,
+    isPropertyFieldRequired,
+    isPSAv1PropertyField,
+} from './property_utils';
 
 function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
@@ -42,5 +47,46 @@ describe('isPSAv1PropertyField', () => {
     test('returns false when object_type is a non-empty string', () => {
         const field = makeField({object_type: 'post'});
         expect(isPSAv1PropertyField(field)).toBe(false);
+    });
+});
+
+describe('isPropertyFieldRequired', () => {
+    test('returns true only for an explicit true', () => {
+        expect(isPropertyFieldRequired(makeField({attrs: {required: true}}))).toBe(true);
+    });
+
+    test('returns false when absent, false, or a non-boolean', () => {
+        expect(isPropertyFieldRequired(makeField())).toBe(false);
+        expect(isPropertyFieldRequired(makeField({attrs: {}}))).toBe(false);
+        expect(isPropertyFieldRequired(makeField({attrs: {required: false}}))).toBe(false);
+        expect(isPropertyFieldRequired(makeField({attrs: {required: 'true'}}))).toBe(false);
+    });
+});
+
+describe('isPropertyFieldEditable', () => {
+    test('returns true when absent, so fields predating the key are not read as locked', () => {
+        expect(isPropertyFieldEditable(makeField())).toBe(true);
+        expect(isPropertyFieldEditable(makeField({attrs: {}}))).toBe(true);
+    });
+
+    test('returns false only for an explicit false', () => {
+        expect(isPropertyFieldEditable(makeField({attrs: {editable: false}}))).toBe(false);
+        expect(isPropertyFieldEditable(makeField({attrs: {editable: true}}))).toBe(true);
+    });
+
+    test('ignores a non-boolean rather than locking the field', () => {
+        expect(isPropertyFieldEditable(makeField({attrs: {editable: 'false'}}))).toBe(true);
+    });
+});
+
+describe('getPropertyFieldLabel', () => {
+    test('prefers display_name', () => {
+        expect(getPropertyFieldLabel(makeField({name: 'caveat', attrs: {display_name: 'Caveat / Releasability'}}))).toBe('Caveat / Releasability');
+    });
+
+    test('falls back to name when display_name is missing or empty', () => {
+        expect(getPropertyFieldLabel(makeField({name: 'caveat'}))).toBe('caveat');
+        expect(getPropertyFieldLabel(makeField({name: 'caveat', attrs: {display_name: ''}}))).toBe('caveat');
+        expect(getPropertyFieldLabel(makeField({name: 'caveat', attrs: {display_name: 42}}))).toBe('caveat');
     });
 });
