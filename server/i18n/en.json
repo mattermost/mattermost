@@ -7601,6 +7601,10 @@
     "translation": "Unable to update job status. Invalid status set"
   },
   {
+    "id": "app.job.wedged.app_error",
+    "translation": "The job stopped reporting progress and was marked as failed."
+  },
+  {
     "id": "app.last_accessible_file.app_error",
     "translation": "Error fetching last accessible file"
   },

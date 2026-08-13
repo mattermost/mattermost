@@ -1797,7 +1797,7 @@ func (s *Server) initJobs() {
 	s.Jobs.RegisterJobType(
 		model.JobTypeRecap,
 		recap.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
-		nil,
+		recap.MakeScheduler(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 	)
 
 	s.Jobs.RegisterJobType(
