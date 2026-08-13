@@ -107,6 +107,24 @@ function loadPrefs(): StoredPrefs {
     };
 }
 
+// Identifies a row by its content instead of its position, so a reload or a
+// live-tail poll does not move the expanded row somewhere else
+function logKey(log: LogObjectWithAdditionalInfo): string {
+    return `${log.timestamp}|${log.caller}|${log.msg}`;
+}
+
+// Content based keys keep the rows mounted across a reload or a sort toggle.
+// Identical entries get a suffix, since React needs the keys to be unique.
+function getRowKeys(rows: LogObjectWithAdditionalInfo[]): string[] {
+    const seen = new Map<string, number>();
+    return rows.map((log) => {
+        const key = logKey(log);
+        const occurrence = seen.get(key) ?? 0;
+        seen.set(key, occurrence + 1);
+        return occurrence === 0 ? key : `${key}#${occurrence}`;
+    });
+}
+
 function savePrefs(prefs: StoredPrefs) {
     try {
         localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
@@ -128,7 +146,7 @@ export default function LogList({
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(initialPrefs.pageSize);
     const [sortAsc, setSortAsc] = useState(initialPrefs.sortAsc);
-    const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+    const [expandedKey, setExpandedKey] = useState<string | null>(null);
     const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
     const [enabledLevels, setEnabledLevels] = useState<Set<string>>(new Set(initialPrefs.enabledLevels));
     const [wrapText, setWrapText] = useState(initialPrefs.wrapText);
@@ -208,20 +226,22 @@ export default function LogList({
     const endIndex = Math.min(startIndex + pageSize, processedLogs.length);
     const visibleLogs = processedLogs.slice(startIndex, endIndex);
 
+    const rowKeys = getRowKeys(visibleLogs);
+
     // Reset to page 0 when filters or sort order change
     useEffect(() => {
         setPage(0);
-        setExpandedIndex(null);
+        setExpandedKey(null);
         setFocusedIndex(null);
     }, [search, enabledLevels, sortAsc]);
 
-    // Clamp page and clear selection when the logs dataset changes (reload, live-tail)
+    // Clamp the page when the logs dataset shrinks (reload, live-tail). The
+    // expanded row is tracked by content, so it survives a refresh.
     useEffect(() => {
         const lastPage = Math.max(0, Math.ceil(processedLogs.length / pageSize) - 1);
         setPage((prev) => Math.max(0, Math.min(prev, lastPage)));
-        setExpandedIndex(null);
-        setFocusedIndex(null);
-    }, [logs, processedLogs.length, pageSize]);
+        setFocusedIndex((prev) => (prev !== null && prev >= visibleLogs.length ? null : prev));
+    }, [logs, processedLogs.length, pageSize, visibleLogs.length]);
 
     const toggleLevel = useCallback((level: string) => {
         setEnabledLevels((prev) => {
@@ -252,9 +272,9 @@ export default function LogList({
     }, []);
 
     const handleToggleExpand = useCallback((log: LogObjectWithAdditionalInfo) => {
-        const idx = visibleLogs.indexOf(log);
-        setExpandedIndex((prev) => (prev === idx ? null : idx));
-    }, [visibleLogs]);
+        const key = logKey(log);
+        setExpandedKey((prev) => (prev === key ? null : key));
+    }, []);
 
     const handleFocus = useCallback((log: LogObjectWithAdditionalInfo) => {
         const idx = visibleLogs.indexOf(log);
@@ -263,13 +283,13 @@ export default function LogList({
 
     const goNextPage = useCallback(() => {
         setPage((p) => Math.min(p + 1, totalPages - 1));
-        setExpandedIndex(null);
+        setExpandedKey(null);
         listRef.current?.scrollTo({top: 0});
     }, [totalPages]);
 
     const goPrevPage = useCallback(() => {
         setPage((p) => Math.max(p - 1, 0));
-        setExpandedIndex(null);
+        setExpandedKey(null);
         listRef.current?.scrollTo({top: 0});
     }, []);
 
@@ -277,7 +297,7 @@ export default function LogList({
         const newSize = Number(e.target.value);
         setPageSize(newSize);
         setPage(0);
-        setExpandedIndex(null);
+        setExpandedKey(null);
         setFocusedIndex(null);
     }, []);
 
@@ -314,7 +334,7 @@ export default function LogList({
             });
             break;
         case 'Escape':
-            setExpandedIndex(null);
+            setExpandedKey(null);
             break;
         case '/':
             e.preventDefault();
@@ -624,9 +644,9 @@ export default function LogList({
             >
                 {visibleLogs.map((log, idx) => (
                     <LogRow
-                        key={`${log.timestamp}-${log.caller}-${idx}`}
+                        key={rowKeys[idx]}
                         log={log}
-                        isExpanded={expandedIndex === idx}
+                        isExpanded={expandedKey === logKey(log)}
                         isFocused={focusedIndex === idx}
                         onToggleExpand={handleToggleExpand}
                         onFocus={handleFocus}
