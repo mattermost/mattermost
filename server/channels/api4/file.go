@@ -555,6 +555,16 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		checkChannelFlaggable(c, channel)
+		if c.Err != nil {
+			return
+		}
+
+		requireTeamContentReviewer(c, c.AppContext.Session().UserId, channel.TeamId)
+		if c.Err != nil {
+			return
+		}
+
 		flaggedPostId := r.URL.Query().Get("flagged_post_id")
 		requireFlaggedPost(c, flaggedPostId)
 		if c.Err != nil {
@@ -566,19 +576,16 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		requireTeamContentReviewer(c, c.AppContext.Session().UserId, channel.TeamId)
-		if c.Err != nil {
-			return
-		}
-
 		isContentReviewer = true
 	}
 
 	// at this point we may have fetched a deleted file info and
 	// if the user is not a content reviewer, the request should fail as
-	// fetching deleted file info is only allowed for content reviewers of the specific post
+	// fetching deleted file info is only allowed for content reviewers of the specific post.
+	// The error deliberately matches the one returned when no such file exists, so that a
+	// deleted file cannot be told apart from a file that never existed.
 	if fileInfo.DeleteAt != 0 && !isContentReviewer {
-		c.Err = model.NewAppError("getFile", "app.file_info.get.app_error", nil, "", http.StatusNotFound)
+		c.Err = model.NewAppError("getFile", "api.file.get_file_info.app_error", nil, "", http.StatusNotFound)
 		setInaccessibleFileHeader(w, c.Err)
 		return
 	}
