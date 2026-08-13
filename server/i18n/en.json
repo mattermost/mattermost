@@ -2166,6 +2166,10 @@
     "translation": "Data Spillage Handling feature is disabled."
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Data Spillage Handling is not available for direct and group message channels."
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "Quarantining a post of type '{{.PostType}}' is not allowed."
   },
@@ -10383,6 +10387,10 @@
     "translation": "{{.Backend}} aggregator worker failed due to the indexing job failing"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Mattermost requires the analysis-icu plugin on every {{.Backend}} node. Install it on all nodes, then restart {{.Backend}}."
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} failed to backfill channel type on posts"
   },
@@ -10537,14 +10545,6 @@
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
     "translation": "Trying to index a new batch when all the entities are completed"
-  },
-  {
-    "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "{{.Backend}} version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
-  },
-  {
-    "id": "ent.elasticsearch.min_version.app_error",
-    "translation": "{{.Backend}} version {{.Version}} is lower than min supported version of {{.MinVersion}}"
   },
   {
     "id": "ent.elasticsearch.not_started.error",

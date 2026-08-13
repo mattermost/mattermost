@@ -5,12 +5,12 @@
 package mocks
 
 import (
-	context "context"
 	sql "database/sql"
 	time "time"
 
 	model "github.com/mattermost/mattermost/server/public/model"
 	mlog "github.com/mattermost/mattermost/server/public/shared/mlog"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	store "github.com/mattermost/mattermost/server/v8/channels/store"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -536,9 +536,9 @@ func (_m *Store) GetDbVersion(numerical bool) (string, error) {
 	return r0, r1
 }
 
-// GetDiagnostics provides a mock function with given fields: ctx
-func (_m *Store) GetDiagnostics(ctx context.Context) (*store.DatabaseDiagnostics, error) {
-	ret := _m.Called(ctx)
+// GetDiagnostics provides a mock function with given fields: rctx
+func (_m *Store) GetDiagnostics(rctx request.CTX) (*store.DatabaseDiagnostics, error) {
+	ret := _m.Called(rctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetDiagnostics")
@@ -546,19 +546,19 @@ func (_m *Store) GetDiagnostics(ctx context.Context) (*store.DatabaseDiagnostics
 
 	var r0 *store.DatabaseDiagnostics
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (*store.DatabaseDiagnostics, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(request.CTX) (*store.DatabaseDiagnostics, error)); ok {
+		return rf(rctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) *store.DatabaseDiagnostics); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(request.CTX) *store.DatabaseDiagnostics); ok {
+		r0 = rf(rctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*store.DatabaseDiagnostics)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(request.CTX) error); ok {
+		r1 = rf(rctx)
 	} else {
 		r1 = ret.Error(1)
 	}

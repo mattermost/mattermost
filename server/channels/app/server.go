@@ -464,6 +464,7 @@ func NewServer(options ...Option) (*Server, error) {
 		TemplatesContainer: s.TemplatesContainer(),
 		UserService:        s.userService,
 		Store:              s.GetStore(),
+		Logger:             s.Log(),
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to initialize email service")

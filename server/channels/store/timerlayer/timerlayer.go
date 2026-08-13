@@ -13416,10 +13416,10 @@ func (s *TimerLayerUserStore) DecrementFailedPasswordAttempts(userID string) err
 	return err
 }
 
-func (s *TimerLayerUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
+func (s *TimerLayerUserStore) DemoteUserToGuest(rctx request.CTX, userID string) (*model.User, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.DemoteUserToGuest(userID)
+	result, err := s.UserStore.DemoteUserToGuest(rctx, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -13432,10 +13432,10 @@ func (s *TimerLayerUserStore) DemoteUserToGuest(userID string) (*model.User, err
 	return result, err
 }
 
-func (s *TimerLayerUserStore) Get(ctx context.Context, id string) (*model.User, error) {
+func (s *TimerLayerUserStore) Get(rctx request.CTX, id string) (*model.User, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.Get(ctx, id)
+	result, err := s.UserStore.Get(rctx, id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -13512,10 +13512,10 @@ func (s *TimerLayerUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 	return result, err
 }
 
-func (s *TimerLayerUserStore) GetAllProfilesInChannel(ctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error) {
+func (s *TimerLayerUserStore) GetAllProfilesInChannel(rctx request.CTX, channelID string, allowFromCache bool) (map[string]*model.User, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.GetAllProfilesInChannel(ctx, channelID, allowFromCache)
+	result, err := s.UserStore.GetAllProfilesInChannel(rctx, channelID, allowFromCache)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -14197,10 +14197,10 @@ func (s *TimerLayerUserStore) PermanentDelete(rctx request.CTX, userID string) e
 	return err
 }
 
-func (s *TimerLayerUserStore) PromoteGuestToUser(userID string) error {
+func (s *TimerLayerUserStore) PromoteGuestToUser(rctx request.CTX, userID string) error {
 	start := time.Now()
 
-	err := s.UserStore.PromoteGuestToUser(userID)
+	err := s.UserStore.PromoteGuestToUser(rctx, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
