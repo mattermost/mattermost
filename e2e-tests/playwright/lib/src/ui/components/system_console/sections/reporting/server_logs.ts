@@ -80,7 +80,7 @@ export default class ServerLogs {
     }
 
     /**
-     * Open the poll interval dropdown and pick an interval, e.g. '2s'.
+     * Open the poll interval dropdown and pick an interval, e.g. '5s'.
      */
     async selectPollInterval(interval: string) {
         // The toggle shows the current interval and is only ambiguous with the

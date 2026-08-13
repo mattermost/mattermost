@@ -43,12 +43,12 @@ export const searchableStrings = [
     messages.title,
 ];
 
-const POLL_INTERVALS = [2000, 5000, 10000, 30000] as const;
+const POLL_INTERVALS = [5000, 10000, 30000, 60000] as const;
 const POLL_INTERVAL_LABELS: Record<number, string> = {
-    2000: '2s',
     5000: '5s',
     10000: '10s',
     30000: '30s',
+    60000: '60s',
 };
 
 const timePresetMessages = defineMessages({
