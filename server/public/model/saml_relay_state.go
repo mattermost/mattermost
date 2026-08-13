@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
+	"maps"
 	"strconv"
 	"strings"
 )
@@ -23,9 +24,7 @@ const samlRelayStateExpKey = "exp"
 // string safe to round-trip through the IdP. relayProps itself is not modified.
 func SignSamlRelayState(key []byte, relayProps map[string]string) string {
 	signed := make(map[string]string, len(relayProps)+1)
-	for k, v := range relayProps {
-		signed[k] = v
-	}
+	maps.Copy(signed, relayProps)
 	signed[samlRelayStateExpKey] = strconv.FormatInt(GetMillis()+SamlRelayStateExpiryTime, 10)
 
 	payload := []byte(MapToJSON(signed))
