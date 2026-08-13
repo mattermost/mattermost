@@ -327,6 +327,7 @@ func SessionAttributeSystemFields(groupID string) []*PropertyField {
 				{"name": "BlackBerry"},
 				{"name": "Kindle"},
 				{"name": "webOS"},
+				{"name": "Unknown"},
 			},
 		}),
 		sessionAttributeField(groupID, SessionAttributesPropertyFieldUserAgentBrowserName, SessionAttributesDisplayNameUserAgentBrowserName, PropertyFieldTypeSelect, allPlatforms, SessionAttributeDefaultTTLIdentity, SessionAttributeDefaultGraceIdentity, StringInterface{
