@@ -326,6 +326,7 @@ func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *mo
 		return false
 	}
 
+	// Keep parsing aligned with LogFilter.IsValid via the shared layout constant.
 	dateFrom, err := time.Parse(model.LogFilterDateLayout, logFilter.DateFrom)
 	if err != nil {
 		dateFrom = time.Time{}
