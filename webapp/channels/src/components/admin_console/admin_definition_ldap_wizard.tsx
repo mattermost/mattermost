@@ -164,6 +164,11 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 label: defineMessage({id: 'admin.ldap.skipCertificateVerification', defaultMessage: 'Skip Certificate Verification:'}),
                 help_text: defineMessage({id: 'admin.ldap.skipCertificateVerificationDesc', defaultMessage: 'Skips the certificate verification step for TLS or STARTTLS connections.'}),
                 help_text_more_info: defineMessage({id: 'admin.ldap.skipCertificateVerificationDescHover', defaultMessage: 'Skipping certificate verification is not recommended for production environments where TLS is required.'}),
+                production_warning: {
+                    isEnabled: it.stateIsTrue('LdapSettings.SkipCertificateVerification'),
+                    title: defineMessage({id: 'admin.ldap.skipCertificateVerificationProductionWarning.title', defaultMessage: 'Skipping certificate verification is not recommended for production environments'}),
+                    text: defineMessage({id: 'admin.ldap.skipCertificateVerificationProductionWarning.text', defaultMessage: "Mattermost will not validate the AD/LDAP server's TLS certificate, exposing the connection to man-in-the-middle attacks. Enable only while troubleshooting in non-production environments."}),
+                },
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                     it.stateIsFalse('LdapSettings.ConnectionSecurity'),
@@ -546,10 +551,7 @@ export const ldapWizardAdminDefinition: LDAPAdminDefinitionConfigSchemaSettings 
                 type: 'custom',
                 key: 'LdapSettings.CustomProfileAttributes',
                 component: CustomProfileAttributes,
-                isHidden: it.not(it.all(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
-                )),
+                isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
             },
         ],
     },

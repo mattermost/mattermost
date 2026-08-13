@@ -575,7 +575,7 @@ func (a *App) userAccessTokenExpiryPolicyApplies(rctx request.CTX, user *model.U
 }
 
 func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
-	user, nErr := a.ch.srv.userService.GetUser(token.UserId)
+	user, nErr := a.ch.srv.userService.GetUser(rctx, token.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -633,7 +633,7 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
 	}
 
-	user, nErr := a.Srv().Store().User().Get(rctx.Context(), token.UserId)
+	user, nErr := a.Srv().Store().User().Get(rctx, token.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -846,7 +846,7 @@ func (a *App) EnableUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 // expiry, and immediately invalidates the old secret and its sessions.  The
 // returned token carries the new secret (shown once, like CreateUserAccessToken).
 func (a *App) RotateUserAccessToken(rctx request.CTX, token *model.UserAccessToken, expiresAt int64) (*model.UserAccessToken, *model.AppError) {
-	user, nErr := a.ch.srv.userService.GetUser(token.UserId)
+	user, nErr := a.ch.srv.userService.GetUser(rctx, token.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {

@@ -55,6 +55,11 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
+		return
+	}
+
 	requireTeamContentReviewer(c, userId, channel.TeamId)
 	if c.Err != nil {
 		return
