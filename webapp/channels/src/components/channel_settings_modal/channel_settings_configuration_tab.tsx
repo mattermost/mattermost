@@ -132,11 +132,16 @@ function ChannelSettingsConfigurationTab({
     const canManageChannelRoles = useSelector((state: GlobalState) =>
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_CHANNEL_ROLES),
     );
-    const canManageClassification = classification.available && canManageChannelRoles;
     const [classificationEnabled, setClassificationEnabled] = useState(classificationBanner.hasClassification);
     const [selectedClassificationId, setSelectedClassificationId] = useState(classificationBanner.classificationId || '');
 
     const {enabled: channelAttributesEnabled} = useChannelAttributes();
+
+    // Classification is assigned from Channel Info once channel attributes are on,
+    // so this control would be a second way to set the same value — and the two
+    // would disagree the moment one of them changed. Flag off keeps it, which is
+    // what makes rollback real.
+    const canManageClassification = classification.available && canManageChannelRoles && !channelAttributesEnabled;
     const resolvedAttributes = useResolvedChannelAttributes(channel.id);
 
     // With channel attributes on, the banner is authored per channel — a

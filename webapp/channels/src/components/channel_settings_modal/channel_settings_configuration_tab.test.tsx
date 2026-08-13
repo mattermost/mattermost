@@ -1135,6 +1135,30 @@ describe('ChannelSettingsConfigurationTab', () => {
             expect(screen.queryByText('Classification')).not.toBeInTheDocument();
         });
 
+        it('does not render the Classification section once channel attributes own assignment', () => {
+            // Otherwise this control and Channel Info would both set the same value,
+            // and disagree the moment one of them changed.
+            mockManageChannelRolesPermission = true;
+            enableClassification();
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+                {
+                    entities: {
+                        general: {
+                            config: {FeatureFlagChannelAttributes: 'true'},
+                            license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
+                        },
+                    },
+                },
+            );
+
+            expect(screen.queryByText('Classification')).not.toBeInTheDocument();
+        });
+
         it('does not render the Classification section for users without manage_channel_roles', () => {
             mockManageChannelRolesPermission = false;
             enableClassification();
