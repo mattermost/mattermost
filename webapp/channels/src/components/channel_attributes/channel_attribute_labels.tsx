@@ -49,11 +49,9 @@ type Props = {
 
 /**
  * The channel's designated attribute values, as chips, for the channel header.
+ * Mounted as a child because channel_header.tsx is a class component.
  *
- * A function component so it can consume hooks: channel_header.tsx is a class
- * component, and mounting this as a child is what keeps the hooks out of it.
- *
- * Labels are informational. Nothing here enforces access, and no string may
+ * Labels are informational — nothing here enforces access, and no string may
  * suggest otherwise.
  */
 const ChannelAttributeLabels = ({channelId}: Props) => {
@@ -71,10 +69,8 @@ const ChannelAttributeLabels = ({channelId}: Props) => {
         return map;
     }, [labels]);
 
-    // One stable ref callback per chip. An inline arrow would be a new function
-    // on every render, which makes React detach and reattach the node — and each
-    // detach unobserves and re-observes it, so the ResizeObserver would fire a
-    // recalculation on every render rather than only on an actual resize.
+    // Stable per chip. An inline arrow is a new function each render, so React
+    // detaches and reattaches the node, and the observer refires on every render.
     const chipRefCallbacks = useRef(new Map<string, (element: HTMLElement | null) => void>());
     const chipRef = useCallback((id: string) => {
         let callback = chipRefCallbacks.current.get(id);
@@ -85,8 +81,7 @@ const ChannelAttributeLabels = ({channelId}: Props) => {
         return callback;
     }, [registerChipRef]);
 
-    // Drop callbacks for chips that no longer exist, so the map does not grow
-    // for the lifetime of the session as values change.
+    // Drop callbacks for chips that no longer exist.
     useEffect(() => {
         const live = new Set(ids);
         for (const id of chipRefCallbacks.current.keys()) {

@@ -28,15 +28,11 @@ type Props = {
 };
 
 /**
- * The attribute-token affordances for the channel banner text: a menu that
- * inserts a token, and a preview of what the template resolves to for this
- * channel.
+ * Token insertion and a resolved preview for the banner text.
  *
- * Tokens are plain text in the existing textbox rather than chips inside a rich
- * editor. That keeps markdown preview, the character counter, and the length
- * validation the banner already relies on, all of which a contenteditable
- * rewrite would have to reimplement. The visual difference from the design is
- * deliberate and worth confirming.
+ * Tokens are plain text in the existing textbox rather than chips in a rich editor:
+ * that keeps the markdown preview, character counter, and length validation the
+ * banner already relies on. The divergence from the design is deliberate.
  */
 const BannerTokenControls = ({template, attributes, onInsertToken, disabled}: Props) => {
     const {formatMessage} = useIntl();
@@ -102,9 +98,8 @@ const BannerTokenControls = ({template, attributes, onInsertToken, disabled}: Pr
                                 <span className='BannerTokenControls__previewText'>{rendered}</span>
                             ) : (
 
-                                // A template whose attributes are all unset resolves to
-                                // nothing. Saying so beats an empty line that reads as a
-                                // rendering bug.
+                                // An all-unset template resolves to nothing; say so rather
+                                // than render a blank line that reads as a bug.
                                 <span className='BannerTokenControls__previewEmpty'>
                                     <FormattedMessage
                                         id='channel_attributes.banner.renders_as_empty'

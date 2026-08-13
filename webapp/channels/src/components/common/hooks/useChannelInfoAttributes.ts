@@ -15,13 +15,8 @@ import useChannelAttributes from './useChannelAttributes';
 
 const EMPTY: ResolvedChannelAttribute[] = [];
 
-/**
- * The Channel Info subset of an already-resolved attribute list.
- *
- * Split out from the hook so a caller that already holds the resolved list can
- * derive this without mounting a second copy of useChannelAttributes — each one
- * fires its own fetch, so two hooks on one surface means two identical requests.
- */
+// Split from the hook so a caller holding the resolved list avoids mounting a
+// second useChannelAttributes, which would fire a duplicate fetch.
 export function selectChannelInfoAttributes(resolved: ResolvedChannelAttribute[]): ResolvedChannelAttribute[] {
     const listed = resolved.filter((attribute) => {
         const actions = attribute.field.attrs?.actions;
@@ -35,14 +30,9 @@ export function selectChannelInfoAttributes(resolved: ResolvedChannelAttribute[]
 }
 
 /**
- * The attributes Channel Info should list for a channel, in display order.
- *
- * Deliberately a wider set than useChannelLabels returns for the 'info' surface:
- * a required attribute is listed even with no value, because an empty required
- * row is the only thing that tells a channel admin the channel is incomplete and
- * gives them somewhere to fix it. Optional unset attributes stay hidden — they
- * are reached through Add Attribute instead, so the section doesn't fill with
- * empty rows for every attribute the server happens to define.
+ * Wider than useChannelLabels' 'info' surface: a required attribute is listed even
+ * unset, because that empty row is the only thing telling an admin the channel is
+ * incomplete. Optional unset ones are reached through Add Attribute instead.
  */
 export default function useChannelInfoAttributes(channelId: string): ResolvedChannelAttribute[] {
     const {enabled} = useChannelAttributes();

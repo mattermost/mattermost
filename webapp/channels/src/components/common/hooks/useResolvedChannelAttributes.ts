@@ -14,13 +14,9 @@ import useChannelAttributes from './useChannelAttributes';
 const EMPTY: ResolvedChannelAttribute[] = [];
 
 /**
- * Every channel attribute paired with this channel's value, in display order,
- * including the unset ones.
- *
- * The unfiltered set, for callers that decide for themselves what to do with an
- * empty value — the banner composer offers unset attributes as tokens, because a
- * template is written once and expected to keep working after a value is filled
- * in later.
+ * Every channel attribute paired with this channel's value, unset ones included —
+ * the banner composer offers those as tokens, since a template is written once and
+ * expected to keep working once a value is filled in.
  */
 export default function useResolvedChannelAttributes(channelId: string): ResolvedChannelAttribute[] {
     const {enabled} = useChannelAttributes();

@@ -40,8 +40,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
                 optionColors: {AURORA: '#1e325c'},
             });
 
-            // Stored but undesignated: it must reach Channel Info's data layer
-            // without ever producing a chip.
+            // Stored but undesignated: reaches the data layer, never a chip.
             const hidden = await createAttribute(adminClient, attributeName('undesignated', suffix), {
                 options: ['QUIET'],
             });
@@ -118,8 +117,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
 
             await expect(page.getByTestId('channelAttributeLabelsOverflow')).toBeVisible();
 
-            // The chips yield space rather than claiming it, so the controls after
-            // them stay exactly where they were.
+            // Chips yield space rather than claiming it.
             const after = await infoButton.boundingBox();
             expect(after?.x).toBeCloseTo(before?.x ?? 0, 0);
 
@@ -133,11 +131,9 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
     /**
      * @objective Verify a locked attribute renders read-only with its reason, and that the lock key itself is validated server-side.
      *
-     * KNOWN LIMITATION, asserted rather than assumed: `editable: false` is
-     * enforced by the client only. The server validates the key's type but does
-     * not reject a value write for a locked attribute, so a caller with the
-     * setter tier can still change it through the API. The final assertion below
-     * records that as current behaviour. If server enforcement lands, invert it.
+     * `editable: false` is client-side only — the server validates the key's type
+     * but does not reject a write for a locked attribute. The last assertion pins
+     * that as current behaviour; invert it if server enforcement lands.
      */
     test('renders a locked attribute read-only and validates the lock key server-side', async ({pw}) => {
         await pw.skipIfNoLicense();
@@ -171,13 +167,11 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await channelsPage.toBeVisible();
             await page.locator('#channel-info-btn').click();
 
-            // Shown with the reason, not hidden: a hidden attribute makes a
-            // correctly configured channel look like it is missing a marking.
+            // Shown with the reason: hiding it looks like a missing marking.
             await expect(page.getByTestId(`channelInfoAttributeRow-${locked.name}`)).toBeVisible();
             await expect(page.getByTestId(`channelInfoAttributeEdit-${locked.name}`)).toHaveCount(0);
 
-            // The lock key is type-validated, so it cannot be smuggled past
-            // validation as a truthy string.
+            // The key is type-validated, so a truthy string cannot smuggle past it.
             await expect(
                 adminClient.patchPropertyField(
                     'access_control',
@@ -187,8 +181,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
                 ),
             ).rejects.toThrow();
 
-            // Documents the gap rather than pretending it is closed: the value
-            // write succeeds today because nothing server-side consults the key.
+            // Succeeds today: nothing server-side consults the key.
             await setChannelValue(adminClient, channel.id, locked, optionId(locked, 'OTHER'));
             const values = await adminClient.getPropertyValues('access_control', 'channel', channel.id);
             expect(values?.find((value) => value.field_id === locked.id)?.value).toBe(optionId(locked, 'OTHER'));
@@ -286,8 +279,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await channelsPage.goto(team.name, channel.name);
             await channelsPage.toBeVisible();
 
-            // Falls back to the value name, which is what reproduces today's
-            // classification banner when no manual text exists.
+            // Falls back to the value name, reproducing today's classification banner.
             await expect(page.getByTestId('channel_banner_text')).toContainText('RESTRICTED');
         } finally {
             await deleteAttributes(adminClient, created);
@@ -308,8 +300,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
         try {
             await purgeAttributes(adminClient);
 
-            // admin tier resolves to manage_channel_roles on the channel, which an
-            // ordinary member does not have.
+            // admin tier resolves to manage_channel_roles, which a member lacks.
             const adminOnly = await createAttribute(adminClient, attributeName('admin_tier', suffix), {
                 options: ['SET'],
                 actions: [DISPLAY_LABEL_INFO],

@@ -137,17 +137,14 @@ function ChannelSettingsConfigurationTab({
 
     const {enabled: channelAttributesEnabled} = useChannelAttributes();
 
-    // Classification is assigned from Channel Info once channel attributes are on,
-    // so this control would be a second way to set the same value — and the two
-    // would disagree the moment one of them changed. Flag off keeps it, which is
-    // what makes rollback real.
+    // Assignment moves to Channel Info once the flag is on; two controls for one
+    // value would disagree the moment either changed.
     const canManageClassification = classification.available && canManageChannelRoles && !channelAttributesEnabled;
     const resolvedAttributes = useResolvedChannelAttributes(channel.id);
 
-    // With channel attributes on, the banner is authored per channel — a
-    // classification only prefills its colour and text. Locking the fields would
-    // make the token composer unreachable on exactly the channels most likely to
-    // want it. Flag off keeps the shipped lock, so rollback is real.
+    // With channel attributes on the banner is authored per channel, so locking it
+    // would put the token composer out of reach on exactly the channels that want
+    // it. Flag off keeps the shipped lock.
     const bannerLockedByClassification = !channelAttributesEnabled && classificationEnabled && Boolean(selectedClassificationId);
 
     const classificationOptions = useMemo(() => {
@@ -264,9 +261,8 @@ function ChannelSettingsConfigurationTab({
 
     const toggleBannerTextPreview = useCallback(() => setShowBannerTextPreview((show) => !show), []);
 
-    // Appended rather than inserted at the caret: the textbox is a controlled
-    // component whose selection is not tracked here, and guessing a caret
-    // position is worse than a predictable append the author can then move.
+    // Appended, not inserted at the caret: selection is not tracked here, and
+    // guessing a position is worse than a predictable append.
     const handleInsertBannerToken = useCallback((token: string) => {
         setUpdatedChannelBanner((prev) => {
             const current = prev.text ?? '';
@@ -486,11 +482,9 @@ function ChannelSettingsConfigurationTab({
             }
         }
 
-        // Gated on the section being rendered. classificationEnabled is seeded
-        // before the property values finish loading, so a modal opened and saved
-        // quickly can look like the user turned classification off — and with the
-        // section hidden they never saw a toggle to blame. Without this guard,
-        // saving an unrelated setting would clear the channel's classification.
+        // Gated on the section rendering: classificationEnabled is seeded before the
+        // values load, so a modal saved quickly reads as the user turning it off.
+        // Without this, saving an unrelated setting clears the classification.
         if (canManageClassification && hasClassificationChanges && classification.channelField) {
             if (classificationEnabled && selectedClassificationId) {
                 try {

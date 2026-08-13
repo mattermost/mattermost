@@ -11,8 +11,7 @@ export const TARGET_TYPE = 'system';
 // Prefix on every field these specs create, so cleanup never touches real ones.
 export const FIELD_PREFIX = 'chanattr_e2e';
 
-// Display designations, mirroring the server allow-list in
-// model/property_field_attrs_validation.go.
+// Mirrors the allow-list in model/property_field_attrs_validation.go.
 export const DISPLAY_LABEL_HEADER = 'display_label_header';
 export const DISPLAY_LABEL_INFO = 'display_label_info';
 export const DISPLAY_BANNER_TOP = 'display_banner_top';
@@ -22,18 +21,15 @@ type CreateOptions = {
     type?: 'select' | 'multiselect' | 'text';
     options?: string[];
 
-    // Whether a value must be supplied at channel creation. The create dialog
-    // asks only for required attributes; optional ones are added from Channel Info.
     required?: boolean;
 
-    // Omit to leave the key unset, which reads as editable. Pass false to lock.
+    // Omit to leave unset, which reads as editable. Pass false to lock.
     editable?: boolean;
 
-    // Where the value displays. Undesignated attributes are stored but never shown.
+    // Undesignated attributes are stored but never shown.
     actions?: string[];
 
-    // Setter tier evaluated against the channel. Defaults to member so an
-    // ordinary channel member can set a value.
+    // Defaults to member, so an ordinary channel member can set a value.
     permissionValues?: 'none' | 'sysadmin' | 'admin' | 'member';
 
     sortOrder?: number;
@@ -98,8 +94,7 @@ export async function createAttribute(
     return adminClient.createPropertyField(GROUP, objectType, field as Parameters<Client4['createPropertyField']>[2]);
 }
 
-// Writes a value the way the product does, for setting up a channel's state
-// without driving the UI.
+// Sets up channel state without driving the UI.
 export async function setChannelValue(
     client: Client4,
     channelId: string,

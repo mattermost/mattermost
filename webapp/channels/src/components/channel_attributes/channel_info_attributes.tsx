@@ -28,9 +28,8 @@ function optionColor(attribute: ResolvedChannelAttribute): string | undefined {
     return typeof color === 'string' && color ? color : undefined;
 }
 
-// Only the shapes with an assignment control. Date and user-valued attributes are
-// storable through the API but have no editor in this release, so they are shown
-// read-only rather than offering an edit that cannot be completed.
+// Date and user-valued attributes are storable through the API but have no editor
+// in this release, so they stay read-only rather than offering a dead affordance.
 function hasEditor(field: PropertyField): boolean {
     return field.type === 'text' || field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
 }
@@ -40,19 +39,15 @@ type Props = {
 };
 
 /**
- * The CHANNEL ATTRIBUTES block in Channel Info, with editing where the attribute
- * and the viewer both allow it.
- *
- * A locked attribute is shown with the reason rather than hidden: hiding it would
- * make a correctly configured channel look like one missing a marking.
+ * The CHANNEL ATTRIBUTES block in Channel Info. A locked attribute is shown with
+ * its reason rather than hidden: hiding it makes a correctly configured channel
+ * look like one missing a marking.
  */
 const ChannelInfoAttributes = ({channelId}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
-    // One resolved list, two views of it. Calling useChannelInfoAttributes here as
-    // well would mount a second useChannelAttributes and fire a duplicate
-    // fetchPropertyFields on every open.
+    // One resolved list, two views: a second hook would duplicate the fetch.
     const allAttributes = useResolvedChannelAttributes(channelId);
     const listed = useMemo(() => selectChannelInfoAttributes(allAttributes), [allAttributes]);
     const canSet = useCanSetChannelAttributes(channelId);
@@ -61,8 +56,7 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
     const [savingFieldId, setSavingFieldId] = useState<string>();
     const [failedFieldId, setFailedFieldId] = useState<string>();
 
-    // Optional attributes the viewer added through Add Attribute this session.
-    // They have no value yet, so nothing else would keep their row on screen.
+    // Added through Add Attribute this session; nothing else keeps their row up.
     const [revealedFieldIds, setRevealedFieldIds] = useState<string[]>([]);
 
     const rows = useMemo(() => {
@@ -76,8 +70,7 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
             }
         }
 
-        // Re-derive order from the selector's ordering rather than insertion order,
-        // so a revealed attribute lands where its sort_order says it belongs.
+        // Re-derived from the selector so a revealed attribute lands at its sort_order.
         return allAttributes.filter((attribute) => byId.has(attribute.field.id));
     }, [listed, revealedFieldIds, allAttributes]);
 
@@ -91,9 +84,8 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
         return hasEditor(attribute.field) && canSet(attribute.field, false);
     }), [allAttributes, revealedFieldIds, canSet]);
 
-    // Channel Info stays mounted across a channel switch, so per-channel editing
-    // state has to be dropped explicitly. Otherwise a row left open on one channel
-    // reappears open on the next, over a different channel's value.
+    // Channel Info survives a channel switch, so a row left open would reappear
+    // open over a different channel's value.
     useEffect(() => {
         setEditingFieldId(undefined);
         setSavingFieldId(undefined);
@@ -120,8 +112,7 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
             setEditingFieldId(undefined);
             setRevealedFieldIds((prev) => prev.filter((id) => id !== field.id));
         } catch {
-            // Named in the row rather than a toast: the failure belongs next to the
-            // value it did not save.
+            // Named in the row: the failure belongs beside the value it did not save.
             if (isMountedRef.current) {
                 setFailedFieldId(field.id);
             }

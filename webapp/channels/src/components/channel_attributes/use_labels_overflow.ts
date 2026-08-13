@@ -7,8 +7,7 @@ import {useDebounce} from 'hooks/useDebounce';
 import {useLatest} from 'hooks/useLatest';
 import {partitionAt} from 'utils/array';
 
-// Space reserved for the +N affordance, so the last visible chip never has to be
-// dropped after the count is already committed.
+// Reserved for the +N affordance, so committing a count never forces a chip out.
 const OVERFLOW_CHIP_WIDTH = 34;
 
 // Gap between chips, matching $chip-gap in channel_attribute_labels.scss.
@@ -18,18 +17,11 @@ const RECALC_DEBOUNCE_MS = 100;
 
 /**
  * Splits chip ids into those that fit the measured container and those that
- * overflow.
+ * overflow. Measured rather than a fixed break count: the header appears at many
+ * widths, and a fixed count would push the call and info controls around.
  *
- * Measured rather than a fixed break count: the channel header is crowded and
- * appears at many widths — main view, RHS, calls, popouts — so a fixed count
- * would push the call and info controls around at narrow widths. Same container
- * width and same chips always yield the same split.
- *
- * The channel bookmarks bar solves this same problem in
- * components/channel_bookmarks/hooks/use_bookmarks_overflow.ts. Kept separate
- * because that one's reserved widths and pause-during-reorder behaviour are
- * specific to a draggable bar; if a third caller appears, extract the shared
- * accumulate-and-split core rather than growing either copy.
+ * use_bookmarks_overflow.ts solves the same problem for a draggable bar. If a
+ * third caller appears, extract the shared core rather than growing either copy.
  */
 export function useLabelsOverflow(ids: string[]) {
     const [containerEl, setContainerEl] = useState<HTMLDivElement | null>(null);
@@ -53,11 +45,9 @@ export function useLabelsOverflow(ids: string[]) {
 
         const availableWidth = containerEl.getBoundingClientRect().width;
 
-        // Nothing has been laid out yet. Show everything rather than bailing:
-        // an unmeasured row must not stay collapsed, and because the row only
-        // contains the chips it is allowed to show, bailing here deadlocks —
-        // zero visible chips means zero width, which means no measurement, which
-        // means the chips never come back.
+        // Not laid out yet. Show everything rather than bailing: the row holds only
+        // the chips it is allowed to show, so bailing deadlocks — no visible chips
+        // means no width, means no measurement, means the chips never come back.
         if (availableWidth === 0) {
             setOverflowStartIndex(currentIds.length);
             return;
@@ -74,14 +64,12 @@ export function useLabelsOverflow(ids: string[]) {
 
             const chipWidth = chipEl.getBoundingClientRect().width + (i === 0 ? 0 : CHIP_GAP);
 
-            // Everything after this chip has to fit alongside a +N, so the
-            // reserve only applies while chips remain.
+            // The reserve only applies while chips remain after this one.
             const isLast = i === currentIds.length - 1;
             const reserve = isLast ? 0 : OVERFLOW_CHIP_WIDTH + CHIP_GAP;
 
             if (usedWidth + chipWidth + reserve > availableWidth) {
-                // Always show at least one chip: a header showing only "+3"
-                // names no marking at all.
+                // At least one chip: a header showing only "+3" names no marking.
                 nextIndex = Math.max(1, i);
                 break;
             }
@@ -125,10 +113,8 @@ export function useLabelsOverflow(ids: string[]) {
         return () => registerChipRef('__container', null);
     }, [containerEl, registerChipRef]);
 
-    // Show everything the moment the set changes, then measure and shrink.
-    // Starting from "all visible" rather than the previous split matters on the
-    // first load: labels arrive after mount, so a stale index from the empty set
-    // would otherwise render a +N with no chips beside it.
+    // Show everything when the set changes, then measure and shrink. Labels arrive
+    // after mount, so a stale index from the empty set would render a +N alone.
     useEffect(() => {
         setOverflowStartIndex(ids.length);
         debouncedCalculateOverflow();

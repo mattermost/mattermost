@@ -12,13 +12,9 @@ export type ChannelAttributeValue = string | string[] | null;
 /**
  * Writes one attribute value for a channel.
  *
- * Clearing sends an explicit null and dispatches the delete action, because the
- * server answers a user-initiated clear with an upserted null-valued row rather
- * than a delete event — story 1 pinned that shape. Without the local dispatch
- * the cleared value would linger until a refetch.
- *
- * Mirrors the write the Channel Settings classification control already
- * performs, so both surfaces produce the same events.
+ * Clearing dispatches the delete itself: the server answers a user-initiated clear
+ * with an upserted null-valued row, not a delete event, so without this the
+ * cleared value lingers until a refetch.
  */
 export async function setChannelAttributeValue(
     dispatch: Dispatch,

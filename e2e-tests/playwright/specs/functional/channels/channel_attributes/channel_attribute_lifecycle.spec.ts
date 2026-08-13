@@ -58,9 +58,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             const displayName = `Attr Required ${suffix}`;
             await modal.fillDisplayName(displayName);
 
-            // Enforced by the dialog, not the server: POST /channels cannot carry
-            // values, so this is the only point the requirement can be applied
-            // before the channel exists.
+            // Enforced by the dialog: POST /channels cannot carry values.
             await expect(modal.createButton).toBeDisabled();
 
             await page.getByTestId(`channelAttribute-${required.name}`).click();
@@ -114,15 +112,14 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             const chips = page.getByTestId('attributeChip');
             await expect(chips.filter({hasText: 'BEFORE'}).first()).toBeVisible();
 
-            // Changed by someone else, with this session untouched. The websocket
-            // shapes story 2 pinned are what make this arrive.
+            // Changed elsewhere, this session untouched.
             await setChannelValue(adminClient, channel.id, program, optionId(program, 'AFTER'));
 
             await expect(chips.filter({hasText: 'AFTER'}).first()).toBeVisible();
             await expect(chips.filter({hasText: 'BEFORE'})).toHaveCount(0);
 
-            // Clearing is the shape most easily got wrong: the server answers a
-            // user-initiated clear with a null-valued row, not a delete event.
+            // The shape most easily got wrong: a clear returns a null-valued row,
+            // not a delete event.
             await setChannelValue(adminClient, channel.id, program, null);
 
             await expect(page.getByTestId('attributeChip')).toHaveCount(0);
@@ -152,9 +149,8 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             });
             created.push(required);
 
-            // Stands in for the case the feature cannot prevent: the channel exists
-            // and does not meet its own requirement, because the value write is a
-            // separate call from creation.
+            // The case the feature cannot prevent: a channel that exists without
+            // meeting its own requirement, because the write is a separate call.
             const channel = await adminClient.createChannel({
                 team_id: team.id,
                 name: `attr-unset-${suffix}`,
@@ -168,13 +164,12 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             await channelsPage.toBeVisible();
             await page.locator('#channel-info-btn').click();
 
-            // The empty row is the only thing telling an admin the channel is
-            // incomplete, and it is the retry path.
+            // The empty row is both the signal and the retry path.
             const row = page.getByTestId(`channelInfoAttributeRow-${required.name}`);
             await expect(row).toBeVisible();
             await expect(row).toContainText('Not set');
 
-            // No chip while unset: a chip with nothing in it says nothing.
+            // No chip while unset.
             await expect(page.getByTestId('attributeChip')).toHaveCount(0);
 
             await page.getByTestId(`channelInfoAttributeEdit-${required.name}`).click();
@@ -235,11 +230,10 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             await channelsPage.goto(team.name, channel.name);
             await channelsPage.toBeVisible();
 
-            // No manual text: falls back to the value name, which is what keeps an
-            // existing classification banner byte-identical.
+            // No manual text: falls back to the value name.
             await expect(page.getByTestId('channel_banner_text')).toContainText('RESTRICTED');
 
-            // A template composed of two attributes resolves against this channel.
+            // A two-attribute template resolves against this channel.
             await adminClient.patchChannel(channel.id, {
                 banner_info: {
                     enabled: true,
@@ -250,7 +244,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
 
             await expect(page.getByTestId('channel_banner_text')).toContainText('RESTRICTED · AURORA');
 
-            // A literal is not a template, and passes through untouched.
+            // A literal passes through untouched.
             await adminClient.patchChannel(channel.id, {
                 banner_info: {enabled: true, text: 'Handle with care', background_color: '#c8102e'},
             } as never);
@@ -286,8 +280,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
 
             const dm = await adminClient.createDirectChannel([user.id, other.id]);
 
-            // Values are not blocked at the API level — that path is needed for the
-            // derived case — but no DM surface may display them in this release.
+            // Not blocked at the API level, but no DM surface displays them.
             await setChannelValue(adminClient, dm.id, marking, optionId(marking, 'PRIVATE'));
 
             const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -340,9 +333,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             await expect(chip).toBeVisible();
             await expect(chip).toHaveCSS('background-color', 'rgb(30, 50, 92)');
 
-            // Contrast is derived rather than configured, so a dark background must
-            // produce light text. Colour is never the only carrier of meaning: the
-            // value name is in the chip text above.
+            // Contrast is derived, so a dark background must produce light text.
             await expect(chip).toHaveCSS('color', 'rgb(255, 255, 255)');
         } finally {
             await deleteAttributes(adminClient, created);

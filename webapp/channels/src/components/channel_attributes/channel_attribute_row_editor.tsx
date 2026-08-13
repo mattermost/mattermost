@@ -47,11 +47,8 @@ type Props = {
 };
 
 /**
- * The edit control for a single attribute row.
- *
- * A select commits as soon as a choice is made — there is nothing else to
- * confirm, and a separate save step on a one-field row is friction. Text commits
- * on blur or Enter, and Escape abandons the edit.
+ * The edit control for a single attribute row. A select commits on choice — a save
+ * step on a one-field row is friction. Text commits on blur or Enter; Escape abandons.
  */
 const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}: Props) => {
     const {formatMessage} = useIntl();
@@ -93,9 +90,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={handleTextKeyDown}
 
-                // Only writes if the text actually changed. Opening a row and
-                // clicking away is an abandoned edit, not a request to clear the
-                // value, and it must not cost a round trip.
+                // An abandoned edit is not a request to clear the value.
                 onBlur={() => {
                     const next = text.trim();
                     if (next === initialText) {

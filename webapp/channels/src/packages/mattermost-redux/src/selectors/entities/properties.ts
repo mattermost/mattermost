@@ -112,10 +112,8 @@ export const getPropertyValuesForField = createSelector(
 
 const EMPTY_FIELDS: PropertyField[] = [];
 
-// Ties break on name rather than create_at so the order a viewer sees is a
-// property of the configuration alone. Two fields created a millisecond apart
-// would otherwise order differently across servers restored from the same
-// export, and chip order is something people are told to read.
+// Ties break on name, not create_at: chip order is something people are told to
+// read, so it must follow the configuration rather than insertion timing.
 function sortByFieldOrder(fields: PropertyField[]): PropertyField[] {
     return [...fields].sort((a, b) => {
         const rankA = typeof a.attrs?.sort_order === 'number' ? a.attrs.sort_order : Number.MAX_SAFE_INTEGER;
@@ -124,9 +122,8 @@ function sortByFieldOrder(fields: PropertyField[]): PropertyField[] {
             return rankA - rankB;
         }
 
-        // Fixed locale on purpose: the default one is the viewer's, which would
-        // let two people on the same server see equal-ranked chips in different
-        // orders. Field names are CEL-safe ASCII slugs, so this is a total order.
+        // Fixed locale: the default is the viewer's, which would order equal-ranked
+        // chips differently per user. Names are ASCII slugs, so this is total.
         return a.name.localeCompare(b.name, 'en');
     });
 }

@@ -41,8 +41,7 @@ type PermissionChecker func(userID string, permission *model.Permission) bool
 //     ldap/saml on non-text fields)
 //   - auto-assigns IDs to options that lack one and validates option shape
 //   - validates visibility, value_type, managed, display_name, and sort_order
-//   - validates required and editable, the booleans describing a field's
-//     binding to its resource type, and removes either when explicitly unset
+//   - validates required and editable, removing either when explicitly unset
 //   - validates and canonicalizes actions, the render-placement allow-list
 //     shared by the classification banner and channel labels; on update this
 //     fires only when actions actually change, so a field carrying a value
@@ -203,10 +202,9 @@ var trimmedFieldAttrKeys = []string{
 	model.PropertyFieldAttrDisplayName,
 }
 
-// boolFieldAttrKeys lists the boolean-valued attrs the hook validates. Both
-// describe the field's binding to its resource type rather than the value, so
-// they carry no object_type branch here: scoping comes from the field's
-// ObjectType, as it does for every other key.
+// boolFieldAttrKeys lists the boolean-valued attrs the hook validates. No
+// object_type branch: scoping comes from the field's ObjectType, as for every
+// other key.
 var boolFieldAttrKeys = []string{
 	model.PropertyFieldAttrRequired,
 	model.PropertyFieldAttrEditable,

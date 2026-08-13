@@ -60,9 +60,8 @@ function toOptions(field: PropertyField): Option[] {
     return options.map((option) => ({label: option.name, value: option.id, color: option.color}));
 }
 
-// Any attribute whose options carry colours renders them, which is how
-// Classification keeps the swatches it had in its own dedicated section once it
-// becomes one attribute among many.
+// Renders option colours where they exist, which is how Classification keeps its
+// swatches once it becomes one attribute among many.
 function formatOptionLabel(option: Option) {
     if (!option.color) {
         return <span>{option.label}</span>;
@@ -133,10 +132,10 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                         >
                             {label}
                             {isPropertyFieldRequired(field) && (
-                                // Decorative: the control carries required={true} for
-                                // assistive technology, so the marker is hidden from it
-                                // rather than translated.
-                                // eslint-disable-next-line formatjs/no-literal-string-in-jsx
+
+                            // Decorative: the control carries required for assistive
+                            // technology, so the marker is hidden rather than translated.
+
                                 <span
                                     className='channel-attributes-form__required'
                                     aria-hidden={true}

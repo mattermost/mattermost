@@ -15,20 +15,14 @@ import {isPropertyFieldEditable} from 'mattermost-redux/utils/property_utils';
 import type {GlobalState} from 'types/store';
 
 /**
- * Whether the current user may change a given attribute's value on a channel.
+ * Whether the current user may set an attribute's value on a channel. Mirrors the
+ * server's permission_values tier rather than replacing it — the server stays
+ * authoritative; this only decides whether to offer an affordance that would fail.
  *
- * Mirrors the server's two gates rather than replacing them: the outer channel
- * permission, and the field's own permission_values tier evaluated against this
- * channel. The server stays authoritative — this only decides whether to offer
- * an affordance that would fail.
- *
- * attrs.editable is checked here too, but only against a value that already
- * exists: the key means "may not be *changed* once set", so a locked attribute
- * that was never filled — the channel whose creation-time write failed — must
- * still be fillable, or it is stranded as "Not set" forever.
- *
- * This is a display rule, not a permission. The server does not consult
- * attrs.editable on a value write, so the lock is advisory until it does.
+ * attrs.editable means "may not be *changed* once set", so it is checked only
+ * against an existing value: a locked attribute whose creation-time write failed
+ * must stay fillable, or it is stranded as "Not set" forever. The server does not
+ * consult the key at all, so that lock is advisory until it does.
  */
 export default function useCanSetChannelAttributes(channelId: string) {
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
@@ -52,9 +46,7 @@ export default function useCanSetChannelAttributes(channelId: string) {
             return false;
         }
 
-        // An empty tier means the server will apply its own default for the
-        // object type, which for a channel field is member. Treating it as
-        // member here keeps the affordance consistent with what the write will do.
+        // Empty means the server applies its default, which for a channel is member.
         switch (field.permission_values ?? '') {
         case 'none':
             return false;

@@ -132,28 +132,21 @@ const NewChannelModal = () => {
 
     const channelAttributes = useChannelAttributes();
 
-    // Superseded by the generic attribute section while the flag is on, so a
-    // channel's classification has one control here rather than two. Flag off
-    // leaves the shipped section exactly as it is.
+    // Superseded by the generic section while the flag is on, so classification has
+    // one control here rather than two.
     const canManageClassification = classification.available && isSystemAdmin && !channelAttributes.enabled;
     const [attributeValues, setAttributeValues] = useState<ChannelAttributeSelection>({});
     const [attributeError, setAttributeError] = useState('');
     const [createdChannel, setCreatedChannel] = useState<Channel | null>(null);
 
-    // Required attributes only. An optional one is not asked for at creation —
-    // it is added later from Channel Info, which is what keeps this dialog from
-    // growing a field for every attribute the server happens to define.
+    // Required only; optional ones are added later from Channel Info. Classification
+    // is one of these once the flag is on, and its dedicated section is suppressed
+    // in the same breath so the field never gets two controls.
     //
-    // Classification is included like any other attribute once the flag is on;
-    // its dedicated section below is suppressed in the same breath, so the field
-    // never gets two controls.
-    // The setter tier cannot be evaluated here — the target channel does not exist
-    // yet — so the section renders optimistically and the server stays
-    // authoritative. The one tier that can be judged without a channel is
-    // sysadmin, and it is excluded for everyone else: a required sysadmin-only
-    // attribute would otherwise disable Create for every ordinary user and block
-    // channel creation outright, which is a far worse failure than an unset
-    // marking.
+    // The setter tier cannot be evaluated without a channel, so this renders
+    // optimistically and the server stays authoritative. sysadmin is the exception:
+    // a required sysadmin-only attribute would disable Create for everyone else,
+    // which is a worse failure than an unset marking.
     const assignableAttributeFields = useMemo(() => {
         return channelAttributes.fields.filter((field) => {
             if (!isPropertyFieldRequired(field)) {
@@ -514,10 +507,8 @@ const NewChannelModal = () => {
     const pluginCreateGate = isBuiltInType(type) ? canCreateFromPluggable : pluginCanCreate;
     const classificationValid = !classificationEnabled || (Boolean(selectedClassificationId) && bannerText.trim().length > 0);
 
-    // Enforced by this dialog, not by the server: channel creation and the value
-    // write are separate calls, and POST /channels cannot carry values. A failed
-    // write therefore still leaves a channel that does not meet its own
-    // requirement — recoverable from Channel Info, but not guaranteed here.
+    // Enforced by the dialog, not the server: POST /channels cannot carry values, so
+    // a failed write still leaves a channel short of its own requirement.
     const requiredAttributesFilled = !isBuiltInType(type) || missingRequiredAttributes.length === 0;
 
     // Once the channel exists but its attributes failed to save, the only action

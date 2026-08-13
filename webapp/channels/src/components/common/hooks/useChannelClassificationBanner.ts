@@ -35,21 +35,15 @@ import useClassificationMarkings from './useClassificationMarkings';
 
 export type ChannelBannerPosition = typeof DISPLAY_BANNER_TOP | typeof DISPLAY_BANNER_BOTTOM;
 
+// The classification* names predate the generic path; they now mean "whichever
+// attribute designates a banner".
 export type ChannelClassificationBannerState = {
-
-    // Named for classification because that was the only attribute that could
-    // drive a banner when this shape was introduced. It now means "some
-    // attribute designates a banner on this channel".
     hasClassification: boolean;
     classificationBanner: ChannelBanner | undefined;
-
-    // The resolved option id of the banner-designating attribute.
     classificationId: string | undefined;
     bannerText: string | undefined;
 
-    // Where the designation asks for the banner. Optional so callers that build
-    // this shape by hand keep compiling; absent reads as top, which is where
-    // every existing classification banner already renders.
+    // Absent reads as top. Optional so callers building this shape by hand keep compiling.
     position?: ChannelBannerPosition;
 };
 
@@ -68,28 +62,13 @@ function bannerAction(field: PropertyField): ChannelBannerPosition | undefined {
 }
 
 /**
- * Resolves the effective banner display for a channel from whichever attribute
- * designates one. Its colour and text take priority over the channel's native
- * banner_info.
+ * Resolves the channel banner from whichever attribute designates one, taking
+ * priority over the channel's native banner_info. The value holds only an option
+ * id; the text lives in banner_info.text.
  *
- * The PropertyValue stores only the option id (a plain string). The banner text
- * lives in channel.banner_info.text so that the property value stays a single
- * scalar.
- *
- * Two resolution paths, deliberately:
- *
- *  - A designated attribute (attrs.actions carries display_banner_top or
- *    _bottom) resolves its colour and name from the field's own options. This is
- *    the generic path, and Classification is just one instance of it once an
- *    administrator designates it.
- *  - With nothing designated, it falls back to the classification field and
- *    reads colours from useClassificationMarkings' levels. That fallback is what
- *    keeps channels that already have a classification — and no actions on the
- *    field — rendering exactly as they do today.
- *
- * Field definitions are not fetched here. The channel header mounts the label
- * component for the same channel, which loads them; adding a second fetch would
- * duplicate a request on every channel switch.
+ * Falls back to the classification field when nothing is designated, reading its
+ * colours from useClassificationMarkings — that is what keeps channels with an
+ * existing classification rendering exactly as they do today.
  */
 export default function useChannelClassificationBanner(channelId: string): ChannelClassificationBannerState {
     const dispatch = useDispatch();
@@ -99,8 +78,8 @@ export default function useChannelClassificationBanner(channelId: string): Chann
     const hasEnterpriseLicense = isEnterpriseLicense(useSelector(getLicense));
     const channelFields = useSelector(getChannelAttributeFields);
 
-    // First by sort_order, so which attribute wins is a configuration decision
-    // rather than an accident of field creation order.
+    // First by sort_order, so which attribute wins is configuration rather than
+    // field creation order.
     const designated = useMemo(() => {
         if (!attributesEnabled || !hasEnterpriseLicense) {
             return undefined;
@@ -122,17 +101,13 @@ export default function useChannelClassificationBanner(channelId: string): Chann
 
     const channelBannerInfo = useSelector((state: GlobalState) => getChannelBanner(state, channelId));
 
-    // The manual banner text is a template, so the values it references have to
-    // be resolved here — rendering it only in the composer's preview would show
-    // the author "TOP SECRET" while every member saw "{{classification}}".
+    // banner_info.text is a template. Resolving it only in the composer's preview
+    // would show the author "TOP SECRET" while members saw "{{classification}}".
     const getResolvedChannelAttributes = useMemo(() => makeGetResolvedChannelAttributes(), []);
     const resolvedAttributes = useSelector((state: GlobalState) => getResolvedChannelAttributes(state, channelId));
 
-    // Field definitions, so the banner works on surfaces that do not also render
-    // the header chips — a popout window, or a channel where the label component
-    // is not mounted. Dispatched without chaining: the result is read from the
-    // store, and awaiting it here would duplicate useChannelAttributes' own
-    // bookkeeping for no gain.
+    // Loaded here too, so the banner works on surfaces that never mount the header
+    // chips — a popout, or a channel where the label component is absent.
     useEffect(() => {
         if (!attributesEnabled || !hasEnterpriseLicense || channelFields.length > 0) {
             return;
@@ -145,12 +120,9 @@ export default function useChannelClassificationBanner(channelId: string): Chann
         ));
     }, [attributesEnabled, hasEnterpriseLicense, channelFields.length, dispatch]);
 
-    // This one request returns every access_control value on the channel, not just
-    // the banner's, so it is also what populates the values the header chips and
-    // Channel Info read. It therefore has to fire when channel attributes are on
-    // even if Classification Markings is off, or those surfaces stay empty.
-    // Deliberately not gated on fields having loaded: the two are independent
-    // requests, and gating values on fields would deadlock a surface where
+    // Returns every access_control value on the channel, so this also feeds the
+    // header chips and Channel Info — hence firing with Classification Markings off.
+    // Not gated on fields having loaded: that would deadlock a surface where
     // nothing else loads them.
     const shouldLoadValues = Boolean(channelId) && (
         (classification.available && Boolean(classification.channelField)) ||
@@ -198,10 +170,9 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             return noBanner;
         }
 
-        // Classification's levels are optionsToLevels(field.attrs.options), so both
-        // branches read the same definition; the level lookup is kept for the
-        // fallback path because that is where the shipped banner's colours and
-        // ranks come from today.
+        // Both branches read the same definition — levels are
+        // optionsToLevels(field.attrs.options) — but the level lookup stays because
+        // that is where the shipped banner's colours come from today.
         let name: string | undefined;
         let color: string | undefined;
 
@@ -218,17 +189,14 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             }
         }
 
-        // An option that no longer exists renders nothing rather than a banner
-        // with an unresolvable value in it.
+        // A deleted option renders nothing rather than an unresolvable banner.
         if (!name) {
             return noBanner;
         }
 
-        // A literal with no tokens passes through untouched, which is what keeps
-        // every banner written before this feature byte-identical.
-        const bannerText = channelBannerInfo?.text ?
-            renderBannerTemplate(channelBannerInfo.text, resolvedAttributes) :
-            `**${name}**`;
+        // A literal with no tokens passes through untouched, keeping pre-existing
+        // banners byte-identical.
+        const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, resolvedAttributes) : `**${name}**`;
 
         return {
             hasClassification: true,
