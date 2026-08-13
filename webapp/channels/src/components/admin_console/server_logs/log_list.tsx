@@ -108,9 +108,11 @@ function loadPrefs(): StoredPrefs {
 }
 
 // Identifies a row by its content instead of its position, so a reload or a
-// live-tail poll does not move the expanded row somewhere else
+// live-tail poll does not move the expanded row somewhere else. Every field
+// counts: concurrent requests log the same message from the same caller within
+// the same millisecond, and keying on those three alone made them collide.
 function logKey(log: LogObjectWithAdditionalInfo): string {
-    return `${log.timestamp}|${log.caller}|${log.msg}`;
+    return Object.keys(log).sort().map((field) => `${field}=${String(log[field])}`).join('|');
 }
 
 // Content based keys keep the rows mounted across a reload or a sort toggle.
@@ -228,6 +230,13 @@ export default function LogList({
 
     const rowKeys = getRowKeys(visibleLogs);
 
+    // Read by the row callbacks, which stay referentially stable so the memoized
+    // rows do not all re-render whenever the parent does
+    const visibleLogsRef = useRef(visibleLogs);
+    visibleLogsRef.current = visibleLogs;
+    const rowKeysRef = useRef(rowKeys);
+    rowKeysRef.current = rowKeys;
+
     // Reset to page 0 when filters or sort order change
     useEffect(() => {
         setPage(0);
@@ -271,15 +280,17 @@ export default function LogList({
         });
     }, []);
 
+    // Byte-identical entries share a log key, so the row's disambiguated key is
+    // what decides which single row is expanded
     const handleToggleExpand = useCallback((log: LogObjectWithAdditionalInfo) => {
-        const key = logKey(log);
+        const idx = visibleLogsRef.current.indexOf(log);
+        const key = idx === -1 ? logKey(log) : rowKeysRef.current[idx];
         setExpandedKey((prev) => (prev === key ? null : key));
     }, []);
 
     const handleFocus = useCallback((log: LogObjectWithAdditionalInfo) => {
-        const idx = visibleLogs.indexOf(log);
-        setFocusedIndex(idx);
-    }, [visibleLogs]);
+        setFocusedIndex(visibleLogsRef.current.indexOf(log));
+    }, []);
 
     const goNextPage = useCallback(() => {
         setPage((p) => Math.min(p + 1, totalPages - 1));
@@ -644,7 +655,7 @@ export default function LogList({
                     <LogRow
                         key={rowKeys[idx]}
                         log={log}
-                        isExpanded={expandedKey === logKey(log)}
+                        isExpanded={expandedKey === rowKeys[idx]}
                         isFocused={focusedIndex === idx}
                         onToggleExpand={handleToggleExpand}
                         onFocus={handleFocus}

@@ -8,6 +8,7 @@ import {LogLevelEnum} from '@mattermost/types/admin';
 import {renderWithContext, userEvent, screen, waitFor, within} from 'tests/react_testing_utils';
 
 import Logs from './logs';
+import type {LogObjectWithAdditionalInfo} from './types';
 
 describe('components/admin_console/server_logs/Logs', () => {
     // Log dataset
@@ -176,7 +177,7 @@ describe('components/admin_console/server_logs/Logs refetching', () => {
         worker: 'worker 2',
     }];
 
-    const renderLogs = (logsProp: typeof logs) => (
+    const renderLogs = (logsProp: LogObjectWithAdditionalInfo[]) => (
         <Logs
             logs={logsProp}
             plainLogs={[]}
@@ -195,5 +196,47 @@ describe('components/admin_console/server_logs/Logs refetching', () => {
         rerender(renderLogs(logs.map((log) => ({...log}))));
 
         expect(document.querySelector('.LogRow__details')).toBeInTheDocument();
+    });
+
+    test('should expand only the clicked row when entries share a timestamp, caller and message', async () => {
+        // Concurrent requests log the same message from the same caller inside the
+        // same millisecond, differing only in the fields further down the entry
+        const shared = {
+            caller: 'web/handlers.go:184',
+            job_id: '',
+            level: LogLevelEnum.DEBUG,
+            msg: 'Received HTTP request',
+            timestamp: '2026-08-13 13:02:17.904 +02:00',
+            worker: '',
+        };
+        const concurrent = [
+            {...shared, request_id: 'first-request'},
+            {...shared, request_id: 'second-request'},
+        ];
+
+        renderWithContext(renderLogs(concurrent));
+
+        await userEvent.click((await screen.findAllByText('Received HTTP request'))[0]);
+
+        expect(document.querySelectorAll('.LogRow__details')).toHaveLength(1);
+        expect(screen.getByText('first-request')).toBeInTheDocument();
+        expect(screen.queryByText('second-request')).not.toBeInTheDocument();
+    });
+
+    test('should expand only the clicked row when entries are identical', async () => {
+        const duplicate = {
+            caller: 'web/handlers.go:184',
+            job_id: '',
+            level: LogLevelEnum.DEBUG,
+            msg: 'Received HTTP request',
+            timestamp: '2026-08-13 13:02:17.904 +02:00',
+            worker: '',
+        };
+
+        renderWithContext(renderLogs([{...duplicate}, {...duplicate}]));
+
+        await userEvent.click((await screen.findAllByText('Received HTTP request'))[1]);
+
+        expect(document.querySelectorAll('.LogRow__details')).toHaveLength(1);
     });
 });
