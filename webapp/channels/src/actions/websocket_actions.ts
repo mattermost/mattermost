@@ -1482,7 +1482,7 @@ export function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValue
         };
 
         const {object_type: objectType, target_id: targetId, field_id: fieldId} = msg.data;
-        const isTargetScoped = Boolean(objectType && targetId);
+        const isTargetScoped = objectType !== undefined && targetId !== undefined;
 
         if (!isTargetScoped && fieldId) {
             doDispatch({

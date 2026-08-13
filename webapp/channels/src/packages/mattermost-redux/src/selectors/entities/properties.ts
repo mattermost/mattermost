@@ -188,8 +188,7 @@ function resolveDisplayValue(field: PropertyField, raw: unknown): {option?: Prop
 
     if (Array.isArray(raw)) {
         const names = raw.
-            map((id) => options.find((option) => option.id === id)?.name).
-            filter((name): name is string => Boolean(name));
+            map((id) => options.find((option) => option.id === id)?.name ?? String(id));
         return {displayValue: names.join(', ')};
     }
 

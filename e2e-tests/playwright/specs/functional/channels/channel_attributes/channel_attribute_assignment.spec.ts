@@ -166,12 +166,12 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
 
             // Fail only the value write. Channel creation must still succeed, so
             // this proves the error is reported rather than the channel rolled back.
-            await page.route('**/api/v4/properties/groups/access_control/channel/values/**', (route) => {
+            await page.route('**/api/v4/properties/groups/access_control/channel/values/**', async (route) => {
                 if (route.request().method() === 'PATCH') {
-                    route.fulfill({status: 500, body: '{"message":"forced failure"}'});
+                    await route.fulfill({status: 500, body: '{"message":"forced failure"}'});
                     return;
                 }
-                route.continue();
+                await route.continue();
             });
 
             const modal = await channelsPage.openNewChannelModal();
@@ -182,8 +182,8 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
             await page.getByText('AURORA', {exact: true}).click();
             await modal.create();
 
-            // The error names the attribute that was not saved.
-            await expect(page.getByText(program.name, {exact: false})).toBeVisible();
+            // Assert the save-failure banner, not the attribute label already visible in the form.
+            await expect(page.getByText(/these attributes were not saved/i)).toBeVisible();
 
             const channel = await adminClient.getChannelByName(team.id, displayName.toLowerCase().replace(/\s+/g, '-'));
             expect(channel.delete_at).toBe(0);

@@ -112,7 +112,7 @@ describe('ChannelAttributesForm', () => {
         expect(onChange).toHaveBeenCalledWith('f_caveats', ['opt_a', 'opt_b']);
     });
 
-    test('reports undefined when a text value is emptied, so no row is written', () => {
+    test('reports undefined when a text value is emptied, so no row is written', async () => {
         const onChange = jest.fn();
         const note = field({id: 'f_note', name: 'note', type: 'text'});
 
@@ -124,7 +124,7 @@ describe('ChannelAttributesForm', () => {
             />,
         );
 
-        userEvent.clear(screen.getByLabelText('note'));
+        await userEvent.clear(screen.getByLabelText('note'));
 
         expect(onChange).toHaveBeenCalledWith('f_note', undefined);
     });
