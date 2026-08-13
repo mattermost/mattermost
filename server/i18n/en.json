@@ -11835,6 +11835,10 @@
     "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
   },
   {
+    "id": "model.config.is_valid.apps_feature_flag.app_error",
+    "translation": "The AppsEnabled feature flag is no longer supported and must be disabled. Please set the AppsEnabled feature flag to false to start the server."
+  },
+  {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
     "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
   },

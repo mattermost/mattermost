@@ -497,6 +497,23 @@ func TestFileStoreSet(t *testing.T) {
 		assert.Equal(t, "", *configStore.Get().ServiceSettings.SiteURL)
 	})
 
+	t.Run("AppsEnabled feature flag rejected", func(t *testing.T) {
+		configStore, tearDown := setupConfigFileStore(t, emptyConfig)
+		defer tearDown()
+
+		newCfg := &model.Config{}
+		newCfg.FeatureFlags = &model.FeatureFlags{}
+		newCfg.FeatureFlags.SetDefaults()
+		newCfg.FeatureFlags.AppsEnabled = true
+
+		_, _, err := configStore.Set(newCfg)
+		if assert.Error(t, err) {
+			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.apps_feature_flag.app_error")
+		}
+
+		assert.False(t, configStore.Get().FeatureFlags.AppsEnabled)
+	})
+
 	t.Run("read-only", func(t *testing.T) {
 		configStore, tearDown := setupConfigFileStore(t, readOnlyConfig)
 		defer tearDown()

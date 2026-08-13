@@ -114,6 +114,25 @@ func TestConfigIsValid(t *testing.T) {
 			require.Nil(t, c.IsValid())
 		})
 	})
+
+	t.Run("AppsEnabled feature flag", func(t *testing.T) {
+		t.Run("disabled is valid", func(t *testing.T) {
+			c := Config{}
+			c.SetDefaults()
+			c.FeatureFlags.AppsEnabled = false
+			require.Nil(t, c.IsValid())
+		})
+
+		t.Run("enabled is rejected", func(t *testing.T) {
+			c := Config{}
+			c.SetDefaults()
+			c.FeatureFlags.AppsEnabled = true
+
+			appErr := c.IsValid()
+			require.NotNil(t, appErr)
+			require.Equal(t, "model.config.is_valid.apps_feature_flag.app_error", appErr.Id)
+		})
+	})
 }
 
 func TestAccessControlSettingsIsValid(t *testing.T) {
