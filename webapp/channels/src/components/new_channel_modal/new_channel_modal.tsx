@@ -25,6 +25,7 @@ import {get as getPreference} from 'mattermost-redux/selectors/entities/preferen
 import {haveICurrentChannelPermission, haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
 
 import {switchToChannel} from 'actions/views/channel';
 import {closeModal} from 'actions/views/modals';
@@ -34,7 +35,6 @@ import {classificationPresetDropdownStyles} from 'components/admin_console/class
 import CategorySelector from 'components/category_selector/category_selector';
 import type {ChannelAttributeSelection} from 'components/channel_attributes/channel_attributes_form';
 import ChannelAttributesForm from 'components/channel_attributes/channel_attributes_form';
-import {isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import {
     CHANNEL_BANNER_MAX_CHARACTER_LIMIT,
