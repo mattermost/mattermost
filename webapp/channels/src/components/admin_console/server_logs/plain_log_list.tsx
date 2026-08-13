@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 
@@ -24,6 +24,11 @@ type Props = {
 };
 
 const NO_LOGS: string[] = [];
+
+const sortMessages = defineMessages({
+    newestFirst: {id: 'admin.logs.sortNewestFirst', defaultMessage: 'Sort newest first'},
+    oldestFirst: {id: 'admin.logs.sortOldestFirst', defaultMessage: 'Sort oldest first'},
+});
 
 // Represents a highlighted line: either JSON (highlighted by highlight.js, keyed
 // by its own text) or a React node (plain log)
@@ -344,10 +349,7 @@ export default function PlainLogList({
                         type='button'
                         className={`PlainLogViewer__action-btn ${newestFirst ? 'PlainLogViewer__action-btn--active' : ''}`}
                         onClick={() => setNewestFirst(!newestFirst)}
-                        title={newestFirst ?
-                            intl.formatMessage({id: 'admin.logs.sortOldestFirst', defaultMessage: 'Sort oldest first'}) :
-                            intl.formatMessage({id: 'admin.logs.sortNewestFirst', defaultMessage: 'Sort newest first'})
-                        }
+                        title={intl.formatMessage(newestFirst ? sortMessages.oldestFirst : sortMessages.newestFirst)}
                     >
                         <i className={newestFirst ? 'icon icon-arrow-down' : 'icon icon-arrow-up'}/>
                         {newestFirst ? (

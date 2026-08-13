@@ -159,3 +159,42 @@ describe('components/admin_console/server_logs/Logs', () => {
         expect(screen.getByText('24h')).toBeInTheDocument();
     });
 });
+
+describe('components/admin_console/server_logs/Logs refetching', () => {
+    const logs = [{
+        caller: 'caller 1',
+        job_id: 'job_id 1',
+        level: LogLevelEnum.INFO,
+        msg: 'msg 1',
+        timestamp: 'timestamp 1',
+        worker: 'worker 1',
+    }, {
+        caller: 'caller 2',
+        job_id: 'job_id 2',
+        level: LogLevelEnum.INFO,
+        msg: 'msg 2',
+        timestamp: 'timestamp 2',
+        worker: 'worker 2',
+    }];
+
+    const renderLogs = (logsProp: typeof logs) => (
+        <Logs
+            logs={logsProp}
+            plainLogs={[]}
+            isPlainLogs={false}
+            actions={{getLogs: jest.fn(), getPlainLogs: jest.fn()}}
+        />
+    );
+
+    test('should keep the expanded row expanded when the logs are refetched', async () => {
+        const {rerender} = renderWithContext(renderLogs(logs));
+
+        await userEvent.click(await screen.findByText('msg 2'));
+        expect(document.querySelector('.LogRow__details')).toBeInTheDocument();
+
+        // A reload or a live-tail poll hands down a new array of equal entries
+        rerender(renderLogs(logs.map((log) => ({...log}))));
+
+        expect(document.querySelector('.LogRow__details')).toBeInTheDocument();
+    });
+});
