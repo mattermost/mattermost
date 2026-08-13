@@ -1,0 +1,44 @@
+.ChannelInfoAttributes {
+    margin-bottom: 12px;
+
+    // Matches ChannelDescriptionHeading in about_area_channel.tsx, so this block
+    // reads as a sibling of CHANNEL PURPOSE rather than a new kind of section.
+    &__heading {
+        padding: 4px 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.24px;
+        line-height: 16px;
+        text-transform: uppercase;
+    }
+
+    &__row {
+        display: flex;
+        min-height: 28px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    &__label {
+        display: inline-flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.9);
+        gap: 4px;
+
+        svg {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+    }
+
+    &__value {
+        display: inline-flex;
+        min-width: 0;
+        align-items: center;
+    }
+
+    &__empty {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+}
