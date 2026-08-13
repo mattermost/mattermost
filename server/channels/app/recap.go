@@ -15,6 +15,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+// recapDefaultFetchLimit caps how many posts a single channel contributes to a
+// recap regardless of configured limits.
+const recapDefaultFetchLimit = 100
+
 // CreateRecap creates a new recap job for the specified channels
 func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, agentID string) (*model.Recap, *model.AppError) {
 	if appErr := a.requireAIRecapsEnabled("CreateRecap"); appErr != nil {
@@ -314,9 +318,23 @@ func (a *App) ProcessRecapChannelWithOptions(rctx request.CTX, recapID, channelI
 	}
 	fetchSince, allowRecentFallback := recapFetchStartAt(options.TimePeriod, lastViewedAt, time.Now())
 
-	remainingPosts, limitErr := a.getRemainingPostsForRecap(userID, recapID)
-	if limitErr != nil {
-		return result, limitErr
+	// With a job-local budget (recap job worker), reservations are atomic and
+	// cross-channel exact; without one (direct callers), fall back to the
+	// per-channel database recomputation.
+	var remainingPosts int
+	consumedPosts := 0
+	if options.PostBudget != nil {
+		remainingPosts = options.PostBudget.Reserve(recapDefaultFetchLimit)
+		granted := remainingPosts
+		defer func() {
+			options.PostBudget.Refund(granted - consumedPosts)
+		}()
+	} else {
+		var limitErr *model.AppError
+		remainingPosts, limitErr = a.getRemainingPostsForRecap(userID, recapID)
+		if limitErr != nil {
+			return result, limitErr
+		}
 	}
 	if remainingPosts == 0 {
 		if appErr := a.saveRecapChannelRecord(recapID, channel.Id, channel.DisplayName, nil, nil, nil); appErr != nil {
@@ -371,12 +389,14 @@ func (a *App) ProcessRecapChannelWithOptions(rctx request.CTX, recapID, channelI
 		if saveErr := a.saveRecapChannelRecord(recapID, channel.Id, channel.DisplayName, nil, nil, sourcePostIDs); saveErr != nil {
 			return result, saveErr
 		}
+		consumedPosts = len(sourcePostIDs)
 		return result, err
 	}
 
 	if appErr := a.saveRecapChannelRecord(recapID, channelID, channel.DisplayName, summary.Highlights, summary.ActionItems, sourcePostIDs); appErr != nil {
 		return result, appErr
 	}
+	consumedPosts = len(sourcePostIDs)
 
 	result.MessageCount = len(posts)
 	result.Success = true
@@ -433,14 +453,35 @@ func (a *App) fetchPostsForRecapWithFallback(rctx request.CTX, channelID string,
 		}
 	}
 
-	// Enrich with usernames
+	// Enrich with usernames via one batch profile fetch instead of one store
+	// read per post. Best-effort, matching the previous per-post lookup that
+	// ignored errors: the summarizer falls back to raw user IDs.
+	userIDs := make([]string, 0, len(posts))
+	seenUserIDs := make(map[string]struct{}, len(posts))
 	for _, post := range posts {
-		user, _ := a.GetUser(post.UserId)
-		if user != nil {
+		if _, ok := seenUserIDs[post.UserId]; !ok {
+			seenUserIDs[post.UserId] = struct{}{}
+			userIDs = append(userIDs, post.UserId)
+		}
+	}
+
+	usernames := make(map[string]string, len(userIDs))
+	if len(userIDs) > 0 {
+		users, usersErr := a.Srv().Store().User().GetProfileByIds(rctx, userIDs, &store.UserGetByIdsOpts{}, true)
+		if usersErr != nil {
+			rctx.Logger().Debug("Failed to fetch profiles for recap username enrichment", mlog.Err(usersErr))
+		}
+		for _, user := range users {
+			usernames[user.Id] = user.Username
+		}
+	}
+
+	for _, post := range posts {
+		if username, ok := usernames[post.UserId]; ok {
 			if post.Props == nil {
 				post.Props = make(model.StringInterface)
 			}
-			post.AddProp("username", user.Username)
+			post.AddProp("username", username)
 		}
 	}
 
@@ -519,14 +560,12 @@ func (a *App) checkManualRecapCooldown(userID string, limits *model.EffectiveRec
 }
 
 func (a *App) getRemainingPostsForRecap(userID string, recapID string) (int, *model.AppError) {
-	const defaultFetchLimit = 100
-
 	limits, limitsErr := a.GetEffectiveLimits()
 	if limitsErr != nil {
 		return 0, limitsErr
 	}
 
-	remaining := defaultFetchLimit
+	remaining := recapDefaultFetchLimit
 	currentRecapPosts, appErr := a.countCurrentRecapSourcePosts(recapID)
 	if appErr != nil {
 		return 0, appErr
@@ -577,6 +616,33 @@ func (a *App) countCurrentRecapSourcePosts(recapID string) (int, *model.AppError
 		count += len(recapChannel.SourcePostIds)
 	}
 	return count, nil
+}
+
+// NewRecapPostBudgetForUser builds the job-local post budget for a recap job:
+// the per-recap component is the full MaxPostsPerRecap (regeneration deletes
+// RecapChannels rows before enqueueing, so a starting job never has prior
+// source posts), and the per-day component is MaxPostsPerDay minus the user's
+// usage so far today, snapshotted once.
+func (a *App) NewRecapPostBudgetForUser(userID string) (*model.RecapPostBudget, *model.AppError) {
+	limits, limitsErr := a.GetEffectiveLimits()
+	if limitsErr != nil {
+		return nil, limitsErr
+	}
+
+	usedToday := int64(0)
+	if model.IsLimitEnabled(limits.MaxPostsPerDay) {
+		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(userID)
+		if dayErr != nil {
+			return nil, dayErr
+		}
+		var storeErr error
+		usedToday, storeErr = a.Srv().Store().Recap().SumTotalMessageCountForUserSince(userID, startOfDayMillis)
+		if storeErr != nil {
+			return nil, model.NewAppError("NewRecapPostBudgetForUser", "app.recap.sum_daily_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
+	}
+
+	return model.NewRecapPostBudget(limits.MaxPostsPerRecap, limits.MaxPostsPerDay, usedToday), nil
 }
 
 // estimateTokens estimates token count for text using conservative 4 chars/token heuristic.
