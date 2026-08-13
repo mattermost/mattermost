@@ -379,6 +379,51 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         });
     });
 
+    it('MM-69928 should not create a synced/visible draft when editing a post and unmounting', async () => {
+        const editStorageKey = StoragePrefixes.EDIT_DRAFT + 'post_id_1';
+        const {unmount} = renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+                postId='post_id_1'
+                isInEditMode={true}
+                storageKey={editStorageKey}
+            />,
+            mergeObjects(initialState, {
+                entities: {
+                    general: {
+                        config: {
+                            AllowSyncedDrafts: 'true',
+                        },
+                    },
+                },
+                storage: {
+                    storage: {
+                        [editStorageKey]: {
+                            value: TestHelper.getPostDraftMock({
+                                message: 'original message',
+                                channelId,
+                            }),
+                        },
+                    },
+                },
+            }),
+        );
+
+        await userEvent.type(screen.getByTestId('edit_textbox'), ' edited');
+
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
+
+        unmount();
+
+        // The edit content may be persisted locally, but it must never be flagged
+        // as visible (show) or synced to the server (save), which would surface it
+        // as a draft in the drafts UI.
+        mockedUpdateDraft.mock.calls.forEach((call) => {
+            expect(call[1]).not.toMatchObject({show: true});
+            expect(call[3]).toBeFalsy();
+        });
+    });
+
     it('should deleted a deleted draft when changing channels', async () => {
         const {rerender} = renderWithContext(
             <AdvancedTextEditor

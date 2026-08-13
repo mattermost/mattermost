@@ -937,6 +937,51 @@ func mergeBoardsStatusColors(attrs model.StringInterface, colorByName map[string
 	return out
 }
 
+// syncSessionAttributeOptions replaces the persisted select options on an
+// already-seeded session attribute field with the ones the schema declares.
+// Each existing option's ID is reused by name so IDs stay stable across
+// restarts, while a field the schema has converted from text to select picks
+// up its options for the first time. Options are dropped entirely for fields
+// the schema declares without them, so a select → text conversion doesn't
+// leave the UI rendering a stale dropdown.
+func syncSessionAttributeOptions(current, expected *model.PropertyField) error {
+	expectedOptions, ok := expected.Attrs[model.PropertyFieldAttributeOptions]
+	if !ok {
+		delete(current.Attrs, model.PropertyFieldAttributeOptions)
+		return nil
+	}
+
+	idByName := make(map[string]string)
+	if raw, found := current.Attrs[model.PropertyFieldAttributeOptions]; found {
+		currentOptions, err := model.NewPropertyOptionsFromFieldAttrs[*model.PluginPropertyOption](raw)
+		if err != nil {
+			return fmt.Errorf("failed to read persisted options: %w", err)
+		}
+		for _, option := range currentOptions {
+			idByName[option.GetName()] = option.GetID()
+		}
+	}
+
+	options, err := model.NewPropertyOptionsFromFieldAttrs[*model.PluginPropertyOption](expectedOptions)
+	if err != nil {
+		return fmt.Errorf("failed to read schema options: %w", err)
+	}
+
+	// Written back as []any of map[string]any, the canonical attrs shape every
+	// downstream reader of attrs["options"] expects.
+	merged := make([]any, len(options))
+	for i, option := range options {
+		id := option.GetID()
+		if existingID, found := idByName[option.GetName()]; found {
+			id = existingID
+		}
+		merged[i] = map[string]any{"id": id, "name": option.GetName()}
+	}
+	current.Attrs[model.PropertyFieldAttributeOptions] = merged
+
+	return nil
+}
+
 // seedSessionAttributeFields idempotently seeds the built-in session attribute property fields.
 func (s *Server) seedSessionAttributeFields(groupID string) error {
 	existing, err := s.propertyService.SearchPropertyFields(nil, groupID, model.PropertyFieldSearchOpts{PerPage: 100})
@@ -957,6 +1002,14 @@ func (s *Server) seedSessionAttributeFields(groupID string) error {
 			current.Type = expected.Type
 			current.Attrs["platforms"] = expected.Attrs["platforms"]
 			current.Attrs[model.SAAttrDisplayName] = expected.Attrs[model.SAAttrDisplayName]
+			if operators, ok := expected.Attrs[model.NativeAttributeAttrOperators]; ok {
+				current.Attrs[model.NativeAttributeAttrOperators] = operators
+			} else {
+				delete(current.Attrs, model.NativeAttributeAttrOperators)
+			}
+			if err := syncSessionAttributeOptions(current, expected); err != nil {
+				return fmt.Errorf("failed to sync options for session attribute field %q: %w", expected.Name, err)
+			}
 			current.ObjectType = expected.ObjectType
 			current.TargetType = expected.TargetType
 			current.Protected = expected.Protected

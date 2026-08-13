@@ -1076,7 +1076,8 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if useAbacFilter {
 			cursorId := r.URL.Query().Get("cursor_id")
-			profiles, appErr = c.App.GetUsersNotInAbacTeam(c.AppContext, notInTeamId, cursorId, c.Params.PerPage, c.IsSystemAdmin())
+			term := r.URL.Query().Get("term")
+			profiles, appErr = c.App.GetUsersNotInAbacTeam(c.AppContext, notInTeamId, term, cursorId, c.Params.PerPage, c.IsSystemAdmin())
 		} else {
 			etag = c.App.GetUsersNotInTeamEtag(inTeamId, restrictions.Hash())
 			if c.HandleEtag(etag, "Get Users Not in Team", w, r) {
@@ -2934,6 +2935,12 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if switchRequest.OAuthToEmail() {
 		c.SessionRequired()
 		if c.Err != nil {
+			return
+		}
+
+		if c.AppContext.Session().IsOAuth {
+			c.SetPermissionError(model.PermissionEditOtherUsers)
+			c.Err.DetailedError += ", attempted access by oauth app"
 			return
 		}
 

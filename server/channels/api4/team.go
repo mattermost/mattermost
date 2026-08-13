@@ -227,12 +227,39 @@ func getTeamAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reque
 		}
 	}
 
+	// Team admins can read this route but cannot fetch a parent policy directly.
+	// Resolve the parents this team imports so the tab can name them in the
+	// system-policy banner and AND their rules into its member counts. Project to
+	// id/name/rules only: the parents' assignment metadata (scope, child_ids) spans
+	// other teams and must not leak. Expressions are masked as elsewhere.
+	var parentPolicies []*model.AccessControlPolicy
+	if policy != nil {
+		redact := shouldRedactExpressions(c)
+		for _, importID := range policy.Imports {
+			parent, parentErr := c.App.GetAccessControlPolicy(c.AppContext, importID)
+			if parentErr != nil {
+				c.Logger.Warn("Skipping unresolved imported parent policy", mlog.String("policy_id", importID), mlog.Err(parentErr))
+				continue
+			}
+			if redact {
+				c.App.MaskPolicyExpressions(c.AppContext, parent, c.AppContext.Session().UserId)
+			}
+			parentPolicies = append(parentPolicies, &model.AccessControlPolicy{
+				ID:    parent.ID,
+				Name:  parent.Name,
+				Rules: parent.Rules,
+			})
+		}
+	}
+
 	resp := struct {
-		Policy   *model.AccessControlPolicy `json:"policy"`
-		Enforced bool                       `json:"enforced"`
+		Policy         *model.AccessControlPolicy   `json:"policy"`
+		Enforced       bool                         `json:"enforced"`
+		ParentPolicies []*model.AccessControlPolicy `json:"parent_policies,omitempty"`
 	}{
-		Policy:   policy,
-		Enforced: enforced,
+		Policy:         policy,
+		Enforced:       enforced,
+		ParentPolicies: parentPolicies,
 	}
 
 	js, err := json.Marshal(resp)
@@ -299,8 +326,8 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		flaggedPostId := r.URL.Query().Get("flagged_post_id")
-		requireFlaggedPost(c, flaggedPostId)
-		if c.Err != nil {
+		if flaggedPostId == "" {
+			c.SetInvalidParam("flagged_post_id")
 			return
 		}
 
@@ -316,8 +343,18 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		checkChannelFlaggable(c, channel)
+		if c.Err != nil {
+			return
+		}
+
 		if channel.TeamId != team.Id {
 			c.Err = model.NewAppError("getTeam", "api.team.get_team.flagged_post_mismatch.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		requireFlaggedPost(c, flaggedPostId)
+		if c.Err != nil {
 			return
 		}
 

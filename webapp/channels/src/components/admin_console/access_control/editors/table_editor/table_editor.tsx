@@ -4,7 +4,7 @@
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import type {AccessControlVisualAST} from '@mattermost/types/access_control';
+import type {AccessControlTestResult, AccessControlVisualAST} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {SESSION_ATTRIBUTES_OBJECT_TYPE, isSessionAttributeField} from '@mattermost/types/properties_user';
 
@@ -20,7 +20,7 @@ import ValueSelectorMenu from './value_selector_menu';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
 import TestResultsModal from '../../modals/policy_test/test_modal';
-import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isRankOperator, isNativeMethodOperator, celPathFor, isNativeField, isNativeBooleanField, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
+import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isRankOperator, isNativeMethodOperator, isFieldAdvertisedOperator, celPathFor, isNativeField, isNativeBooleanField, hasControlledAttributeValues, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, valuePlaceholderForOperator, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
 
 import './table_editor.scss';
 
@@ -110,7 +110,7 @@ export function isRowValueValid(row: TableRow): boolean {
     return true;
 }
 
-interface TableEditorProps {
+export interface TableEditorProps {
     value: string;
     onChange: (value: string) => void;
     onValidate?: (isValid: boolean) => void;
@@ -122,6 +122,9 @@ interface TableEditorProps {
     teamId?: string;
     actions: {
         getVisualAST: (expr: string) => Promise<ActionResult>;
+
+        /** Overrides the searchUsersForExpression thunk backing the built-in TestResultsModal. */
+        searchUsers?: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
     };
 
     // Props for user self-exclusion detection
@@ -168,10 +171,7 @@ export const findFirstAvailableAttributeFromList = (
         // Mirror AttributeSelectorMenu: session attributes are always
         // selectable, so a session-only attribute set must yield a usable
         // default instead of failing rule creation.
-        const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
-        const isAdminManaged = attr.attrs?.managed === 'admin';
-        const isProtected = attr.attrs?.protected;
-        const allowed = isSessionAttributeField(attr) || isNativeField(attr) || isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
+        const allowed = isSessionAttributeField(attr) || isNativeField(attr) || hasControlledAttributeValues(attr) || enableUserManagedAttributes;
         return isValidCELIdentifier && allowed;
     });
 };
@@ -191,14 +191,14 @@ const defaultOperatorForType = (type?: string): OperatorLabel => {
 
 // Whether an operator is valid for an attribute of the given type. Mirrors the
 // per-type operator sets shown by OperatorSelectorMenu.
-const isOperatorValidForType = (op: string, type?: string): boolean => {
+export const isOperatorValidForType = (op: string, type?: string): boolean => {
     if (type === 'multiselect') {
         return isMultiselectOperator(op);
     }
     if (type === 'rank') {
         return isRankOperator(op) || op === OperatorLabel.IS_NOT;
     }
-    return !isMultiselectOperator(op) && !isRankOperator(op) && !isNativeMethodOperator(op);
+    return !isMultiselectOperator(op) && !isRankOperator(op) && !isNativeMethodOperator(op) && !isFieldAdvertisedOperator(op);
 };
 
 // Parses a CEL (Common Expression Language) string into a structured array of TableRow objects.
@@ -418,31 +418,27 @@ function TableEditor({
             return;
         }
 
-        setRows((currentRows) => {
-            const newRow: TableRow = {
-                attribute: firstAvailableAttribute.name,
-                attribute_object_type: firstAvailableAttribute.object_type,
-                operator: isNativeField(firstAvailableAttribute) ? defaultOperatorForField(firstAvailableAttribute) : defaultOperatorForType(firstAvailableAttribute.type),
-                values: [],
-                attribute_type: firstAvailableAttribute.type || '',
-                hasMaskedValues: false,
-                isNative: isNativeField(firstAvailableAttribute),
-                isBoolean: isNativeBooleanField(firstAvailableAttribute),
-            };
-            const newRows = [...currentRows, newRow];
-            updateExpression(newRows); // Ensure expression is updated immediately
-            setAutoOpenAttributeMenuForRow(newRows.length - 1); // Set for the new row
-            return newRows;
-        });
-    }, [userAttributes, updateExpression, findFirstAvailableAttribute]);
+        const newRow: TableRow = {
+            attribute: firstAvailableAttribute.name,
+            attribute_object_type: firstAvailableAttribute.object_type,
+            operator: allowedOperatorLabelsForField(firstAvailableAttribute) ? defaultOperatorForField(firstAvailableAttribute) : defaultOperatorForType(firstAvailableAttribute.type),
+            values: [],
+            attribute_type: firstAvailableAttribute.type || '',
+            hasMaskedValues: false,
+            isNative: isNativeField(firstAvailableAttribute),
+            isBoolean: isNativeBooleanField(firstAvailableAttribute),
+        };
+        const newRows = [...rows, newRow];
+        setRows(newRows);
+        setAutoOpenAttributeMenuForRow(newRows.length - 1);
+        updateExpression(newRows);
+    }, [userAttributes, updateExpression, findFirstAvailableAttribute, rows]);
 
     const removeRow = useCallback((index: number) => {
-        setRows((currentRows) => {
-            const newRows = currentRows.toSpliced(index, 1);
-            updateExpression(newRows);
-            return newRows;
-        });
-    }, [updateExpression]);
+        const newRows = rows.toSpliced(index, 1);
+        setRows(newRows);
+        updateExpression(newRows);
+    }, [rows, updateExpression]);
 
     const requestRemoveRow = useCallback((index: number) => {
         // Masked rows have their remove button disabled — the row is read-only
@@ -451,91 +447,86 @@ function TableEditor({
     }, [removeRow]);
 
     const updateRowAttribute = useCallback((index: number, attributeId: string) => {
-        setRows((currentRows) => {
-            // Resolve by unique id, not name: a CPA attribute and a session
-            // attribute can share a name, and only the id pins down the correct
-            // namespace (object_type) for CEL generation.
-            const newAttributeObj = userAttributes.find((attr) => attr.id === attributeId);
-            const newAttribute = newAttributeObj?.name || '';
-            const newObjectType = newAttributeObj?.object_type || 'user';
+        // Resolve by unique id, not name: a CPA attribute and a session
+        // attribute can share a name, and only the id pins down the correct
+        // namespace (object_type) for CEL generation.
+        const newAttributeObj = userAttributes.find((attr) => attr.id === attributeId);
+        const newAttribute = newAttributeObj?.name || '';
+        const newObjectType = newAttributeObj?.object_type || 'user';
 
-            const newRows = [...currentRows];
-            const current = newRows[index];
-            const attributeChanged = current.attribute !== newAttribute ||
-                (current.attribute_object_type || 'user') !== newObjectType;
-            newRows[index] = {...current, attribute: newAttribute};
+        const newRows = [...rows];
+        const current = newRows[index];
+        const attributeChanged = current.attribute !== newAttribute ||
+            (current.attribute_object_type || 'user') !== newObjectType;
+        newRows[index] = {...current, attribute: newAttribute};
 
-            if (attributeChanged) {
-                newRows[index].values = [];
+        if (attributeChanged) {
+            newRows[index].values = [];
 
-                const newType = newAttributeObj?.type || '';
-                newRows[index].attribute_type = newType;
-                newRows[index].attribute_object_type = newObjectType;
-                newRows[index].isNative = isNativeField(newAttributeObj);
-                newRows[index].isBoolean = isNativeBooleanField(newAttributeObj);
+            const newType = newAttributeObj?.type || '';
+            newRows[index].attribute_type = newType;
+            newRows[index].attribute_object_type = newObjectType;
+            newRows[index].isNative = isNativeField(newAttributeObj);
+            newRows[index].isBoolean = isNativeBooleanField(newAttributeObj);
 
-                // Reset the operator to a valid default when the current one isn't
-                // offered for the new attribute. Native attributes advertise an
-                // explicit operator set (e.g. native createat only allows "younger
-                // than"); everything else validates against the attribute type
-                // (rank, multiselect, …).
-                const allowedOperators = allowedOperatorLabelsForField(newAttributeObj);
-                if (allowedOperators) {
-                    if (!allowedOperators.includes(newRows[index].operator)) {
-                        newRows[index].operator = defaultOperatorForField(newAttributeObj);
-                    }
-                } else if (!isOperatorValidForType(currentRows[index].operator, newType)) {
-                    newRows[index].operator = defaultOperatorForType(newType);
+            // Reset the operator to a valid default when the current one isn't
+            // offered for the new attribute. Native attributes advertise an
+            // explicit operator set (e.g. native createat only allows "younger
+            // than"); everything else validates against the attribute type
+            // (rank, multiselect, …).
+            const allowedOperators = allowedOperatorLabelsForField(newAttributeObj);
+            if (allowedOperators) {
+                if (!allowedOperators.includes(newRows[index].operator)) {
+                    newRows[index].operator = defaultOperatorForField(newAttributeObj);
                 }
-
-                // Values were cleared — row is in an intermediate editing state.
-                // Don't regenerate the expression now; it will be updated when
-                // the user selects new values via updateRowValues.
-                return newRows;
+            } else if (!isOperatorValidForType(current.operator, newType)) {
+                newRows[index].operator = defaultOperatorForType(newType);
             }
-            updateExpression(newRows);
-            return newRows;
-        });
-    }, [updateExpression, userAttributes]);
+
+            // Values were cleared — row is in an intermediate editing state.
+            // Don't regenerate the expression now; it will be updated when
+            // the user selects new values via updateRowValues.
+            setRows(newRows);
+            return;
+        }
+        setRows(newRows);
+        updateExpression(newRows);
+    }, [updateExpression, userAttributes, rows]);
 
     const updateRowOperator = useCallback((index: number, newOperator: string) => {
-        setRows((currentRows) => {
-            const oldOperator = currentRows[index].operator;
-            let newValues = [...currentRows[index].values];
+        const oldOperator = rows[index].operator;
+        let newValues = [...rows[index].values];
 
-            const wasMulti = isMultiValueOperator(oldOperator);
-            const isMulti = isMultiValueOperator(newOperator);
+        const wasMulti = isMultiValueOperator(oldOperator);
+        const isMulti = isMultiValueOperator(newOperator);
 
-            if (isMulti && !wasMulti) {
-                // Transitioning TO a multi-value operator FROM a single-value operator:
-                newValues = newValues.map((v) => v.trim()).filter((v) => v !== '');
-            } else if (!isMulti && wasMulti) {
-                // Transitioning TO a single-value operator FROM a multi-value operator:
-                if (newValues.length > 1) {
-                    newValues = [newValues[0]];
-                }
+        if (isMulti && !wasMulti) {
+            // Transitioning TO a multi-value operator FROM a single-value operator:
+            newValues = newValues.map((v) => v.trim()).filter((v) => v !== '');
+        } else if (!isMulti && wasMulti) {
+            // Transitioning TO a single-value operator FROM a multi-value operator:
+            if (newValues.length > 1) {
+                newValues = [newValues[0]];
             }
+        }
 
-            const newRows = [...currentRows];
-            newRows[index] = {
-                ...currentRows[index],
-                operator: newOperator,
-                values: newValues,
-            };
+        const newRows = [...rows];
+        newRows[index] = {
+            ...rows[index],
+            operator: newOperator,
+            values: newValues,
+        };
 
-            updateExpression(newRows);
-            return newRows;
-        });
-    }, [updateExpression]);
+        setRows(newRows);
+        updateExpression(newRows);
+    }, [updateExpression, rows]);
 
     const updateRowValues = useCallback((index: number, values: string[]) => {
-        setRows((currentRows) => {
-            const newRows = [...currentRows];
-            newRows[index] = {...newRows[index], values};
-            updateExpression(newRows);
-            return newRows;
-        });
-    }, [updateExpression]);
+        const newRows = [...rows];
+        newRows[index] = {...newRows[index], values};
+        setRows(newRows);
+        updateExpression(newRows);
+    }, [updateExpression, rows]);
 
     return (
         <div
@@ -591,6 +582,7 @@ function TableEditor({
                             const isYoungerThan = row.operator === OperatorLabel.YOUNGER_THAN;
                             const youngerThanValue = row.values.length > 0 ? row.values[0] : '';
                             const youngerThanInvalid = isYoungerThan && youngerThanValue.trim() !== '' && !isValidYoungerThanDaysValue(youngerThanValue);
+                            const valuePlaceholder = valuePlaceholderForOperator(row.operator);
                             return (
                                 <tr
                                     key={index}
@@ -630,7 +622,7 @@ function TableEditor({
                                             disabled={disabled || row.hasMaskedValues}
                                             updateValues={(values: string[]) => updateRowValues(index, values)}
                                             options={row.attribute ? field?.attrs?.options || [] : []}
-                                            placeholder={isYoungerThan ? formatMessage({id: 'admin.access_control.table_editor.value.days_placeholder', defaultMessage: 'Number of days'}) : undefined}
+                                            placeholder={valuePlaceholder ? formatMessage(valuePlaceholder) : undefined}
                                         />
                                         {youngerThanInvalid && (
                                             <div className='table-editor__value-error'>
@@ -715,6 +707,12 @@ function TableEditor({
                     actions={{
                         openModal: () => {},
                         searchUsers: (term: string, after: string, limit: number) => {
+                            if (actions.searchUsers) {
+                                // Wrap in a thunk so TestResultsModal can dispatch it unchanged.
+                                const search = actions.searchUsers;
+                                return () => search(value, term, after, limit);
+                            }
+
                             // Return the action for the modal to dispatch
                             return searchUsersForExpression(value, term, after, limit, channelId, teamId);
                         },
