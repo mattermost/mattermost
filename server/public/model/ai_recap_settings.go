@@ -122,6 +122,15 @@ func (s *RecapProcessingSettings) MaxConcurrentLLMCallsOrDefault() int {
 	return max(*s.MaxConcurrentLLMCalls, 1)
 }
 
+// MaxDueSchedulesPerTickOrDefault returns the configured per-tick enqueue cap,
+// falling back to the default and enforcing the runtime minimum.
+func (s *RecapProcessingSettings) MaxDueSchedulesPerTickOrDefault() int {
+	if s == nil || s.MaxDueSchedulesPerTick == nil {
+		return RecapProcessingDefaultMaxDueSchedulesPerTick
+	}
+	return max(*s.MaxDueSchedulesPerTick, 1)
+}
+
 // SetDefaults sets the default values for RecapProcessingSettings
 func (s *RecapProcessingSettings) SetDefaults() {
 	if s.MaxConcurrentJobs == nil {

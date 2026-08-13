@@ -12946,11 +12946,11 @@ func (s *RetryLayerScheduledRecapStore) Get(id string) (*model.ScheduledRecap, e
 
 }
 
-func (s *RetryLayerScheduledRecapStore) GetDueBefore(timestamp int64, limit int) ([]*model.ScheduledRecap, error) {
+func (s *RetryLayerScheduledRecapStore) GetDueBefore(timestamp int64, cursorNextRunAt int64, cursorID string, limit int) ([]*model.ScheduledRecap, error) {
 
 	tries := 0
 	for {
-		result, err := s.ScheduledRecapStore.GetDueBefore(timestamp, limit)
+		result, err := s.ScheduledRecapStore.GetDueBefore(timestamp, cursorNextRunAt, cursorID, limit)
 		if err == nil {
 			return result, nil
 		}

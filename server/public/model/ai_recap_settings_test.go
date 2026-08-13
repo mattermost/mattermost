@@ -153,6 +153,45 @@ func TestRecapProcessingSettingsValuesOrDefault(t *testing.T) {
 	}
 }
 
+func TestRecapProcessingSettingsMaxDueSchedulesPerTickOrDefault(t *testing.T) {
+	tests := []struct {
+		name     string
+		settings *RecapProcessingSettings
+		expected int
+	}{
+		{
+			name:     "nil settings",
+			expected: RecapProcessingDefaultMaxDueSchedulesPerTick,
+		},
+		{
+			name:     "nil value",
+			settings: &RecapProcessingSettings{},
+			expected: RecapProcessingDefaultMaxDueSchedulesPerTick,
+		},
+		{
+			name:     "configured value",
+			settings: &RecapProcessingSettings{MaxDueSchedulesPerTick: NewPointer(250)},
+			expected: 250,
+		},
+		{
+			name:     "zero is clamped",
+			settings: &RecapProcessingSettings{MaxDueSchedulesPerTick: NewPointer(0)},
+			expected: 1,
+		},
+		{
+			name:     "negative value is clamped",
+			settings: &RecapProcessingSettings{MaxDueSchedulesPerTick: NewPointer(-5)},
+			expected: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, tt.settings.MaxDueSchedulesPerTickOrDefault())
+		})
+	}
+}
+
 func TestRecapProcessingSettingsValidation(t *testing.T) {
 	tests := []struct {
 		name      string
