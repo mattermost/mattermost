@@ -41,6 +41,8 @@ type PermissionChecker func(userID string, permission *model.Permission) bool
 //     ldap/saml on non-text fields)
 //   - auto-assigns IDs to options that lack one and validates option shape
 //   - validates visibility, value_type, managed, display_name, and sort_order
+//   - validates required and editable, the booleans describing a field's
+//     binding to its resource type, and removes either when explicitly unset
 //   - validates and canonicalizes actions, the render-placement allow-list
 //     shared by the classification banner and channel labels; on update this
 //     fires only when actions actually change, so a field carrying a value
@@ -142,6 +144,11 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if err := model.ValidatePropertyFieldSortOrder(field); err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
 	}
+	for _, key := range boolFieldAttrKeys {
+		if err := model.SanitizeAndValidatePropertyFieldBoolAttr(field, key); err != nil {
+			return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+		}
+	}
 	// Lenient grandfather, same rationale as Name: a PATCH merges attrs, so a
 	// field carrying an actions value that predates (or has since fallen out of)
 	// the allow-list would otherwise be unpatchable on every other attr, with
@@ -194,6 +201,15 @@ var trimmedFieldAttrKeys = []string{
 	model.PropertyFieldAttrLDAP,
 	model.PropertyFieldAttrSAML,
 	model.PropertyFieldAttrDisplayName,
+}
+
+// boolFieldAttrKeys lists the boolean-valued attrs the hook validates. Both
+// describe the field's binding to its resource type rather than the value, so
+// they carry no object_type branch here: scoping comes from the field's
+// ObjectType, as it does for every other key.
+var boolFieldAttrKeys = []string{
+	model.PropertyFieldAttrRequired,
+	model.PropertyFieldAttrEditable,
 }
 
 // sanitizeAndValidateOptions auto-assigns IDs to options without one,

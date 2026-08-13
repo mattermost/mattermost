@@ -23,6 +23,14 @@ const (
 	PropertyFieldAttrDisplayName = "display_name"
 	// PropertyFieldAttrActions lists the rendering actions a field triggers.
 	PropertyFieldAttrActions = "actions"
+	// PropertyFieldAttrRequired marks a field whose value must be supplied when
+	// the target resource is created.
+	PropertyFieldAttrRequired = "required"
+	// PropertyFieldAttrEditable allows a value to change after it is first set.
+	// Absent means editable: the permissive default has to stay indistinguishable
+	// from an explicit true, or every field predating this key would need a
+	// migration to keep behaving as it does now.
+	PropertyFieldAttrEditable = "editable"
 )
 
 // Valid action values for PropertyFieldAttrActions.
@@ -135,6 +143,36 @@ func ValidatePropertyFieldSortOrder(field *PropertyField) error {
 	default:
 		return fmt.Errorf("sort_order must be numeric, got %T", raw)
 	}
+}
+
+// SanitizeAndValidatePropertyFieldBoolAttr validates a boolean attr and removes
+// it when explicitly unset, so an absent key and a cleared one are the same
+// thing to readers. A string such as "true" is rejected rather than coerced:
+// these keys gate whether a value is demanded at creation and whether it can
+// change afterwards, and a silently-coerced typo would change that answer.
+func SanitizeAndValidatePropertyFieldBoolAttr(field *PropertyField, key string) error {
+	if field.Attrs == nil {
+		return nil
+	}
+
+	raw, ok := field.Attrs[key]
+	if !ok {
+		return nil
+	}
+
+	if raw == nil {
+		delete(field.Attrs, key)
+		return nil
+	}
+
+	v, ok := raw.(bool)
+	if !ok {
+		return fmt.Errorf("%s must be a boolean, got %T", key, raw)
+	}
+
+	field.Attrs[key] = v
+
+	return nil
 }
 
 // SanitizeAndValidatePropertyFieldActions validates the actions attr and writes

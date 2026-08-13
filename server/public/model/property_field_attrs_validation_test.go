@@ -69,6 +69,67 @@ func TestValidatePropertyFieldSortOrder(t *testing.T) {
 	}
 }
 
+func TestSanitizeAndValidatePropertyFieldBoolAttr(t *testing.T) {
+	tests := []struct {
+		name      string
+		key       string
+		attrs     StringInterface
+		want      bool
+		wantKey   bool
+		wantError string
+	}{
+		{name: "nil attrs", key: PropertyFieldAttrRequired, attrs: nil},
+		{name: "no key", key: PropertyFieldAttrRequired, attrs: StringInterface{"other": "value"}},
+		{name: "explicit nil clears the key", key: PropertyFieldAttrRequired, attrs: StringInterface{PropertyFieldAttrRequired: nil}},
+		{name: "required true", key: PropertyFieldAttrRequired, attrs: StringInterface{PropertyFieldAttrRequired: true}, want: true, wantKey: true},
+		{name: "required false is kept", key: PropertyFieldAttrRequired, attrs: StringInterface{PropertyFieldAttrRequired: false}, want: false, wantKey: true},
+		{name: "editable false is kept", key: PropertyFieldAttrEditable, attrs: StringInterface{PropertyFieldAttrEditable: false}, want: false, wantKey: true},
+		{name: "string is not coerced", key: PropertyFieldAttrRequired, attrs: StringInterface{PropertyFieldAttrRequired: "true"}, wantError: "required must be a boolean"},
+		{name: "numeric is rejected", key: PropertyFieldAttrEditable, attrs: StringInterface{PropertyFieldAttrEditable: 1}, wantError: "editable must be a boolean"},
+		{name: "array is rejected", key: PropertyFieldAttrRequired, attrs: StringInterface{PropertyFieldAttrRequired: []any{true}}, wantError: "required must be a boolean"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			field := &PropertyField{Attrs: tt.attrs}
+			err := SanitizeAndValidatePropertyFieldBoolAttr(field, tt.key)
+			if tt.wantError != "" {
+				require.ErrorContains(t, err, tt.wantError)
+				return
+			}
+
+			require.NoError(t, err)
+			if field.Attrs == nil {
+				return
+			}
+			actual, ok := field.Attrs[tt.key]
+			require.Equal(t, tt.wantKey, ok)
+			if tt.wantKey {
+				require.Equal(t, tt.want, actual)
+			}
+		})
+	}
+}
+
+// The two keys are independent: validating one must not disturb the other, and
+// neither may touch a key the hook doesn't own.
+func TestSanitizeAndValidatePropertyFieldBoolAttrLeavesOtherKeys(t *testing.T) {
+	field := &PropertyField{Attrs: StringInterface{
+		PropertyFieldAttrRequired:   true,
+		PropertyFieldAttrEditable:   nil,
+		PropertyFieldAttrSortOrder:  3,
+		PropertyFieldAttrVisibility: PropertyFieldVisibilityAlways,
+	}}
+
+	require.NoError(t, SanitizeAndValidatePropertyFieldBoolAttr(field, PropertyFieldAttrRequired))
+	require.NoError(t, SanitizeAndValidatePropertyFieldBoolAttr(field, PropertyFieldAttrEditable))
+
+	require.Equal(t, true, field.Attrs[PropertyFieldAttrRequired])
+	require.NotContains(t, field.Attrs, PropertyFieldAttrEditable)
+	require.Equal(t, 3, field.Attrs[PropertyFieldAttrSortOrder])
+	require.Equal(t, PropertyFieldVisibilityAlways, field.Attrs[PropertyFieldAttrVisibility])
+}
+
 func TestSanitizeAndValidatePropertyFieldActions(t *testing.T) {
 	tests := []struct {
 		name      string

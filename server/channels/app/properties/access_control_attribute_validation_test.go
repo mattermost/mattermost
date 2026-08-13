@@ -204,6 +204,111 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		assert.Contains(t, updateErr.Error(), "unknown action")
 	})
 
+	t.Run("required and editable round-trip through create, patch, and clear", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+				model.PropertyFieldAttrEditable: false,
+			},
+		})
+		require.NoError(t, createErr)
+		require.Equal(t, true, field.Attrs[model.PropertyFieldAttrRequired])
+		require.Equal(t, false, field.Attrs[model.PropertyFieldAttrEditable])
+
+		field.Attrs = model.StringInterface{
+			model.PropertyFieldAttrRequired: false,
+			model.PropertyFieldAttrEditable: true,
+		}
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		require.Equal(t, false, updated.Attrs[model.PropertyFieldAttrRequired])
+		require.Equal(t, true, updated.Attrs[model.PropertyFieldAttrEditable])
+
+		// Unsetting sends nil, which clears the key. For editable that restores the
+		// permissive default, so absent and true have to stay indistinguishable.
+		updated.Attrs = model.StringInterface{
+			model.PropertyFieldAttrRequired: nil,
+			model.PropertyFieldAttrEditable: nil,
+		}
+		cleared, _, clearErr := th.service.UpdatePropertyField(th.Context, group.ID, updated)
+		require.NoError(t, clearErr)
+		require.NotContains(t, cleared.Attrs, model.PropertyFieldAttrRequired)
+		require.NotContains(t, cleared.Attrs, model.PropertyFieldAttrEditable)
+	})
+
+	t.Run("rejects non-boolean required on create", func(t *testing.T) {
+		_, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs:      model.StringInterface{model.PropertyFieldAttrRequired: "true"},
+		})
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "required")
+	})
+
+	t.Run("rejects non-boolean editable on update", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+		})
+
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrEditable: 1}
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "editable")
+	})
+
+	// The keys describe a binding, not a value, so they are object-type-agnostic
+	// like every other attr. A user-object field accepting them is the evidence
+	// that no channel-only branch crept into the pipeline.
+	t.Run("required and editable are accepted on other object types", func(t *testing.T) {
+		created, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+				model.PropertyFieldAttrEditable: false,
+			},
+		})
+		require.NoError(t, createErr)
+		assert.Equal(t, true, created.Attrs[model.PropertyFieldAttrRequired])
+		assert.Equal(t, false, created.Attrs[model.PropertyFieldAttrEditable])
+	})
+
+	// A bad boolean must not be smuggled past validation by riding along with
+	// keys that are themselves valid.
+	t.Run("rejects a bad boolean alongside valid attrs", func(t *testing.T) {
+		_, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrVisibility: model.PropertyFieldVisibilityAlways,
+				model.PropertyFieldAttrSortOrder:  float64(2),
+				model.PropertyFieldAttrActions:    []any{model.PropertyFieldActionDisplayLabelHeader},
+				model.PropertyFieldAttrRequired:   []any{true},
+			},
+		})
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "required")
+	})
+
 	t.Run("skips validation for unmanaged groups", func(t *testing.T) {
 		otherGroup, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_other_group", Version: model.PropertyGroupVersionV2})
 		require.NoError(t, groupErr)
