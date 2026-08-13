@@ -1984,9 +1984,9 @@
     // avoids growing the preview's height (a layout shift) when it appears.
     .post-preview-collapse__show-more-button {
         position: absolute;
+        z-index: 2;
         bottom: 0;
         left: 0;
-        z-index: 2;
     }
 }
 
