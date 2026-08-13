@@ -56,10 +56,11 @@ func TestCheckVersion(t *testing.T) {
 			wantMajor:   2,
 		},
 		{
-			name:        "OpenSearch 3 is supported",
-			version:     "3.0.0",
-			wantVersion: "3.0.0",
-			wantMajor:   3,
+			name:            "OpenSearch 3 is too new, but allowed",
+			version:         "3.0.0",
+			wantVersion:     "3.0.0",
+			wantMajor:       3,
+			wantUnsupported: true,
 		},
 		{
 			name:            "OpenSearch 4 is too new, but allowed",
@@ -97,7 +98,7 @@ func TestCheckVersion(t *testing.T) {
 			if tc.wantUnsupported {
 				assert.Contains(t, buf.String(), "Unsupported OpenSearch version")
 				assert.Contains(t, buf.String(), fmt.Sprintf(`"version":%q`, tc.wantVersion))
-				assert.Contains(t, buf.String(), `"max_version":3`)
+				assert.Contains(t, buf.String(), fmt.Sprintf(`"max_version":%d`, opensearchMaxVersion))
 			} else {
 				assert.Empty(t, buf.String())
 			}
