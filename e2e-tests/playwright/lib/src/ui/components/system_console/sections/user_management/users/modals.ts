@@ -12,7 +12,6 @@ import BaseModal from '@/ui/components/system_console/base_modal';
 export class ManageRolesModal extends BaseModal {
     readonly saveButton: Locator;
     readonly systemAdminRadio: Locator;
-    readonly systemMemberRadio: Locator;
     readonly delegatedRolesSection: Locator;
     readonly delegatedRolesTitle: Locator;
 
@@ -20,7 +19,6 @@ export class ManageRolesModal extends BaseModal {
         super(container);
         this.saveButton = container.getByRole('button', {name: 'Save'});
         this.systemAdminRadio = container.locator('input[name="systemadmin"]');
-        this.systemMemberRadio = container.locator('input[name="systemmember"]');
         this.delegatedRolesSection = container.locator('.manage-roles-modal__delegated-roles');
         this.delegatedRolesTitle = container.getByText('Delegated Administration Roles', {exact: true});
     }
