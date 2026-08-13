@@ -592,6 +592,12 @@ describe('makeGetResolvedChannelAttributes', () => {
         expect(resolved.displayValue).toBe('opt_deleted');
     });
 
+    test('multiselect falls back to the raw ID when an option no longer exists', () => {
+        const state = makeAttrState([attrField({id: 'caveats', type: 'multiselect', attrs: {options}})], [attrValue('caveats', ['opt_a', 'opt_deleted'])]);
+
+        expect(getResolvedChannelAttributes(state, CHANNEL_ID)[0].displayValue).toBe('AURORA, opt_deleted');
+    });
+
     test('text fields display their stored string directly', () => {
         const state = makeAttrState([attrField({id: 'note', type: 'text'})], [attrValue('note', 'handle with care')]);
 

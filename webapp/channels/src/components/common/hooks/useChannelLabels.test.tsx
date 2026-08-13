@@ -11,7 +11,7 @@ import type {GlobalState} from 'types/store';
 import useChannelLabels from './useChannelLabels';
 
 jest.mock('mattermost-redux/actions/properties', () => ({
-    fetchPropertyFields: jest.fn(() => ({type: 'MOCK_FETCH_PROPERTY_FIELDS'})),
+    fetchPropertyFields: jest.fn(() => () => Promise.resolve({data: []})),
 }));
 
 const GROUP_ID = 'group1';

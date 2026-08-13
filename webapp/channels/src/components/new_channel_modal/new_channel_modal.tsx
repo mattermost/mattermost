@@ -479,7 +479,9 @@ const NewChannelModal = () => {
 
     // Once the channel exists but its attributes failed to save, the only action
     // left is to acknowledge and go to it — creating again would collide on the URL.
-    const canCreate = createdChannel ? true : Boolean(displayName && !urlError && hasValidType && !purposeError && !serverError && pluginCreateGate && !channelInputError && classificationValid && !isSubmitting);
+    // Also block while attribute definitions are still loading so the form is fully
+    // populated before the user can submit.
+    const canCreate = createdChannel ? true : Boolean(displayName && !urlError && hasValidType && !purposeError && !serverError && pluginCreateGate && !channelInputError && classificationValid && !isSubmitting && !channelAttributes.loading);
 
     const pluginOptions = useMemo<PluginOptionButtonProps[]>(() => availableOptions.map((o) => ({
         id: o.id,
