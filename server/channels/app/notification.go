@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"sort"
@@ -63,7 +62,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 	pchan := make(chan store.StoreResult[map[string]*model.User], 1)
 	go func() {
-		props, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
+		props, err := a.Srv().Store().User().GetAllProfilesInChannel(rctx, channel.Id, true)
 		pchan <- store.StoreResult[map[string]*model.User]{Data: props, NErr: err}
 		close(pchan)
 	}()
@@ -861,8 +860,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 						userThread.UnreadMentions = 0
 						userThread.UnreadReplies = 0
 					}
-					a.sanitizeProfiles(userThread.Participants, false)
-					userThread.Post.SanitizeProps()
+					a.sanitizeThreadResponse(userThread)
 
 					sanitizedPost, isMemberForPreview, err := a.SanitizePostMetadataForUser(rctx, userThread.Post, uid)
 					if err != nil {
@@ -935,7 +933,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 
 		pCh := make(chan store.StoreResult[map[string]*model.User], 1)
 		go func() {
-			props, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
+			props, err := a.Srv().Store().User().GetAllProfilesInChannel(rctx, channel.Id, true)
 			pCh <- store.StoreResult[map[string]*model.User]{Data: props, NErr: err}
 			close(pCh)
 		}()
@@ -1030,8 +1028,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				previousUnreadMentions := int64(0)
 				previousUnreadReplies := int64(0)
 
-				a.sanitizeProfiles(userThread.Participants, false)
-				userThread.Post.SanitizeProps()
+				a.sanitizeThreadResponse(userThread)
 
 				sanitizedPost, isMemberForPreview, err1 := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
 				if err1 != nil {

@@ -229,8 +229,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 		return nil, errors.Wrap(err, "error while getting DB version")
 	}
 
-	ok, err := store.ensureMinimumDBVersion(ver)
-	if !ok {
+	if err = store.checkVersion(ver); err != nil {
 		return nil, errors.Wrap(err, "error while checking DB version")
 	}
 
@@ -1046,27 +1045,38 @@ func IsDuplicate(err error) bool {
 	return false
 }
 
-// ensureMinimumDBVersion gets the DB version and ensures it is
-// above the required minimum version requirements.
-func (ss *SqlStore) ensureMinimumDBVersion(ver string) (bool, error) {
+// checkVersion returns an error if the given Postgres version cannot be
+// determined. An unsupported version is only logged: running one is discouraged,
+// but not prevented.
+func (ss *SqlStore) checkVersion(ver string) error {
 	intVer, err := strconv.Atoi(ver)
 	if err != nil {
-		return false, fmt.Errorf("cannot parse DB version: %v", err)
+		return fmt.Errorf("cannot parse DB version: %v", err)
 	}
+
 	if intVer < minimumRequiredPostgresVersion {
-		return false, fmt.Errorf("minimum Postgres version requirements not met. Found: %s, Wanted: %s", versionString(intVer), versionString(minimumRequiredPostgresVersion))
+		ss.logger.Error("Unsupported Postgres version. Running an unsupported version may lead to unexpected behaviour.",
+			mlog.String("version", versionString(intVer)),
+			mlog.String("min_version", versionString(minimumRequiredPostgresVersion)),
+		)
 	}
-	return true, nil
+
+	return nil
 }
 
 // versionString converts an integer representation of a Postgres DB version
 // to a pretty-printed string.
-// Postgres doesn't follow three-part version numbers from 10.0 onwards:
+// From 10.0 onwards, the version is the major version multiplied by 10000 plus
+// the minor version, e.g. 10.1 is 100001. Prior to 10, the version used two
+// digits for each of the three parts, e.g. 9.1.5 is 90105:
 // https://www.postgresql.org/docs/13/libpq-status.html#LIBPQ-PQSERVERVERSION.
 func versionString(v int) string {
-	minor := v % 10000
 	major := v / 10000
-	return strconv.Itoa(major) + "." + strconv.Itoa(minor)
+	if major < 10 {
+		return fmt.Sprintf("%d.%d.%d", major, (v/100)%100, v%100)
+	}
+
+	return fmt.Sprintf("%d.%d", major, v%10000)
 }
 
 func (ss *SqlStore) toReserveCase(str string) string {

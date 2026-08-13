@@ -4,6 +4,7 @@
 package model
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -109,6 +110,36 @@ func TestSAFieldEnabledForPlatform(t *testing.T) {
 	disabled, err := SAFieldFromPropertyField(field)
 	require.NoError(t, err)
 	assert.False(t, disabled.EnabledForPlatform(SessionAttributePlatformDesktop))
+}
+
+func TestSessionAttributeSystemFieldsOperators(t *testing.T) {
+	fields := SessionAttributeSystemFields("group-id")
+	byName := make(map[string]*PropertyField, len(fields))
+	for _, field := range fields {
+		byName[field.Name] = field
+	}
+
+	baseStringOps := []string{"==", "!=", "in", "startsWith", "endsWith", "contains"}
+	versionOps := append(slices.Clone(baseStringOps), sessionVersionOperators...)
+
+	assertOperators := func(t *testing.T, field *PropertyField, expected []string) {
+		t.Helper()
+		require.NotNil(t, field)
+		raw, ok := field.Attrs[NativeAttributeAttrOperators]
+		require.True(t, ok, "field %q must declare operators", field.Name)
+		ops, ok := raw.([]string)
+		require.True(t, ok, "field %q operators must be []string", field.Name)
+		assert.Equal(t, expected, ops)
+	}
+
+	assertOperators(t, byName[SessionAttributesPropertyFieldIPAddress], append(slices.Clone(baseStringOps), SessionOperatorInCIDR))
+	assertOperators(t, byName[SessionAttributesPropertyFieldClientIPAddress], append(slices.Clone(baseStringOps), SessionOperatorInCIDR))
+	assertOperators(t, byName[SessionAttributesPropertyFieldOSVersion], versionOps)
+	assertOperators(t, byName[SessionAttributesPropertyFieldClientVersion], versionOps)
+	assertOperators(t, byName[SessionAttributesPropertyFieldUserAgentBrowserVersion], versionOps)
+
+	_, hasOperators := byName[SessionAttributesPropertyFieldSSID].Attrs[NativeAttributeAttrOperators]
+	assert.False(t, hasOperators, "fields without specialized operators must not declare attrs.operators")
 }
 
 func TestIsValidSessionAttributeValue(t *testing.T) {

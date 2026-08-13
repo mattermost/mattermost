@@ -466,6 +466,7 @@ func NewServer(options ...Option) (*Server, error) {
 		TemplatesContainer: s.TemplatesContainer(),
 		UserService:        s.userService,
 		Store:              s.GetStore(),
+		Logger:             s.Log(),
 		PostDeliveryRecorderFn: func(userID string, post *model.Post) {
 			app.RecordPostDelivery(request.EmptyContext(s.Log()), userID, post, model.DeliveryMechanismEmail)
 		},
