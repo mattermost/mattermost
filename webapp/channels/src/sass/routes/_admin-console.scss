@@ -186,23 +186,6 @@
         }
     }
 
-    .log__panel {
-        overflow: scroll;
-        width: 100%;
-        min-height: 0;
-        flex: 1;
-        padding: 10px;
-        border: variables.$border-gray;
-        margin-top: 14px;
-        background-color: white;
-
-        &:has(.LoadingSpinner) {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-    }
-
     &.admin {
         overflow: auto;
         height: 100%;
@@ -1155,63 +1138,8 @@
         max-width: 920px;
     }
 
-    .banner-buttons {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 8px;
-
-        .banner-buttons__log-format {
-            display: flex;
-            align-items: center;
-            margin-right: 12px;
-            gap: 8px;
-
-            label {
-                display: inline-flex;
-                align-items: center;
-                margin-bottom: 0;
-                gap: 8px;
-
-                input[type="radio"] {
-                    margin-top: 0;
-                }
-            }
-        }
-
-        .banner-buttons__separator {
-            width: 1px;
-            height: 20px;
-            background: rgba(var(--center-channel-color-rgb), 0.16);
-        }
-    }
-
     > .btn {
         width: fit-content;
-    }
-
-    .LogTable {
-        min-height: 0;
-        flex: 1;
-
-        .DataGrid {
-            display: flex;
-            height: 100%;
-            flex-direction: column;
-
-            .DataGrid_rows {
-                overflow: auto;
-                min-height: 0 !important;
-                flex: 1;
-            }
-        }
-    }
-
-    .plain-log-list {
-        display: flex;
-        min-height: 0;
-        flex: 1;
-        flex-direction: column;
     }
 }
 
