@@ -53,14 +53,34 @@ const POLL_INTERVAL_LABELS: Record<number, string> = {
     30000: '30s',
 };
 
+const timePresetMessages = defineMessages({
+    fiveMinutes: {id: 'admin.logs.time.5m', defaultMessage: '5m'},
+    fifteenMinutes: {id: 'admin.logs.time.15m', defaultMessage: '15m'},
+    oneHour: {id: 'admin.logs.time.1h', defaultMessage: '1h'},
+    oneDay: {id: 'admin.logs.time.24h', defaultMessage: '24h'},
+});
+
 const TIME_PRESETS = [
-    {labelId: 'admin.logs.time.5m', defaultMessage: '5m', minutes: 5},
-    {labelId: 'admin.logs.time.15m', defaultMessage: '15m', minutes: 15},
-    {labelId: 'admin.logs.time.1h', defaultMessage: '1h', minutes: 60},
-    {labelId: 'admin.logs.time.24h', defaultMessage: '24h', minutes: 1440},
+    {label: timePresetMessages.fiveMinutes, minutes: 5},
+    {label: timePresetMessages.fifteenMinutes, minutes: 15},
+    {label: timePresetMessages.oneHour, minutes: 60},
+    {label: timePresetMessages.oneDay, minutes: 1440},
 ] as const;
 
 const LOG_FORMAT_PREF_KEY = 'mm_admin_logs_format';
+
+// The logs API expects filter dates as UTC in "YYYY-MM-DD HH:mm:ss.SSS +00:00"
+function formatFilterDate(date: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}.000 +00:00`;
+}
+
+// The level and server-name filters are applied client side, so the query never
+// narrows them
+const ALL_SERVER_NAMES: LogServerNames = [];
+const ALL_LOG_LEVELS: LogLevels = [];
+
+const PLAIN_LOGS_PER_PAGE = 1000;
 
 function getInitialFormat(configIsPlainLogs: boolean): boolean {
     if (configIsPlainLogs) {
@@ -88,8 +108,6 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
     const [search, setSearch] = useState('');
 
     // Filter state
-    const [serverNames] = useState<LogServerNames>([]);
-    const [logLevels] = useState<LogLevels>([]);
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
 
@@ -101,7 +119,6 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
 
     // Plain log pagination
     const [plainPage, setPlainPage] = useState(0);
-    const [perPage] = useState(1000);
 
     // Live tail state
     const [liveTailEnabled, setLiveTailEnabled] = useState(false);
@@ -114,33 +131,40 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
     // Ref for active time preset so reload can recompute dates dynamically
     const activeTimePresetRef = useRef<number | null>(null);
 
-    const reload = useCallback(async () => {
-        setLoading(true);
+    // `silent` keeps the loading state untouched, so a background poll never
+    // replaces the viewer with a spinner
+    const reload = useCallback(async (options?: {silent?: boolean}) => {
+        const silent = options?.silent === true;
+        if (!silent) {
+            setLoading(true);
+        }
         if (isPlainLogs) {
-            await actions.getPlainLogs(plainPage, perPage);
+            await actions.getPlainLogs(plainPage, PLAIN_LOGS_PER_PAGE);
         } else {
             // If a time preset is active, recompute the date range for fresh data
             let effectiveDateFrom = dateFromRef.current;
             let effectiveDateTo = dateToRef.current;
             if (activeTimePresetRef.current !== null) {
                 const now = new Date();
-                const from = new Date(now.getTime() - (activeTimePresetRef.current * 60 * 1000));
-                const pad = (n: number) => String(n).padStart(2, '0');
-                const formatDate = (d: Date) => {
-                    return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}.000 +00:00`;
-                };
-                effectiveDateFrom = formatDate(from);
-                effectiveDateTo = formatDate(now);
+                effectiveDateFrom = formatFilterDate(new Date(now.getTime() - (activeTimePresetRef.current * 60 * 1000)));
+                effectiveDateTo = formatFilterDate(now);
             }
             await actions.getLogs({
-                serverNames,
-                logLevels,
+                serverNames: ALL_SERVER_NAMES,
+                logLevels: ALL_LOG_LEVELS,
                 dateFrom: effectiveDateFrom,
                 dateTo: effectiveDateTo,
             });
         }
-        setLoading(false);
-    }, [isPlainLogs, plainPage, perPage, serverNames, logLevels, actions]);
+        if (!silent) {
+            setLoading(false);
+        }
+    }, [isPlainLogs, plainPage, actions]);
+
+    const pollLogs = useCallback(() => reload({silent: true}), [reload]);
+
+    // Click handlers must not forward their event as reload options
+    const handleReload = useCallback(() => reload(), [reload]);
 
     // Initial load + reload when plain page changes
     const hasMountedRef = useRef(false);
@@ -157,7 +181,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
 
     // Live tail polling
     const {lastUpdated} = useLogPolling({
-        fetchLogs: reload,
+        fetchLogs: pollLogs,
         enabled: liveTailEnabled && !isPlainLogs,
         intervalMs: pollInterval,
     });
@@ -194,25 +218,23 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
         if (plain) {
             setLiveTailEnabled(false);
             setLoading(true);
-            actions.getPlainLogs(plainPage, perPage).then(() => setLoading(false));
+            actions.getPlainLogs(plainPage, PLAIN_LOGS_PER_PAGE).then(() => setLoading(false));
         } else {
             setLoading(true);
-            actions.getLogs({serverNames, logLevels, dateFrom, dateTo}).then(() => setLoading(false));
+            actions.getLogs({
+                serverNames: ALL_SERVER_NAMES,
+                logLevels: ALL_LOG_LEVELS,
+                dateFrom,
+                dateTo,
+            }).then(() => setLoading(false));
         }
-    }, [actions, plainPage, perPage, serverNames, logLevels, dateFrom, dateTo]);
+    }, [actions, plainPage, dateFrom, dateTo]);
 
     // Time presets
     const handleTimePreset = useCallback((minutes: number) => {
         const now = new Date();
-        const from = new Date(now.getTime() - (minutes * 60 * 1000));
-
-        const pad = (n: number) => String(n).padStart(2, '0');
-        const formatDate = (d: Date) => {
-            return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}.000 +00:00`;
-        };
-
-        const newDateFrom = formatDate(from);
-        const newDateTo = formatDate(now);
+        const newDateFrom = formatFilterDate(new Date(now.getTime() - (minutes * 60 * 1000)));
+        const newDateTo = formatFilterDate(now);
 
         setActiveTimePreset(minutes);
         activeTimePresetRef.current = minutes;
@@ -221,12 +243,12 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
 
         setLoading(true);
         actions.getLogs({
-            serverNames,
-            logLevels,
+            serverNames: ALL_SERVER_NAMES,
+            logLevels: ALL_LOG_LEVELS,
             dateFrom: newDateFrom,
             dateTo: newDateTo,
         }).then(() => setLoading(false));
-    }, [actions, serverNames, logLevels]);
+    }, [actions]);
 
     const clearTimePreset = useCallback(() => {
         setActiveTimePreset(null);
@@ -235,12 +257,12 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
         setDateTo('');
         setLoading(true);
         actions.getLogs({
-            serverNames,
-            logLevels,
+            serverNames: ALL_SERVER_NAMES,
+            logLevels: ALL_LOG_LEVELS,
             dateFrom: '',
             dateTo: '',
         }).then(() => setLoading(false));
-    }, [actions, serverNames, logLevels]);
+    }, [actions]);
 
     // Format "last updated" for live tail
     const lastUpdatedText = useMemo(() => {
@@ -264,8 +286,8 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             previousPage={() => setPlainPage((p) => Math.max(0, p - 1))}
             goToPage={(p: number) => setPlainPage(Math.max(0, p))}
             page={plainPage}
-            perPage={perPage}
-            onReload={reload}
+            perPage={PLAIN_LOGS_PER_PAGE}
+            onReload={handleReload}
             downloadUrl={Client4.getUrl() + '/api/v4/logs/download'}
         />
     ) : (
@@ -274,7 +296,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             logs={displayLogs as LogObjectWithAdditionalInfo[]}
             onSearchChange={onSearchChange}
             search={search}
-            onReload={reload}
+            onReload={handleReload}
             downloadUrl={Client4.getUrl() + '/api/v4/logs/download'}
             liveTailEnabled={liveTailEnabled}
             onToggleLiveTail={() => setLiveTailEnabled(!liveTailEnabled)}

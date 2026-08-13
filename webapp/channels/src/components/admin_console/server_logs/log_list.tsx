@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 
@@ -12,8 +14,7 @@ import type {LogObjectWithAdditionalInfo} from './types';
 import './log_list.scss';
 
 type TimePreset = {
-    readonly labelId: string;
-    readonly defaultMessage: string;
+    readonly label: MessageDescriptor;
     readonly minutes: number;
 };
 
@@ -48,39 +49,61 @@ type Props = {
 const PAGE_SIZES = [50, 100, 200, 500] as const;
 const DEFAULT_PAGE_SIZE = 200;
 
+// Filtering runs over every fetched log entry, so keep it off the keystroke path
+const SEARCH_DEBOUNCE_MS = 200;
+
+// Rows are focused programmatically by the keyboard navigation below
+const ROW_FOCUS_SELECTOR = '.LogRow__main';
+
 const LEVEL_ORDER = ['error', 'warn', 'info', 'debug'] as const;
-const LEVEL_LABELS: Record<string, string> = {
-    error: 'Error',
-    warn: 'Warn',
-    info: 'Info',
-    debug: 'Debug',
-};
+const LEVEL_LABELS = defineMessages({
+    error: {id: 'admin.logs.level.error', defaultMessage: 'Error'},
+    warn: {id: 'admin.logs.level.warn', defaultMessage: 'Warn'},
+    info: {id: 'admin.logs.level.info', defaultMessage: 'Info'},
+    debug: {id: 'admin.logs.level.debug', defaultMessage: 'Debug'},
+});
 
 const PREFS_KEY = 'mm_admin_logs_prefs';
 
 type StoredPrefs = {
     pageSize: number;
-    compact: boolean;
     wrapText: boolean;
     enabledLevels: string[];
     sortAsc: boolean;
 };
 
+const DEFAULT_PREFS: StoredPrefs = {
+    pageSize: DEFAULT_PAGE_SIZE,
+    wrapText: true,
+    enabledLevels: [...LEVEL_ORDER],
+    sortAsc: true,
+};
+
+// Stored prefs may predate the current shape, so every field is validated
+// before it is trusted
 function loadPrefs(): StoredPrefs {
+    let stored: Partial<StoredPrefs> = {};
     try {
         const raw = localStorage.getItem(PREFS_KEY);
         if (raw) {
-            return JSON.parse(raw);
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object') {
+                stored = parsed;
+            }
         }
     } catch {
         // ignore
     }
+
+    const levels = Array.isArray(stored.enabledLevels) ? stored.enabledLevels.filter(
+        (level): level is string => LEVEL_ORDER.includes(level as typeof LEVEL_ORDER[number]),
+    ) : [];
+
     return {
-        pageSize: DEFAULT_PAGE_SIZE,
-        compact: true,
-        wrapText: true,
-        enabledLevels: ['error', 'warn', 'info', 'debug'],
-        sortAsc: true,
+        pageSize: PAGE_SIZES.includes(stored.pageSize as typeof PAGE_SIZES[number]) ? stored.pageSize! : DEFAULT_PREFS.pageSize,
+        wrapText: typeof stored.wrapText === 'boolean' ? stored.wrapText : DEFAULT_PREFS.wrapText,
+        enabledLevels: levels.length > 0 ? levels : DEFAULT_PREFS.enabledLevels,
+        sortAsc: typeof stored.sortAsc === 'boolean' ? stored.sortAsc : DEFAULT_PREFS.sortAsc,
     };
 }
 
@@ -110,13 +133,36 @@ export default function LogList({
     const [enabledLevels, setEnabledLevels] = useState<Set<string>>(new Set(initialPrefs.enabledLevels));
     const [wrapText, setWrapText] = useState(initialPrefs.wrapText);
 
+    // Kept local so typing repaints the input without waiting for the filtering
+    // that `search` drives in the parent
+    const [searchInput, setSearchInput] = useState(search);
+
     const listRef = useRef<HTMLDivElement>(null);
+
+    const debouncedSearchChange = useMemo(
+        () => debounce(onSearchChange, SEARCH_DEBOUNCE_MS),
+        [onSearchChange],
+    );
+
+    useEffect(() => debouncedSearchChange.cancel, [debouncedSearchChange]);
+
+    const handleSearchChange = useCallback((term: string) => {
+        setSearchInput(term);
+        debouncedSearchChange(term);
+    }, [debouncedSearchChange]);
+
+    const clearSearch = useCallback(() => {
+        setSearchInput('');
+
+        // Clearing is a deliberate action, so apply it without waiting
+        debouncedSearchChange.cancel();
+        onSearchChange('');
+    }, [debouncedSearchChange, onSearchChange]);
 
     // Persist prefs
     useEffect(() => {
         savePrefs({
             pageSize,
-            compact: true,
             wrapText,
             enabledLevels: Array.from(enabledLevels),
             sortAsc,
@@ -134,11 +180,13 @@ export default function LogList({
         return counts;
     }, [logs]);
 
+    const allLevelsEnabled = useMemo(() => LEVEL_ORDER.every((level) => enabledLevels.has(level)), [enabledLevels]);
+
     // Filter and sort logs
     const processedLogs = useMemo(() => {
         let filtered = logs;
 
-        if (enabledLevels.size < 4) {
+        if (!allLevelsEnabled) {
             filtered = filtered.filter((log) => enabledLevels.has(log.level));
         }
 
@@ -149,7 +197,7 @@ export default function LogList({
         });
 
         return sorted;
-    }, [logs, enabledLevels, sortAsc]);
+    }, [logs, allLevelsEnabled, enabledLevels, sortAsc]);
 
     const matchCount = search ? processedLogs.length : null;
     const totalCount = logs.length;
@@ -190,7 +238,17 @@ export default function LogList({
     }, []);
 
     const enableAllLevels = useCallback(() => {
-        setEnabledLevels(new Set(['error', 'warn', 'info', 'debug']));
+        setEnabledLevels(new Set<string>(LEVEL_ORDER));
+    }, []);
+
+    // Ctrl/Cmd-click a level pill to show only that level; ctrl/cmd-click it again to restore all.
+    const soloLevel = useCallback((level: string) => {
+        setEnabledLevels((prev) => {
+            if (prev.size === 1 && prev.has(level)) {
+                return new Set<string>(LEVEL_ORDER);
+            }
+            return new Set([level]);
+        });
     }, []);
 
     const handleToggleExpand = useCallback((log: LogObjectWithAdditionalInfo) => {
@@ -240,7 +298,7 @@ export default function LogList({
             e.preventDefault();
             setFocusedIndex((prev) => {
                 const next = prev === null ? 0 : Math.min(prev + 1, visibleLogs.length - 1);
-                const rows = listRef.current?.querySelectorAll('.LogRow');
+                const rows = listRef.current?.querySelectorAll(ROW_FOCUS_SELECTOR);
                 (rows?.[next] as HTMLElement)?.focus();
                 return next;
             });
@@ -250,7 +308,7 @@ export default function LogList({
             e.preventDefault();
             setFocusedIndex((prev) => {
                 const next = prev === null ? 0 : Math.max(prev - 1, 0);
-                const rows = listRef.current?.querySelectorAll('.LogRow');
+                const rows = listRef.current?.querySelectorAll(ROW_FOCUS_SELECTOR);
                 (rows?.[next] as HTMLElement)?.focus();
                 return next;
             });
@@ -266,11 +324,16 @@ export default function LogList({
         case 'E': {
             e.preventDefault();
             const direction = e.shiftKey ? -1 : 1;
-            const start = focusedIndex === null ? 0 : focusedIndex + direction;
+
+            // With nothing focused yet, start from whichever end the search walks away from
+            let start = focusedIndex === null ? 0 : focusedIndex + direction;
+            if (focusedIndex === null && direction === -1) {
+                start = visibleLogs.length - 1;
+            }
             for (let i = start; i >= 0 && i < visibleLogs.length; i += direction) {
                 if (visibleLogs[i].level === 'error') {
                     setFocusedIndex(i);
-                    const rows = listRef.current?.querySelectorAll('.LogRow');
+                    const rows = listRef.current?.querySelectorAll(ROW_FOCUS_SELECTOR);
                     (rows?.[i] as HTMLElement)?.focus();
                     (rows?.[i] as HTMLElement)?.scrollIntoView({block: 'nearest'});
                     break;
@@ -295,8 +358,6 @@ export default function LogList({
         );
     }
 
-    const allLevelsEnabled = enabledLevels.size === 4;
-
     return (
         <div
             className='LogViewer'
@@ -313,7 +374,7 @@ export default function LogList({
                             className={`LogViewer__action-btn ${activeTimePreset === preset.minutes ? 'LogViewer__action-btn--active' : ''}`}
                             onClick={() => onTimePreset(preset.minutes)}
                         >
-                            {intl.formatMessage({id: preset.labelId, defaultMessage: preset.defaultMessage})}
+                            <FormattedMessage {...preset.label}/>
                         </button>
                     ))}
                     {activeTimePreset !== null && (
@@ -411,13 +472,13 @@ export default function LogList({
                         className='LogViewer__search-input'
                         type='text'
                         placeholder={intl.formatMessage({id: 'admin.logs.search.placeholder', defaultMessage: 'Search logs...'})}
-                        value={search}
-                        onChange={(e) => onSearchChange(e.target.value)}
+                        value={searchInput}
+                        onChange={(e) => handleSearchChange(e.target.value)}
                     />
-                    {search && (
+                    {searchInput && (
                         <button
                             className='LogViewer__search-clear'
-                            onClick={() => onSearchChange('')}
+                            onClick={clearSearch}
                             type='button'
                             aria-label={intl.formatMessage({id: 'admin.logs.search.clear', defaultMessage: 'Clear search'})}
                         >
@@ -452,10 +513,17 @@ export default function LogList({
                         <button
                             key={level}
                             className={`LogViewer__level-btn LogViewer__level-btn--${level} ${enabledLevels.has(level) ? 'LogViewer__level-btn--on' : ''}`}
-                            onClick={() => toggleLevel(level)}
+                            onClick={(event) => {
+                                if (event.ctrlKey || event.metaKey) {
+                                    soloLevel(level);
+                                } else {
+                                    toggleLevel(level);
+                                }
+                            }}
+                            title={intl.formatMessage({id: 'admin.logs.levelPill.title', defaultMessage: 'Click to toggle · Ctrl/Cmd-click to show only this level'})}
                             type='button'
                         >
-                            {LEVEL_LABELS[level]}
+                            <FormattedMessage {...LEVEL_LABELS[level]}/>
                             <span className='LogViewer__level-count'>{levelCounts[level]}</span>
                         </button>
                     ))}
@@ -466,10 +534,17 @@ export default function LogList({
                     onClick={() => setWrapText(!wrapText)}
                     type='button'
                 >
-                    <FormattedMessage
-                        id={wrapText ? 'admin.logs.wrapOn' : 'admin.logs.wrapOff'}
-                        defaultMessage={wrapText ? 'Wrap' : 'No wrap'}
-                    />
+                    {wrapText ? (
+                        <FormattedMessage
+                            id='admin.logs.wrap'
+                            defaultMessage='Wrap'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='admin.logs.nowrap'
+                            defaultMessage='No wrap'
+                        />
+                    )}
                 </button>
             </div>
 
@@ -506,45 +581,47 @@ export default function LogList({
                 </span>
             </div>
 
+            {/* Empty state — kept outside the list so it only owns rows */}
+            {visibleLogs.length === 0 && !loading && (
+                <div className='LogViewer__empty'>
+                    {search || !allLevelsEnabled ? (
+                        <FormattedMessage
+                            id='admin.logs.noMatchingLogs'
+                            defaultMessage='No logs match your filters. {clearLink}'
+                            values={{
+                                clearLink: (
+                                    <button
+                                        className='btn btn-link'
+                                        onClick={() => {
+                                            clearSearch();
+                                            enableAllLevels();
+                                        }}
+                                        type='button'
+                                    >
+                                        <FormattedMessage
+                                            id='admin.logs.clearFilters'
+                                            defaultMessage='Clear filters'
+                                        />
+                                    </button>
+                                ),
+                            }}
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='admin.logs.noLogs'
+                            defaultMessage='No logs found. Ensure log files are within the logging root directory.'
+                        />
+                    )}
+                </div>
+            )}
+
             {/* Log rows */}
             <div
                 className='LogViewer__list'
                 ref={listRef}
-                role='grid'
+                role='list'
                 aria-label={intl.formatMessage({id: 'admin.logs.listLabel', defaultMessage: 'Server log entries'})}
             >
-                {visibleLogs.length === 0 && !loading && (
-                    <div className='LogViewer__empty'>
-                        {search || !allLevelsEnabled ? (
-                            <FormattedMessage
-                                id='admin.logs.noMatchingLogs'
-                                defaultMessage='No logs match your filters. {clearLink}'
-                                values={{
-                                    clearLink: (
-                                        <button
-                                            className='btn btn-link'
-                                            onClick={() => {
-                                                onSearchChange('');
-                                                enableAllLevels();
-                                            }}
-                                            type='button'
-                                        >
-                                            <FormattedMessage
-                                                id='admin.logs.clearFilters'
-                                                defaultMessage='Clear filters'
-                                            />
-                                        </button>
-                                    ),
-                                }}
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='admin.logs.noLogs'
-                                defaultMessage='No logs found. Ensure log files are within the logging root directory.'
-                            />
-                        )}
-                    </div>
-                )}
                 {visibleLogs.map((log, idx) => (
                     <LogRow
                         key={`${log.timestamp}-${log.caller}-${idx}`}
@@ -557,15 +634,16 @@ export default function LogList({
                         wrapText={wrapText}
                     />
                 ))}
-                {loading && logs.length > 0 && (
-                    <div className='LogViewer__loading-overlay'>
-                        <FormattedMessage
-                            id='admin.logs.refreshing'
-                            defaultMessage='Refreshing...'
-                        />
-                    </div>
-                )}
             </div>
+
+            {loading && logs.length > 0 && (
+                <div className='LogViewer__loading-overlay'>
+                    <FormattedMessage
+                        id='admin.logs.refreshing'
+                        defaultMessage='Refreshing...'
+                    />
+                </div>
+            )}
 
             {/* Footer */}
             <div className='LogViewer__footer'>

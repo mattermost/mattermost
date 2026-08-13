@@ -235,15 +235,19 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
     return (
         <div
             className={rowClasses}
-            onClick={handleClick}
             onFocus={handleFocus}
-            onKeyDown={handleKeyDown}
-            role='row'
-            tabIndex={0}
-            aria-expanded={isExpanded}
+            role='listitem'
             data-level={log.level}
         >
-            <div className='LogRow__main'>
+            {/* The row summary is the disclosure control for the details below it */}
+            <div
+                className='LogRow__main'
+                onClick={handleClick}
+                onKeyDown={handleKeyDown}
+                role='button'
+                tabIndex={0}
+                aria-expanded={isExpanded}
+            >
                 <span className={`LogRow__level ${levelConfig.className}`}>
                     {levelConfig.label}
                 </span>

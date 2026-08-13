@@ -5,7 +5,7 @@ import React from 'react';
 
 import {LogLevelEnum} from '@mattermost/types/admin';
 
-import {renderWithContext, userEvent, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen, waitFor, within} from 'tests/react_testing_utils';
 
 import Logs from './logs';
 
@@ -96,6 +96,57 @@ describe('components/admin_console/server_logs/Logs', () => {
                 expect(logRows.length).toBe(0);
             });
         });
+
+    test('should expose the log rows as a list that only owns list items', () => {
+        const list = screen.getByRole('list', {name: 'Server log entries'});
+
+        expect(list).toHaveClass('LogViewer__list');
+        expect(within(list).getAllByRole('listitem')).toHaveLength(3);
+
+        // A list must not own anything other than list items
+        const nonItems = Array.from(list.children).filter((child) => child.getAttribute('role') !== 'listitem');
+        expect(nonItems).toEqual([]);
+    });
+
+    test('should keep the empty state outside the list', async () => {
+        const searchInput = screen.getByPlaceholderText('Search logs...');
+        await userEvent.type(searchInput, 'nothing matches this');
+
+        await waitFor(() => {
+            expect(screen.getByText(/No logs match your filters/)).toBeInTheDocument();
+        });
+
+        const list = screen.getByRole('list', {name: 'Server log entries'});
+        expect(list).toBeEmptyDOMElement();
+    });
+
+    test('should update the search input without waiting for the filtering', async () => {
+        const searchInput = screen.getByPlaceholderText('Search logs...');
+        await userEvent.type(searchInput, 'msg 1');
+
+        // Typing is not gated on the debounced filter pass
+        expect(searchInput).toHaveValue('msg 1');
+
+        await waitFor(() => {
+            expect(document.querySelectorAll('.LogRow')).toHaveLength(1);
+        });
+    });
+
+    test('should apply a cleared search immediately', async () => {
+        const searchInput = screen.getByPlaceholderText('Search logs...');
+        await userEvent.type(searchInput, 'msg 1');
+
+        await waitFor(() => {
+            expect(document.querySelectorAll('.LogRow')).toHaveLength(1);
+        });
+
+        await userEvent.click(screen.getByLabelText('Clear search'));
+
+        expect(searchInput).toHaveValue('');
+        await waitFor(() => {
+            expect(document.querySelectorAll('.LogRow')).toHaveLength(3);
+        });
+    });
 
     test('should display live tail toggle', () => {
         expect(screen.getByText('Live')).toBeInTheDocument();
