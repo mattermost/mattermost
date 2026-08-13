@@ -1182,8 +1182,8 @@
             }
 
             // Keep the author avatar column at its natural size so the round
-            // avatar isn't squished into a sliver when the preview sits inside a
-            // constrained flex container (e.g. the content flagging RHS card).
+            // avatar isn't squished when the preview sits inside a constrained
+            // flex container (e.g. the content flagging RHS card).
             &:has(.post__img) {
                 flex: 0 0 auto;
             }
@@ -1777,11 +1777,18 @@
         .post__img {
             width: 24px;
             height: 24px;
+            flex: 0 0 auto;
             padding: 0;
             text-align: left;
 
             img.avatar-post-preview {
                 display: block;
+
+                // The shared avatar rules set min-width: 0, which lets the image
+                // shrink (and look squished) inside constrained flex layouts.
+                // Pin it to its intended size so it always stays round.
+                min-width: 24px;
+                flex-shrink: 0;
             }
         }
 
