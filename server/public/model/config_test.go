@@ -2868,6 +2868,29 @@ func TestExperimentalAuditSettingsIsValid(t *testing.T) {
 			ExpectError: false,
 		},
 
+		// audit-delivery is not part of the default audit file target, but admins must be
+		// able to bind an advanced logging target to it.
+		"AdvancedLoggingJSON with the audit-delivery level is valid": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"delivery-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{ "id": 104, "name": "audit-delivery" }
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: false,
+		},
+
 		"AdvancedLoggingJSON with standard log levels": {
 			ExperimentalAuditSettings: ExperimentalAuditSettings{
 				AdvancedLoggingJSON: json.RawMessage(`

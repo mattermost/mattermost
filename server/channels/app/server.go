@@ -532,12 +532,21 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Warn("AccessControlSettings.EnableAccessControlAuditLogging is enabled but no active audit log target is configured; ABAC policy-decision audit logging will have no effect. Enable ExperimentalAuditSettings.FileEnabled or configure an advanced audit logging target bound to an audit level.")
 	}
 
+	s.warnIfDeliveryAuditTargetMissing(s.platform.Config())
+	s.platform.AddConfigListener(func(oldCfg, newCfg *model.Config) {
+		if !deliveryAuditWarnInputsChanged(oldCfg, newCfg) {
+			return
+		}
+		s.warnIfDeliveryAuditTargetMissing(newCfg)
+	})
+
 	s.platform.RemoveUnlicensedLogTargets(license)
 	s.platform.EnableLoggingMetrics()
 
 	s.loggerLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.platform.RemoveUnlicensedLogTargets(newLicense)
 		s.platform.EnableLoggingMetrics()
+		s.warnIfDeliveryAuditTargetMissing(s.platform.Config())
 	})
 
 	// if enabled - perform initial product notices fetch

@@ -5333,6 +5333,38 @@ components:
       required:
         - Enabled
         - ReviewerIds
+    DeliveryTrackingConfig:
+      type: object
+      description: >-
+        Post delivery audit logging configuration. The toggles are stored in the server
+        configuration; the channel list is stored separately in the database.
+      properties:
+        Enable:
+          type: boolean
+          description: >-
+            Whether an audit log entry is recorded each time a post is delivered to a user.
+            The records are emitted on the `audit-delivery` log level, which is not part of
+            the default audit file target — an admin must add a target for it via
+            `ExperimentalAuditSettings.AdvancedLoggingJSON`.
+          example: true
+        EnableForAllChannels:
+          type: boolean
+          description: >-
+            When true, deliveries are recorded in every eligible channel. When false, only in
+            the channels listed in ChannelIds.
+          example: false
+        ChannelIds:
+          type: array
+          items:
+            type: string
+          description: >-
+            IDs of the channels deliveries are recorded in. Only used when
+            EnableForAllChannels is false. On update this fully replaces the stored list;
+            omit the field to leave it unchanged, or send an empty array to clear it. An
+            empty array is only accepted when the resulting configuration is still valid,
+            which means EnableForAllChannels must be true. Direct and group message channels
+            are rejected.
+          example: [ "onymzj7qcjnz7dcnhtjp1noc3w" ]
     AccessControlPolicyActiveUpdateRequest:
       type: object
       properties:
