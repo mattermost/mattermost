@@ -23,10 +23,14 @@ type Props = {
     downloadUrl: string;
 };
 
-// Represents a highlighted line: either an HTML string (JSON via highlight.js) or a React node (plain log)
+const NO_LOGS: string[] = [];
+
+// Represents a highlighted line: either JSON (highlighted by highlight.js, keyed
+// by its own text) or a React node (plain log)
 type HighlightedLine = {
     isHtml: true;
-    html: string;
+    text: string;
+    fallbackHtml: string;
 } | {
     isHtml: false;
     node: React.ReactNode;
@@ -37,36 +41,38 @@ function highlightLogLineSync(line: string): HighlightedLine {
     const trimmed = line.trim();
 
     if (trimmed.startsWith('{')) {
-        return {isHtml: true, html: TextFormatting.sanitizeHtml(trimmed)};
+        return {isHtml: true, text: trimmed, fallbackHtml: TextFormatting.sanitizeHtml(trimmed)};
     }
 
     return {isHtml: false, node: highlightPlainLog(line)};
 }
 
-// Async highlight for JSON lines using highlight.js
-async function highlightJsonLines(lines: string[]): Promise<Map<number, string>> {
-    const jsonEntries: Array<{index: number; text: string}> = [];
-    for (let i = 0; i < lines.length; i++) {
-        if (lines[i].trim().startsWith('{')) {
-            jsonEntries.push({index: i, text: lines[i].trim()});
+// Async highlight for JSON lines using highlight.js. Results are keyed by line
+// text rather than by position, so they never end up attached to another line.
+async function highlightJsonLines(lines: string[]): Promise<Map<string, string>> {
+    const jsonTexts: string[] = [];
+    const seen = new Set<string>();
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('{') && !seen.has(trimmed)) {
+            seen.add(trimmed);
+            jsonTexts.push(trimmed);
         }
     }
 
-    if (jsonEntries.length === 0) {
+    if (jsonTexts.length === 0) {
         return new Map();
     }
 
-    const results = new Map<number, string>();
-    const combined = jsonEntries.map((e) => e.text).join('\n');
-    const highlighted = await SyntaxHighlighting.highlight('json', combined);
+    const results = new Map<string, string>();
+    const highlighted = await SyntaxHighlighting.highlight('json', jsonTexts.join('\n'));
     const highlightedLines = highlighted.split('\n');
 
-    // Map highlighted lines back to their indices
+    // Map highlighted lines back to the text they came from
     let lineIdx = 0;
-    for (const entry of jsonEntries) {
-        const lineCount = entry.text.split('\n').length;
-        const slice = highlightedLines.slice(lineIdx, lineIdx + lineCount).join('\n');
-        results.set(entry.index, slice);
+    for (const text of jsonTexts) {
+        const lineCount = text.split('\n').length;
+        results.set(text, highlightedLines.slice(lineIdx, lineIdx + lineCount).join('\n'));
         lineIdx += lineCount;
     }
 
@@ -188,7 +194,9 @@ function getCopyLabel(success: boolean, failed: boolean): React.ReactNode {
 export default function PlainLogList({
     loading, logs: rawLogs, page, perPage, nextPage, previousPage, goToPage, onReload, downloadUrl,
 }: Props) {
-    const logs = rawLogs || [];
+    // A shared constant keeps the fallback stable, so the memos below are not
+    // invalidated on every render
+    const logs = rawLogs || NO_LOGS;
     const intl = useIntl();
     const logPanelRef = useRef<HTMLDivElement>(null);
     const [followTail, setFollowTail] = useState(true);
@@ -285,11 +293,13 @@ export default function PlainLogList({
     }, [displayLogs]);
 
     // Async highlight.js enhancement for JSON lines
-    const [jsonHighlights, setJsonHighlights] = useState<Map<number, string>>(new Map());
+    const [jsonHighlights, setJsonHighlights] = useState<Map<string, string>>(new Map());
     useEffect(() => {
         let cancelled = false;
-        setJsonHighlights(new Map());
-        highlightJsonLines(displayLogs).then((results) => {
+
+        // The previous highlights are left in place until the new ones are ready,
+        // so the lines do not flash back to their unhighlighted rendering
+        highlightJsonLines(logs).then((results) => {
             if (!cancelled) {
                 setJsonHighlights(results);
             }
@@ -297,7 +307,7 @@ export default function PlainLogList({
         return () => {
             cancelled = true;
         };
-    }, [displayLogs]);
+    }, [logs]);
 
     return (
         <div className='PlainLogViewer'>
@@ -334,10 +344,10 @@ export default function PlainLogList({
                         type='button'
                         className={`PlainLogViewer__action-btn ${newestFirst ? 'PlainLogViewer__action-btn--active' : ''}`}
                         onClick={() => setNewestFirst(!newestFirst)}
-                        title={intl.formatMessage({
-                            id: newestFirst ? 'admin.logs.oldestFirst' : 'admin.logs.newestFirst',
-                            defaultMessage: newestFirst ? 'Oldest first' : 'Newest first',
-                        })}
+                        title={newestFirst ?
+                            intl.formatMessage({id: 'admin.logs.sortOldestFirst', defaultMessage: 'Sort oldest first'}) :
+                            intl.formatMessage({id: 'admin.logs.sortNewestFirst', defaultMessage: 'Sort newest first'})
+                        }
                     >
                         <i className={newestFirst ? 'icon icon-arrow-down' : 'icon icon-arrow-up'}/>
                         {newestFirst ? (
@@ -423,15 +433,15 @@ export default function PlainLogList({
                     initialHighlightedLines.map((highlighted, i) => {
                         const line = displayLogs[i];
                         let lineClass = 'PlainLogViewer__line';
-                        if (line.indexOf('[EROR]') > 0) {
+                        if (line.includes('[EROR]')) {
                             lineClass += ' PlainLogViewer__line--error';
-                        } else if (line.indexOf('[WARN]') > 0) {
+                        } else if (line.includes('[WARN]')) {
                             lineClass += ' PlainLogViewer__line--warn';
                         }
 
                         // JSON lines: render with highlight.js HTML (or sanitized fallback)
                         if (highlighted.isHtml) {
-                            const jsonHtml = jsonHighlights.get(i) || highlighted.html;
+                            const jsonHtml = jsonHighlights.get(highlighted.text) || highlighted.fallbackHtml;
                             return (
                                 <div
                                     key={i} // eslint-disable-line react/no-array-index-key
@@ -553,10 +563,17 @@ export default function PlainLogList({
                             }}
                         >
                             <i className={newestFirst ? 'icon icon-arrow-up' : 'icon icon-arrow-down'}/>
-                            <FormattedMessage
-                                id={newestFirst ? 'admin.logs.scrollToTop' : 'admin.logs.scrollToBottom'}
-                                defaultMessage={newestFirst ? 'Scroll to top' : 'Scroll to bottom'}
-                            />
+                            {newestFirst ? (
+                                <FormattedMessage
+                                    id='admin.logs.scrollToTop'
+                                    defaultMessage='Scroll to top'
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='admin.logs.scrollToBottom'
+                                    defaultMessage='Scroll to bottom'
+                                />
+                            )}
                         </button>
                     )}
                 </div>
