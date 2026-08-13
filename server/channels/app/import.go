@@ -151,7 +151,7 @@ func processAttachments(rctx request.CTX, line *imports.LineImportData, basePath
 	return nil
 }
 
-func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, existingUsersOnly bool, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
+func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, existingUsersOnly bool, report *imports.ImportReport, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
 	workerID := model.NewId()
 	processedLines := uint64(0)
 
@@ -171,7 +171,7 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, existin
 				errors <- imports.LineImportWorkerError{Error: model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest), LineNumber: line.LineNumber}
 			}
 			if len(postLines) >= importMultiplePostsThreshold {
-				if errLine, err := a.importMultiplePostLines(rctx, postLines, dryRun, extractContent, existingUsersOnly); err != nil {
+				if errLine, err := a.importMultiplePostLines(rctx, postLines, dryRun, extractContent, existingUsersOnly, report); err != nil {
 					errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 				}
 				postLines = []imports.LineImportWorkerData{}
@@ -182,13 +182,13 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, existin
 				errors <- imports.LineImportWorkerError{Error: model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest), LineNumber: line.LineNumber}
 			}
 			if len(directPostLines) >= importMultiplePostsThreshold {
-				if errLine, err := a.importMultipleDirectPostLines(rctx, directPostLines, dryRun, extractContent, existingUsersOnly); err != nil {
+				if errLine, err := a.importMultipleDirectPostLines(rctx, directPostLines, dryRun, extractContent, existingUsersOnly, report); err != nil {
 					errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 				}
 				directPostLines = []imports.LineImportWorkerData{}
 			}
 		default:
-			if err := a.importLine(rctx, line.LineImportData, dryRun, existingUsersOnly); err != nil {
+			if err := a.importLine(rctx, line.LineImportData, dryRun, existingUsersOnly, report); err != nil {
 				errors <- imports.LineImportWorkerError{Error: err, LineNumber: line.LineNumber}
 			}
 		}
@@ -200,34 +200,38 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, existin
 	}
 
 	if len(postLines) > 0 {
-		if errLine, err := a.importMultiplePostLines(rctx, postLines, dryRun, extractContent, existingUsersOnly); err != nil {
+		if errLine, err := a.importMultiplePostLines(rctx, postLines, dryRun, extractContent, existingUsersOnly, report); err != nil {
 			errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 		}
 	}
 	if len(directPostLines) > 0 {
-		if errLine, err := a.importMultipleDirectPostLines(rctx, directPostLines, dryRun, extractContent, existingUsersOnly); err != nil {
+		if errLine, err := a.importMultipleDirectPostLines(rctx, directPostLines, dryRun, extractContent, existingUsersOnly, report); err != nil {
 			errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 		}
 	}
 }
 
 func (a *App) BulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (int, *model.AppError) {
-	return a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, true, workers, "", "")
+	_, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, true, workers, "", "", &imports.ImportReport{})
+	return 0, err
 }
 
 func (a *App) BulkImportWithPath(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError) {
-	return a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, "")
+	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, "", &imports.ImportReport{})
+	return lineNumber, err
 }
 
 func (a *App) BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, opts model.BulkImportOpts) (int, *model.AppError) {
-	return a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeam)
+	report := &imports.ImportReport{}
+	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeam, report)
+	return lineNumber, err
 }
 
 // bulkImport will extract attachments from attachmentsReader if it is
 // not nil. If it is nil, it will look for attachments on the
 // filesystem in the locations specified by the JSONL file according
 // to the older behavior
-func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, destinationTeam string) (int, *model.AppError) {
+func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, destinationTeam string, report *imports.ImportReport) (int, *model.AppError) {
 	scanner := bufio.NewScanner(jsonlReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
@@ -328,7 +332,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 			linesChan = make(chan imports.LineImportWorkerData, workers)
 			for range workers {
 				wg.Add(1)
-				go a.bulkImportWorker(rctx, dryRun, extractContent, existingUsersOnly, &wg, linesChan, errorsChan)
+				go a.bulkImportWorker(rctx, dryRun, extractContent, existingUsersOnly, report, &wg, linesChan, errorsChan)
 			}
 		}
 
@@ -409,7 +413,7 @@ func processImportDataFileVersionLine(line imports.LineImportData) (int, *model.
 	return *line.Version, nil
 }
 
-func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun bool, existingUsersOnly bool) *model.AppError {
+func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun bool, existingUsersOnly bool, report *imports.ImportReport) *model.AppError {
 	switch {
 	case line.Type == "role":
 		if line.Role == nil {
@@ -435,7 +439,7 @@ func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun b
 		if line.User == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_user.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importUser(rctx, line.User, dryRun, existingUsersOnly)
+		return a.importUser(rctx, line.User, dryRun, existingUsersOnly, report)
 	case line.Type == "bot":
 		if line.Bot == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_bot.error", nil, "", http.StatusBadRequest)
