@@ -237,6 +237,10 @@ describe('components/admin_console/server_logs/Logs refetching', () => {
 
         await userEvent.click((await screen.findAllByText('Received HTTP request'))[1]);
 
-        expect(document.querySelectorAll('.LogRow__details')).toHaveLength(1);
+        // The entries are indistinguishable by content, so only their position
+        // shows that the clicked row is the one that expanded
+        const rows = screen.getAllByRole('listitem');
+        expect(rows[0].querySelector('.LogRow__details')).toBeNull();
+        expect(rows[1].querySelector('.LogRow__details')).toBeInTheDocument();
     });
 });
