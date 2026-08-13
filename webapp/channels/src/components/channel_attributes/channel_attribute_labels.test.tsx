@@ -189,6 +189,23 @@ describe('ChannelAttributeLabels', () => {
         expect(popover).toHaveTextContent('C');
     });
 
+    // Regression: labels arrive after mount, so the split state starts life sized
+    // for an empty list. If that stale index survives, every chip counts as
+    // overflow — and because the measured row then contains nothing, it has zero
+    // width, so no measurement ever corrects it. The header showed "+1" and no
+    // chip at all. Found by the e2e suite; jsdom hid it because widths are stubbed.
+    test('never renders an overflow count with no chips beside it', async () => {
+        jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({width: 0} as DOMRect);
+
+        renderWithContext(
+            <ChannelAttributeLabels channelId={CHANNEL_ID}/>,
+            makeState([field('a')]),
+        );
+
+        await waitFor(() => expect(screen.getAllByTestId('attributeChip')).toHaveLength(1));
+        expect(screen.queryByTestId('channelAttributeLabelsOverflow')).not.toBeInTheDocument();
+    });
+
     test('is deterministic: the same width yields the same split', async () => {
         stubWidths(110);
         const state = makeState([field('a'), field('b'), field('c')]);

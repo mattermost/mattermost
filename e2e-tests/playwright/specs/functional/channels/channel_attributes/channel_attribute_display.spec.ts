@@ -131,9 +131,15 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
     });
 
     /**
-     * @objective Verify a locked attribute is read-only in the UI and rejected by the server independently.
+     * @objective Verify a locked attribute renders read-only with its reason, and that the lock key itself is validated server-side.
+     *
+     * KNOWN LIMITATION, asserted rather than assumed: `editable: false` is
+     * enforced by the client only. The server validates the key's type but does
+     * not reject a value write for a locked attribute, so a caller with the
+     * setter tier can still change it through the API. The final assertion below
+     * records that as current behaviour. If server enforcement lands, invert it.
      */
-    test('renders a locked attribute read-only and rejects the write server-side', async ({pw}) => {
+    test('renders a locked attribute read-only and validates the lock key server-side', async ({pw}) => {
         await pw.skipIfNoLicense();
         await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
@@ -170,8 +176,8 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await expect(page.getByTestId(`channelInfoAttributeRow-${locked.name}`)).toBeVisible();
             await expect(page.getByTestId(`channelInfoAttributeEdit-${locked.name}`)).toHaveCount(0);
 
-            // The server enforces this independently of the UI, so the attrs key
-            // cannot be defeated by driving the API directly.
+            // The lock key is type-validated, so it cannot be smuggled past
+            // validation as a truthy string.
             await expect(
                 adminClient.patchPropertyField(
                     'access_control',
@@ -180,6 +186,12 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
                     {attrs: {...locked.attrs, editable: 'yes'}} as never,
                 ),
             ).rejects.toThrow();
+
+            // Documents the gap rather than pretending it is closed: the value
+            // write succeeds today because nothing server-side consults the key.
+            await setChannelValue(adminClient, channel.id, locked, optionId(locked, 'OTHER'));
+            const values = await adminClient.getPropertyValues('access_control', 'channel', channel.id);
+            expect(values?.find((value) => value.field_id === locked.id)?.value).toBe(optionId(locked, 'OTHER'));
         } finally {
             await deleteAttributes(adminClient, created);
         }

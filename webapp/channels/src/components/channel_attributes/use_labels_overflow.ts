@@ -53,9 +53,13 @@ export function useLabelsOverflow(ids: string[]) {
 
         const availableWidth = containerEl.getBoundingClientRect().width;
 
-        // Nothing has been laid out yet. Committing a split now would render a
-        // +N for chips that do in fact fit, so wait for the observer instead.
+        // Nothing has been laid out yet. Show everything rather than bailing:
+        // an unmeasured row must not stay collapsed, and because the row only
+        // contains the chips it is allowed to show, bailing here deadlocks —
+        // zero visible chips means zero width, which means no measurement, which
+        // means the chips never come back.
         if (availableWidth === 0) {
+            setOverflowStartIndex(currentIds.length);
             return;
         }
 
@@ -121,7 +125,12 @@ export function useLabelsOverflow(ids: string[]) {
         return () => registerChipRef('__container', null);
     }, [containerEl, registerChipRef]);
 
+    // Show everything the moment the set changes, then measure and shrink.
+    // Starting from "all visible" rather than the previous split matters on the
+    // first load: labels arrive after mount, so a stale index from the empty set
+    // would otherwise render a +N with no chips beside it.
     useEffect(() => {
+        setOverflowStartIndex(ids.length);
         debouncedCalculateOverflow();
         return () => debouncedCalculateOverflow.cancel();
     }, [ids, debouncedCalculateOverflow]);

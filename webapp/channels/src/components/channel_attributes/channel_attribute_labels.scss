@@ -3,16 +3,21 @@ $chip-gap: 4px; // keep in sync with CHIP_GAP in use_labels_overflow.ts
 .ChannelAttributeLabels {
     display: flex;
     min-width: 0;
+
+    // Takes only leftover space, so the controls after it keep their natural
+    // size and do not move. Growing is what lets the row below measure the space
+    // available rather than the width of whatever it currently shows — measuring
+    // its own content would make the split depend on the last split.
+    flex: 1 1 auto;
     align-items: center;
     gap: $chip-gap;
 
-    // The header is crowded and the controls after it must not move, so the chip
-    // row yields space rather than claiming it. Overflow is resolved by dropping
-    // chips into the +N popover, never by wrapping.
+    // Overflow is resolved by dropping chips into the +N popover, never by
+    // wrapping and never by pushing the header controls around.
     &__visible {
         display: flex;
         min-width: 0;
-        flex: 0 1 auto;
+        flex: 1 1 auto;
         align-items: center;
         gap: $chip-gap;
         overflow: hidden;
