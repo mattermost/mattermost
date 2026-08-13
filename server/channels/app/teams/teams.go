@@ -176,7 +176,7 @@ func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *
 		tm.SchemeAdmin = userShouldBeAdmin
 	}
 
-	if team.Email == user.Email {
+	if team.Email == user.Email && !user.IsGuest() {
 		tm.SchemeAdmin = true
 	}
 
