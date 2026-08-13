@@ -48,8 +48,12 @@ function pressArrow(direction: 'ArrowDown' | 'ArrowUp', times = 1) {
     }
 }
 
+function focusedRow(): Element | null {
+    return document.querySelector('.LogRow--focused');
+}
+
 function focusedRowMessage(): string | undefined {
-    return document.querySelector('.LogRow--focused')?.querySelector('.LogRow__message')?.textContent ?? undefined;
+    return focusedRow()?.querySelector('.LogRow__message')?.textContent ?? undefined;
 }
 
 describe('components/admin_console/server_logs/LogList', () => {
@@ -74,7 +78,7 @@ describe('components/admin_console/server_logs/LogList', () => {
 
         pressArrow('ArrowDown', 2);
         expect(focusedRowMessage()).toBe('msg 2');
-        expect(document.activeElement).toBe(document.querySelectorAll('.LogRow__main')[1]);
+        expect(document.activeElement).toBe(focusedRow()?.querySelector('.LogRow__main'));
 
         pressArrow('ArrowUp');
         expect(focusedRowMessage()).toBe('msg 1');
@@ -118,6 +122,32 @@ describe('components/admin_console/server_logs/LogList', () => {
             <LogList
                 {...baseProps}
                 logs={[second, third]}
+            />,
+        );
+
+        expect(focusedRowMessage()).toBe('msg 2');
+        expect(document.activeElement).toBe(focusedRow()?.querySelector('.LogRow__main'));
+    });
+
+    test('should keep the selection on the same entry when newest entries sort first', () => {
+        localStorage.setItem('mm_admin_logs_prefs', JSON.stringify({sortAsc: false}));
+
+        const {rerender} = renderWithContext(
+            <LogList
+                {...baseProps}
+                logs={[first, second, third]}
+            />,
+        );
+
+        // Newest first, so the second row is the middle entry
+        pressArrow('ArrowDown', 2);
+        expect(focusedRowMessage()).toBe('msg 2');
+
+        // A live-tail poll adds a newer entry, which lands above the selection
+        rerender(
+            <LogList
+                {...baseProps}
+                logs={[first, second, third, makeLog('msg 4', '2026-03-12T10:00:04.000Z')]}
             />,
         );
 
