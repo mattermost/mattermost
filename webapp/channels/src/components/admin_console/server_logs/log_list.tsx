@@ -100,7 +100,7 @@ export default function LogList({
     timePresets, activeTimePreset, onTimePreset, onClearTimePreset,
 }: Props) {
     const intl = useIntl();
-    const initialPrefs = useMemo(loadPrefs, []);
+    const initialPrefs = useMemo(() => loadPrefs(), []);
 
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(initialPrefs.pageSize);

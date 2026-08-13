@@ -28,10 +28,10 @@ describe('System Console > Server Logs', () => {
         cy.get('.banner__content span').should('not.empty');
 
         // * Verify reload button is showed.
-        cy.get('.admin-logs-content button span').should('be.visible').and('contain', 'Reload');
+        cy.get('.admin-logs-content .LogViewer__toolbar button').contains('Reload').should('be.visible');
 
         // * Verify that server logs are showed correctly.
-        cy.get('.admin-logs-content div.LogTable').should('be.visible').and('not.empty');
-        cy.get('.admin-logs-content div.LogTable span').eq(0).should('not.empty');
+        cy.get('.admin-logs-content div.LogViewer').should('be.visible').and('not.empty');
+        cy.get('.admin-logs-content .LogRow__message').eq(0).should('not.empty');
     });
 });
