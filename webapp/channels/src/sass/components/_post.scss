@@ -1978,6 +1978,16 @@
             pointer-events: none;
         }
     }
+
+    // Overlay the "Show more" affordance on the faded bottom of the preview.
+    // It is measured and revealed after mount, so keeping it out of the flow
+    // avoids growing the preview's height (a layout shift) when it appears.
+    .post-preview-collapse__show-more-button {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        z-index: 2;
+    }
 }
 
 .post-message--expanded {
