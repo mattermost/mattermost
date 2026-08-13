@@ -31,6 +31,11 @@
 
     // Matches the classification rows above: a long attribute name wraps rather
     // than being clipped, since the name is the only thing identifying the row.
+    &__required {
+        margin-left: 2px;
+        color: var(--error-text);
+    }
+
     &__label {
         width: 140px;
         flex-shrink: 0;

@@ -8,6 +8,9 @@ import type {OnChangeValue} from 'react-select';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
+import {isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
+
+import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
 import DropdownInput from 'components/dropdown_input';
 import Input from 'components/widgets/inputs/input/input';
 
@@ -22,7 +25,7 @@ type Props = {
     disabled?: boolean;
 };
 
-type Option = {label: string; value: string};
+type Option = {label: string; value: string; color?: string};
 
 // The menu is portalled to the body to escape the modal's overflow, which drops
 // it out of the modal's stacking context — without these it paints behind the
@@ -54,7 +57,23 @@ function fieldLabel(field: PropertyField): string {
 
 function toOptions(field: PropertyField): Option[] {
     const options = (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
-    return options.map((option) => ({label: option.name, value: option.id}));
+    return options.map((option) => ({label: option.name, value: option.id, color: option.color}));
+}
+
+// Any attribute whose options carry colours renders them, which is how
+// Classification keeps the swatches it had in its own dedicated section once it
+// becomes one attribute among many.
+function formatOptionLabel(option: Option) {
+    if (!option.color) {
+        return <span>{option.label}</span>;
+    }
+
+    return (
+        <LevelOptionLabel>
+            <ColorSwatch style={{backgroundColor: option.color}}/>
+            <span>{option.label}</span>
+        </LevelOptionLabel>
+    );
 }
 
 const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
@@ -113,6 +132,14 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                             title={label}
                         >
                             {label}
+                            {isPropertyFieldRequired(field) && (
+                                <span
+                                    className='channel-attributes-form__required'
+                                    aria-hidden={true}
+                                >
+                                    {'*'}
+                                </span>
+                            )}
                         </span>
                         <div className='channel-attributes-form__control'>
                             {isText(field) ? (
@@ -141,6 +168,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                                     isDisabled={disabled}
                                     placeholder={selectPlaceholder}
                                     styles={dropdownStyles}
+                                    formatOptionLabel={formatOptionLabel}
                                     menuPortalTarget={document.body}
                                 />
                             )}

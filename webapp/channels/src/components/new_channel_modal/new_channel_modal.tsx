@@ -34,6 +34,7 @@ import {classificationPresetDropdownStyles} from 'components/admin_console/class
 import CategorySelector from 'components/category_selector/category_selector';
 import type {ChannelAttributeSelection} from 'components/channel_attributes/channel_attributes_form';
 import ChannelAttributesForm from 'components/channel_attributes/channel_attributes_form';
+import {isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import {
     CHANNEL_BANNER_MAX_CHARACTER_LIMIT,
@@ -128,19 +129,37 @@ const NewChannelModal = () => {
 
     const classification = useClassificationMarkings();
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
-    const canManageClassification = classification.available && isSystemAdmin;
 
     const channelAttributes = useChannelAttributes();
+
+    // Superseded by the generic attribute section while the flag is on, so a
+    // channel's classification has one control here rather than two. Flag off
+    // leaves the shipped section exactly as it is.
+    const canManageClassification = classification.available && isSystemAdmin && !channelAttributes.enabled;
     const [attributeValues, setAttributeValues] = useState<ChannelAttributeSelection>({});
     const [attributeError, setAttributeError] = useState('');
     const [createdChannel, setCreatedChannel] = useState<Channel | null>(null);
 
-    // Classification keeps its own section, with the level toggle and banner text
-    // it needs, so it is excluded here rather than given a second control that
-    // writes the same field.
+    // Required attributes only. An optional one is not asked for at creation —
+    // it is added later from Channel Info, which is what keeps this dialog from
+    // growing a field for every attribute the server happens to define.
+    //
+    // Classification is included like any other attribute once the flag is on;
+    // its dedicated section below is suppressed in the same breath, so the field
+    // never gets two controls.
     const assignableAttributeFields = useMemo(() => {
-        return channelAttributes.fields.filter((field) => field.id !== classification.channelField?.id);
-    }, [channelAttributes.fields, classification.channelField]);
+        return channelAttributes.fields.filter(isPropertyFieldRequired);
+    }, [channelAttributes.fields]);
+
+    const missingRequiredAttributes = useMemo(() => {
+        return assignableAttributeFields.filter((field) => {
+            const value = attributeValues[field.id];
+            if (Array.isArray(value)) {
+                return value.length === 0;
+            }
+            return !value;
+        });
+    }, [assignableAttributeFields, attributeValues]);
 
     const attributeDisplayName = useCallback((fieldId: string): string => {
         if (fieldId === classification.channelField?.id) {
@@ -477,11 +496,17 @@ const NewChannelModal = () => {
     const pluginCreateGate = isBuiltInType(type) ? canCreateFromPluggable : pluginCanCreate;
     const classificationValid = !classificationEnabled || (Boolean(selectedClassificationId) && bannerText.trim().length > 0);
 
+    // Enforced by this dialog, not by the server: channel creation and the value
+    // write are separate calls, and POST /channels cannot carry values. A failed
+    // write therefore still leaves a channel that does not meet its own
+    // requirement — recoverable from Channel Info, but not guaranteed here.
+    const requiredAttributesFilled = !isBuiltInType(type) || missingRequiredAttributes.length === 0;
+
     // Once the channel exists but its attributes failed to save, the only action
     // left is to acknowledge and go to it — creating again would collide on the URL.
     // Also block while attribute definitions are still loading so the form is fully
     // populated before the user can submit.
-    const canCreate = createdChannel ? true : Boolean(displayName && !urlError && hasValidType && !purposeError && !serverError && pluginCreateGate && !channelInputError && classificationValid && !isSubmitting && !channelAttributes.loading);
+    const canCreate = createdChannel ? true : Boolean(displayName && !urlError && hasValidType && !purposeError && !serverError && pluginCreateGate && !channelInputError && classificationValid && requiredAttributesFilled && !isSubmitting && !channelAttributes.loading);
 
     const pluginOptions = useMemo<PluginOptionButtonProps[]>(() => availableOptions.map((o) => ({
         id: o.id,

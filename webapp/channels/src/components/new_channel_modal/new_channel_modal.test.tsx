@@ -1326,7 +1326,9 @@ describe('components/new_channel_modal - channel attributes', () => {
         target_id: '',
         target_type: 'system',
         object_type: 'channel',
-        attrs: {display_name: 'Program', options: [{id: 'opt_a', name: 'AURORA'}, {id: 'opt_b', name: 'BOREALIS'}]},
+        // Required, because the create dialog now asks only for required
+        // attributes — an optional one is added later from Channel Info.
+        attrs: {display_name: 'Program', required: true, options: [{id: 'opt_a', name: 'AURORA'}, {id: 'opt_b', name: 'BOREALIS'}]},
         create_at: 1,
         update_at: 1,
         delete_at: 0,
@@ -1390,8 +1392,38 @@ describe('components/new_channel_modal - channel attributes', () => {
         );
     });
 
-    test('writes nothing when no attribute was chosen', async () => {
+    test('blocks creation while a required attribute is empty', async () => {
         renderWithContext(<NewChannelModal/>, state);
+
+        await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
+
+        // Enforced by the dialog, not the server: POST /channels cannot carry
+        // values, so this is the only place the requirement can be applied before
+        // the channel exists.
+        expect(screen.getByText('Create channel').closest('button')).toBeDisabled();
+
+        await userEvent.click(screen.getByText('Create channel'));
+        expect(createChannel).not.toHaveBeenCalled();
+    });
+
+    test('marks a required attribute in the form', () => {
+        renderWithContext(<NewChannelModal/>, state);
+
+        expect(screen.getByTestId('channelAttributeRow-program')).toHaveTextContent('Program*');
+    });
+
+    test('does not ask for optional attributes at creation', async () => {
+        mockedUseChannelAttributes.mockReturnValue({
+            enabled: true,
+            loading: false,
+            failed: false,
+            fields: [{...program, attrs: {...program.attrs, required: false}}],
+        });
+
+        renderWithContext(<NewChannelModal/>, state);
+
+        // Reachable from Channel Info instead, so creation stays short.
+        expect(screen.queryByTestId('channelAttributeRow-program')).not.toBeInTheDocument();
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
         await userEvent.click(screen.getByText('Create channel'));
