@@ -488,6 +488,99 @@ func TestGetLogs(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestQueryLogs(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	testID := model.NewId()
+	expectedMessages := make([]string, 0, 5)
+	for i := range 5 {
+		message := fmt.Sprintf("querylogs_verify_%s_%d", testID, i)
+		expectedMessages = append(expectedMessages, message)
+		th.TestLogger.Info(message)
+	}
+	require.NoError(t, th.TestLogger.Flush(), "failed to flush log")
+
+	post := func(t *testing.T, c *model.Client4, filter *model.LogFilter) (*http.Response, error) {
+		t.Helper()
+		buf, err := json.Marshal(filter)
+		require.NoError(t, err)
+		return c.DoAPIPost(context.Background(), "/logs/query?page=0&logs_per_page=200", string(buf))
+	}
+
+	readNodes := func(t *testing.T, resp *http.Response) map[string][]json.RawMessage {
+		t.Helper()
+		defer resp.Body.Close()
+		var nodes map[string][]json.RawMessage
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&nodes))
+		return nodes
+	}
+
+	t.Run("empty bounds return unfiltered logs", func(t *testing.T) {
+		var nodes map[string][]json.RawMessage
+		require.Eventually(t, func() bool {
+			resp, err := post(t, th.SystemAdminClient, &model.LogFilter{DateFrom: "", DateTo: ""})
+			if err != nil {
+				return false
+			}
+			require.Equal(t, http.StatusOK, resp.StatusCode)
+			nodes = readNodes(t, resp)
+
+			var combined strings.Builder
+			for _, lines := range nodes {
+				for _, line := range lines {
+					combined.Write(line)
+				}
+			}
+			for _, expected := range expectedMessages {
+				if !strings.Contains(combined.String(), expected) {
+					return false
+				}
+			}
+			return true
+		}, 5*time.Second, 25*time.Millisecond)
+
+		require.Contains(t, nodes, "default")
+	})
+
+	t.Run("valid bounds are accepted", func(t *testing.T) {
+		filter := &model.LogFilter{
+			DateFrom: "2000-01-01 00:00:00.000 +00:00",
+			DateTo:   "2100-01-01 00:00:00.000 +00:00",
+		}
+		resp, err := post(t, th.SystemAdminClient, filter)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		resp.Body.Close()
+	})
+
+	t.Run("malformed date_from is rejected with 400", func(t *testing.T) {
+		resp, err := post(t, th.SystemAdminClient, &model.LogFilter{DateFrom: "not-a-date", DateTo: ""})
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		require.Equal(t, "model.log_filter.is_valid.date_from.app_error", appErr.Id)
+	})
+
+	t.Run("malformed date_to is rejected with 400", func(t *testing.T) {
+		resp, err := post(t, th.SystemAdminClient, &model.LogFilter{DateFrom: "", DateTo: "also-not-a-date"})
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		require.Equal(t, "model.log_filter.is_valid.date_to.app_error", appErr.Id)
+	})
+
+	t.Run("non-admin is forbidden", func(t *testing.T) {
+		resp, err := post(t, th.Client, &model.LogFilter{})
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+}
+
 func TestDownloadLogs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
