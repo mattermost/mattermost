@@ -11,10 +11,33 @@ export const TARGET_TYPE = 'system';
 // Prefix on every field these specs create, so cleanup never touches real ones.
 export const FIELD_PREFIX = 'chanattr_e2e';
 
+// Display designations, mirroring the server allow-list in
+// model/property_field_attrs_validation.go.
+export const DISPLAY_LABEL_HEADER = 'display_label_header';
+export const DISPLAY_LABEL_INFO = 'display_label_info';
+export const DISPLAY_BANNER_TOP = 'display_banner_top';
+
 type CreateOptions = {
     objectType?: 'channel' | 'user';
     type?: 'select' | 'multiselect' | 'text';
     options?: string[];
+
+    // Whether a value must be supplied at channel creation. The create dialog
+    // asks only for required attributes; optional ones are added from Channel Info.
+    required?: boolean;
+
+    // Omit to leave the key unset, which reads as editable. Pass false to lock.
+    editable?: boolean;
+
+    // Where the value displays. Undesignated attributes are stored but never shown.
+    actions?: string[];
+
+    // Setter tier evaluated against the channel. Defaults to member so an
+    // ordinary channel member can set a value.
+    permissionValues?: 'none' | 'sysadmin' | 'admin' | 'member';
+
+    sortOrder?: number;
+    optionColors?: Record<string, string>;
 };
 
 export function attributeName(suffix: string, uniqueId: string): string {
@@ -24,7 +47,17 @@ export function attributeName(suffix: string, uniqueId: string): string {
 export async function createAttribute(
     adminClient: Client4,
     name: string,
-    {objectType = 'channel', type, options = []}: CreateOptions = {},
+    {
+        objectType = 'channel',
+        type,
+        options = [],
+        required,
+        editable,
+        actions,
+        permissionValues = 'member',
+        sortOrder,
+        optionColors,
+    }: CreateOptions = {},
 ): Promise<PropertyField> {
     const field: Record<string, unknown> = {
         name,
@@ -32,15 +65,50 @@ export async function createAttribute(
         target_type: TARGET_TYPE,
         target_id: '',
         permission_field: 'admin',
-        permission_values: 'member',
+        permission_values: permissionValues,
         permission_options: 'admin',
     };
 
+    const attrs: Record<string, unknown> = {};
+
     if (options.length) {
-        field.attrs = {options: options.map((optionName) => ({id: '', name: optionName}))};
+        attrs.options = options.map((optionName) => ({
+            id: '',
+            name: optionName,
+            ...(optionColors?.[optionName] ? {color: optionColors[optionName]} : {}),
+        }));
+    }
+    if (required !== undefined) {
+        attrs.required = required;
+    }
+    if (editable !== undefined) {
+        attrs.editable = editable;
+    }
+    if (actions) {
+        attrs.actions = actions;
+    }
+    if (sortOrder !== undefined) {
+        attrs.sort_order = sortOrder;
+    }
+
+    if (Object.keys(attrs).length) {
+        field.attrs = attrs;
     }
 
     return adminClient.createPropertyField(GROUP, objectType, field as Parameters<Client4['createPropertyField']>[2]);
+}
+
+// Writes a value the way the product does, for setting up a channel's state
+// without driving the UI.
+export async function setChannelValue(
+    client: Client4,
+    channelId: string,
+    field: PropertyField,
+    value: unknown,
+): Promise<void> {
+    await client.patchPropertyValues(GROUP, 'channel', channelId, [
+        {field_id: field.id, value} as Parameters<Client4['patchPropertyValues']>[3][number],
+    ]);
 }
 
 export function optionId(field: PropertyField, name: string): string {

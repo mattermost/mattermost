@@ -35,17 +35,21 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
         try {
             await purgeAttributes(adminClient);
 
+            // Required, because the create dialog asks only for required attributes.
             const program = await createAttribute(adminClient, attributeName('program', suffix), {
                 options: ['AURORA', 'BOREALIS'],
+                required: true,
             });
             const caveats = await createAttribute(adminClient, attributeName('caveats', suffix), {
                 type: 'multiselect',
                 options: ['NOFORN', 'ORCON'],
+                required: true,
             });
-            const note = await createAttribute(adminClient, attributeName('note', suffix), {type: 'text'});
+            const note = await createAttribute(adminClient, attributeName('note', suffix), {type: 'text', required: true});
             const userScoped = await createAttribute(adminClient, attributeName('clearance', suffix), {
                 objectType: 'user',
                 options: ['SECRET'],
+                required: true,
             });
             created.push(program, caveats, note, userScoped);
 
@@ -112,6 +116,7 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
 
             const program = await createAttribute(adminClient, attributeName('private_program', suffix), {
                 options: ['AURORA', 'BOREALIS'],
+                required: true,
             });
             created.push(program);
 
@@ -157,6 +162,7 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
 
             const program = await createAttribute(adminClient, attributeName('failing', suffix), {
                 options: ['AURORA'],
+                required: true,
             });
             created.push(program);
 
