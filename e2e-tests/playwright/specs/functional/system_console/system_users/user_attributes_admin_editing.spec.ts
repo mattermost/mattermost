@@ -63,11 +63,6 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
 
-        // Fast-fail if CustomProfileAttributes feature flag is off — prevents a
-        // misleading 30 s timeout on the UI assertion and gives a clear skip reason.
-        // Note: default_config.ts sets this to true, so it should always pass in CI.
-        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
-
         // Self-isolating setup — avoid pw.initSetup()'s destructive
         // adminClient.updateConfig() full-config reset which wipes CPA fields mid-run
         // for other concurrent tests in the same worker pool. Create a uniquely-named

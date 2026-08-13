@@ -36,8 +36,6 @@ type FeatureFlags struct {
 
 	NotificationMonitoring bool
 
-	CustomProfileAttributes bool
-
 	// Mask non-held attribute values in the policy editor for delegated admins.
 	AttributeValueMasking bool
 
@@ -170,7 +168,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
 	f.NotificationMonitoring = true
-	f.CustomProfileAttributes = true
 	f.AttributeValueMasking = true
 	f.PermissionPolicies = true
 	f.TeamMembershipAccessControl = true
