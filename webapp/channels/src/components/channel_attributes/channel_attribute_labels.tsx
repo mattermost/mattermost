@@ -1,0 +1,189 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {
+    autoUpdate,
+    offset,
+    useClick,
+    useDismiss,
+    useFloating,
+    useFocus,
+    useHover,
+    useInteractions,
+    useRole,
+    useTransitionStyles,
+    FloatingPortal,
+    safePolygon,
+} from '@floating-ui/react';
+import React, {useMemo, useState} from 'react';
+import {useIntl} from 'react-intl';
+
+import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
+import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
+
+import useChannelLabels from 'components/common/hooks/useChannelLabels';
+
+import {OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
+
+import AttributeChip from './attribute_chip';
+import {useLabelsOverflow} from './use_labels_overflow';
+
+import './channel_attribute_labels.scss';
+
+const TRANSITION_STYLE_PROPS = {
+    duration: {
+        open: OverlaysTimings.FADE_IN_DURATION,
+        close: OverlaysTimings.FADE_OUT_DURATION,
+    },
+    initial: OverlayTransitionStyles.START,
+};
+
+function optionColor(attribute: ResolvedChannelAttribute): string | undefined {
+    const color = attribute.option?.color;
+    return typeof color === 'string' && color ? color : undefined;
+}
+
+type Props = {
+    channelId: string;
+};
+
+/**
+ * The channel's designated attribute values, as chips, for the channel header.
+ *
+ * A function component so it can consume hooks: channel_header.tsx is a class
+ * component, and mounting this as a child is what keeps the hooks out of it.
+ *
+ * Labels are informational. Nothing here enforces access, and no string may
+ * suggest otherwise.
+ */
+const ChannelAttributeLabels = ({channelId}: Props) => {
+    const {formatMessage} = useIntl();
+    const labels = useChannelLabels(channelId, 'header');
+
+    const ids = useMemo(() => labels.map((attribute) => attribute.field.id), [labels]);
+    const {containerRef, registerChipRef, visibleIds, overflowIds} = useLabelsOverflow(ids);
+
+    const byId = useMemo(() => {
+        const map = new Map<string, ResolvedChannelAttribute>();
+        for (const attribute of labels) {
+            map.set(attribute.field.id, attribute);
+        }
+        return map;
+    }, [labels]);
+
+    const [isPopoverOpen, setPopoverOpen] = useState(false);
+
+    const {refs: {setReference, setFloating}, floatingStyles, context: floatingContext} = useFloating({
+        open: overflowIds.length > 0 && isPopoverOpen,
+        onOpenChange: setPopoverOpen,
+        whileElementsMounted: autoUpdate,
+        placement: 'bottom-start',
+        middleware: [offset(4)],
+    });
+
+    const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, TRANSITION_STYLE_PROPS);
+
+    const hover = useHover(floatingContext, {
+        enabled: overflowIds.length > 0,
+        handleClose: safePolygon({requireIntent: false}),
+    });
+    const focus = useFocus(floatingContext);
+    const dismiss = useDismiss(floatingContext);
+    const click = useClick(floatingContext);
+    const role = useRole(floatingContext, {role: 'dialog'});
+
+    const {getReferenceProps, getFloatingProps} = useInteractions([hover, focus, click, dismiss, role]);
+
+    if (labels.length === 0) {
+        return null;
+    }
+
+    const renderChip = (id: string) => {
+        const attribute = byId.get(id);
+        if (!attribute) {
+            return null;
+        }
+
+        return (
+            <span
+                key={id}
+                ref={(element) => registerChipRef(id, element)}
+                className='ChannelAttributeLabels__item'
+            >
+                <AttributeChip
+                    label={getPropertyFieldLabel(attribute.field)}
+                    value={attribute.displayValue}
+                    color={optionColor(attribute)}
+                />
+            </span>
+        );
+    };
+
+    return (
+        <div
+            className='ChannelAttributeLabels'
+            data-testid='channelAttributeLabels'
+        >
+            <div
+                ref={containerRef}
+                className='ChannelAttributeLabels__visible'
+            >
+                {visibleIds.map(renderChip)}
+            </div>
+
+            {overflowIds.length > 0 && (
+                <button
+                    ref={setReference}
+                    type='button'
+                    className='ChannelAttributeLabels__overflow'
+                    aria-label={formatMessage(
+                        {id: 'channel_attributes.labels.overflow_aria', defaultMessage: '{count, plural, one {# more attribute} other {# more attributes}}'},
+                        {count: overflowIds.length},
+                    )}
+                    data-testid='channelAttributeLabelsOverflow'
+                    {...getReferenceProps()}
+                >
+                    {formatMessage({id: 'channel_attributes.labels.overflow', defaultMessage: '+{count}'}, {count: overflowIds.length})}
+                </button>
+            )}
+
+            {isMounted && (
+                <FloatingPortal id={RootHtmlPortalId}>
+                    <div
+                        ref={setFloating}
+                        className='ChannelAttributeLabels__popover'
+                        style={{...floatingStyles, ...transitionStyles}}
+                        data-testid='channelAttributeLabelsPopover'
+                        {...getFloatingProps()}
+                    >
+                        {overflowIds.map((id) => {
+                            const attribute = byId.get(id);
+                            if (!attribute) {
+                                return null;
+                            }
+
+                            return (
+                                <div
+                                    key={id}
+                                    className='ChannelAttributeLabels__popoverRow'
+                                >
+                                    <span className='ChannelAttributeLabels__popoverLabel'>
+                                        {getPropertyFieldLabel(attribute.field)}
+                                    </span>
+                                    <AttributeChip
+                                        label={getPropertyFieldLabel(attribute.field)}
+                                        value={attribute.displayValue}
+                                        color={optionColor(attribute)}
+                                        announceLabel={false}
+                                    />
+                                </div>
+                            );
+                        })}
+                    </div>
+                </FloatingPortal>
+            )}
+        </div>
+    );
+};
+
+export default ChannelAttributeLabels;

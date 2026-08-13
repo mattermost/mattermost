@@ -4346,6 +4346,8 @@
   "change_url.startWithLetter": "URLs must start with a lowercase letter or number.",
   "channel_attributes.description": "Configure attributes and values for this channel.",
   "channel_attributes.enter_value": "Enter a value",
+  "channel_attributes.labels.overflow": "+{count}",
+  "channel_attributes.labels.overflow_aria": "{count, plural, one {# more attribute} other {# more attributes}}",
   "channel_attributes.select_value": "Select a value",
   "channel_attributes.title": "Channel attributes",
   "channel_banner.aria_label": "Channel banner text",
