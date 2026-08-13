@@ -23,24 +23,26 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
         }
     }, []);
 
+    const tick = useCallback(async () => {
+        if (document.hidden || isPollingRef.current) {
+            return;
+        }
+        isPollingRef.current = true;
+        try {
+            await fetchRef.current();
+            setLastUpdated(Date.now());
+        } catch {
+            // Keep polling so a transient failure recovers on the next tick
+        } finally {
+            isPollingRef.current = false;
+        }
+    }, []);
+
     useEffect(() => {
         if (!enabled) {
             stop();
             return undefined;
         }
-
-        const tick = async () => {
-            if (document.hidden || isPollingRef.current) {
-                return;
-            }
-            isPollingRef.current = true;
-            try {
-                await fetchRef.current();
-                setLastUpdated(Date.now());
-            } finally {
-                isPollingRef.current = false;
-            }
-        };
 
         // Immediate fetch when enabling
         tick();
@@ -48,7 +50,7 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
         intervalRef.current = setInterval(tick, intervalMs);
 
         return stop;
-    }, [enabled, intervalMs, stop]);
+    }, [enabled, intervalMs, stop, tick]);
 
     // Pause when tab is hidden
     useEffect(() => {
@@ -61,18 +63,6 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
                 stop();
             } else if (!intervalRef.current) {
                 // Resume polling when tab becomes visible again (only if not already running)
-                const tick = async () => {
-                    if (isPollingRef.current) {
-                        return;
-                    }
-                    isPollingRef.current = true;
-                    try {
-                        await fetchRef.current();
-                        setLastUpdated(Date.now());
-                    } finally {
-                        isPollingRef.current = false;
-                    }
-                };
                 tick();
                 intervalRef.current = setInterval(tick, intervalMs);
             }
@@ -82,7 +72,7 @@ export default function useLogPolling({fetchLogs, enabled, intervalMs}: UseLogPo
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
-    }, [enabled, intervalMs, stop]);
+    }, [enabled, intervalMs, stop, tick]);
 
     return {lastUpdated};
 }
