@@ -149,7 +149,10 @@ export default function LogList({
     const [pageSize, setPageSize] = useState(initialPrefs.pageSize);
     const [sortAsc, setSortAsc] = useState(initialPrefs.sortAsc);
     const [expandedKey, setExpandedKey] = useState<string | null>(null);
-    const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+
+    // Tracked by content like the expanded row, so a reload or a live-tail poll
+    // keeps the selection on the same entry instead of on the same position
+    const [focusedKey, setFocusedKey] = useState<string | null>(null);
     const [enabledLevels, setEnabledLevels] = useState<Set<string>>(new Set(initialPrefs.enabledLevels));
     const [wrapText, setWrapText] = useState(initialPrefs.wrapText);
 
@@ -237,20 +240,29 @@ export default function LogList({
     const rowKeysRef = useRef(rowKeys);
     rowKeysRef.current = rowKeys;
 
+    // A poll or a page change can move the selected entry off the current page,
+    // in which case nothing is highlighted until it comes back
+    const focusedIndex = focusedKey === null ? -1 : rowKeys.indexOf(focusedKey);
+
+    const focusRow = useCallback((index: number) => {
+        const row = listRef.current?.querySelectorAll(ROW_FOCUS_SELECTOR)[index] as HTMLElement | undefined;
+        row?.focus();
+        row?.scrollIntoView({block: 'nearest'});
+    }, []);
+
     // Reset to page 0 when filters or sort order change
     useEffect(() => {
         setPage(0);
         setExpandedKey(null);
-        setFocusedIndex(null);
+        setFocusedKey(null);
     }, [search, enabledLevels, sortAsc]);
 
     // Clamp the page when the logs dataset shrinks (reload, live-tail). The
-    // expanded row is tracked by content, so it survives a refresh.
+    // expanded and focused rows are tracked by content, so they survive a refresh.
     useEffect(() => {
         const lastPage = Math.max(0, Math.ceil(processedLogs.length / pageSize) - 1);
         setPage((prev) => Math.max(0, Math.min(prev, lastPage)));
-        setFocusedIndex((prev) => (prev !== null && prev >= visibleLogs.length ? null : prev));
-    }, [logs, processedLogs.length, pageSize, visibleLogs.length]);
+    }, [processedLogs.length, pageSize]);
 
     const toggleLevel = useCallback((level: string) => {
         setEnabledLevels((prev) => {
@@ -289,7 +301,8 @@ export default function LogList({
     }, []);
 
     const handleFocus = useCallback((log: LogObjectWithAdditionalInfo) => {
-        setFocusedIndex(visibleLogsRef.current.indexOf(log));
+        const idx = visibleLogsRef.current.indexOf(log);
+        setFocusedKey(idx === -1 ? null : rowKeysRef.current[idx]);
     }, []);
 
     const goNextPage = useCallback(() => {
@@ -309,7 +322,7 @@ export default function LogList({
         setPageSize(newSize);
         setPage(0);
         setExpandedKey(null);
-        setFocusedIndex(null);
+        setFocusedKey(null);
     }, []);
 
     const toggleSort = useCallback(() => {
@@ -325,23 +338,17 @@ export default function LogList({
 
         switch (e.key) {
         case 'ArrowDown':
+        case 'ArrowUp': {
             e.preventDefault();
-            setFocusedIndex((prev) => {
-                const next = prev === null ? 0 : Math.min(prev + 1, visibleLogs.length - 1);
-                const rows = listRef.current?.querySelectorAll(ROW_FOCUS_SELECTOR);
-                (rows?.[next] as HTMLElement)?.focus();
-                return next;
-            });
+            if (visibleLogs.length === 0) {
+                break;
+            }
+            const direction = e.key === 'ArrowDown' ? 1 : -1;
+            const next = focusedIndex === -1 ? 0 : Math.min(Math.max(focusedIndex + direction, 0), visibleLogs.length - 1);
+            setFocusedKey(rowKeys[next]);
+            focusRow(next);
             break;
-        case 'ArrowUp':
-            e.preventDefault();
-            setFocusedIndex((prev) => {
-                const next = prev === null ? 0 : Math.max(prev - 1, 0);
-                const rows = listRef.current?.querySelectorAll(ROW_FOCUS_SELECTOR);
-                (rows?.[next] as HTMLElement)?.focus();
-                return next;
-            });
-            break;
+        }
         case 'Escape':
             setExpandedKey(null);
             break;
@@ -355,23 +362,21 @@ export default function LogList({
             const direction = e.shiftKey ? -1 : 1;
 
             // With nothing focused yet, start from whichever end the search walks away from
-            let start = focusedIndex === null ? 0 : focusedIndex + direction;
-            if (focusedIndex === null && direction === -1) {
+            let start = focusedIndex === -1 ? 0 : focusedIndex + direction;
+            if (focusedIndex === -1 && direction === -1) {
                 start = visibleLogs.length - 1;
             }
             for (let i = start; i >= 0 && i < visibleLogs.length; i += direction) {
                 if (visibleLogs[i].level === 'error') {
-                    setFocusedIndex(i);
-                    const rows = listRef.current?.querySelectorAll(ROW_FOCUS_SELECTOR);
-                    (rows?.[i] as HTMLElement)?.focus();
-                    (rows?.[i] as HTMLElement)?.scrollIntoView({block: 'nearest'});
+                    setFocusedKey(rowKeys[i]);
+                    focusRow(i);
                     break;
                 }
             }
             break;
         }
         }
-    }, [visibleLogs, focusedIndex]);
+    }, [visibleLogs, rowKeys, focusedIndex, focusRow]);
 
     if (loading && logs.length === 0) {
         return (
