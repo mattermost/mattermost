@@ -1849,14 +1849,30 @@ func (a *App) getUsersByUsernames(usernames []string, existingUsersOnly bool, re
 
 	// For any source username not found, check the remap — the user's username may have
 	// changed on the dest since the export was taken (e.g. via SAML attribute sync).
-	// Store under the SOURCE username so post attribution is transparent to callers.
+	// Collect all remapped dest usernames and resolve them in a single batch query
+	// rather than one GetByUsername call per miss — critical for performance at scale.
 	if report != nil {
+		var missedSrc []string
+		var missedDest []string
 		for _, srcUsername := range uniqueUsernames {
 			lowerSrc := strings.ToLower(srcUsername)
 			if _, found := users[lowerSrc]; !found {
 				if destUsername, ok := report.Remap.Lookup(srcUsername); ok {
-					if destUser, nErr := a.Srv().Store().User().GetByUsername(destUsername); nErr == nil {
-						users[lowerSrc] = destUser
+					missedSrc = append(missedSrc, lowerSrc)
+					missedDest = append(missedDest, destUsername)
+				}
+			}
+		}
+		if len(missedDest) > 0 {
+			remapped, rErr := a.Srv().Store().User().GetProfilesByUsernames(missedDest, nil)
+			if rErr == nil {
+				destToUser := make(map[string]*model.User, len(remapped))
+				for _, u := range remapped {
+					destToUser[strings.ToLower(u.Username)] = u
+				}
+				for i, lowerSrc := range missedSrc {
+					if u, ok := destToUser[strings.ToLower(missedDest[i])]; ok {
+						users[lowerSrc] = u
 					}
 				}
 			}
