@@ -2238,6 +2238,28 @@ func TestGetChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("Content reviewer should not be able to get a DM or GM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		contentReviewClient := th.CreateClient()
+		_, _, err := contentReviewClient.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+
+		dmPost := createDmPost(t, th, contentReviewClient)
+		_, resp, err := contentReviewClient.GetChannelAsContentReviewer(context.Background(), dmPost.ChannelId, "", dmPost.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+
+		gmPost := createGmPost(t, th, contentReviewClient)
+		_, resp, err = contentReviewClient.GetChannelAsContentReviewer(context.Background(), gmPost.ChannelId, "", gmPost.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+	})
 }
 
 func TestGetDeletedChannelsForTeam(t *testing.T) {

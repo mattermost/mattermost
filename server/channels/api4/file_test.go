@@ -896,6 +896,38 @@ func TestGetFile(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 	})
+
+	t.Run("content reviewer cannot fetch a file from a DM or GM channel", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "failed to set license")
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		sent, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		for _, channel := range []*model.Channel{dmChannel, gmChannel} {
+			fileResponse, _, err := th.Client.UploadFile(context.Background(), sent, channel.Id, "test.png")
+			require.NoError(t, err)
+			require.Len(t, fileResponse.FileInfos, 1)
+
+			post := th.CreatePostInChannelWithFiles(t, channel, fileResponse.FileInfos[0])
+
+			data, response, err := th.Client.GetFileAsContentReviewer(context.Background(), fileResponse.FileInfos[0].Id, post.Id)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, response)
+			CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+			require.Empty(t, data, "no file content should be returned")
+		}
+	})
 }
 
 func TestGetFileAsSystemAdmin(t *testing.T) {

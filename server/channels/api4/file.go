@@ -555,6 +555,11 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		checkChannelFlaggable(c, channel)
+		if c.Err != nil {
+			return
+		}
+
 		flaggedPostId := r.URL.Query().Get("flagged_post_id")
 		requireFlaggedPost(c, flaggedPostId)
 		if c.Err != nil {
