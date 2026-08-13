@@ -4,6 +4,10 @@
     align-items: center;
     padding: 0 6px;
     border-radius: 4px;
+
+    // A marking is a fact about the channel, not a control. Nothing here may
+    // read as interactive.
+    cursor: default;
     font-family: 'Open Sans', sans-serif;
     font-size: 10px;
     font-weight: 600;
@@ -11,10 +15,6 @@
     line-height: 16px;
     text-transform: uppercase;
     white-space: nowrap;
-
-    // A marking is a fact about the channel, not a control. Nothing here may
-    // read as interactive.
-    cursor: default;
 
     &--neutral {
         background: rgba(var(--center-channel-color-rgb), 0.08);

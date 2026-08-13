@@ -1326,6 +1326,7 @@ describe('components/new_channel_modal - channel attributes', () => {
         target_id: '',
         target_type: 'system',
         object_type: 'channel',
+
         // Required, because the create dialog now asks only for required
         // attributes — an optional one is added later from Channel Info.
         attrs: {display_name: 'Program', required: true, options: [{id: 'opt_a', name: 'AURORA'}, {id: 'opt_b', name: 'BOREALIS'}]},

@@ -15,11 +15,11 @@ $chip-gap: 4px; // keep in sync with CHIP_GAP in use_labels_overflow.ts
     // wrapping and never by pushing the header controls around.
     &__visible {
         display: flex;
+        overflow: hidden;
         min-width: 0;
         flex: 1 1 auto;
         align-items: center;
         gap: $chip-gap;
-        overflow: hidden;
         white-space: nowrap;
     }
 
