@@ -134,7 +134,7 @@ func TestJoinUserToTeam(t *testing.T) {
 	})
 
 	t.Run("guest with the team email does not become team admin", func(t *testing.T) {
-		user := model.User{Email: team.Email, Nickname: "Guest Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), Roles: model.SystemGuestRoleId, AuthService: ""}
+		user := model.User{Email: team.Email, Nickname: "Guest Vader", Username: "vader" + model.NewId(), Password: "passwd1", Roles: model.SystemGuestRoleId, AuthService: ""}
 		ruser := th.CreateUser(&user)
 		defer th.DeleteUser(&user)
 
@@ -155,7 +155,7 @@ func TestJoinUserToTeam(t *testing.T) {
 	})
 
 	t.Run("regular user with the team email becomes team admin", func(t *testing.T) {
-		user := model.User{Email: team.Email, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+		user := model.User{Email: team.Email, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser := th.CreateUser(&user)
 		defer th.DeleteUser(&user)
 

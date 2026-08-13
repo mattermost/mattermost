@@ -1969,9 +1969,9 @@ func TestImportUserTeams(t *testing.T) {
 	})
 
 	t.Run("Group-synced admin should keep admin when imported roles omit team_admin", func(t *testing.T) {
-		user := th.CreateUser(t)
+		user := th.CreateUser()
 
-		group := th.CreateGroup(t)
+		group := th.CreateGroup()
 		_, err := th.App.UpsertGroupMember(group.Id, user.Id)
 		require.Nil(t, err)
 
