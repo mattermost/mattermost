@@ -59,7 +59,8 @@ const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}
     const isText = field.type === 'text';
     const isMultiselect = field.type === 'multiselect';
 
-    const [text, setText] = useState(typeof rawValue === 'string' && !supportsOptions(field) ? rawValue : '');
+    const initialText = typeof rawValue === 'string' && !supportsOptions(field) ? rawValue : '';
+    const [text, setText] = useState(initialText);
 
     const selected = useMemo(() => currentSelection(field, rawValue), [field, rawValue]);
 
@@ -91,7 +92,18 @@ const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={handleTextKeyDown}
-                onBlur={() => onSubmit(text.trim() || null)}
+
+                // Only writes if the text actually changed. Opening a row and
+                // clicking away is an abandoned edit, not a request to clear the
+                // value, and it must not cost a round trip.
+                onBlur={() => {
+                    const next = text.trim();
+                    if (next === initialText) {
+                        onCancel();
+                        return;
+                    }
+                    onSubmit(next || null);
+                }}
                 disabled={saving}
                 autoFocus={true}
                 placeholder={formatMessage({id: 'channel_attributes.enter_value', defaultMessage: 'Enter a value'})}

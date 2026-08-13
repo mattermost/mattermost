@@ -16,6 +16,25 @@ import useChannelAttributes from './useChannelAttributes';
 const EMPTY: ResolvedChannelAttribute[] = [];
 
 /**
+ * The Channel Info subset of an already-resolved attribute list.
+ *
+ * Split out from the hook so a caller that already holds the resolved list can
+ * derive this without mounting a second copy of useChannelAttributes — each one
+ * fires its own fetch, so two hooks on one surface means two identical requests.
+ */
+export function selectChannelInfoAttributes(resolved: ResolvedChannelAttribute[]): ResolvedChannelAttribute[] {
+    const listed = resolved.filter((attribute) => {
+        const actions = attribute.field.attrs?.actions;
+        if (!Array.isArray(actions) || !actions.includes(DISPLAY_LABEL_INFO)) {
+            return false;
+        }
+        return Boolean(attribute.displayValue) || isPropertyFieldRequired(attribute.field);
+    });
+
+    return listed.length === 0 ? EMPTY : listed;
+}
+
+/**
  * The attributes Channel Info should list for a channel, in display order.
  *
  * Deliberately a wider set than useChannelLabels returns for the 'info' surface:
@@ -34,15 +53,6 @@ export default function useChannelInfoAttributes(channelId: string): ResolvedCha
         if (!enabled || !channelId) {
             return EMPTY;
         }
-
-        const listed = resolved.filter((attribute) => {
-            const actions = attribute.field.attrs?.actions;
-            if (!Array.isArray(actions) || !actions.includes(DISPLAY_LABEL_INFO)) {
-                return false;
-            }
-            return Boolean(attribute.displayValue) || isPropertyFieldRequired(attribute.field);
-        });
-
-        return listed.length === 0 ? EMPTY : listed;
+        return selectChannelInfoAttributes(resolved);
     }, [enabled, channelId, resolved]);
 }

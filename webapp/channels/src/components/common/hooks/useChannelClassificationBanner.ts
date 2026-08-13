@@ -9,16 +9,25 @@ import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermos
 import type {GlobalState} from '@mattermost/types/store';
 
 import {PropertyTypes} from 'mattermost-redux/action_types';
+import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {Client4} from 'mattermost-redux/client';
-import {DISPLAY_BANNER_BOTTOM, DISPLAY_BANNER_TOP} from 'mattermost-redux/constants/properties';
+import {
+    ACCESS_CONTROL_PROPERTY_GROUP,
+    CHANNEL_OBJECT_TYPE,
+    DISPLAY_BANNER_BOTTOM,
+    DISPLAY_BANNER_TOP,
+    SYSTEM_TARGET_ID,
+    SYSTEM_TARGET_TYPE,
+} from 'mattermost-redux/constants/properties';
 import {getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getChannelAttributeFields, getPropertyValueForTargetField} from 'mattermost-redux/selectors/entities/properties';
+import {getChannelAttributeFields, getPropertyValueForTargetField, makeGetResolvedChannelAttributes} from 'mattermost-redux/selectors/entities/properties';
 
 import {
     CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
     CLASSIFICATIONS_GROUP_NAME,
 } from 'components/admin_console/classification_markings/utils';
+import {renderBannerTemplate} from 'components/channel_attributes/banner_template';
 
 import {isEnterpriseLicense} from 'utils/license_utils';
 
@@ -113,13 +122,39 @@ export default function useChannelClassificationBanner(channelId: string): Chann
 
     const channelBannerInfo = useSelector((state: GlobalState) => getChannelBanner(state, channelId));
 
+    // The manual banner text is a template, so the values it references have to
+    // be resolved here — rendering it only in the composer's preview would show
+    // the author "TOP SECRET" while every member saw "{{classification}}".
+    const getResolvedChannelAttributes = useMemo(() => makeGetResolvedChannelAttributes(), []);
+    const resolvedAttributes = useSelector((state: GlobalState) => getResolvedChannelAttributes(state, channelId));
+
+    // Field definitions, so the banner works on surfaces that do not also render
+    // the header chips — a popout window, or a channel where the label component
+    // is not mounted. Dispatched without chaining: the result is read from the
+    // store, and awaiting it here would duplicate useChannelAttributes' own
+    // bookkeeping for no gain.
+    useEffect(() => {
+        if (!attributesEnabled || !hasEnterpriseLicense || channelFields.length > 0) {
+            return;
+        }
+        dispatch(fetchPropertyFields(
+            ACCESS_CONTROL_PROPERTY_GROUP,
+            CHANNEL_OBJECT_TYPE,
+            SYSTEM_TARGET_TYPE,
+            SYSTEM_TARGET_ID,
+        ));
+    }, [attributesEnabled, hasEnterpriseLicense, channelFields.length, dispatch]);
+
     // This one request returns every access_control value on the channel, not just
     // the banner's, so it is also what populates the values the header chips and
     // Channel Info read. It therefore has to fire when channel attributes are on
     // even if Classification Markings is off, or those surfaces stay empty.
+    // Deliberately not gated on fields having loaded: the two are independent
+    // requests, and gating values on fields would deadlock a surface where
+    // nothing else loads them.
     const shouldLoadValues = Boolean(channelId) && (
         (classification.available && Boolean(classification.channelField)) ||
-        (attributesEnabled && hasEnterpriseLicense && channelFields.length > 0)
+        (attributesEnabled && hasEnterpriseLicense)
     );
 
     useEffect(() => {
@@ -189,7 +224,11 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             return noBanner;
         }
 
-        const bannerText = channelBannerInfo?.text ?? `**${name}**`;
+        // A literal with no tokens passes through untouched, which is what keeps
+        // every banner written before this feature byte-identical.
+        const bannerText = channelBannerInfo?.text ?
+            renderBannerTemplate(channelBannerInfo.text, resolvedAttributes) :
+            `**${name}**`;
 
         return {
             hasClassification: true,
@@ -202,5 +241,5 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             bannerText,
             position,
         };
-    }, [propertyValue, classification.levels, channelBannerInfo, designated, position]);
+    }, [propertyValue, classification.levels, channelBannerInfo, designated, position, resolvedAttributes]);
 }

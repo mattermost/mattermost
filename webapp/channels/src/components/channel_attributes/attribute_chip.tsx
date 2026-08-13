@@ -3,6 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useMemo} from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
@@ -64,7 +65,15 @@ const AttributeChip = ({label, value, color, announceLabel = true, className}: P
             style={style}
             data-testid='attributeChip'
         >
-            {announceLabel && <span className='sr-only'>{`${label}: `}</span>}
+            {announceLabel && (
+                <span className='sr-only'>
+                    <FormattedMessage
+                        id='channel_attributes.chip.label_prefix'
+                        defaultMessage='{label}: '
+                        values={{label}}
+                    />
+                </span>
+            )}
             <span className='AttributeChip__value'>{value}</span>
         </span>
     );

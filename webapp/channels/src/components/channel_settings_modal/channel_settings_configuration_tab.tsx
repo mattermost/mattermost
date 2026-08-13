@@ -470,7 +470,7 @@ function ChannelSettingsConfigurationTab({
             updated.autotranslation = isChannelAutotranslated;
         }
 
-        if (hasClassificationChanges && classificationEnabled && selectedClassificationId) {
+        if (canManageClassification && hasClassificationChanges && classificationEnabled && selectedClassificationId) {
             updated.banner_info = {
                 text: updatedChannelBanner.text?.trim() || '',
                 background_color: updatedChannelBanner.background_color?.trim() || '',
@@ -478,7 +478,7 @@ function ChannelSettingsConfigurationTab({
             };
         }
 
-        if (hasAutoTranslationChanges || hasBannerChanges || (hasClassificationChanges && classificationEnabled && selectedClassificationId)) {
+        if (hasAutoTranslationChanges || hasBannerChanges || (canManageClassification && hasClassificationChanges && classificationEnabled && selectedClassificationId)) {
             const {error} = await dispatch(patchChannel(channel.id, updated));
             if (error) {
                 handleServerError(error as ServerError);
@@ -486,7 +486,12 @@ function ChannelSettingsConfigurationTab({
             }
         }
 
-        if (hasClassificationChanges && classification.channelField) {
+        // Gated on the section being rendered. classificationEnabled is seeded
+        // before the property values finish loading, so a modal opened and saved
+        // quickly can look like the user turned classification off — and with the
+        // section hidden they never saw a toggle to blame. Without this guard,
+        // saving an unrelated setting would clear the channel's classification.
+        if (canManageClassification && hasClassificationChanges && classification.channelField) {
             if (classificationEnabled && selectedClassificationId) {
                 try {
                     const values = await Client4.patchPropertyValues(

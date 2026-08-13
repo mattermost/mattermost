@@ -239,6 +239,20 @@ describe('ChannelInfoAttributes', () => {
             expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
         });
 
+        // The lock means "may not be changed once set". A required, locked
+        // attribute whose creation-time write failed has no value to protect, and
+        // blocking it there would strand the channel as "Not set" forever — with
+        // no way to fix it, since that is the documented retry path.
+        test('still allows the first set of a locked attribute that was never filled', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {editable: false, required: true})], []),
+            );
+
+            expect(screen.getByTestId('channelInfoAttributeEdit-program')).toBeInTheDocument();
+            expect(screen.queryByLabelText('This attribute cannot be changed after it is set')).not.toBeInTheDocument();
+        });
+
         test('never offers editing for a locked attribute, whatever the tier', () => {
             renderWithContext(
                 <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
@@ -288,6 +302,20 @@ describe('ChannelInfoAttributes', () => {
             expect(await screen.findByTestId('channelInfoAttributeError-program')).toHaveTextContent("Couldn't save Program");
             expect(screen.getByTestId('channelInfoAttributeRow-program')).toBeInTheDocument();
         });
+    });
+
+    test('drops editing state when the channel changes', async () => {
+        // Channel Info stays mounted across a switch, so a row left open would
+        // otherwise reappear open over a different channel's value.
+        const state = makeState([field('program', {required: true})], []);
+        const {rerender} = renderWithContext(<ChannelInfoAttributes channelId={CHANNEL_ID}/>, state);
+
+        await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+        expect(screen.getByTestId('channelAttributeEdit-program')).toBeInTheDocument();
+
+        rerender(<ChannelInfoAttributes channelId='channel2'/>);
+
+        expect(screen.queryByTestId('channelAttributeEdit-program')).not.toBeInTheDocument();
     });
 
     describe('add attribute', () => {

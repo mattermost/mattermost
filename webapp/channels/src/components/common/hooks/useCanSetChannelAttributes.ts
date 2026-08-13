@@ -22,9 +22,13 @@ import type {GlobalState} from 'types/store';
  * channel. The server stays authoritative — this only decides whether to offer
  * an affordance that would fail.
  *
- * attrs.editable is checked here too, so a locked attribute renders read-only
- * for everyone including admins. That is a display rule, not a permission: the
- * server rejects the write independently.
+ * attrs.editable is checked here too, but only against a value that already
+ * exists: the key means "may not be *changed* once set", so a locked attribute
+ * that was never filled — the channel whose creation-time write failed — must
+ * still be fillable, or it is stranded as "Not set" forever.
+ *
+ * This is a display rule, not a permission. The server does not consult
+ * attrs.editable on a value write, so the lock is advisory until it does.
  */
 export default function useCanSetChannelAttributes(channelId: string) {
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
@@ -38,8 +42,13 @@ export default function useCanSetChannelAttributes(channelId: string) {
         channel ? haveIChannelPermission(state, channel.team_id, channelId, Permissions.READ_CHANNEL) : false
     ));
 
-    return useCallback((field: PropertyField): boolean => {
-        if (!channel || !isPropertyFieldEditable(field)) {
+    return useCallback((field: PropertyField, hasValue = false): boolean => {
+        if (!channel) {
+            return false;
+        }
+
+        // Locked only bites once there is a value to protect.
+        if (hasValue && !isPropertyFieldEditable(field)) {
             return false;
         }
 

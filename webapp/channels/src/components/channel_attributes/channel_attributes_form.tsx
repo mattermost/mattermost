@@ -133,6 +133,10 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                         >
                             {label}
                             {isPropertyFieldRequired(field) && (
+                                // Decorative: the control carries required={true} for
+                                // assistive technology, so the marker is hidden from it
+                                // rather than translated.
+                                // eslint-disable-next-line formatjs/no-literal-string-in-jsx
                                 <span
                                     className='channel-attributes-form__required'
                                     aria-hidden={true}
@@ -152,6 +156,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                                     placeholder={textPlaceholder}
                                     disabled={disabled}
                                     aria-label={label}
+                                    required={isPropertyFieldRequired(field)}
                                 />
                             ) : (
 
@@ -166,6 +171,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                                     isMulti={isMultiselect(field)}
                                     isClearable={true}
                                     isDisabled={disabled}
+                                    required={isPropertyFieldRequired(field)}
                                     placeholder={selectPlaceholder}
                                     styles={dropdownStyles}
                                     formatOptionLabel={formatOptionLabel}

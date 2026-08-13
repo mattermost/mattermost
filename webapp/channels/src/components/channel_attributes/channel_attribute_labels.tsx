@@ -15,8 +15,8 @@ import {
     FloatingPortal,
     safePolygon,
 } from '@floating-ui/react';
-import React, {useMemo, useState} from 'react';
-import {useIntl} from 'react-intl';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
@@ -71,6 +71,31 @@ const ChannelAttributeLabels = ({channelId}: Props) => {
         return map;
     }, [labels]);
 
+    // One stable ref callback per chip. An inline arrow would be a new function
+    // on every render, which makes React detach and reattach the node — and each
+    // detach unobserves and re-observes it, so the ResizeObserver would fire a
+    // recalculation on every render rather than only on an actual resize.
+    const chipRefCallbacks = useRef(new Map<string, (element: HTMLElement | null) => void>());
+    const chipRef = useCallback((id: string) => {
+        let callback = chipRefCallbacks.current.get(id);
+        if (!callback) {
+            callback = (element: HTMLElement | null) => registerChipRef(id, element);
+            chipRefCallbacks.current.set(id, callback);
+        }
+        return callback;
+    }, [registerChipRef]);
+
+    // Drop callbacks for chips that no longer exist, so the map does not grow
+    // for the lifetime of the session as values change.
+    useEffect(() => {
+        const live = new Set(ids);
+        for (const id of chipRefCallbacks.current.keys()) {
+            if (!live.has(id)) {
+                chipRefCallbacks.current.delete(id);
+            }
+        }
+    }, [ids]);
+
     const [isPopoverOpen, setPopoverOpen] = useState(false);
 
     const {refs: {setReference, setFloating}, floatingStyles, context: floatingContext} = useFloating({
@@ -107,7 +132,7 @@ const ChannelAttributeLabels = ({channelId}: Props) => {
         return (
             <span
                 key={id}
-                ref={(element) => registerChipRef(id, element)}
+                ref={chipRef(id)}
                 className='ChannelAttributeLabels__item'
             >
                 <AttributeChip
@@ -143,7 +168,11 @@ const ChannelAttributeLabels = ({channelId}: Props) => {
                     data-testid='channelAttributeLabelsOverflow'
                     {...getReferenceProps()}
                 >
-                    {formatMessage({id: 'channel_attributes.labels.overflow', defaultMessage: '+{count}'}, {count: overflowIds.length})}
+                    <FormattedMessage
+                        id='channel_attributes.labels.overflow'
+                        defaultMessage='+{count}'
+                        values={{count: overflowIds.length}}
+                    />
                 </button>
             )}
 

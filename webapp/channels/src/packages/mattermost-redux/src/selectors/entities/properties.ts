@@ -123,7 +123,11 @@ function sortByFieldOrder(fields: PropertyField[]): PropertyField[] {
         if (rankA !== rankB) {
             return rankA - rankB;
         }
-        return a.name.localeCompare(b.name);
+
+        // Fixed locale on purpose: the default one is the viewer's, which would
+        // let two people on the same server see equal-ranked chips in different
+        // orders. Field names are CEL-safe ASCII slugs, so this is a total order.
+        return a.name.localeCompare(b.name, 'en');
     });
 }
 

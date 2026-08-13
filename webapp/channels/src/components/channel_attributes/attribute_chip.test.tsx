@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import {render, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import AttributeChip from './attribute_chip';
 
 describe('AttributeChip', () => {
     test('renders the value as text, so colour is never the only carrier of meaning', () => {
-        render(
+        renderWithContext(
             <AttributeChip
                 label='Program'
                 value='AURORA'
@@ -21,7 +21,7 @@ describe('AttributeChip', () => {
     });
 
     test('includes the attribute label in the accessible name', () => {
-        render(
+        renderWithContext(
             <AttributeChip
                 label='Program'
                 value='AURORA'
@@ -33,7 +33,7 @@ describe('AttributeChip', () => {
     });
 
     test('omits the announced label when one is already visible beside the chip', () => {
-        render(
+        renderWithContext(
             <AttributeChip
                 label='Program'
                 value='AURORA'
@@ -46,7 +46,7 @@ describe('AttributeChip', () => {
     });
 
     test('derives a contrasting foreground from the configured background', () => {
-        const {rerender} = render(
+        const {rerender} = renderWithContext(
             <AttributeChip
                 label='Classification'
                 value='DARK'
@@ -66,7 +66,7 @@ describe('AttributeChip', () => {
     });
 
     test('falls back to the neutral treatment without a colour', () => {
-        render(
+        renderWithContext(
             <AttributeChip
                 label='Caveat'
                 value='NOFORN'
@@ -78,7 +78,7 @@ describe('AttributeChip', () => {
 
     test('falls back to the neutral treatment for a malformed colour', () => {
         // Unknown text on unknown background is worse than a plain chip.
-        render(
+        renderWithContext(
             <AttributeChip
                 label='Caveat'
                 value='NOFORN'

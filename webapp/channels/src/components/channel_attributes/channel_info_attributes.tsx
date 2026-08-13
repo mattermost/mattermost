@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -12,7 +12,7 @@ import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities
 import {getPropertyFieldLabel, isPropertyFieldEditable, isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
 
 import useCanSetChannelAttributes from 'components/common/hooks/useCanSetChannelAttributes';
-import useChannelInfoAttributes from 'components/common/hooks/useChannelInfoAttributes';
+import {selectChannelInfoAttributes} from 'components/common/hooks/useChannelInfoAttributes';
 import useResolvedChannelAttributes from 'components/common/hooks/useResolvedChannelAttributes';
 import * as Menu from 'components/menu';
 
@@ -50,8 +50,11 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
-    const listed = useChannelInfoAttributes(channelId);
+    // One resolved list, two views of it. Calling useChannelInfoAttributes here as
+    // well would mount a second useChannelAttributes and fire a duplicate
+    // fetchPropertyFields on every open.
     const allAttributes = useResolvedChannelAttributes(channelId);
+    const listed = useMemo(() => selectChannelInfoAttributes(allAttributes), [allAttributes]);
     const canSet = useCanSetChannelAttributes(channelId);
 
     const [editingFieldId, setEditingFieldId] = useState<string>();
@@ -85,22 +88,47 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
         if (revealedFieldIds.includes(attribute.field.id)) {
             return false;
         }
-        return hasEditor(attribute.field) && canSet(attribute.field);
+        return hasEditor(attribute.field) && canSet(attribute.field, false);
     }), [allAttributes, revealedFieldIds, canSet]);
+
+    // Channel Info stays mounted across a channel switch, so per-channel editing
+    // state has to be dropped explicitly. Otherwise a row left open on one channel
+    // reappears open on the next, over a different channel's value.
+    useEffect(() => {
+        setEditingFieldId(undefined);
+        setSavingFieldId(undefined);
+        setFailedFieldId(undefined);
+        setRevealedFieldIds([]);
+    }, [channelId]);
+
+    const isMountedRef = useRef(true);
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     const handleSubmit = useCallback(async (field: PropertyField, value: ChannelAttributeValue) => {
         setSavingFieldId(field.id);
         setFailedFieldId(undefined);
         try {
             await setChannelAttributeValue(dispatch, channelId, field.id, value);
+            if (!isMountedRef.current) {
+                return;
+            }
             setEditingFieldId(undefined);
             setRevealedFieldIds((prev) => prev.filter((id) => id !== field.id));
         } catch {
             // Named in the row rather than a toast: the failure belongs next to the
             // value it did not save.
-            setFailedFieldId(field.id);
+            if (isMountedRef.current) {
+                setFailedFieldId(field.id);
+            }
         } finally {
-            setSavingFieldId(undefined);
+            if (isMountedRef.current) {
+                setSavingFieldId(undefined);
+            }
         }
     }, [dispatch, channelId]);
 
@@ -133,8 +161,9 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
             {rows.map((attribute) => {
                 const {field} = attribute;
                 const label = getPropertyFieldLabel(field);
-                const locked = !isPropertyFieldEditable(field);
-                const editable = hasEditor(field) && canSet(field);
+                const hasValue = Boolean(attribute.displayValue);
+                const locked = hasValue && !isPropertyFieldEditable(field);
+                const editable = hasEditor(field) && canSet(field, hasValue);
                 const isEditing = editingFieldId === field.id;
 
                 return (

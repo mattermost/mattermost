@@ -147,9 +147,27 @@ const NewChannelModal = () => {
     // Classification is included like any other attribute once the flag is on;
     // its dedicated section below is suppressed in the same breath, so the field
     // never gets two controls.
+    // The setter tier cannot be evaluated here — the target channel does not exist
+    // yet — so the section renders optimistically and the server stays
+    // authoritative. The one tier that can be judged without a channel is
+    // sysadmin, and it is excluded for everyone else: a required sysadmin-only
+    // attribute would otherwise disable Create for every ordinary user and block
+    // channel creation outright, which is a far worse failure than an unset
+    // marking.
     const assignableAttributeFields = useMemo(() => {
-        return channelAttributes.fields.filter(isPropertyFieldRequired);
-    }, [channelAttributes.fields]);
+        return channelAttributes.fields.filter((field) => {
+            if (!isPropertyFieldRequired(field)) {
+                return false;
+            }
+            if (field.permission_values === 'none') {
+                return false;
+            }
+            if (field.permission_values === 'sysadmin' && !isSystemAdmin) {
+                return false;
+            }
+            return true;
+        });
+    }, [channelAttributes.fields, isSystemAdmin]);
 
     const missingRequiredAttributes = useMemo(() => {
         return assignableAttributeFields.filter((field) => {

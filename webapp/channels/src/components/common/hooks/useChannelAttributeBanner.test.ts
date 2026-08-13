@@ -146,6 +146,35 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
         expect(result.current.bannerText).toBe('Operation Aurora — handle with care');
     });
 
+    // The composer previewed the resolved text while every member saw the raw
+    // template, because rendering happened only in the preview.
+    test('resolves attribute tokens in the manual banner text', () => {
+        const marking = designatedField('marking', 'display_banner_top', [{id: 'opt1', name: 'RESTRICTED'}], 0);
+        const program = designatedField('program', 'display_label_info', [{id: 'opt2', name: 'AURORA'}], 1);
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState(
+                [marking, program],
+                [value('marking', 'opt1'), value('program', 'opt2')],
+                {enabled: true, text: '{{marking}} · {{program}}'},
+            ),
+        );
+
+        expect(result.current.bannerText).toBe('RESTRICTED · AURORA');
+    });
+
+    test('leaves a manual banner text with no tokens byte-identical', () => {
+        const marking = designatedField('marking', 'display_banner_top', [{id: 'opt1', name: 'RESTRICTED'}]);
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([marking], [value('marking', 'opt1')], {enabled: true, text: '**TOP SECRET**'}),
+        );
+
+        expect(result.current.bannerText).toBe('**TOP SECRET**');
+    });
+
     test('reports the designated position', () => {
         const bottom = designatedField('program', 'display_banner_bottom', [{id: 'opt1', name: 'AURORA'}]);
 

@@ -13,9 +13,10 @@ import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 // answer depend on who asked last.
 const tokenPattern = () => /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
 
-// The separators the composer offers, and therefore the only ones the cleanup
-// below is allowed to touch.
-const SEPARATORS = '·|/-';
+// The separators the cleanup below is allowed to touch. Deliberately excludes
+// "-" and "/": a banner authored as "- {{classification}}" is a markdown list,
+// and stripping its marker would rewrite what the author wrote.
+const SEPARATORS = '·|';
 
 export function attributeToken(fieldName: string): string {
     return `{{${fieldName}}}`;
