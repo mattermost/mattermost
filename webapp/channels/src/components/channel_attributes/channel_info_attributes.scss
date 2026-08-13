@@ -16,9 +16,15 @@
     &__row {
         display: flex;
         min-height: 28px;
+        flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
         gap: 12px;
+
+        &:hover .ChannelInfoAttributes__edit,
+        &:focus-within .ChannelInfoAttributes__edit {
+            opacity: 1;
+        }
     }
 
     &__label {
@@ -36,9 +42,58 @@
         display: inline-flex;
         min-width: 0;
         align-items: center;
+        gap: 4px;
     }
 
     &__empty {
         color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    // Revealed on row hover or focus, as the purpose and header rows already do,
+    // so the section stays quiet until someone reaches for it.
+    &__edit {
+        display: inline-flex;
+        width: 24px;
+        height: 24px;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 4px;
+        background: none;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        opacity: 0;
+
+        &:hover,
+        &:focus {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            opacity: 1;
+        }
+    }
+
+    &__error {
+        flex-basis: 100%;
+        color: var(--error-text);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__add {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        padding: 2px 6px;
+        border: none;
+        border-radius: 4px;
+        margin-top: 4px;
+        background: transparent;
+        color: var(--link-color);
+        font-size: 12px;
+        font-weight: 600;
+        gap: 4px;
+
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.08);
+        }
     }
 }

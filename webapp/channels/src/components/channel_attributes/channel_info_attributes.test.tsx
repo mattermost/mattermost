@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
+import {screen, waitFor} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {Client4} from 'mattermost-redux/client';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
@@ -17,28 +20,43 @@ jest.mock('mattermost-redux/actions/properties', () => ({
     fetchPropertyFields: jest.fn(() => () => Promise.resolve({data: []})),
 }));
 
+let mockChannelPermissions: Record<string, boolean> = {};
+jest.mock('mattermost-redux/selectors/entities/roles', () => ({
+    ...jest.requireActual('mattermost-redux/selectors/entities/roles'),
+    haveIChannelPermission: jest.fn().mockImplementation((_state, _teamId, _channelId, permission) => (
+        mockChannelPermissions[permission] ?? false
+    )),
+}));
+
 const GROUP_ID = 'group1';
 const CHANNEL_ID = 'channel1';
+const TEAM_ID = 'team1';
 
 type FieldOptions = {
     required?: boolean;
     editable?: boolean;
     actions?: string[];
+    permissionValues?: PropertyField['permission_values'];
+    type?: PropertyField['type'];
 };
 
-function field(id: string, {required, editable, actions = ['display_label_info']}: FieldOptions = {}): PropertyField {
+function field(id: string, {required, editable, actions = ['display_label_info'], permissionValues = 'member', type = 'select'}: FieldOptions = {}): PropertyField {
     return {
         id,
         group_id: GROUP_ID,
         name: id,
-        type: 'select',
+        type,
         target_id: '',
         target_type: 'system',
         object_type: 'channel',
+        permission_values: permissionValues,
         attrs: {
             actions,
-            options: [{id: `opt_${id}`, name: id.toUpperCase(), color: '#1e325c'}],
-            display_name: id.toUpperCase(),
+
+            // Option name deliberately unlike the attribute's label, so a query for
+            // one cannot accidentally match the other.
+            options: [{id: `opt_${id}`, name: `VALUE_${id.toUpperCase()}`, color: '#1e325c'}],
+            display_name: id.charAt(0).toUpperCase() + id.slice(1),
             ...(required === undefined ? {} : {required}),
             ...(editable === undefined ? {} : {editable}),
         },
@@ -78,6 +96,13 @@ function makeState(fields: PropertyField[], values: Array<PropertyValue<unknown>
                 config: {FeatureFlagChannelAttributes: flag},
                 license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
             },
+            channels: {
+                channels: {[CHANNEL_ID]: {id: CHANNEL_ID, team_id: TEAM_ID, type: 'P'}},
+            },
+            users: {
+                currentUserId: 'user1',
+                profiles: {user1: {id: 'user1', roles: 'system_user'}},
+            },
             properties: {
                 groups: {byId: {[GROUP_ID]: {id: GROUP_ID, name: 'access_control'}}, byName: {access_control: {id: GROUP_ID, name: 'access_control'}}},
                 fields: {
@@ -91,6 +116,14 @@ function makeState(fields: PropertyField[], values: Array<PropertyValue<unknown>
 }
 
 describe('ChannelInfoAttributes', () => {
+    beforeEach(() => {
+        mockChannelPermissions = {read_channel: true, manage_channel_roles: true};
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     test('renders a row for an attribute with a value', () => {
         renderWithContext(
             <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
@@ -98,7 +131,7 @@ describe('ChannelInfoAttributes', () => {
         );
 
         expect(screen.getByTestId('channelInfoAttributeRow-program')).toBeInTheDocument();
-        expect(screen.getByTestId('attributeChip')).toHaveTextContent('PROGRAM');
+        expect(screen.getByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
     });
 
     test('renders a required attribute with no value as Not set', () => {
@@ -116,6 +149,20 @@ describe('ChannelInfoAttributes', () => {
         renderWithContext(
             <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
             makeState([field('program')], []),
+        );
+
+        // Reachable through Add Attribute instead, which is why the section itself
+        // still renders for a user who may set it.
+        expect(screen.queryByTestId('channelInfoAttributeRow-program')).not.toBeInTheDocument();
+        expect(screen.getByTestId('channelInfoAddAttributeButton')).toBeInTheDocument();
+    });
+
+    test('renders nothing at all when there is neither a row nor anything to add', () => {
+        mockChannelPermissions = {};
+
+        renderWithContext(
+            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            makeState([field('program', {permissionValues: 'admin'})], []),
         );
 
         expect(screen.queryByTestId('channelInfoAttributes')).not.toBeInTheDocument();
@@ -158,5 +205,129 @@ describe('ChannelInfoAttributes', () => {
         );
 
         expect(screen.queryByTestId('channelInfoAttributes')).not.toBeInTheDocument();
+    });
+
+    describe('editing', () => {
+        test('offers an edit affordance to a user with the setter tier', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program')], [value('program', 'opt_program')]),
+            );
+
+            expect(screen.getByTestId('channelInfoAttributeEdit-program')).toBeInTheDocument();
+        });
+
+        test('withholds the edit affordance from a user without the setter tier', () => {
+            mockChannelPermissions = {};
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {permissionValues: 'admin'})], [value('program', 'opt_program')]),
+            );
+
+            expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
+        });
+
+        test('requires the admin tier to be satisfied by manage_channel_roles', () => {
+            mockChannelPermissions = {read_channel: true};
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {permissionValues: 'admin'})], [value('program', 'opt_program')]),
+            );
+
+            expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
+        });
+
+        test('never offers editing for a locked attribute, whatever the tier', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {editable: false})], [value('program', 'opt_program')]),
+            );
+
+            expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
+            expect(screen.getByLabelText('This attribute cannot be changed after it is set')).toBeInTheDocument();
+        });
+
+        test('writes the selected value through the property API', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {required: true})], [value('program', null)]),
+            );
+
+            // A required-but-unset row is the one reachable without a value.
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+
+            const control = await screen.findByTestId('channelAttributeEdit-program');
+            await userEvent.click(control.querySelector('input')!);
+            await userEvent.click(await screen.findByText('VALUE_PROGRAM'));
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'program', value: 'opt_program'}],
+            ));
+        });
+
+        test('names the attribute when the write fails, and keeps the row', async () => {
+            jest.spyOn(Client4, 'patchPropertyValues').mockRejectedValue(new Error('403'));
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {required: true})], [value('program', null)]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            const control = await screen.findByTestId('channelAttributeEdit-program');
+            await userEvent.click(control.querySelector('input')!);
+            await userEvent.click(await screen.findByText('VALUE_PROGRAM'));
+
+            expect(await screen.findByTestId('channelInfoAttributeError-program')).toHaveTextContent("Couldn't save Program");
+            expect(screen.getByTestId('channelInfoAttributeRow-program')).toBeInTheDocument();
+        });
+    });
+
+    describe('add attribute', () => {
+        test('offers an optional unset attribute', async () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('shown', {required: true}), field('optional')], [value('shown', 'opt_shown')]),
+            );
+
+            expect(screen.getByTestId('channelInfoAddAttributeButton')).toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAttributeRow-optional')).not.toBeInTheDocument();
+        });
+
+        test('does not offer an attribute that already has a value', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program')], [value('program', 'opt_program')]),
+            );
+
+            expect(screen.queryByTestId('channelInfoAddAttributeButton')).not.toBeInTheDocument();
+        });
+
+        test('does not offer a required attribute, which is already listed', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {required: true})], []),
+            );
+
+            expect(screen.queryByTestId('channelInfoAddAttributeButton')).not.toBeInTheDocument();
+        });
+
+        test('is absent for a user without the setter tier', () => {
+            mockChannelPermissions = {};
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('shown', {required: true}), field('optional', {permissionValues: 'admin'})], [value('shown', 'opt_shown')]),
+            );
+
+            expect(screen.queryByTestId('channelInfoAddAttributeButton')).not.toBeInTheDocument();
+        });
     });
 });

@@ -20,6 +20,10 @@ export type FieldValueType =
     'phone' |
     '';
 
+// Mirrors the server's permission levels in model/property_field.go. Empty means
+// the server fills in the default for the field's object type.
+export type PropertyPermissionLevel = 'none' | 'sysadmin' | 'admin' | 'member' | '';
+
 export type PropertyField = {
     id: string;
     group_id: string;
@@ -34,6 +38,13 @@ export type PropertyField = {
     object_type: string;
     linked_field_id?: string;
     protected?: boolean;
+
+    // Who may change the field's definition, its values, and its options. The
+    // server is authoritative on all three; the client reads permission_values
+    // to decide whether to offer an editing affordance at all.
+    permission_field?: PropertyPermissionLevel;
+    permission_values?: PropertyPermissionLevel;
+    permission_options?: PropertyPermissionLevel;
     create_at: number;
     update_at: number;
     delete_at: number;
