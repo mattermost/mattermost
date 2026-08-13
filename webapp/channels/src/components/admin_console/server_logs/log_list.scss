@@ -618,14 +618,20 @@
         white-space: nowrap;
     }
 
-    // Caller
+    // Caller. Shrinkable (unlike the other columns) so it yields space to the
+    // expand indicator instead of pushing it past the row's right edge on
+    // narrow viewports. `direction: rtl` truncates from the start, keeping
+    // the useful file:line suffix visible.
     &__caller {
-        width: 192px;
-        flex-shrink: 0;
+        overflow: hidden;
+        min-width: 60px;
+        flex: 0 1 192px;
         color: rgba(var(--center-channel-color-rgb), 0.40);
+        direction: rtl;
         font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
         font-size: 11px;
-        text-align: right;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     // Expand indicator

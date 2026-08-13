@@ -260,7 +260,10 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                 <span className='LogRow__message'>
                     {highlightSearchTerm(log.msg || '', searchTerm)}
                 </span>
-                <span className='LogRow__caller'>
+                <span
+                    className='LogRow__caller'
+                    title={log.caller}
+                >
                     {log.caller}
                 </span>
                 <span className='LogRow__expand-indicator'>

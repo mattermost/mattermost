@@ -313,7 +313,6 @@ export default function LogList({
         }
 
         switch (e.key) {
-        case 'j':
         case 'ArrowDown':
             e.preventDefault();
             setFocusedIndex((prev) => {
@@ -323,7 +322,6 @@ export default function LogList({
                 return next;
             });
             break;
-        case 'k':
         case 'ArrowUp':
             e.preventDefault();
             setFocusedIndex((prev) => {
@@ -731,7 +729,7 @@ export default function LogList({
                 </div>
                 <div className='LogViewer__keyboard-hints'>
                     <span className='LogViewer__kbd-group'>
-                        <kbd>{'j'}</kbd><kbd>{'k'}</kbd>{' '}
+                        <kbd>{'↑'}</kbd><kbd>{'↓'}</kbd>{' '}
                         <FormattedMessage
                             id='admin.logs.kbd.navigate'
                             defaultMessage='navigate'
