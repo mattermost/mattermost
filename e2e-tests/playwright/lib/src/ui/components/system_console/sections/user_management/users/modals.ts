@@ -11,10 +11,26 @@ import BaseModal from '@/ui/components/system_console/base_modal';
  */
 export class ManageRolesModal extends BaseModal {
     readonly saveButton: Locator;
+    readonly systemAdminRadio: Locator;
+    readonly systemMemberRadio: Locator;
+    readonly delegatedRolesSection: Locator;
+    readonly delegatedRolesTitle: Locator;
 
     constructor(container: Locator) {
         super(container);
         this.saveButton = container.getByRole('button', {name: 'Save'});
+        this.systemAdminRadio = container.locator('input[name="systemadmin"]');
+        this.systemMemberRadio = container.locator('input[name="systemmember"]');
+        this.delegatedRolesSection = container.locator('.manage-roles-modal__delegated-roles');
+        this.delegatedRolesTitle = container.getByText('Delegated Administration Roles', {exact: true});
+    }
+
+    /**
+     * Get the checkbox for a delegated administration role by its display name
+     * (e.g. "User Manager", "System Manager", "Viewer").
+     */
+    getDelegatedRoleCheckbox(roleDisplayName: string): Locator {
+        return this.delegatedRolesSection.locator('label').filter({hasText: roleDisplayName}).getByRole('checkbox');
     }
 
     async save() {
