@@ -274,7 +274,8 @@
 
         .post,
         .SidebarMenu,
-        .GlobalThreads {
+        .GlobalThreads,
+        .post-actions-menu-mobile {
             .Menu {
                 position: fixed;
                 z-index: 9999;

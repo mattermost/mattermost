@@ -3,10 +3,14 @@
 
 import {Client4} from '@mattermost/client';
 import type {Channel, ChannelType} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
+import type {PartialExcept} from '@mattermost/types/utilities';
 
 import {createRandomChannel} from './channel';
 import {createNewUserProfile} from './user';
+
+import {getFileFromAsset} from '@/file';
 
 /**
  * Client4 extended with Playwright test-setup helpers only.
@@ -46,5 +50,33 @@ export class PlaywrightClient4 extends Client4 {
             users.push(user);
         }
         return users;
+    }
+
+    /**
+     * Creates a post with a default message and any number of files from the assets folder.
+     */
+    async createTestPost(override: PartialExcept<Post, 'channel_id'>, files: string[] = []) {
+        const post = {
+            message: 'test post',
+            ...override,
+        };
+
+        if (!post.file_ids) {
+            post.file_ids = await Promise.all(
+                files.map((filename) => {
+                    return new Promise<string>((resolve) => {
+                        const formData = new FormData();
+                        formData.set('channel_id', post.channel_id);
+                        formData.set('files', getFileFromAsset(filename), filename);
+
+                        this.uploadFile(formData).then((data) => {
+                            resolve(data.file_infos[0].id);
+                        });
+                    });
+                }),
+            );
+        }
+
+        return this.createPost(post);
     }
 }

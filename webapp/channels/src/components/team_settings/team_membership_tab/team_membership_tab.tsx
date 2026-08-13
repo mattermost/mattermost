@@ -198,7 +198,7 @@ function TeamMembershipTab({
         let cancelled = false;
         const loadTeamPolicy = async () => {
             try {
-                const result = await dispatch(getTeamAccessControlPolicy(team.id)) as {data?: {policy: AccessControlPolicy | null; enforced: boolean} | null; error?: unknown};
+                const result = await dispatch(getTeamAccessControlPolicy(team.id)) as {data?: {policy: AccessControlPolicy | null; enforced: boolean; parent_policies?: AccessControlPolicy[]} | null; error?: unknown};
                 if (cancelled) {
                     return;
                 }
@@ -215,18 +215,8 @@ function TeamMembershipTab({
                     setAutoAddMembers(existingAutoAdd);
                     setOriginalAutoAddMembers(existingAutoAdd);
 
-                    if (imports.length > 0) {
-                        const fetchedPolicies = await Promise.all(
-                            imports.map(async (policyId) => {
-                                const pr = await actions.getChannelPolicy(policyId);
-                                return pr.data ?? null;
-                            }),
-                        );
-                        if (cancelled) {
-                            return;
-                        }
-                        setSystemPolicies(fetchedPolicies.filter((p): p is AccessControlPolicy => p !== null));
-                    }
+                    // Resolved server-side: team admins can't fetch parent policies directly.
+                    setSystemPolicies(result.data?.parent_policies ?? []);
                 }
             } catch {
                 if (!cancelled) {
@@ -253,7 +243,13 @@ function TeamMembershipTab({
     const handleExpressionChange = useCallback((newExpression: string) => {
         setExpression(newExpression);
         setSaveChangesPanelState(undefined);
-    }, []);
+
+        // Auto-add can't apply without rules; clear it (not just disable it) so the
+        // checkbox doesn't sit greyed-out-but-checked when the last rule is removed.
+        if (!newExpression.trim() && systemPolicies.length === 0) {
+            setAutoAddMembers(false);
+        }
+    }, [systemPolicies]);
 
     const handleParseError = useCallback((errorMessage?: string) => {
         if (errorMessage?.includes('403') || errorMessage?.includes('Forbidden')) {
@@ -277,7 +273,10 @@ function TeamMembershipTab({
     }, [isEmptyRulesState]);
 
     const validateSelfExclusion = useCallback(async (testExpression: string): Promise<boolean> => {
-        if (!testExpression.trim()) {
+        // Only strict (private) teams remove non-matching members, so self-exclusion
+        // is a real risk there. On advisory (public) teams the sync never removes, so
+        // don't block the admin from saving rules that exclude themselves.
+        if (team.allow_open_invite || !testExpression.trim()) {
             return true;
         }
         try {
@@ -294,7 +293,7 @@ function TeamMembershipTab({
             }));
             return false;
         }
-    }, [actions, formatMessage]);
+    }, [actions, formatMessage, team.allow_open_invite]);
 
     // The sync enforces the team's own membership rule ANDed with the expressions of
     // any imported system/parent policies (see the server's ResolveRule/MergeExpressions).
@@ -397,13 +396,9 @@ function TeamMembershipTab({
             const rulesChanged = expression !== originalExpression;
             const autoAddTurnedOn = autoAddMembers && !originalAutoAddMembers;
 
-            // Kick an immediate reconcile so membership changes apply on save rather
-            // than waiting for the hourly scheduler. The sync worker decides removal
-            // vs. add by team privacy and the policy's active flag: on a strict
-            // (private) team the removal pass runs regardless of auto-add, so a rule
-            // change MUST trigger a job even with auto-add off — otherwise
-            // non-qualifying members linger until the periodic scheduler runs. On
-            // advisory (public) teams the worker no-ops, so an extra job is harmless.
+            // Reconcile now instead of waiting for the scheduler. A private team runs
+            // the removal pass regardless of auto-add, so a rule change must fire a job
+            // even with auto-add off or non-qualifying members linger; public teams no-op.
             if (rulesChanged || autoAddTurnedOn) {
                 try {
                     await dispatch(createAccessControlTeamSyncJob({policy_id: team.id}));
@@ -512,6 +507,73 @@ function TeamMembershipTab({
 
     const isEmptyTeamWarning = allowedCount === 0 && !team.allow_open_invite;
 
+    // Removing every rule (with no parent policy left) drops the team's attribute
+    // enforcement entirely, so the confirmation warns about that rather than showing
+    // a members-affected count that no longer applies.
+    const isRemovingAllRules = !expression.trim() && originalExpression.trim() !== '' && existingImports.length === 0;
+
+    // Advisory (public) teams neither restrict joining nor remove members, so the
+    // auto-add legend must not promise enforcement.
+    let autoAddDescription: string;
+    if (team.allow_open_invite) {
+        autoAddDescription = autoAddMembers ? formatMessage({
+            id: 'team_settings.membership_tab.auto_add_enabled_description_advisory',
+            defaultMessage: 'Qualifying users are automatically added as members and shown as recommended. No members are removed.',
+        }) : formatMessage({
+            id: 'team_settings.membership_tab.auto_add_disabled_description_advisory',
+            defaultMessage: 'Qualifying users are shown as recommended but are not added automatically. No one is blocked from joining.',
+        });
+    } else {
+        autoAddDescription = autoAddMembers ? formatMessage({
+            id: 'team_settings.membership_tab.auto_add_enabled_description',
+            defaultMessage: 'Qualifying users are automatically added as members, and members who no longer match will be removed.',
+        }) : formatMessage({
+            id: 'team_settings.membership_tab.auto_add_disabled_description',
+            defaultMessage: 'Access rules will restrict who can join the team, but qualifying users will not be added automatically.',
+        });
+    }
+
+    const removeRulesMessage = (
+        <div className='TeamMembershipTab__confirmMessage'>
+            <p>
+                {team.allow_open_invite ? (
+                    <FormattedMessage
+                        id='team_settings.membership_tab.confirm.remove_message_advisory'
+                        defaultMessage='This team will no longer have membership requirements. Auto-add and the "Recommended" tag stop; current members are unaffected.'
+                    />
+                ) : (
+                    <FormattedMessage
+                        id='team_settings.membership_tab.confirm.remove_message'
+                        defaultMessage='This team will no longer be restricted by user attributes. Current members keep their access, and anyone who can normally join the team will be able to.'
+                    />
+                )}
+            </p>
+        </div>
+    );
+
+    // Advisory (public) teams never block or remove, so the strict "will have access"
+    // / "may be affected" framing would misrepresent the change. Show the match count
+    // with advisory framing instead.
+    const advisoryConfirmMessage = (
+        <div className='TeamMembershipTab__confirmMessage'>
+            <p>
+                <FormattedMessage
+                    id='team_settings.membership_tab.confirm.advisory_note'
+                    defaultMessage='This team is public, so these rules are advisory: no one is blocked or removed. Qualifying users can be auto-added and are shown as recommended.'
+                />
+            </p>
+            {allowedCount !== null && (
+                <p>
+                    <FormattedMessage
+                        id='team_settings.membership_tab.confirm.advisory_allowed_count'
+                        defaultMessage='{count} {count, plural, one {user matches} other {users match}} the current rules.'
+                        values={{count: allowedCount}}
+                    />
+                </p>
+            )}
+        </div>
+    );
+
     const confirmMessage = (
         <div className='TeamMembershipTab__confirmMessage'>
             {allowedCount !== null && (
@@ -542,6 +604,37 @@ function TeamMembershipTab({
             )}
         </div>
     );
+
+    let confirmModalMessage = confirmMessage;
+    if (isRemovingAllRules) {
+        confirmModalMessage = removeRulesMessage;
+    } else if (team.allow_open_invite) {
+        confirmModalMessage = advisoryConfirmMessage;
+    }
+
+    let confirmModalButtonText;
+    if (isProcessingSave) {
+        confirmModalButtonText = (
+            <FormattedMessage
+                id='team_settings.membership_tab.confirm.saving'
+                defaultMessage='Saving...'
+            />
+        );
+    } else if (isRemovingAllRules) {
+        confirmModalButtonText = (
+            <FormattedMessage
+                id='team_settings.membership_tab.confirm.remove_confirm'
+                defaultMessage='Remove rules'
+            />
+        );
+    } else {
+        confirmModalButtonText = (
+            <FormattedMessage
+                id='team_settings.membership_tab.confirm.save'
+                defaultMessage='Save'
+            />
+        );
+    }
 
     return (
         <div className='TeamMembershipTab'>
@@ -614,13 +707,7 @@ function TeamMembershipTab({
                     </label>
                 </div>
                 <p className='TeamMembershipTab__autoAddDescription'>
-                    {autoAddMembers ? formatMessage({
-                        id: 'team_settings.membership_tab.auto_add_enabled_description',
-                        defaultMessage: 'Qualifying users are automatically added as members, and members who no longer match will be removed.',
-                    }) : formatMessage({
-                        id: 'team_settings.membership_tab.auto_add_disabled_description',
-                        defaultMessage: 'Access rules will restrict who can join the team, but qualifying users will not be added automatically.',
-                    })}
+                    {autoAddDescription}
                 </p>
             </div>
 
@@ -656,6 +743,7 @@ function TeamMembershipTab({
                     tabChangeError={hasErrors}
                     state={hasErrors ? 'error' : saveChangesPanelState}
                     customErrorMessage={formError || undefined}
+                    saving={isProcessingSave}
                     cancelButtonText={formatMessage({
                         id: 'team_settings.membership_tab.reset',
                         defaultMessage: 'Reset',
@@ -691,26 +779,19 @@ function TeamMembershipTab({
 
             <ConfirmModal
                 show={showConfirmModal}
-                title={
+                title={isRemovingAllRules ? (
+                    <FormattedMessage
+                        id='team_settings.membership_tab.confirm.remove_title'
+                        defaultMessage='Remove membership rules?'
+                    />
+                ) : (
                     <FormattedMessage
                         id='team_settings.membership_tab.confirm.title'
                         defaultMessage='Save team membership rules?'
                     />
-                }
-                message={confirmMessage}
-                confirmButtonText={
-                    isProcessingSave ? (
-                        <FormattedMessage
-                            id='team_settings.membership_tab.confirm.saving'
-                            defaultMessage='Saving...'
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='team_settings.membership_tab.confirm.save'
-                            defaultMessage='Save'
-                        />
-                    )
-                }
+                )}
+                message={confirmModalMessage}
+                confirmButtonText={confirmModalButtonText}
                 cancelButtonText={
                     <FormattedMessage
                         id='team_settings.membership_tab.confirm.cancel'

@@ -51,6 +51,7 @@ describe('TeamPolicyEditor', () => {
             EnableChannelPolicyIndicators: true,
             TrustProxyDeviceIdentityHeader: false,
             EnforceDeviceIDConsistency: false,
+            EnableAccessControlAuditLogging: false,
         },
         onNavigateBack: jest.fn(),
         actions: {

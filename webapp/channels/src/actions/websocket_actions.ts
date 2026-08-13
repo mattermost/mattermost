@@ -10,7 +10,7 @@ import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
 import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
 import type {Draft} from '@mattermost/types/drafts';
 import type {Emoji} from '@mattermost/types/emojis';
 import {FileDownloadTypes} from '@mattermost/types/files';
@@ -52,6 +52,7 @@ import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/a
 import {addChannelToInitialCategory, fetchMyCategories, handleManagedCategoryPropertyValuesUpdated, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
 import {
     getChannelAndMyMember,
+    getChannelMember,
     getMyChannelMember,
     getChannelStats,
     markMultipleChannelsAsRead,
@@ -116,7 +117,7 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getFeatureFlagValue, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -343,7 +344,7 @@ export function reconnect() {
     });
 
     // Refresh custom profile attributes on reconnect
-    if (isEnterpriseLicense(getLicense(state)) && isCustomProfileAttributesEnabled(state)) {
+    if (isEnterpriseLicense(getLicense(state))) {
         dispatch(getCustomProfileAttributeFields());
     }
 
@@ -566,6 +567,14 @@ export function handleEvent(msg: WebSocketMessage) {
 
     case WebSocketEvents.TeamAccessControlUpdated:
         dispatch(handleTeamAccessControlUpdatedEvent(msg));
+        break;
+
+    case WebSocketEvents.ChannelJoinRequestCreated:
+        dispatch(handleChannelJoinRequestCreated(msg));
+        break;
+
+    case WebSocketEvents.ChannelJoinRequestUpdated:
+        dispatch(handleChannelJoinRequestUpdated(msg));
         break;
 
     case WebSocketEvents.DirectAdded:
@@ -905,6 +914,67 @@ export function handleTeamAccessControlUpdatedEvent(msg: WebSocketMessages.TeamA
         // Refresh the team record so consumers see the latest policy_enforced
         // flag (and any other access-control-derived fields).
         doDispatch({type: TeamTypes.RECEIVED_TEAM, data: team});
+    };
+}
+
+// channel_join_request_created arrives on the admin set only (server-side
+// hook narrows the channel-id broadcast). When the current user is the
+// requester we never see this event — the create path's thunk dispatches the
+// row directly.
+function handleChannelJoinRequestCreated(msg: WebSocketMessages.ChannelJoinRequestCreated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        if (!msg.data.request) {
+            return;
+        }
+        let req: ChannelJoinRequest;
+        try {
+            req = JSON.parse(msg.data.request) as ChannelJoinRequest;
+        } catch {
+            return;
+        }
+        doDispatch({
+            type: ChannelTypes.CHANNEL_JOIN_REQUEST_CREATED,
+            data: req,
+        });
+
+        // If the current user happens to be the requester (e.g. tab open in
+        // two windows) keep myPendingByChannel in sync.
+        const currentUserId = getCurrentUserId(doGetState());
+        if (req.user_id === currentUserId) {
+            doDispatch({
+                type: ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUEST,
+                data: req,
+            });
+        }
+    };
+}
+
+// channel_join_request_updated covers approve / deny / withdraw transitions
+// AND the dedicated requester-scoped copy so a non-member requester sees
+// their own row flip in real time.
+function handleChannelJoinRequestUpdated(msg: WebSocketMessages.ChannelJoinRequestUpdated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        if (!msg.data.request) {
+            return;
+        }
+        let req: ChannelJoinRequest;
+        try {
+            req = JSON.parse(msg.data.request) as ChannelJoinRequest;
+        } catch {
+            return;
+        }
+        doDispatch({
+            type: ChannelTypes.CHANNEL_JOIN_REQUEST_UPDATED,
+            data: req,
+        });
+
+        const currentUserId = getCurrentUserId(doGetState());
+        if (req.user_id === currentUserId) {
+            doDispatch({
+                type: ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUEST,
+                data: req,
+            });
+        }
     };
 }
 
@@ -1315,12 +1385,21 @@ export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel):
                 data: {id: msg.broadcast.channel_id, user_id: msg.data.user_id},
             });
 
-            // The membership relation alone is not enough to render the member in the
-            // participant list: the member list selectors drop users whose profile is
-            // not loaded. This happens for remote users synced into a shared channel,
-            // since the viewer has never loaded their profile. Fetch it if missing.
+            // The member list selectors drop users whose profile is not loaded. This
+            // happens for remote users synced into a shared channel, since the viewer
+            // has never loaded their profile. Fetch it if missing.
             if (!getUser(state, msg.data.user_id)) {
                 doDispatch(loadUser(msg.data.user_id));
+            }
+
+            // The member list also requires the ChannelMembership relation, which the
+            // user_added event does not carry. Without it, the participant list filters
+            // the user out even when their profile is loaded (e.g. after they post), so
+            // members added while the channel is open (notably remote shared-channel
+            // members synced in from another server) never appear until the member list
+            // is fully reloaded. Fetch the membership if we don't already have it.
+            if (!getChannelMembersInChannels(state)[currentChannelId]?.[msg.data.user_id]) {
+                doDispatch(getChannelMember(currentChannelId, msg.data.user_id));
             }
 
             if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && config.EnableConfirmNotificationsToChannel === 'true') {

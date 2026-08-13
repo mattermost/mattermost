@@ -636,7 +636,7 @@ func (scs *Service) updateCursorForRemote(scrId string, rc *model.RemoteCluster,
 
 func (scs *Service) getUserTranslations(userId string) i18n.TranslateFunc {
 	var locale string
-	user, err := scs.server.GetStore().User().Get(context.Background(), userId)
+	user, err := scs.server.GetStore().User().Get(request.EmptyContext(scs.server.Log()), userId)
 	if err == nil {
 		locale = user.Locale
 	}

@@ -40,9 +40,9 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
     const [isSaving, setIsSaving] = useState(false);
 
-    // Mode-flip confirmation modal state
     const [showModeFlipModal, setShowModeFlipModal] = useState(false);
     const [modeFlipMemberCount, setModeFlipMemberCount] = useState<number | null>(null);
+    const [showSelfExclusionModal, setShowSelfExclusionModal] = useState(false);
     const pendingPublicValueRef = useRef<boolean | null>(null);
 
     const handleAllowedDomainsSubmit = useCallback(async (): Promise<boolean> => {
@@ -56,44 +56,75 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         return true;
     }, [actions, allowedDomains, team]);
 
-    const handlePrivacySubmit = useCallback(async (): Promise<boolean> => {
-        if (isPublicTeam === isPublicTeamInitial) {
+    const handlePrivacySubmit = useCallback(async (nextIsPublic: boolean): Promise<boolean> => {
+        if (nextIsPublic === isPublicTeamInitial) {
             return true;
         }
 
         // Privacy follows master's model on every path: patch allow_open_invite
         // only, leaving team.type untouched. ABAC join/sync/directory logic keys on
         // allow_open_invite alone, so there is nothing to normalize.
-        const {error} = await actions.patchTeam({id: team.id, allow_open_invite: isPublicTeam});
+        const {error} = await actions.patchTeam({id: team.id, allow_open_invite: nextIsPublic});
         return !error;
-    }, [actions, isPublicTeam, isPublicTeamInitial, team]);
+    }, [actions, isPublicTeamInitial, team]);
 
-    const computeModeFlipCount = useCallback(async (): Promise<number | null> => {
+    const commitChanges = useCallback(async (nextIsPublic: boolean, isModeFlip: boolean) => {
+        if (isSaving) {
+            return;
+        }
+        setIsSaving(true);
+        const allowedDomainSuccess = await handleAllowedDomainsSubmit();
+        const privacySuccess = await handlePrivacySubmit(nextIsPublic);
+        setIsSaving(false);
+        if (!allowedDomainSuccess || !privacySuccess) {
+            setSaveChangesPanelState('error');
+            return;
+        }
+        setSaveChangesPanelState('saved');
+        setShowTabSwitchError(false);
+        setAreThereUnsavedChanges(false);
+
+        // A mode flip on a governed team kicks an immediate reconcile so enforcement
+        // (or the advisory no-op) applies on save rather than waiting for the scheduler.
+        if (isModeFlip && teamAbacActive) {
+            try {
+                await actions.createAccessControlTeamSyncJob({policy_id: team.id});
+            } catch (jobError) {
+                // Job creation failure does not block the privacy change; the periodic
+                // sync still converges. Log so an operator can see why immediate
+                // enforcement did not kick in.
+                // eslint-disable-next-line no-console
+                console.error('Failed to create team access control sync job after mode flip:', jobError);
+            }
+        }
+    }, [isSaving, handleAllowedDomainsSubmit, handlePrivacySubmit, teamAbacActive, actions, team.id, setShowTabSwitchError, setAreThereUnsavedChanges]);
+
+    // The expression the sync will enforce once private: the team's own membership
+    // rule ANDed with any imported parent policies. Returns null when there is no
+    // rule (or an import can't be resolved) so callers fall back to generic handling.
+    const getCombinedTeamExpression = useCallback(async (): Promise<string | null> => {
+        const policyResult = await actions.getTeamAccessControlPolicy(team.id);
+        const policyData = policyResult?.data;
+        const teamExpression = getMembershipRule(policyData?.policy?.rules)?.expression;
+
+        // Resolved server-side: team admins can't fetch parent policies directly.
+        const parentIds: string[] = policyData?.policy?.imports ?? [];
+        const parentPolicies: AccessControlPolicy[] = policyData?.parent_policies ?? [];
+
+        // A dropped import would understate the rule set; treat as unresolved.
+        if (parentPolicies.length !== parentIds.length) {
+            return null;
+        }
+        const parentExpressions = parentPolicies.map((policy) => getMembershipRule(policy.rules)?.expression);
+
+        return combineMembershipExpressions([teamExpression, ...parentExpressions]) || null;
+    }, [actions, team.id]);
+
+    const computeModeFlipCount = useCallback(async (expression: string | null): Promise<number | null> => {
+        if (!expression) {
+            return null;
+        }
         try {
-            const policyResult = await actions.getTeamAccessControlPolicy(team.id);
-            const policyData = policyResult?.data as {policy: AccessControlPolicy | null; enforced: boolean} | undefined;
-            const teamExpression = getMembershipRule(policyData?.policy?.rules)?.expression;
-
-            // Parent-governed teams keep the rules in the imported policy, not here.
-            const parentIds = policyData?.policy?.imports ?? [];
-            const parentPolicies = await Promise.all(
-                parentIds.map((id) => actions.getAccessControlPolicy(id)),
-            );
-
-            // A dropped import would understate the count; fall back to the generic message.
-            if (parentPolicies.some((result) => result?.error || !result?.data)) {
-                return null;
-            }
-            const parentExpressions = parentPolicies.map((result) =>
-                getMembershipRule((result.data as AccessControlPolicy).rules)?.expression,
-            );
-
-            const expression = combineMembershipExpressions([teamExpression, ...parentExpressions]);
-
-            if (!expression) {
-                return null;
-            }
-
             // active - matching, server-side to avoid paging the member list.
             const [searchResult, statsResult] = await Promise.all([
                 actions.searchUsersForExpression(expression, '', '', 1, undefined, team.id),
@@ -119,38 +150,58 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
 
         if (!newIsPublic && isPublicTeam && teamAbacActive) {
             pendingPublicValueRef.current = newIsPublic;
-            const count = await computeModeFlipCount();
+
+            let expression: string | null = null;
+            try {
+                expression = await getCombinedTeamExpression();
+            } catch {
+                expression = null;
+            }
+
+            // Switching to private activates strict enforcement, which would remove
+            // the editing admin if they don't meet the rules. Block the switch (only
+            // when we can confirm the mismatch) so they don't lock themselves out.
+            if (expression) {
+                const result = await actions.validateExpressionAgainstRequester(expression, undefined, team.id);
+                if (result.data && !result.data.requester_matches) {
+                    pendingPublicValueRef.current = null;
+                    setAreThereUnsavedChanges(false);
+                    setSaveChangesPanelState(undefined);
+                    setShowSelfExclusionModal(true);
+                    return;
+                }
+            }
+
+            const count = await computeModeFlipCount(expression);
             setModeFlipMemberCount(count);
             setShowModeFlipModal(true);
             return;
         }
 
         setIsPublicTeam(newIsPublic);
-    }, [isPublicTeam, teamAbacActive, computeModeFlipCount, setAreThereUnsavedChanges]);
+    }, [isPublicTeam, teamAbacActive, getCombinedTeamExpression, computeModeFlipCount, actions, team.id, setAreThereUnsavedChanges]);
 
     const handleModeFlipConfirm = useCallback(async () => {
+        const newIsPublic = pendingPublicValueRef.current;
         setShowModeFlipModal(false);
-        if (pendingPublicValueRef.current !== null) {
-            setIsPublicTeam(pendingPublicValueRef.current);
-            pendingPublicValueRef.current = null;
+        pendingPublicValueRef.current = null;
+        if (newIsPublic === null) {
+            return;
         }
 
-        if (teamAbacActive) {
-            try {
-                await actions.createAccessControlTeamSyncJob({policy_id: team.id});
-            } catch (jobError) {
-                // Job creation failure does not block the privacy change; the
-                // periodic sync still converges membership. Log so an operator
-                // can see why immediate enforcement did not kick in.
-                // eslint-disable-next-line no-console
-                console.error('Failed to create team access control sync job after mode flip:', jobError);
-            }
-        }
-    }, [actions, team.id, teamAbacActive]);
+        // Confirming the modal IS the intent to save — apply immediately (showing the
+        // panel's saving state) instead of leaving the change staged for a second click.
+        setIsPublicTeam(newIsPublic);
+        await commitChanges(newIsPublic, true);
+    }, [commitChanges]);
 
     const handleModeFlipCancel = useCallback(() => {
         setShowModeFlipModal(false);
         pendingPublicValueRef.current = null;
+    }, []);
+
+    const handleSelfExclusionModalClose = useCallback(() => {
+        setShowSelfExclusionModal(false);
     }, []);
 
     const handleClose = useCallback(() => {
@@ -165,24 +216,9 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         handleClose();
     }, [handleClose, isPublicTeamInitial, team.allowed_domains]);
 
-    const handleSaveChanges = useCallback(async () => {
-        if (isSaving) {
-            return;
-        }
-        setIsSaving(true);
-        const allowedDomainSuccess = await handleAllowedDomainsSubmit();
-        const privacySuccess = await handlePrivacySubmit();
-        setIsSaving(false);
-        if (!allowedDomainSuccess || !privacySuccess) {
-            setSaveChangesPanelState('error');
-            return;
-        }
-        setSaveChangesPanelState('saved');
-        setShowTabSwitchError(false);
-
-        // allows modal to close immediately
-        setAreThereUnsavedChanges(false);
-    }, [isSaving, handleAllowedDomainsSubmit, handlePrivacySubmit, setShowTabSwitchError, setAreThereUnsavedChanges]);
+    const handleSaveChanges = useCallback(() => {
+        return commitChanges(isPublicTeam, false);
+    }, [commitChanges, isPublicTeam]);
 
     let modeFlipMessage;
     if (modeFlipMemberCount === null) {
@@ -270,6 +306,32 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
                 }
                 onConfirm={handleModeFlipConfirm}
                 onCancel={handleModeFlipCancel}
+                isStacked={true}
+            />
+
+            <ConfirmModal
+                show={showSelfExclusionModal}
+                title={
+                    <FormattedMessage
+                        id='team_settings.mode_flip_self_exclusion.title'
+                        defaultMessage='Cannot switch to Private Team'
+                    />
+                }
+                message={
+                    <FormattedMessage
+                        id='team_settings.mode_flip_self_exclusion.message'
+                        defaultMessage='You do not meet the current membership rules, so switching to Private would remove you from the team at the next sync. Update the rules to include yourself, or ask another admin to make the switch.'
+                    />
+                }
+                confirmButtonText={
+                    <FormattedMessage
+                        id='team_settings.mode_flip_self_exclusion.confirm'
+                        defaultMessage='Back to editing'
+                    />
+                }
+                onConfirm={handleSelfExclusionModalClose}
+                onCancel={handleSelfExclusionModalClose}
+                hideCancel={true}
                 isStacked={true}
             />
         </div>

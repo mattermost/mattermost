@@ -5,3 +5,4 @@ Never run `go mod tidy` directly. Always run `make modules-tidy` instead — it 
 After editing `i18n/en.json`, always run `make i18n-extract` — it regenerates the file with strings in the required order.
 
 Prefer request-scoped loggers when logging from request paths. If a method needs to log and does not have access to the request logger, it is reasonable to add `request.CTX` to the method signature when the caller can provide it.
+In the store layer, do not use `context.Context` in store method signatures. Use `request.CTX` and only call `rctx.Context()` inside internals that require a standard `context.Context`.

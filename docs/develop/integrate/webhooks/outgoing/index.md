@@ -65,7 +65,7 @@ If you leave the channel field blank, the webhook will respond to trigger words 
 2. Add a configurable *MATTERMOST_TOKEN* variable to your application and set it to the **Token** value from step 7. This value will be used by your application to confirm the HTTP POST request came from Mattermost.
 3. To have your application post a message back to `town-square`, it can respond to the HTTP POST request with a JSON response such as:
 
-    ```json
+    ```text
     {"text": "
     | Component  | Tests Run | Tests Failed                                   |
     |:-----------|:----------|:-----------------------------------------------|

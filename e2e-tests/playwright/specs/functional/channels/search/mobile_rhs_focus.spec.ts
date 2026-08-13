@@ -74,6 +74,33 @@ test.describe('Mobile view RHS auto-focus', () => {
     });
 
     /**
+     * @objective Tapping the mobile menu backdrop should dismiss/close the modal
+     */
+    test('closes mobile menu when clicking the backdrop layer', {tag: '@mobile'}, async ({pw}) => {
+        const {user} = await pw.initSetup();
+
+        // # Log in as the test user and navigate to channels page
+        const {channelsPage, page} = await pw.testBrowser.login(user);
+        await channelsPage.goto();
+        await channelsPage.toBeVisible();
+
+        // # Open the mobile channel header menu
+        await channelsPage.centerView.header.openChannelMenu();
+
+        // # Define the mobile menu modal locator
+        const menuModal = page.locator('.modal-dialog.menuModal');
+
+        // * Verify the menu modal is visible after the click
+        await expect(menuModal).toBeVisible();
+
+        // # Click the modal's backdrop layer outside the menu content
+        await page.mouse.click(5, 5);
+
+        // * Verify the mobile menu modal is now successfully dismissed/hidden
+        await expect(menuModal).toBeHidden();
+    });
+
+    /**
      * @objective Verify that in narrow/mobile view, the channel header shows an icon-only Search
      * button; clicking it opens the RHS search panel where a search can be performed, and closing
      * the panel returns to the icon-only Search button.
