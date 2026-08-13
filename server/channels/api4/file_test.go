@@ -964,6 +964,14 @@ func TestGetFile(t *testing.T) {
 	})
 
 	t.Run("reviewer cannot fetch a file from a DM or GM channel", func(t *testing.T) {
+		th.LoginBasic(t)
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "failed to set license")
+		defer th.RemoveLicense(t)
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
 		sent, err := testutils.ReadTestFile("test.png")
 		require.NoError(t, err)
 
