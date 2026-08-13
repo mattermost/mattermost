@@ -36,7 +36,6 @@ import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {isTeamScopedProduct} from 'utils/products';
-import {initializeSystemThemeDetection, cleanupSystemThemeDetection, applySystemThemeIfNeeded} from 'utils/theme_utils';
 import {getSiteURL} from 'utils/url';
 import {isTextDroppableEvent} from 'utils/utils';
 
@@ -266,10 +265,6 @@ export default class Root extends React.PureComponent<Props, State> {
     componentDidMount() {
         temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
 
-        // Initialize system theme detection and apply the appropriate theme
-        initializeSystemThemeDetection();
-        applySystemThemeIfNeeded();
-
         this.initiateMeRequests();
 
         // Initialize burn-on-read expiration scheduler
@@ -285,7 +280,6 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
-        cleanupSystemThemeDetection();
         expirationScheduler.cleanup();
 
         window.removeEventListener('storage', this.handleLogoutLoginSignal);

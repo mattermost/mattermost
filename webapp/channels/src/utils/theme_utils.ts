@@ -31,11 +31,11 @@ export function initializeSystemThemeDetection(): void {
         applySystemThemeIfNeeded();
 
         // Add listener for system theme changes
-        try {
-            // Modern browsers
+        if (darkModeMediaQuery.addEventListener) {
             darkModeMediaQuery.addEventListener('change', applySystemThemeIfNeeded);
-        } catch (e) {
-            // Ignore errors and avoid theme light/dark mode switching in older browsers.
+        } else if (darkModeMediaQuery.addListener) {
+            // Fallback for older browsers (Safari <14)
+            darkModeMediaQuery.addListener(applySystemThemeIfNeeded);
         }
 
         isListenerInitialized = true;
@@ -48,18 +48,10 @@ export function initializeSystemThemeDetection(): void {
  */
 export function cleanupSystemThemeDetection(): void {
     if (darkModeMediaQuery && isListenerInitialized) {
-        try {
-            // Modern browsers
+        if (darkModeMediaQuery.removeEventListener) {
             darkModeMediaQuery.removeEventListener('change', applySystemThemeIfNeeded);
-        } catch (e) {
-            // Fallback for older browsers that support the deprecated removeListener method
-            try {
-                if (typeof darkModeMediaQuery.removeListener === 'function') {
-                    darkModeMediaQuery.removeListener(applySystemThemeIfNeeded);
-                }
-            } catch (fallbackError) {
-                // Ignore errors and avoid theme light/dark mode switching in older browsers.
-            }
+        } else if (darkModeMediaQuery.removeListener) {
+            darkModeMediaQuery.removeListener(applySystemThemeIfNeeded);
         }
 
         isListenerInitialized = false;
@@ -85,7 +77,7 @@ export function applySystemThemeIfNeeded(): boolean {
     }
 
     // Check system preference
-    const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDarkMode = isSystemInDarkMode();
 
     // Get the appropriate theme
     let theme: Theme;
@@ -98,9 +90,17 @@ export function applySystemThemeIfNeeded(): boolean {
         const defaultDarkThemePrefKey = 'theme_dark--';
 
         if (displayPreferences[darkThemePrefKey]) {
-            theme = JSON.parse(displayPreferences[darkThemePrefKey].value);
+            try {
+                theme = JSON.parse(displayPreferences[darkThemePrefKey].value);
+            } catch {
+                theme = getTheme(state);
+            }
         } else if (displayPreferences[defaultDarkThemePrefKey]) {
-            theme = JSON.parse(displayPreferences[defaultDarkThemePrefKey].value);
+            try {
+                theme = JSON.parse(displayPreferences[defaultDarkThemePrefKey].value);
+            } catch {
+                theme = getTheme(state);
+            }
         } else {
             // If no dark theme is set, use the regular theme
             theme = getTheme(state);
@@ -111,7 +111,9 @@ export function applySystemThemeIfNeeded(): boolean {
     }
 
     // Apply the theme
-    applyTheme(theme);
+    if (theme) {
+        applyTheme(theme);
+    }
 
     return true;
 }
@@ -120,5 +122,5 @@ export function applySystemThemeIfNeeded(): boolean {
  * Returns whether the system is currently in dark mode
  */
 export function isSystemInDarkMode(): boolean {
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
 }

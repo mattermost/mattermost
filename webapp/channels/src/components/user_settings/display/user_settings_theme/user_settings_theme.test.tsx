@@ -25,9 +25,7 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
         setRequireConfirm: jest.fn(),
         themeAutoSwitch: false,
         actions: {
-            saveTheme: jest.fn().mockResolvedValue({data: true}),
-            saveDarkTheme: jest.fn().mockResolvedValue({data: true}),
-            saveThemeAutoSwitch: jest.fn().mockResolvedValue({data: true}),
+            saveThemePreferences: jest.fn().mockResolvedValue({data: true}),
             deleteTeamSpecificThemes: jest.fn().mockResolvedValue({data: true}),
             openModal: jest.fn(),
         },
@@ -64,7 +62,7 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
         });
 
         expect(requiredProps.updateSection).toHaveBeenCalledWith('');
-        expect(requiredProps.actions.saveTheme).toHaveBeenCalled();
+        expect(requiredProps.actions.saveThemePreferences).toHaveBeenCalled();
     });
 
     it('should show premade themes when custom themes are disabled', () => {
@@ -93,9 +91,7 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
             ...requiredProps,
             selected: true,
             actions: {
-                saveTheme: jest.fn().mockResolvedValue({data: true}),
-                saveDarkTheme: jest.fn().mockResolvedValue({data: true}),
-                saveThemeAutoSwitch: jest.fn().mockResolvedValue({data: true}),
+                saveThemePreferences: jest.fn().mockResolvedValue({data: true}),
                 deleteTeamSpecificThemes: jest.fn().mockResolvedValue({data: true}),
                 openModal: jest.fn(),
             },
@@ -106,7 +102,7 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
         );
 
         // The applyToAllTeams checkbox should be checked by default (from props)
-        const checkbox = screen.getByRole('checkbox');
+        const checkbox = screen.getByRole('checkbox', {name: /apply new theme to all my teams/i});
         expect(checkbox).toBeChecked();
 
         // Click Save to trigger submitTheme
