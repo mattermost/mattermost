@@ -52,17 +52,17 @@ The deployment architecture includes the following components:
   - **Mattermost Desktop Apps:** Access Mattermost directly by deploying [desktop](/deployment-guide/desktop/desktop-app-deployment) or web apps in your organization.
   - **Mattermost Mobile Apps:** Access Mattermost via [iPhone and Android apps](/deployment-guide/mobile/mobile-app-deployment), with support for [ID-only push notifications](/deployment-guide/mobile/host-your-own-push-proxy-service) to ensure compliance with data sovereignty requirements. *(Optional - not shown)*
   - **Microsoft 365 Desktop Apps:** For partnered organizations using Microsoft 365 services, Teams and Outlook can be deployed with the [embedded Mattermost application](/integrations-guide/mattermost-mission-collaboration-for-m365) for cross-domain partner collaboration within a familiar interface. *(Optional)*
-- **Mattermost Deployments:** Mattermost deployed for sovereign collaboration on private cloud or local infrastructure, such as [Azure](/deployment-guide/server/deploy-kubernetes) or [Azure Local](https://learn.microsoft.com/en-us/azure/azure-local/manage/disconnected-operations-overview), to maintain compliance with STIG, FedRAMP, and NIST 800-53 standards. See [reference architecture](/administration-guide/scale/server-architecture) documentation for Mattermost deployment configurations based on expected scale.
+- **Mattermost Deployments:** Mattermost deployed for sovereign collaboration on private cloud or local infrastructure, such as [Azure](/deployment-guide/server/deploy-kubernetes) or [Azure Local](https://learn.microsoft.com/en-us/azure/azure-local/manage/disconnected-operations-overview), to maintain compliance with STIG, FedRAMP, and NIST 800-53 standards. See [reference architecture](/deployment-guide/reference-architecture/scale/server-architecture) documentation for Mattermost deployment configurations based on expected scale.
   - **Mattermost Server:** Core application server handling collaboration workloads, including:
     - [Messaging Collaboration](/end-user-guide/messaging-collaboration): Sovereign 1:1, group messaging, and structured channel collaboration.
     - [Workflow Automation](/end-user-guide/workflow-automation): Playbooks provide structure, monitoring and automation for repeatable processes built-in to your sovereign Mattermost deployment.
     - [Project Tracking](/end-user-guide/project-task-management): Boards enables project management capabilities built-in to your local Mattermost deployment. Boards enables project management capabilities built-in to your sovereign Mattermost deployment.
     - [AI Agents](/administration-guide/configure/agents-admin-guide): AI Agents run against Azure OpenAI endpoints or a self-hosted LLM that is OpenAI-compatible.
-    - [Audio & Screenshare](/administration-guide/configure/calls-deployment-guide): Calls offers native real-time self-hosted audio calls and screen sharing within your own network.
+    - [Audio & Screenshare](/deployment-guide/calls/calls-deployment-guide): Calls offers native real-time self-hosted audio calls and screen sharing within your own network.
   - **Proxy Server:** The [proxy server](/deployment-guide/server/setup-nginx-proxy) handles HTTP(S) routing within the cluster, directing traffic between the server and clients accessing Mattermost services, including requests from users in [connected organizations](/administration-guide/onboard/connected-workspaces). NGINX is recommended for load balancing with support for WebSocket connections, health check endpoints, and sticky sessions. The proxy layer provides SSL termination and distributes client traffic across application servers.
   - **PostgreSQL Database:** Stores persistent application data on a [PostgreSQL v13+ database](/deployment-guide/server/preparations), such as [Azure Database for PostgreSQL](https://azure.microsoft.com/en-us/products/postgresql).
   - **Object Storage:** File uploads, images, and attachments are stored outside the application node on an [S3-compatible store](/deployment-guide/server/preparations) or an NFS (Network File System) server. [Azure Blob Storage](https://azure.microsoft.com/en-us/products/storage/blobs) can be used, but needs an S3-compatible proxy for Mattermost to interface with.
-  - **Recording Instance:** `calls-offloader` job service, configured using the [Calls Offloader Setup and Configuration](/administration-guide/configure/calls-offloader-setup) guide, to offload heavy processing tasks from Mattermost Calls, such as recordings, transcriptions, and live captioning, to local infrastructure or private cloud. *(Optional)*
+  - **Recording Instance:** `calls-offloader` job service, configured using the [Calls Offloader Setup and Configuration](/deployment-guide/calls/calls-offloader-setup) guide, to offload heavy processing tasks from Mattermost Calls, such as recordings, transcriptions, and live captioning, to local infrastructure or private cloud. *(Optional)*
 - **Integration framework:** [Custom apps, plugins, and webhooks](/integrations-guide/integrations-guide-index) can be deployed for real-time data integrations and alerting. *(Optional - not shown)*
 - **Self-hosted LLM:** Locally hosted [OpenAI compatible LLM](/agents/docs/providers) for agentic powered collaboration. *(Optional)*
 - **Microsoft Global Network:** [World-wide network](https://learn.microsoft.com/en-us/azure/networking/microsoft-global-network) of Microsoft data centers, delivering public cloud services including M365 and Azure OpenAI. *(Optional)*
@@ -119,19 +119,19 @@ AI capabilities enhance mission collaboration with summarization, translation, s
 
 ### High availability and fault tolerance
 
-Deploy Mattermost in a [cluster-based architecture](/administration-guide/scale/high-availability-cluster-based-deployment) to ensure continued availability during outages or hardware failures. High availability requires redundant infrastructure across each critical component:
+Deploy Mattermost in a [cluster-based architecture](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) to ensure continued availability during outages or hardware failures. High availability requires redundant infrastructure across each critical component:
 
 - Application servers: Scale horizontally across multiple nodes with a load balancer distributing client traffic.
-- Search service: [Elasticsearch or AWS OpenSearch Service](/administration-guide/scale/scaling-for-enterprise#enterprise-search) provides optimized search performance with dedicated indexing for large-scale deployments.
+- Search service: [Elasticsearch or AWS OpenSearch Service](/deployment-guide/reference-architecture/scale/scaling-for-enterprise#enterprise-search) provides optimized search performance with dedicated indexing for large-scale deployments.
 - Object storage: Configure S3-compatible backends with erasure coding or replication for durability. All application servers must access shared file storage (NAS or S3) to ensure consistent data availability.
 - Calls services: Run multiple `rtcd` and offloader nodes for resilience.
 
 ### Sovereign audio & screensharing
 
-Deploy [Mattermost Calls](/administration-guide/configure/calls-deployment-guide) in a self-hosted configuration to ensure voice and screen sharing capabilities remain operational without reliance on the internet, and that media traffic does not traverse non-compliant third-party services.
+Deploy [Mattermost Calls](/deployment-guide/calls/calls-deployment-guide) in a self-hosted configuration to ensure voice and screen sharing capabilities remain operational without reliance on the internet, and that media traffic does not traverse non-compliant third-party services.
 
-- The `rtcd` service, configured using the [RTCD Setup and Configuration](/administration-guide/configure/calls-rtcd-setup) guide, provides scalable, low-latency media routing hosted on-premises. Run multiple `rtcd` nodes for redundancy.
-- The `calls-offloader` service, configured using the [Calls Offloader Setup and Configuration](/administration-guide/configure/calls-offloader-setup) guide, offloads heavy processing tasks like recording, transcription and live captioning to a compliance-approved job server.
+- The `rtcd` service, configured using the [RTCD Setup and Configuration](/deployment-guide/calls/calls-rtcd-setup) guide, provides scalable, low-latency media routing hosted on-premises. Run multiple `rtcd` nodes for redundancy.
+- The `calls-offloader` service, configured using the [Calls Offloader Setup and Configuration](/deployment-guide/calls/calls-offloader-setup) guide, offloads heavy processing tasks like recording, transcription and live captioning to a compliance-approved job server.
 
 ### Compliance and retention
 

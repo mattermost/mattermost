@@ -12,6 +12,7 @@ import {
     createAccessControlTeamSyncJob,
     getTeamAccessControlPolicy,
     searchUsersForExpression,
+    validateExpressionAgainstRequester,
 } from 'mattermost-redux/actions/access_control';
 import {patchTeam, regenerateTeamInviteId, getTeamStats} from 'mattermost-redux/actions/teams';
 
@@ -43,6 +44,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             getTeamStats,
             getTeamAccessControlPolicy,
             searchUsersForExpression,
+            validateExpressionAgainstRequester,
             createAccessControlTeamSyncJob,
         }, dispatch),
     };

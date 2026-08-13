@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -29,6 +30,12 @@ export enum CELOperator {
     CONTAINS = 'contains',
     IN = 'in',
     YOUNGER_THAN_DAYS = 'youngerThanDays',
+    IN_CIDR = 'inCIDR',
+    VERSION_EQ = 'versionEQ',
+    VERSION_GT = 'versionGT',
+    VERSION_GTE = 'versionGTE',
+    VERSION_LT = 'versionLT',
+    VERSION_LTE = 'versionLTE',
 }
 
 // Operator label constants
@@ -52,6 +59,13 @@ export enum OperatorLabel {
     IS_LESS_THAN = 'is less than',
 
     YOUNGER_THAN = 'younger than',
+
+    IN_CIDR = 'in IP range',
+    VERSION_IS = 'version is',
+    VERSION_GREATER_THAN = 'version is greater than',
+    VERSION_AT_LEAST = 'version is at least',
+    VERSION_LESS_THAN = 'version is less than',
+    VERSION_AT_MOST = 'version is at most',
 }
 
 // Map from visual AST operator to UI label. The comparison symbols (>=, >, <, <=)
@@ -70,6 +84,12 @@ export const OPERATOR_LABELS: Record<string, string> = {
     [CELOperator.CONTAINS]: OperatorLabel.CONTAINS,
     [CELOperator.IN]: OperatorLabel.IN,
     [CELOperator.YOUNGER_THAN_DAYS]: OperatorLabel.YOUNGER_THAN,
+    [CELOperator.IN_CIDR]: OperatorLabel.IN_CIDR,
+    [CELOperator.VERSION_EQ]: OperatorLabel.VERSION_IS,
+    [CELOperator.VERSION_GT]: OperatorLabel.VERSION_GREATER_THAN,
+    [CELOperator.VERSION_GTE]: OperatorLabel.VERSION_AT_LEAST,
+    [CELOperator.VERSION_LT]: OperatorLabel.VERSION_LESS_THAN,
+    [CELOperator.VERSION_LTE]: OperatorLabel.VERSION_AT_MOST,
     hasAnyOf: OperatorLabel.HAS_ANY_OF,
     hasAllOf: OperatorLabel.HAS_ALL_OF,
 };
@@ -97,6 +117,12 @@ export const OPERATOR_CONFIG: Record<string, {type: OperatorType; celOp: CELOper
     [OperatorLabel.IS_LESS_THAN]: {type: 'comparison', celOp: CELOperator.LESS_THAN},
 
     [OperatorLabel.YOUNGER_THAN]: {type: 'native_method', celOp: CELOperator.YOUNGER_THAN_DAYS},
+    [OperatorLabel.IN_CIDR]: {type: 'method', celOp: CELOperator.IN_CIDR},
+    [OperatorLabel.VERSION_IS]: {type: 'method', celOp: CELOperator.VERSION_EQ},
+    [OperatorLabel.VERSION_GREATER_THAN]: {type: 'method', celOp: CELOperator.VERSION_GT},
+    [OperatorLabel.VERSION_AT_LEAST]: {type: 'method', celOp: CELOperator.VERSION_GTE},
+    [OperatorLabel.VERSION_LESS_THAN]: {type: 'method', celOp: CELOperator.VERSION_LT},
+    [OperatorLabel.VERSION_AT_MOST]: {type: 'method', celOp: CELOperator.VERSION_LTE},
 };
 
 export function isMultiValueOperator(op: string): boolean {
@@ -126,10 +152,37 @@ export function isNativeMethodOperator(op: string): boolean {
     return OPERATOR_CONFIG[op]?.type === 'native_method';
 }
 
+// Field-advertised method operators (inCIDR, version*) are exclusive to attributes
+// that declare them via attrs.operators. They must never be offered for—or left
+// applied to—unrelated text attributes.
+export function isFieldAdvertisedOperator(op: string): boolean {
+    const config = OPERATOR_CONFIG[op];
+    if (!config || config.type !== 'method') {
+        return false;
+    }
+    return config.celOp === CELOperator.IN_CIDR ||
+        config.celOp === CELOperator.VERSION_EQ ||
+        config.celOp === CELOperator.VERSION_GT ||
+        config.celOp === CELOperator.VERSION_GTE ||
+        config.celOp === CELOperator.VERSION_LT ||
+        config.celOp === CELOperator.VERSION_LTE;
+}
+
 // Native user attributes are referenced as `user.<name>` rather than the custom
 // profile attribute form `user.attributes.<name>`.
 export function isNativeField(field?: Pick<UserPropertyField, 'attrs'>): boolean {
     return Boolean(field?.attrs?.native);
+}
+
+// True when an attribute's values come from a controlled source (LDAP/SAML sync,
+// admin-managed, plugin-protected, or owner-managed integration) and so cannot be
+// set by users. Such attributes are safe to reference in access control policies.
+export function hasControlledAttributeValues(field: Pick<UserPropertyField, 'attrs'>): boolean {
+    const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
+    const isAdminManaged = field.attrs?.managed === 'admin';
+    const isProtected = Boolean(field.attrs?.protected);
+    const isOwnerManaged = (field.attrs?.owners?.length ?? 0) > 0;
+    return isSynced || isAdminManaged || isProtected || isOwnerManaged;
 }
 
 // A native boolean attribute (e.g. user.verified) is modeled as a select whose
@@ -155,11 +208,42 @@ export function isValidYoungerThanDaysValue(value: string): boolean {
     return (/^\d+$/).test(value.trim());
 }
 
-// Returns the operator labels a field may use. Native fields advertise their
-// allowed operator tokens via attrs.operators; everything else falls back to the
+const daysValuePlaceholder = defineMessage({
+    id: 'admin.access_control.table_editor.value.days_placeholder',
+    defaultMessage: 'Number of days',
+});
+
+const cidrValuePlaceholder = defineMessage({
+    id: 'admin.access_control.table_editor.value.cidr_placeholder',
+    defaultMessage: 'CIDR range (e.g. 10.0.0.0/8)',
+});
+
+const versionValuePlaceholder = defineMessage({
+    id: 'admin.access_control.table_editor.value.version_placeholder',
+    defaultMessage: 'Version (e.g. 6.0.0)',
+});
+
+// CIDR/version operators have no client-side format validation, so the value
+// input's placeholder is the only hint at the expected format.
+export function valuePlaceholderForOperator(operator: string): MessageDescriptor | undefined {
+    if (operator === OperatorLabel.YOUNGER_THAN) {
+        return daysValuePlaceholder;
+    }
+    if (operator === OperatorLabel.IN_CIDR) {
+        return cidrValuePlaceholder;
+    }
+    if (isFieldAdvertisedOperator(operator)) {
+        // Only version operators reach here; inCIDR is handled above.
+        return versionValuePlaceholder;
+    }
+    return undefined;
+}
+
+// Returns the operator labels a field may use. Fields advertise an explicit
+// operator token list via attrs.operators; everything else falls back to the
 // full set (operator menu still applies its multiselect filter).
 export function allowedOperatorLabelsForField(field?: UserPropertyField): string[] | undefined {
-    if (!isNativeField(field) || !field?.attrs?.operators) {
+    if (!field?.attrs?.operators) {
         return undefined;
     }
     return field.attrs.operators.
@@ -191,10 +275,7 @@ export function toCELEditorAttributes(
             if (isSessionAttributeField(attr) || isNativeField(attr) || enableUserManagedAttributes) {
                 return true;
             }
-            const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
-            const isAdminManaged = attr.attrs?.managed === 'admin';
-            const isProtected = attr.attrs?.protected;
-            return Boolean(isSynced || isAdminManaged || isProtected);
+            return hasControlledAttributeValues(attr);
         }).
         map((attr) => ({
             attribute: attr.name,
@@ -204,32 +285,48 @@ export function toCELEditorAttributes(
         }));
 }
 
+// Matches a single CEL string literal: a double-quoted string (which may contain
+// apostrophes and escaped double quotes) or a single-quoted string (which may
+// contain double quotes and escaped single quotes). This mirrors what the CEL
+// parser accepts and what celStringLiteral emits, so a value such as
+// "Matt's Department" is still recognized as a simple expression.
+const CEL_STRING = String.raw`(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')`;
+
+// Empty list or comma-separated CEL string literals. Rejects unterminated /
+// unescaped quotes that the previous `\[.*?\]` matcher would accept.
+const CEL_STRING_LIST = String.raw`\[\s*(?:${CEL_STRING}(?:\s*,\s*${CEL_STRING})*)?\s*\]`;
+
+// The first pattern accepts ==, != and the ranked ordinal operators
+// (>=, <=, >, <) against a quoted value. >= / <= precede > / < in the
+// alternation so the two-char forms match before the one-char ones.
+const SIMPLE_CONDITION_PATTERNS: RegExp[] = [
+    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s*(==|!=|>=|<=|>|<)\s*${CEL_STRING}$`),
+    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s+in\s+${CEL_STRING_LIST}$`),
+    new RegExp(String.raw`^((${CEL_STRING_LIST})|${CEL_STRING})\s+in\s+user\.(?:attributes|session)\.\w+$`),
+    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.startsWith\(${CEL_STRING}.*?\)$`),
+    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.endsWith\(${CEL_STRING}.*?\)$`),
+    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.contains\(${CEL_STRING}.*?\)$`),
+    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.inCIDR\(${CEL_STRING}.*?\)$`),
+    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.version(?:EQ|GT|GTE|LT|LTE)\(${CEL_STRING}.*?\)$`),
+
+    // Native user attributes (single segment after `user.`). Restricted to
+    // the field/operator pairings the table editor can round-trip: boolean
+    // equality for verified/isbot, string operators for email, and
+    // youngerThanDays for createat. These cannot collide with the
+    // two-segment custom-profile-attribute forms above.
+    new RegExp(String.raw`^user\.(verified|isbot)\s*(==|!=)\s*(true|false)$`),
+    new RegExp(String.raw`^user\.email\s*(==|!=)\s*${CEL_STRING}$`),
+    new RegExp(String.raw`^user\.email\s+in\s+${CEL_STRING_LIST}$`),
+    new RegExp(String.raw`^((${CEL_STRING_LIST})|${CEL_STRING})\s+in\s+user\.email$`),
+    new RegExp(String.raw`^user\.email\.(startsWith|endsWith|contains)\(${CEL_STRING}.*?\)$`),
+    new RegExp(String.raw`^user\.createat\.youngerThanDays\(\d+\)$`),
+];
+
+const MULTISELECT_GROUP_PART = new RegExp(String.raw`^${CEL_STRING}\s+in\s+user\.(?:attributes|session)\.\w+$`);
+
 export function isSimpleCondition(s: string): boolean {
     const trimmed = s.trim();
-
-    // The first pattern accepts ==, != and the ranked ordinal operators
-    // (>=, <=, >, <) against a quoted value. >= / <= precede > / < in the
-    // alternation so the two-char forms match before the one-char ones.
-    return Boolean(
-        trimmed.match(/^user\.(?:attributes|session)\.\w+\s*(==|!=|>=|<=|>|<)\s*['"][^'"]*['"]$/) ||
-        trimmed.match(/^user\.(?:attributes|session)\.\w+\s+in\s+\[.*?\]$/) ||
-        trimmed.match(/^((\[.*?\])|['"][^'"]*['"])\s+in\s+user\.(?:attributes|session)\.\w+$/) ||
-        trimmed.match(/^user\.(?:attributes|session)\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
-        trimmed.match(/^user\.(?:attributes|session)\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
-        trimmed.match(/^user\.(?:attributes|session)\.\w+\.contains\(['"][^'"]*['"].*?\)$/) ||
-
-        // Native user attributes (single segment after `user.`). Restricted to
-        // the field/operator pairings the table editor can round-trip: boolean
-        // equality for verified/isbot, string operators for email, and
-        // youngerThanDays for createat. These cannot collide with the
-        // two-segment custom-profile-attribute forms above.
-        trimmed.match(/^user\.(verified|isbot)\s*(==|!=)\s*(true|false)$/) ||
-        trimmed.match(/^user\.email\s*(==|!=)\s*['"][^'"]*['"]$/) ||
-        trimmed.match(/^user\.email\s+in\s+\[.*?\]$/) ||
-        trimmed.match(/^((\[.*?\])|['"][^'"]*['"])\s+in\s+user\.email$/) ||
-        trimmed.match(/^user\.email\.(startsWith|endsWith|contains)\(['"][^'"]*['"].*?\)$/) ||
-        trimmed.match(/^user\.createat\.youngerThanDays\(\d+\)$/),
-    );
+    return SIMPLE_CONDITION_PATTERNS.some((pattern) => pattern.test(trimmed));
 }
 
 export function isMultiselectOrGroup(s: string): boolean {
@@ -239,8 +336,7 @@ export function isMultiselectOrGroup(s: string): boolean {
     }
     const inner = trimmed.slice(1, -1);
     return inner.split('||').every((part) => {
-        const p = part.trim();
-        return Boolean(p.match(/^['"][^'"]*['"]\s+in\s+user\.(?:attributes|session)\.\w+$/));
+        return MULTISELECT_GROUP_PART.test(part.trim());
     });
 }
 
@@ -256,17 +352,16 @@ export function isSimpleExpression(expr: string): boolean {
 // Checks if there are any usable attributes for ABAC policies.
 // An attribute is usable if:
 // 1. It doesn't contain spaces (CEL incompatible)
-// 2. It's either synced from LDAP/SAML, admin-managed, plugin-managed (protected), OR user-managed attributes are enabled
+// 2. Its values come from a controlled source (synced from LDAP/SAML, admin-managed,
+//    plugin-protected, or owner-managed), it's a native attribute, OR user-managed
+//    attributes are enabled
 export function hasUsableAttributes(
     userAttributes: UserPropertyField[],
     enableUserManagedAttributes: boolean,
 ): boolean {
     return userAttributes.some((attr) => {
         const hasSpaces = attr.name.includes(' ');
-        const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
-        const isAdminManaged = attr.attrs?.managed === 'admin';
-        const isProtected = attr.attrs?.protected;
-        const allowed = isNativeField(attr) || isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
+        const allowed = isNativeField(attr) || hasControlledAttributeValues(attr) || enableUserManagedAttributes;
         return !hasSpaces && allowed;
     });
 }

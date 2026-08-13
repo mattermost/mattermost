@@ -70,6 +70,12 @@ func TestConfigDefaults(t *testing.T) {
 		require.Equal(t, "", *c.SupportSettings.ReportAProblemMail)
 		require.Equal(t, true, *c.SupportSettings.AllowDownloadLogs)
 	})
+	t.Run("access control audit logging default", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		require.NotNil(t, c.AccessControlSettings.EnableAccessControlAuditLogging)
+		require.False(t, *c.AccessControlSettings.EnableAccessControlAuditLogging)
+	})
 }
 
 func TestConfigIsValid(t *testing.T) {
@@ -108,6 +114,33 @@ func TestConfigIsValid(t *testing.T) {
 			require.Nil(t, c.IsValid())
 		})
 	})
+}
+
+func TestAccessControlSettingsIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		AccessControlSettings AccessControlSettings
+		ExpectError           bool
+	}{
+		"sync_job_interval_zero":                {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(0)}, ExpectError: true},
+		"sync_job_interval_negative":            {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(-1000)}, ExpectError: true},
+		"sync_job_interval_sub-minute rejected": {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(30)}, ExpectError: true},
+		"sync_job_interval_just below minimum":  {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(59)}, ExpectError: true},
+		"sync_job_interval_minimum":             {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(60)}, ExpectError: false},
+		"sync_job_interval_default":             {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: nil}, ExpectError: false}, // Test will set default
+		"attribute_refresh_interval_zero":       {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: new(0)}, ExpectError: false},
+		"attribute_refresh_interval_negative":   {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: new(-1)}, ExpectError: true},
+		"attribute_refresh_interval_default":    {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: nil}, ExpectError: false}, // Test will set default
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.AccessControlSettings.SetDefaults()
+
+			if test.ExpectError {
+				require.NotNil(t, test.AccessControlSettings.isValid())
+			} else {
+				require.Nil(t, test.AccessControlSettings.isValid())
+			}
+		})
+	}
 }
 
 func TestConfigEmptySiteName(t *testing.T) {
@@ -856,6 +889,30 @@ func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 
 	// should not fail if ts.SiteName is not set, defaults are used
 	require.Nil(t, c1.TeamSettings.isValid())
+}
+
+func TestTeamSettingsLockProfileFieldsForEmailUsersIsValid(t *testing.T) {
+	for name, testCase := range map[string]struct {
+		value        string
+		expectsError bool
+	}{
+		"none":              {value: TeamSettingsLockProfileFieldsNone},
+		"name and username": {value: TeamSettingsLockProfileFieldsNameAndUsername},
+		"all":               {value: TeamSettingsLockProfileFieldsAll},
+		"invalid":           {value: "invalid", expectsError: true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			config := Config{}
+			config.SetDefaults()
+			config.TeamSettings.LockProfileFieldsForEmailUsers = new(testCase.value)
+
+			if testCase.expectsError {
+				require.NotNil(t, config.TeamSettings.isValid())
+			} else {
+				require.Nil(t, config.TeamSettings.isValid())
+			}
+		})
+	}
 }
 
 func TestTeamSettingsDefaultJoinLeaveMessage(t *testing.T) {

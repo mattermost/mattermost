@@ -12938,10 +12938,6 @@
     "translation": "未启用全部标为已读功能。"
   },
   {
-    "id": "api.post.do_action.merge_query.app_error",
-    "translation": "无法将查询合并到操作 URL 中。"
-  },
-  {
     "id": "api.post.do_action.query.app_error",
     "translation": "操作查询无效。"
   },
@@ -13095,15 +13091,15 @@
   },
   {
     "id": "app.pap.merge_expression.app_error",
-    "translation": "无法合并策略表达式。"
+    "translation": "无法将策略表达式与已存储的屏蔽值合并。"
   },
   {
     "id": "app.pap.save_policy.invalid_value",
-    "translation": "值无效。"
+    "translation": "策略表达式包含不允许的值。"
   },
   {
     "id": "app.pap.save_policy.masked_condition_deleted",
-    "translation": "你不能移除包含你无权查看的属性值的条件。"
+    "translation": "包含已屏蔽值的条件已被删除。请重新加载策略后重试。"
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -13388,5 +13384,241 @@
   {
     "id": "plugin.api.update_post.mm_blocks_actions.app_error",
     "translation": "插件帖子更新中的 mm_blocks_actions 无效。"
+  },
+  {
+    "id": "api.access_control.assign.team_group_constrained",
+    "translation": "已同步组的团队不能应用成员资格策略。"
+  },
+  {
+    "id": "api.access_control_policy.team_membership.feature_disabled",
+    "translation": "团队成员资格访问控制功能未启用。"
+  },
+  {
+    "id": "api.admin.test_azure.missing_azure_field",
+    "translation": "Azure Blob Storage 设置缺失或无效。"
+  },
+  {
+    "id": "api.channel.bookmark.board.readonly.app_error",
+    "translation": "Board 书签由 Boards 功能管理，不能通过书签 API 创建、更新或删除。"
+  },
+  {
+    "id": "api.channel.patch_update_channel.group_constrained_not_allowed.app_error",
+    "translation": "不允许对此频道类型设置 group_constrained。"
+  },
+  {
+    "id": "api.emoji.upload.too_many_frames.app_error",
+    "translation": "无法创建表情。动态 GIF 最多只能包含 {{.MaxFrames}} 帧。"
+  },
+  {
+    "id": "api.file.test_connection_settings_nil.app_error",
+    "translation": "文件存储设置存在未设置的值。"
+  },
+  {
+    "id": "api.file.test_connection_unsupported_driver.app_error",
+    "translation": "不支持的文件存储驱动 \"{{.Driver}}\"。支持的值为 \"local\"、\"amazons3\" 和 \"azureblob\"。"
+  },
+  {
+    "id": "api.license.parse_license.parse_form.app_error",
+    "translation": "无法解析许可证上传表单。"
+  },
+  {
+    "id": "api.property.session_attributes.license.app_error",
+    "translation": "会话属性需要 Enterprise Advanced 许可证。"
+  },
+  {
+    "id": "api.property_field.get.invalid_opts.app_error",
+    "translation": "属性字段搜索选项无效。"
+  },
+  {
+    "id": "api.property_field.get.scope_conflict.app_error",
+    "translation": "channel_id/team_id 不能与 target_type/target_id 组合使用。"
+  },
+  {
+    "id": "api.property_field.get.scope_required.app_error",
+    "translation": "需要范围参数（channel_id、team_id 或 target_type）。"
+  },
+  {
+    "id": "api.property_field.get.target_type_required.app_error",
+    "translation": "提供 target_id 时必须提供 target_type。"
+  },
+  {
+    "id": "api.property_value.get.invalid_opts.app_error",
+    "translation": "属性值搜索选项无效。"
+  },
+  {
+    "id": "api.team.add_user.to.team.abac_subject_build_failed.app_error",
+    "translation": "无法为用户构建访问控制主体。"
+  },
+  {
+    "id": "api.team.add_user.to.team.rejected",
+    "translation": "用户没有加入该团队所需的属性。"
+  },
+  {
+    "id": "api.team.update.group_constrained.policy_exists",
+    "translation": "已应用成员资格策略的团队不能启用组同步。"
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_device_id.app_error",
+    "translation": "设备 ID 无效。"
+  },
+  {
+    "id": "api.user.attach_device_id.invalid_voip_device_id.app_error",
+    "translation": "VoIP 设备 ID 无效。"
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error",
+    "translation": "访问控制服务不可用。无法为启用 ABAC 的团队筛选用户。"
+  },
+  {
+    "id": "api.user.session_attributes.disabled.app_error",
+    "translation": "会话属性未启用。"
+  },
+  {
+    "id": "api.webhook.incoming.user_membership.app_error",
+    "translation": "Webhook 用户必须是目标团队或频道的成员。"
+  },
+  {
+    "id": "api.webhook.incoming.user_role.app_error",
+    "translation": "不能将 Webhook 分配给权限高于你的用户。"
+  },
+  {
+    "id": "app.access_control.get_session_attributes.app_error",
+    "translation": "无法检索会话属性。"
+  },
+  {
+    "id": "app.import.import_direct_channel.save_member.error",
+    "translation": "导入私信频道时无法保存频道成员"
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_teams.app_error",
+    "translation": "无法将访问控制策略分配给团队。"
+  },
+  {
+    "id": "app.pap.get_team_members_to_remove.app_error",
+    "translation": "无法获取要移除的团队成员。"
+  },
+  {
+    "id": "app.pap.has_masked_values.app_error",
+    "translation": "无法确定策略表达式中的已屏蔽值。"
+  },
+  {
+    "id": "app.pap.mask_expression.app_error",
+    "translation": "无法屏蔽策略表达式。"
+  },
+  {
+    "id": "app.pap.rehydrate_rank.app_error",
+    "translation": "无法还原策略表达式中的已排序运算符。"
+  },
+  {
+    "id": "app.pap.save_policy.forbidden",
+    "translation": "你没有权限对该策略进行此更改。"
+  },
+  {
+    "id": "app.pap.save_policy.masked_token_in_expression",
+    "translation": "策略表达式包含无法解析的占位符值。请重新加载策略后重试。"
+  },
+  {
+    "id": "app.pap.save_policy.resolver_error",
+    "translation": "无法初始化用于保存策略的属性解析器。"
+  },
+  {
+    "id": "app.pap.simulate.resolver_error",
+    "translation": "无法初始化用于策略模拟的属性解析器。"
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_teams.app_error",
+    "translation": "无法取消团队的访问控制策略分配。"
+  },
+  {
+    "id": "app.property_field.get_for_group.app_error",
+    "translation": "无法获取组的属性字段。"
+  },
+  {
+    "id": "app.property_field.rank_disabled.app_error",
+    "translation": "排序属性字段未启用。"
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_device_id.app_error",
+    "translation": "设备 ID 不能为空。"
+  },
+  {
+    "id": "app.session.revoke_other_sessions.empty_voip_device_id.app_error",
+    "translation": "VoIP 设备 ID 不能为空。"
+  },
+  {
+    "id": "app.session_attributes.field_immutable.app_error",
+    "translation": "会话属性字段不能创建或删除，只能更改其 enabled、ttl_seconds 和 grace_period_seconds。"
+  },
+  {
+    "id": "app.user_access_token.expires_at_in_past.app_error",
+    "translation": "提供的 expires_at 是过去时间。"
+  },
+  {
+    "id": "app.user_access_token.expires_at_required.app_error",
+    "translation": "个人访问令牌必须包含到期日期，因为服务器会强制执行最长令牌生命周期。"
+  },
+  {
+    "id": "app.user_access_token.expires_at_too_far.app_error",
+    "translation": "提供的 expires_at 超过配置的个人访问令牌最长生命周期（{{.Days}} 天）。"
+  },
+  {
+    "id": "ent.elasticsearch.delete_files_batch.error",
+    "translation": "无法批量删除文件"
+  },
+  {
+    "id": "model.access_policy.is_valid.session_attribute_on_membership.app_error",
+    "translation": "成员资格规则不能引用会话属性（user.session）。请改用权限策略。"
+  },
+  {
+    "id": "model.channel.is_valid.group_constrained.app_error",
+    "translation": "只有公开频道和私有频道可以受组限制。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.file_id.app_error",
+    "translation": "Board 书签不能引用文件。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.image_url.app_error",
+    "translation": "Board 书签不能设置图片 URL。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.link_url.app_error",
+    "translation": "Board 书签链接 URL 必须是以 / 开头的站点相对路径，不能包含 ://，且不得超过最大长度。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.board.target_id.app_error",
+    "translation": "Board 书签需要有效的目标 ID。"
+  },
+  {
+    "id": "model.channel_bookmark.is_valid.target_id.app_error",
+    "translation": "只有引用其他实体的书签类型才允许使用目标 ID。"
+  },
+  {
+    "id": "model.config.is_valid.azure_auth_mode.app_error",
+    "translation": "Azure 认证模式 {{.Value}} 无效。必须为 'shared_key' 或 'default_credential'。"
+  },
+  {
+    "id": "model.config.is_valid.azure_cloud.app_error",
+    "translation": "{{.Setting}} 的值 {{.Value}} 无效。必须为 'commercial'、'government' 或 'custom'。"
+  },
+  {
+    "id": "model.config.is_valid.azure_custom_endpoint.app_error",
+    "translation": "当对应的 AzureCloud 值为 'custom' 时，必须设置 {{.Setting}}。"
+  },
+  {
+    "id": "model.config.is_valid.azure_storage_account.app_error",
+    "translation": "{{.Setting}} 的值 {{.Value}} 无效。Azure 存储账号名称长度必须为 3 到 24 个字符，且只能包含小写字母和数字。"
+  },
+  {
+    "id": "model.config.is_valid.export_azure_auth_mode.app_error",
+    "translation": "专用导出存储的 Azure 认证模式 {{.Value}} 无效。必须为 'shared_key' 或 'default_credential'。"
+  },
+  {
+    "id": "model.config.is_valid.extract_content_timeout.app_error",
+    "translation": "文件设置中的内容提取超时无效。必须是大于或等于零的整秒数。"
+  },
+  {
+    "id": "model.config.is_valid.max_personal_access_token_lifetime_days.app_error",
+    "translation": "MaximumPersonalAccessTokenLifetimeDays 无效。必须介于 0（无限制）和 {{.Max}} 天之间。"
   }
 ]

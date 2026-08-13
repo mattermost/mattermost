@@ -47,6 +47,14 @@ Simple Mode is ideal for simple and straightforward access control scenarios. Ea
         > - **Starts with**: The attribute value must start with the specified value.
         > - **Ends with**: The attribute value must end with the specified value.
         > - **Contains**: The attribute value must exist somewhere with the specified value.
+        >
+        > When the selected attribute is a **Ranked** attribute (an ordered list of values, such as clearance or classification levels), the match options are ordered comparisons instead. These let you match everyone at or above a threshold rather than only an exact value:
+        >
+        > - **Is exactly** / **Is not**: The value must exactly match, or must not match, the specified value.
+        > - **Is at least**: The value must be equal to or higher than the specified value - for example, clearance *is at least* Secret matches Secret and every higher level.
+        > - **Is greater than**: The value must be higher than the specified value.
+        > - **Is at most**: The value must be equal to or lower than the specified value.
+        > - **Is less than**: The value must be lower than the specified value.
 
     3.  Specify the attribute values that users must have to be granted access to the channel.
 
@@ -150,3 +158,21 @@ Permission policies can be used to restrict the following actions based on user 
 When a permission policy applies, users who don't match the configured attribute values can't perform the restricted action. Users may see file attachments as unavailable or redacted in messages they would otherwise have access to. See [Restricted file attachments](/end-user-guide/collaborate/share-files-in-messages#restricted-file-attachments) for the end-user-facing behavior.
 
 Permission policies follow the same unique-name requirement as access policies: each parent permission policy must have a unique name, and Mattermost surfaces a user-friendly error if a duplicate name is entered.
+
+## Attribute value masking
+
+From Mattermost v11.8, when a policy references attribute values that the editing admin doesn't personally hold, those values are hidden in the policy editor. This prevents admins from reading or copying sensitive attribute values they're not authorized to see, while still allowing the policy to enforce access control normally.
+
+Masking only applies to attributes configured with a `shared_only` or `source_only` access mode. Attributes with a `public` access mode are always visible to all admins. See [Attribute access modes](/administration-guide/manage/admin/user-attributes#attribute-access-modes) for details on how each mode controls value visibility.
+
+**What you'll see:**
+
+- Masked values appear as `--------` in the rule editor instead of the raw value.
+- Rows containing masked values are **read-only** and cannot be modified.
+- **Test rule** and **Delete** actions are disabled for rules that contain masked values.
+
+**Enforcement is unaffected:** masking applies to the editing UI only. The underlying rules continue to control channel access and permissions as configured.
+
+**To edit a masked rule**, ask the policy owner or another System Admin who holds the relevant attribute values to make the change.
+
+This behavior applies to both the table editor and the CEL editor, and also to Team Admin and Channel Admin policy editors in Team Settings and Channel Settings. Requires Enterprise Advanced license and the `AttributeValueMasking` feature flag.

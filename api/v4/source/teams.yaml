@@ -1405,14 +1405,58 @@
           required: true
           schema:
             type: string
+        - name: graceful
+          in: query
+          description: When provided with a non-empty value, returns an array with both successful invites and errors instead of aborting on the first error. Required when using `profiles`.
+          required: false
+          schema:
+            type: boolean
       requestBody:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: string
-        description: List of user's email
+              oneOf:
+                - type: array
+                  items:
+                    type: string
+                - type: object
+                  required:
+                    - emails
+                  properties:
+                    emails:
+                      type: array
+                      items:
+                        type: string
+                      description: List of user's email
+                    channelIds:
+                      type: array
+                      items:
+                        type: string
+                      description: List of channel IDs to invite the users to
+                    message:
+                      type: string
+                      description: Custom message included in the invitation email
+                    profiles:
+                      type: array
+                      description: |
+                        Profile fields to pre-set on the accounts created from these invitations. Each entry must reference an email present in `emails`. Requires a non-empty `graceful` query parameter, an Enterprise license, and locked profile fields to be enabled.
+
+                        __Minimum server version__: 11.11
+                      items:
+                        type: object
+                        required:
+                          - email
+                          - username
+                        properties:
+                          email:
+                            type: string
+                          username:
+                            type: string
+                          first_name:
+                            type: string
+                          last_name:
+                            type: string
+        description: List of user's email, or an object with emails and invitation options
         required: true
       responses:
         "200":

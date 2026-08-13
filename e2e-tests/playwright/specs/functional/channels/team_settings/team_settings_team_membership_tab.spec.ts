@@ -155,6 +155,40 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await teamSettings.close();
     });
 
+    test('MM-70056_1 System policy InfoBanner visible to a TEAM ADMIN when the team is assigned to a parent policy', async ({
+        pw,
+    }) => {
+        await pw.skipIfNoLicense();
+        const {adminClient, team} = await pw.initSetup();
+        await enableTeamMembershipABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        // # Create a parent policy and assign the team to it
+        const policyName = `Global Team Policy ${pw.random.id()}`;
+        const policy = await createParentPolicy(adminClient, policyName);
+        createdPolicyIds.push(policy.id);
+        await assignTeamToParentPolicy(adminClient, policy.id, team.id);
+
+        // # Log in as a TEAM ADMIN (only ManageTeamAccessRules, not ManageSystem)
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        const {teamSettings, tab} = await openTeamMembershipTab(page, channelsPage);
+
+        // * Banner is visible to the team admin, not just the system admin (MM-70056),
+        // and names the resolved parent policy.
+        const banner = tab.locator('.TeamMembershipTab__systemPolicies');
+        await expect(banner).toBeVisible({timeout: 10000});
+        await expect(banner.getByText(policyName)).toBeVisible();
+
+        await teamSettings.close();
+    });
+
     test('MM-69100_12 Auto-add disabled with no expression, enabled after adding a rule', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
@@ -415,6 +449,41 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await teamSettings.close();
     });
 
+    test('MM-69100_43 Self-exclusion does not block on a public team (advisory)', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        await enableTeamMembershipABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        // # Make the team public (advisory mode)
+        await adminClient.patchTeam({id: team.id, allow_open_invite: true});
+
+        // # Ensure adminUser does NOT match the rule (would be self-exclusion on a private team)
+        await setUserAttribute(adminClient, adminUser.id, 'Department', '');
+        await waitForAttributeViewToExclude(adminClient, 'user.attributes.Department == "Engineering"', [adminUser.id]);
+
+        const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        const {teamSettings, tab} = await openTeamMembershipTab(page, channelsPage);
+
+        await addAttributeRule(tab, page, 'Engineering');
+        await tab.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+
+        // * No self-exclusion block — the save proceeds to the normal confirmation
+        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Save team membership rules?'});
+        await expect(confirmModal).toBeVisible({timeout: 15000});
+        await expect(page.getByText('Cannot save access rules')).not.toBeVisible();
+
+        // * Confirmation uses advisory copy (no block/removal claims) on a public team
+        await expect(confirmModal.getByText(/these rules are advisory: no one is blocked or removed/i)).toBeVisible();
+        await expect(confirmModal.getByText(/may be affected/i)).toHaveCount(0);
+
+        await teamSettings.close();
+    });
+
     test('MM-69100_17 Save confirmation modal shows correct allowed and restricted counts', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
@@ -561,6 +630,51 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         // * Table editor is present and the panel is NOT shown (nothing is dirty after load)
         await expect(tab.getByTestId('table-editor')).toBeVisible();
         await expect(tab.locator('[data-testid="SaveChangesPanel__save-btn"]')).not.toBeVisible();
+
+        await teamSettings.close();
+    });
+
+    test('MM-69100_42 Removing the last rule saves cleanly without a false error', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        await enableTeamMembershipABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        // # Pre-create a saved rule with auto-add ON (equivalent to "add a rule and save it")
+        await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', true);
+
+        const {page} = await pw.testBrowser.login(adminUser);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        const {teamSettings, tab} = await openTeamMembershipTab(page, channelsPage);
+        await expect(tab.locator('#autoAddMembersCheckbox')).toBeChecked();
+
+        // # Remove the only rule via the trash icon
+        await tab.getByRole('button', {name: 'Remove row'}).first().click();
+
+        // * Auto-add is unchecked and disabled once no rules remain
+        await expect(tab.locator('#autoAddMembersCheckbox')).not.toBeChecked();
+        await expect(tab.locator('#autoAddMembersCheckbox')).toBeDisabled();
+
+        // # Save → the removal warning (not the count modal) is shown
+        await tab.locator('[data-testid="SaveChangesPanel__save-btn"]').click();
+        const confirmModal = page.locator('.ConfirmModal').filter({hasText: 'Remove membership rules?'});
+        await expect(confirmModal).toBeVisible({timeout: 15000});
+        await expect(confirmModal.getByText(/no longer be restricted by user attributes/i)).toBeVisible();
+        await confirmModal.getByRole('button', {name: 'Remove rules'}).click();
+        await expect(confirmModal).not.toBeVisible({timeout: 10000});
+
+        // * Save succeeds: no "Failed to save access rules" error surfaces
+        await expect(tab.getByText('Failed to save access rules')).not.toBeVisible();
+        await expect(tab.locator('[data-testid="SaveChangesPanel__save-btn"]')).not.toBeVisible({timeout: 10000});
+
+        // * Policy is actually removed on the server
+        const policyResult: any = await (adminClient as any)
+            .doFetch(`${adminClient.getBaseRoute()}/teams/${team.id}/access_control/policy`, {method: 'GET'})
+            .catch(() => null);
+        expect(JSON.stringify(policyResult ?? {})).not.toContain('Engineering');
 
         await teamSettings.close();
     });
