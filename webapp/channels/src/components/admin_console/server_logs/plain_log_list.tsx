@@ -283,14 +283,10 @@ export default function PlainLogList({
     const hasPrevious = page > 0;
     const totalShowing = logs.length;
 
-    // Line numbers: account for sort order
-    const getLineNumber = (i: number) => {
-        const offset = page * perPage;
-        if (newestFirst) {
-            return (offset + logs.length) - i;
-        }
-        return offset + i + 1;
-    };
+    // Line numbers are relative to the current page. The API pages backwards from
+    // the newest line, so a page offset would number older lines higher than newer
+    // ones, and the file's true line numbers are not knowable from a single page.
+    const getLineNumber = (i: number) => i + 1;
 
     // Synchronous initial highlighting (plain logs get React nodes, JSON gets sanitized HTML)
     const initialHighlightedLines = useMemo(() => {
@@ -364,10 +360,13 @@ export default function PlainLogList({
                             />
                         )}
                     </button>
+                    {/* The label stays 'Lines' either way, so the state needs announcing.
+                        The sort and wrap buttons carry their state in their label instead. */}
                     <button
                         type='button'
                         className={`PlainLogViewer__action-btn ${showLineNumbers ? 'PlainLogViewer__action-btn--active' : ''}`}
                         onClick={() => setShowLineNumbers(!showLineNumbers)}
+                        aria-pressed={showLineNumbers}
                     >
                         <i className='icon icon-format-list-numbered'/>
                         <FormattedMessage

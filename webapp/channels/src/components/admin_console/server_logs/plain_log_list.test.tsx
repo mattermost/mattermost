@@ -189,6 +189,64 @@ describe('components/admin_console/server_logs/PlainLogList', () => {
         expect(content).toHaveClass('PlainLogViewer__content--numbered');
     });
 
+    test('should expose the line numbers toggle state', async () => {
+        renderWithContext(<PlainLogList {...defaultProps}/>);
+
+        const linesButton = screen.getByText('Lines').closest('button');
+        expect(linesButton).toHaveAttribute('aria-pressed', 'true');
+
+        await userEvent.click(screen.getByText('Lines'));
+
+        expect(linesButton).toHaveAttribute('aria-pressed', 'false');
+    });
+
+    const getLineNumbers = () =>
+        Array.from(document.querySelectorAll('.PlainLogViewer__line')).
+            map((line) => line.getAttribute('data-line-number'));
+
+    test('should number lines relative to the page in both sort orders', async () => {
+        // The API pages backwards from the newest line, so numbering by page offset
+        // would make older pages count higher than newer ones
+        renderWithContext(
+            <PlainLogList
+                {...defaultProps}
+                page={1}
+            />,
+        );
+
+        // Oldest first: numbers ascend with the lines as displayed
+        expect(getLineNumbers()).toEqual(['1', '2', '3', '4']);
+
+        await userEvent.click(screen.getByText('Oldest'));
+
+        await waitFor(() => {
+            expect(screen.getByText('Newest')).toBeInTheDocument();
+        });
+
+        // Newest first: the numbering still follows the display order
+        expect(getLineNumbers()).toEqual(['1', '2', '3', '4']);
+    });
+
+    test('should keep line numbering consistent across pages', () => {
+        const {rerender} = renderWithContext(
+            <PlainLogList
+                {...defaultProps}
+                page={0}
+            />,
+        );
+
+        const firstPageNumbers = getLineNumbers();
+
+        rerender(
+            <PlainLogList
+                {...defaultProps}
+                page={2}
+            />,
+        );
+
+        expect(getLineNumbers()).toEqual(firstPageNumbers);
+    });
+
     test('should toggle wrap text on and off', async () => {
         renderWithContext(<PlainLogList {...defaultProps}/>);
 
