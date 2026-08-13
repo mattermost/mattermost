@@ -29,7 +29,7 @@ type Props = PreparingWorkspacePageProps & {
     className?: string;
     isSelfHosted: boolean;
     handleVisitMarketPlaceClick: () => void;
-}
+};
 const Plugins = (props: Props) => {
     const {formatMessage} = useIntl();
     let className = 'Plugins-body';

@@ -7,6 +7,9 @@ on:
     paths:
       - server/scripts/mirror-docker-images.*
 
+permissions:
+  contents: read
+
 jobs:
   build-docker:
     name: cd/Push mirrored docker images
@@ -15,6 +18,8 @@ jobs:
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: cd/Login to Docker Hub
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
         with:

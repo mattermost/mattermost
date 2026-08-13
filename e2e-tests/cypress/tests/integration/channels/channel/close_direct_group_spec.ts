@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {ChainableT} from '../../../types';
+import type {ChainableT} from '@/types';
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
@@ -112,7 +112,7 @@ describe('Close group messages', () => {
         });
     });
 
-    function createAndVisitGMChannel(users = []) {
+    function createAndVisitGMChannel(users: UserProfile[] = []) {
         const userIds = users.map((user) => user.id);
         return cy.apiCreateGroupChannel(userIds).then(({channel}) => {
             // # Visit the new channel

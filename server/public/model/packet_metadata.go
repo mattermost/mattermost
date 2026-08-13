@@ -6,7 +6,7 @@ package model
 import (
 	"fmt"
 
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 	"github.com/goccy/go-yaml"
 )
 
@@ -54,7 +54,7 @@ func (md *PacketMetadata) Validate() error {
 		return fmt.Errorf("generated_at should be a positive number")
 	}
 
-	if _, err := semver.ParseTolerant(md.ServerVersion); err != nil {
+	if _, err := semver.NewVersion(md.ServerVersion); err != nil {
 		return fmt.Errorf("could not parse server version: %w", err)
 	}
 

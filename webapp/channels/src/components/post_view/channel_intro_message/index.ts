@@ -7,6 +7,7 @@ import type {Dispatch} from 'redux';
 
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import {getTotalUsersStats} from 'mattermost-redux/actions/users';
+import {isChannelInManagedCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getCurrentChannel, getDirectTeammate, getMyCurrentChannelMembership, isCurrentChannelFavorite} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
@@ -47,6 +48,7 @@ function mapStateToProps(state: GlobalState) {
         enableUserCreation,
         isReadOnly,
         isFavorite: isCurrentChannelFavorite(state),
+        isInManagedCategory: channel ? isChannelInManagedCategory(state, channel.id) : false,
         teamIsGroupConstrained: Boolean(team?.group_constrained),
         creatorName: getDisplayNameByUser(state, creator),
         teammate,

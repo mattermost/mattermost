@@ -30,7 +30,7 @@ import './three_days_left_trial_modal.scss';
 type Props = {
     onExited?: () => void;
     limitsOverpassed: boolean;
-}
+};
 
 function ThreeDaysLeftTrialModal(props: Props): JSX.Element | null {
     const dispatch = useDispatch();

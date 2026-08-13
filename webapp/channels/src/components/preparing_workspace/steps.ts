@@ -79,7 +79,7 @@ export type Form = {
         invites: string[];
         skipped: boolean;
     };
-}
+};
 
 export const emptyForm = deepFreeze({
     organization: '',
@@ -117,5 +117,5 @@ export type PreparingWorkspacePageProps = {
     skip?: () => void;
     previous?: React.ReactNode;
     show: boolean;
-}
+};
 

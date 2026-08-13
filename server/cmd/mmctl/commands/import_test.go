@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -211,28 +213,85 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 }
 
 func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
-	printer.Clean()
-	importFile := "import.zip"
-	mockJob := &model.Job{
-		Type: model.JobTypeImportProcess,
-		Data: map[string]string{
-			"import_file":     importFile,
-			"local_mode":      "false",
-			"extract_content": "false",
-		},
-	}
+	s.Run("default workers", func() {
+		printer.Clean()
+		importFile := "import.zip"
+		mockJob := &model.Job{
+			Type: model.JobTypeImportProcess,
+			Data: map[string]string{
+				"import_file":     importFile,
+				"local_mode":      "false",
+				"extract_content": "false",
+			},
+		}
 
-	s.client.
-		EXPECT().
-		CreateJob(context.TODO(), mockJob).
-		Return(mockJob, &model.Response{}, nil).
-		Times(1)
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
 
-	err := importProcessCmdF(s.client, &cobra.Command{}, []string{importFile})
-	s.Require().Nil(err)
-	s.Len(printer.GetLines(), 1)
-	s.Empty(printer.GetErrorLines())
-	s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+
+		err := importProcessCmdF(s.client, cmd, []string{importFile})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("workers exceeds max", func() {
+		printer.Clean()
+		importFile := "import.zip"
+		tooMany := runtime.NumCPU()*4 + 1
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		_ = cmd.Flags().Set("workers", strconv.Itoa(tooMany))
+
+		err := importProcessCmdF(s.client, cmd, []string{importFile})
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "exceeds maximum allowed")
+		s.Empty(printer.GetLines())
+		s.Empty(printer.GetErrorLines())
+	})
+
+	s.Run("custom workers", func() {
+		printer.Clean()
+		importFile := "import.zip"
+		mockJob := &model.Job{
+			Type: model.JobTypeImportProcess,
+			Data: map[string]string{
+				"import_file":     importFile,
+				"local_mode":      "false",
+				"extract_content": "false",
+				"workers":         "2",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		_ = cmd.Flags().Set("workers", "2")
+
+		err := importProcessCmdF(s.client, cmd, []string{importFile})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {

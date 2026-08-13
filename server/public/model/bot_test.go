@@ -418,9 +418,9 @@ func TestBotPatch(t *testing.T) {
 				DeleteAt:       4,
 			},
 			&BotPatch{
-				Username:    NewPointer("new_username"),
+				Username:    new("new_username"),
 				DisplayName: nil,
-				Description: NewPointer("new description"),
+				Description: new("new description"),
 			},
 			&Bot{
 				UserId:         userId1,
@@ -448,9 +448,9 @@ func TestBotPatch(t *testing.T) {
 				DeleteAt:       4,
 			},
 			&BotPatch{
-				Username:    NewPointer("new_username"),
-				DisplayName: NewPointer("new display name"),
-				Description: NewPointer("new description"),
+				Username:    new("new_username"),
+				DisplayName: new("new display name"),
+				Description: new("new description"),
 			},
 			&Bot{
 				UserId:         userId1,
@@ -492,7 +492,7 @@ func TestBotWouldPatch(t *testing.T) {
 
 	t.Run("patch", func(t *testing.T) {
 		patch := &BotPatch{
-			DisplayName: NewPointer("BotName"),
+			DisplayName: new("BotName"),
 		}
 		ok := b.WouldPatch(patch)
 		require.True(t, ok)
@@ -500,7 +500,7 @@ func TestBotWouldPatch(t *testing.T) {
 
 	t.Run("no patch", func(t *testing.T) {
 		patch := &BotPatch{
-			DisplayName: NewPointer("BotName"),
+			DisplayName: new("BotName"),
 		}
 		b.Patch(patch)
 		ok := b.WouldPatch(patch)

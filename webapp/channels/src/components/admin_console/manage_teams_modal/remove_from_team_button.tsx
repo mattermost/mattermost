@@ -4,10 +4,12 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 type Props = {
     teamId: string;
     handleRemoveUserFromTeam: (team: string) => void;
-}
+};
 
 const RemoveFromTeamButton = ({teamId, handleRemoveUserFromTeam}: Props) => {
     const handleClick = (e: React.MouseEvent) => {
@@ -16,16 +18,16 @@ const RemoveFromTeamButton = ({teamId, handleRemoveUserFromTeam}: Props) => {
     };
 
     return (
-        <button
+        <Button
             type='button'
-            className='btn btn-danger'
+            variant='destructive'
             onClick={handleClick}
         >
             <FormattedMessage
                 id='team_members_dropdown.leave_team'
                 defaultMessage='Remove from Team'
             />
-        </button>
+        </Button>
     );
 };
 

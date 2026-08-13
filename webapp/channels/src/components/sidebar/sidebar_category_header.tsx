@@ -10,7 +10,7 @@ import {wrapEmojis} from 'utils/emoji_utils';
 type StaticProps = {
     children?: React.ReactNode;
     displayName: string;
-}
+};
 
 export const SidebarCategoryHeaderStatic = React.forwardRef((props: StaticProps, ref?: React.Ref<HTMLDivElement>) => {
     return (
@@ -35,9 +35,10 @@ type Props = StaticProps & {
     isCollapsible: boolean;
     isDragging?: boolean;
     isDraggingOver?: boolean;
+    isManaged?: boolean;
     muted: boolean;
     onClick: (event: React.MouseEvent<HTMLElement>) => void;
-}
+};
 
 export const SidebarCategoryHeader = React.forwardRef(({
     children,
@@ -46,6 +47,7 @@ export const SidebarCategoryHeader = React.forwardRef(({
     isCollapsed,
     isCollapsible = true,
     isDragging = false,
+    isManaged = false,
     muted,
     onClick,
 }: Props, ref?: React.Ref<HTMLButtonElement>) => {
@@ -75,6 +77,7 @@ export const SidebarCategoryHeader = React.forwardRef(({
                         'hide-arrow': !isCollapsible,
                     })}
                 />
+                {isManaged && <i className='icon icon-folder-outline'/>}
                 <div
                     className='SidebarChannelGroupHeader_text'
                     {...dragHandleProps}

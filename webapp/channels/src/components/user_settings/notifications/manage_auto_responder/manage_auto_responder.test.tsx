@@ -4,7 +4,7 @@
 import React from 'react';
 import type {ComponentProps} from 'react';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, fireEvent} from 'tests/react_testing_utils';
 
 import ManageAutoResponder from './manage_auto_responder';
 
@@ -20,31 +20,31 @@ describe('components/user_settings/notifications/ManageAutoResponder', () => {
     };
 
     test('should match snapshot, default disabled', () => {
-        const wrapper = mountWithIntl(<ManageAutoResponder {...requiredProps}/>);
+        const {container} = renderWithContext(<ManageAutoResponder {...requiredProps}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        expect(wrapper.find('#autoResponderActive').exists()).toBe(true);
-        expect(wrapper.find('#autoResponderMessage').exists()).toBe(false);
+        expect(container.querySelector('#autoResponderActive')).toBeInTheDocument();
+        expect(container.querySelector('#autoResponderMessage')).not.toBeInTheDocument();
     });
 
     test('should match snapshot, enabled', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <ManageAutoResponder
                 {...requiredProps}
                 autoResponderActive={true}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
 
-        expect(wrapper.find('#autoResponderActive').exists()).toBe(true);
-        expect(wrapper.find('#autoResponderMessage').exists()).toBe(true);
+        expect(container.querySelector('#autoResponderActive')).toBeInTheDocument();
+        expect(container.querySelector('#autoResponderMessage')).toBeInTheDocument();
     });
 
     test('should pass handleChange', () => {
         const setParentState = jest.fn();
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <ManageAutoResponder
                 {...requiredProps}
                 autoResponderActive={true}
@@ -52,14 +52,15 @@ describe('components/user_settings/notifications/ManageAutoResponder', () => {
             />,
         );
 
-        expect(wrapper.find('#autoResponderActive').exists()).toBe(true);
-        expect(wrapper.find('textarea#autoResponderMessageInput').exists()).toBe(true);
+        expect(container.querySelector('#autoResponderActive')).toBeInTheDocument();
+        const textarea = container.querySelector('textarea#autoResponderMessageInput');
+        expect(textarea).toBeInTheDocument();
 
-        wrapper.find('textarea#autoResponderMessageInput').simulate('change');
+        fireEvent.change(textarea!, {target: {value: 'Updated message'}});
         expect(setParentState).toHaveBeenCalled();
-        expect(setParentState).toHaveBeenCalledWith('autoResponderMessage', 'Hello World!');
+        expect(setParentState).toHaveBeenCalledWith('autoResponderMessage', 'Updated message');
 
-        wrapper.find('#autoResponderActive').simulate('change');
+        fireEvent.change(container.querySelector('#autoResponderActive')!, {target: {checked: true}});
         expect(setParentState).toHaveBeenCalled();
     });
 });

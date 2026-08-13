@@ -12,7 +12,7 @@ type Props = {
     className?: string;
     size?: TagSize;
     variant?: TagVariant;
-}
+};
 
 const BetaTag = ({className = '', size = 'xs', variant = 'info'}: Props) => {
     const {formatMessage} = useIntl();

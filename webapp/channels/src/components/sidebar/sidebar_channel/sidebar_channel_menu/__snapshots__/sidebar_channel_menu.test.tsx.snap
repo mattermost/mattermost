@@ -32,55 +32,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":r3:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":r4:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     class="MuiModal-root-jIscme ljbrzK MuiPopover-root-kLIimo MuiPopover-root a11y__popup menu_menuStyled MuiModal-root"
     role="presentation"
@@ -109,9 +61,41 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
       >
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
-          id="markAsUnread-channel_id"
+          id="channelOpenInNewWindow"
           role="menuitem"
           tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -316,55 +300,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":r1g:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":r1h:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -418,9 +354,41 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
       >
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
-          id="markAsUnread-channel_id"
+          id="channelOpenInNewWindow"
           role="menuitem"
           tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -625,55 +593,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":r1b:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":r1c:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -727,9 +647,41 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
       >
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
-          id="markAsUnread-channel_id"
+          id="channelOpenInNewWindow"
           role="menuitem"
           tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -934,55 +886,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":r11:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":r12:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -1036,9 +940,41 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       >
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
-          id="markAsUnread-channel_id"
+          id="channelOpenInNewWindow"
           role="menuitem"
           tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -1175,55 +1111,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":r16:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":r17:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -1277,9 +1165,41 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       >
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
-          id="markAsUnread-channel_id"
+          id="channelOpenInNewWindow"
           role="menuitem"
           tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -1452,55 +1372,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":ri:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":rj:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -1554,9 +1426,41 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       >
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
-          id="markAsUnread-channel_id"
+          id="channelOpenInNewWindow"
           role="menuitem"
           tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -1758,55 +1662,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":rn:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":ro:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -1860,9 +1716,41 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       >
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
-          id="markAsUnread-channel_id"
+          id="channelOpenInNewWindow"
           role="menuitem"
           tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -2067,55 +1955,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":rs:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":rt:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -2169,9 +2009,41 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       >
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
-          id="markAsUnread-channel_id"
+          id="channelOpenInNewWindow"
           role="menuitem"
           tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -2376,55 +2248,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":rd:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":re:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -2478,9 +2302,41 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       >
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
-          id="markAsUnread-channel_id"
+          id="channelOpenInNewWindow"
           role="menuitem"
           tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsUnread-channel_id"
+          role="menuitem"
+          tabindex="-1"
         >
           <div
             class="leading-element"
@@ -2685,55 +2541,7 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
   <div
     aria-hidden="true"
     id="root-portal"
-  >
-    <div
-      data-floating-ui-portal=""
-      id=":r8:"
-    >
-      <div
-        class="tooltipContainer hidden-xs"
-        role="tooltip"
-        style="position: absolute; left: 0px; top: 0px; opacity: 0; transform: translate(-8px, 0px); transition-property: opacity; transition-duration: 150ms;"
-        tabindex="-1"
-      >
-        <div
-          class="tooltipContent"
-        >
-          <span
-            class="tooltipContentTitleContainer"
-          >
-            <span
-              class="tooltipContentTitle"
-            >
-              Channel options
-            </span>
-          </span>
-        </div>
-        <svg
-          aria-hidden="true"
-          height="10"
-          style="position: absolute; pointer-events: none; top: 0px; left: calc(100% - 0px); transform: rotate(-90deg);"
-          viewBox="0 0 10 10"
-          width="10"
-        >
-          <path
-            d="M0,0 H10 L5,6 Q5,6 5,6 Z"
-            stroke="none"
-          />
-          <clippath
-            id=":r9:"
-          >
-            <rect
-              height="10"
-              width="10"
-              x="0"
-              y="0"
-            />
-          </clippath>
-        </svg>
-      </div>
-    </div>
-  </div>
+  />
   <div
     aria-hidden="true"
   >
@@ -2787,9 +2595,41 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
       >
         <li
           class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters Mui-focusVisible MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
-          id="markAsRead-channel_id"
+          id="channelOpenInNewWindow"
           role="menuitem"
           tabindex="0"
+        >
+          <div
+            class="leading-element"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M18 18V20H4A2 2 0 0 1 2 18V8H4V18M22 6V14A2 2 0 0 1 20 16H8A2 2 0 0 1 6 14V6A2 2 0 0 1 8 4H20A2 2 0 0 1 22 6M20 6H8V14H20Z"
+              />
+            </svg>
+          </div>
+          <div
+            class="label-elements"
+          >
+            Open in new window
+          </div>
+        </li>
+        <hr
+          aria-orientation="vertical"
+          class="MuiDivider-root-ermPAM jKcMpH MuiDivider-root MuiDivider-fullWidth"
+        />
+        <li
+          class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe"
+          id="markAsRead-channel_id"
+          role="menuitem"
+          tabindex="-1"
         >
           <div
             class="leading-element"

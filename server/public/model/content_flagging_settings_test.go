@@ -117,9 +117,9 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 	t.Run("should be valid when common reviewers enabled with reviewer IDs", func(t *testing.T) {
 		settings := &ReviewSettingsRequest{
 			ReviewerSettings: ReviewerSettings{
-				CommonReviewers:         NewPointer(true),
-				SystemAdminsAsReviewers: NewPointer(false),
-				TeamAdminsAsReviewers:   NewPointer(false),
+				CommonReviewers:         new(true),
+				SystemAdminsAsReviewers: new(false),
+				TeamAdminsAsReviewers:   new(false),
 			},
 			ReviewerIDsSettings: ReviewerIDsSettings{
 				CommonReviewerIds:    []string{"user1", "user2"},
@@ -134,9 +134,9 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 	t.Run("should be valid when common reviewers enabled with Additional Reviewers", func(t *testing.T) {
 		settings := &ReviewSettingsRequest{
 			ReviewerSettings: ReviewerSettings{
-				CommonReviewers:         NewPointer(true),
-				SystemAdminsAsReviewers: NewPointer(true),
-				TeamAdminsAsReviewers:   NewPointer(false),
+				CommonReviewers:         new(true),
+				SystemAdminsAsReviewers: new(true),
+				TeamAdminsAsReviewers:   new(false),
 			},
 			ReviewerIDsSettings: ReviewerIDsSettings{
 				CommonReviewerIds:    []string{},
@@ -151,9 +151,9 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 	t.Run("should be invalid when common reviewers enabled but no reviewers specified", func(t *testing.T) {
 		settings := &ReviewSettingsRequest{
 			ReviewerSettings: ReviewerSettings{
-				CommonReviewers:         NewPointer(true),
-				SystemAdminsAsReviewers: NewPointer(false),
-				TeamAdminsAsReviewers:   NewPointer(false),
+				CommonReviewers:         new(true),
+				SystemAdminsAsReviewers: new(false),
+				TeamAdminsAsReviewers:   new(false),
 			},
 			ReviewerIDsSettings: ReviewerIDsSettings{
 				CommonReviewerIds:    []string{},
@@ -169,15 +169,15 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 	t.Run("should be valid when team reviewers enabled with reviewer IDs", func(t *testing.T) {
 		settings := &ReviewSettingsRequest{
 			ReviewerSettings: ReviewerSettings{
-				CommonReviewers:         NewPointer(false),
-				SystemAdminsAsReviewers: NewPointer(false),
-				TeamAdminsAsReviewers:   NewPointer(false),
+				CommonReviewers:         new(false),
+				SystemAdminsAsReviewers: new(false),
+				TeamAdminsAsReviewers:   new(false),
 			},
 			ReviewerIDsSettings: ReviewerIDsSettings{
 				CommonReviewerIds: []string{},
 				TeamReviewersSetting: map[string]*TeamReviewerSetting{
 					"team1": {
-						Enabled:     NewPointer(true),
+						Enabled:     new(true),
 						ReviewerIds: []string{"user1"},
 					},
 				},
@@ -191,15 +191,15 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 	t.Run("should be invalid when team reviewers enabled but no reviewer IDs", func(t *testing.T) {
 		settings := &ReviewSettingsRequest{
 			ReviewerSettings: ReviewerSettings{
-				CommonReviewers:         NewPointer(false),
-				SystemAdminsAsReviewers: NewPointer(false),
-				TeamAdminsAsReviewers:   NewPointer(false),
+				CommonReviewers:         new(false),
+				SystemAdminsAsReviewers: new(false),
+				TeamAdminsAsReviewers:   new(false),
 			},
 			ReviewerIDsSettings: ReviewerIDsSettings{
 				CommonReviewerIds: []string{},
 				TeamReviewersSetting: map[string]*TeamReviewerSetting{
 					"team1": {
-						Enabled:     NewPointer(true),
+						Enabled:     new(true),
 						ReviewerIds: []string{},
 					},
 				},
@@ -214,15 +214,15 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 	t.Run("should be valid when team reviewers enabled but no reviewer IDs with Additional Reviewers", func(t *testing.T) {
 		settings := &ReviewSettingsRequest{
 			ReviewerSettings: ReviewerSettings{
-				CommonReviewers:         NewPointer(false),
-				SystemAdminsAsReviewers: NewPointer(true),
-				TeamAdminsAsReviewers:   NewPointer(false),
+				CommonReviewers:         new(false),
+				SystemAdminsAsReviewers: new(true),
+				TeamAdminsAsReviewers:   new(false),
 			},
 			ReviewerIDsSettings: ReviewerIDsSettings{
 				CommonReviewerIds: []string{},
 				TeamReviewersSetting: map[string]*TeamReviewerSetting{
 					"team1": {
-						Enabled:     NewPointer(true),
+						Enabled:     new(true),
 						ReviewerIds: []string{},
 					},
 				},
@@ -327,9 +327,9 @@ func TestContentFlaggingSettings_IsValid(t *testing.T) {
 			},
 			ReviewerSettings: &ReviewSettingsRequest{
 				ReviewerSettings: ReviewerSettings{
-					CommonReviewers:         NewPointer(true),
-					SystemAdminsAsReviewers: NewPointer(false),
-					TeamAdminsAsReviewers:   NewPointer(false),
+					CommonReviewers:         new(true),
+					SystemAdminsAsReviewers: new(false),
+					TeamAdminsAsReviewers:   new(false),
 				},
 				ReviewerIDsSettings: ReviewerIDsSettings{
 					CommonReviewerIds:    []string{},

@@ -5,6 +5,8 @@ import type React from 'react';
 import {useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import {focusedRHS} from 'actions/views/rhs';
 import {getIsRhsExpanded, getIsRhsOpen} from 'selectors/rhs';
 import {getShouldFocusRHS} from 'selectors/views/rhs';
@@ -13,13 +15,23 @@ import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import type TextboxClass from 'components/textbox/textbox';
 
 import {shouldFocusMainTextbox} from 'utils/post_utils';
-import * as UserAgent from 'utils/user_agent';
+
+import type {WysiwygEditorHandle} from './wysiwyg_editor/wysiwyg_editor';
+
+// Minimal interface that this hook needs from a composer ref. The legacy
+// `Textbox` and the new `WysiwygEditor` both implement it; only one is
+// mounted at a time.
+type FocusableComposerRef = {
+    focus: () => void;
+    blur: () => void;
+};
 
 const useTextboxFocus = (
     textboxRef: React.RefObject<TextboxClass>,
     channelId: string,
     isRHS: boolean,
     canPost: boolean,
+    wysiwygRef?: React.RefObject<WysiwygEditorHandle>,
 ) => {
     const dispatch = useDispatch();
 
@@ -29,25 +41,31 @@ const useTextboxFocus = (
     const rhsOpen = useSelector(getIsRhsOpen);
     const shouldFocusRHS = useSelector(getShouldFocusRHS, () => true);
 
+    // Only one composer is mounted at any time. Pick whichever ref is live.
+    const getComposer = useCallback((): FocusableComposerRef | null => {
+        return wysiwygRef?.current ?? textboxRef.current ?? null;
+    }, [textboxRef, wysiwygRef]);
+
     const focusTextbox = useCallback((keepFocus = false) => {
+        const composer = getComposer();
         const postTextboxDisabled = !canPost;
-        if (textboxRef.current && postTextboxDisabled) {
+        if (composer && postTextboxDisabled) {
             // Fixes Firefox bug which causes keyboard shortcuts to be ignored (MM-22482)
             requestAnimationFrame(() => {
-                textboxRef.current?.blur();
+                getComposer()?.blur();
             });
             return;
         }
-        if (textboxRef.current && (keepFocus || !UserAgent.isMobile())) {
+        if (composer && (keepFocus || !UserAgent.isMobile())) {
             // Focus immediately, so we capture any typed text.
-            textboxRef.current?.focus();
+            composer.focus();
 
             // Also re-focus after the next animation frame, to work around issues where the RHS is "opening".
             requestAnimationFrame(() => {
-                textboxRef.current?.focus();
+                getComposer()?.focus();
             });
         }
-    }, [canPost]);
+    }, [canPost, getComposer]);
 
     const focusTextboxIfNecessary = useCallback((e: KeyboardEvent) => {
         // Do not focus if the rhs is expanded and this is not the RHS

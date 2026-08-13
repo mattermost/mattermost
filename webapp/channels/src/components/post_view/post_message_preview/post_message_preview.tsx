@@ -11,12 +11,15 @@ import type {UserProfile} from '@mattermost/types/users';
 import {General} from 'mattermost-redux/constants';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
+import {hasInteractiveMessageProps} from 'components/block_renderer/translation';
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import PostHeaderTranslateIcon from 'components/post/post_header_translate_icon';
 import PriorityLabel from 'components/post_priority/post_priority_label';
 import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
+import InteractiveMessages from 'components/post_view/interactive_messages';
 import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
 import PostMessageView from 'components/post_view/post_message_view';
+import RedactedFilesPlaceholder from 'components/post_view/redacted_files_placeholder';
 import Timestamp from 'components/timestamp';
 import UserProfileComponent from 'components/user_profile';
 
@@ -42,6 +45,8 @@ export type Props = OwnProps & {
     handleFileDropdownOpened?: (open: boolean) => void;
     overrideGenerateFileDownloadUrl?: (fileId: string) => string;
     disableActions?: boolean;
+    mmBlocksEnabled?: boolean;
+    permissionPoliciesEnabled?: boolean;
     actions: {
         toggleEmbedVisibility: (id: string) => void;
     };
@@ -49,7 +54,7 @@ export type Props = OwnProps & {
 };
 
 const PostMessagePreview = (props: Props) => {
-    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled, overrideGenerateFileDownloadUrl, disableActions, isChannelAutotranslated} = props;
+    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled, overrideGenerateFileDownloadUrl, disableActions, mmBlocksEnabled, isChannelAutotranslated} = props;
     const {locale} = useIntl();
     const toggleEmbedVisibility = () => {
         if (previewPost) {
@@ -63,7 +68,15 @@ const PostMessagePreview = (props: Props) => {
 
     let fileAttachmentPreview = null;
 
-    if (((previewPost.file_ids && previewPost.file_ids.length > 0) || (previewPost.filenames && previewPost.filenames.length > 0))) {
+    const redactedFileCount = previewPost.metadata?.redacted_file_count ?? 0;
+    if (props.permissionPoliciesEnabled && redactedFileCount > 0) {
+        fileAttachmentPreview = (
+            <RedactedFilesPlaceholder
+                count={redactedFileCount}
+                compactDisplay={compactDisplay}
+            />
+        );
+    } else if ((previewPost.file_ids && previewPost.file_ids.length > 0) || (previewPost.filenames && previewPost.filenames.length > 0)) {
         fileAttachmentPreview = (
             <FileAttachmentListContainer
                 post={previewPost}
@@ -120,6 +133,14 @@ const PostMessagePreview = (props: Props) => {
     const overwriteName = ensureString(previewPost.props?.override_username);
 
     const translation = getPostTranslation(previewPost, locale);
+
+    const previewProps = previewPost.props as Record<string, unknown> | undefined;
+    const interactiveMessagesPreview = mmBlocksEnabled && hasInteractiveMessageProps(previewProps) ? (
+        <InteractiveMessages
+            post={previewPost}
+            interactionsDisabled={true}
+        />
+    ) : null;
 
     return (
         <PostAttachmentContainer
@@ -188,9 +209,11 @@ const PostMessagePreview = (props: Props) => {
                 <PostMessageView
                     post={previewPost}
                     overflowType='ellipsis'
-                    maxHeight={105}
+                    maxHeight={200}
                     userLanguage={locale}
                     isChannelAutotranslated={isChannelAutotranslated}
+                    disableInteractions={true}
+                    messageBodyFooter={interactiveMessagesPreview}
                 />
                 {urlPreview}
                 {fileAttachmentPreview}

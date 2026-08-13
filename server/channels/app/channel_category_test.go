@@ -480,6 +480,138 @@ func TestUpdateSidebarCategories(t *testing.T) {
 	})
 }
 
+func TestSetChannelManagedCategory(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	session := &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}}
+	rctx := th.Context.WithSession(session)
+
+	t.Run("should set a managed category on a public channel", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel)
+		err := th.App.SetChannelManagedCategory(rctx, channel.Id, "Operations")
+		require.Nil(t, err)
+
+		mappings, err := th.App.GetVisibleManagedCategoryMappings(rctx, th.BasicTeam.Id)
+		require.Nil(t, err)
+		assert.Equal(t, "Operations", mappings[channel.Id])
+	})
+
+	t.Run("should overwrite an existing managed category", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel)
+		err := th.App.SetChannelManagedCategory(rctx, channel.Id, "Alpha")
+		require.Nil(t, err)
+
+		err = th.App.SetChannelManagedCategory(rctx, channel.Id, "Bravo")
+		require.Nil(t, err)
+
+		mappings, err := th.App.GetVisibleManagedCategoryMappings(rctx, th.BasicTeam.Id)
+		require.Nil(t, err)
+		assert.Equal(t, "Bravo", mappings[channel.Id])
+	})
+}
+
+func TestClearChannelManagedCategory(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	session := &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}}
+	rctx := th.Context.WithSession(session)
+
+	t.Run("should clear an existing managed category", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel)
+		err := th.App.SetChannelManagedCategory(rctx, channel.Id, "Operations")
+		require.Nil(t, err)
+
+		err = th.App.ClearChannelManagedCategory(rctx, channel.Id)
+		require.Nil(t, err)
+
+		mappings, err := th.App.GetVisibleManagedCategoryMappings(rctx, th.BasicTeam.Id)
+		require.Nil(t, err)
+		_, exists := mappings[channel.Id]
+		assert.False(t, exists, "expected channel.Id to be absent from mappings")
+	})
+
+	t.Run("should not error when clearing a channel with no managed category", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		err := th.App.ClearChannelManagedCategory(rctx, channel.Id)
+		require.Nil(t, err)
+	})
+}
+
+func TestGetVisibleManagedCategoryMappings(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	session := &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}}
+	rctx := th.Context.WithSession(session)
+
+	t.Run("should return empty map when no managed categories exist", func(t *testing.T) {
+		team := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, team)
+
+		mappings, err := th.App.GetVisibleManagedCategoryMappings(rctx, team.Id)
+		require.Nil(t, err)
+		assert.Empty(t, mappings)
+	})
+
+	t.Run("should return mappings only for channels the user is a member of", func(t *testing.T) {
+		team := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, team)
+
+		channel1 := th.CreateChannel(t, team)
+
+		otherUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, otherUser, team)
+		otherSession := &model.Session{UserId: otherUser.Id, Props: model.StringMap{}}
+		otherCtx := th.Context.WithSession(otherSession)
+
+		channel2, appErr := th.App.CreateChannel(otherCtx, &model.Channel{
+			DisplayName: "other_channel",
+			Name:        "other_" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+			CreatorId:   otherUser.Id,
+		}, true)
+		require.Nil(t, appErr)
+
+		err := th.App.SetChannelManagedCategory(rctx, channel1.Id, "Alpha")
+		require.Nil(t, err)
+		err = th.App.SetChannelManagedCategory(otherCtx, channel2.Id, "Bravo")
+		require.Nil(t, err)
+
+		mappings, err := th.App.GetVisibleManagedCategoryMappings(rctx, team.Id)
+		require.Nil(t, err)
+
+		assert.Equal(t, "Alpha", mappings[channel1.Id])
+		_, hasCh2 := mappings[channel2.Id]
+		assert.False(t, hasCh2, "should not include channel user is not a member of")
+	})
+
+	t.Run("should return multiple category mappings", func(t *testing.T) {
+		team := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, team)
+
+		channel1 := th.CreateChannel(t, team)
+		th.AddUserToChannel(t, th.BasicUser, channel1)
+		channel2 := th.CreateChannel(t, team)
+		th.AddUserToChannel(t, th.BasicUser, channel2)
+
+		err := th.App.SetChannelManagedCategory(rctx, channel1.Id, "Ops")
+		require.Nil(t, err)
+		err = th.App.SetChannelManagedCategory(rctx, channel2.Id, "Intel")
+		require.Nil(t, err)
+
+		mappings, err := th.App.GetVisibleManagedCategoryMappings(rctx, team.Id)
+		require.Nil(t, err)
+		assert.Equal(t, "Ops", mappings[channel1.Id])
+		assert.Equal(t, "Intel", mappings[channel2.Id])
+	})
+}
+
 func TestDiffChannelsBetweenCategories(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should return nothing when the categories contain identical channels", func(t *testing.T) {

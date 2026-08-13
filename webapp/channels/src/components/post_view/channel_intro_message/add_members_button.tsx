@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -66,7 +67,7 @@ const LessThanMaxFreeUsers = ({pluginButtons}: {pluginButtons: React.ReactNode})
             <div className='LessThanMaxFreeUsers'>
                 <ToggleModalButton
                     id='introTextInvite'
-                    className='btn btn-sm btn-primary'
+                    className={buttonClassNames({emphasis: 'primary', size: 'sm'})}
                     modalId={ModalIdentifiers.INVITATION}
                     dialogType={InvitationModal}
                     dialogProps={{focusOriginElement: 'browseOrAddChannelMenuButton'}}

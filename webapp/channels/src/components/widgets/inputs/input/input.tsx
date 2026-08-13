@@ -7,8 +7,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
 import {CloseCircleIcon} from '@mattermost/compass-icons/components';
-
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {ItemStatus} from 'utils/constants';
 import {formatAsString} from 'utils/i18n';
@@ -209,17 +208,17 @@ const Input = React.forwardRef((
     const warning = customInputLabel?.type === ItemStatus.WARNING;
 
     const clearButton = value && clearable ? (
-        <div
-            className='Input__clear'
-            onMouseDown={handleOnClear}
-            onTouchEnd={handleOnClear}
+        <WithTooltip
+            title={clearableTooltipText || formatMessage({id: 'widget.input.clear', defaultMessage: 'Clear'})}
         >
-            <WithTooltip
-                title={clearableTooltipText || formatMessage({id: 'widget.input.clear', defaultMessage: 'Clear'})}
+            <div
+                className='Input__clear'
+                onMouseDown={handleOnClear}
+                onTouchEnd={handleOnClear}
             >
                 <CloseCircleIcon size={18}/>
-            </WithTooltip>
-        </div>
+            </div>
+        </WithTooltip>
     ) : null;
 
     const generateInput = () => {

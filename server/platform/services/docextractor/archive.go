@@ -6,6 +6,7 @@ package docextractor
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -40,7 +41,14 @@ func getExtAlsoTarGz(name string) string {
 	return filepath.Ext(name)
 }
 
-func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker, maxFileSize int64) (string, error) {
+func (ae *archiveExtractor) Extract(ctx context.Context, name string, r io.ReadSeeker, maxFileSize int64) (string, error) {
+	// MM-65701: Skip 7zip files due to OOM vulnerability in bodgit/sevenzip library
+	match, _ := (archives.SevenZip{}).Match(context.Background(), name, r)
+	_, _ = r.Seek(0, io.SeekStart) // Reset reader position after Match reads from stream
+	if match.ByName || match.ByStream {
+		return "", nil
+	}
+
 	ext := getExtAlsoTarGz(name)
 
 	// Create a temporary file, using `*` control the random component while preserving the extension.
@@ -95,9 +103,11 @@ func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker, maxFileSize in
 				return fmt.Errorf("error reading archive entry %s: %w", path, err)
 			}
 
-			subtext, extractErr := ae.SubExtractor.Extract(filename, bytes.NewReader(data), maxFileSize)
+			subtext, extractErr := ae.SubExtractor.Extract(ctx, filename, bytes.NewReader(data), maxFileSize)
 			if extractErr == nil {
 				text.WriteString(subtext + " ")
+			} else if errors.Is(extractErr, context.Canceled) || errors.Is(extractErr, context.DeadlineExceeded) {
+				return fmt.Errorf("error extracting %q: %w", filename, extractErr)
 			}
 		}
 		return nil

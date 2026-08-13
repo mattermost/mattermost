@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getAdminAccount} from '../../../../../support/env';
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 const admin = getAdminAccount();
 const oneDay = 24 * 60 * 60 * 1000;
 const thirtySeconds = 30 * 1000;
 
-export function verifyExtendedSession(testUser, sessionLengthInDays, channelUrl) {
+export function verifyExtendedSession(testUser: Cypress.UserProfile, sessionLengthInDays: number, channelUrl: string) {
     // # Login as test user and visit default channel
     cy.visit(channelUrl);
 
@@ -59,7 +59,7 @@ export function verifyExtendedSession(testUser, sessionLengthInDays, channelUrl)
     });
 }
 
-export function verifyNotExtendedSession(testUser, channelUrl) {
+export function verifyNotExtendedSession(testUser: Cypress.UserProfile, channelUrl: string) {
     // # Login as test user and visit default channel
     cy.visit(channelUrl);
 

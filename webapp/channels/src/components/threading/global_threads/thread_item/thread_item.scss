@@ -15,7 +15,8 @@
 
     &:hover,
     &:focus,
-    &:focus-within {
+    &:focus-within,
+    &:has([aria-expanded="true"]) {
         background: rgba(var(--center-channel-color-rgb), 0.04);
 
         .alt-visible {
@@ -128,11 +129,14 @@
     }
 
     div.preview {
+        overflow: hidden;
         height: 40px;
         margin: 0 0 10px;
         color: rgba(var(--center-channel-color-rgb), 1);
 
-        @include mixins.text-clamp(2, 20);
+        > * {
+            @include mixins.text-clamp(2);
+        }
     }
 
     .menu-anchor {
@@ -154,6 +158,13 @@
 
     .Avatars {
         margin-right: 10px;
+    }
+
+    // Remove the focus-visible case when MM-62778 is completed
+    .btn:focus-visible,
+    .btn[aria-expanded="true"] {
+        border-radius: 4px;
+        box-shadow: 0 0 1px 3px rgba(var(--link-color-rgb), 0.5), 0 0 0 1px var(--link-color);
     }
 }
 

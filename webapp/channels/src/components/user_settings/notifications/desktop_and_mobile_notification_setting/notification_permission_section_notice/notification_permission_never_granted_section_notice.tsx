@@ -10,7 +10,7 @@ import {requestNotificationPermission} from 'utils/notifications';
 
 type Props = {
     onCtaButtonClick: (permission: NotificationPermission) => void;
-}
+};
 
 export default function NotificationPermissionNeverGrantedSectionNotice(props: Props) {
     const intl = useIntl();

@@ -222,6 +222,25 @@ func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCa
 	return count, nil
 }
 
+func (s LocalCacheChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+	newChannel, err := s.ChannelStore.Save(rctx, channel, maxChannelsPerTeam, channelOptions...)
+	// Space backing channels are excluded from the generic by-id Get/GetMany (SQL) and resolve
+	// only through GetChannelOfType; caching them here would let the generic cached lookups
+	// return them and defeat that exclusion.
+	if err == nil && !newChannel.IsSpace() {
+		s.rootStore.doStandardAddToCache(s.rootStore.channelByIdCache, newChannel.Id, newChannel)
+	}
+	return newChannel, err
+}
+
+func (s LocalCacheChannelStore) Update(rctx request.CTX, channel *model.Channel) (*model.Channel, error) {
+	updatedChannel, err := s.ChannelStore.Update(rctx, channel)
+	if err == nil {
+		s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByIdCache, channel.Id, nil)
+	}
+	return updatedChannel, err
+}
+
 func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	if allowFromCache {
 		var cacheItem *model.Channel

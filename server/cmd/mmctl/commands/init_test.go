@@ -10,7 +10,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -185,9 +184,8 @@ func TestNewAPIv4Client(t *testing.T) {
 		_, port, err := net.SplitHostPort(proxyAddr)
 		require.NoError(t, err)
 
-		err = os.Setenv("HTTP_PROXY", proxyAddr)
-		require.NoError(t, err)
-		defer os.Unsetenv("HTTP_PROXY")
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("HTTP_PROXY", proxyAddr)
 
 		client := NewAPIv4Client("http://somethingelse:"+port, false, false)
 		_, _, err = client.GetMe(context.Background(), "")

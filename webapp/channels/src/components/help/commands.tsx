@@ -52,7 +52,7 @@ const HelpCommands = (): JSX.Element => {
                             values={{
                                 link: (chunks: React.ReactNode) => (
                                     <ExternalLink
-                                        href='https://docs.mattermost.com/integrations/slash-commands-built-in.html'
+                                        href='https://docs.mattermost.com/integrations-guide/built-in-slash-commands.html'
                                         location='help_commands'
                                     >
                                         {chunks}

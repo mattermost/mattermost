@@ -16,6 +16,7 @@ import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal/conv
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {LicenseSkus} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -42,10 +43,24 @@ describe('component/ConvertGmToChannelModal', () => {
         entities: {
             teams: {
                 teams: {
-                    team_id_1: {id: 'team_id_1', display_name: 'Team 1', name: 'team_1'} as Team,
-                    team_id_2: {id: 'team_id_2', display_name: 'Team 2', name: 'team_2'} as Team,
+                    team_id_1: {
+                        id: 'team_id_1',
+                        display_name: 'Team 1',
+                        name: 'team_1',
+                    } as Team,
+                    team_id_2: {
+                        id: 'team_id_2',
+                        display_name: 'Team 2',
+                        name: 'team_2',
+                    } as Team,
                 },
                 currentTeamId: 'team_id_1',
+            },
+            general: {
+                config: {
+                    UseAnonymousURLs: 'false',
+                },
+                license: {SkuShortName: LicenseSkus.EnterpriseAdvanced},
             },
         },
     };
@@ -171,6 +186,47 @@ describe('component/ConvertGmToChannelModal', () => {
         expect(channelNameInput).toBeInTheDocument();
 
         await userEvent.click(confirmButton!);
+    });
+
+    test('when UseAnonymousURLs is enabled, user cannot specify a channel URL', async () => {
+        TestHelper.initBasic(Client4);
+        nock(Client4.getBaseRoute()).
+            get('/channels/channel_id_1/common_teams').
+            reply(200, [
+                {id: 'team_id_1', display_name: 'Team 1', name: 'team_1'},
+            ]);
+
+        const anonymousURLState: DeepPartial<GlobalState> = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                general: {
+                    ...baseState.entities?.general,
+                    config: {
+                        UseAnonymousURLs: 'true',
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <ConvertGmToChannelModal {...baseProps}/>,
+            anonymousURLState,
+        );
+
+        await waitFor(
+            () =>
+                expect(
+                    screen.queryByText(
+                        'Conversation history will be visible to any channel members',
+                    ),
+                ).toBeInTheDocument(),
+            {timeout: 1500},
+        );
+
+        expect(screen.queryByPlaceholderText('Channel name')).toBeVisible();
+        expect(screen.queryByText('Edit')).not.toBeInTheDocument();
+        expect(screen.queryByText(/URL:/)).not.toBeInTheDocument();
     });
 
     test('duplicate channel names should npt be allowed', async () => {

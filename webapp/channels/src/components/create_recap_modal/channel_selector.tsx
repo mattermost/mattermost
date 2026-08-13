@@ -6,9 +6,8 @@ import {useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import ChannelTypeIcon from 'components/channel_type_icon';
 import Input from 'components/widgets/inputs/input/input';
-
-import {Constants} from 'utils/constants';
 
 type Props = {
     selectedChannelIds: string[];
@@ -49,39 +48,28 @@ const ChannelSelector = ({selectedChannelIds, setSelectedChannelIds, myChannels,
         return filteredChannels.filter((channel) => !recommendedIds.includes(channel.id));
     }, [filteredChannels, recommendedChannels]);
 
-    const getChannelIcon = (channel: Channel) => {
-        switch (channel.type) {
-        case Constants.OPEN_CHANNEL:
-            return 'icon-globe';
-        case Constants.PRIVATE_CHANNEL:
-            return 'icon-lock-outline';
-        case Constants.GM_CHANNEL:
-            return 'icon-account-multiple-outline';
-        case Constants.DM_CHANNEL:
-            return 'icon-account-outline';
-        default:
-            return 'icon-globe';
-        }
-    };
-
     const renderChannelItem = (channel: Channel) => {
         const isSelected = selectedChannelIds.includes(channel.id);
+
+        const icon: React.ReactNode = <ChannelTypeIcon channel={channel}/>;
+
         return (
             <div
                 key={channel.id}
                 className='channel-selector-item'
+                data-testid='channel-selector-item'
                 onClick={() => toggleChannel(channel.id)}
             >
                 <div className='channel-selector-checkbox'>
                     <input
                         type='checkbox'
                         checked={isSelected}
-                        onChange={() => {}} // Handled by parent div
+                        onChange={() => toggleChannel(channel.id)}
                         onClick={(e) => e.stopPropagation()}
                     />
                 </div>
                 <div className='channel-selector-channel-info'>
-                    <i className={`icon ${getChannelIcon(channel)}`}/>
+                    {icon}
                     <span className='channel-name'>{channel.display_name}</span>
                 </div>
             </div>

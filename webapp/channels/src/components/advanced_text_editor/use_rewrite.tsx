@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type React from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
@@ -10,12 +11,12 @@ import {getAgents as getAgentsAction} from 'mattermost-redux/actions/agents';
 import {Client4} from 'mattermost-redux/client';
 import {getAgents} from 'mattermost-redux/selectors/entities/agents';
 
+import {useSelectedAgent} from 'components/common/agents';
 import type TextboxClass from 'components/textbox/textbox';
 
 import type {PostDraft} from 'types/store/draft';
 
 import {RewriteAction} from './rewrite_action';
-import RewriteMenu from './rewrite_menu';
 
 const useRewrite = (
     draft: PostDraft,
@@ -28,9 +29,9 @@ const useRewrite = (
 ) => {
     const dispatch = useDispatch();
     const agents = useSelector(getAgents);
+    const [selectedAgentId, setSelectedAgentId] = useSelectedAgent(agents);
 
     const [prompt, setPrompt] = useState('');
-    const [selectedAgentId, setSelectedAgentId] = useState<string>('');
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -141,12 +142,6 @@ const useRewrite = (
     }, [dispatch]);
 
     useEffect(() => {
-        if (agents && agents.length > 0 && !selectedAgentId) {
-            setSelectedAgentId(agents[0].id);
-        }
-    }, [agents, selectedAgentId]);
-
-    useEffect(() => {
         if (isMenuOpen && !draft.message.trim()) {
             customPromptRef.current?.focus();
         }
@@ -185,46 +180,46 @@ const useRewrite = (
         resetState();
     }, [draft.message, isProcessing, resetState]);
 
+    const rewriteMenuProps = useMemo(() => ({
+        isProcessing,
+        isMenuOpen,
+        setIsMenuOpen,
+        draftMessage: draft.message,
+        prompt,
+        setPrompt,
+        selectedAgentId,
+        setSelectedAgentId,
+        agents: agents || [],
+        originalMessage,
+        lastAction,
+        onMenuAction: handleMenuAction,
+        onCustomPromptKeyDown: handleCustomPromptKeyDown,
+        onCancelProcessing: cancelProcessing,
+        onUndoMessage: undoMessage,
+        onRegenerateMessage: regenerateMessage,
+        customPromptRef,
+    }), [
+        isProcessing,
+        isMenuOpen,
+        setIsMenuOpen,
+        draft.message,
+        prompt,
+        setPrompt,
+        selectedAgentId,
+        setSelectedAgentId,
+        agents,
+        originalMessage,
+        lastAction,
+        handleMenuAction,
+        handleCustomPromptKeyDown,
+        cancelProcessing,
+        undoMessage,
+        regenerateMessage,
+        customPromptRef,
+    ]);
+
     return {
-        additionalControl: useMemo(() => (
-            <RewriteMenu
-                isProcessing={isProcessing}
-                isMenuOpen={isMenuOpen}
-                setIsMenuOpen={setIsMenuOpen}
-                draftMessage={draft.message}
-                prompt={prompt}
-                setPrompt={setPrompt}
-                selectedAgentId={selectedAgentId}
-                setSelectedAgentId={setSelectedAgentId}
-                agents={agents || []}
-                originalMessage={originalMessage}
-                lastAction={lastAction}
-                onMenuAction={handleMenuAction}
-                onCustomPromptKeyDown={handleCustomPromptKeyDown}
-                onCancelProcessing={cancelProcessing}
-                onUndoMessage={undoMessage}
-                onRegenerateMessage={regenerateMessage}
-                customPromptRef={customPromptRef}
-            />
-        ), [
-            isProcessing,
-            isMenuOpen,
-            setIsMenuOpen,
-            draft.message,
-            prompt,
-            setPrompt,
-            selectedAgentId,
-            setSelectedAgentId,
-            agents,
-            originalMessage,
-            lastAction,
-            handleMenuAction,
-            handleCustomPromptKeyDown,
-            cancelProcessing,
-            undoMessage,
-            regenerateMessage,
-            customPromptRef,
-        ]),
+        rewriteMenuProps,
         isProcessing,
     };
 };

@@ -9,8 +9,8 @@
 
 // Group: @channels @plugin @plugins_uninstall @not_cloud
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {demoPlugin, testPlugin} from '../../../utils/plugins';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {demoPlugin, testPlugin} from '@/utils/plugins';
 
 describe('collapse on 15 plugin buttons', () => {
     let testTeam;

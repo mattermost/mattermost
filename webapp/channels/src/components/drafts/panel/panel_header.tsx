@@ -6,10 +6,10 @@ import type {ComponentProps} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {SyncIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
-import WithTooltip from 'components/with_tooltip';
 
 import './panel_header.scss';
 import {isToday} from 'utils/datetime';
@@ -49,7 +49,10 @@ function PanelHeader({
     const timestampDateObject = useMemo(() => new Date(timestamp), [timestamp]);
 
     return (
-        <div className='PanelHeader'>
+        <div
+            className='PanelHeader'
+            data-testid='draft-panel-header'
+        >
             <div className='PanelHeader__left'>{title}</div>
             <div className='PanelHeader__right'>
                 <div className='PanelHeader__actions'>

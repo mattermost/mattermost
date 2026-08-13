@@ -328,7 +328,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
     );
 
     return (
-        <div className='wrapper--admin'>
+        <div className='wrapper--fixed'>
             <AdminHeader>
                 <FormattedMessage {...messages.title}/>
             </AdminHeader>

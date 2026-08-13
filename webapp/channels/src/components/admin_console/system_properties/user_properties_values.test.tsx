@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
@@ -18,6 +18,11 @@ describe('UserPropertyValues', () => {
         create_at: 1736541716295,
         delete_at: 0,
         update_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             sort_order: 0,
             visibility: 'when_set',
@@ -214,6 +219,95 @@ describe('UserPropertyValues', () => {
 
         const samlLinkElement = screen.getByTestId(`user-property-field-values__saml-${baseField.name}`);
         expect(samlLinkElement).toBeInTheDocument();
+    });
+
+    it('shows owner provenance and editable options for owner-managed select fields', () => {
+        const ownedField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                owners: [
+                    {id: 'com.mattermost.scim', type: 'plugin' as const, scopes: ['entra']},
+                ],
+            },
+        };
+
+        renderComponent(ownedField);
+
+        expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
+        expect(screen.getByTestId(`user-property-field-values__owner-${ownedField.name}-com.mattermost.scim`)).toBeInTheDocument();
+        expect(screen.getByText('com.mattermost.scim: entra')).toBeInTheDocument();
+
+        // Options remain visible and editable for owner-managed select fields.
+        expect(screen.getByText('Option 1')).toBeInTheDocument();
+        expect(screen.getByText('Option 2')).toBeInTheDocument();
+        expect(screen.getByRole('combobox')).toBeInTheDocument();
+    });
+
+    it('shows badge only for owner-managed text fields', () => {
+        const ownedTextField: UserPropertyField = {
+            ...baseField,
+            type: 'text',
+            attrs: {
+                ...baseField.attrs,
+                options: undefined,
+                owners: [
+                    {id: 'com.mattermost.scim', type: 'plugin' as const, scopes: ['entra']},
+                ],
+            },
+        };
+
+        renderComponent(ownedTextField);
+
+        expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
+        expect(screen.getByText('com.mattermost.scim: entra')).toBeInTheDocument();
+        expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+        expect(screen.queryByText('-')).not.toBeInTheDocument();
+    });
+
+    it('hides options editor for LDAP-synced select fields', () => {
+        const ldapField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                ldap: 'ldapAttribute',
+            },
+        };
+
+        renderComponent(ldapField);
+
+        expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
+        expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    });
+
+    it('allows adding options on owner-managed select fields', async () => {
+        const ownedField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                owners: [
+                    {id: 'com.mattermost.scim', type: 'plugin' as const, scopes: ['entra']},
+                ],
+            },
+        };
+
+        renderComponent(ownedField);
+
+        const input = screen.getByRole('combobox');
+        await userEvent.clear(input);
+        await userEvent.type(input, 'New Option');
+        await userEvent.keyboard('{Enter}');
+
+        expect(updateField).toHaveBeenCalledWith({
+            ...ownedField,
+            attrs: {
+                ...ownedField.attrs,
+                options: [
+                    ...ownedField.attrs.options || [],
+                    {id: '', name: 'New Option'},
+                ],
+            },
+        });
     });
 
     it('applies autoFocus when prop is true', () => {

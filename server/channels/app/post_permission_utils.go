@@ -115,6 +115,15 @@ func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, chan
 	return nil
 }
 
+// PostCardTypeCheckWithApp validates whether a card post can be created
+// based on the IntegratedBoards feature flag.
+func PostCardTypeCheckWithApp(where string, a *App, postType string) *model.AppError {
+	if postType == model.PostTypeCard && !a.Config().FeatureFlags.IntegratedBoards {
+		return model.NewAppError(where, "api.post.create_post.card_type_disabled.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
 // PostBurnOnReadCheckWithApp validates whether a burn-on-read post can be created
 // based on channel type and participants. This is called from the API layer before
 // post creation to enforce burn-on-read restrictions.
@@ -131,6 +140,10 @@ func PostBurnOnReadCheckWithApp(where string, a *App, rctx request.CTX, userId, 
 			return model.NewAppError(where, "api.post.fill_in_post_props.burn_on_read.channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		channel = ch
+	}
+
+	if channel.IsShared() {
+		return model.NewAppError(where, "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Burn-on-read is not allowed in self-DMs or DMs with bots (including AI agents, plugins)

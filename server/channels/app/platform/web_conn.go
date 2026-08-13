@@ -407,11 +407,9 @@ func (wc *WebConn) SetSession(v *model.Session) {
 // is ready to send/receive messages.
 func (wc *WebConn) Pump() {
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		wc.writePump()
-	}()
+	})
 
 	wg.Add(1)
 	go wc.pluginPostedConsumer(&wg)
@@ -466,6 +464,12 @@ func (wc *WebConn) readPump() {
 		msgType, rd, err := wc.WebSocket.NextReader()
 		if err != nil {
 			wc.logSocketErr("websocket.NextReader", err)
+			return
+		}
+
+		// Reject binary frames from unauthenticated connections. See MM-68222.
+		if msgType != websocket.TextMessage && !wc.IsAuthenticated() {
+			wc.logSocketErr("websocket.UnauthBinary", errors.New("binary frames require authentication"))
 			return
 		}
 
@@ -916,7 +920,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
 	if msg.GetBroadcast().ContainsSanitizedData {
-		hasReadPrivateDataPermission = model.NewPointer(wc.Suite.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
+		hasReadPrivateDataPermission = new(wc.Suite.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
 
 		if *hasReadPrivateDataPermission {
 			return false
@@ -926,7 +930,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// If the event contains sensitive data, only send to users with permission to see it
 	if msg.GetBroadcast().ContainsSensitiveData {
 		if hasReadPrivateDataPermission == nil {
-			hasReadPrivateDataPermission = model.NewPointer(wc.Suite.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
+			hasReadPrivateDataPermission = new(wc.Suite.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
 		}
 
 		if !*hasReadPrivateDataPermission {
@@ -959,12 +963,11 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	if chID := msg.GetBroadcast().ChannelId; chID != "" {
 		// For typing/reaction_added/reaction_removed events, we don't send them to users
 		// who don't have that channel or thread opened.
-		if wc.Platform.Config().FeatureFlags.WebSocketEventScope &&
-			slices.Contains([]model.WebsocketEventType{
-				model.WebsocketEventTyping,
-				model.WebsocketEventReactionAdded,
-				model.WebsocketEventReactionRemoved,
-			}, msg.EventType()) && wc.notInChannel(chID) && wc.notInThread(chID) {
+		if slices.Contains([]model.WebsocketEventType{
+			model.WebsocketEventTyping,
+			model.WebsocketEventReactionAdded,
+			model.WebsocketEventReactionRemoved,
+		}, msg.EventType()) && wc.notInChannel(chID) && wc.notInThread(chID) {
 			return false
 		}
 

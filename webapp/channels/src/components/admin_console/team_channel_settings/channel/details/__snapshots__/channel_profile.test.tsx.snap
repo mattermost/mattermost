@@ -1,153 +1,140 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/team_channel_settings/channel/ChannelProfile should match snapshot 1`] = `
-<AdminPanel
-  id="channel_profile"
-  subtitle={
-    Object {
-      "defaultMessage": "Summary of the channel, including the channel name.",
-      "id": "admin.channel_settings.channel_detail.profileDescription",
-    }
-  }
-  title={
-    Object {
-      "defaultMessage": "Channel Profile",
-      "id": "admin.channel_settings.channel_detail.profileTitle",
-    }
-  }
->
+<div>
   <div
-    className="group-teams-and-channels AdminChannelDetails"
+    class="AdminPanel clearfix "
+    id="channel_profile"
   >
     <div
-      className="group-teams-and-channels--body channel-desc-col"
+      class="header"
+    >
+      <div>
+        <h3>
+          Channel Profile
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Summary of the channel, including the channel name.
+        </div>
+      </div>
+    </div>
+    <div
+      class="group-teams-and-channels AdminChannelDetails"
     >
       <div
-        className="channel-name"
+        class="group-teams-and-channels--body channel-desc-col"
       >
-        <b>
-          <MemoizedFormattedMessage
-            defaultMessage="Name"
-            id="admin.channelSettings.channelDetail.channelName"
-          />
-        </b>
-        <br />
-        test
-      </div>
-      <div
-        className="channel-team"
-      >
-        <b>
-          <MemoizedFormattedMessage
-            defaultMessage="Team"
-            id="admin.channelSettings.channelDetail.channelTeam"
-          />
-        </b>
-        <br />
-        test
-      </div>
-      <div
-        className="AdminChannelDetails_archiveContainer"
-      >
-        <button
-          className="btn btn-secondary btn-danger"
-          type="button"
+        <div
+          class="channel-name"
         >
-          <i
-            className="icon icon-archive-outline"
-          />
-          <MemoizedFormattedMessage
-            defaultMessage="Archive Channel"
-            id="admin.channel_settings.channel_details.archiveChannel"
-          />
-        </button>
+          <b>
+            Name
+          </b>
+          <br />
+          test
+        </div>
+        <div
+          class="channel-team"
+        >
+          <b>
+            Team
+          </b>
+          <br />
+          test
+        </div>
+        <div
+          class="AdminChannelDetails_archiveContainer"
+        >
+          <button
+            class="btn btn-secondary btn-danger"
+            type="button"
+          >
+            <i
+              class="icon icon-archive-outline"
+            />
+            Archive Channel
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</AdminPanel>
+</div>
 `;
 
 exports[`admin_console/team_channel_settings/channel/ChannelProfile should match snapshot for a shared channel 1`] = `
-<AdminPanel
-  id="channel_profile"
-  subtitle={
-    Object {
-      "defaultMessage": "Summary of the channel, including the channel name.",
-      "id": "admin.channel_settings.channel_detail.profileDescription",
-    }
-  }
-  title={
-    Object {
-      "defaultMessage": "Channel Profile",
-      "id": "admin.channel_settings.channel_detail.profileTitle",
-    }
-  }
->
+<div>
   <div
-    className="group-teams-and-channels AdminChannelDetails"
+    class="AdminPanel clearfix "
+    id="channel_profile"
   >
     <div
-      className="group-teams-and-channels--body channel-desc-col"
+      class="header"
+    >
+      <div>
+        <h3>
+          Channel Profile
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Summary of the channel, including the channel name.
+        </div>
+      </div>
+    </div>
+    <div
+      class="group-teams-and-channels AdminChannelDetails"
     >
       <div
-        className="channel-name"
+        class="group-teams-and-channels--body channel-desc-col"
       >
-        <b>
-          <MemoizedFormattedMessage
-            defaultMessage="Name"
-            id="admin.channelSettings.channelDetail.channelName"
-          />
-        </b>
-        <br />
-        test
-      </div>
-      <div
-        className="channel-team"
-      >
-        <b>
-          <MemoizedFormattedMessage
-            defaultMessage="Team"
-            id="admin.channelSettings.channelDetail.channelTeam"
-          />
-        </b>
-        <br />
-        test
-      </div>
-      <div
-        className="channel-organizations"
-      >
-        <b>
-          <MemoizedFormattedMessage
-            defaultMessage="Organizations"
-            id="admin.channelSettings.channelDetail.channel_organizations"
-          />
-        </b>
-        <br />
-        <SharedChannelIndicator
-          className="shared-channel-icon"
-        />
-        <MemoizedFormattedMessage
-          defaultMessage="Shared with trusted organizations"
-          id="admin.channel_settings.channel_detail.channelOrganizationsMessage"
-        />
-      </div>
-      <div
-        className="AdminChannelDetails_archiveContainer"
-      >
-        <button
-          className="btn btn-secondary btn-danger"
-          type="button"
+        <div
+          class="channel-name"
         >
+          <b>
+            Name
+          </b>
+          <br />
+          test
+        </div>
+        <div
+          class="channel-team"
+        >
+          <b>
+            Team
+          </b>
+          <br />
+          test
+        </div>
+        <div
+          class="channel-organizations"
+        >
+          <b>
+            Organizations
+          </b>
+          <br />
           <i
-            className="icon icon-archive-outline"
+            class="shared-channel-icon icon-circle-multiple-outline"
+            data-testid="SharedChannelIcon"
           />
-          <MemoizedFormattedMessage
-            defaultMessage="Archive Channel"
-            id="admin.channel_settings.channel_details.archiveChannel"
-          />
-        </button>
+          Shared with trusted organizations
+        </div>
+        <div
+          class="AdminChannelDetails_archiveContainer"
+        >
+          <button
+            class="btn btn-secondary btn-danger"
+            type="button"
+          >
+            <i
+              class="icon icon-archive-outline"
+            />
+            Archive Channel
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</AdminPanel>
+</div>
 `;

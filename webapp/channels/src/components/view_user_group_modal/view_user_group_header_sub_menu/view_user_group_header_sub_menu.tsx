@@ -34,7 +34,7 @@ export type Props = {
         addUsersToGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
         archiveGroup: (groupId: string) => Promise<ActionResult>;
     };
-}
+};
 
 const ViewUserGroupHeaderSubMenu = (props: Props) => {
     const {

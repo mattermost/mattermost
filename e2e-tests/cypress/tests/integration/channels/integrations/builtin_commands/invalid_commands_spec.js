@@ -9,7 +9,7 @@
 
 // Group: @channels @integrations
 
-import * as MESSAGES from '../../../../fixtures/messages';
+import * as MESSAGES from '@/fixtures/messages';
 
 describe('Invalid slash command', () => {
     const incorrectCommand1 = 'notacommand-1';

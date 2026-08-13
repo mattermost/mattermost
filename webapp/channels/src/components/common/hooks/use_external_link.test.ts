@@ -136,9 +136,31 @@ describe('useExternalLink', () => {
         expect(firstHref).toBe(secondHref);
         expect(firstParams).toBe(secondParams);
     });
+
     it('do not substitute %20 on query params', () => {
         const url = 'https://www.mattermost.com/some/url?subject=hello%20world';
         const {result: {current: [href]}} = renderHookWithContext(() => useExternalLink(url), getBaseState());
         expect(href).toContain('subject=hello%20world');
+    });
+
+    it('do not error on invalid URLs', () => {
+        const invalidUrl = 'not a valid url';
+        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(invalidUrl), getBaseState());
+        expect(href).toBe(invalidUrl);
+        expect(queryParams).toEqual({});
+    });
+
+    it('do not modify arbitrary links that happen to include mattermost.com', () => {
+        const invalidUrl = 'https://example.com/mattermost.com';
+        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(invalidUrl), getBaseState());
+        expect(href).toBe(invalidUrl);
+        expect(queryParams).toEqual({});
+    });
+
+    it('do not modify mailto links on mattermost.com', () => {
+        const mailtoUrl = 'mailto:support@mattermost.com';
+        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(mailtoUrl), getBaseState());
+        expect(href).toBe(mailtoUrl);
+        expect(queryParams).toEqual({});
     });
 });

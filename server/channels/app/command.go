@@ -67,12 +67,22 @@ func (a *App) CreateCommandPost(rctx request.CTX, post *model.Post, teamID strin
 	}
 
 	if response.Attachments != nil {
-		model.ParseSlackAttachment(post, response.Attachments)
+		model.ParseMessageAttachment(post, response.Attachments)
 	}
 
 	if response.ResponseType == model.CommandResponseTypeInChannel {
-		// The post is only used for tests, so even if there are membership issues, we won't send the post to the client.
-		createdPost, _, appErr := a.CreatePostMissingChannel(rctx, post, true, true)
+		// Bot-style (non-builtin) command responses are flagged via from_webhook by HandleCommandResponsePost.
+		// Strip the prop here and pass the marker through the server-set FromIncomingWebhook flag so
+		// SanitizeProps does not drop it on save.
+		fromWebhook := post.GetProp(model.PostPropsFromWebhook) == "true"
+		if fromWebhook {
+			post.DelProp(model.PostPropsFromWebhook)
+		}
+		createdPost, _, appErr := a.CreatePostMissingChannelWithFlags(rctx, post, model.CreatePostFlags{
+			TriggerWebhooks:     true,
+			SetOnline:           true,
+			FromIncomingWebhook: fromWebhook,
+		})
 		if appErr != nil {
 			return nil, appErr
 		}
@@ -412,7 +422,7 @@ func (a *App) tryExecuteCustomCommand(rctx request.CTX, args *model.CommandArgs,
 
 	userChan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), args.UserId)
+		user, err := a.Srv().Store().User().Get(rctx, args.UserId)
 		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
@@ -497,11 +507,23 @@ func (a *App) tryExecuteCustomCommand(rctx request.CTX, args *model.CommandArgs,
 	channelMentionMap := a.MentionsToPublicChannels(rctx, message, team.Id)
 	maps.Copy(p, channelMentionMap.ToURLValues())
 
+	// Use configured SiteURL for response_url to prevent SSRF via Host header spoofing (MM-67142)
+	siteURL := *a.Config().ServiceSettings.SiteURL
+	if siteURL == "" {
+		return cmd, nil, model.NewAppError("tryExecuteCustomCommand", "api.command.execute_command.site_url_required.app_error", nil, "", http.StatusBadRequest)
+	}
+	if siteURL != args.SiteURL {
+		rctx.Logger().Warn(i18n.T("api.command.execute_command.provided_site_url_different.app_error"),
+			mlog.String("request_host", args.SiteURL),
+			mlog.String("configured_site_url", siteURL),
+			mlog.String("command", trigger))
+	}
+
 	hook, appErr := a.CreateCommandWebhook(cmd.Id, args)
 	if appErr != nil {
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]any{"Trigger": trigger}, "", http.StatusInternalServerError).Wrap(appErr)
 	}
-	p.Set("response_url", args.SiteURL+"/hooks/commands/"+hook.Id)
+	p.Set("response_url", siteURL+"/hooks/commands/"+hook.Id)
 
 	return a.DoCommandRequest(rctx, cmd, p)
 }
@@ -587,6 +609,10 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed_empty.app_error", map[string]any{"Trigger": cmd.Trigger}, "", http.StatusInternalServerError)
 	}
 
+	if appErr := response.IsValid(); appErr != nil {
+		rctx.Logger().Warn("Command response is not valid. Please update your integration to be compliant.", mlog.Err(appErr))
+	}
+
 	return cmd, response, nil
 }
 
@@ -660,8 +686,6 @@ func (a *App) HandleCommandResponsePost(rctx request.CTX, command *model.Command
 		} else if response.IconURL != "" {
 			post.AddProp(model.PostPropsOverrideIconURL, response.IconURL)
 			isBotPost = true
-		} else {
-			post.AddProp(model.PostPropsOverrideIconURL, "")
 		}
 	}
 
@@ -672,7 +696,7 @@ func (a *App) HandleCommandResponsePost(rctx request.CTX, command *model.Command
 	// Process Slack text replacements if the response does not contain "skip_slack_parsing": true.
 	if !response.SkipSlackParsing {
 		response.Text = a.ProcessSlackText(rctx, response.Text)
-		response.Attachments = a.ProcessSlackAttachments(rctx, response.Attachments)
+		response.Attachments = a.ProcessMessageAttachments(rctx, response.Attachments)
 	}
 
 	if _, err := a.CreateCommandPost(rctx, post, args.TeamId, response, response.SkipSlackParsing); err != nil {

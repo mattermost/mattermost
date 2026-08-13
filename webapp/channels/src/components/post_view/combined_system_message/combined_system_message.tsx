@@ -198,7 +198,7 @@ export type Props = {
         getMissingProfilesByIds: (userIds: string[]) => void;
         getMissingProfilesByUsernames: (usernames: string[]) => void;
     };
-}
+};
 
 export class CombinedSystemMessage extends React.PureComponent<Props> {
     static defaultProps = {

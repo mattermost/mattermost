@@ -100,10 +100,11 @@ func TestServePluginPublicRequest(t *testing.T) {
 	})
 
 	t.Run("resolves path for valid plugin when subpath configured", func(t *testing.T) {
-		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://localhost:8065/subpath")
-		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
-
-		th := Setup(t)
+		// SiteURL must be set before server init so the Router is created with the correct subpath prefix.
+		// Using UpdateConfig after Setup would not rebuild the Router.
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = new("http://localhost:8065/subpath")
+		})
 
 		installPlugin(t, th, "testplugin")
 
@@ -133,10 +134,11 @@ func TestServePluginPublicRequest(t *testing.T) {
 	})
 
 	t.Run("fails attempting to break out of path", func(t *testing.T) {
-		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://localhost:8065/subpath")
-		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
-
-		th := Setup(t)
+		// SiteURL must be set before server init so the Router is created with the correct subpath prefix.
+		// Using UpdateConfig after Setup would not rebuild the Router.
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = new("http://localhost:8065/subpath")
+		})
 
 		installPlugin(t, th, "testplugin")
 		installPlugin(t, th, "testplugin2")
@@ -325,9 +327,15 @@ func TestServePluginRequest(t *testing.T) {
 	})
 
 	t.Run("invalid token - treats as unauthenticated", func(t *testing.T) {
+		const invalidToken = "notarealtoken-abc123"
+
+		buffer := &mlog.Buffer{}
+		err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
+		require.NoError(t, err)
+
 		req := httptest.NewRequest(http.MethodGet, "/plugins/testplugin/endpoint", nil)
 		req = mux.SetURLVars(req, map[string]string{"plugin_id": "testplugin"})
-		req.Header.Set(model.HeaderAuth, model.HeaderBearer+" invalidtoken")
+		req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+invalidToken)
 		rr := httptest.NewRecorder()
 
 		handlerCalled := false
@@ -339,6 +347,22 @@ func TestServePluginRequest(t *testing.T) {
 
 		th.App.ch.servePluginRequest(rr, req, mockHandler)
 		require.True(t, handlerCalled)
+
+		err = th.TestLogger.Flush()
+		require.NoError(t, err)
+
+		logOutput := buffer.String()
+		assert.NotContains(t, logOutput, invalidToken)
+
+		foundInvalidTokenLog := false
+		for _, e := range testlib.ParseLogEntries(t, strings.NewReader(logOutput)) {
+			if e.Msg == "Token in plugin request is invalid. Treating request as unauthenticated" {
+				foundInvalidTokenLog = true
+				break
+			}
+		}
+		require.True(t, foundInvalidTokenLog, "expected invalid-token debug log")
+		assert.Contains(t, logOutput, "<redacted>")
 	})
 
 	t.Run("MFA required - treats as unauthenticated", func(t *testing.T) {
@@ -443,6 +467,38 @@ func TestServePluginRequest(t *testing.T) {
 			assert.Equal(t, "TestAgent/1.0", ctx.UserAgent)
 			assert.Equal(t, th.BasicUser.Id, r.Header.Get("Mattermost-User-Id"))
 			assert.Equal(t, session.Id, ctx.SessionId)
+		}
+
+		th.App.ch.servePluginRequest(rr, req, mockHandler)
+		require.True(t, handlerCalled)
+	})
+
+	t.Run("connection id passed to plugin context", func(t *testing.T) {
+		connectionId := "test-connection-id-abc123"
+		req := httptest.NewRequest(http.MethodGet, "/plugins/testplugin/endpoint", nil)
+		req = mux.SetURLVars(req, map[string]string{"plugin_id": "testplugin"})
+		req.Header.Set(model.ConnectionId, connectionId)
+		rr := httptest.NewRecorder()
+
+		handlerCalled := false
+		mockHandler := func(ctx *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			handlerCalled = true
+			assert.Equal(t, connectionId, ctx.ConnectionId)
+		}
+
+		th.App.ch.servePluginRequest(rr, req, mockHandler)
+		require.True(t, handlerCalled)
+	})
+
+	t.Run("empty connection id when header not present", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/plugins/testplugin/endpoint", nil)
+		req = mux.SetURLVars(req, map[string]string{"plugin_id": "testplugin"})
+		rr := httptest.NewRecorder()
+
+		handlerCalled := false
+		mockHandler := func(ctx *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			handlerCalled = true
+			assert.Empty(t, ctx.ConnectionId)
 		}
 
 		th.App.ch.servePluginRequest(rr, req, mockHandler)

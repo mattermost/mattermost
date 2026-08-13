@@ -379,6 +379,51 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         });
     });
 
+    it('MM-69928 should not create a synced/visible draft when editing a post and unmounting', async () => {
+        const editStorageKey = StoragePrefixes.EDIT_DRAFT + 'post_id_1';
+        const {unmount} = renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+                postId='post_id_1'
+                isInEditMode={true}
+                storageKey={editStorageKey}
+            />,
+            mergeObjects(initialState, {
+                entities: {
+                    general: {
+                        config: {
+                            AllowSyncedDrafts: 'true',
+                        },
+                    },
+                },
+                storage: {
+                    storage: {
+                        [editStorageKey]: {
+                            value: TestHelper.getPostDraftMock({
+                                message: 'original message',
+                                channelId,
+                            }),
+                        },
+                    },
+                },
+            }),
+        );
+
+        await userEvent.type(screen.getByTestId('edit_textbox'), ' edited');
+
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
+
+        unmount();
+
+        // The edit content may be persisted locally, but it must never be flagged
+        // as visible (show) or synced to the server (save), which would surface it
+        // as a draft in the drafts UI.
+        mockedUpdateDraft.mock.calls.forEach((call) => {
+            expect(call[1]).not.toMatchObject({show: true});
+            expect(call[3]).toBeFalsy();
+        });
+    });
+
     it('should deleted a deleted draft when changing channels', async () => {
         const {rerender} = renderWithContext(
             <AdvancedTextEditor
@@ -522,18 +567,18 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
-            expect(textbox).toHaveValue(':blush: ');
-            expect(textbox.selectionStart).toEqual(8);
-            expect(textbox.selectionEnd).toEqual(8);
+            expect(textbox).toHaveValue('\uD83D\uDE0A ');
+            expect(textbox.selectionStart).toEqual(3);
+            expect(textbox.selectionEnd).toEqual(3);
 
             // Do it again
             await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
             await userEvent.click(screen.getByRole('button', {name: 'relaxed emoji'}));
 
             expect(textbox).toHaveFocus();
-            expect(textbox).toHaveValue(':blush: :relaxed: ');
-            expect(textbox.selectionStart).toEqual(18);
-            expect(textbox.selectionEnd).toEqual(18);
+            expect(textbox).toHaveValue('\uD83D\uDE0A \u263A\uFE0F ');
+            expect(textbox.selectionStart).toEqual(6);
+            expect(textbox.selectionEnd).toEqual(6);
         });
 
         it('should add a space after the existing text if needed', async () => {
@@ -553,9 +598,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
-            expect(textbox).toHaveValue('This is some text :blush: ');
-            expect(textbox.selectionStart).toEqual(26);
-            expect(textbox.selectionEnd).toEqual(26);
+            expect(textbox).toHaveValue('This is some text \uD83D\uDE0A ');
+            expect(textbox.selectionStart).toEqual(21);
+            expect(textbox.selectionEnd).toEqual(21);
         });
 
         it('should be able to add an emoji in the middle of the text', async () => {
@@ -579,10 +624,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
-            expect(textbox).toHaveValue('aaa :blush: bbb');
-
-            // The caret should now be after the emoji
-            expect(textbox.selectionStart).toEqual(12);
+            expect(textbox).toHaveValue('aaa \uD83D\uDE0A bbb');
+            expect(textbox.selectionStart).toEqual(7);
             expect(textbox.selectionEnd).toEqual(textbox.selectionEnd);
         });
 
@@ -607,11 +650,69 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
-            expect(textbox).toHaveValue('aaa :blush: bbb');
-
-            // The caret should now be after the emoji
-            expect(textbox.selectionStart).toEqual(12);
+            expect(textbox).toHaveValue('aaa \uD83D\uDE0A bbb');
+            expect(textbox.selectionStart).toEqual(7);
             expect(textbox.selectionEnd).toEqual(textbox.selectionEnd);
+        });
+    });
+
+    describe('composer placeholder', () => {
+        const suffixState = {
+            plugins: {
+                components: {
+                    ComposerPlaceholder: [
+                        {
+                            id: 'suffix-1',
+                            pluginId: 'test-plugin',
+                            transform: (placeholder: string) => `${placeholder} (encrypted)`,
+                        },
+                    ],
+                },
+            },
+        };
+
+        it('appends registered suffix to the composer placeholder', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                mergeObjects(initialState, suffixState),
+            );
+
+            expect(screen.getByPlaceholderText('Write to Test Channel (encrypted)')).toBeInTheDocument();
+        });
+
+        it('appends suffix to the thread-reply placeholder', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    rootId='root-post-id'
+                />,
+                mergeObjects(initialState, suffixState),
+            );
+
+            expect(screen.getByPlaceholderText('Reply to this thread... (encrypted)')).toBeInTheDocument();
+        });
+
+        it('appends suffix to the read-only channel placeholder', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                mergeObjects(mergeObjects(initialState, suffixState), {
+                    entities: {
+                        roles: {
+                            roles: {
+                                user_roles: {permissions: []},
+                            },
+                        },
+                    },
+                }),
+            );
+
+            expect(screen.getByPlaceholderText(
+                'This channel is read-only. Only members with permission can post here. (encrypted)',
+            )).toBeInTheDocument();
         });
     });
 });

@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
 
-import {getAdminAccount} from '../../../support/env';
+import {getAdminAccount} from '@/support/env';
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
@@ -51,7 +51,7 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
         });
     };
 
-    const promoteToChannelAdmin = (userId, channelId, admin) => {
+    const promoteToChannelAdmin = (userId: string, channelId: string, admin: Pick<UserProfile, 'username' | 'password'>) => {
         cy.externalRequest({
             user: admin,
             method: 'put',

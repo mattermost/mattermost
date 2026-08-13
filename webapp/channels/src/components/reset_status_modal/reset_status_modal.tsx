@@ -152,13 +152,13 @@ type Props = {
          */
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
     };
-}
+};
 
 type State = {
     show: boolean;
     currentUserStatus: UserStatus;
     newStatus: string;
-}
+};
 
 export default class ResetStatusModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {

@@ -4,12 +4,14 @@
 package app
 
 import (
+	"context"
 	"crypto/subtle"
 	"errors"
 	"math"
 	"net/http"
 	"os"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -182,8 +184,75 @@ func (a *App) GetLRUSessions(rctx request.CTX, userID string, limit uint64, offs
 	return sessions, nil
 }
 
+func (a *App) sendMobileWipeSignal(rctx request.CTX, sessions ...*model.Session) {
+	// detach from request context and runs async after the caller returns
+	rctx = rctx.WithContext(context.Background())
+
+	if !model.SafeDereference(a.Config().MobileEphemeralModeSettings.Enable) {
+		return
+	}
+
+	if !a.canSendPushNotifications() {
+		rctx.Logger().Warn("Cannot send mobile wipe signal because push notifications are disabled")
+		return
+	}
+
+	for _, session := range sessions {
+		if session.DeviceId == "" || session.DeviceId == session.Props[model.SessionPropLastRemovedDeviceId] {
+			continue
+		}
+
+		// Send an empty push notification of type Session that will cause apps to terminate sessions and wipe data.
+		// ContentAvailable and SoundNone are set to trigger a silent notification that wakes up
+		// the app in the background without alerting the user.
+		msg := &model.PushNotification{
+			Version:          model.PushMessageV2,
+			Type:             model.PushTypeSession,
+			ContentAvailable: 1,
+			Sound:            model.PushSoundNone,
+		}
+
+		msg.SetDeviceIdAndPlatform(session.DeviceId)
+		msg.AckId = model.NewId()
+		signature, signErr := jwt.NewWithClaims(jwt.SigningMethodES256, pushJWTClaims{
+			AckId:    msg.AckId,
+			DeviceId: msg.DeviceId,
+		}).SignedString(a.AsymmetricSigningKey())
+		if signErr != nil {
+			rctx.Logger().Warn("Failed to sign session wipe push", mlog.String("session_id", session.Id), mlog.Err(signErr))
+			continue
+		}
+		msg.Signature = signature
+		msg.ServerId = a.ServerId()
+		pushResponse, sendErr := a.rawSendToPushProxy(msg)
+
+		reason := model.NotificationReasonPushProxySendError
+		switch pushResponse[model.PushStatus] {
+		case model.PushStatusRemove:
+			reason = model.NotificationReasonPushProxyRemoveDevice
+			sendErr = errors.New(notificationErrorRemoveDevice)
+		case model.PushStatusFail:
+			sendErr = errors.New(pushResponse[model.PushStatusErrorMsg])
+		}
+
+		if sendErr != nil {
+			a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, reason, msg.Platform)
+			rctx.Logger().Warn("Failed to send session wipe push",
+				mlog.String("session_id", session.Id),
+				mlog.String("reason", reason),
+				mlog.Err(sendErr))
+			continue
+		}
+
+		if a.Metrics() != nil {
+			a.Metrics().IncrementPostSentPush()
+		}
+	}
+}
+
 func (a *App) RevokeAllSessions(rctx request.CTX, userID string) *model.AppError {
-	if err := a.ch.srv.platform.RevokeAllSessions(rctx, userID); err != nil {
+	sessions, err := a.ch.srv.platform.RevokeAllSessions(rctx, userID)
+	if err != nil {
 		switch {
 		case errors.Is(err, platform.GetSessionError):
 			return model.NewAppError("RevokeAllSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -193,6 +262,10 @@ func (a *App) RevokeAllSessions(rctx request.CTX, userID string) *model.AppError
 			return model.NewAppError("RevokeAllSessions", "app.session.remove.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	a.Srv().Go(func() {
+		a.sendMobileWipeSignal(rctx, sessions...)
+	})
 
 	return nil
 }
@@ -205,7 +278,19 @@ func (a *App) AddSessionToCache(session *model.Session) {
 
 // RevokeSessionsFromAllUsers will go through all the sessions active
 // in the server and revoke them
-func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
+func (a *App) RevokeSessionsFromAllUsers(rctx request.CTX) *model.AppError {
+	// When Mobile Ephemeral Mode is enabled, fetch sessions with active device ids
+	// before revoking them, so we can send wipe signals to the correct devices.
+	var sessionsWithActiveDevices []*model.Session
+	if model.SafeDereference(a.Config().MobileEphemeralModeSettings.Enable) {
+		var err error
+		// Sessions created between this fetch and the deletion below are revoked but won't receive a wipe signal.
+		sessionsWithActiveDevices, err = a.Srv().Store().Session().GetAllSessionsWithActiveDeviceIds()
+		if err != nil {
+			return model.NewAppError("RevokeSessionsFromAllUsers", "app.session.remove_all_sessions_for_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
 	if err := a.ch.srv.platform.RevokeSessionsFromAllUsers(); err != nil {
 		switch {
 		case errors.Is(err, users.DeleteAllAccessDataError):
@@ -214,6 +299,10 @@ func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
 			return model.NewAppError("RevokeSessionsFromAllUsers", "app.session.remove_all_sessions_for_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	a.Srv().Go(func() {
+		a.sendMobileWipeSignal(rctx, sessionsWithActiveDevices...)
+	})
 
 	return nil
 }
@@ -233,12 +322,28 @@ func (a *App) ClearSessionCacheForUserSkipClusterSend(userID string) {
 }
 
 func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
-	a.Srv().Platform().ClearSessionCacheForAllUsersSkipClusterSend()
+	if err := a.Srv().Platform().ClearSessionCacheForAllUsersSkipClusterSend(); err != nil {
+		a.Srv().Platform().Log().Error("Failed to clear session cache for all users", mlog.Err(err))
+	}
 }
 
-func (a *App) RevokeSessionsForDeviceId(rctx request.CTX, userID string, deviceID string, currentSessionId string) *model.AppError {
-	if err := a.ch.srv.platform.RevokeSessionsForDeviceId(rctx, userID, deviceID, currentSessionId); err != nil {
-		return model.NewAppError("RevokeSessionsForDeviceId", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+func (a *App) RevokeOtherSessionsForDeviceId(rctx request.CTX, userID string, deviceId string, currentSessionId string) *model.AppError {
+	if err := a.ch.srv.platform.RevokeOtherSessionsForDeviceId(rctx, userID, deviceId, currentSessionId); err != nil {
+		if errors.Is(err, platform.ErrEmptyDeviceId) {
+			return model.NewAppError("RevokeOtherSessionsForDeviceId", "app.session.revoke_other_sessions.empty_device_id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		return model.NewAppError("RevokeOtherSessionsForDeviceId", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+func (a *App) RevokeOtherSessionsForVoIPDeviceId(rctx request.CTX, userID string, voIPDeviceId string, currentSessionId string) *model.AppError {
+	if err := a.ch.srv.platform.RevokeOtherSessionsForVoIPDeviceId(rctx, userID, voIPDeviceId, currentSessionId); err != nil {
+		if errors.Is(err, platform.ErrEmptyVoIPDeviceId) {
+			return model.NewAppError("RevokeOtherSessionsForVoIPDeviceId", "app.session.revoke_other_sessions.empty_voip_device_id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		return model.NewAppError("RevokeOtherSessionsForVoIPDeviceId", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -272,12 +377,15 @@ func (a *App) RevokeSession(rctx request.CTX, session *model.Session) *model.App
 		}
 	}
 
+	a.Srv().Go(func() {
+		a.sendMobileWipeSignal(rctx, session)
+	})
+
 	return nil
 }
 
-func (a *App) AttachDeviceId(sessionID string, deviceID string, expiresAt int64) *model.AppError {
-	_, err := a.Srv().Store().Session().UpdateDeviceId(sessionID, deviceID, expiresAt)
-	if err != nil {
+func (a *App) AttachDeviceId(sessionID string, deviceId string, voIPDeviceId string, expiresAt int64) *model.AppError {
+	if err := a.Srv().Store().Session().UpdateDeviceId(sessionID, deviceId, voIPDeviceId, expiresAt); err != nil {
 		return model.NewAppError("AttachDeviceId", "app.session.update_device_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -367,6 +475,20 @@ func (a *App) GetSessionLengthInMillis(session *model.Session) int64 {
 		return 0
 	}
 
+	// For PAT sessions with a fixed expiry, return the remaining lifetime so
+	// that ExtendSessionExpiryIfNeeded never pushes ExpiresAt past the token's
+	// own expiry. The elapsed threshold check collapses to zero, so extension
+	// is effectively a no-op for these sessions (correct: the expiry is fixed).
+	// PAT sessions with ExpiresAt == 0 (non-expiring) fall through to normal
+	// web-session behavior.
+	if session.Props[model.SessionPropType] == model.SessionTypeUserAccessToken && session.ExpiresAt > 0 {
+		remaining := session.ExpiresAt - model.GetMillis()
+		if remaining < 0 {
+			return 0
+		}
+		return remaining
+	}
+
 	var hours int
 	if session.IsMobileApp() {
 		hours = *a.Config().ServiceSettings.SessionLengthMobileInHours
@@ -385,8 +507,51 @@ func (a *App) SetSessionExpireInHours(session *model.Session, hours int) {
 	a.ch.srv.platform.SetSessionExpireInHours(session, hours)
 }
 
+// validateUserAccessTokenExpiry checks a token's ExpiresAt against
+// ServiceSettings.MaximumPersonalAccessTokenLifetimeDays. 0 means no policy:
+// never-expiring tokens are allowed. A value > 0 requires the token to expire
+// within that many days, so ExpiresAt == 0 or an expiry beyond the cap is
+// rejected. Only newly created tokens are checked; existing tokens are not
+// re-validated.
+func (a *App) validateUserAccessTokenExpiry(token *model.UserAccessToken) *model.AppError {
+	cfg := a.Config().ServiceSettings
+
+	maxDays := int64(0)
+	if cfg.MaximumPersonalAccessTokenLifetimeDays != nil {
+		maxDays = int64(*cfg.MaximumPersonalAccessTokenLifetimeDays)
+	}
+
+	if token.ExpiresAt == 0 {
+		// A configured maximum lifetime implies tokens must expire; never-expiring
+		// tokens are only allowed when no maximum is set.
+		if maxDays > 0 {
+			return model.NewAppError("CreateUserAccessToken", "app.user_access_token.expires_at_required.app_error", nil, "", http.StatusBadRequest)
+		}
+		return nil
+	}
+
+	if token.ExpiresAt <= model.GetMillis() {
+		return model.NewAppError("CreateUserAccessToken", "app.user_access_token.expires_at_in_past.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if maxDays > 0 {
+		maxExpiry := model.GetMillis() + maxDays*24*60*60*1000
+		if token.ExpiresAt > maxExpiry {
+			return model.NewAppError(
+				"CreateUserAccessToken",
+				"app.user_access_token.expires_at_too_far.app_error",
+				map[string]any{"Days": maxDays},
+				"",
+				http.StatusBadRequest,
+			)
+		}
+	}
+
+	return nil
+}
+
 func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
-	user, nErr := a.ch.srv.userService.GetUser(token.UserId)
+	user, nErr := a.ch.srv.userService.GetUser(rctx, token.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -399,6 +564,16 @@ func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 
 	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
 		return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	// Bot accounts are exempt from the PAT expiry policy, matching the existing
+	// EnableUserAccessTokens bypass above: bots are programmatic clients that
+	// typically need long-lived credentials, and integrations that provision
+	// them would otherwise break the moment an admin enables enforcement.
+	if !user.IsBot {
+		if err := a.validateUserAccessTokenExpiry(token); err != nil {
+			return nil, err
+		}
 	}
 
 	token.Token = model.NewId()
@@ -434,7 +609,7 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
 	}
 
-	user, nErr := a.Srv().Store().User().Get(rctx.Context(), token.UserId)
+	user, nErr := a.Srv().Store().User().Get(rctx, token.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -447,6 +622,15 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 
 	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "EnableUserAccessTokens=false", http.StatusUnauthorized)
+	}
+
+	if token.IsExpired() {
+		auditRec := a.MakeAuditRecord(rctx, model.AuditEventRejectExpiredUserAccessToken, model.AuditStatusFail)
+		auditRec.AddMeta("token_id", token.Id)
+		auditRec.AddMeta("user_id", token.UserId)
+		auditRec.AddMeta("expires_at", token.ExpiresAt)
+		a.LogAuditRec(rctx, auditRec, nil)
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.expired", nil, "expired_token", http.StatusUnauthorized)
 	}
 
 	if user.DeleteAt != 0 {
@@ -475,6 +659,12 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 		session.AddProp(model.SessionPropIsGuest, "false")
 	}
 	a.ch.srv.platform.SetSessionExpireInHours(session, model.SessionUserAccessTokenExpiryHours)
+
+	// If the underlying PAT has a non-zero expiry, clamp the session expiry to
+	// the token's ExpiresAt so that cached sessions honor PAT expiry as well.
+	if token.ExpiresAt > 0 && (session.ExpiresAt == 0 || token.ExpiresAt < session.ExpiresAt) {
+		session.ExpiresAt = token.ExpiresAt
+	}
 
 	session, nErr = a.Srv().Store().Session().Save(rctx, session)
 	if nErr != nil {
@@ -509,6 +699,102 @@ func (a *App) RevokeUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 	return a.RevokeSession(rctx, session)
 }
 
+// revokeNonCompliantBatchLimit bounds both the number of rows fetched by
+// GetNonCompliantExpiry and the corresponding DeleteByIds call, keeping the
+// transaction footprint bounded even when a large number of tokens are
+// non-compliant. revokeNonCompliantMaxBatches caps the iterations of a single
+// revoke call so a runaway loop can't develop.
+const (
+	revokeNonCompliantBatchLimit = 1000
+	revokeNonCompliantMaxBatches = 1000
+)
+
+// maxUserAccessTokenExpiry returns the latest ExpiresAt a token may carry to
+// comply with the current ServiceSettings.MaximumPersonalAccessTokenLifetimeDays
+// policy, along with whether a policy is in effect. When no maximum is
+// configured (0), no policy applies and every token is compliant.
+func (a *App) maxUserAccessTokenExpiry() (maxExpiresAt int64, enabled bool) {
+	cfg := a.Config().ServiceSettings
+
+	maxDays := int64(0)
+	if cfg.MaximumPersonalAccessTokenLifetimeDays != nil {
+		maxDays = int64(*cfg.MaximumPersonalAccessTokenLifetimeDays)
+	}
+
+	if maxDays <= 0 {
+		return 0, false
+	}
+
+	return model.GetMillis() + maxDays*24*60*60*1000, true
+}
+
+// CountNonCompliantUserAccessTokens returns the number of active, non-bot
+// personal access tokens that violate the current maximum lifetime policy. It
+// lets an admin preview the blast radius before revoking. When no policy is in
+// effect it returns 0 — nothing is non-compliant.
+func (a *App) CountNonCompliantUserAccessTokens() (int64, *model.AppError) {
+	maxExpiresAt, enabled := a.maxUserAccessTokenExpiry()
+	if !enabled {
+		return 0, nil
+	}
+
+	count, err := a.Srv().Store().UserAccessToken().CountNonCompliantExpiry(maxExpiresAt)
+	if err != nil {
+		return 0, model.NewAppError("CountNonCompliantUserAccessTokens", "app.user_access_token.count_non_compliant.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return count, nil
+}
+
+// RevokeNonCompliantUserAccessTokens hard-deletes every active, non-bot personal
+// access token that violates the current maximum lifetime policy, along with any
+// sessions minted from them. It returns the number of tokens actually deleted.
+// Work is done in bounded batches to keep transactions small, and the per-user
+// session cache is cleared so stale sessions aren't served from memory. When no
+// policy is in effect the call is refused — there is nothing to revoke and a
+// caller reaching this path likely has a stale view of the config. Auditing is
+// the caller's responsibility, matching RevokeUserAccessToken.
+func (a *App) RevokeNonCompliantUserAccessTokens(rctx request.CTX) (int64, *model.AppError) {
+	maxExpiresAt, enabled := a.maxUserAccessTokenExpiry()
+	if !enabled {
+		return 0, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.revoke_non_compliant.no_policy.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	var totalRevoked int64
+	allRevoked := false
+	for range revokeNonCompliantMaxBatches {
+		userIDs, err := a.Srv().Store().UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, revokeNonCompliantBatchLimit)
+		if err != nil {
+			return totalRevoked, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if len(userIDs) == 0 {
+			allRevoked = true
+			break
+		}
+
+		totalRevoked += int64(len(userIDs))
+
+		seen := make(map[string]struct{}, len(userIDs))
+		for _, userID := range userIDs {
+			if _, ok := seen[userID]; !ok {
+				seen[userID] = struct{}{}
+				a.ClearSessionCacheForUser(userID)
+			}
+		}
+
+		if len(userIDs) < revokeNonCompliantBatchLimit {
+			allRevoked = true
+			break
+		}
+	}
+
+	if !allRevoked {
+		return totalRevoked, model.NewAppError("RevokeNonCompliantUserAccessTokens", "app.user_access_token.revoke_non_compliant.partial.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	return totalRevoked, nil
+}
+
 func (a *App) DisableUserAccessToken(rctx request.CTX, token *model.UserAccessToken) *model.AppError {
 	var session *model.Session
 	session, _ = a.ch.srv.platform.GetSessionContext(rctx, token.Token)
@@ -525,19 +811,70 @@ func (a *App) DisableUserAccessToken(rctx request.CTX, token *model.UserAccessTo
 }
 
 func (a *App) EnableUserAccessToken(rctx request.CTX, token *model.UserAccessToken) *model.AppError {
-	var session *model.Session
-	session, _ = a.ch.srv.platform.GetSessionContext(rctx, token.Token)
-
-	err := a.Srv().Store().UserAccessToken().UpdateTokenEnable(token.Id)
-	if err != nil {
+	if err := a.Srv().Store().UserAccessToken().UpdateTokenEnable(token.Id); err != nil {
 		return model.NewAppError("EnableUserAccessToken", "app.user_access_token.update_token_enable.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if session == nil {
-		return nil
+	return nil
+}
+
+// RotateUserAccessToken generates a new secret for the token, sets a fresh
+// expiry, and immediately invalidates the old secret and its sessions.  The
+// returned token carries the new secret (shown once, like CreateUserAccessToken).
+func (a *App) RotateUserAccessToken(rctx request.CTX, token *model.UserAccessToken, expiresAt int64) (*model.UserAccessToken, *model.AppError) {
+	user, nErr := a.ch.srv.userService.GetUser(rctx, token.UserId)
+	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(nErr, &nfErr):
+			return nil, model.NewAppError("RotateUserAccessToken", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
+		default:
+			return nil, model.NewAppError("RotateUserAccessToken", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
 	}
 
-	return nil
+	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
+		return nil, model.NewAppError("RotateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
+	}
+
+	if !user.IsBot {
+		// Validate against the proposed expiry using a throwaway copy so token
+		// isn't mutated unless the rotation actually succeeds.
+		rotated := &model.UserAccessToken{
+			Id:        token.Id,
+			UserId:    token.UserId,
+			ExpiresAt: expiresAt,
+		}
+		if err := a.validateUserAccessTokenExpiry(rotated); err != nil {
+			return nil, err
+		}
+	}
+
+	// Capture the old session before the store update so we can evict it from
+	// the cache after the secret changes.
+	oldSession, _ := a.ch.srv.platform.GetSessionContext(rctx, token.Token)
+
+	newSecret := model.NewId()
+	if err := a.Srv().Store().UserAccessToken().UpdateTokenRotate(token.Id, newSecret, expiresAt); err != nil {
+		return nil, model.NewAppError("RotateUserAccessToken", "app.user_access_token.rotate.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if oldSession != nil {
+		if err := a.RevokeSession(rctx, oldSession); err != nil {
+			rctx.Logger().Warn("Failed to revoke old session after token rotate", mlog.String("token_id", token.Id), mlog.Err(err))
+		}
+	}
+
+	token.Token = newSecret
+	token.ExpiresAt = expiresAt
+
+	if !user.IsBot {
+		if err := a.Srv().EmailService.SendUserAccessTokenRotatedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
+			rctx.Logger().Error("Unable to send user access token rotated email", mlog.Err(err), mlog.String("user_id", user.Id))
+		}
+	}
+
+	return token, nil
 }
 
 func (a *App) GetUserAccessTokens(page, perPage int) ([]*model.UserAccessToken, *model.AppError) {

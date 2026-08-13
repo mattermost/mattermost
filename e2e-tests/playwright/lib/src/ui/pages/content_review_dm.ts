@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Page, Locator, expect} from '@playwright/test';
+import type {Page, Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 import {wait} from '@/util';
 
@@ -17,14 +18,20 @@ export default class ContentReviewPage {
     readonly confirmRemoveMessageButton: Locator;
     readonly confirmKeepMessageButton: Locator;
     readonly confirmationModalComment: Locator;
+    readonly downloadReportCheckbox: Locator;
+    readonly formContinueButton: Locator;
+    readonly removePermanentlyButton: Locator;
+    readonly keepPermanentlyButton: Locator;
+    readonly removeWithoutReportButton: Locator;
+    readonly generatedSection: Locator;
 
     constructor(page: Page) {
         this.page = page;
-        this.cards = page.locator('[data-testid="property-card-view"]');
+        this.cards = page.getByTestId('property-card-view');
         this.rhsCard = page.getByTestId('rhsPostView').getByTestId('property-card-view');
         this.keepMessageButton = this.rhsCard.getByTestId('data-spillage-action-keep-message');
         this.removeMessageButton = this.rhsCard.getByTestId('data-spillage-action-remove-message');
-        this.postActionConformationModal = page.locator('div.GenericModal__wrapper');
+        this.postActionConformationModal = page.getByTestId('keep-remove-flagged-message-confirmation-modal');
         this.cancelButton = this.postActionConformationModal.getByRole('button', {name: 'Cancel'});
         this.confirmRemoveMessageButton = this.postActionConformationModal.getByRole('button', {
             name: 'Remove message',
@@ -33,12 +40,25 @@ export default class ContentReviewPage {
         this.confirmationModalComment = this.postActionConformationModal.getByTestId(
             'RemoveFlaggedMessageConfirmationModal__comment',
         );
+        this.downloadReportCheckbox = this.postActionConformationModal.getByTestId('download-report-checkbox');
+        this.formContinueButton = this.postActionConformationModal.getByRole('button', {name: 'Continue'});
+        this.removePermanentlyButton = this.postActionConformationModal.getByRole('button', {
+            name: 'Remove permanently',
+        });
+        this.keepPermanentlyButton = this.postActionConformationModal.getByRole('button', {name: 'Keep permanently'});
+        this.removeWithoutReportButton = this.postActionConformationModal.getByRole('button', {
+            name: 'Remove without report',
+        });
+        this.generatedSection = this.postActionConformationModal.getByTestId('generated-section');
     }
 
     async setReportCardByPostID(postID: string) {
         this.reportCard = this.page
-            .locator('div.DataSpillageReport')
+            .getByTestId('data-spillage-report')
             .filter({has: this.page.locator(`#postMessageText_${postID}`)});
+        if ((await this.reportCard.count()) === 0) {
+            this.reportCard = this.page.getByTestId('data-spillage-report').first();
+        }
     }
 
     private ensureReportCardSet() {
@@ -49,35 +69,34 @@ export default class ContentReviewPage {
 
     async openViewDetails() {
         this.ensureReportCardSet();
-        const button = this.reportCard!.locator('button:has-text("View Details")');
+        const button = this.reportCard!.getByRole('button', {name: 'View details'});
         await button.scrollIntoViewIfNeeded();
         await button.click();
     }
 
     async waitForPageLoaded() {
-        await this.page.waitForTimeout(1000);
         await this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
         this.ensureReportCardSet();
-        await expect(this.reportCard!).toBeVisible();
+        await expect(this.reportCard!).toBeVisible({timeout: 15000});
     }
 
     async getLastCard(): Promise<Locator> {
         const count = await this.cards.count();
-        if (count === 0) throw new Error('No content review cards found.');
+        if (count === 0) {
+            throw new Error('No content review cards found.');
+        }
         return this.cards.nth(count - 1);
     }
 
     async openCardByMessage(message: string) {
-        const targetCard = this.page
-            .locator('div.DataSpillageReport')
-            .filter({has: this.page.locator(`.row:has-text("${message}")`)});
+        const targetCard = this.page.getByTestId('data-spillage-report').filter({
+            has: this.page.getByTestId('property-card-row').filter({hasText: message}),
+        });
         await targetCard.first().click();
     }
 
     private field(fieldName: string): Locator {
-        return this.rhsCard.locator('.row', {
-            has: this.rhsCard.locator(`.field:has-text("${fieldName}")`),
-        });
+        return this.rhsCard.getByTestId('property-card-row').filter({hasText: fieldName});
     }
 
     /**
@@ -85,7 +104,8 @@ export default class ContentReviewPage {
      */
     async getValueForField(fieldName: string): Promise<string> {
         await expect(this.rhsCard).toBeVisible({timeout: 10000});
-        const valueLocator = this.rhsCard.locator(`.row:has(.field:has-text("${fieldName}")) .value`);
+        const row = this.rhsCard.getByTestId('property-card-row').filter({hasText: fieldName});
+        const valueLocator = row.getByTestId('property-card-field-value');
         await expect(valueLocator).toBeVisible({timeout: 5000});
         return valueLocator.innerText();
     }
@@ -99,30 +119,31 @@ export default class ContentReviewPage {
     }
 
     async expectTextProperty(fieldName: string, expected: string) {
-        await expect(this.field(fieldName).locator('.TextProperty')).toHaveText(expected);
+        await expect(this.field(fieldName).getByTestId('text-property')).toHaveText(expected);
     }
 
     async expectUser(fieldName: string, expected: string) {
         await expect(this.rhsCard).toBeVisible({timeout: 10000});
 
-        const userButton = this.rhsCard.locator(`.row:has(.field:has-text("${fieldName}")) .user-popover`);
+        const row = this.rhsCard.getByTestId('property-card-row').filter({hasText: fieldName});
+        const userProperty = row.getByTestId('user-property');
 
         // Wait for either visible or attached then read text
-        await userButton.waitFor({state: 'attached', timeout: 10000});
-        const text = (await userButton.innerText()).trim();
+        await userProperty.waitFor({state: 'attached', timeout: 10000});
+        const text = (await userProperty.innerText()).trim();
         expect(text).toBe(expected);
     }
 
     async expectTeam(expected: string) {
-        await expect(this.rhsCard.locator('.TeamPropertyRenderer')).toContainText(expected);
+        await expect(this.rhsCard.getByTestId('team-property')).toContainText(expected);
     }
 
     async expectChannel(expected: string) {
-        await expect(this.rhsCard.locator('.ChannelPropertyRenderer')).toContainText(expected);
+        await expect(this.rhsCard.getByTestId('channel-property')).toContainText(expected);
     }
 
     async expectMessageContains(expected: string) {
-        await expect(this.rhsCard.locator('.post-message__text')).toContainText(expected);
+        await expect(this.rhsCard.getByTestId('post-message-text')).toContainText(expected);
     }
 
     async waitForRHSVisible() {
@@ -135,17 +156,34 @@ export default class ContentReviewPage {
 
     async verifyFlaggedPostStatus(expected: string) {
         this.ensureReportCardSet();
-        await expect(this.reportCard!.locator('.row:has-text("Status") .SelectProperty')).toHaveText(expected);
+        const statusRow = this.reportCard!.getByTestId('property-card-row').filter({hasText: 'Status'});
+        await expect(statusRow.getByTestId('select-property')).toHaveText(expected);
     }
 
     async verifyFlaggedPostReason(expected: string) {
         this.ensureReportCardSet();
-        await expect(this.reportCard!.locator('.row:has-text("Reason") .SelectProperty')).toHaveText(expected);
+        const reasonRow = this.reportCard!.getByTestId('property-card-row').filter({hasText: 'Reason'});
+        await expect(reasonRow.getByTestId('select-property')).toHaveText(expected);
     }
 
     async verifyFlaggedPostMessage(expected: string) {
         this.ensureReportCardSet();
-        await expect(this.reportCard!.locator('.row:has-text("Message") .post-message__text')).toHaveText(expected);
+        const messageRow = this.reportCard!.getByTestId('property-card-row').filter({hasText: 'Message'});
+        await expect(messageRow.getByTestId('post-message-text')).toHaveText(expected);
+    }
+
+    async verifyFlaggedPostMessageInRHS(expected: string) {
+        const messageRow = this.rhsCard.getByTestId('property-card-row').filter({hasText: 'Message'});
+        await expect(messageRow.getByTestId('post-message-text')).toHaveText(expected);
+    }
+
+    async verifyFlaggedPostMessageInCenter(postID: string, expected: string) {
+        const centerCard = this.page
+            .getByTestId('channel_view')
+            .getByTestId('data-spillage-report')
+            .filter({has: this.page.locator(`#postMessageText_${postID}`)});
+        const messageRow = centerCard.getByTestId('property-card-row').filter({hasText: 'Message'});
+        await expect(messageRow.getByTestId('post-message-text')).toHaveText(expected);
     }
 
     async clickKeepMessage() {
@@ -171,6 +209,37 @@ export default class ContentReviewPage {
 
     async confirmKeep() {
         await this.confirmKeepMessageButton.click();
+        await this.postActionConformationModal.waitFor({state: 'hidden'});
+    }
+
+    /**
+     * From the form step, advance to the report-generated step
+     * (downloadReport checkbox is on by default).
+     */
+    async submitFormAndWaitForReport() {
+        await this.formContinueButton.click();
+        await expect(this.generatedSection).toBeVisible({timeout: 30000});
+    }
+
+    async confirmRemovePermanently() {
+        await this.removePermanentlyButton.click();
+        await this.postActionConformationModal.waitFor({state: 'hidden'});
+    }
+
+    async confirmKeepPermanently() {
+        await this.keepPermanentlyButton.click();
+        await this.postActionConformationModal.waitFor({state: 'hidden'});
+    }
+
+    /**
+     * Skip-report path: uncheck the download checkbox, submit the form to reach
+     * the skip-confirm step, then confirm removal without a report.
+     */
+    async confirmRemoveWithoutReport() {
+        await this.downloadReportCheckbox.uncheck();
+        await this.confirmRemoveMessageButton.click();
+        await expect(this.removeWithoutReportButton).toBeVisible({timeout: 10000});
+        await this.removeWithoutReportButton.click();
         await this.postActionConformationModal.waitFor({state: 'hidden'});
     }
 }

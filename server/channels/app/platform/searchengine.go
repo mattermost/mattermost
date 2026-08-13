@@ -9,16 +9,9 @@ import (
 )
 
 func (ps *PlatformService) StartSearchEngine() (string, string) {
-	if ps.SearchEngine.ElasticsearchEngine != nil && ps.SearchEngine.ElasticsearchEngine.IsEnabled() {
-		ps.Go(func() {
-			if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-				ps.Log().Error(err.Error())
-				return
-			}
-			if model.SafeDereference(ps.Config().ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership) {
-				ps.backfillPostsChannelType(ps.SearchEngine.ElasticsearchEngine)
-			}
-		})
+	if ps.SearchEngine.ElasticsearchEngine != nil {
+		ps.esWatcher = newSearchEngineWatcher(ps)
+		ps.esWatcher.start()
 	}
 
 	configListenerId := ps.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
@@ -46,33 +39,13 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 		startingBackfill := !model.SafeDereference(oldESCfg.EnableSearchPublicChannelsWithoutMembership) &&
 			model.SafeDereference(newESCfg.EnableSearchPublicChannelsWithoutMembership)
 
-		if startingES {
-			ps.Go(func() {
-				if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-					ps.Log().Error(err.Error())
-					return
-				}
-				if model.SafeDereference(newESCfg.EnableSearchPublicChannelsWithoutMembership) {
-					ps.backfillPostsChannelType(ps.SearchEngine.ElasticsearchEngine)
-				}
-			})
-		} else if stoppingES {
-			ps.Go(func() {
-				if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-					ps.Log().Error(err.Error())
-				}
-			})
-		} else if connectionChanged {
-			ps.Go(func() {
-				if model.SafeDereference(oldESCfg.EnableIndexing) {
-					if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-						ps.Log().Error(err.Error())
-					}
-					if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-						ps.Log().Error(err.Error())
-					}
-				}
-			})
+		if connectionChanged {
+			// Signal the watcher to tear down the stale client before
+			// re-evaluating. The watcher will call Stop() + Start()
+			// with the new settings on its next tick.
+			ps.esWatcher.requestRestart()
+		} else if startingES || stoppingES {
+			ps.esWatcher.reevaluate()
 		}
 
 		// Backfill was enabled but ES was already running (not starting fresh).
@@ -93,20 +66,14 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 			return
 		}
 		if oldLicense == nil && newLicense != nil {
-			if ps.SearchEngine.ElasticsearchEngine != nil && ps.SearchEngine.ElasticsearchEngine.IsActive() {
-				ps.Go(func() {
-					if err := ps.SearchEngine.ElasticsearchEngine.Start(); err != nil {
-						ps.Log().Error(err.Error())
-					}
-				})
-			}
+			// License added -- watcher will try Start() on next evaluation.
+			ps.esWatcher.reevaluate()
 		} else if oldLicense != nil && newLicense == nil {
+			// License removed -- tell the watcher to stop the engine.
+			// The watcher will then retry Start() which returns nil
+			// without a license, so it backs off gracefully.
 			if ps.SearchEngine.ElasticsearchEngine != nil {
-				ps.Go(func() {
-					if err := ps.SearchEngine.ElasticsearchEngine.Stop(); err != nil {
-						ps.Log().Error(err.Error())
-					}
-				})
+				ps.esWatcher.requestRestart()
 			}
 		}
 	})
@@ -115,6 +82,9 @@ func (ps *PlatformService) StartSearchEngine() (string, string) {
 }
 
 func (ps *PlatformService) StopSearchEngine() {
+	if ps.esWatcher != nil {
+		ps.esWatcher.stop()
+	}
 	ps.RemoveConfigListener(ps.searchConfigListenerId)
 	ps.RemoveLicenseListener(ps.searchLicenseListenerId)
 	if ps.SearchEngine != nil && ps.SearchEngine.ElasticsearchEngine != nil && ps.SearchEngine.ElasticsearchEngine.IsActive() {

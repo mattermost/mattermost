@@ -61,7 +61,8 @@ func (us *UserService) GetProfileImage(user *model.User) ([]byte, bool, error) {
 func (us *UserService) FileBackend() (filestore.FileBackend, error) {
 	license := us.license()
 	insecure := us.config().ServiceSettings.EnableInsecureOutgoingConnections
-	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&us.config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+	allowedUntrustedInternalConnections := model.SafeDereference(us.config().ServiceSettings.AllowedUntrustedInternalConnections)
+	backend, err := filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(&us.config().FileSettings, license != nil && *license.Features.Compliance, insecure != nil && *insecure, allowedUntrustedInternalConnections))
 	if err != nil {
 		return nil, err
 	}

@@ -1,26 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {lazy} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {makeAsyncComponent} from 'components/async_load';
+import {Button} from '@mattermost/shared/components/button';
+
+import AdvancedCreatePost from 'components/advanced_create_post';
+import ChannelBanner from 'components/channel_banner/channel_banner';
+import ChannelBookmarks from 'components/channel_bookmarks';
+import ChannelHeader from 'components/channel_header';
 import deferComponentRender from 'components/deferComponentRender';
-import {DropOverlayIdCenterChannel} from 'components/file_upload_overlay/file_upload_overlay';
+import {DropOverlayIdCenterChannel, FileUploadOverlay} from 'components/file_upload_overlay/file_upload_overlay';
 import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
 
+import {ChannelComposerBanner} from './channel_composer_banner';
 import InputLoading from './input_loading';
 
 import type {PropsFromRedux} from './index';
-
-const ChannelHeader = makeAsyncComponent('ChannelHeader', lazy(() => import('components/channel_header')));
-const FileUploadOverlay = makeAsyncComponent('FileUploadOverlay', lazy(() => import('components/file_upload_overlay')));
-const ChannelBookmarks = makeAsyncComponent('ChannelBookmarks', lazy(() => import('components/channel_bookmarks')));
-const AdvancedCreatePost = makeAsyncComponent('AdvancedCreatePost', lazy(() => import('components/advanced_create_post')));
-const ChannelBanner = makeAsyncComponent('ChannelBanner', lazy(() => import('components/channel_banner/channel_banner')));
 
 export type Props = PropsFromRedux & RouteComponentProps<{
     postid?: string;
@@ -97,7 +97,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
 
     componentDidUpdate(prevProps: Props) {
         // TODO: debounce
-        if (prevProps.channelId !== this.props.channelId && this.props.enableWebSocketEventScope) {
+        if (prevProps.channelId !== this.props.channelId) {
             WebSocketClient.updateActiveChannel(this.props.channelId);
         }
 
@@ -125,15 +125,16 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                                 b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
-                        <button
-                            className='btn btn-primary channel-archived__close-btn'
+                        <Button
+                            emphasis='primary'
+                            className='channel-archived__close-btn'
                             onClick={this.onClickCloseChannel}
                         >
                             <FormattedMessage
                                 id='center_panel.archived.closeChannel'
                                 defaultMessage='Close Channel'
                             />
-                        </button>
+                        </Button>
                     </div>
                 </div>
             );
@@ -154,15 +155,16 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                                 b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
-                        <button
-                            className='btn btn-primary channel-archived__close-btn'
+                        <Button
+                            emphasis='primary'
+                            className='channel-archived__close-btn'
                             onClick={this.onClickCloseChannel}
                         >
                             <FormattedMessage
                                 id='center_panel.archived.closeChannel'
                                 defaultMessage='Close Channel'
                             />
-                        </button>
+                        </Button>
                     </div>
                 </div>
             );
@@ -180,15 +182,16 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                             id='channelView.noSharedTeam'
                             defaultMessage='You no longer have any teams in common with this user. New messages cannot be posted.'
                         />
-                        <button
-                            className='btn btn-primary channel-archived__close-btn'
+                        <Button
+                            emphasis='primary'
+                            className='channel-archived__close-btn'
                             onClick={this.onClickCloseChannel}
                         >
                             <FormattedMessage
                                 id='center_panel.noSharedTeam.closeChannel'
                                 defaultMessage='Close Channel'
                             />
-                        </button>
+                        </Button>
                     </div>
                 </div>
             );
@@ -201,6 +204,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     data-testid='post-create'
                     className='post-create__container AdvancedTextEditor__ctr'
                 >
+                    <ChannelComposerBanner channelId={this.props.channelId}/>
                     <AdvancedCreatePost/>
                 </div>
             );
@@ -219,8 +223,8 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     id={DropOverlayIdCenterChannel}
                 />
                 <ChannelHeader/>
-                {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
                 <ChannelBanner channelId={this.props.channelId}/>
+                {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
                 <DeferredPostView
                     channelId={this.props.channelId}
                     focusedPostId={this.state.focusedPostId}

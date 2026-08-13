@@ -5,6 +5,7 @@ package metrics
 
 import (
 	"database/sql"
+	"maps"
 	"math"
 	"net/url"
 	"os"
@@ -74,8 +75,9 @@ type MetricsInterfaceImpl struct {
 	HTTPErrorsCounter   prometheus.Counter
 	HTTPWebsocketsGauge *prometheus.GaugeVec
 
-	ClusterRequestsDuration prometheus.Histogram
-	ClusterRequestsCounter  prometheus.Counter
+	ClusterRequestsDuration       prometheus.Histogram
+	ClusterRequestsCounter        prometheus.Counter
+	ClusterReliableFallbackLength *prometheus.HistogramVec
 
 	ClusterHealthGauge prometheus.GaugeFunc
 
@@ -154,6 +156,7 @@ type MetricsInterfaceImpl struct {
 	WebSocketBroadcastBufferUsersRegisteredGauge *prometheus.GaugeVec
 	WebSocketReconnectCounter                    *prometheus.CounterVec
 
+	SearchEngineStatusGauge    prometheus.GaugeFunc
 	SearchPostSearchesCounter  prometheus.Counter
 	SearchPostSearchesDuration prometheus.Histogram
 	SearchFileSearchesCounter  prometheus.Counter
@@ -194,6 +197,7 @@ type MetricsInterfaceImpl struct {
 	SharedChannelsSyncSendStepHistogram       *prometheus.HistogramVec
 
 	ServerStartTime prometheus.Gauge
+	ServerInfo      prometheus.Gauge
 
 	JobsActive *prometheus.GaugeVec
 
@@ -257,6 +261,15 @@ func init() {
 	platform.RegisterMetricsInterface(func(ps *platform.PlatformService, driver, dataSource string) einterfaces.MetricsInterface {
 		return New(ps, driver, dataSource)
 	})
+}
+
+// mergeLabels returns a new label set combining base with extra. Values in extra
+// take precedence when a key is present in both.
+func mergeLabels(base, extra map[string]string) prometheus.Labels {
+	merged := prometheus.Labels{}
+	maps.Copy(merged, base)
+	maps.Copy(merged, extra)
+	return merged
 }
 
 // New creates a new MetricsInterface. The driver and datasource parameters are added during
@@ -535,6 +548,9 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		model.ClusterEventInvalidateCacheForPostsUsage,
 		model.ClusterEventInvalidateCacheForTeams,
 		model.ClusterEventInvalidateCacheForContentFlagging,
+		model.ClusterEventInvalidateCacheForSessionAttributes,
+		model.ClusterEventUpdateSessionAttributes,
+		model.ClusterEventInvalidateCacheForPropertyFields,
 		model.ClusterEventClearSessionCacheForAllUsers,
 		model.ClusterEventInstallPlugin,
 		model.ClusterEventRemovePlugin,
@@ -545,6 +561,23 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		m.ClusterEventMap[event] = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": string(event)})
 	}
 	m.ClusterEventMap[model.ClusterEvent("other")] = m.ClusterEventTypeCounters.With(prometheus.Labels{"name": "other"})
+
+	m.ClusterReliableFallbackLength = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemCluster,
+			Name:        "reliable_fallback_tcp",
+			Help:        "The total length in bytes of the SendBestEffort calls (UDP) that had to fallback to SendReliable (TCP) because of the message length.",
+			ConstLabels: additionalLabels,
+			// The data here will start at maxUDPDataLen = (1<<16 - 1) - 8 - 20 - 35 = 65472,
+			// so we start the first bucket at 32KiB, which will always be zero, and add 8
+			// steps exponentially until 4MiB:
+			// 32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304
+			Buckets: prometheus.ExponentialBuckets(32768, 2, 8),
+		},
+		[]string{"event"},
+	)
+	m.Registry.MustRegister(m.ClusterReliableFallbackLength)
 
 	// Login Subsystem
 
@@ -744,6 +777,24 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	m.Registry.MustRegister(m.WebSocketReconnectCounter)
 
 	// Search Subsystem
+
+	m.SearchEngineStatusGauge = prometheus.NewGaugeFunc(prometheus.GaugeOpts{
+		Namespace:   MetricsNamespace,
+		Subsystem:   MetricsSubsystemSearch,
+		Name:        "engine_status",
+		Help:        "Status of the configured search engine: 1 = healthy or not configured, 0 = configured but unavailable.",
+		ConstLabels: additionalLabels,
+	}, func() float64 {
+		es := m.Platform.SearchEngine.ElasticsearchEngine
+		if es == nil || !es.IsEnabled() {
+			return 1 // no search engine expected; nothing to alert on
+		}
+		if es.IsHealthy() {
+			return 1
+		}
+		return 0
+	})
+	m.Registry.MustRegister(m.SearchEngineStatusGauge)
 
 	m.SearchPostSearchesCounter = prometheus.NewCounter(prometheus.CounterOpts{
 		Namespace:   MetricsNamespace,
@@ -1119,6 +1170,21 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	})
 	m.ServerStartTime.SetToCurrentTime()
 	m.Registry.MustRegister(m.ServerStartTime)
+
+	m.ServerInfo = prometheus.NewGauge(prometheus.GaugeOpts{
+		Namespace: MetricsNamespace,
+		Subsystem: MetricsSubsystemSystem,
+		Name:      "server_info",
+		Help:      "The server version and build information. Always 1; read the labels.",
+		ConstLabels: mergeLabels(additionalLabels, map[string]string{
+			"version":               model.CurrentVersion,
+			"build_number":          model.BuildNumber,
+			"build_hash":            model.BuildHash,
+			"build_hash_enterprise": model.BuildHashEnterprise,
+		}),
+	})
+	m.ServerInfo.Set(1)
+	m.Registry.MustRegister(m.ServerInfo)
 
 	m.JobsActive = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -1843,6 +1909,10 @@ func (mi *MetricsInterfaceImpl) IncrementClusterRequest() {
 	mi.ClusterRequestsCounter.Inc()
 }
 
+func (mi *MetricsInterfaceImpl) ObserveClusterReliableFallbackLength(event model.ClusterEvent, length int) {
+	mi.ClusterReliableFallbackLength.With(prometheus.Labels{"event": string(event)}).Observe(float64(length))
+}
+
 func (mi *MetricsInterfaceImpl) ObserveClusterRequestDuration(elapsed float64) {
 	mi.ClusterRequestsDuration.Observe(elapsed)
 }
@@ -2346,12 +2416,12 @@ func extractDBCluster(driver, connectionString string) (string, error) {
 		return "", err
 	}
 
-	clusterEnd := strings.Index(host, ".")
-	if clusterEnd == -1 {
+	cluster, _, found := strings.Cut(host, ".")
+	if !found {
 		return host, nil
 	}
 
-	return host[:clusterEnd], nil
+	return cluster, nil
 }
 
 func extractHost(driver, connectionString string) (string, error) {

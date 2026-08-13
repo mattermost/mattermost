@@ -94,6 +94,7 @@ export default class SettingItemMin extends React.PureComponent<Props> {
         return (
             <div
                 className={classNames('section-min', {isDisabled: this.props.isDisabled})}
+                data-testid='section-min'
                 onClick={this.handleClick}
             >
                 <div

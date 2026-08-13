@@ -61,12 +61,6 @@ func setupTestHelper(s store.Store, includeCacheLayer bool, tb testing.TB) *Test
 	*config.TeamSettings.MaxUsersPerTeam = 50
 	*config.RateLimitSettings.Enable = false
 	*config.TeamSettings.EnableOpenServer = true
-	// Disable strict password requirements for test
-	*config.PasswordSettings.MinimumLength = 5
-	*config.PasswordSettings.Lowercase = false
-	*config.PasswordSettings.Uppercase = false
-	*config.PasswordSettings.Symbol = false
-	*config.PasswordSettings.Number = false
 	_, _, err = configStore.Set(config)
 	require.NoError(tb, err)
 

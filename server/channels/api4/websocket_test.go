@@ -286,14 +286,14 @@ func TestWebSocketStatuses(t *testing.T) {
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "test@nowhere.com", Type: model.TeamOpen}
 	rteam, _, _ := client.CreateTeam(context.Background(), &team)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: model.NewTestPassword()}
 	ruser, _, err := client.CreateUser(context.Background(), &user)
 	require.NoError(t, err)
 	th.LinkUserToTeam(t, ruser, rteam)
 	_, err = th.App.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
 	require.NoError(t, err)
 
-	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
+	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: model.NewTestPassword()}
 	ruser2, _, err := client.CreateUser(context.Background(), &user2)
 	require.NoError(t, err)
 	th.LinkUserToTeam(t, ruser2, rteam)
@@ -587,7 +587,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 
 		// Login user (this should work for initial authentication)
 		client := th.CreateClient()
-		_, _, err := client.Login(context.Background(), user.Email, "Pa$$word11")
+		_, _, err := client.Login(context.Background(), user.Email, user.Password)
 		require.NoError(t, err)
 
 		// Create WebSocket client - initial connection succeeds, but subsequent API requests require completed MFA
@@ -633,7 +633,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 		user := &model.User{
 			Email:    th.GenerateTestEmail(),
 			Username: model.NewUsername(),
-			Password: "password123",
+			Password: model.NewTestPassword(),
 		}
 		ruser, _, err := th.Client.CreateUser(context.Background(), user)
 		require.NoError(t, err)

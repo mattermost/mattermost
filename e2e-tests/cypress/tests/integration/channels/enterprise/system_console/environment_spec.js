@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @enterprise @not_cloud
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Environment', () => {
     before(() => {

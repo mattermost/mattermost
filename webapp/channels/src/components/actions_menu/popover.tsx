@@ -23,7 +23,7 @@ export type PopoverProps = {
 
     anchorOrigin?: PopoverOrigin;
     transformOrigin?: PopoverOrigin;
-}
+};
 
 const OPEN_ANIMATION_DURATION = 150;
 const CLOSE_ANIMATION_DURATION = 100;

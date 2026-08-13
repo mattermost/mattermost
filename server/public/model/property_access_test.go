@@ -10,6 +10,75 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestIsValidPropertyOwnerType(t *testing.T) {
+	for _, ownerType := range []string{
+		PropertyOwnerTypePlugin,
+		PropertyOwnerTypeService,
+		PropertyOwnerTypeRole,
+		PropertyOwnerTypeUser,
+	} {
+		assert.True(t, IsValidPropertyOwnerType(ownerType), ownerType)
+	}
+	assert.False(t, IsValidPropertyOwnerType(""))
+	assert.False(t, IsValidPropertyOwnerType("bogus"))
+}
+
+func TestIsValidPropertyOwnerScope(t *testing.T) {
+	for _, scope := range []string{
+		"entra",
+		"Okta",
+		"entra:tenant-1",
+		"a.b_c-d",
+		"ldap",
+	} {
+		assert.True(t, IsValidPropertyOwnerScope(scope), scope)
+	}
+
+	for _, scope := range []string{
+		"",
+		" spaces",
+		"a b",
+		"a\nb",
+		"🔥",
+		"<script>",
+	} {
+		assert.False(t, IsValidPropertyOwnerScope(scope), scope)
+	}
+}
+
+func TestGetPropertyFieldOwners(t *testing.T) {
+	t.Run("returns nil when no attrs or no owners", func(t *testing.T) {
+		assert.Nil(t, GetPropertyFieldOwners(nil))
+		assert.Nil(t, GetPropertyFieldOwners(&PropertyField{}))
+		assert.False(t, HasPropertyFieldOwners(&PropertyField{}))
+	})
+
+	t.Run("reads the typed []PropertyOwner shape", func(t *testing.T) {
+		field := &PropertyField{Attrs: StringInterface{
+			PropertyAttrsOwners: []PropertyOwner{
+				{ID: "com.mattermost.scim", Type: PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+			},
+		}}
+		owners := GetPropertyFieldOwners(field)
+		require.Len(t, owners, 1)
+		assert.Equal(t, "com.mattermost.scim", owners[0].ID)
+		assert.True(t, HasPropertyFieldOwners(field))
+	})
+
+	t.Run("reads the generic JSON-round-tripped shape", func(t *testing.T) {
+		field := &PropertyField{Attrs: StringInterface{
+			PropertyAttrsOwners: []any{
+				map[string]any{"id": "com.mattermost.scim", "type": "plugin", "scopes": []any{"entra"}},
+			},
+		}}
+		owners := GetPropertyFieldOwners(field)
+		require.Len(t, owners, 1)
+		assert.Equal(t, "com.mattermost.scim", owners[0].ID)
+		assert.Equal(t, PropertyOwnerTypePlugin, owners[0].Type)
+		assert.Equal(t, []string{"entra"}, owners[0].Scopes)
+	})
+}
+
 func TestIsKnownPropertyAccessMode(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -89,6 +158,29 @@ func TestIsPropertyFieldProtected(t *testing.T) {
 	})
 }
 
+func TestPropertyFieldGetAccessMode(t *testing.T) {
+	t.Run("nil attrs returns public", func(t *testing.T) {
+		f := &PropertyField{Attrs: nil}
+		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
+	})
+	t.Run("missing access_mode returns public", func(t *testing.T) {
+		f := &PropertyField{Attrs: StringInterface{}}
+		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
+	})
+	t.Run("non-string access_mode returns public", func(t *testing.T) {
+		f := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: 123}}
+		require.Equal(t, PropertyAccessModePublic, f.GetAccessMode())
+	})
+	t.Run("shared_only returned as-is", func(t *testing.T) {
+		f := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSharedOnly}}
+		require.Equal(t, PropertyAccessModeSharedOnly, f.GetAccessMode())
+	})
+	t.Run("source_only returned as-is", func(t *testing.T) {
+		f := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSourceOnly}}
+		require.Equal(t, PropertyAccessModeSourceOnly, f.GetAccessMode())
+	})
+}
+
 func TestValidatePropertyFieldAccessMode(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -161,7 +253,7 @@ func TestValidatePropertyFieldAccessMode(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name: "invalid shared_only access mode with text field",
+			name: "valid shared_only access mode with text field and protected",
 			field: &PropertyField{
 				Type: PropertyFieldTypeText,
 				Attrs: StringInterface{
@@ -169,10 +261,10 @@ func TestValidatePropertyFieldAccessMode(t *testing.T) {
 					PropertyAttrsProtected:  true,
 				},
 			},
-			expectError: true,
+			expectError: false,
 		},
 		{
-			name: "invalid shared_only access mode with date field",
+			name: "valid shared_only access mode with date field and protected",
 			field: &PropertyField{
 				Type: PropertyFieldTypeDate,
 				Attrs: StringInterface{
@@ -180,16 +272,24 @@ func TestValidatePropertyFieldAccessMode(t *testing.T) {
 					PropertyAttrsProtected:  true,
 				},
 			},
-			expectError: true,
+			expectError: false,
 		},
 		{
-			name: "invalid shared_only access mode with user field",
+			name: "valid shared_only access mode with user field and protected",
 			field: &PropertyField{
 				Type: PropertyFieldTypeUser,
 				Attrs: StringInterface{
 					PropertyAttrsAccessMode: PropertyAccessModeSharedOnly,
 					PropertyAttrsProtected:  true,
 				},
+			},
+			expectError: false,
+		},
+		{
+			name: "shared_only access mode with text field requires protected",
+			field: &PropertyField{
+				Type:  PropertyFieldTypeText,
+				Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSharedOnly},
 			},
 			expectError: true,
 		},
@@ -200,6 +300,30 @@ func TestValidatePropertyFieldAccessMode(t *testing.T) {
 				Attrs: StringInterface{PropertyAttrsAccessMode: "unknown_mode"},
 			},
 			expectError: true,
+		},
+		{
+			name: "shared_only rejected with member-writable permission_values",
+			field: &PropertyField{
+				Type: PropertyFieldTypeSelect,
+				Attrs: StringInterface{
+					PropertyAttrsAccessMode: PropertyAccessModeSharedOnly,
+					PropertyAttrsProtected:  true,
+				},
+				PermissionValues: func() *PermissionLevel { p := PermissionLevelMember; return &p }(),
+			},
+			expectError: true,
+		},
+		{
+			name: "shared_only accepted with sysadmin permission_values",
+			field: &PropertyField{
+				Type: PropertyFieldTypeSelect,
+				Attrs: StringInterface{
+					PropertyAttrsAccessMode: PropertyAccessModeSharedOnly,
+					PropertyAttrsProtected:  true,
+				},
+				PermissionValues: func() *PermissionLevel { p := PermissionLevelSysadmin; return &p }(),
+			},
+			expectError: false,
 		},
 		{
 			name: "nil attrs should not error",

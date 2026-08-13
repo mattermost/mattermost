@@ -4,12 +4,13 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import PopoutButton from 'components/popout_button';
-import WithTooltip from 'components/with_tooltip';
 
 import {RHSStates} from 'utils/constants';
-import {isPopoutWindow} from 'utils/popouts/popout_windows';
+import {isChannelPopoutWindow, isPopoutWindow} from 'utils/popouts/popout_windows';
 
 import type {PropsFromRedux} from './index';
 
@@ -95,7 +96,7 @@ function SearchResultsHeader(props: Props) {
                 {props.newWindowHandler && (
                     <PopoutButton onClick={props.newWindowHandler}/>
                 )}
-                {!isPopoutWindow() &&
+                {(!isPopoutWindow() || isChannelPopoutWindow()) &&
                     <WithTooltip
                         title={
                             <FormattedMessage

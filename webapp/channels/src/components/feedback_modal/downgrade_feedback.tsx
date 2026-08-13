@@ -12,7 +12,7 @@ import type {FeedbackOption} from 'components/feedback_modal/feedback';
 
 type Props = {
     onSubmit: (downgradeFeedback: Feedback) => void;
-} &WrappedComponentProps
+} & WrappedComponentProps;
 
 const DowngradeFeedbackModal = (props: Props) => {
     const downgradeFeedbackModalTitle = props.intl.formatMessage({

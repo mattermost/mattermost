@@ -23,9 +23,9 @@ export const agendaPlugin = {
 
 export const demoPlugin = {
     id: 'com.mattermost.demo-plugin',
-    version: '0.10.0',
-    url: 'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.10.0/com.mattermost.demo-plugin-0.10.0.tar.gz',
-    filename: 'com.mattermost.demo-plugin-0.10.0.tar.gz',
+    version: '0.11.0',
+    url: 'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.0/mattermost-plugin-demo-v0.11.0.tar.gz',
+    filename: 'mattermost-plugin-demo-v0.11.0.tar.gz',
 };
 
 export const demoPluginOld = {
@@ -68,9 +68,9 @@ export const jiraPlugin = {
 
 export const matterpollPlugin = {
     id: 'com.github.matterpoll.matterpoll',
-    version: '1.5.0',
-    url: 'https://github.com/matterpoll/matterpoll/releases/download/v1.5.0/com.github.matterpoll.matterpoll-1.5.0.tar.gz',
-    filename: 'com.github.matterpoll.matterpoll-1.5.0.tar.gz',
+    version: '1.8.0',
+    url: 'https://github.com/matterpoll/matterpoll/releases/download/v1.8.0/com.github.matterpoll.matterpoll-1.8.0.tar.gz',
+    filename: 'com.github.matterpoll.matterpoll-1.8.0.tar.gz',
 };
 
 export const testPlugin = {

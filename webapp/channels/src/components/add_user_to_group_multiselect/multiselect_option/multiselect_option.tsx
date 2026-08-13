@@ -25,7 +25,7 @@ type Props = {
     onMouseMove: (user: UserProfileValue) => void;
     userStatuses: RelationOneToOne<UserProfile, string>;
     isSelected: boolean;
-}
+};
 
 const MultiSelectOption = React.forwardRef(({
     option,

@@ -1,35 +1,44 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/permission_schemes_settings/permission_team_scheme_settings/team_in_list/team_in_list should match snapshot with team 1`] = `
-<div
-  className="team"
-  key="12345"
->
+<div>
   <div
-    className="team-info-block"
+    class="team"
   >
-    <injectIntl(TeamIcon)
-      content="testTeam"
-      url={null}
-    />
     <div
-      className="team-data"
+      class="team-info-block"
     >
       <div
-        className="title"
+        class="TeamIcon TeamIcon__sm no-hover"
       >
-        testTeam
+        <div
+          class="TeamIcon__content no-hover"
+        >
+          <div
+            aria-label="testTeam Team Initials"
+            class="TeamIcon__initials TeamIcon__initials__sm"
+            data-testid="teamIconInitial"
+            role="img"
+          >
+            te
+          </div>
+        </div>
+      </div>
+      <div
+        class="team-data"
+      >
+        <div
+          class="title"
+        >
+          testTeam
+        </div>
       </div>
     </div>
+    <a
+      class="remove"
+    >
+      Remove
+    </a>
   </div>
-  <a
-    className="remove"
-    onClick={[Function]}
-  >
-    <MemoizedFormattedMessage
-      defaultMessage="Remove"
-      id="admin.permissions.teamScheme.removeTeam"
-    />
-  </a>
 </div>
 `;

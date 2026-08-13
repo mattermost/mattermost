@@ -10,8 +10,8 @@
 // Group: @channels @enterprise @not_cloud
 
 describe('Self hosted Pricing modal', () => {
-    let urlL: string | undefined;
-    let createdUser: Cypress.UserProfile | undefined;
+    let urlL: string;
+    let createdUser: Cypress.UserProfile;
 
     before(() => {
         cy.apiInitSetup().then(({user, offTopicUrl: url}) => {

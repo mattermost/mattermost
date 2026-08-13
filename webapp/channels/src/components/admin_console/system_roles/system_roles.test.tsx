@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import SystemRoles from './system_roles';
@@ -18,11 +18,12 @@ describe('admin_console/system_roles', () => {
             }),
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SystemRoles
                 roles={roles}
-            />);
+            />,
+        );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

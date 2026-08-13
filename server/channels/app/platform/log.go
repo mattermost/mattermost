@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"slices"
 	"time"
 
@@ -225,14 +226,25 @@ func (ps *PlatformService) GetLogFile(rctx request.CTX) (*model.FileData, error)
 	}, nil
 }
 
+// getLogRootPath returns the log root directory, checking the instance override
+// first, then delegating to config.GetLogRootPath (env var / default).
+func (ps *PlatformService) getLogRootPath() string {
+	if ps.logRootPathOverride != "" {
+		if abs, err := filepath.Abs(ps.logRootPathOverride); err == nil {
+			return abs
+		}
+		return ps.logRootPathOverride
+	}
+	return config.GetLogRootPath()
+}
+
 // validateLogFilePath validates that a log file path is within the logging root directory.
 // This prevents arbitrary file read/write vulnerabilities in logging configuration.
 // The logging root is determined by MM_LOG_PATH environment variable or the default logs directory.
 // Used to validate paths when reading logs via GetLogsSkipSend, GetLogFile, and GetAdvancedLogs.
 // In future versions, this will also be used to validate paths when saving logging config.
 func (ps *PlatformService) validateLogFilePath(filePath string) error {
-	// Get the logging root path (from env var or default logs directory)
-	loggingRoot := config.GetLogRootPath()
+	loggingRoot := ps.getLogRootPath()
 
 	return config.ValidateLogFilePath(filePath, loggingRoot)
 }

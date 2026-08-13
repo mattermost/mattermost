@@ -11,6 +11,7 @@ import type {UserThread} from '@mattermost/types/threads';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import ChannelBanner from 'components/channel_banner/channel_banner';
 import deferComponentRender from 'components/deferComponentRender';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdThreads} from 'components/file_upload_overlay/file_upload_overlay';
@@ -54,13 +55,12 @@ export type Props = Attrs & {
     isThreadView: boolean;
     inputPlaceholder?: string;
     rootPostId: string;
-    enableWebSocketEventScope: boolean;
     lastUpdateAt: number;
 };
 
 type State = {
     isLoading: boolean;
-}
+};
 
 export default class ThreadViewer extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
@@ -84,9 +84,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
     }
 
     public componentWillUnmount() {
-        if (this.props.enableWebSocketEventScope) {
-            WebSocketClient.updateActiveThread(this.props.isThreadView, '');
-        }
+        WebSocketClient.updateActiveThread(this.props.isThreadView, '');
     }
 
     public componentDidUpdate(prevProps: Props) {
@@ -202,7 +200,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
             await this.fetchThread();
         }
 
-        if (this.props.channel && this.props.enableWebSocketEventScope) {
+        if (this.props.channel) {
             WebSocketClient.updateActiveThread(this.props.isThreadView, this.props.channel?.id);
         }
         this.setState({isLoading: false});
@@ -238,6 +236,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         return (
             <>
                 <div className={classNames('ThreadViewer', this.props.className)}>
+                    <ChannelBanner channelId={this.props.channel?.id || ''}/>
                     <div className='post-right-comments-container'>
                         <>
                             <FileUploadOverlay

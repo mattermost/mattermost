@@ -6,7 +6,7 @@ import {OverActiveUserLimits} from './constants';
 type CalculateOverageUsersActivatedArgs = {
     seatsPurchased: number;
     activeUsers: number;
-}
+};
 
 export const calculateOverageUserActivated = ({activeUsers, seatsPurchased}: CalculateOverageUsersActivatedArgs) => {
     const minimumOverSeats = Math.ceil(seatsPurchased * OverActiveUserLimits.MIN) + seatsPurchased;

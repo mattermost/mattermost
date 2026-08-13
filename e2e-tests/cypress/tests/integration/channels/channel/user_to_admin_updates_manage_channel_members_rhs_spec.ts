@@ -33,7 +33,7 @@ describe('View Members modal', () => {
     });
 });
 
-function verifyMemberDropdownAction(hasActionItem) {
+function verifyMemberDropdownAction(hasActionItem: boolean) {
     // # Click member count to open member rhs
     cy.get('#member_rhs').click();
 

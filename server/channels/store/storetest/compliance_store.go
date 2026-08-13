@@ -1196,7 +1196,7 @@ func testMessageExportUntilUpdateAt(t *testing.T, rctx request.CTX, ss store.Sto
 	// need a team
 	team := &model.Team{
 		DisplayName: "DisplayName",
-		Name:        model.NewId(),
+		Name:        model.NewRandomTeamName(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	}

@@ -71,7 +71,7 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
-  /api/v4/oauth/outgoing_connections/{connection_id}:
+  /api/v4/oauth/outgoing_connections/{outgoing_oauth_connection_id}:
     get:
       tags:
         - oauth
@@ -84,6 +84,12 @@
         __Minimum server version__: 9.6
       operationId: GetOutgoingOAuthConnection
       parameters:
+        - name: outgoing_oauth_connection_id
+          in: path
+          description: Outgoing OAuth connection ID
+          required: true
+          schema:
+            type: string
         - name: team_id
           in: query
           description: Current Team ID in integrations backstage
@@ -115,6 +121,12 @@
         __Minimum server version__: 9.6
       operationId: UpdateOutgoingOAuthConnection
       parameters:
+        - name: outgoing_oauth_connection_id
+          in: path
+          description: Outgoing OAuth connection ID
+          required: true
+          schema:
+            type: string
         - name: team_id
           in: query
           description: Current Team ID in integrations backstage
@@ -156,6 +168,12 @@
         __Minimum server version__: 9.6
       operationId: DeleteOutgoingOAuthConnection
       parameters:
+        - name: outgoing_oauth_connection_id
+          in: path
+          description: Outgoing OAuth connection ID
+          required: true
+          schema:
+            type: string
         - name: team_id
           in: query
           description: Current Team ID in integrations backstage

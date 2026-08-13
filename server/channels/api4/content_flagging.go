@@ -28,6 +28,7 @@ func (api *API) InitContentFlagging() {
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(contentFlaggingRequired(getFlaggedPost))).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/remove", api.APISessionRequired(contentFlaggingRequired(removeFlaggedPost))).Methods(http.MethodPut)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/keep", api.APISessionRequired(contentFlaggingRequired(keepFlaggedPost))).Methods(http.MethodPut)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/report", api.APISessionRequired(contentFlaggingRequired(generateFlaggedPostReport))).Methods(http.MethodPost)
 	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/reviewers/search", api.APISessionRequired(contentFlaggingRequired(searchReviewers))).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/assign/{content_reviewer_id:[A-Za-z0-9]+}", api.APISessionRequired(contentFlaggingRequired(assignFlaggedPostReviewer))).Methods(http.MethodPost)
 
@@ -195,6 +196,11 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
+		return
+	}
+
 	enabled, appErr := c.App.ContentFlaggingEnabledForTeam(channel.TeamId)
 	if appErr != nil {
 		c.Err = appErr
@@ -226,9 +232,9 @@ func getFlaggingConfig(contentFlaggingSettings model.ContentFlaggingSettings, as
 	}
 
 	if asReviewer {
-		config.NotifyReporterOnRemoval = model.NewPointer(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentRemoved], model.TargetReporter))
+		config.NotifyReporterOnRemoval = new(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentRemoved], model.TargetReporter))
 
-		config.NotifyReporterOnDismissal = model.NewPointer(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentDismissed], model.TargetReporter))
+		config.NotifyReporterOnDismissal = new(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentDismissed], model.TargetReporter))
 	}
 
 	return config
@@ -239,9 +245,9 @@ func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	groupId, appErr := c.App.ContentFlaggingGroupId()
-	if appErr != nil {
-		c.Err = appErr
+	groupId, err := c.App.ContentFlaggingGroupId()
+	if err != nil {
+		c.Err = model.NewAppError("getContentFlaggingGroupId", "app.data_spillage.get_group.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 
@@ -279,6 +285,11 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
 		return
 	}
 
@@ -332,6 +343,11 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
 		return
 	}
 
@@ -439,6 +455,11 @@ func keepRemoveFlaggedPostChecks(c *Context, r *http.Request) (*model.FlagConten
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return nil, "", nil
+	}
+
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
 		return nil, "", nil
 	}
 
@@ -588,6 +609,11 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
+		return
+	}
+
 	assignedBy := c.AppContext.Session().UserId
 	requireTeamContentReviewer(c, assignedBy, channel.TeamId)
 	if c.Err != nil {
@@ -618,5 +644,11 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 func checkPostTypeFlaggable(c *Context, post *model.Post) {
 	if post.Type == model.PostTypeBurnOnRead || strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
 		c.Err = model.NewAppError("checkPostTypeFlaggable", "api.data_spillage.error.invalid_post_type", map[string]any{"PostType": post.Type}, "", http.StatusBadRequest)
+	}
+}
+
+func checkChannelFlaggable(c *Context, channel *model.Channel) {
+	if channel.IsGroupOrDirect() {
+		c.Err = model.NewAppError("checkChannelFlaggable", "api.data_spillage.error.invalid_channel_type", nil, "", http.StatusBadRequest)
 	}
 }

@@ -5,8 +5,10 @@ import React from 'react';
 
 import type {Team} from '@mattermost/types/teams';
 
+import AccessPoliciesTab from './team_access_policies_tab';
 import AccessTab from './team_access_tab';
 import InfoTab from './team_info_tab';
+import TeamMembershipTab from './team_membership_tab';
 
 type Props = {
     activeTab: string;
@@ -45,6 +47,28 @@ const TeamSettings = ({
     case 'access':
         result = (
             <AccessTab
+                team={team}
+                areThereUnsavedChanges={areThereUnsavedChanges}
+                setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                showTabSwitchError={showTabSwitchError}
+                setShowTabSwitchError={setShowTabSwitchError}
+            />
+        );
+        break;
+    case 'team_membership':
+        result = (
+            <TeamMembershipTab
+                team={team}
+                areThereUnsavedChanges={areThereUnsavedChanges}
+                setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                showTabSwitchError={showTabSwitchError}
+                setShowTabSwitchError={setShowTabSwitchError}
+            />
+        );
+        break;
+    case 'access_policies':
+        result = (
+            <AccessPoliciesTab
                 team={team}
                 areThereUnsavedChanges={areThereUnsavedChanges}
                 setAreThereUnsavedChanges={setAreThereUnsavedChanges}

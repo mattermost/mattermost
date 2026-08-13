@@ -4,8 +4,6 @@
 package searchlayer
 
 import (
-	"context"
-
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -37,6 +35,11 @@ func (c *SearchChannelStore) deleteChannelIndex(rctx request.CTX, channel *model
 }
 
 func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Channel) {
+	// Space backing channels are internal and never surface in channel search.
+	if channel.IsSpace() {
+		return
+	}
+
 	var userIDs, teamMemberIDs []string
 	var err error
 	if channel.Type == model.ChannelTypePrivate {
@@ -175,8 +178,11 @@ func (c *SearchChannelStore) RemoveMember(rctx request.CTX, channelID, userIdToR
 		c.rootStore.indexUserFromID(rctx, userIdToRemove)
 	}
 
-	channel, err := c.ChannelStore.Get(channelID, true)
-	if err == nil {
+	// return the removal result, not the re-index Get's — that Get returns
+	// not-found for space backing channels (excluded from the generic Get)
+	// and must not mask a successful removal.
+	channel, getErr := c.ChannelStore.Get(channelID, true)
+	if getErr == nil {
 		c.indexChannel(rctx, channel)
 	}
 
@@ -217,6 +223,11 @@ func (c *SearchChannelStore) SaveDirectChannel(rctx request.CTX, directchannel *
 		c.indexChannel(rctx, channel)
 	}
 	return channel, err
+}
+
+func (c *SearchChannelStore) SaveBoardChannel(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, view *model.View) (*model.Channel, *model.View, error) {
+	// Board channels are not indexed — they must stay invisible to channel search/autocomplete.
+	return c.ChannelStore.SaveBoardChannel(rctx, channel, maxChannelsPerTeam, view)
 }
 
 func (c *SearchChannelStore) Autocomplete(rctx request.CTX, userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error) {
@@ -341,7 +352,7 @@ func (c *SearchChannelStore) PermanentDeleteMembersByUser(rctx request.CTX, user
 }
 
 func (c *SearchChannelStore) RemoveAllDeactivatedMembers(rctx request.CTX, channelId string) error {
-	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(context.Background(), channelId, true)
+	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(rctx, channelId, true)
 	if errProfiles != nil {
 		rctx.Logger().Warn("Encountered error indexing users for channel", mlog.String("channel_id", channelId), mlog.Err(errProfiles))
 	}
@@ -358,7 +369,7 @@ func (c *SearchChannelStore) RemoveAllDeactivatedMembers(rctx request.CTX, chann
 }
 
 func (c *SearchChannelStore) PermanentDeleteMembersByChannel(rctx request.CTX, channelId string) error {
-	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(context.Background(), channelId, true)
+	profiles, errProfiles := c.rootStore.User().GetAllProfilesInChannel(rctx, channelId, true)
 	if errProfiles != nil {
 		rctx.Logger().Warn("Encountered error indexing users for channel", mlog.String("channel_id", channelId), mlog.Err(errProfiles))
 	}

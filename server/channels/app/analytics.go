@@ -56,7 +56,7 @@ func (a *App) getAnalytics(rctx request.CTX, name string, teamID string, forSupp
 }
 
 func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCount int64) (model.AnalyticsRows, *model.AppError) {
-	var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 11)
+	var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 12)
 	rows[0] = &model.AnalyticsRow{Name: "channel_open_count", Value: 0}
 	rows[1] = &model.AnalyticsRow{Name: "channel_private_count", Value: 0}
 	rows[2] = &model.AnalyticsRow{Name: "post_count", Value: 0}
@@ -68,6 +68,7 @@ func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCo
 	rows[8] = &model.AnalyticsRow{Name: "daily_active_users", Value: 0}
 	rows[9] = &model.AnalyticsRow{Name: "monthly_active_users", Value: 0}
 	rows[10] = &model.AnalyticsRow{Name: "inactive_user_count", Value: 0}
+	rows[11] = &model.AnalyticsRow{Name: "single_channel_guest_count", Value: 0}
 
 	var g errgroup.Group
 	g.SetLimit(2)
@@ -136,6 +137,17 @@ func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCo
 		return nil
 	})
 
+	var singleChannelGuestCount int64
+	if a.shouldTrackSingleChannelGuests() {
+		g.Go(func() error {
+			var err error
+			if singleChannelGuestCount, err = a.Srv().Store().User().AnalyticsGetSingleChannelGuestCount(); err != nil {
+				return model.NewAppError("GetAnalytics", "app.user.analytics_get_single_channel_guest_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			return nil
+		})
+	}
+
 	if err := g.Wait(); err != nil {
 		return nil, err.(*model.AppError)
 	}
@@ -182,6 +194,7 @@ func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCo
 
 	rows[8].Value = float64(dailyActiveUsersCount)
 	rows[9].Value = float64(monthlyActiveUsersCount)
+	rows[11].Value = float64(singleChannelGuestCount)
 
 	return rows, nil
 }

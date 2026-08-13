@@ -1,31 +1,25 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`components/VersionBar should match snapshot - bar rendered after build hash change 1`] = `""`;
+exports[`components/VersionBar should match snapshot - bar rendered after build hash change 1`] = `<div />`;
 
 exports[`components/VersionBar should match snapshot - bar rendered after build hash change 2`] = `
-<Connect(AnnouncementBar)
-  message={
-    <React.Fragment>
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="A new version of Mattermost is available."
-        id="version_bar.new"
-      />
-      <a
-        onClick={[Function]}
-        style={
-          Object {
-            "marginLeft": ".5rem",
-          }
-        }
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Refresh the app now"
-          id="version_bar.refresh"
-        />
-      </a>
-      .
-    </React.Fragment>
-  }
-  type="announcement"
-/>
+<div>
+  <div
+    class="_StyledDiv-BZhus eMNHXM announcement-bar"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        A new version of Mattermost is available.
+        <a
+          style="margin-left: 0.5rem;"
+        >
+          Refresh the app now
+        </a>
+        .
+      </span>
+    </div>
+  </div>
+</div>
 `;

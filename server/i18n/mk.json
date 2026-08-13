@@ -704,10 +704,6 @@
     "translation": "Неможе да се превземат каналите."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Не може да се превземат бројките на каналот."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Не може да се превземат каналите за наведената шема."
   },

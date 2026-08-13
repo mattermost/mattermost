@@ -7,16 +7,27 @@ import type {Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {getChannels, getArchivedChannels, joinChannel, getChannelsMemberCount, searchAllChannels} from 'mattermost-redux/actions/channels';
+import {
+    getChannels,
+    getArchivedChannels,
+    getRecommendedChannelsForUser,
+    joinChannel,
+    getChannelsMemberCount,
+    searchAllChannels,
+    getMyChannelJoinRequests,
+    withdrawMyChannelJoinRequest,
+} from 'mattermost-redux/actions/channels';
 import {RequestStatus} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector, getMyPendingJoinRequestsByChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setGlobalItem} from 'actions/storage';
 import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
+import {isChannelAccessControlEnabled} from 'selectors/general';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {makeGetGlobalItem} from 'selectors/storage';
 
@@ -61,6 +72,11 @@ function mapStateToProps(state: GlobalState) {
         rhsState: getRhsState(state),
         rhsOpen: getIsRhsOpen(state),
         channelsMemberCount: getChannelsMemberCountSelector(state),
+        accessControlEnabled: isChannelAccessControlEnabled(state),
+
+        // Discoverable Private Channels — feed the per-row state machine.
+        discoverableFeatureEnabled: isDiscoverableChannelsEnabled(state),
+        myPendingJoinRequests: getMyPendingJoinRequestsByChannel(state),
     };
 }
 
@@ -69,6 +85,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             getChannels,
             getArchivedChannels,
+            getRecommendedChannelsForUser,
             joinChannel,
             searchAllChannels,
             openModal,
@@ -76,6 +93,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setGlobalItem,
             closeRightHandSide,
             getChannelsMemberCount,
+            getMyChannelJoinRequests,
+            withdrawMyChannelJoinRequest,
         }, dispatch),
     };
 }

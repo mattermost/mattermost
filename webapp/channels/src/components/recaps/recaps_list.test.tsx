@@ -26,6 +26,7 @@ describe('RecapsList', () => {
             update_at: 1000,
             delete_at: 0,
             read_at: 0,
+            viewed_at: 0,
             channels: [],
             total_message_count: 5,
         },
@@ -39,6 +40,7 @@ describe('RecapsList', () => {
             update_at: 2000,
             delete_at: 0,
             read_at: 0,
+            viewed_at: 0,
             channels: [],
             total_message_count: 10,
         },
@@ -56,13 +58,6 @@ describe('RecapsList', () => {
 
         expect(screen.getByText('Morning Standup')).toBeInTheDocument();
         expect(screen.getByText('Weekly Review')).toBeInTheDocument();
-    });
-
-    test('should show "all caught up" message at the bottom', () => {
-        renderWithContext(<RecapsList recaps={mockCompletedRecaps}/>);
-
-        const allCaughtUpMessages = screen.getAllByText("You're all caught up");
-        expect(allCaughtUpMessages.length).toBeGreaterThan(0);
     });
 });
 

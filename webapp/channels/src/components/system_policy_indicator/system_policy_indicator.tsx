@@ -104,7 +104,36 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
         );
     }, [showPolicyNames, safePolicies, getPolicyDisplayName, handleMorePoliciesClick, handleKeyDown]);
 
+    const policyListSuffix = useMemo(() => {
+        if (!showPolicyNames || safePolicies.length === 0) {
+            return null;
+        }
+        return (
+            <>
+                {': '}
+                {renderPolicyList()}
+            </>
+        );
+    }, [showPolicyNames, safePolicies.length, renderPolicyList]);
+
+    // Channels (and teams) use membership-oriented wording because the policy
+    // governs who is or becomes a member. Files retain "access" wording — a
+    // user doesn't become a "member" of a file.
+    const usesMembershipWording = resourceType === 'channel' || resourceType === 'team';
+
     const renderCompactMessage = useCallback(() => {
+        if (usesMembershipWording) {
+            return (
+                <FormattedMessage
+                    id='system_policy_indicator.base_message_membership'
+                    defaultMessage='This {resourceType} has system-level membership {policyText} applied'
+                    values={{
+                        resourceType,
+                        policyText: hasMultiplePolicies ? 'policies' : 'policy',
+                    }}
+                />
+            );
+        }
         return (
             <FormattedMessage
                 id='system_policy_indicator.base_message'
@@ -115,22 +144,70 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
                 }}
             />
         );
-    }, [resourceType, hasMultiplePolicies]);
+    }, [resourceType, hasMultiplePolicies, usesMembershipWording]);
 
     const renderDetailedMessage = useCallback(() => {
-        const title = hasMultiplePolicies ? (
-            <FormattedMessage
-                id='system_policy_indicator.multiple_policies_title'
-                defaultMessage='Multiple system access policies applied to this {resourceType}'
-                values={{resourceType}}
-            />
-        ) : (
-            <FormattedMessage
-                id='system_policy_indicator.single_policy_title'
-                defaultMessage='System access policy applied to this {resourceType}'
-                values={{resourceType}}
-            />
-        );
+        let title: JSX.Element;
+        if (usesMembershipWording) {
+            title = hasMultiplePolicies ? (
+                <FormattedMessage
+                    id='system_policy_indicator.multiple_membership_policies_title'
+                    defaultMessage='Multiple system membership policies applied to this {resourceType}'
+                    values={{resourceType}}
+                />
+            ) : (
+                <FormattedMessage
+                    id='system_policy_indicator.single_membership_policy_title'
+                    defaultMessage='System membership policy applied to this {resourceType}'
+                    values={{resourceType}}
+                />
+            );
+        } else {
+            title = hasMultiplePolicies ? (
+                <FormattedMessage
+                    id='system_policy_indicator.multiple_policies_title'
+                    defaultMessage='Multiple system access policies applied to this {resourceType}'
+                    values={{resourceType}}
+                />
+            ) : (
+                <FormattedMessage
+                    id='system_policy_indicator.single_policy_title'
+                    defaultMessage='System access policy applied to this {resourceType}'
+                    values={{resourceType}}
+                />
+            );
+        }
+
+        let description: JSX.Element;
+        if (usesMembershipWording) {
+            description = hasMultiplePolicies ? (
+                <FormattedMessage
+                    id='system_policy_indicator.description_with_membership_policies'
+                    defaultMessage='This {resourceType} has system-level membership policies applied{policySuffix}. Any custom membership rules you set here will be applied in addition to these policies.'
+                    values={{resourceType, policySuffix: policyListSuffix}}
+                />
+            ) : (
+                <FormattedMessage
+                    id='system_policy_indicator.description_with_membership_policy'
+                    defaultMessage='This {resourceType} has a system-level membership policy applied{policySuffix}. Any custom membership rules you set here will be applied in addition to this policy.'
+                    values={{resourceType, policySuffix: policyListSuffix}}
+                />
+            );
+        } else {
+            description = hasMultiplePolicies ? (
+                <FormattedMessage
+                    id='system_policy_indicator.description_with_policies'
+                    defaultMessage='This {resourceType} has system-level access policies applied{policySuffix}. Any custom access rules you set here will be applied in addition to these policies.'
+                    values={{resourceType, policySuffix: policyListSuffix}}
+                />
+            ) : (
+                <FormattedMessage
+                    id='system_policy_indicator.description_with_policy'
+                    defaultMessage='This {resourceType} has a system-level access policy applied{policySuffix}. Any custom access rules you set here will be applied in addition to this policy.'
+                    values={{resourceType, policySuffix: policyListSuffix}}
+                />
+            );
+        }
 
         return (
             <>
@@ -146,18 +223,11 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
                     role='region'
                     aria-label='System policy details'
                 >
-                    <FormattedMessage
-                        id='system_policy_indicator.description_with_policies'
-                        defaultMessage='This {resourceType} has system-level access policies applied: {policyList}. Any custom access rules you set here will be applied in addition to this policy.'
-                        values={{
-                            resourceType,
-                            policyList: renderPolicyList(),
-                        }}
-                    />
+                    {description}
                 </div>
             </>
         );
-    }, [hasMultiplePolicies, resourceType, renderPolicyList]);
+    }, [hasMultiplePolicies, resourceType, policyListSuffix, usesMembershipWording]);
 
     const renderMessage = useCallback(() => {
         if (variant === 'compact') {

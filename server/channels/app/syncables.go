@@ -268,18 +268,20 @@ func (a *App) SyncSyncableRoles(rctx request.CTX, syncableID string, syncableTyp
 	return nil
 }
 
-// SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
-// syncable.
-func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, groupID string) {
+// SyncRolesAndMembership updates the membership of the given syncable and,
+// when syncRoles is true, also reconciles SchemeAdmin status for its members.
+func (a *App) SyncRolesAndMembership(rctx request.CTX, syncableID string, syncableType model.GroupSyncableType, groupID string, syncRoles bool) {
 	group, appErr := a.GetGroup(groupID, nil, nil)
 	if appErr != nil {
 		rctx.Logger().Warn("Error getting group", mlog.Err(appErr))
 		return
 	}
 
-	appErr = a.SyncSyncableRoles(rctx, syncableID, syncableType)
-	if appErr != nil {
-		rctx.Logger().Warn("Error syncing syncable roles", mlog.Err(appErr))
+	if syncRoles {
+		appErr = a.SyncSyncableRoles(rctx, syncableID, syncableType)
+		if appErr != nil {
+			rctx.Logger().Warn("Error syncing syncable roles", mlog.Err(appErr))
+		}
 	}
 
 	var since int64

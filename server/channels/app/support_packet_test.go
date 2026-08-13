@@ -5,22 +5,30 @@ package app
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
+
+// shortCPUProfileDuration keeps GenerateSupportPacket calls fast in tests
+// that don't care about the CPU profile's contents.
+var shortCPUProfileDuration = model.NewPointer(100 * time.Millisecond)
 
 func TestGenerateSupportPacket(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -36,8 +44,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	// Set MM_LOG_PATH to allow log file reads from our temp directory
-	t.Setenv("MM_LOG_PATH", dir)
+	// Override log root path to allow log file reads from our temp directory
+	th.App.Srv().Platform().SetLogRootPathOverride(dir)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir
@@ -85,7 +93,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	t.Run("generate Support Packet with logs", func(t *testing.T) {
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: true,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        true,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -94,7 +103,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	t.Run("generate Support Packet without logs", func(t *testing.T) {
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
 		})
 
 		rFileNames := getFileNames(t, fileDatas)
@@ -108,7 +118,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		t.Cleanup(genMockLogFiles)
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: true,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        true,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -142,6 +153,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		mockStore.On("TotalMasterDbConnections").Return(30)
 		mockStore.On("TotalReadDbConnections").Return(20)
 		mockStore.On("TotalSearchDbConnections").Return(10)
+		mockStore.On("GetInternalMasterDB").Return((*sql.DB)(nil))
+		mockStore.On("GetDiagnostics", mock.Anything).Return(&store.DatabaseDiagnostics{}, nil)
 		mockStore.On("GetSchemaDefinition").Return(&model.SupportPacketDatabaseSchema{
 			Tables: []model.DatabaseTable{},
 		}, nil)
@@ -153,7 +166,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		th.App.Srv().SetStore(&mockStore)
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -194,7 +208,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -210,8 +225,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs:   false,
-			PluginPackets: []string{pluginID},
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
+			PluginPackets:      []string{pluginID},
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -227,7 +243,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
 		})
 		rFileNames := getFileNames(t, fileDatas)
 
@@ -250,7 +267,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		})
 
 		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
-			IncludeLogs: false,
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
 		})
 
 		found := false
@@ -368,6 +386,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
 		assert.Equal(t, int64(0), sp.DeactivatedUsers)
 		assert.Equal(t, int64(0), sp.Guests)
+		assert.Equal(t, int64(0), sp.SingleChannelGuests)
 		assert.Equal(t, int64(0), sp.BotAccounts)
 		assert.Equal(t, int64(0), sp.Posts)
 		assert.Equal(t, int64(0), sp.Channels)
@@ -437,6 +456,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
 		assert.Equal(t, int64(3), sp.DeactivatedUsers)
 		assert.Equal(t, int64(2), sp.Guests)
+		assert.Equal(t, int64(0), sp.SingleChannelGuests)
 		assert.Equal(t, int64(1), sp.BotAccounts)
 		assert.Equal(t, int64(4), sp.Posts)    // 1 from the bot creation and 3 created directly
 		assert.Equal(t, int64(3), sp.Channels) // 2 from the team creation and 1 created directly
@@ -446,11 +466,23 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.Equal(t, int64(1), sp.OutgoingWebhooks)
 	})
 
+	t.Run("single channel guests are counted when a guest is in exactly one channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		channel := th.CreateChannel(t, th.BasicTeam)
+
+		guest := th.CreateGuest(t)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
+		th.AddUserToChannel(t, guest, channel)
+
+		sp := generateStats(t, th.Context, th.App)
+		assert.Equal(t, int64(1), sp.SingleChannelGuests)
+	})
+
 	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
 		// Setup a new test helper
 		th := Setup(t).InitBasic(t)
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.AnalyticsSettings.MaxUsersForStatistics = model.NewPointer(1)
+			cfg.AnalyticsSettings.MaxUsersForStatistics = new(1)
 		})
 
 		for range 5 {
@@ -597,7 +629,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	t.Run("No custom permissions", func(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
-		assert.Len(t, permissions.Roles, 25)
+		assert.Len(t, permissions.Roles, 24)
 		assert.Empty(t, permissions.Schemes)
 	})
 
@@ -611,7 +643,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	t.Run("with custom scheme", func(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
-		assert.Len(t, permissions.Roles, 35) // 25 default roles + 10 custom roles from the scheme
+		assert.Len(t, permissions.Roles, 34) // 24 default roles + 10 custom roles from the scheme
 		require.Len(t, permissions.Schemes, 1)
 		assert.Equal(t, scheme.Id, permissions.Schemes[0].Id)
 		assert.Equal(t, model.FakeSetting, permissions.Schemes[0].Name, "Name should be obfuscated")
@@ -633,7 +665,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
 		require.Len(t, permissions.Schemes, 1)
-		require.Len(t, permissions.Roles, 36) // 25 default roles + 10 custom roles from the scheme + 1 custom role
+		require.Len(t, permissions.Roles, 35) // 24 default roles + 10 custom roles from the scheme + 1 custom role
 		found := false
 		for _, r := range permissions.Roles {
 			// Confirm that sensitive fields are obfuscated

@@ -41,7 +41,7 @@ type Props = {
     displayName: string;
     timestamp: number;
     teammateTimezone: UserTimezone;
-}
+};
 
 const RemoteUserHour = ({displayName, timestamp, teammateTimezone}: Props) => {
     return (

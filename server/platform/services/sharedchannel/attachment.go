@@ -22,7 +22,7 @@ func (scs *Service) shouldSyncAttachment(fi *model.FileInfo, rc *model.RemoteClu
 	sca, err := scs.server.GetStore().SharedChannel().GetAttachment(fi.Id, rc.RemoteId)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "error fetching shared channel attachment",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "error fetching shared channel attachment",
 				mlog.String("file_id", fi.Id),
 				mlog.String("remote_id", rc.RemoteId),
 				mlog.Err(err),
@@ -105,7 +105,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 		}
 
 		if !resp.IsSuccess() {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "send file failed",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "send file failed",
 				mlog.String("remote", rc.DisplayName),
 				mlog.String("uploadId", usResp.Id),
 				mlog.String("err", resp.Err),
@@ -116,7 +116,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 		// response payload should be a model.FileInfo.
 		var fi model.FileInfo
 		if err2 := json.Unmarshal(resp.Payload, &fi); err2 != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "invalid file info response after send file",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "invalid file info response after send file",
 				mlog.String("remote", rc.DisplayName),
 				mlog.String("uploadId", usResp.Id),
 				mlog.Err(err2),
@@ -126,7 +126,7 @@ func (scs *Service) sendAttachmentForRemote(fi *model.FileInfo, post *model.Post
 
 		// save file attachment record in SharedChannelAttachments table
 		if err2 := scs.saveSharedAttachment(&fi, rc); err2 != nil {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "error saving SharedChannelAttachment",
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "error saving SharedChannelAttachment",
 				mlog.String("remote", rc.DisplayName),
 				mlog.String("uploadId", usResp.Id),
 				mlog.Err(err2),

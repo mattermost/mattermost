@@ -10,9 +10,9 @@
 // Stage: @prod
 // Group: @channels @websocket
 
-import {beRead, beUnread} from '../../../support/assertions';
-import {getAdminAccount} from '../../../support/env';
-import {getRandomId} from '../../../utils';
+import {beRead, beUnread} from '@/support/assertions';
+import {getAdminAccount} from '@/support/env';
+import {getRandomId} from '@/utils';
 
 describe('Handle new post', () => {
     const admin = getAdminAccount();

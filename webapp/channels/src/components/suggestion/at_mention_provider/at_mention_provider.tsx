@@ -41,7 +41,7 @@ type CreatedProfile = UserProfile & {
 
 type SpecialMention = {
     username: string;
-}
+};
 
 export type Props = {
     currentUserId: string;
@@ -49,10 +49,10 @@ export type Props = {
     autocompleteUsersInChannel: (prefix: string) => Promise<ActionResult>;
     useChannelMentions: boolean;
     autocompleteGroups: Group[] | null;
-    searchAssociatedGroupsForReference: (prefix: string) => Promise<{data: Group[]}>;
+    searchAssociatedGroupsForReference: (prefix: string) => Promise<ActionResult<Group[]>>;
     priorityProfiles: UserProfile[] | undefined;
     defaultAgent?: Agent;
-}
+};
 
 // Data structure returned by autocomplete API
 type AutocompleteData = {
@@ -71,7 +71,7 @@ export default class AtMentionProvider extends Provider {
     public autocompleteUsersInChannel: (prefix: string) => Promise<ActionResult>;
     public useChannelMentions: boolean;
     public autocompleteGroups: Group[] | null;
-    public searchAssociatedGroupsForReference: (prefix: string) => Promise<{data: Group[]}>;
+    public searchAssociatedGroupsForReference: (prefix: string) => Promise<ActionResult<Group[]>>;
     public priorityProfiles: UserProfile[] | undefined;
     public defaultAgent?: Agent;
 

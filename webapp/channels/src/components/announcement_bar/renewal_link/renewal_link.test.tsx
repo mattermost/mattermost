@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactWrapper} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import RenewalLink from './renewal_link';
+
+jest.mock('components/common/hooks/useOpenSalesLink', () => ({
+    __esModule: true,
+    default: () => [jest.fn()],
+}));
 
 const initialState = {
     views: {
@@ -42,25 +43,10 @@ const initialState = {
     },
 };
 
-const actImmediate = (wrapper: ReactWrapper) =>
-    act(
-        () =>
-            new Promise<void>((resolve) => {
-                setImmediate(() => {
-                    wrapper.update();
-                    resolve();
-                });
-            }),
-    );
-
 describe('components/RenewalLink', () => {
     test('should show Contact sales button', async () => {
-        const store = mockStore(initialState);
-        const wrapper = mountWithIntl(<Provider store={store}><RenewalLink/></Provider>);
+        renderWithContext(<RenewalLink/>, initialState);
 
-        // wait for the promise to resolve and component to update
-        await actImmediate(wrapper);
-
-        expect(wrapper.find('.btn').text().includes('Contact sales')).toBe(true);
+        expect(screen.getByRole('button', {name: 'Contact sales'})).toBeInTheDocument();
     });
 });

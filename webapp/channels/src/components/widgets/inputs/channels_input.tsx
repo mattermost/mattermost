@@ -41,7 +41,7 @@ type Props<T extends Channel> = {
     loadingMessage?: MessageDescriptor;
     noOptionsMessage?: MessageDescriptor;
     formatOptionLabel?: ComponentProps<typeof AsyncSelect<T>>['formatOptionLabel'];
-}
+};
 
 type State<T> = {
     options: T[];

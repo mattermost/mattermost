@@ -44,6 +44,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
 )
 
@@ -74,8 +75,8 @@ type PasswordHasher interface {
 }
 
 const (
-	// Maximum password length for all password hashers
-	PasswordMaxLengthBytes = 72
+	// Maximum password length for all password hashers.
+	PasswordMaxLengthBytes = model.UserPasswordMaxLength
 )
 
 var (
@@ -83,9 +84,9 @@ var (
 	// Any password hashed with a different hasher must be migrated to this one.
 	latestHasher PasswordHasher = DefaultPBKDF2()
 
-	// ErrPasswordTooLong is the error returned when the provided password is
-	// longer than [PasswordMaxLengthBytes].
-	ErrPasswordTooLong = fmt.Errorf("password too long; maximum length in bytes: %d", PasswordMaxLengthBytes)
+	// ErrPasswordTooLong wraps [model.ErrPasswordTooLong] so that errors.Is
+	// matches both the hashers-level and model-level sentinel.
+	ErrPasswordTooLong = fmt.Errorf("hashers: %w", model.ErrPasswordTooLong)
 
 	// ErrMismatchedHashAndPassword is the error returned when the provided
 	// password does not match the stored hash
@@ -135,17 +136,17 @@ func GetHasherFromPHCString(phcString string) (PasswordHasher, phcparser.PHC, er
 
 // Hash hashes the provided password with the latest hashing method.
 func Hash(password string) (string, error) {
-	return getLatestHasher().Hash(password)
+	return GetLatestHasher().Hash(password)
 }
 
 // CompareHashAndPassword compares the parsed [phcparser.PHC] and the provided
 // password using the latest hashing method.
 func CompareHashAndPassword(phc phcparser.PHC, password string) error {
-	return getLatestHasher().CompareHashAndPassword(phc, password)
+	return GetLatestHasher().CompareHashAndPassword(phc, password)
 }
 
 // IsLatestHasher verifies that the provided hasher is the latest one. This
 // function is useful for identifying stored hashes that require a migration.
 func IsLatestHasher(hasher PasswordHasher) bool {
-	return getLatestHasher() == hasher
+	return GetLatestHasher() == hasher
 }

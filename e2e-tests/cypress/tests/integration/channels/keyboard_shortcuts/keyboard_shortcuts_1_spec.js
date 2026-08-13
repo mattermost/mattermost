@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @keyboard_shortcuts
 
-import * as messages from '../../../fixtures/messages';
-import timeouts, * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as messages from '@/fixtures/messages';
+import timeouts, * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Keyboard Shortcuts', () => {
     let testTeam;

@@ -24,6 +24,7 @@ fi
 workspaces=(
     channels
     platform/client
+    platform/components
     platform/mattermost-redux
     platform/shared
     platform/types

@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {Team} from '@mattermost/types/teams';
@@ -27,8 +29,9 @@ import {
     getChannelsInAllTeams,
     getSortedAllTeamsUnreadChannels,
     getAllTeamsUnreadChannelIds,
+    getMyPendingJoinRequestsByChannel,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getActiveTeamsList,
@@ -52,6 +55,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 import {getPostDraft} from 'selectors/rhs';
 import globalStore from 'stores/redux_store';
 
+import ChannelTypeIcon from 'components/channel_type_icon';
 import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
@@ -59,7 +63,6 @@ import SharedChannelIndicator from 'components/shared_channel_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
-import {getArchiveIconClassName} from 'utils/channel_utils';
 import {Constants, StoragePrefixes} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
 import * as Utils from 'utils/utils';
@@ -85,11 +88,11 @@ const ThreadsChannel: FakeChannel = {
 
 type FakeChannel = Pick<Channel, 'id' | 'name' | 'display_name' | 'update_at' | 'delete_at'> & {
     type: string;
-}
+};
 
 type FakeDirectChannel = FakeChannel & {
     userId: string;
-}
+};
 
 type ChannelItem = Channel | FakeChannel | FakeDirectChannel;
 
@@ -113,6 +116,8 @@ export interface WrappedChannel {
     type?: string;
     unread?: boolean;
     unread_mentions?: number;
+    discoverableNonMember?: boolean;
+    hasPendingJoinRequest?: boolean;
 }
 
 type Props = SuggestionProps<WrappedChannel> & {
@@ -124,7 +129,9 @@ type Props = SuggestionProps<WrappedChannel> & {
     isPartOfOnlyOneTeam: boolean;
     status?: string;
     team?: Team;
-}
+    discoverableNonMember: boolean;
+    hasPendingJoinRequest: boolean;
+};
 
 export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     id,
@@ -136,6 +143,8 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     isPartOfOnlyOneTeam,
     status,
     team,
+    discoverableNonMember,
+    hasPendingJoinRequest,
     ...otherProps
 }, ref) => {
     const {formatMessage} = useIntl();
@@ -144,6 +153,11 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     const channelIsArchived = channel.delete_at && channel.delete_at !== 0;
 
     const currentUserId = useSelector(getCurrentUserId);
+
+    const channelNameRef = useRef<HTMLSpanElement>(null);
+    const [isChannelNameTruncated, setIsChannelNameTruncated] = useState(false);
+    const teamNameRef = useRef<HTMLSpanElement>(null);
+    const [isTeamNameTruncated, setIsTeamNameTruncated] = useState(false);
 
     const ids = usePrefixedIds(id, {
         name: null,
@@ -196,7 +210,11 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     defaultMessage: 'Archived channel',
                 })}
             >
-                <i className={`icon ${getArchiveIconClassName(channel.type)}`}/>
+                {isRealChannel(channel) ? (
+                    <ChannelTypeIcon channel={channel}/>
+                ) : (
+                    <i className='icon icon-archive-outline'/>
+                )}
             </span>
         );
     } else if (hasDraft) {
@@ -222,7 +240,7 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     defaultMessage: 'Public channel',
                 })}
             >
-                <i className='icon icon-globe'/>
+                {isRealChannel(channel) && <ChannelTypeIcon channel={channel}/>}
             </span>
         );
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
@@ -235,7 +253,7 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     defaultMessage: 'Private channel',
                 })}
             >
-                <i className='icon icon-lock-outline'/>
+                {isRealChannel(channel) && <ChannelTypeIcon channel={channel}/>}
             </span>
         );
     } else if (channel.type === Constants.THREADS) {
@@ -320,17 +338,50 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     let teamName = null;
     if (isRealChannel(channel) && channel.team_id && team) {
         teamName = (
-            <span
-                id={ids.teamName}
-                className='ml-2 suggestion-list__team-name'
+            <WithTooltip
+                title={team.display_name}
+                disabled={!isTeamNameTruncated}
             >
-                {team.display_name}
-            </span>
+                <span
+                    id={ids.teamName}
+                    ref={teamNameRef}
+                    className='ml-2 suggestion-list__team-name'
+                >
+                    {team.display_name}
+                </span>
+            </WithTooltip>
         );
     }
     const showSlug = (isPartOfOnlyOneTeam || channel.type === Constants.DM_CHANNEL) && channel.type !== Constants.THREADS;
 
     Reflect.deleteProperty(otherProps, 'dispatch');
+
+    let discoverableAction = null;
+    if (discoverableNonMember && isRealChannel(channel) && !channelIsArchived) {
+        // Visual affordance only. Selecting the row (click, or ENTER via the
+        // suggestion list) bubbles to QuickSwitchModal.handleSubmit, which is
+        // the single place that requests or withdraws, keeping mouse and
+        // keyboard behavior consistent.
+        discoverableAction = (
+            <div className='suggestion-list__discoverable-action'>
+                <Button
+                    emphasis={hasPendingJoinRequest ? 'tertiary' : 'primary'}
+                    size='sm'
+                    tabIndex={-1}
+                >
+                    {hasPendingJoinRequest ? formatMessage({id: 'more_channels.withdrawRequest', defaultMessage: 'Withdraw request'}) : formatMessage({id: 'more_channels.requestToJoin', defaultMessage: 'Request to join'})}
+                </Button>
+            </div>
+        );
+    }
+
+    useLayoutEffect(() => {
+        const channelEl = channelNameRef.current;
+        setIsChannelNameTruncated(Boolean(channelEl && channelEl.scrollWidth > channelEl.clientWidth));
+
+        const teamEl = teamNameRef.current;
+        setIsTeamNameTruncated(Boolean(teamEl && teamEl.scrollWidth > teamEl.clientWidth));
+    }, [name, description, showSlug, isPartOfOnlyOneTeam, team?.display_name, item.unread, channelIsArchived]);
 
     return (
         <SuggestionContainer
@@ -344,26 +395,38 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
         >
             {icon}
             <div className='suggestion-list__ellipsis suggestion-list__flex'>
-                <span className='suggestion-list__main'>
+                <div className='suggestion-list__switch-channel-primary'>
                     <span
-                        id={ids.name}
-                        className={classNames({'suggestion-list__unread': item.unread && !channelIsArchived})}
+                        data-testid='suggestion-list__main'
+                        className='suggestion-list__main'
                     >
-                        {name}
-                    </span>
-                    {showSlug && description && (
-                        <span
-                            id={ids.description}
-                            className='ml-2 suggestion-list__desc'
+                        <WithTooltip
+                            title={name}
+                            disabled={!isChannelNameTruncated}
                         >
-                            {description}
-                        </span>
-                    )}
-                </span>
-                {customStatus}
-                {sharedIcon}
-                {tag && <span id={ids.tag}>{tag}</span>}
-                {badge}
+                            <span
+                                id={ids.name}
+                                ref={channelNameRef}
+                                className={classNames('suggestion-list__channel-name-text', {'suggestion-list__unread': item.unread && !channelIsArchived})}
+                            >
+                                {name}
+                            </span>
+                        </WithTooltip>
+                        {showSlug && description && (
+                            <span
+                                id={ids.description}
+                                className='ml-2 suggestion-list__desc'
+                            >
+                                {description}
+                            </span>
+                        )}
+                    </span>
+                    {customStatus}
+                    {sharedIcon}
+                    {tag && <span id={ids.tag}>{tag}</span>}
+                    {badge}
+                </div>
+                {discoverableAction}
                 {!isPartOfOnlyOneTeam && teamName}
             </div>
         </SuggestionContainer>
@@ -398,6 +461,8 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
     }
 
     const isPartOfOnlyOneTeam = getMyTeams(state).length === 1;
+    const discoverableNonMember = Boolean(ownProps.item?.discoverableNonMember);
+    const hasPendingJoinRequest = Boolean(ownProps.item?.hasPendingJoinRequest);
 
     return {
         channelMember: getMyChannelMemberships(state)[channelId],
@@ -407,10 +472,17 @@ function mapStateToPropsForSwitchChannelSuggestion(state: GlobalState, ownProps:
         collapsedThreads,
         team,
         isPartOfOnlyOneTeam,
+        discoverableNonMember,
+        hasPendingJoinRequest,
     };
 }
 
-export const ConnectedSwitchChannelSuggestion = connect(mapStateToPropsForSwitchChannelSuggestion, null, null, {forwardRef: true})(SwitchChannelSuggestion);
+export const ConnectedSwitchChannelSuggestion = connect(
+    mapStateToPropsForSwitchChannelSuggestion,
+    null,
+    null,
+    {forwardRef: true},
+)(SwitchChannelSuggestion);
 
 let prefix = '';
 
@@ -672,7 +744,7 @@ export default class SwitchChannelProvider extends Provider {
         const currentUserId = getCurrentUserId(this.store.getState());
 
         // The naming format is fullname (nickname)
-        // username is shown seperately
+        // username is shown separately
         if ((user.first_name || user.last_name) && user.nickname) {
             displayName += Utils.getFullName(user);
             if (user.id !== currentUserId) {
@@ -778,6 +850,9 @@ export default class SwitchChannelProvider extends Provider {
                 if (unread) {
                     wrappedChannel.unread = true;
                 }
+
+                this.applyDiscoverableFlags(wrappedChannel, newChannel, state, Boolean(members[newChannel.id]));
+
                 completedChannels[channel.id] = true;
                 channels.push(wrappedChannel);
             }
@@ -926,6 +1001,21 @@ export default class SwitchChannelProvider extends Provider {
         );
     }
 
+    // Flags a wrapped channel as a discoverable private channel the user is not
+    // a member of, so Quick Switch routes it to the Request to Join flow rather
+    // than the legacy private-channel join confirmation. This must run on every
+    // channel-list path (search, recent, unread); otherwise non-search rows drop
+    // the flag and fall through to the broken join flow (MM-68764).
+    private applyDiscoverableFlags(wrappedChannel: WrappedChannel, channel: ChannelItem, state: GlobalState, isMember: boolean) {
+        if (isDiscoverableChannelsEnabled(state) &&
+            channel.type === Constants.PRIVATE_CHANNEL &&
+            'discoverable' in channel && channel.discoverable &&
+            !isMember) {
+            wrappedChannel.discoverableNonMember = true;
+            wrappedChannel.hasPendingJoinRequest = Boolean(getMyPendingJoinRequestsByChannel(state)[channel.id]);
+        }
+    }
+
     wrapChannels(channels: Channel[], channelType: string) {
         const state = this.store.getState();
         const currentChannel = getCurrentChannel(state);
@@ -963,6 +1053,8 @@ export default class SwitchChannelProvider extends Provider {
             if (unread) {
                 wrappedChannel.unread = true;
             }
+
+            this.applyDiscoverableFlags(wrappedChannel, channel, state, Boolean(member));
 
             wrappedChannel.type = channelType;
             channelList.push(wrappedChannel);

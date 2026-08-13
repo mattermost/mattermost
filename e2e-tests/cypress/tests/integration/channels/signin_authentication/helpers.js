@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import timeouts from '../../../fixtures/timeouts';
+import timeouts from '@/fixtures/timeouts';
 
 export function fillCredentialsForUser(user) {
     cy.wait(timeouts.TWO_SEC);

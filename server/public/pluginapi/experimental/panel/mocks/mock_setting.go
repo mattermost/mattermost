@@ -91,19 +91,19 @@ func (mr *MockSettingMockRecorder) GetID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetID", reflect.TypeOf((*MockSetting)(nil).GetID))
 }
 
-// GetSlackAttachments mocks base method.
-func (m *MockSetting) GetSlackAttachments(arg0, arg1 string, arg2 bool) (*model.SlackAttachment, error) {
+// GetMessageAttachments mocks base method.
+func (m *MockSetting) GetMessageAttachments(arg0, arg1 string, arg2 bool) (*model.MessageAttachment, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSlackAttachments", arg0, arg1, arg2)
-	ret0, _ := ret[0].(*model.SlackAttachment)
+	ret := m.ctrl.Call(m, "GetMessageAttachments", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.MessageAttachment)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetSlackAttachments indicates an expected call of GetSlackAttachments.
-func (mr *MockSettingMockRecorder) GetSlackAttachments(arg0, arg1, arg2 interface{}) *gomock.Call {
+// GetMessageAttachments indicates an expected call of GetMessageAttachments.
+func (mr *MockSettingMockRecorder) GetMessageAttachments(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSlackAttachments", reflect.TypeOf((*MockSetting)(nil).GetSlackAttachments), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessageAttachments", reflect.TypeOf((*MockSetting)(nil).GetMessageAttachments), arg0, arg1, arg2)
 }
 
 // GetTitle mocks base method.

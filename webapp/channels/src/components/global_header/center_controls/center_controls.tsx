@@ -27,7 +27,7 @@ const CenterControlsContainer = styled.div`
 
 export type Props = {
     productId?: ProductIdentifier;
-}
+};
 
 const CenterControls = ({productId = null}: Props): JSX.Element => {
     return (

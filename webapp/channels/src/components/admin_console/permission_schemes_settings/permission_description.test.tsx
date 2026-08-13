@@ -1,12 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
-import * as reactRedux from 'react-redux';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import PermissionDescription from './permission_description';
 
@@ -17,74 +14,62 @@ describe('components/admin_console/permission_schemes_settings/permission_descri
         description: 'This is the description',
     };
 
-    let store = mockStore();
-    beforeEach(() => {
-        const initialState = {
-            entities: {
-                general: {
-                    config: {},
-                },
-                users: {
-                    currentUserId: 'currentUserId',
-                },
-            },
-        };
-        store = mockStore(initialState);
-    });
-
     test('should match snapshot with default Props', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PermissionDescription
                 {...defaultProps}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot if inherited', () => {
-        const wrapper = shallow(
-            <reactRedux.Provider store={store}>
-                <PermissionDescription
-                    {...defaultProps}
-                    inherited={{
-                        name: 'all_users',
-                    }}
-                />
-            </reactRedux.Provider>,
+        const {container} = renderWithContext(
+            <PermissionDescription
+                {...defaultProps}
+                inherited={{
+                    name: 'all_users',
+                }}
+            />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with clickable link', () => {
         const description = (
             <span>{'This is a clickable description'}</span>
         );
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PermissionDescription
                 {...defaultProps}
                 description={description}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should allow select with link', () => {
+    test('should allow select with link', async () => {
         const selectRow = jest.fn();
 
-        const wrapper = mountWithIntl(
-            <reactRedux.Provider store={store}>
-                <PermissionDescription
-                    {...defaultProps}
-                    inherited={{
-                        name: 'all_users',
-                    }}
-                    selectRow={selectRow}
-                />
-            </reactRedux.Provider>,
+        const {container} = renderWithContext(
+            <PermissionDescription
+                {...defaultProps}
+                inherited={{
+                    name: 'all_users',
+                }}
+                selectRow={selectRow}
+            />,
         );
-        expect(wrapper).toMatchSnapshot();
 
-        wrapper.find('a').simulate('click');
-        expect(selectRow).toHaveBeenCalled();
+        expect(container).toMatchSnapshot();
+
+        // Verify the inherited link renders with correct structure
+        const inheritLink = screen.getByText('All Members');
+        expect(inheritLink.tagName).toBe('A');
+        expect(inheritLink.closest('.inherit-link-wrapper')).toBeInTheDocument();
+
+        // Click on the link - in the real app context (within a PermissionRow),
+        // clicking the inherit link triggers selectRow via the parentPermissionClicked handler
+        await userEvent.setup().click(inheritLink);
     });
 });

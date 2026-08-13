@@ -8,15 +8,16 @@ import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
-import type {Emoji} from '@mattermost/types/emojis';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
+import {getEmojiName, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
 import useEmojiPicker, {useEmojiPickerOffset} from 'components/emoji_picker/use_emoji_picker';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'components/with_tooltip';
 
+import {unifiedToUnicode} from 'utils/emoji_utils';
 import {focusAndInsertText} from 'utils/exec_commands';
 import {horizontallyWithin} from 'utils/floating';
 
@@ -28,6 +29,7 @@ const useEditorEmojiPicker = (
     textboxId: string,
     isDisabled: boolean,
     shouldShowPreview: boolean,
+    insertWysiwygText?: (text: string) => void,
 ) => {
     const intl = useIntl();
 
@@ -42,31 +44,35 @@ const useEditorEmojiPicker = (
     }, []);
 
     const insertTextAtCaret = useCallback((text: string) => {
+        if (insertWysiwygText) {
+            insertWysiwygText(text);
+            return;
+        }
+
         const textbox = document.getElementById(textboxId) as HTMLTextAreaElement | undefined;
         if (!textbox) {
             return;
         }
 
-        // Only add a space before the inserted text if we're not at the start of the textarea and there's not already
-        // a space there, but always add a space after the inserted text
         const needsSpaceBefore = textbox.selectionStart !== 0 && !(/\s/).test(textbox.value[textbox.selectionStart - 1]);
         const textToBeAdded = needsSpaceBefore ? ` ${text} ` : `${text} `;
 
         focusAndInsertText(textbox, textToBeAdded);
-    }, [textboxId]);
+    }, [textboxId, insertWysiwygText]);
 
     const handleEmojiClick = useCallback((emoji: Emoji) => {
-        const emojiAlias = getEmojiName(emoji);
-
-        if (!emojiAlias) {
-            //Oops.. There went something wrong
-            return;
+        if (isSystemEmoji(emoji)) {
+            insertTextAtCaret(unifiedToUnicode((emoji as SystemEmoji).unified));
+        } else {
+            const emojiAlias = getEmojiName(emoji);
+            if (!emojiAlias) {
+                return;
+            }
+            insertTextAtCaret(`:${emojiAlias}:`);
         }
 
-        insertTextAtCaret(`:${emojiAlias}:`);
-
         setShowEmojiPicker(false);
-    }, [insertTextAtCaret]);
+    }, [insertTextAtCaret, textboxId]);
 
     const handleGifClick = useCallback((gif: string) => {
         insertTextAtCaret(gif);

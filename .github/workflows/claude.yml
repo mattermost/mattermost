@@ -10,6 +10,8 @@ on:
   pull_request_review:
     types: [submitted]
 
+permissions: {}
+
 jobs:
   claude:
     if: |
@@ -24,6 +26,7 @@ jobs:
       issues: read
       id-token: write
     steps:
+      # Keep persist-credentials default while anthropics/claude-code-action#1236 is open
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:

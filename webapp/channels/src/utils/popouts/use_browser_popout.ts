@@ -4,7 +4,7 @@
 import {useEffect} from 'react';
 import {useHistory} from 'react-router-dom';
 
-import {isDesktopApp} from 'utils/user_agent';
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
 import {NAVIGATE_CHANNEL, CLOSE_CHANNEL} from './browser_popouts';
 
@@ -13,6 +13,9 @@ export function useBrowserPopout() {
     useEffect(() => {
         if (!isDesktopApp()) {
             const unblockHistory = history.block((blockState) => {
+                if (blockState.pathname.startsWith('/_popout')) {
+                    return undefined;
+                }
                 window.opener.postMessage({
                     channel: NAVIGATE_CHANNEL,
                     args: [blockState.pathname],

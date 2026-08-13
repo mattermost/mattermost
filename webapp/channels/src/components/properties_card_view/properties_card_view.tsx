@@ -6,11 +6,7 @@ import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
-import type {
-    NameMappedPropertyFields,
-    PropertyField,
-    PropertyValue,
-} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -29,7 +25,7 @@ export type PostPreviewFieldMetadata = {
 export type UserPropertyMetadata = {
     searchUsers?: (term: string) => Promise<UserProfile[]>;
     setUser?: (userId: string) => void;
-}
+};
 
 export type TextFieldMetadata = {
     placeholder?: string;
@@ -47,7 +43,7 @@ export type FieldMetadata = PostPreviewFieldMetadata | TextFieldMetadata | UserP
 
 export type PropertiesCardViewMetadata = {
     [key: string]: FieldMetadata;
-}
+};
 
 type OrderedRow = {
     field: PropertyField;
@@ -117,6 +113,12 @@ const fieldNameMessages = defineMessages({
     },
 });
 
+export type ActionRow = {
+    label: React.ReactNode;
+    content: React.ReactNode;
+    testId?: string;
+};
+
 type Props = {
     title: React.ReactNode;
     propertyFields: NameMappedPropertyFields;
@@ -124,12 +126,12 @@ type Props = {
     shortModeFieldOrder: Array<PropertyField['id']>;
     propertyValues: Array<PropertyValue<unknown>>;
     mode?: 'short' | 'full';
-    actionsRow?: React.ReactNode;
+    actionRows?: ActionRow[];
     metadata?: PropertiesCardViewMetadata;
     footer?: React.ReactNode;
-}
+};
 
-export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionsRow, metadata, footer}: Props) {
+export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionRows, metadata, footer}: Props) {
     const orderedRows = useMemo<OrderedRow[]>(() => {
         const hasRequiredData =
             Object.keys(propertyFields).length > 0 &&
@@ -161,6 +163,22 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
             filter((row): row is OrderedRow => row !== null);
     }, [fieldOrder, mode, propertyFields, propertyValues, shortModeFieldOrder]);
 
+    const actionRowsMemo = useMemo(() => {
+        return actionRows?.map(({label, content, testId}, idx) => (
+            content ? (
+                <div
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={idx}
+                    className='row'
+                    data-testid={testId}
+                >
+                    <div className='field'>{label}</div>
+                    <div className='value'>{content}</div>
+                </div>
+            ) : null
+        ));
+    }, [actionRows]);
+
     return (
         <div
             className='PropertyCardView'
@@ -183,12 +201,19 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                                 key={field.id}
                                 className='row'
                                 data-testid='property-card-row'
+                                data-field-name={field.name}
                             >
-                                <div className='field'>
+                                <div
+                                    className='field'
+                                    data-testid='property-card-field-label'
+                                >
                                     {translation ? <FormattedMessage {...translation}/> : field.name}
                                 </div>
 
-                                <div className='value'>
+                                <div
+                                    className='value'
+                                    data-testid='property-card-field-value'
+                                >
                                     <PropertyValueRenderer
                                         field={field}
                                         value={value}
@@ -200,22 +225,7 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                     })
                 }
 
-                {
-                    mode === 'full' && actionsRow &&
-                    <div className='row'>
-                        <div className='field'>
-                            <FormattedMessage
-                                id='property_card.actions_row.label'
-                                defaultMessage='Actions'
-                            />
-                        </div>
-
-                        <div className='value'>
-                            {actionsRow}
-                        </div>
-                    </div>
-                }
-
+                {mode === 'full' && actionRowsMemo}
                 {footer}
             </div>
         </div>

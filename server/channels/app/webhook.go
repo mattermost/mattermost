@@ -127,6 +127,14 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 
 		go func() {
 			defer wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					logger.Error("Recovered from panic in outgoing webhook goroutine",
+						mlog.String("url", url),
+						mlog.Any("panic", r),
+					)
+				}
+			}()
 
 			var accessToken *model.OutgoingOAuthConnectionToken
 
@@ -171,7 +179,7 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 				if webhookResp.Text != nil {
 					text = a.ProcessSlackText(rctx, *webhookResp.Text)
 				}
-				webhookResp.Attachments = a.ProcessSlackAttachments(rctx, webhookResp.Attachments)
+				webhookResp.Attachments = a.ProcessMessageAttachments(rctx, webhookResp.Attachments)
 				// attachments is in here for slack compatibility
 				if len(webhookResp.Attachments) > 0 {
 					webhookResp.Props[model.PostPropsAttachments] = webhookResp.Attachments
@@ -183,7 +191,7 @@ func (a *App) TriggerWebhook(rctx request.CTX, payload *model.OutgoingWebhookPay
 				if *a.Config().ServiceSettings.EnablePostIconOverride && hook.IconURL != "" && webhookResp.IconURL == "" {
 					webhookResp.IconURL = hook.IconURL
 				}
-				if _, err := a.CreateWebhookPost(rctx, hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, "", webhookResp.Props, webhookResp.Type, postRootId, webhookResp.Priority); err != nil {
+				if _, err := a.CreateWebhookPost(rctx, hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, "", webhookResp.Props, webhookResp.Type, postRootId, webhookResp.Priority, false); err != nil {
 					logger.Error("Failed to create response post.", mlog.Err(err))
 				}
 			}
@@ -226,15 +234,104 @@ func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType s
 	return &hookResp, nil
 }
 
-func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.AppError) {
+func webhookSplitDeferredProp(key string) bool {
+	switch key {
+	case model.PostPropsAttachments,
+		model.PostPropsMmBlocks,
+		model.PostPropsBlockKitBlocks,
+		model.PostPropsAdaptiveCards,
+		model.PostPropsMmBlocksActions:
+		return true
+	default:
+		return false
+	}
+}
+
+func webhookPropsJSONArray(raw any) ([]any, bool) {
+	arr, ok := raw.([]any)
+	return arr, ok
+}
+
+func splitWebhookPostPropsTooLarge() *model.AppError {
+	return model.NewAppError("splitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]any{"Max": model.PostPropsMaxUserRunes}, "", http.StatusBadRequest)
+}
+
+func refreshSplitInteractiveActions(split *model.Post, allActions any) {
+	if allActions == nil {
+		return
+	}
+	model.RefreshInteractiveActionsOnPost(split, allActions)
+}
+
+// cloneWebhookSplitPost returns a split post with a deep-copied props map. Post.Clone only
+// shallow-copies Props, so message chunks must not share one map when refresh updates actions.
+func cloneWebhookSplitPost(p *model.Post) *model.Post {
+	split := p.Clone()
+	if props := p.GetProps(); len(props) > 0 {
+		newProps := make(map[string]any, len(props))
+		maps.Copy(newProps, props)
+		split.SetProps(newProps)
+	} else {
+		split.SetProps(make(map[string]any))
+	}
+	return split
+}
+
+// distributeWebhookJSONArrayProp appends each element of a JSON array prop onto webhook post
+// splits, mirroring message attachment distribution.
+func distributeWebhookJSONArrayProp(splits []*model.Post, base *model.Post, propKey string, items []any, allActions any) ([]*model.Post, *model.AppError) {
+	for _, item := range items {
+		for {
+			lastSplit := splits[len(splits)-1]
+			newProps := make(map[string]any)
+			maps.Copy(newProps, lastSplit.GetProps())
+			orig, _ := newProps[propKey].([]any)
+			newProps[propKey] = append(orig, item)
+			candidate := lastSplit.Clone()
+			candidate.SetProps(newProps)
+			refreshSplitInteractiveActions(candidate, allActions)
+			if utf8.RuneCountInString(model.StringInterfaceToJSON(candidate.GetProps())) <= model.PostPropsMaxUserRunes {
+				lastSplit.SetProps(candidate.GetProps())
+				break
+			}
+
+			if len(orig) > 0 {
+				splits = append(splits, cloneWebhookSplitPost(base))
+				continue
+			}
+
+			return nil, splitWebhookPostPropsTooLarge()
+		}
+	}
+	return splits, nil
+}
+
+func validateWebhookPostInteractiveActions(post *model.Post) *model.AppError {
+	if err := model.ValidateInteractiveActionsForWebhook(post); err != nil {
+		return model.NewAppError("CreateWebhookPost", "api.context.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+	return nil
+}
+
+func splitWebhookPost(post *model.Post, maxPostSize int, mmBlocksEnabled bool) ([]*model.Post, *model.AppError) {
+	// Fast path: message and full props already fit one post. Pairing was validated
+	// before split, so mm_blocks_actions need not be subset/refreshed here.
+	if utf8.RuneCountInString(post.Message) <= maxPostSize {
+		if utf8.RuneCountInString(model.StringInterfaceToJSON(post.GetProps())) <= model.PostPropsMaxUserRunes {
+			return []*model.Post{post.Clone()}, nil
+		}
+	}
+
 	splits := make([]*model.Post, 0)
 	remainingText := post.Message
+
+	mmBlocksActions := post.GetProp(model.PostPropsMmBlocksActions)
 
 	base := post.Clone()
 	base.Message = ""
 	base.SetProps(make(map[string]any))
 	for k, v := range post.GetProps() {
-		if k != model.PostPropsAttachments {
+		if !webhookSplitDeferredProp(k) {
 			base.AddProp(k, v)
 		}
 	}
@@ -244,7 +341,7 @@ func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 	}
 
 	for utf8.RuneCountInString(remainingText) > maxPostSize {
-		split := base.Clone()
+		split := cloneWebhookSplitPost(base)
 		x := 0
 		for index := range remainingText {
 			x++
@@ -254,21 +351,29 @@ func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 				break
 			}
 		}
+		refreshSplitInteractiveActions(split, mmBlocksActions)
+		if utf8.RuneCountInString(model.StringInterfaceToJSON(split.GetProps())) > model.PostPropsMaxUserRunes {
+			return nil, splitWebhookPostPropsTooLarge()
+		}
 		splits = append(splits, split)
 	}
 
-	split := base.Clone()
+	split := cloneWebhookSplitPost(base)
 	split.Message = remainingText
+	refreshSplitInteractiveActions(split, mmBlocksActions)
+	if utf8.RuneCountInString(model.StringInterfaceToJSON(split.GetProps())) > model.PostPropsMaxUserRunes {
+		return nil, splitWebhookPostPropsTooLarge()
+	}
 	splits = append(splits, split)
 
-	attachments, _ := post.GetProp(model.PostPropsAttachments).([]*model.SlackAttachment)
+	attachments, _ := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 	for _, attachment := range attachments {
 		newAttachment := *attachment
 		for {
 			lastSplit := splits[len(splits)-1]
 			newProps := make(map[string]any)
 			maps.Copy(newProps, lastSplit.GetProps())
-			origAttachments, _ := newProps[model.PostPropsAttachments].([]*model.SlackAttachment)
+			origAttachments, _ := newProps[model.PostPropsAttachments].([]*model.MessageAttachment)
 			newProps[model.PostPropsAttachments] = append(origAttachments, &newAttachment)
 			newPropsString := model.StringInterfaceToJSON(newProps)
 			runeCount := utf8.RuneCountInString(newPropsString)
@@ -279,8 +384,7 @@ func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 			}
 
 			if len(origAttachments) > 0 {
-				newSplit := base.Clone()
-				splits = append(splits, newSplit)
+				splits = append(splits, cloneWebhookSplitPost(base))
 				continue
 			}
 
@@ -301,11 +405,24 @@ func splitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.
 			break
 		}
 	}
+	if !mmBlocksEnabled {
+		return splits, nil
+	}
+
+	for _, propKey := range []string{model.PostPropsMmBlocks, model.PostPropsBlockKitBlocks, model.PostPropsAdaptiveCards} {
+		if items, ok := webhookPropsJSONArray(post.GetProp(propKey)); ok && len(items) > 0 {
+			var err *model.AppError
+			splits, err = distributeWebhookJSONArrayProp(splits, base, propKey, items, mmBlocksActions)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
 
 	return splits, nil
 }
 
-func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string, priority *model.PostPriority) (*model.Post, *model.AppError) {
+func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.Channel, text, overrideUsername, overrideIconURL, overrideIconEmoji string, props model.StringInterface, postType string, postRootId string, priority *model.PostPriority, silent bool) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 
@@ -352,8 +469,8 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 		for key, val := range props {
 			switch key {
 			case model.PostPropsAttachments:
-				if attachments, success := val.([]*model.SlackAttachment); success {
-					model.ParseSlackAttachment(post, attachments)
+				if attachments, success := val.([]*model.MessageAttachment); success {
+					model.ParseMessageAttachment(post, attachments)
 				}
 			case model.PostPropsOverrideIconURL,
 				model.PostPropsOverrideUsername,
@@ -365,18 +482,59 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 		}
 	}
 
-	splits, err := splitWebhookPost(post, a.MaxPostSize())
+	mmBlocksEnabled := a.Config().FeatureFlags.MmBlocksEnabled
+
+	if mmBlocksEnabled {
+		if err := validateWebhookPostInteractiveActions(post); err != nil {
+			return nil, err
+		}
+	}
+
+	splits, err := splitWebhookPost(post, a.MaxPostSize(), mmBlocksEnabled)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, split := range splits {
-		if _, _, err := a.CreatePost(rctx, split, channel, model.CreatePostFlags{}); err != nil {
+	var returnPost *model.Post
+	for i, split := range splits {
+		flags := model.CreatePostFlags{
+			SilentNotification:   silent,
+			FromIncomingWebhook:  true,
+			AllowMmBlocksActions: split.GetProp(model.PostPropsMmBlocksActions) != nil,
+		}
+		created, _, err := a.CreatePost(rctx, split, channel, flags)
+		if err != nil {
 			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if i == 0 {
+			returnPost = created
 		}
 	}
 
-	return splits[0], nil
+	return returnPost, nil
+}
+
+// ValidateIncomingWebhookUser ensures a user being assigned as an incoming webhook's owner can
+// legitimately be attributed posts in the target channel: the user must have access to the
+// channel and must not hold privileges the requester lacks, so a requester cannot forge posts
+// as a non-member or higher-privileged user.
+func (a *App) ValidateIncomingWebhookUser(rctx request.CTX, session model.Session, user *model.User, channel *model.Channel) *model.AppError {
+	if user.IsSystemAdmin() && !a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+		return model.NewAppError("ValidateIncomingWebhookUser", "api.webhook.incoming.user_role.app_error", nil, "user_id="+user.Id, http.StatusForbidden)
+	}
+
+	return a.ValidateIncomingWebhookUserChannelAccess(rctx, user.Id, channel)
+}
+
+// ValidateIncomingWebhookUserChannelAccess ensures the webhook owner can read the channel its
+// posts are attributed to, preventing attribution to a user who is not a member of the channel
+// (or its team, for open channels).
+func (a *App) ValidateIncomingWebhookUserChannelAccess(rctx request.CTX, userID string, channel *model.Channel) *model.AppError {
+	if hasPermission, _ := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannelContent); !hasPermission {
+		return model.NewAppError("ValidateIncomingWebhookUserChannelAccess", "api.webhook.incoming.user_membership.app_error", nil, "user_id="+userID+", channel_id="+channel.Id, http.StatusForbidden)
+	}
+
+	return nil
 }
 
 func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.Channel, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
@@ -437,6 +595,7 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 	updatedHook.UpdateAt = model.GetMillis()
 	updatedHook.TeamId = oldHook.TeamId
 	updatedHook.DeleteAt = oldHook.DeleteAt
+	updatedHook.LastUsed = oldHook.LastUsed
 
 	newWebhook, err := a.Srv().Store().Webhook().UpdateIncoming(updatedHook)
 	if err != nil {
@@ -745,7 +904,8 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 	}
 
 	text := req.Text
-	if text == "" && req.Attachments == nil {
+	mmBlocksEnabled := a.Config().FeatureFlags.MmBlocksEnabled
+	if text == "" && req.Attachments == nil && !req.HasInteractiveMessageProps(mmBlocksEnabled) {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.text.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -761,7 +921,7 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), hook.UserId)
+		user, err := a.Srv().Store().User().Get(rctx, hook.UserId)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -773,11 +933,11 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 	req.Props[model.PostPropsWebhookDisplayName] = hook.DisplayName
 
 	text = a.ProcessSlackText(rctx, text)
-	req.Attachments = a.ProcessSlackAttachments(rctx, req.Attachments)
+	req.Attachments = a.ProcessMessageAttachments(rctx, req.Attachments)
 	// attachments is in here for slack compatibility
 	if len(req.Attachments) > 0 {
 		req.Props[model.PostPropsAttachments] = req.Attachments
-		webhookType = model.PostTypeSlackAttachment
+		webhookType = model.PostTypeMessageAttachment
 	}
 
 	var channel *model.Channel
@@ -788,6 +948,17 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 			result, nErr := a.Srv().Store().User().GetByUsername(channelName[1:])
 			if nErr != nil {
 				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", map[string]any{"user": channelName[1:]}, "", http.StatusBadRequest).Wrap(nErr)
+			}
+			// Only allow a DM target the webhook owner shares a team with, so the stored
+			// user_id cannot be used to reach users the owner could not message directly.
+			if hook.UserId != result.Id {
+				commonTeamIDs, teamErr := a.GetCommonTeamIDsForTwoUsers(hook.UserId, result.Id)
+				if teamErr != nil {
+					return teamErr
+				}
+				if len(commonTeamIDs) == 0 {
+					return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channelName}, "", http.StatusForbidden)
+				}
 			}
 			ch, err := a.GetOrCreateDirectChannel(rctx, hook.UserId, result.Id)
 			if err != nil {
@@ -856,6 +1027,34 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channel.Id}, "", http.StatusForbidden)
 	}
 
+	threadRootID := ""
+	if rootId := req.RootId; rootId != "" {
+		if !model.IsValidId(rootId) {
+			return model.NewAppError("HandleIncomingWebhook", "api.context.invalid_param.app_error", map[string]any{"Name": "root_id"}, "", http.StatusBadRequest)
+		}
+		rootPost, nErr := a.Srv().Store().Post().GetSingle(rctx, rootId, false)
+		if nErr != nil {
+			var nfErr *store.ErrNotFound
+			switch {
+			case errors.As(nErr, &nfErr):
+				return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
+			default:
+				return model.NewAppError("HandleIncomingWebhook", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+			}
+		}
+		if rootPost == nil {
+			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+		}
+		if rootPost.ChannelId != channel.Id {
+			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusBadRequest)
+		}
+		if rootPost.RootId != "" {
+			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		threadRootID = rootPost.Id
+	}
+
 	overrideUsername := hook.Username
 	if req.Username != "" {
 		overrideUsername = req.Username
@@ -866,8 +1065,19 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 		overrideIconURL = req.IconURL
 	}
 
-	_, err := a.CreateWebhookPost(rctx, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "", req.Priority)
-	return err
+	silent := req.Silent
+
+	_, err := a.CreateWebhookPost(rctx, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, threadRootID, req.Priority, silent)
+	if err != nil {
+		return err
+	}
+
+	now := model.GetMillis()
+	if nErr := a.Srv().Store().Webhook().UpdateIncomingLastUsed(hook.Id, now); nErr != nil {
+		rctx.Logger().Warn("Failed to update incoming webhook LastUsed", mlog.String("hook_id", hook.Id), mlog.Err(nErr))
+	}
+
+	return nil
 }
 
 func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError) {

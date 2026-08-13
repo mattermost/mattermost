@@ -8,8 +8,13 @@ import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses} from 'utils/constants';
 import * as NotificationSounds from 'utils/notification_sounds';
 import * as utils from 'utils/notifications';
+import {getFocusedPopoutInfo} from 'utils/popouts/focus';
 
 import {sendDesktopNotification, isDesktopSoundEnabled, getDesktopNotificationSound} from './notification_actions';
+
+jest.mock('utils/popouts/focus', () => ({
+    getFocusedPopoutInfo: jest.fn(() => null),
+}));
 
 describe('notification_actions', () => {
     describe('sendDesktopNotification', () => {
@@ -206,6 +211,7 @@ describe('notification_actions', () => {
                     body: '@username: Where is Jessica Hyde?',
                     requireInteraction: false,
                     silent: false,
+                    tag: 'post_id',
                     title: 'Utopia',
                     onClick: expect.any(Function),
                 });
@@ -305,6 +311,24 @@ describe('notification_actions', () => {
             });
         });
 
+        test('should not notify user on silent_notification post', () => {
+            const store = testConfigureStore(baseState);
+            post.props.silent_notification = true;
+            return store.dispatch(sendDesktopNotification(post, msgProps)).then((result) => {
+                expect(spy).not.toHaveBeenCalled();
+                expect(result).toEqual({data: {status: 'not_sent', reason: 'silent_notification'}});
+            });
+        });
+
+        test('should notify for silent_notification post when force_notification overrides', () => {
+            const store = testConfigureStore(baseState);
+            post.props.silent_notification = true;
+            post.props.force_notification = 'abc123';
+            return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                expect(spy).toHaveBeenCalled();
+            });
+        });
+
         test('should notify user on add to channel', () => {
             const store = testConfigureStore(baseState);
             post.type = 'system_add_to_channel';
@@ -353,6 +377,7 @@ describe('notification_actions', () => {
                     body: '@username: Where is Jessica Hyde?',
                     requireInteraction: false,
                     silent: false,
+                    tag: 'post_id',
                     title: 'Muted Channel',
                     onClick: expect.any(Function),
                 });
@@ -454,6 +479,7 @@ describe('notification_actions', () => {
                         body: '@username: Where is Jessica Hyde?',
                         requireInteraction: false,
                         silent: false,
+                        tag: 'post_id',
                         title: 'Reply in Utopia',
                         onClick: expect.any(Function),
                     });
@@ -462,6 +488,68 @@ describe('notification_actions', () => {
                     expect(getHistory().push).toHaveBeenCalledWith('/team/pl/post_id');
                     expect(window.focus).toHaveBeenCalled();
                     window.focus = focus;
+                });
+            });
+        });
+
+        describe('popout windows', () => {
+            afterEach(() => {
+                getFocusedPopoutInfo.mockReturnValue(null);
+            });
+
+            test('should not notify when the channel is focused in a popout window', () => {
+                baseState.views.browser.focused = false;
+                getFocusedPopoutInfo.mockReturnValue({channelId: 'channel_id'});
+
+                const store = testConfigureStore(baseState);
+                return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                    expect(spy).not.toHaveBeenCalled();
+                });
+            });
+
+            test('should notify when the popout is focused on a different channel', () => {
+                baseState.views.browser.focused = false;
+                getFocusedPopoutInfo.mockReturnValue({channelId: 'other_channel_id'});
+
+                const store = testConfigureStore(baseState);
+                return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                    expect(spy).toHaveBeenCalled();
+                });
+            });
+
+            test('should not notify when a CRT thread is focused in a popout window', () => {
+                crt.value = 'on';
+                baseState.views.browser.focused = false;
+                getFocusedPopoutInfo.mockReturnValue({channelId: 'channel_id', threadId: 'root_id'});
+                msgProps.mentions = JSON.stringify(['current_user_id']);
+                msgProps.followers = JSON.stringify(['current_user_id']);
+
+                const store = testConfigureStore(baseState);
+                return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                    expect(spy).not.toHaveBeenCalled();
+                });
+            });
+
+            test('should notify when the thread popout is focused on a different thread', () => {
+                crt.value = 'on';
+                baseState.views.browser.focused = false;
+                getFocusedPopoutInfo.mockReturnValue({channelId: 'channel_id', threadId: 'other_thread_id'});
+                msgProps.mentions = JSON.stringify(['current_user_id']);
+                msgProps.followers = JSON.stringify(['current_user_id']);
+
+                const store = testConfigureStore(baseState);
+                return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                    expect(spy).toHaveBeenCalled();
+                });
+            });
+
+            test('should not suppress notification when a thread popout is focused but post is a channel message', () => {
+                baseState.views.browser.focused = false;
+                getFocusedPopoutInfo.mockReturnValue({channelId: 'channel_id', threadId: 'some_thread_id'});
+
+                const store = testConfigureStore(baseState);
+                return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                    expect(spy).toHaveBeenCalled();
                 });
             });
         });

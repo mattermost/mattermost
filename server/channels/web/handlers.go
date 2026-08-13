@@ -48,9 +48,15 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 }
 
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	// Determine the CSP SHA directive needed for subpath support, if any. This value is fixed
-	// on server start and intentionally requires a restart to take effect.
-	subpath, _ := utils.GetSubpathFromConfig(w.srv.Config())
+	// Determine the CSP SHA directives needed for the inline scripts injected into root.html.
+	// These values are fixed on server start and intentionally require a restart to take effect.
+	cfg := w.srv.Config()
+	subpath, _ := utils.GetSubpathFromConfig(cfg)
+
+	enableConcurrentReact := false
+	if cfg.FeatureFlags != nil {
+		enableConcurrentReact = cfg.FeatureFlags.EnableConcurrentReact
+	}
 
 	return &Handler{
 		Srv:            w.srv,
@@ -61,7 +67,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 		RequireMfa:     false,
 		IsStatic:       true,
 
-		cspShaDirective: utils.GetSubpathScriptHash(subpath),
+		cspShaDirective: utils.GetStaticScriptHashes(subpath, enableConcurrentReact),
 	}
 }
 
@@ -164,6 +170,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// if there is a valid session and userID then include the user_id
 		if c.AppContext.Session() != nil && c.AppContext.Session().UserId != "" {
 			responseLogFields = append(responseLogFields, mlog.String("user_id", c.AppContext.Session().UserId))
+			if c.AppContext.Session().IsUserAccessToken() {
+				responseLogFields = append(responseLogFields, mlog.String("user_access_token_id", c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]))
+			}
 		}
 
 		statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
@@ -190,6 +199,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.Header.Get("Accept-Language"),
 		t,
 	)
+
+	if connectionId := r.Header.Get(model.ConnectionId); connectionId != "" {
+		c.AppContext = c.AppContext.WithConnectionId(connectionId)
+	}
 
 	c.Params = ParamsFromRequest(r)
 	c.Logger = c.App.Log()
@@ -273,7 +286,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// Rate limit by UserID
 		if c.App.Srv().RateLimiter != nil {
-			rateLimitExceeded = c.App.Srv().RateLimiter.UserIdRateLimit(c.AppContext.Session().UserId, w)
+			rateLimitExceeded = c.App.Srv().RateLimiter.UserIdRateLimit(r.Context(), c.AppContext.Session().UserId, w)
 			if rateLimitExceeded {
 				return
 			}
@@ -311,14 +324,19 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.Logger = c.App.Log().With(
+	loggerFields := []mlog.Field{
 		mlog.String("path", c.AppContext.Path()),
 		mlog.String("request_id", c.AppContext.RequestId()),
 		mlog.String("ip_addr", c.AppContext.IPAddress()),
 		mlog.String("user_id", c.AppContext.Session().UserId),
 		mlog.String("method", r.Method),
-	)
+	}
+	if c.AppContext.Session().IsUserAccessToken() {
+		loggerFields = append(loggerFields, mlog.String("user_access_token_id", c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]))
+	}
+	c.Logger = c.App.Log().With(loggerFields...)
 	c.AppContext = c.AppContext.WithLogger(c.Logger)
+	c.App.ProcessSessionAttributesRequest(c.AppContext, r)
 
 	if c.Err == nil && h.RequireSession {
 		c.SessionRequired()

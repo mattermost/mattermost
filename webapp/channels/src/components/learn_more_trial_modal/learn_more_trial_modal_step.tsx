@@ -17,7 +17,7 @@ export type LearnMoreTrialModalStepProps = {
     pageURL?: string;
     buttonLabel?: string;
     handleOnClose?: () => void;
-}
+};
 
 const LearnMoreTrialModalStep = (
     {

@@ -3,7 +3,8 @@
 
 .PlainLogViewer {
     display: flex;
-    height: calc(100vh - 280px);
+    min-height: 0;
+    flex: 1;
     flex-direction: column;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     border-radius: 4px;

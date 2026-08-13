@@ -175,12 +175,12 @@ type Props = {
     isChannelAutotranslated: boolean;
     isBurnOnReadPost: boolean;
     isUnrevealedBurnOnReadPost: boolean;
-}
+};
 
 type State = {
     canEdit: boolean;
     canDelete: boolean;
-}
+};
 
 export class DotMenuClass extends React.PureComponent<Props, State> {
     public static defaultProps: Partial<Props> = {
@@ -455,7 +455,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.handleDeleteMenuItemActivated();
             break;
 
-        // move thread
+            // move thread
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.W):
             if (this.props.canMove) {
                 forceCloseMenu();

@@ -3,9 +3,10 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {type WrappedComponentProps, injectIntl} from 'react-intl';
+import {type WrappedComponentProps, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
 
 import {mark} from 'actions/telemetry_actions';
@@ -13,7 +14,6 @@ import {mark} from 'actions/telemetry_actions';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
-import WithTooltip from 'components/with_tooltip';
 
 import Pluggable from 'plugins/pluggable';
 import Constants, {RHSStates} from 'utils/constants';
@@ -27,6 +27,13 @@ import ChannelMentionBadge from '../channel_mention_badge';
 import ChannelPencilIcon from '../channel_pencil_icon';
 import SidebarChannelIcon from '../sidebar_channel_icon';
 import SidebarChannelMenu from '../sidebar_channel_menu';
+
+const messages = defineMessages({
+    urgentMentionTooltip: {
+        id: 'channel_mention_badge.urgent_tooltip',
+        defaultMessage: 'You have an urgent mention',
+    },
+});
 
 type Props = WrappedComponentProps & {
     channel: Channel;
@@ -64,6 +71,7 @@ type Props = WrappedComponentProps & {
     rhsOpen?: boolean;
     isSharedChannel?: boolean;
     remoteNames: string[];
+    hasPendingJoinRequests: boolean;
 
     actions: {
         markMostRecentPostInChannelAsUnread: (channelId: string) => void;
@@ -135,6 +143,10 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
             ariaLabel += ` ${unreadMentions} ${intl.formatMessage({id: 'accessibility.sidebar.types.mention', defaultMessage: 'mention'})}`;
         } else if (unreadMentions > 1) {
             ariaLabel += ` ${unreadMentions} ${intl.formatMessage({id: 'accessibility.sidebar.types.mentions', defaultMessage: 'mentions'})}`;
+        }
+
+        if (this.props.hasUrgent && unreadMentions > 0) {
+            ariaLabel += ` ${intl.formatMessage({id: 'accessibility.sidebar.types.urgent_mention', defaultMessage: 'including an urgent mention'})}`;
         }
 
         if (this.props.isUnread && unreadMentions === 0) {
@@ -243,9 +255,8 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
         const content = (
             <>
                 <SidebarChannelIcon
-                    isDeleted={channel.delete_at !== 0}
+                    channel={channel}
                     icon={icon}
-                    channelType={channel.type}
                 />
                 <div
                     className='SidebarChannelLinkLabel_wrapper'
@@ -262,7 +273,17 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
                 <ChannelMentionBadge
                     unreadMentions={unreadMentions}
                     hasUrgent={hasUrgent}
+                    tooltip={hasUrgent ? messages.urgentMentionTooltip : undefined}
                 />
+                {this.props.hasPendingJoinRequests && (
+                    <span
+                        className='SidebarChannelLink__join-request-dot'
+                        aria-label={this.props.intl.formatMessage({
+                            id: 'sidebar_channel.join_requests_pending',
+                            defaultMessage: 'Pending join requests',
+                        })}
+                    />
+                )}
                 <div
                     className={classNames(
                         'SidebarMenu',
@@ -300,6 +321,7 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
                 to={link}
                 onClick={this.handleChannelClick}
                 tabIndex={0}
+                data-testid={this.props.isUnread ? 'sidebar-unread-channel' : undefined}
             >
                 {content}
                 {channelsTutorialTip}

@@ -9,8 +9,8 @@
 
 // Group: @channels @scroll
 
-import * as MESSAGES from '../../../fixtures/messages';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as MESSAGES from '@/fixtures/messages';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Scroll', () => {
     let testTeam;

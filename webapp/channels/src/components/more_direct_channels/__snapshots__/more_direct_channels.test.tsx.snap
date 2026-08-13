@@ -141,7 +141,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
                           </div>
                         </div>
                         <button
-                          class="btn btn-primary "
+                          class="btn btn-primary"
                           data-testid="saveSetting"
                           id="saveItems"
                           type="submit"
@@ -168,6 +168,7 @@ exports[`components/MoreDirectChannels should exclude deleted users if there is 
                       >
                         <div
                           class="loading-screen"
+                          data-testid="loading-screen"
                           style="position: absolute;"
                         >
                           <div
@@ -393,7 +394,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
                           </div>
                         </div>
                         <button
-                          class="btn btn-primary "
+                          class="btn btn-primary"
                           data-testid="saveSetting"
                           id="saveItems"
                           type="submit"
@@ -420,6 +421,7 @@ exports[`components/MoreDirectChannels should match snapshot 1`] = `
                       >
                         <div
                           class="loading-screen"
+                          data-testid="loading-screen"
                           style="position: absolute;"
                         >
                           <div

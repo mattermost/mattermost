@@ -6,6 +6,8 @@ package app
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -32,6 +34,30 @@ func TestProcessSlackText(t *testing.T) {
 	}
 }
 
+func TestProcessMessageAttachmentsWithNilEntries(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	attachments := []*model.MessageAttachment{
+		nil,
+		{
+			Pretext: "pretext",
+			Text:    "text",
+			Title:   "title",
+		},
+		nil,
+		{
+			Pretext: "pretext2",
+			Text:    "text2",
+		},
+	}
+
+	result := th.App.ProcessMessageAttachments(th.Context, attachments)
+	require.Len(t, result, 2)
+	require.Equal(t, "pretext", result[0].Pretext)
+	require.Equal(t, "pretext2", result[1].Pretext)
+}
+
 func TestProcessSlackAnnouncement(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -39,12 +65,12 @@ func TestProcessSlackAnnouncement(t *testing.T) {
 	userID := th.BasicUser.Id
 	username := th.BasicUser.Username
 
-	attachments := []*model.SlackAttachment{
+	attachments := []*model.MessageAttachment{
 		{
 			Pretext: "<!channel> pretext <!here>",
 			Text:    "<!channel> text <!here>",
 			Title:   "<!channel> title <!here>",
-			Fields: []*model.SlackAttachmentField{
+			Fields: []*model.MessageAttachmentField{
 				{
 					Title: "foo",
 					Value: "<!channel> bar <!here>",
@@ -56,7 +82,7 @@ func TestProcessSlackAnnouncement(t *testing.T) {
 			Pretext: "<@" + userID + "> pretext",
 			Text:    "<@" + userID + "> text",
 			Title:   "<@" + userID + "> title",
-			Fields: []*model.SlackAttachmentField{
+			Fields: []*model.MessageAttachmentField{
 				{
 					Title: "foo",
 					Value: "<@" + userID + "> bar",
@@ -65,7 +91,7 @@ func TestProcessSlackAnnouncement(t *testing.T) {
 			},
 		},
 	}
-	attachments = th.App.ProcessSlackAttachments(th.Context, attachments)
+	attachments = th.App.ProcessMessageAttachments(th.Context, attachments)
 	if len(attachments) != 2 || len(attachments[0].Fields) != 1 || len(attachments[1].Fields) != 1 {
 		t.Fail()
 	}

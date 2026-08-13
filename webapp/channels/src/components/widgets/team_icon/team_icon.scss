@@ -50,7 +50,7 @@
         box-shadow: 0 0 0 3px rgba(var(--sidebar-text-rgb), 0.3);
     }
 
-    &:active {
+    &:not(.no-hover):active {
         border-color: var(--sidebar-teambar-bg);
         box-shadow: 0 0 0 3px var(--sidebar-text-active-border);
     }

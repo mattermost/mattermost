@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
@@ -160,8 +161,8 @@ function ChannelAccessRulesConfirmModal({
                 {leftButton}
             </div>
             <div className='ChannelAccessRulesConfirmModal__buttons__right'>
-                <button
-                    className='btn btn-tertiary'
+                <Button
+                    emphasis='tertiary'
                     onClick={handleClose}
                     disabled={isProcessing}
                 >
@@ -169,9 +170,9 @@ function ChannelAccessRulesConfirmModal({
                         id='channel_settings.access_rules.confirm_modal.cancel'
                         defaultMessage='Cancel'
                     />
-                </button>
-                <button
-                    className='btn btn-danger'
+                </Button>
+                <Button
+                    variant='destructive'
                     onClick={onConfirm}
                     disabled={isProcessing}
                 >
@@ -209,7 +210,7 @@ function ChannelAccessRulesConfirmModal({
                             />
                         );
                     })()}
-                </button>
+                </Button>
             </div>
         </div>
     );
@@ -287,8 +288,8 @@ function ChannelAccessRulesConfirmModal({
                     </div>
 
                     {renderButtons(
-                        <button
-                            className='btn btn-tertiary'
+                        <Button
+                            emphasis='tertiary'
                             onClick={handleHideUsers}
                             disabled={isProcessing}
                         >
@@ -296,7 +297,7 @@ function ChannelAccessRulesConfirmModal({
                                 id='channel_settings.access_rules.confirm_modal.hide_users'
                                 defaultMessage='Hide users'
                             />
-                        </button>,
+                        </Button>,
                     )}
                 </div>
             ) : (
@@ -321,8 +322,8 @@ function ChannelAccessRulesConfirmModal({
                         />
                     </div>
                     {renderButtons(
-                        <button
-                            className='btn btn-tertiary'
+                        <Button
+                            emphasis='tertiary'
                             onClick={handleViewUsers}
                             disabled={isProcessing}
                         >
@@ -330,7 +331,7 @@ function ChannelAccessRulesConfirmModal({
                                 id='channel_settings.access_rules.confirm_modal.view_users'
                                 defaultMessage='View users'
                             />
-                        </button>,
+                        </Button>,
                     )}
                 </div>
             )}

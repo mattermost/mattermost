@@ -143,8 +143,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should support terms with dash",
 		Fn:   testSupportTermsWithDash,
-		Tags: []string{EngineAll},
-		Skip: true,
+		Tags: []string{EnginePostgres},
 	},
 	{
 		Name: "Should support terms with underscore",
@@ -207,6 +206,11 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EngineAll},
 	},
 	{
+		Name: "Should not return card posts",
+		Fn:   testSearchShouldExcludeCardPosts,
+		Tags: []string{EngineAll},
+	},
+	{
 		Name: "Should be able to search matching by mentions",
 		Fn:   testSearchShouldBeAbleToMatchByMentions,
 		Tags: []string{EngineAll},
@@ -217,11 +221,9 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EnginePostgres},
 	},
 	{
-		Name:        "Should be able to search terms with dashes",
-		Fn:          testSearchTermsWithDashes,
-		Tags:        []string{EngineAll},
-		Skip:        true,
-		SkipMessage: "Not working",
+		Name: "Should be able to search terms with dashes",
+		Fn:   testSearchTermsWithDashes,
+		Tags: []string{EnginePostgres},
 	},
 	{
 		Name: "Should be able to search terms with dots",
@@ -1834,6 +1836,21 @@ func testSearchShouldExcludeSystemMessages(t *testing.T, th *SearchTestHelper) {
 	require.Len(t, results.Posts, 0)
 }
 
+func testSearchShouldExcludeCardPosts(t *testing.T, th *SearchTestHelper) {
+	_, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "test card content unique", "", model.PostTypeCard, 0, false)
+	require.NoError(t, err)
+	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "test regular content unique", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	params := &model.SearchParams{Terms: "content unique"}
+	results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+	require.NoError(t, err)
+
+	require.Len(t, results.Posts, 1)
+	th.checkPostInSearchResults(t, p2.Id, results.Posts)
+}
+
 func testSearchShouldBeAbleToMatchByMentions(t *testing.T, th *SearchTestHelper) {
 	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "test system @testuser", "", model.PostTypeDefault, 0, false)
 	require.NoError(t, err)
@@ -1966,6 +1983,36 @@ func testSearchTermsWithDashes(t *testing.T, th *SearchTestHelper) {
 		require.Len(t, results.Posts, 2)
 		th.checkPostInSearchResults(t, p1.Id, results.Posts)
 		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+	})
+
+	t.Run("Search for terms excluding a dashed term", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "message", ExcludedTerms: "with-dash-term"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+	})
+
+	t.Run("Search for a dashed term with a wildcard", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "with-dash-term*"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
+
+	t.Run("Search for a letters-digits dashed term", func(t *testing.T) {
+		p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "the code is FX-042", "", model.PostTypeDefault, 0, false)
+		require.NoError(t, err)
+
+		params := &model.SearchParams{Terms: "FX-042"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p3.Id, results.Posts)
 	})
 }
 

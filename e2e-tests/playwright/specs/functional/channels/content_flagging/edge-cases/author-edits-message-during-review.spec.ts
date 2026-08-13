@@ -5,7 +5,7 @@ import {test} from '@mattermost/playwright-lib';
 
 import {createPost, verifyAuthorNotification, setupContentFlagging} from './../support';
 
-/** @objective Verify Post message is updated for the reviewer, if author updates the post before reviewer\'s action
+/** @objective Verify Post message is updated for the reviewer, if author updates the post before reviewer's action
  * @testcase
  * 1. Setup Content Flagging with reviewers
  * 2. Create a post by User A
@@ -22,8 +22,13 @@ test("Verify Post message is updated for the reviewer, if author updates the pos
     const secondUser = await pw.random.user('reviewer');
     const {id: secondUserID} = await adminClient.createUser(secondUser, '', '');
     await adminClient.addToTeam(team.id, secondUserID);
+    // Promote to system_admin so SystemAdminsAsReviewers:true (the test-suite default)
+    // keeps them as a reviewer even if a concurrent initSetup() resets CommonReviewerIds:[].
+    await adminClient.updateUserRoles(secondUserID, 'system_user system_admin');
 
-    // Setup content flagging *after* roles are set
+    // Setup content flagging with explicit reviewer list and HideFlaggedContent=false.
+    // The default test config sets EnableContentFlagging=true and SystemAdminsAsReviewers=true,
+    // so concurrent initSetup() resets from other workers cannot silently disable this test.
     await setupContentFlagging(adminClient, [adminUser.id, secondUserID], true, false);
 
     const message = `Post by @${user.username}, is flagged once`;

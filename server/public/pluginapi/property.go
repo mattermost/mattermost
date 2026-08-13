@@ -12,6 +12,11 @@ type PropertyService struct {
 
 // CreatePropertyField creates a new property field.
 //
+// If the field's LinkedFieldID is set, the field inherits type, options,
+// and security attributes from the referenced template field. The source
+// must be a template field in the same group, must not itself be linked,
+// and must not be deleted.
+//
 // Minimum server version: 10.10
 func (p *PropertyService) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
 	return p.api.CreatePropertyField(field)
@@ -33,12 +38,18 @@ func (p *PropertyService) GetPropertyFields(groupID string, ids []string) ([]*mo
 
 // UpdatePropertyField updates an existing property field.
 //
+// Fields with a LinkedFieldID cannot have their type or options modified.
+// Set LinkedFieldID to an empty string to unlink a field from its source.
+//
 // Minimum server version: 10.10
 func (p *PropertyService) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
 	return p.api.UpdatePropertyField(groupID, field)
 }
 
 // DeletePropertyField deletes a property field (soft delete).
+//
+// Returns an error if the field has active linked dependents. Unlink or
+// delete dependent fields first.
 //
 // Minimum server version: 10.10
 func (p *PropertyService) DeletePropertyField(groupID, fieldID string) error {
@@ -169,4 +180,46 @@ func (p *PropertyService) DeletePropertyValuesForTarget(groupID, targetType, tar
 // Minimum server version: 10.10
 func (p *PropertyService) DeletePropertyValuesForField(groupID, fieldID string) error {
 	return p.api.DeletePropertyValuesForField(groupID, fieldID)
+}
+
+// UpsertPropertyValuesWithOptions creates or updates multiple property values,
+// declaring the scope the plugin is acting as for owner-based access control.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) UpsertPropertyValuesWithOptions(values []*model.PropertyValue, options model.PropertyRequestOptions) ([]*model.PropertyValue, error) {
+	return p.api.UpsertPropertyValuesWithOptions(values, options)
+}
+
+// UpsertPropertyValueWithOptions creates or updates a single property value,
+// declaring the scope the plugin is acting as for owner-based access control.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) UpsertPropertyValueWithOptions(value *model.PropertyValue, options model.PropertyRequestOptions) (*model.PropertyValue, error) {
+	return p.api.UpsertPropertyValueWithOptions(value, options)
+}
+
+// DeletePropertyValueWithOptions deletes a property value, declaring the scope
+// the plugin is acting as for owner-based access control.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) DeletePropertyValueWithOptions(groupID, valueID string, options model.PropertyRequestOptions) error {
+	return p.api.DeletePropertyValueWithOptions(groupID, valueID, options)
+}
+
+// DeletePropertyValuesForTargetWithOptions deletes all property values for a
+// target, declaring the scope the plugin is acting as. This is the
+// deprovisioning entrypoint and needs only the target, no value objects.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) DeletePropertyValuesForTargetWithOptions(groupID, targetType, targetID string, options model.PropertyRequestOptions) error {
+	return p.api.DeletePropertyValuesForTargetWithOptions(groupID, targetType, targetID, options)
+}
+
+// DeletePropertyValuesForFieldWithOptions deletes all property values for a
+// field, declaring the scope the plugin is acting as for owner-based access
+// control.
+//
+// Minimum server version: 11.10
+func (p *PropertyService) DeletePropertyValuesForFieldWithOptions(groupID, fieldID string, options model.PropertyRequestOptions) error {
+	return p.api.DeletePropertyValuesForFieldWithOptions(groupID, fieldID, options)
 }

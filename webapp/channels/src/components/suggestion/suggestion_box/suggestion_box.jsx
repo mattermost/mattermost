@@ -4,11 +4,12 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import QuickInput from 'components/quick_input';
 
 import Constants, {A11yCustomEventTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import {
@@ -24,6 +25,7 @@ const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_C
 const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;
 const KeyCodes = Constants.KeyCodes;
 
+/** @extends {React.PureComponent<import('./suggestion_box').SuggestionBoxProps>} */
 export default class SuggestionBox extends React.PureComponent {
     static propTypes = {
 
@@ -97,7 +99,6 @@ export default class SuggestionBox extends React.PureComponent {
          */
         onKeyDown: PropTypes.func,
         onKeyPress: PropTypes.func,
-        onComposition: PropTypes.func,
 
         onSearchTypeSelected: PropTypes.func,
 
@@ -193,9 +194,6 @@ export default class SuggestionBox extends React.PureComponent {
 
     constructor(props) {
         super(props);
-
-        // Keep track of whether we're composing a CJK character so we can make suggestions for partial characters
-        this.composing = false;
 
         this.pretext = '';
 
@@ -328,41 +326,12 @@ export default class SuggestionBox extends React.PureComponent {
         const textbox = this.getTextbox();
         const pretext = this.props.shouldSearchCompleteText ? textbox.value.trim() : textbox.value.substring(0, textbox.selectionEnd);
 
-        if (!this.composing && this.pretext !== pretext) {
+        if (this.pretext !== pretext) {
             this.handlePretextChanged(pretext);
         }
 
         if (this.props.onChange) {
             this.props.onChange(e);
-        }
-    };
-
-    handleCompositionStart = () => {
-        this.composing = true;
-        if (this.props.onComposition) {
-            this.props.onComposition();
-        }
-    };
-
-    handleCompositionUpdate = (e) => {
-        if (!e.data) {
-            return;
-        }
-
-        // The caret appears before the CJK character currently being composed, so re-add it to the pretext
-        const textbox = this.getTextbox();
-        const pretext = textbox.value.substring(0, textbox.selectionStart) + e.data;
-
-        this.handlePretextChanged(pretext);
-        if (this.props.onComposition) {
-            this.props.onComposition();
-        }
-    };
-
-    handleCompositionEnd = () => {
-        this.composing = false;
-        if (this.props.onComposition) {
-            this.props.onComposition();
         }
     };
 
@@ -756,7 +725,6 @@ export default class SuggestionBox extends React.PureComponent {
         // Don't pass props used by SuggestionBox
         Reflect.deleteProperty(props, 'providers');
         Reflect.deleteProperty(props, 'onChange'); // We use onInput instead of onChange on the actual input
-        Reflect.deleteProperty(props, 'onComposition');
         Reflect.deleteProperty(props, 'onItemSelected');
         Reflect.deleteProperty(props, 'completeOnTab');
         Reflect.deleteProperty(props, 'requiredCharacters');
@@ -792,9 +760,6 @@ export default class SuggestionBox extends React.PureComponent {
                     aria-autocomplete='list'
                     aria-expanded={(this.state.focused || this.props.forceSuggestionsWhenBlur) && hasResults(this.state.results)}
                     onInput={this.handleChange}
-                    onCompositionStart={this.handleCompositionStart}
-                    onCompositionUpdate={this.handleCompositionUpdate}
-                    onCompositionEnd={this.handleCompositionEnd}
                     onKeyDown={this.handleKeyDown}
                 />
                 {(this.props.openWhenEmpty || this.props.value.length >= this.props.requiredCharacters) && this.state.presentationType === 'text' && (

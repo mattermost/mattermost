@@ -13,6 +13,7 @@ import SearchResultsHeader from './search_results_header';
 
 jest.mock('utils/popouts/popout_windows', () => ({
     isPopoutWindow: jest.fn(),
+    isChannelPopoutWindow: jest.fn(() => false),
 }));
 
 jest.mock('components/popout_button', () => ({

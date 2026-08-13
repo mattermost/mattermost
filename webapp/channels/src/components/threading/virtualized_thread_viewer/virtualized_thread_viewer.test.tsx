@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import type {ComponentProps} from 'react';
 import React from 'react';
 
@@ -11,9 +10,29 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Permissions} from 'mattermost-redux/constants';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import VirtualizedThreadViewer from './virtualized_thread_viewer';
+
+const mockScrollToItem = jest.fn();
+
+jest.mock('components/dynamic_virtualized_list', () => {
+    const ReactMock = require('react');
+    return {
+        DynamicVirtualizedList: ReactMock.forwardRef((props: any, ref: any) => {
+            ReactMock.useImperativeHandle(ref, () => ({
+                scrollToItem: mockScrollToItem,
+            }));
+            return <div data-testid='virtualized-list'/>;
+        }),
+    };
+});
+
+jest.mock('./create_comment', () => () => <div data-testid='create-comment'/>);
+jest.mock('./thread_viewer_row', () => () => <div data-testid='thread-viewer-row'/>);
+jest.mock('components/new_replies_banner', () => () => null);
+jest.mock('components/post_view/floating_timestamp', () => () => null);
 
 type Props = ComponentProps<typeof VirtualizedThreadViewer>;
 function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
@@ -73,75 +92,76 @@ function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
 }
 
 describe('components/threading/VirtualizedThreadViewer', () => {
-    const [baseProps] = getBasePropsAndState();
+    const [baseProps, baseState] = getBasePropsAndState();
+
+    beforeEach(() => {
+        mockScrollToItem.mockClear();
+    });
+
     test('should scroll to the bottom when the current user makes a new post in the thread', () => {
-        const scrollToBottom = jest.fn();
-
-        const wrapper = shallow(
+        const {rerender} = renderWithContext(
             <VirtualizedThreadViewer {...baseProps}/>,
+            baseState,
         );
-        const instance = wrapper.instance() as VirtualizedThreadViewer;
-        instance.scrollToBottom = scrollToBottom;
 
-        expect(scrollToBottom).not.toHaveBeenCalled();
-        wrapper.setProps({
-            lastPost:
-                {
+        mockScrollToItem.mockClear();
+
+        rerender(
+            <VirtualizedThreadViewer
+                {...baseProps}
+                lastPost={TestHelper.getPostMock({
                     id: 'newpost',
                     root_id: baseProps.selected.id,
                     user_id: 'user_id',
-                },
-        });
-
-        expect(scrollToBottom).toHaveBeenCalled();
-    });
-
-    test('should not scroll to the bottom when another user makes a new post in the thread', () => {
-        const scrollToBottom = jest.fn();
-
-        const wrapper = shallow(
-            <VirtualizedThreadViewer {...baseProps}/>,
-        );
-        const instance = wrapper.instance() as VirtualizedThreadViewer;
-        instance.scrollToBottom = scrollToBottom;
-
-        expect(scrollToBottom).not.toHaveBeenCalled();
-
-        wrapper.setProps({
-            lastPost:
-                {
-                    id: 'newpost',
-                    root_id: baseProps.selected.id,
-                    user_id: 'other_user_id',
-                },
-        });
-
-        expect(scrollToBottom).not.toHaveBeenCalled();
-    });
-
-    test('should not scroll to the bottom when there is a highlighted reply', () => {
-        const scrollToBottom = jest.fn();
-
-        const wrapper = shallow(
-            <VirtualizedThreadViewer
-                {...baseProps}
+                })}
             />,
         );
 
-        const instance = wrapper.instance() as VirtualizedThreadViewer;
-        instance.scrollToBottom = scrollToBottom;
+        expect(mockScrollToItem).toHaveBeenCalledWith(0, 'end', undefined);
+    });
 
-        wrapper.setProps({
-            lastPost:
-                {
+    test('should not scroll to the bottom when another user makes a new post in the thread', () => {
+        const {rerender} = renderWithContext(
+            <VirtualizedThreadViewer {...baseProps}/>,
+            baseState,
+        );
+
+        mockScrollToItem.mockClear();
+
+        rerender(
+            <VirtualizedThreadViewer
+                {...baseProps}
+                lastPost={TestHelper.getPostMock({
+                    id: 'newpost',
+                    root_id: baseProps.selected.id,
+                    user_id: 'other_user_id',
+                })}
+            />,
+        );
+
+        expect(mockScrollToItem).not.toHaveBeenCalled();
+    });
+
+    test('should not scroll to the bottom when there is a highlighted reply', () => {
+        const {rerender} = renderWithContext(
+            <VirtualizedThreadViewer {...baseProps}/>,
+            baseState,
+        );
+
+        mockScrollToItem.mockClear();
+
+        rerender(
+            <VirtualizedThreadViewer
+                {...baseProps}
+                lastPost={TestHelper.getPostMock({
                     id: 'newpost',
                     root_id: baseProps.selected.id,
                     user_id: 'user_id',
-                },
-            highlightedPostId: '42',
-        });
+                })}
+                highlightedPostId='42'
+            />,
+        );
 
-        expect(scrollToBottom).not.toHaveBeenCalled();
+        expect(mockScrollToItem).not.toHaveBeenCalledWith(0, 'end', undefined);
     });
 });
-

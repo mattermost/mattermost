@@ -46,7 +46,6 @@ const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionListConte
         }
 
         const itemRef = setItemRef ? (ref: HTMLElement) => setItemRef(term, ref) : undefined;
-
         return (
             <Component
                 key={term}

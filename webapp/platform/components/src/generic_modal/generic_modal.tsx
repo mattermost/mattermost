@@ -6,6 +6,8 @@ import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button, type ButtonVariant} from '@mattermost/shared/components/button';
+
 import {useFocusTrap} from '../hooks/useFocusTrap';
 import {useStackedModal} from '../hooks/useStackedModal';
 import './generic_modal.scss';
@@ -27,11 +29,9 @@ export type Props = {
     handleEnterKeyPress?: () => void;
     handleKeydown?: (event?: React.KeyboardEvent<HTMLDivElement>) => void;
     confirmButtonText?: React.ReactNode;
-    confirmButtonClassName?: string;
+    confirmButtonVariant?: ButtonVariant;
     cancelButtonText?: React.ReactNode;
-    cancelButtonClassName?: string;
     isConfirmDisabled?: boolean;
-    isDeleteModal?: boolean;
     id?: string;
     autoCloseOnCancelButton?: boolean;
     autoCloseOnConfirmButton?: boolean;
@@ -115,11 +115,9 @@ export const GenericModal: React.FC<Props> = ({
     handleEnterKeyPress,
     handleKeydown,
     confirmButtonText,
-    confirmButtonClassName,
+    confirmButtonVariant,
     cancelButtonText,
-    cancelButtonClassName,
     isConfirmDisabled,
-    isDeleteModal,
     container,
     ariaLabel,
     ariaLabelledby,
@@ -159,12 +157,16 @@ export const GenericModal: React.FC<Props> = ({
         delayMs: delayFocusTrap ? 500 : undefined,
     });
 
-    // Use stacked modal hook to manage backdrop and z-index
-    // Only pass isStacked=true when it's explicitly set to true
+    // Use stacked modal hook to manage backdrop and z-index. Pass the
+    // portal container (when it resolves to a DOM element) so backdrop
+    // discovery stays scoped to this modal's own stack rather than every
+    // backdrop in the document.
+    const stackedModalContainer = container instanceof HTMLElement ? container : undefined;
     const {
         shouldRenderBackdrop,
         modalStyle,
-    } = useStackedModal(Boolean(isStacked), showState);
+        backdropStyle,
+    } = useStackedModal(Boolean(isStacked), showState, stackedModalContainer);
 
     useEffect(() => {
         setShowState(show);
@@ -202,7 +204,7 @@ export const GenericModal: React.FC<Props> = ({
     // Build confirm button if provided.
     let confirmButtonElement;
     if (handleConfirm) {
-        const buttonTypeClass = isDeleteModal ? 'delete' : 'confirm';
+        const buttonTypeClass = confirmButtonVariant === 'destructive' ? 'delete' : 'confirm';
         let confirmButtonTextContent: React.ReactNode = (
             <FormattedMessage
                 id='generic_modal.confirm'
@@ -213,17 +215,19 @@ export const GenericModal: React.FC<Props> = ({
             confirmButtonTextContent = confirmButtonText;
         }
         confirmButtonElement = (
-            <button
+            <Button
                 autoFocus={autoFocusConfirmButton}
                 type='submit'
-                className={classNames('GenericModal__button btn btn-primary', buttonTypeClass, confirmButtonClassName, {
+                emphasis='primary'
+                variant={confirmButtonVariant}
+                className={classNames('GenericModal__button', buttonTypeClass, {
                     disabled: isConfirmDisabled,
                 })}
                 onClick={handleConfirmCallback}
                 disabled={isConfirmDisabled}
             >
                 {confirmButtonTextContent}
-            </button>
+            </Button>
         );
     }
 
@@ -240,13 +244,13 @@ export const GenericModal: React.FC<Props> = ({
             cancelButtonTextContent = cancelButtonText;
         }
         cancelButtonElement = (
-            <button
+            <Button
                 type='button'
-                className={classNames('GenericModal__button btn btn-tertiary', cancelButtonClassName)}
+                emphasis='tertiary'
                 onClick={handleCancelCallback}
             >
                 {cancelButtonTextContent}
-            </button>
+            </Button>
         );
     }
 
@@ -300,7 +304,7 @@ export const GenericModal: React.FC<Props> = ({
             onHide={onHideCallback}
             onExited={onExited}
             backdrop={shouldRenderBackdrop ? backdrop : false}
-            backdropStyle={isStacked ? {zIndex: 1051} : undefined}
+            backdropStyle={backdropStyle}
             backdropClassName={backdropClassName}
             container={container}
             keyboard={keyboardEscape}

@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
@@ -13,7 +14,6 @@ import KeyboardShortcutSequence, {
 import PopoutButton from 'components/popout_button';
 import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
 import FollowButton from 'components/threading/common/follow_button';
-import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import {RHSStates} from 'utils/constants';

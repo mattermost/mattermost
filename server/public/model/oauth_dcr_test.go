@@ -13,8 +13,8 @@ func TestClientRegistrationRequestIsValid(t *testing.T) {
 	t.Run("PublicClient_Valid", func(t *testing.T) {
 		req := &ClientRegistrationRequest{
 			RedirectURIs:            []string{"https://example.com/callback"},
-			TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-			ClientName:              NewPointer("Test Public Client"),
+			TokenEndpointAuthMethod: new(ClientAuthMethodNone),
+			ClientName:              new("Test Public Client"),
 		}
 
 		require.Nil(t, req.IsValid())
@@ -23,20 +23,20 @@ func TestClientRegistrationRequestIsValid(t *testing.T) {
 	t.Run("PublicClient_AuthMethodValidation", func(t *testing.T) {
 		req := &ClientRegistrationRequest{
 			RedirectURIs:            []string{"https://example.com/callback"},
-			TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-			ClientName:              NewPointer("Test Public Client"),
+			TokenEndpointAuthMethod: new(ClientAuthMethodNone),
+			ClientName:              new("Test Public Client"),
 		}
 
 		require.Nil(t, req.IsValid())
 
-		req.TokenEndpointAuthMethod = NewPointer("invalid_method")
+		req.TokenEndpointAuthMethod = new("invalid_method")
 		require.NotNil(t, req.IsValid())
 	})
 
 	t.Run("PublicClient_RedirectURIValidation", func(t *testing.T) {
 		req := &ClientRegistrationRequest{
-			TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-			ClientName:              NewPointer("Test Public Client"),
+			TokenEndpointAuthMethod: new(ClientAuthMethodNone),
+			ClientName:              new("Test Public Client"),
 		}
 
 		require.NotNil(t, req.IsValid())
@@ -56,8 +56,8 @@ func TestNewOAuthAppFromClientRegistration(t *testing.T) {
 	t.Run("PublicClient", func(t *testing.T) {
 		req := &ClientRegistrationRequest{
 			RedirectURIs:            []string{"https://example.com/callback"},
-			TokenEndpointAuthMethod: NewPointer(ClientAuthMethodNone),
-			ClientName:              NewPointer("Test Public Client"),
+			TokenEndpointAuthMethod: new(ClientAuthMethodNone),
+			ClientName:              new("Test Public Client"),
 		}
 
 		creatorId := NewId()
@@ -104,8 +104,19 @@ func TestRedirectURIMatchesGlob(t *testing.T) {
 
 	t.Run("host wildcard", func(t *testing.T) {
 		require.True(t, RedirectURIMatchesGlob("https://app.example.com/cb", "https://*.example.com/cb"))
+		require.True(t, RedirectURIMatchesGlob("https://app.example.com/cb", "https://*.example.com/**"))
 		require.True(t, RedirectURIMatchesGlob("https://foo.example.com/path", "https://*.example.com/*"))
 		require.False(t, RedirectURIMatchesGlob("https://example.com.evil/cb", "https://*.example.com/cb"))
+	})
+
+	t.Run("wildcards do not cross URL component boundaries", func(t *testing.T) {
+		require.False(t, RedirectURIMatchesGlob("https://attacker.example.net?x=.example.com/cb", "https://*.example.com/**"))
+		require.False(t, RedirectURIMatchesGlob("https://app.example.com/callback?x=/admin", "https://app.example.com/callback/admin"))
+	})
+
+	t.Run("query string must be explicitly allowed", func(t *testing.T) {
+		require.False(t, RedirectURIMatchesGlob("https://app.example.com/callback?tenant=foo", "https://app.example.com/callback"))
+		require.True(t, RedirectURIMatchesGlob("https://app.example.com/callback?tenant=foo", "https://app.example.com/callback?tenant=*"))
 	})
 
 	t.Run("port wildcard", func(t *testing.T) {

@@ -59,12 +59,6 @@ func setupTestHelper(s store.Store, _ bool, tb testing.TB) *TestHelper {
 	*config.TeamSettings.MaxUsersPerTeam = 50
 	*config.RateLimitSettings.Enable = false
 	*config.TeamSettings.EnableOpenServer = true
-	// Disable strict password requirements for test
-	*config.PasswordSettings.MinimumLength = 5
-	*config.PasswordSettings.Lowercase = false
-	*config.PasswordSettings.Uppercase = false
-	*config.PasswordSettings.Symbol = false
-	*config.PasswordSettings.Number = false
 	_, _, err = configStore.Set(config)
 	require.NoError(tb, err)
 
@@ -100,15 +94,15 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 	var err error
 
 	th.SystemAdminUser = th.CreateUser(tb)
-	th.SystemAdminUser, err = th.service.GetUser(th.SystemAdminUser.Id)
+	th.SystemAdminUser, err = th.service.GetUser(th.Context, th.SystemAdminUser.Id)
 	require.NoError(tb, err)
 
 	th.BasicUser = th.CreateUser(tb)
-	th.BasicUser, err = th.service.GetUser(th.BasicUser.Id)
+	th.BasicUser, err = th.service.GetUser(th.Context, th.BasicUser.Id)
 	require.NoError(tb, err)
 
 	th.BasicUser2 = th.CreateUser(tb)
-	th.BasicUser2, err = th.service.GetUser(th.BasicUser2.Id)
+	th.BasicUser2, err = th.service.GetUser(th.Context, th.BasicUser2.Id)
 	require.NoError(tb, err)
 
 	return th
@@ -129,7 +123,7 @@ func (th *TestHelper) CreateUserOrGuest(tb testing.TB, guest bool) *model.User {
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 	}
 

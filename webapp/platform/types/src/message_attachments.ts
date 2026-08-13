@@ -106,7 +106,7 @@ export type MessageAttachmentField = {
     title?: string;
     value?: unknown;
     short?: boolean;
-}
+};
 
 function isMessageAttachmentField(v: unknown) {
     if (typeof v !== 'object') {

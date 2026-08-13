@@ -14,7 +14,7 @@ type Props = {
     field: PropertyField;
     metadata?: UserPropertyMetadata;
     initialValue?: string;
-}
+};
 
 export function SelectableUserPropertyRenderer({field, metadata, initialValue}: Props) {
     const {formatMessage} = useIntl();

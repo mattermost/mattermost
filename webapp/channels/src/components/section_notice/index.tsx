@@ -15,11 +15,13 @@ import './section_notice.scss';
 type Props = {
     title: string | React.ReactElement;
     text?: string;
+    children?: React.ReactNode;
     primaryButton?: SectionNoticeButtonProp;
     secondaryButton?: SectionNoticeButtonProp;
     tertiaryButton?: SectionNoticeButtonProp;
     linkButton?: SectionNoticeButtonProp;
     type?: 'info' | 'success' | 'danger' | 'welcome' | 'warning' | 'hint';
+    iconOverride?: string;
     isDismissable?: boolean;
     onDismissClick?: () => void;
 };
@@ -36,16 +38,18 @@ const iconByType = {
 const SectionNotice = ({
     title,
     text,
+    children,
     primaryButton,
     secondaryButton,
     tertiaryButton,
     linkButton,
     type = 'info',
+    iconOverride,
     isDismissable,
     onDismissClick,
 }: Props) => {
     const intl = useIntl();
-    const icon = iconByType[type];
+    const icon = iconOverride || iconByType[type];
     const showDismiss = Boolean(isDismissable && onDismissClick);
     const hasButtons = Boolean(primaryButton || secondaryButton || tertiaryButton || linkButton);
     return (
@@ -55,24 +59,25 @@ const SectionNotice = ({
                 <div className='sectionNoticeBody'>
                     <h4 className={classNames('sectionNoticeTitle', {welcome: type === 'welcome', noText: !text})}>{title}</h4>
                     {text && <Markdown message={text}/>}
+                    {children}
                     {hasButtons && (
                         <div className='sectionNoticeActions'>
                             {primaryButton &&
                                 <SectionNoticeButton
                                     button={primaryButton}
-                                    buttonClass='btn-primary'
+                                    emphasis='primary'
                                 />
                             }
                             {secondaryButton &&
                                 <SectionNoticeButton
                                     button={secondaryButton}
-                                    buttonClass='btn-secondary'
+                                    emphasis='secondary'
                                 />
                             }
                             {tertiaryButton && (
                                 <SectionNoticeButton
                                     button={tertiaryButton}
-                                    buttonClass='btn-tertiary'
+                                    emphasis='tertiary'
                                 />
                             )}
                             {linkButton &&

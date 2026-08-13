@@ -4,6 +4,10 @@
 package email
 
 import (
+	"html"
+	"net/url"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -35,12 +39,98 @@ func TestCondenseSiteURL(t *testing.T) {
 	require.Equal(t, "chat.mattermost.com:8080/subpath", condenseSiteURL("http://chat.mattermost.com:8080/subpath/"))
 }
 
+func TestGetLicenseSkuName(t *testing.T) {
+	tests := []struct {
+		name             string
+		license          *model.License
+		expectedSku      string
+		expectedPrefixed string
+	}{
+		{
+			name:             "nil license",
+			license:          nil,
+			expectedSku:      "Mattermost",
+			expectedPrefixed: "Mattermost",
+		},
+		{
+			name:             "empty sku name",
+			license:          &model.License{SkuName: ""},
+			expectedSku:      "Mattermost",
+			expectedPrefixed: "Mattermost",
+		},
+		{
+			name:             "Professional",
+			license:          &model.License{SkuName: "Professional"},
+			expectedSku:      "Professional",
+			expectedPrefixed: "Mattermost Professional",
+		},
+		{
+			name:             "Enterprise",
+			license:          &model.License{SkuName: "Enterprise"},
+			expectedSku:      "Enterprise",
+			expectedPrefixed: "Mattermost Enterprise",
+		},
+		{
+			name:             "Enterprise Advanced",
+			license:          &model.License{SkuName: "Enterprise Advanced"},
+			expectedSku:      "Enterprise Advanced",
+			expectedPrefixed: "Mattermost Enterprise Advanced",
+		},
+		{
+			name:             "Entry",
+			license:          &model.License{SkuName: "Entry"},
+			expectedSku:      "Entry",
+			expectedPrefixed: "Mattermost Entry",
+		},
+		{
+			name:             "Mattermost Entry (prefixed by license server)",
+			license:          &model.License{SkuName: "Mattermost Entry"},
+			expectedSku:      "Entry",
+			expectedPrefixed: "Mattermost Entry",
+		},
+		{
+			name:             "E10",
+			license:          &model.License{SkuName: "E10"},
+			expectedSku:      "E10",
+			expectedPrefixed: "Mattermost E10",
+		},
+		{
+			name:             "E20",
+			license:          &model.License{SkuName: "E20"},
+			expectedSku:      "E20",
+			expectedPrefixed: "Mattermost E20",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			es := &Service{
+				license: func() *model.License { return tt.license },
+			}
+			require.Equal(t, tt.expectedSku, es.getLicenseSkuName())
+			require.Equal(t, tt.expectedPrefixed, es.getPrefixedLicenseSkuName())
+		})
+	}
+}
+
 func TestSendInviteEmails(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	th.ConfigureInbucketMail(t)
 
-	emailTo := "test@example.com"
+	emailTo := strings.ToLower(model.NewId()) + "@example.com"
+	err := mail.DeleteMailBox(emailTo)
+	require.NoError(t, err, "Failed to delete mailbox")
+
+	newInviteData := func() InviteEmailData {
+		return InviteEmailData{
+			Team:         th.BasicTeam,
+			SenderName:   "test-user",
+			SenderUserID: th.BasicUser.Id,
+			Invites:      []string{emailTo},
+			SiteURL:      "http://testserver",
+		}
+	}
 
 	retrieveEmail := func(t *testing.T) mail.JSONMessageInbucket {
 		t.Helper()
@@ -77,7 +167,7 @@ func TestSendInviteEmails(t *testing.T) {
 		err := mail.DeleteMailBox(emailTo)
 		require.NoError(t, err, "Failed to delete mailbox")
 
-		err = th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
+		err = th.service.SendInviteEmails(th.Context, newInviteData())
 		require.NoError(t, err)
 
 		verifyMailbox(t)
@@ -95,10 +185,12 @@ func TestSendInviteEmails(t *testing.T) {
 			*cfg.EmailSettings.SMTPServerTimeout = originalTimeout
 		})
 
-		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, true, false, false)
+		inviteData := newInviteData()
+		inviteData.ErrorWhenNotSent = true
+		err := th.service.SendInviteEmails(th.Context, inviteData)
 		require.Error(t, err)
 
-		err = th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
+		err = th.service.SendInviteEmails(th.Context, newInviteData())
 		require.NoError(t, err)
 	})
 
@@ -107,6 +199,7 @@ func TestSendInviteEmails(t *testing.T) {
 		require.NoError(t, err, "Failed to delete mailbox")
 
 		err = th.service.SendGuestInviteEmails(
+			th.Context,
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -138,6 +231,7 @@ func TestSendInviteEmails(t *testing.T) {
 		})
 
 		err := th.service.SendGuestInviteEmails(
+			th.Context,
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -154,6 +248,7 @@ func TestSendInviteEmails(t *testing.T) {
 		require.NoError(t, err)
 
 		err = th.service.SendGuestInviteEmails(
+			th.Context,
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -176,6 +271,7 @@ func TestSendInviteEmails(t *testing.T) {
 
 		message := `<a href="http://testserver">sanitized message</a>`
 		err = th.service.SendGuestInviteEmails(
+			th.Context,
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -201,17 +297,7 @@ func TestSendInviteEmails(t *testing.T) {
 		err := mail.DeleteMailBox(emailTo)
 		require.NoError(t, err, "Failed to delete mailbox")
 
-		err = th.service.SendInviteEmails(
-			th.BasicTeam,
-			"test-user",
-			th.BasicUser.Id,
-			[]string{emailTo},
-			"http://testserver",
-			nil,
-			false,
-			false,
-			false,
-		)
+		err = th.service.SendInviteEmails(th.Context, newInviteData())
 		require.NoError(t, err)
 
 		email := retrieveEmail(t)
@@ -222,17 +308,9 @@ func TestSendInviteEmails(t *testing.T) {
 		err := mail.DeleteMailBox(emailTo)
 		require.NoError(t, err, "Failed to delete mailbox")
 
-		err = th.service.SendInviteEmails(
-			th.BasicTeam,
-			"test-user",
-			th.BasicUser.Id,
-			[]string{emailTo},
-			"http://testserver",
-			nil,
-			false,
-			true,
-			false,
-		)
+		inviteData := newInviteData()
+		inviteData.IsSystemAdmin = true
+		err = th.service.SendInviteEmails(th.Context, inviteData)
 		require.NoError(t, err)
 
 		email := retrieveEmail(t)
@@ -243,22 +321,74 @@ func TestSendInviteEmails(t *testing.T) {
 		err := mail.DeleteMailBox(emailTo)
 		require.NoError(t, err, "Failed to delete mailbox")
 
-		err = th.service.SendInviteEmails(
-			th.BasicTeam,
-			"test-user",
-			th.BasicUser.Id,
-			[]string{emailTo},
-			"http://testserver",
-			nil,
-			false,
-			true,
-			true,
-		)
+		inviteData := newInviteData()
+		inviteData.IsSystemAdmin = true
+		inviteData.IsFirstAdmin = true
+		err = th.service.SendInviteEmails(th.Context, inviteData)
 		require.NoError(t, err)
 
 		email := retrieveEmail(t)
 		require.Contains(t, email.Body.HTML, "&amp;sbr=fa")
 	})
+
+	t.Run("SendInviteEmails with profiles should put profile fields into token extra and link data", func(t *testing.T) {
+		err := mail.DeleteMailBox(emailTo)
+		require.NoError(t, err, "Failed to delete mailbox")
+
+		profiles := map[string]*model.MemberInviteProfile{
+			emailTo: {
+				Email:     emailTo,
+				Username:  "dave.roberts",
+				FirstName: "Dave",
+				LastName:  "Roberts",
+			},
+		}
+
+		inviteData := newInviteData()
+		inviteData.Profiles = profiles
+		err = th.service.SendInviteEmails(th.Context, inviteData)
+		require.NoError(t, err)
+
+		email := retrieveEmail(t)
+		token := findTokenFromEmail(t, th, email.Body.HTML)
+		tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
+		require.Equal(t, emailTo, tokenData["email"])
+		require.Equal(t, "dave.roberts", tokenData["username"])
+		require.Equal(t, "Dave", tokenData["first_name"])
+		require.Equal(t, "Roberts", tokenData["last_name"])
+
+		linkData := findLinkDataFromEmail(t, email.Body.HTML)
+		require.Equal(t, "dave.roberts", linkData["username"])
+		require.Equal(t, "Dave", linkData["first_name"])
+		require.Equal(t, "Roberts", linkData["last_name"])
+	})
+}
+
+// findSignupQueryFromEmail extracts the signup_user_complete query parameters from an invite email body.
+func findSignupQueryFromEmail(t *testing.T, emailHTML string) url.Values {
+	t.Helper()
+	re := regexp.MustCompile(`signup_user_complete/\?([^"]*)`)
+	matches := re.FindStringSubmatch(html.UnescapeString(emailHTML))
+	require.Len(t, matches, 2, "invite email should contain a signup link")
+	queryString, err := url.ParseQuery(matches[1])
+	require.NoError(t, err)
+	return queryString
+}
+
+// findTokenFromEmail loads the invitation token referenced by an invite email body.
+func findTokenFromEmail(t *testing.T, th *TestHelper, emailHTML string) *model.Token {
+	t.Helper()
+	queryString := findSignupQueryFromEmail(t, emailHTML)
+	token, err := th.service.store.Token().GetByToken(queryString.Get("t"))
+	require.NoError(t, err)
+	return token
+}
+
+// findLinkDataFromEmail parses the d prefill param of the signup link in an invite email body.
+func findLinkDataFromEmail(t *testing.T, emailHTML string) map[string]string {
+	t.Helper()
+	queryString := findSignupQueryFromEmail(t, emailHTML)
+	return model.MapFromJSON(strings.NewReader(queryString.Get("d")))
 }
 
 func TestSendCloudWelcomeEmail(t *testing.T) {
@@ -309,7 +439,7 @@ func TestMailServiceConfig(t *testing.T) {
 		config: func() *model.Config {
 			return &model.Config{
 				ServiceSettings: model.ServiceSettings{
-					SiteURL: model.NewPointer(""),
+					SiteURL: new(""),
 				},
 				EmailSettings: model.EmailSettings{
 					EnableSignUpWithEmail:             new(bool),
@@ -320,7 +450,7 @@ func TestMailServiceConfig(t *testing.T) {
 					RequireEmailVerification:          new(bool),
 					FeedbackName:                      new(string),
 					FeedbackEmail:                     new(string),
-					ReplyToAddress:                    model.NewPointer(configuredReplyTo),
+					ReplyToAddress:                    new(configuredReplyTo),
 					FeedbackOrganization:              new(string),
 					EnableSMTPAuth:                    new(bool),
 					SMTPUsername:                      new(string),

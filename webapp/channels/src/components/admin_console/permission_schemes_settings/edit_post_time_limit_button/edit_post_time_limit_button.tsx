@@ -10,7 +10,7 @@ type Props = {
     timeLimit: number;
     onClick: () => void;
     isDisabled: boolean | undefined;
-}
+};
 
 export default function EditPostTimeLimitButton(props: Props) {
     return (

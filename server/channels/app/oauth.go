@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -285,6 +284,10 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(rctx request.CTX, userID string
 		return nil, err
 	}
 
+	if user.DeleteAt != 0 {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
+	}
+
 	session, err := a.newSession(rctx, oauthApp, user)
 	if err != nil {
 		return nil, err
@@ -341,6 +344,10 @@ func (a *App) handleAuthorizationCodeGrant(rctx request.CTX, oauthApp *model.OAu
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
 	}
 
+	if authData.ClientId != clientId {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.client_id_mismatch.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if authData.RedirectUri != redirectURI {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.redirect_uri.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -349,7 +356,7 @@ func (a *App) handleAuthorizationCodeGrant(rctx request.CTX, oauthApp *model.OAu
 		return nil, err
 	}
 
-	user, nErr := a.Srv().Store().User().Get(context.Background(), authData.UserId)
+	user, nErr := a.Srv().Store().User().Get(rctx, authData.UserId)
 	if nErr != nil {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 	}
@@ -395,9 +402,17 @@ func (a *App) handleRefreshTokenGrant(rctx request.CTX, oauthApp *model.OAuthApp
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 	}
 
-	user, nErr := a.Srv().Store().User().Get(context.Background(), accessData.UserId)
+	if accessData.ClientId != oauthApp.Id {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.client_id_mismatch.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	user, nErr := a.Srv().Store().User().Get(rctx, accessData.UserId)
 	if nErr != nil {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
+	}
+
+	if user.DeleteAt != 0 {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
 	}
 
 	audience := accessData.Audience // Default to existing audience
@@ -527,6 +542,8 @@ func (a *App) newSessionUpdateToken(rctx request.CTX, app *model.OAuthApp, acces
 	if err := a.Srv().Store().Session().Remove(accessData.Token); err != nil {
 		rctx.Logger().Warn("error removing access data token from session", mlog.Err(err))
 	}
+	// Clear the cache so the old token stops being accepted immediately.
+	a.ClearSessionCacheForUser(user.Id)
 
 	session, err := a.newSession(rctx, app, user)
 	if err != nil {
@@ -770,7 +787,7 @@ func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader,
 			map[string]any{"Service": service}, "", http.StatusBadRequest)
 	}
 
-	user, appErr := a.GetUserByAuth(model.NewPointer(*authUser.AuthData), service)
+	user, appErr := a.GetUserByAuth(new(*authUser.AuthData), service)
 	if appErr != nil {
 		if appErr.Id == MissingAuthAccountError {
 			user, appErr = a.CreateOAuthUser(rctx, service, bytes.NewReader(buf.Bytes()), inviteToken, inviteId, tokenUser)
@@ -1191,6 +1208,10 @@ func (a *App) SwitchEmailToOAuth(rctx request.CTX, w http.ResponseWriter, r *htt
 func (a *App) SwitchOAuthToEmail(rctx request.CTX, email, password, requesterId string) (string, *model.AppError) {
 	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("oauthToEmail", "api.user.oauth_to_email.not_available.app_error", nil, "", http.StatusForbidden)
+	}
+
+	if rctx.Session().IsOAuth {
+		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.oauth_to_email.integration_session.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if !*a.Config().EmailSettings.EnableSignUpWithEmail {

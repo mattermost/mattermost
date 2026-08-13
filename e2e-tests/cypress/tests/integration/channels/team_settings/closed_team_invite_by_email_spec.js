@@ -10,21 +10,22 @@
 // Stage: @prod
 // Group: @channels @team_settings
 
-import {getAdminAccount} from '../../../support/env';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 import {
     getJoinEmailTemplate,
     getRandomId,
+    newTestPassword,
     reUrl,
     verifyEmailBody,
-} from '../../../utils';
+} from '@/utils';
 
 describe('Team Settings', () => {
     const sysadmin = getAdminAccount();
     const randomId = getRandomId();
     const username = `user${randomId}`;
     const email = `user${randomId}@sample.mattermost.com`;
-    const password = 'passwd';
+    const password = newTestPassword();
 
     let testTeam;
     let siteName;

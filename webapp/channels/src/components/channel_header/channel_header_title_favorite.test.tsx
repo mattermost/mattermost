@@ -186,6 +186,17 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         expect(icon).toHaveClass('icon-star');
     });
 
+    it('should render button as disabled when channel is in a managed category', () => {
+        isCurrentChannelFavoriteMock.mockReturnValue(false);
+        getCurrentChannelMock.mockReturnValue(activeChannel);
+        jest.spyOn(require('mattermost-redux/selectors/entities/channel_categories'), 'isChannelInManagedCategory').mockReturnValue(true);
+
+        renderComponent();
+
+        const button = screen.getByRole('button');
+        expect(button).toBeDisabled();
+    });
+
     it('should dispatch A11yFocusEvent after toggling favorite', async () => {
         isCurrentChannelFavoriteMock.mockReturnValue(false);
         getCurrentChannelMock.mockReturnValue(activeChannel);

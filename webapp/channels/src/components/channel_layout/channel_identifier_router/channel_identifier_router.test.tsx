@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {render} from '@testing-library/react';
 import type {History} from 'history';
 import React from 'react';
 
@@ -9,11 +9,20 @@ import {getHistory} from 'utils/browser_history';
 
 import ChannelIdentifierRouter from './channel_identifier_router';
 
+jest.mock('components/channel_view/index', () => ({
+    __esModule: true,
+    default: () => null,
+}));
+
+const mockReplace = jest.fn();
+jest.mock('utils/browser_history', () => ({
+    getHistory: () => ({replace: mockReplace}),
+}));
+
 jest.useFakeTimers({legacyFakeTimers: true});
 
-describe('components/channel_layout/CenterChannel', () => {
+describe('components/channel_layout/ChannelIdentifierRouter', () => {
     const baseProps = {
-
         match: {
             isExact: false,
             params: {
@@ -24,20 +33,23 @@ describe('components/channel_layout/CenterChannel', () => {
             path: '/team/channel/identifier',
             url: '/team/channel/identifier',
         },
-
         actions: {
             onChannelByIdentifierEnter: jest.fn(),
         },
         history: [] as unknown as History,
     };
 
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     test('should call onChannelByIdentifierEnter on props change', () => {
-        const wrapper = shallow(<ChannelIdentifierRouter {...baseProps}/>);
-        const instance = wrapper.instance();
+        const {rerender} = render(<ChannelIdentifierRouter {...baseProps}/>);
         expect(baseProps.actions.onChannelByIdentifierEnter).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.onChannelByIdentifierEnter).toHaveBeenLastCalledWith(baseProps);
 
         const props2 = {
+            ...baseProps,
             match: {
                 isExact: false,
                 params: {
@@ -49,18 +61,11 @@ describe('components/channel_layout/CenterChannel', () => {
                 url: '/team2/channel/identifier2',
             },
         };
-        wrapper.setProps(props2);
+        rerender(<ChannelIdentifierRouter {...props2}/>);
 
-        // expect(propsTest.match).toEqual(props2.match);
-
-        //Should clear the timeout if url is changed
-        expect(clearTimeout).toHaveBeenCalledWith((instance as any).replaceUrlTimeout);
+        expect(clearTimeout).toHaveBeenCalled();
         expect(baseProps.actions.onChannelByIdentifierEnter).toHaveBeenCalledTimes(2);
-        expect(baseProps.actions.onChannelByIdentifierEnter).toHaveBeenLastCalledWith({
-            ...baseProps,
-            match: props2.match,
-            actions: baseProps.actions,
-        });
+        expect(baseProps.actions.onChannelByIdentifierEnter).toHaveBeenLastCalledWith(props2);
     });
 
     test('should call browserHistory.replace if it is permalink after timer', () => {
@@ -78,7 +83,7 @@ describe('components/channel_layout/CenterChannel', () => {
                 url: '/team/channel/identifier/abcd',
             },
         };
-        shallow(<ChannelIdentifierRouter {...props}/>);
+        render(<ChannelIdentifierRouter {...props}/>);
         jest.runOnlyPendingTimers();
         expect(getHistory().replace).toHaveBeenLastCalledWith('/team/channel/identifier');
     });
@@ -99,8 +104,8 @@ describe('components/channel_layout/CenterChannel', () => {
             },
         };
 
-        const wrapper = shallow(<ChannelIdentifierRouter {...baseProps}/>);
-        wrapper.setProps(props);
+        const {rerender} = render(<ChannelIdentifierRouter {...baseProps}/>);
+        rerender(<ChannelIdentifierRouter {...props}/>);
 
         jest.runOnlyPendingTimers();
         expect(getHistory().replace).toHaveBeenLastCalledWith('/team1/channel/identifier1');

@@ -72,7 +72,7 @@ type Props = {
      *  Data used for filtering of webhook based on filter prop
      */
     channel: Channel;
-}
+};
 
 export default class InstalledIncomingWebhook extends React.PureComponent<Props> {
     handleDelete = () => {
@@ -179,6 +179,24 @@ export default class InstalledIncomingWebhook extends React.PureComponent<Props>
                                     createAt: incomingWebhook.create_at,
                                 }}
                             />
+                        </span>
+                    </div>
+                    <div className='item-details__row'>
+                        <span className='item-details__last-used'>
+                            {incomingWebhook.last_used > 0 ? (
+                                <FormattedMessage
+                                    id='installed_integrations.last_used'
+                                    defaultMessage='Last used on {lastUsed, date, full}'
+                                    values={{
+                                        lastUsed: incomingWebhook.last_used,
+                                    }}
+                                />
+                            ) : (
+                                <FormattedMessage
+                                    id='installed_integrations.never_used'
+                                    defaultMessage='Never used'
+                                />
+                            )}
                         </span>
                     </div>
                 </div>

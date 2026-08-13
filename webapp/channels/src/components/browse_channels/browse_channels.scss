@@ -1,7 +1,19 @@
 #browseChannelsModal {
+    .modal-content {
+        width: 100%;
+    }
+
     .modal-dialog {
         @media screen and (max-width: 640px) {
+            width: 100%;
+            max-width: 100%;
             margin-top: 0 !important;
+        }
+    }
+
+    @media screen and (max-width: 640px) {
+        .modal-content {
+            overflow: hidden;
         }
     }
 
@@ -130,6 +142,8 @@
             border-bottom: none;
 
             .more-modal__details {
+                overflow: hidden;
+                min-width: 0;
                 padding-left: 0;
                 color: rgba(var(--center-channel-color-rgb), 0.75);
 
@@ -161,8 +175,11 @@
                     }
 
                     .more-modal__description {
+                        overflow: hidden;
                         margin-left: 4px;
                         font-weight: 400;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
                     }
 
                     #membershipIndicatorContainer {
@@ -172,6 +189,16 @@
                         span,
                         svg {
                             color: var(--online-indicator);
+                        }
+                    }
+
+                    .discoverableIndicatorContainer {
+                        display: flex;
+                        align-items: center;
+
+                        span,
+                        svg {
+                            color: var(--button-bg);
                         }
                     }
 
@@ -196,24 +223,27 @@
 
             .more-modal__actions {
                 button {
-                    display: none;
                     min-width: 54px;
                     height: 32px;
                     font-size: 12px;
                     font-weight: 600;
+                    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+                    visibility: hidden;
                 }
             }
         }
 
         .more-modal__row:hover,
-        .more-modal__row:focus {
+        .more-modal__row:focus,
+        .more-modal__row:focus-within {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
             cursor: pointer;
 
             .more-modal__actions {
                 .primaryButton,
-                .outlineButton {
-                    display: inline-block;
+                .outlineButton,
+                .btn-tertiary {
+                    visibility: visible;
                 }
             }
         }
@@ -258,10 +288,6 @@
     .secondary-message {
         margin-bottom: 30px;
     }
-
-    #createNewChannelButton {
-        padding: 10px 20px;
-    }
 }
 
 #browseChannelsDropdown {
@@ -269,5 +295,21 @@
         padding: 2px 4px;
         font-size: 14px;
         line-height: 20px;
+    }
+}
+
+// Mobile parity at 480px: the row's actions wrap below the channel name
+// so the touch targets do not get squeezed.
+@media (max-width: 480px) {
+    #moreChannelsList {
+        .more-modal__row {
+            flex-wrap: wrap;
+        }
+
+        .more-modal__actions {
+            width: 100%;
+            padding-left: 0;
+            margin-top: 8px;
+        }
     }
 }

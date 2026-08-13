@@ -10,12 +10,12 @@
 // Stage: @prod
 // Group: @channels @not_cloud @system_console
 
+import {backToTeam, saveSetting} from './helper';
+
 import {
     FixedPublicLinks,
-} from '../../../../utils';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-
-import {backToTeam, saveSetting} from './helper';
+} from '@/utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('SupportSettings', () => {
     const tosLink = 'https://github.com/mattermost/platform/blob/master/README.md';

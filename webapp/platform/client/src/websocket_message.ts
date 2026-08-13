@@ -31,6 +31,7 @@ export type WebSocketMessage = (
     Messages.ChannelCreated |
     Messages.ChannelUpdated |
     Messages.ChannelConverted |
+    Messages.SharedChannelRemoteUpdated |
     Messages.ChannelSchemeUpdated |
     Messages.ChannelDeleted |
     Messages.ChannelRestored |
@@ -45,6 +46,12 @@ export type WebSocketMessage = (
     Messages.ChannelBookmarkUpdated |
     Messages.ChannelBookmarkDeleted |
     Messages.ChannelBookmarkSorted |
+
+    Messages.ChannelAccessControlUpdated |
+    Messages.TeamAccessControlUpdated |
+
+    Messages.ChannelJoinRequestCreated |
+    Messages.ChannelJoinRequestUpdated |
 
     Messages.Team |
     Messages.UpdateTeamScheme |
@@ -71,6 +78,10 @@ export type WebSocketMessage = (
     Messages.SidebarCategoryUpdated |
     Messages.SidebarCategoryDeleted |
     Messages.SidebarCategoryOrderUpdated |
+    Messages.PropertyFieldCreated |
+    Messages.PropertyFieldUpdated |
+    Messages.PropertyFieldDeleted |
+    Messages.PropertyValuesUpdated |
 
     Messages.EmojiAdded |
 
@@ -90,9 +101,11 @@ export type WebSocketMessage = (
 
     Messages.ContentFlaggingReportValueUpdated |
 
+    Messages.JobUpdated |
     Messages.RecapUpdated |
 
     Messages.FileDownloadRejected |
+    Messages.FileUploadRejected |
     Messages.ShowToast |
 
     Messages.Plugin |
@@ -111,11 +124,11 @@ export type BaseWebSocketMessage<Event, T = Record<string, never>> = {
     data: T;
     broadcast: WebSocketBroadcast;
     seq: number;
-}
+};
 
 export type WebSocketBroadcast = {
     omit_users: Record<string, boolean>;
     user_id: string;
     channel_id: string;
     team_id: string;
-}
+};

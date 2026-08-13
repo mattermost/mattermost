@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @enterprise @system_console
 
-import {getRandomId} from '../../../../utils';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import {getRandomId} from '@/utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 const permissions = ['create_private_channel', 'edit_post', 'delete_post', 'reactions', 'use_channel_mentions', 'use_group_mentions'];
 const getButtonId = (permission) => {

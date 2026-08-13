@@ -49,7 +49,7 @@ func (s *optionSetting) Get(userID string) (any, error) {
 	return valueString, nil
 }
 
-func (s *optionSetting) GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error) {
+func (s *optionSetting) GetMessageAttachments(userID, settingHandler string, disabled bool) (*model.MessageAttachment, error) {
 	title := fmt.Sprintf("Setting: %s", s.title)
 	currentValueMessage := DisabledString
 
@@ -77,7 +77,7 @@ func (s *optionSetting) GetSlackAttachments(userID, settingHandler string, disab
 	}
 
 	text := fmt.Sprintf("%s\n%s", s.description, currentValueMessage)
-	sa := model.SlackAttachment{
+	sa := model.MessageAttachment{
 		Title:    title,
 		Text:     text,
 		Fallback: fmt.Sprintf("%s: %s", title, text),

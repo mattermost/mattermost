@@ -6,6 +6,7 @@ package model
 import (
 	"crypto/rand"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,6 +25,7 @@ func TestRemoteClusterIsValid(t *testing.T) {
 		{name: "Zero value", rc: &RemoteCluster{}, valid: false},
 		{name: "Missing cluster_name", rc: &RemoteCluster{RemoteId: id}, valid: false},
 		{name: "Missing host_name", rc: &RemoteCluster{RemoteId: id, Name: NewId()}, valid: false},
+		{name: "Missing site_url", rc: &RemoteCluster{RemoteId: id, Name: NewId(), CreatorId: creator, CreateAt: now}, valid: false},
 		{name: "Missing create_at", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com"}, valid: false},
 		{name: "Missing last_ping_at", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreatorId: creator, CreateAt: now}, valid: true},
 		{name: "Missing creator", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreateAt: now, LastPingAt: now}, valid: false},
@@ -132,29 +134,35 @@ func TestRemoteClusterInviteEncryption(t *testing.T) {
 		badDecrypt bool
 		password   string
 		invite     RemoteClusterInvite
+		skipFIPS   bool
 	}{
-		{name: "empty password", badDecrypt: false, password: "", invite: makeInvite("https://example.com:8065")},
+		{name: "empty password", badDecrypt: false, password: "", invite: makeInvite("https://example.com:8065"), skipFIPS: true},
 		{name: "good password", badDecrypt: false, password: "Ultra secret password!", invite: makeInvite("https://example.com:8065")},
 		{name: "bad decrypt", badDecrypt: true, password: "correct horse battery staple", invite: makeInvite("https://example.com:8065")},
 	}
 
 	for _, tt := range testData {
-		encrypted, err := tt.invite.Encrypt(tt.password)
-		require.NoError(t, err)
-
-		invite := RemoteClusterInvite{}
-		if tt.badDecrypt {
-			buf := make([]byte, len(encrypted))
-			_, err = io.ReadFull(rand.Reader, buf)
-			assert.NoError(t, err)
-
-			err = invite.Decrypt(buf, tt.password)
-			require.Error(t, err)
-		} else {
-			err = invite.Decrypt(encrypted, tt.password)
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.skipFIPS && FIPSEnabled {
+				t.Skip("skipping under FIPS: encryption requires keys >= 14 bytes")
+			}
+			encrypted, err := tt.invite.Encrypt(tt.password)
 			require.NoError(t, err)
-			assert.Equal(t, tt.invite, invite)
-		}
+
+			invite := RemoteClusterInvite{}
+			if tt.badDecrypt {
+				buf := make([]byte, len(encrypted))
+				_, err = io.ReadFull(rand.Reader, buf)
+				assert.NoError(t, err)
+
+				err = invite.Decrypt(buf, tt.password)
+				require.Error(t, err)
+			} else {
+				err = invite.Decrypt(encrypted, tt.password)
+				require.NoError(t, err)
+				assert.Equal(t, tt.invite, invite)
+			}
+		})
 	}
 }
 
@@ -168,7 +176,7 @@ func TestRemoteClusterInviteBackwardCompatibility(t *testing.T) {
 		Version:        2, // Old version using scrypt
 	}
 
-	password := "test password"
+	password := NewTestPassword()
 
 	// Encrypt with old method (scrypt)
 	encrypted, err := oldInvite.Encrypt(password)
@@ -210,24 +218,84 @@ func makeInvite(url string) RemoteClusterInvite {
 	}
 }
 
-func TestNewIDFromBytes(t *testing.T) {
-	tests := []struct {
-		name string
-		ss   string
-	}{
-		{name: "empty", ss: ""},
-		{name: "very short", ss: "x"},
-		{name: "normal", ss: "com.mattermost.msteams-sync"},
-		{name: "long", ss: "com.mattermost.msteams-synccom.mattermost.msteams-synccom.mattermost.msteams-synccom.mattermost.msteams-sync"},
+func TestRemoteClusterToRemoteClusterInfo(t *testing.T) {
+	remoteID := NewId()
+	now := GetMillis()
+	rc := &RemoteCluster{
+		RemoteId:    remoteID,
+		Name:        "test-name",
+		DisplayName: "Test Display Name",
+		CreateAt:    now,
+		DeleteAt:    0,
+		LastPingAt:  now,
+		SiteURL:     "https://example.com:8065",
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got1 := newIDFromBytes([]byte(tt.ss))
 
-			assert.True(t, IsValidId(got1), "not a valid id")
+	info := rc.ToRemoteClusterInfo()
 
-			got2 := newIDFromBytes([]byte(tt.ss))
-			assert.Equal(t, got1, got2, "newIDFromBytes must generate same id for same inputs")
+	assert.Equal(t, remoteID, info.RemoteId, "RemoteId should be set")
+	assert.Equal(t, rc.Name, info.Name)
+	assert.Equal(t, rc.DisplayName, info.DisplayName)
+	assert.Equal(t, rc.CreateAt, info.CreateAt)
+	assert.Equal(t, rc.DeleteAt, info.DeleteAt)
+	assert.Equal(t, rc.LastPingAt, info.LastPingAt)
+	assert.Equal(t, rc.SiteURL, info.SiteURL)
+}
+
+func TestRemoteClusterIsPlugin(t *testing.T) {
+	t.Run("PluginID set returns true", func(t *testing.T) {
+		rc := &RemoteCluster{PluginID: "com.example.plugin", SiteURL: "https://example.com"}
+		assert.True(t, rc.IsPlugin())
+	})
+
+	t.Run("empty PluginID returns false", func(t *testing.T) {
+		rc := &RemoteCluster{SiteURL: "https://example.com"}
+		assert.False(t, rc.IsPlugin())
+	})
+
+	t.Run("plugin_ SiteURL prefix with empty PluginID returns false", func(t *testing.T) {
+		rc := &RemoteCluster{SiteURL: SiteURLPlugin + "com.example.plugin"}
+		assert.False(t, rc.IsPlugin(), "IsPlugin should only check PluginID, not SiteURL prefix")
+	})
+}
+
+func TestCleanRemoteName(t *testing.T) {
+	cases := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{name: "single space", in: "legacy plugin", want: "legacy-plugin"},
+		{name: "multiple spaces", in: "remote 1 plugin", want: "remote-1-plugin"},
+		{name: "uppercase", in: "Plugin A", want: "plugin-a"},
+		{name: "preserves dot, hyphen, underscore", in: "com.example_plugin-1", want: "com.example_plugin-1"},
+		{name: "trims separators", in: "  ---my remote---  ", want: "my-remote"},
+		{name: "punctuation collapses", in: "plugin@home!", want: "plugin-home"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := CleanRemoteName(tc.in)
+			assert.Equal(t, tc.want, got)
+			assert.True(t, IsValidRemoteName(got), "CleanRemoteName must produce a valid name")
 		})
 	}
+
+	t.Run("empty input falls back to NewId", func(t *testing.T) {
+		got := CleanRemoteName("")
+		assert.True(t, IsValidRemoteName(got))
+		assert.Len(t, got, 26)
+	})
+
+	t.Run("only invalid characters falls back to NewId", func(t *testing.T) {
+		got := CleanRemoteName("@@@ !!! ???")
+		assert.True(t, IsValidRemoteName(got))
+		assert.Len(t, got, 26)
+	})
+
+	t.Run("over-length input is truncated", func(t *testing.T) {
+		in := strings.Repeat("a", RemoteNameMaxLength+10)
+		got := CleanRemoteName(in)
+		assert.True(t, IsValidRemoteName(got))
+		assert.LessOrEqual(t, len(got), RemoteNameMaxLength)
+	})
 }

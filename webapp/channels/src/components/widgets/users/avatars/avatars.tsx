@@ -7,6 +7,7 @@ import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import tinycolor from 'tinycolor2';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
@@ -15,7 +16,6 @@ import {getUser as selectUser, makeDisplayNameGetter} from 'mattermost-redux/sel
 
 import ProfilePopover from 'components/profile_popover';
 import Avatar from 'components/widgets/users/avatar';
-import WithTooltip from 'components/with_tooltip';
 
 import {imageURLForUser} from 'utils/utils';
 
@@ -59,6 +59,7 @@ function UserAvatar({
     const name = useSelector((state: GlobalState) => displayNameGetter(state, true)(user));
 
     const profilePictureURL = userId ? imageURLForUser(userId) : '';
+    const avatarPictureURL = userId ? imageURLForUser(userId, user?.last_picture_update) : '';
 
     return (
         <ProfilePopover<HTMLButtonElement>
@@ -71,7 +72,7 @@ function UserAvatar({
                 title={name}
             >
                 <Avatar
-                    url={imageURLForUser(userId, user?.last_picture_update)}
+                    url={avatarPictureURL}
                     username={user?.username}
                     tabIndex={-1}
                     {...props}

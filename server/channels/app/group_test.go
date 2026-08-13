@@ -58,7 +58,7 @@ func TestGetGroup(t *testing.T) {
 		groupWithUserIds := &model.GroupWithUserIds{
 			Group: model.Group{
 				DisplayName:    "dn_" + id,
-				Name:           model.NewPointer("name" + id),
+				Name:           new("name" + id),
 				Source:         model.GroupSourceCustom,
 				AllowReference: true,
 			},
@@ -128,9 +128,9 @@ func TestCreateGroup(t *testing.T) {
 	id := model.NewId()
 	group := &model.Group{
 		DisplayName: "dn_" + id,
-		Name:        model.NewPointer("name" + id),
+		Name:        new("name" + id),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewPointer(model.NewId()),
+		RemoteId:    new(model.NewId()),
 	}
 
 	g, err := th.App.CreateGroup(group)
@@ -147,7 +147,7 @@ func TestCreateGroup(t *testing.T) {
 			DisplayName: "dn_" + model.NewId(),
 			Name:        &user.Username,
 			Source:      model.GroupSourceLdap,
-			RemoteId:    model.NewPointer(model.NewId()),
+			RemoteId:    new(model.NewId()),
 		}
 		g, err = th.App.CreateGroup(usernameGroup)
 		require.NotNil(t, err)
@@ -276,7 +276,7 @@ func TestUpsertGroupSyncableTeamGroupConstrained(t *testing.T) {
 	group2 := th.CreateGroup(t)
 
 	team := th.CreateTeam(t)
-	team.GroupConstrained = model.NewPointer(true)
+	team.GroupConstrained = new(true)
 	team, err := th.App.UpdateTeam(team)
 	require.Nil(t, err)
 	_, err = th.App.UpsertGroupSyncable(model.NewGroupTeam(group1.Id, team.Id, false))
@@ -378,7 +378,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 
 	groups, _, err := th.App.GetGroupsByChannel(th.BasicChannel.Id, opts)
 	require.Nil(t, err)
-	require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewPointer(false)}}, groups)
+	require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: new(false)}}, groups)
 	require.NotNil(t, groups[0].SchemeAdmin)
 
 	groups, _, err = th.App.GetGroupsByChannel(model.NewId(), opts)
@@ -416,7 +416,7 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 
 	assert.Equal(t, map[string][]*model.GroupWithSchemeAdmin{
 		th.BasicChannel.Id: {
-			{Group: *group, SchemeAdmin: model.NewPointer(false)},
+			{Group: *group, SchemeAdmin: new(false)},
 		},
 	}, groups)
 	require.NotNil(t, groups[th.BasicChannel.Id][0].SchemeAdmin)
@@ -446,7 +446,7 @@ func TestGetGroupsByTeam(t *testing.T) {
 
 	groups, _, err := th.App.GetGroupsByTeam(th.BasicTeam.Id, model.GroupSearchOpts{})
 	require.Nil(t, err)
-	require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewPointer(false)}}, groups)
+	require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: new(false)}}, groups)
 	require.NotNil(t, groups[0].SchemeAdmin)
 
 	groups, _, err = th.App.GetGroupsByTeam(model.NewId(), model.GroupSearchOpts{})

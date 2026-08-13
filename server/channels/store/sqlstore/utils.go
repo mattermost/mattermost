@@ -20,6 +20,40 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+// defaultMaxInsertParams is a conservative threshold (76% of PostgreSQL's
+// 65,535 parameter limit) used to chunk bulk INSERT statements so they never
+// overflow the wire-protocol's 16-bit parameter counter.
+const defaultMaxInsertParams = 50_000
+
+// chunkSlice splits items into sub-slices sized so that each chunk uses at most
+// maxParams query parameters (columnsPerRow params per item). When the input
+// already fits in one chunk the original slice is returned with zero allocation
+// overhead.
+func chunkSlice[T any](items []T, columnsPerRow int, maxParams int) [][]T {
+	if columnsPerRow <= 0 {
+		panic(fmt.Sprintf("chunkSlice: columnsPerRow must be > 0, got %d", columnsPerRow))
+	}
+	if maxParams <= 0 {
+		panic(fmt.Sprintf("chunkSlice: maxParams must be > 0, got %d", maxParams))
+	}
+	if columnsPerRow > maxParams {
+		panic(fmt.Sprintf("chunkSlice: columnsPerRow (%d) must be <= maxParams (%d)", columnsPerRow, maxParams))
+	}
+	if len(items) == 0 {
+		return nil
+	}
+	chunkSize := maxParams / columnsPerRow
+	if len(items) <= chunkSize {
+		return [][]T{items}
+	}
+	var chunks [][]T
+	for i := 0; i < len(items); i += chunkSize {
+		end := min(i+chunkSize, len(items))
+		chunks = append(chunks, items[i:end])
+	}
+	return chunks
+}
+
 var escapeLikeSearchChar = []string{
 	"%",
 	"_",
@@ -159,8 +193,44 @@ func trimInput(input string) string {
 	return input
 }
 
+// rowScanner is the minimal interface needed to iterate over SQL result rows.
+type rowScanner interface {
+	Next() bool
+	Scan(dest ...any) error
+	Err() error
+}
+
+// neutralizeNonWordHyphens replaces any '-' that isn't flanked by a word
+// rune (letter or digit) on both sides with a space, so malformed hyphen
+// usage (leading/trailing/standalone/repeated) can't reach to_tsquery, while
+// compound words like "t-shirt" are preserved.
+func neutralizeNonWordHyphens(s string) string {
+	if !strings.ContainsRune(s, '-') {
+		return s
+	}
+	runes := []rune(s)
+	for i, r := range runes {
+		if r != '-' {
+			continue
+		}
+		hasLeft := i > 0 && isWordRune(runes[i-1])
+		hasRight := i < len(runes)-1 && isWordRune(runes[i+1])
+		if !hasLeft || !hasRight {
+			runes[i] = ' '
+		}
+	}
+	return string(runes)
+}
+
+// isWordRune reports whether r can be part of a word for hyphen-flanking
+// purposes. Combining marks (e.g. a decomposed accent) count too, since they
+// attach to the preceding base letter rather than acting as a boundary.
+func isWordRune(r rune) bool {
+	return unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsMark(r)
+}
+
 // scanRowsIntoMap scans SQL rows into a map, using a provided scanner function to extract key-value pairs
-func scanRowsIntoMap[K comparable, V any](rows *sql.Rows, scanner func(rows *sql.Rows) (K, V, error), defaults map[K]V) (map[K]V, error) {
+func scanRowsIntoMap[K comparable, V any](rows rowScanner, scanner func(rows rowScanner) (K, V, error), defaults map[K]V) (map[K]V, error) {
 	results := make(map[K]V, len(defaults))
 
 	// Initialize with default values if provided

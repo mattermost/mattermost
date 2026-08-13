@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import KeyboardShortcutsSequence from './keyboard_shortcuts_sequence';
 
 describe('components/shortcuts/KeyboardShortcutsSequence', () => {
     test('should match snapshot when used for modal with description', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <KeyboardShortcutsSequence
                 shortcut={{
                     id: 'test',
@@ -18,15 +18,14 @@ describe('components/shortcuts/KeyboardShortcutsSequence', () => {
             />,
         );
 
-        const tag = <span>{'Keyboard shortcuts'}</span>;
-        expect(wrapper.contains(tag)).toEqual(true);
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('.shortcut-key--tooltip')).toHaveLength(0);
-        expect(wrapper.find('.shortcut-key--shortcut-modal')).toHaveLength(2);
+        expect(screen.getByText('Keyboard shortcuts')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
+        expect(container.querySelectorAll('.shortcut-key--tooltip')).toHaveLength(0);
+        expect(container.querySelectorAll('.shortcut-key--shortcut-modal')).toHaveLength(2);
     });
 
     test('should render sequence without description', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <KeyboardShortcutsSequence
                 shortcut={{
                     id: 'test',
@@ -36,13 +35,12 @@ describe('components/shortcuts/KeyboardShortcutsSequence', () => {
             />,
         );
 
-        const tag = <span>{'Keyboard shortcuts'}</span>;
-        expect(wrapper.contains(tag)).toEqual(false);
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.queryByText('Keyboard shortcuts')).not.toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with alternative shortcut', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <KeyboardShortcutsSequence
                 shortcut={{
                     id: 'test',
@@ -51,15 +49,14 @@ describe('components/shortcuts/KeyboardShortcutsSequence', () => {
             />,
         );
 
-        const tag = <span>{'Keyboard shortcuts'}</span>;
-        expect(wrapper.contains(tag)).toEqual(true);
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('.shortcut-key--tooltip')).toHaveLength(0);
-        expect(wrapper.find('.shortcut-key--shortcut-modal')).toHaveLength(5);
+        expect(screen.getByText('Keyboard shortcuts')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
+        expect(container.querySelectorAll('.shortcut-key--tooltip')).toHaveLength(0);
+        expect(container.querySelectorAll('.shortcut-key--shortcut-modal')).toHaveLength(5);
     });
 
     test('should render sequence without description', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <KeyboardShortcutsSequence
                 shortcut={{
                     id: 'test',
@@ -69,14 +66,13 @@ describe('components/shortcuts/KeyboardShortcutsSequence', () => {
             />,
         );
 
-        const tag = <span>{'Keyboard shortcuts'}</span>;
-        expect(wrapper.contains(tag)).toEqual(true);
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('.shortcut-key--tooltip')).toHaveLength(2);
-        expect(wrapper.find('.shortcut-key--shortcut-modal')).toHaveLength(0);
+        expect(screen.getByText('Keyboard shortcuts')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
+        expect(container.querySelectorAll('.shortcut-key--tooltip')).toHaveLength(2);
+        expect(container.querySelectorAll('.shortcut-key--shortcut-modal')).toHaveLength(0);
     });
     test('should render sequence hoisting description', () => {
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <KeyboardShortcutsSequence
                 shortcut={{
                     id: 'test',
@@ -87,10 +83,12 @@ describe('components/shortcuts/KeyboardShortcutsSequence', () => {
             />,
         );
 
-        const tag = <span>{'Keyboard shortcuts'}</span>;
-        expect(wrapper.contains(tag)).toEqual(false);
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('.shortcut-key--tooltip')).toHaveLength(2);
-        expect(wrapper.find('.shortcut-key--shortcut-modal')).toHaveLength(0);
+        // When hoistDescription is true, the description text is rendered outside the shortcut-line div
+        // (hoisted up), but it is still present in the document
+        expect(screen.queryByText('Keyboard shortcuts')).toBeInTheDocument();
+        expect(container.querySelector('.shortcut-line span')).toBeNull(); // description is NOT inside the shortcut-line
+        expect(container).toMatchSnapshot();
+        expect(container.querySelectorAll('.shortcut-key--tooltip')).toHaveLength(2);
+        expect(container.querySelectorAll('.shortcut-key--shortcut-modal')).toHaveLength(0);
     });
 });

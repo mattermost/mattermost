@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -38,6 +37,11 @@ var summarizePostsJSONSchema = map[string]any{
 
 // SummarizePosts generates an AI summary of posts with highlights and action items
 func (a *App) SummarizePosts(rctx request.CTX, userID string, posts []*model.Post, channelName, teamName string, agentID string) (*model.AIRecapSummaryResponse, *model.AppError) {
+	return a.SummarizePostsWithInstructions(rctx, userID, posts, channelName, teamName, agentID, "")
+}
+
+// SummarizePostsWithInstructions generates an AI summary and includes optional user-provided instructions.
+func (a *App) SummarizePostsWithInstructions(rctx request.CTX, userID string, posts []*model.Post, channelName, teamName string, agentID string, customInstructions string) (*model.AIRecapSummaryResponse, *model.AppError) {
 	if len(posts) == 0 {
 		return &model.AIRecapSummaryResponse{Highlights: []string{}, ActionItems: []string{}}, nil
 	}
@@ -49,6 +53,10 @@ func (a *App) SummarizePosts(rctx request.CTX, userID string, posts []*model.Pos
 	conversationText, postIDs := buildConversationTextWithIDs(posts)
 
 	systemPrompt := "You are an expert at analyzing team conversations and extracting key information. Your task is to summarize a conversation from a Mattermost channel, identifying the most important highlights and any actionable items. Return ONLY valid JSON with 'highlights' and 'action_items' keys, each containing an array of strings. If there are no highlights or action items, return empty arrays. Do not make up information - only include items explicitly mentioned in the conversation."
+	customInstructionsBlock := ""
+	if customInstructions = strings.TrimSpace(customInstructions); customInstructions != "" {
+		customInstructionsBlock = fmt.Sprintf("\nAdditional user instructions:\n%s\n", customInstructions)
+	}
 
 	userPrompt := fmt.Sprintf(`Analyze the following conversation from the "%s" channel and provide a summary.
 
@@ -63,6 +71,7 @@ Available Post IDs: %s
 Return a JSON object with:
 - "highlights": array of key discussion points, decisions, or important information
 - "action_items": array of tasks, todos, or action items mentioned
+%s
 
 IMPORTANT INSTRUCTIONS:
 1. When your summary includes a user's username, prepend an @ symbol to the username. For example if you return a highlight with text '<username> sent an update about project xyz', where <username> is 'john.smith', you should phrase is as '@john.smith sent an update about project xyz'.
@@ -71,21 +80,28 @@ IMPORTANT INSTRUCTIONS:
 
 Example format: "Team decided to migrate to microservices architecture [PERMALINK:%s/%s/pl/abc123xyz]"
 
-Your response must be compacted valid JSON only, with no additional text, formatting, nor code blocks.`, channelName, siteURL, teamName, conversationText, strings.Join(postIDs, ", "), siteURL, teamName, siteURL, teamName)
+Your response must be compacted valid JSON only, with no additional text, formatting, nor code blocks.`, channelName, siteURL, teamName, conversationText, strings.Join(postIDs, ", "), customInstructionsBlock, siteURL, teamName, siteURL, teamName)
 
 	// Create bridge client
 	sessionUserID := ""
 	if session := rctx.Session(); session != nil {
 		sessionUserID = session.UserId
 	}
-	client := a.GetBridgeClient(sessionUserID)
-
-	completionRequest := agentclient.CompletionRequest{
-		Posts: []agentclient.Post{
+	requestUserID := userID
+	if sessionUserID != "" {
+		requestUserID = sessionUserID
+	}
+	completionRequest := BridgeCompletionRequest{
+		Operation:       BridgeOperationRecapSummary,
+		ClientOperation: "recaps",
+		Messages: []BridgeMessage{
 			{Role: "system", Message: systemPrompt},
 			{Role: "user", Message: userPrompt},
 		},
 		JSONOutputFormat: summarizePostsJSONSchema,
+		OperationSubType: "summarize_channel",
+		UserID:           requestUserID,
+		ChannelID:        posts[0].ChannelId,
 	}
 
 	rctx.Logger().Debug("Calling AI agent for post summarization",
@@ -95,7 +111,7 @@ Your response must be compacted valid JSON only, with no additional text, format
 		mlog.Int("post_count", len(posts)),
 	)
 
-	completion, err := client.AgentCompletion(agentID, completionRequest)
+	completion, err := a.ch.agentsBridge.AgentCompletion(sessionUserID, agentID, completionRequest)
 	if err != nil {
 		return nil, model.NewAppError("SummarizePosts", "app.ai.summarize.agent_call_failed", nil, err.Error(), http.StatusInternalServerError)
 	}

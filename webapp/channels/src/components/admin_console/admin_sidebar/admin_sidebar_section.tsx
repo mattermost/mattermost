@@ -19,7 +19,7 @@ type Props = {
     subsection?: boolean;
     tag?: string | JSX.Element;
     restrictedIndicator?: string | JSX.Element;
-}
+};
 
 const AdminSidebarSection = ({name, title, action, children = [], definitionKey, type, parentLink = '', subsection = false, tag, restrictedIndicator}: Props) => {
     const getLink = () => parentLink + '/' + name;

@@ -8,8 +8,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/avct/uasurfer"
-	"github.com/blang/semver/v4"
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -67,15 +67,15 @@ func CheckDesktopAppCompatibility(agentString string, minVersion *string) bool {
 	if !ok {
 		return true
 	}
-	clientVersion, err := semver.ParseTolerant(clientVersionStr)
+	clientVersion, err := semver.NewVersion(clientVersionStr)
 	if err != nil {
 		return true
 	}
-	required, err := semver.Parse(*minVersion)
+	required, err := semver.StrictNewVersion(*minVersion)
 	if err != nil {
 		return true
 	}
-	return clientVersion.GTE(required)
+	return clientVersion.GreaterThanEqual(required)
 }
 
 func Handle404(a *app.App, w http.ResponseWriter, r *http.Request) {

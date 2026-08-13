@@ -42,6 +42,7 @@ This repository uses npm workspaces:
 - **@mattermost/types** (`platform/types/`): TypeScript type definitions
 - **@mattermost/client** (`platform/client/`): REST and WebSocket client for the Mattermost API
 - **@mattermost/components** (`platform/components/`): Shared React components
+- **@mattermost/shared** (`platform/shared/`): Cross-product components and utilities used by the web app and plugins (e.g. `Button`, `WithTooltip`). Prefer these over hand-rolled equivalents.
 - **@mattermost/eslint-plugin** (`platform/eslint-plugin/`): Custom ESLint rules
 
 ### Importing Packages
@@ -51,6 +52,8 @@ Always import packages using their full name, never relative paths:
 // Correct
 import {Client4} from '@mattermost/client';
 import {UserProfile} from '@mattermost/types/users';
+import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 // Incorrect
@@ -63,7 +66,8 @@ import Client4 from '../platform/client/src/client4.ts';
 - **Redux 5.0**: State management
 - **React Router 5.3**: Client-side routing
 - **React Intl**: Internationalization
-- **Floating UI**: Tooltips and popovers (prefer `WithTooltip` component)
+- **Floating UI**: Tooltips and popovers (prefer `WithTooltip` from `@mattermost/shared/components/tooltip`)
+- **@mattermost/shared**: Shared components and utilities (`Button`, `WithTooltip`, etc.) — prefer these over rolling your own
 - **@mattermost/compass-icons**: Icon library (prefer over font-awesome)
 - **Monaco Editor**: Code editor integration
 - **Styled Components**: Limited use (for MUI and some legacy components)
@@ -92,7 +96,7 @@ import Client4 from '../platform/client/src/client4.ts';
 
 - Channels workspace: `channels/CLAUDE.md`, `channels/src/CLAUDE.md`.
 - Channels source subfolders: `components/`, `actions/`, `selectors/`, `reducers/`, `store/`, `sass/`, `i18n/`, `tests/`, `utils/`, `types/`, `plugins/`, `packages/mattermost-redux/`.
-- Platform packages: `platform/CLAUDE.md`, plus `platform/client/`, `platform/components/`, `platform/types/`.
+- Platform packages: `platform/CLAUDE.md`, plus `platform/client/`, `platform/components/`, `platform/shared/`, `platform/types/`.
 - Tooling: `scripts/CLAUDE.md`.
 
 Use these nested guides for focused, actionable instructions when working within each directory.

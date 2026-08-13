@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 
@@ -335,6 +336,31 @@ func (es *Service) SendUserAccessTokenAddedEmail(email, locale, siteURL string) 
 	return nil
 }
 
+func (es *Service) SendUserAccessTokenRotatedEmail(email, locale, siteURL string) error {
+	T := i18n.GetUserTranslations(locale)
+
+	subject := T("api.templates.user_access_token_rotated_subject",
+		map[string]any{"SiteName": es.config().TeamSettings.SiteName})
+
+	data := es.NewEmailTemplateData(locale)
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = T("api.templates.user_access_token_rotated_body.title")
+	data.Props["Info"] = T("api.templates.user_access_token_rotated_body.info",
+		map[string]any{"SiteName": es.config().TeamSettings.SiteName, "SiteURL": siteURL})
+	data.Props["Warning"] = T("api.templates.email_warning")
+
+	body, err := es.templatesContainer.RenderToString("password_change_body", data)
+	if err != nil {
+		return err
+	}
+
+	if err := es.sendMail(email, subject, body, "UserAccessTokenRotatedEmail"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (es *Service) SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, error) {
 	T := i18n.GetUserTranslations(locale)
 
@@ -395,62 +421,72 @@ func (es *Service) SendMfaChangeEmail(email string, activated bool, locale, site
 	return nil
 }
 
-func (es *Service) SendInviteEmails(
-	team *model.Team,
-	senderName string,
-	senderUserId string,
-	invites []string,
-	siteURL string,
-	reminderData *model.TeamInviteReminderData,
-	errorWhenNotSent bool,
-	isSystemAdmin bool,
-	isFirstAdmin bool,
-) error {
+func buildInviteTokenData(team *model.Team, invite string, profile *model.MemberInviteProfile) (map[string]string, map[string]string) {
+	tokenExtra := map[string]string{"teamId": team.Id, "email": invite}
+	tokenProps := map[string]string{
+		"email":        invite,
+		"display_name": team.DisplayName,
+		"name":         team.Name,
+	}
+
+	// The token extra is authoritative at signup; the link props are prefill only.
+	if profile != nil {
+		for key, value := range map[string]string{
+			"username":   profile.Username,
+			"first_name": profile.FirstName,
+			"last_name":  profile.LastName,
+		} {
+			tokenExtra[key] = value
+			tokenProps[key] = value
+		}
+	}
+
+	return tokenExtra, tokenProps
+}
+
+func (es *Service) SendInviteEmails(rctx request.CTX, inviteData InviteEmailData) error {
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimitCtx(rctx.Context(), inviteData.SenderUserID, len(inviteData.Invites))
 	if err != nil {
 		return SetupRateLimiterError
 	}
 
 	if rateLimited {
-		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
-			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
+		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", inviteData.SenderUserID),
+			mlog.String("team_id", inviteData.Team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return RateLimitExceededError
 	}
 
-	for _, invite := range invites {
+	for _, invite := range inviteData.Invites {
 		if invite != "" {
 			subject := i18n.T("api.templates.invite_subject",
-				map[string]any{"SenderName": senderName,
-					"TeamDisplayName": team.DisplayName,
+				map[string]any{"SenderName": inviteData.SenderName,
+					"TeamDisplayName": inviteData.Team.DisplayName,
 					"SiteName":        es.config().TeamSettings.SiteName})
 
 			data := es.NewEmailTemplateData("")
-			data.Props["SiteURL"] = siteURL
+			data.Props["SiteURL"] = inviteData.SiteURL
 			data.Props["SubTitle"] = i18n.T("api.templates.invite_body.subTitle")
 			data.Props["Button"] = i18n.T("api.templates.invite_body.button")
-			data.Props["SenderName"] = senderName
+			data.Props["SenderName"] = inviteData.SenderName
 			data.Props["InviteFooterTitle"] = i18n.T("api.templates.invite_body_footer.title")
 			data.Props["InviteFooterInfo"] = i18n.T("api.templates.invite_body_footer.info")
 			data.Props["InviteFooterLearnMore"] = i18n.T("api.templates.invite_body_footer.learn_more")
 
+			tokenExtra, tokenProps := buildInviteTokenData(inviteData.Team, invite, inviteData.Profiles[invite])
+
 			token := model.NewToken(
 				TokenTypeTeamInvitation,
-				model.MapToJSON(map[string]string{"teamId": team.Id, "email": invite}),
+				model.MapToJSON(tokenExtra),
 			)
 
-			tokenProps := make(map[string]string)
-			tokenProps["email"] = invite
-			tokenProps["display_name"] = team.DisplayName
-			tokenProps["name"] = team.Name
-
-			title := i18n.T("api.templates.invite_body.title", map[string]any{"SenderName": senderName, "TeamDisplayName": team.DisplayName})
-			if reminderData != nil {
+			title := i18n.T("api.templates.invite_body.title", map[string]any{"SenderName": inviteData.SenderName, "TeamDisplayName": inviteData.Team.DisplayName})
+			if inviteData.ReminderData != nil {
 				reminder := i18n.T("api.templates.invite_body.title.reminder")
 				title = fmt.Sprintf("%s: %s", reminder, title)
-				tokenProps["reminder_interval"] = reminderData.Interval
+				tokenProps["reminder_interval"] = inviteData.ReminderData.Interval
 			}
 
 			data.Props["Title"] = title
@@ -466,8 +502,8 @@ func (es *Service) SendInviteEmails(
 			queryString.Add("d", tokenData)
 			queryString.Add("t", token.Token)
 			queryString.Add("md", "email")
-			queryString.Add("sbr", es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
-			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?%s", siteURL, queryString.Encode())
+			queryString.Add("sbr", es.GetTrackFlowStartedByRole(inviteData.IsFirstAdmin, inviteData.IsSystemAdmin))
+			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?%s", inviteData.SiteURL, queryString.Encode())
 
 			body, err := es.templatesContainer.RenderToString("invite_body", data)
 			if err != nil {
@@ -476,7 +512,7 @@ func (es *Service) SendInviteEmails(
 
 			if err := es.sendMail(invite, subject, body, "InviteEmail"); err != nil {
 				mlog.Error("Failed to send invite email successfully ", mlog.Err(err))
-				if errorWhenNotSent {
+				if inviteData.ErrorWhenNotSent {
 					return SendMailError
 				}
 			}
@@ -488,6 +524,7 @@ func (es *Service) SendInviteEmails(
 const magicLinkURL = "%s/landing#/login/one_time_link?t=%s"
 
 func (es *Service) SendGuestInviteEmails(
+	rctx request.CTX,
 	team *model.Team,
 	channels []*model.Channel,
 	senderName string,
@@ -504,7 +541,7 @@ func (es *Service) SendGuestInviteEmails(
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
 	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimitCtx(rctx.Context(), senderUserId, len(invites))
 	if err != nil {
 		return SetupRateLimiterError
 	}
@@ -618,6 +655,7 @@ func (es *Service) SendGuestInviteEmails(
 // This is for self-service login requests (no sender, no team/channel context).
 // For admin-initiated guest magic link invitations with team/channel assignment, use SendGuestInviteEmails with isGuestMagicLink=true.
 func (es *Service) SendMagicLinkEmailSelfService(
+	rctx request.CTX,
 	invite string,
 	siteURL string,
 ) error {
@@ -626,7 +664,7 @@ func (es *Service) SendMagicLinkEmailSelfService(
 	}
 
 	// Rate limit by email address for self-service requests
-	rateLimited, result, err := es.perMinuteEmailRateLimiter.RateLimit(invite, 1)
+	rateLimited, result, err := es.perMinuteEmailRateLimiter.RateLimitCtx(rctx.Context(), invite, 1)
 	if err != nil {
 		return SetupRateLimiterError
 	}
@@ -688,107 +726,88 @@ func (es *Service) SendMagicLinkEmailSelfService(
 	return nil
 }
 
-func (es *Service) SendInviteEmailsToTeamAndChannels(
-	team *model.Team,
-	channels []*model.Channel,
-	senderName string,
-	senderUserId string,
-	senderProfileImage []byte,
-	invites []string,
-	siteURL string,
-	reminderData *model.TeamInviteReminderData,
-	message string,
-	errorWhenNotSent bool,
-	isSystemAdmin bool,
-	isFirstAdmin bool,
-) ([]*model.EmailInviteWithError, error) {
+func (es *Service) SendInviteEmailsToTeamAndChannels(rctx request.CTX, inviteData InviteEmailData) ([]*model.EmailInviteWithError, error) {
 	if es.perHourEmailRateLimiter == nil {
 		return nil, NoRateLimiterError
 	}
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimitCtx(rctx.Context(), inviteData.SenderUserID, len(inviteData.Invites))
 	if err != nil {
 		return nil, SetupRateLimiterError
 	}
 
 	if rateLimited {
-		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
-			mlog.String("team_id", team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
+		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", inviteData.SenderUserID),
+			mlog.String("team_id", inviteData.Team.Id), mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
 		return nil, RateLimitExceededError
 	}
 
-	channelsLen := len(channels)
+	channelsLen := len(inviteData.Channels)
 
 	subject := i18n.T("api.templates.invite_team_and_channels_subject", map[string]any{
-		"SenderName":      senderName,
-		"TeamDisplayName": team.DisplayName,
+		"SenderName":      inviteData.SenderName,
+		"TeamDisplayName": inviteData.Team.DisplayName,
 		"ChannelsLen":     channelsLen,
 		"SiteName":        es.config().TeamSettings.SiteName})
 
 	title := i18n.T("api.templates.invite_team_and_channels_body.title", map[string]any{
-		"SenderName":      senderName,
+		"SenderName":      inviteData.SenderName,
 		"ChannelsLen":     channelsLen,
-		"TeamDisplayName": team.DisplayName})
+		"TeamDisplayName": inviteData.Team.DisplayName})
 
 	if channelsLen == 1 {
-		channelName := channels[0].DisplayName
+		channelName := inviteData.Channels[0].DisplayName
 
 		subject = i18n.T("api.templates.invite_team_and_channel_subject",
-			map[string]any{"SenderName": senderName,
-				"TeamDisplayName": team.DisplayName,
+			map[string]any{"SenderName": inviteData.SenderName,
+				"TeamDisplayName": inviteData.Team.DisplayName,
 				"ChannelName":     channelName,
 				"SiteName":        es.config().TeamSettings.SiteName},
 		)
 
 		title = i18n.T("api.templates.invite_team_and_channel_body.title", map[string]any{
-			"SenderName":      senderName,
+			"SenderName":      inviteData.SenderName,
 			"ChannelName":     channelName,
-			"TeamDisplayName": team.DisplayName,
+			"TeamDisplayName": inviteData.Team.DisplayName,
 		})
 	}
 
 	var invitesWithErrors []*model.EmailInviteWithError
-	for _, invite := range invites {
+	for _, invite := range inviteData.Invites {
 		if invite == "" {
 			continue
 		}
 		channelIDs := []string{}
-		for _, channel := range channels {
+		for _, channel := range inviteData.Channels {
 			channelIDs = append(channelIDs, channel.Id)
 		}
 
 		data := es.NewEmailTemplateData("")
-		data.Props["SiteURL"] = siteURL
+		data.Props["SiteURL"] = inviteData.SiteURL
 		data.Props["SubTitle"] = i18n.T("api.templates.invite_body.subTitle")
 		data.Props["Button"] = i18n.T("api.templates.invite_body.button")
-		data.Props["SenderName"] = senderName
+		data.Props["SenderName"] = inviteData.SenderName
 		data.Props["InviteFooterTitle"] = i18n.T("api.templates.invite_body_footer.title")
 		data.Props["InviteFooterInfo"] = i18n.T("api.templates.invite_body_footer.info")
 		data.Props["InviteFooterLearnMore"] = i18n.T("api.templates.invite_body_footer.learn_more")
 
-		if message != "" {
-			message = bluemonday.NewPolicy().Sanitize(message)
+		if inviteData.Message != "" {
+			inviteData.Message = bluemonday.NewPolicy().Sanitize(inviteData.Message)
 		}
-		data.Props["Message"] = message
+		data.Props["Message"] = inviteData.Message
+
+		tokenExtra, tokenProps := buildInviteTokenData(inviteData.Team, invite, inviteData.Profiles[invite])
+		tokenExtra["channels"] = strings.Join(channelIDs, " ")
+		tokenExtra["senderId"] = inviteData.SenderUserID
 
 		token := model.NewToken(
 			TokenTypeTeamInvitation,
-			model.MapToJSON(map[string]string{
-				"teamId":   team.Id,
-				"email":    invite,
-				"channels": strings.Join(channelIDs, " "),
-				"senderId": senderUserId,
-			}),
+			model.MapToJSON(tokenExtra),
 		)
 
-		tokenProps := make(map[string]string)
-		tokenProps["email"] = invite
-		tokenProps["display_name"] = team.DisplayName
-		tokenProps["name"] = team.Name
-
-		if reminderData != nil {
+		if inviteData.ReminderData != nil {
 			reminder := i18n.T("api.templates.invite_body.title.reminder")
 			title = fmt.Sprintf("%s: %s", reminder, title)
-			tokenProps["reminder_interval"] = reminderData.Interval
+			tokenProps["reminder_interval"] = inviteData.ReminderData.Interval
 		}
 
 		data.Props["Title"] = title
@@ -800,21 +819,21 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 			continue
 		}
 
-		data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
+		data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", inviteData.SiteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(inviteData.IsFirstAdmin, inviteData.IsSystemAdmin))
 
 		senderPhoto := ""
 		embeddedFiles := make(map[string]io.Reader)
-		if message != "" {
-			if senderProfileImage != nil {
+		if inviteData.Message != "" {
+			if inviteData.SenderProfileImage != nil {
 				senderPhoto = "user-avatar.png"
 				embeddedFiles = map[string]io.Reader{
-					senderPhoto: bytes.NewReader(senderProfileImage),
+					senderPhoto: bytes.NewReader(inviteData.SenderProfileImage),
 				}
 			}
 		}
 		pData := postData{
-			SenderName:  senderName,
-			Message:     template.HTML(message),
+			SenderName:  inviteData.SenderName,
+			Message:     template.HTML(inviteData.Message),
 			SenderPhoto: senderPhoto,
 		}
 
@@ -827,7 +846,7 @@ func (es *Service) SendInviteEmailsToTeamAndChannels(
 
 		if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles, "", "", "", "InviteEmailToTeamsAndChannels"); nErr != nil {
 			mlog.Error("Failed to send invite email successfully", mlog.Err(nErr))
-			if errorWhenNotSent {
+			if inviteData.ErrorWhenNotSent {
 				inviteWithError := &model.EmailInviteWithError{
 					Email: invite,
 					Error: &model.AppError{Message: nErr.Error()},
@@ -998,23 +1017,25 @@ func (es *Service) CreateVerifyEmailToken(userID string, newEmail string) (*mode
 	return token, nil
 }
 
-func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ctaTitle, ctaLink, ctaText string, daysToExpiration int) error {
+func (es *Service) SendLicenseUpForRenewalEmail(email, locale string, daysToExpiration int) error {
 	T := i18n.GetUserTranslations(locale)
-	subject := T("api.templates.license_up_for_renewal_subject")
-
+	skuName := es.getLicenseSkuName()
+	prefixedSkuName := es.getPrefixedLicenseSkuName()
+	subject := T("api.templates.license_up_for_renewal_subject",
+		map[string]any{"SkuName": prefixedSkuName})
+	siteName := es.getConfigSiteName()
+	siteURL := *es.config().ServiceSettings.SiteURL
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
 	data.Props["Title"] = T("api.templates.license_up_for_renewal_title")
-	data.Props["SubTitle"] = T("api.templates.license_up_for_renewal_subtitle", map[string]any{"UserName": name, "Days": daysToExpiration})
-	data.Props["SubTitleTwo"] = ctaTitle
-	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
-	data.Props["Button"] = ctaText
-	data.Props["ButtonURL"] = ctaLink
-	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
-	data.Props["SupportEmail"] = "feedback@mattermost.com"
-	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+	data.Props["Button"] = T("api.templates.license_up_for_renewal_contact_sales")
+	data.Props["ButtonURL"] = "https://mattermost.com/contact-sales/"
+	data.Props["NeedHelpTitle"] = T("api.templates.license_need_help.title")
+	data.Props["SubTitleTwo"] = T("api.templates.license_up_for_renewal_subtitle_two")
+	data.HTML["SubTitle"] = i18n.TranslateAsHTML(T, "api.templates.license_up_for_renewal_subtitle", map[string]any{"SkuName": skuName, "SiteURL": siteURL, "SiteName": siteName, "Days": daysToExpiration})
+	data.HTML["NeedHelpInfo"] = template.HTML(T("api.templates.license_need_help.info"))
 
-	body, err := es.templatesContainer.RenderToString("license_up_for_renewal", data)
+	body, err := es.templatesContainer.RenderToString("license_notification", data)
 	if err != nil {
 		return err
 	}
@@ -1026,20 +1047,25 @@ func (es *Service) SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ct
 	return nil
 }
 
-// SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
-// to renew the user license
-func (es *Service) SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL string) error {
+func (es *Service) SendRemoveExpiredLicenseEmail(email, locale string) error {
 	T := i18n.GetUserTranslations(locale)
+	skuName := es.getLicenseSkuName()
+	prefixedSkuName := es.getPrefixedLicenseSkuName()
 	subject := T("api.templates.remove_expired_license.subject",
-		map[string]any{"SiteName": es.config().TeamSettings.SiteName})
-
+		map[string]any{"SkuName": prefixedSkuName})
+	siteName := es.getConfigSiteName()
+	siteURL := *es.config().ServiceSettings.SiteURL
 	data := es.NewEmailTemplateData(locale)
 	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = T("api.templates.remove_expired_license.body.title")
-	data.Props["Link"] = ctaLink
-	data.Props["LinkButton"] = ctaText
+	data.Props["Title"] = T("api.templates.remove_expired_license.body.heading")
+	data.Props["Button"] = T("api.templates.license_up_for_renewal_contact_sales")
+	data.Props["ButtonURL"] = "https://mattermost.com/contact-sales/"
+	data.Props["NeedHelpTitle"] = T("api.templates.license_need_help.title")
+	data.Props["SubTitleTwo"] = T("api.templates.remove_expired_license.body.subtitle_two")
+	data.HTML["SubTitle"] = i18n.TranslateAsHTML(T, "api.templates.remove_expired_license.body.subtitle", map[string]any{"SkuName": skuName, "SiteURL": siteURL, "SiteName": siteName})
+	data.HTML["NeedHelpInfo"] = template.HTML(T("api.templates.license_need_help.info"))
 
-	body, err := es.templatesContainer.RenderToString("remove_expired_license", data)
+	body, err := es.templatesContainer.RenderToString("license_notification", data)
 	if err != nil {
 		return err
 	}

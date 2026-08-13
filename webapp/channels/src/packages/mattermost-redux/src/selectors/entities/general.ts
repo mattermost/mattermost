@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ClientConfig, FeatureFlags, ClientLicense} from '@mattermost/types/config';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General} from 'mattermost-redux/constants';
@@ -20,6 +20,54 @@ export function getConfig(state: GlobalState): Partial<ClientConfig> {
  */
 export function getFeatureFlagValue(state: GlobalState, key: keyof FeatureFlags): string | undefined {
     return getConfig(state)?.[`FeatureFlag${key}` as keyof Partial<ClientConfig>];
+}
+
+export function isPostAttributesEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagPostAttributes === 'true';
+}
+
+// Discoverable Private Channels is gated by the FeatureFlagDiscoverableChannels
+// server flag. When the flag is off the toggle UI, request endpoints, and
+// admin queue routes are all hidden — old clients see today's behavior.
+export function isDiscoverableChannelsEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagDiscoverableChannels === 'true';
+}
+
+export function isPermissionPoliciesEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagPermissionPolicies === 'true';
+}
+
+/**
+ * Whether channel-scope policies may carry permission-rule actions
+ * (file upload/download) — i.e. whether the Channel Settings →
+ * Permissions Policy tab should be exposed.
+ *
+ * The sub-flag `ChannelPermissionPolicies` AND the umbrella
+ * `PermissionPolicies` must BOTH be on. Mirrors the server-side
+ * `FeatureFlags.IsChannelPermissionPoliciesEnabled()` helper so the
+ * dependency direction is consistent across the wire. Centralizing
+ * the check here means every consumer (settings tab, save buttons,
+ * etc.) automatically picks up future changes to the dependency.
+ */
+export function isChannelPermissionPoliciesEnabled(state: GlobalState): boolean {
+    return isPermissionPoliciesEnabled(state) &&
+        getConfig(state).FeatureFlagChannelPermissionPolicies === 'true';
+}
+
+/**
+ * Whether the "Simulate access" preview UX should be exposed
+ * (System Console policy editor + Channel Settings tab).
+ *
+ * The sub-flag `PolicySimulation` AND the umbrella
+ * `PermissionPolicies` must BOTH be on. Mirrors the server-side
+ * `FeatureFlags.IsPolicySimulationEnabled()` helper. The backing
+ * `/cel/simulate_users` endpoint returns 501 when this is off, so
+ * hiding the entry points here also prevents users from seeing an
+ * "Evaluating…" button that can never resolve.
+ */
+export function isPolicySimulationEnabled(state: GlobalState): boolean {
+    return isPermissionPoliciesEnabled(state) &&
+        getConfig(state).FeatureFlagPolicySimulation === 'true';
 }
 
 export type PasswordConfig = {
@@ -46,6 +94,11 @@ export const getPasswordConfig: (state: GlobalState) => PasswordConfig = createS
 
 export function getLicense(state: GlobalState): ClientLicense {
     return state.entities.general.license;
+}
+
+export function isFreeEdition(state: GlobalState): boolean {
+    const license = getLicense(state);
+    return license.IsLicensed !== 'true' || license.SkuShortName === General.SKUEntry;
 }
 
 export const isCloudLicense: (state: GlobalState) => boolean = createSelector(

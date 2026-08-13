@@ -182,7 +182,7 @@ func (s *Store) Set(newCfg *model.Config) (*model.Config, *model.Config, error) 
 
 	// Sometimes the config is received with "fake" data in sensitive fields. Apply the real
 	// data from the existing config as necessary.
-	desanitize(oldCfg, newCfg)
+	Desanitize(oldCfg, newCfg)
 
 	// We apply back environment overrides since the input config may or
 	// may not have them applied.
@@ -278,7 +278,7 @@ func (s *Store) Load() error {
 	// SetDefaults() will generate missing data. This avoids an additional write
 	// to the backing store.
 	if loadedCfg.ServiceSettings.SiteURL == nil {
-		loadedCfg.ServiceSettings.SiteURL = model.NewPointer("")
+		loadedCfg.ServiceSettings.SiteURL = new("")
 	}
 
 	// Setting defaults allows us to accept partial config objects.

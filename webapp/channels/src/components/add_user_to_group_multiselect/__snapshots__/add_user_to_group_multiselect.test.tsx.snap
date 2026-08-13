@@ -1,276 +1,286 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`component/add_user_to_group_multiselect should match snapshot with different submit button text 1`] = `
-<MultiSelect
-  ariaLabelRenderer={[Function]}
-  buttonSubmitLoadingText="Updating..."
-  buttonSubmitText="Update Group"
-  focusOnLoad={false}
-  handleAdd={[Function]}
-  handleDelete={[Function]}
-  handleInput={[Function]}
-  handlePageChange={[Function]}
-  handleSubmit={[Function]}
-  intl={
-    Object {
-      "$t": [Function],
-      "defaultFormats": Object {},
-      "defaultLocale": "en",
-      "defaultRichTextElements": undefined,
-      "fallbackOnEmptyString": true,
-      "formatDate": [Function],
-      "formatDateTimeRange": [Function],
-      "formatDateToParts": [Function],
-      "formatDisplayName": [Function],
-      "formatList": [Function],
-      "formatListToParts": [Function],
-      "formatMessage": [Function],
-      "formatNumber": [Function],
-      "formatNumberToParts": [Function],
-      "formatPlural": [Function],
-      "formatRelativeTime": [Function],
-      "formatTime": [Function],
-      "formatTimeToParts": [Function],
-      "formats": Object {},
-      "formatters": Object {
-        "getDateTimeFormat": [Function],
-        "getDisplayNames": [Function],
-        "getListFormat": [Function],
-        "getMessageFormat": [Function],
-        "getNumberFormat": [Function],
-        "getPluralRules": [Function],
-        "getRelativeTimeFormat": [Function],
-      },
-      "locale": "en",
-      "messages": Object {},
-      "onError": [Function],
-      "onWarn": [Function],
-      "textComponent": "span",
-      "timeZone": "Etc/UTC",
-    }
-  }
-  key="addUsersToGroupKey"
-  loading={true}
-  numRemainingText={null}
-  optionRenderer={[Function]}
-  options={
-    Array [
-      Object {
-        "delete_at": 0,
-        "id": "user-1",
-        "label": "user-1",
-        "value": "user-1",
-      },
-      Object {
-        "delete_at": 0,
-        "id": "user-2",
-        "label": "user-2",
-        "value": "user-2",
-      },
-    ]
-  }
-  perPage={50}
-  placeholderText={
-    Object {
-      "defaultMessage": "Search for people",
-      "id": "multiselect.placeholder",
-    }
-  }
-  required={true}
-  saveButtonPosition="bottom"
-  saving={false}
-  savingEnabled={false}
-  selectedItemRef={
-    Object {
-      "current": null,
-    }
-  }
-  valueWithImage={true}
-  values={Array []}
-/>
+<div>
+  <div
+    class="filtered-user-list"
+  >
+    <div
+      class="filter-row"
+    >
+      <div
+        class="multi-select__container react-select"
+      >
+        <div
+          class="css-1dedlln"
+          id="selectItems"
+        >
+          <span
+            class="css-1f43avz-a11yText-A11yText"
+            id="react-select-4-live-region"
+          />
+          <span
+            aria-atomic="false"
+            aria-live="polite"
+            aria-relevant="additions text"
+            class="css-1f43avz-a11yText-A11yText"
+            role="log"
+          />
+          <div
+            class="react-select-auto react-select__control css-13cymwt-control"
+          >
+            <div
+              class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi css-hlgwow"
+            >
+              <div
+                class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
+                id="react-select-4-placeholder"
+              >
+                Search for people
+              </div>
+              <div
+                class="react-select-auto react-select__input-container css-19bb58m"
+                data-value=""
+              >
+                <input
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-describedby="react-select-4-placeholder"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-invalid="false"
+                  aria-label="Search for people"
+                  autocapitalize="none"
+                  autocomplete="off"
+                  autocorrect="off"
+                  class="react-select-auto react-select__input"
+                  id="react-select-4-input"
+                  role="combobox"
+                  spellcheck="false"
+                  style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                  tabindex="0"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="multi-select__help"
+        id="multiSelectHelpMemberInfo"
+      />
+    </div>
+    <div
+      class="multi-select__help"
+      id="multiSelectMessageNote"
+    />
+  </div>
+  <div
+    class="multi-select__footer modal-footer"
+  >
+    <button
+      class="btn btn-primary"
+      data-testid="saveSetting"
+      disabled=""
+      id="saveItems"
+      type="submit"
+    >
+      <span>
+        Update Group
+      </span>
+    </button>
+  </div>
+</div>
 `;
 
 exports[`component/add_user_to_group_multiselect should match snapshot with profiles 1`] = `
-<MultiSelect
-  ariaLabelRenderer={[Function]}
-  buttonSubmitLoadingText={
-    Object {
-      "defaultMessage": "Creating...",
-      "id": "multiselect.creating",
-    }
-  }
-  buttonSubmitText={
-    Object {
-      "defaultMessage": "Create Group",
-      "id": "multiselect.createGroup",
-    }
-  }
-  focusOnLoad={false}
-  handleAdd={[Function]}
-  handleDelete={[Function]}
-  handleInput={[Function]}
-  handlePageChange={[Function]}
-  handleSubmit={[Function]}
-  intl={
-    Object {
-      "$t": [Function],
-      "defaultFormats": Object {},
-      "defaultLocale": "en",
-      "defaultRichTextElements": undefined,
-      "fallbackOnEmptyString": true,
-      "formatDate": [Function],
-      "formatDateTimeRange": [Function],
-      "formatDateToParts": [Function],
-      "formatDisplayName": [Function],
-      "formatList": [Function],
-      "formatListToParts": [Function],
-      "formatMessage": [Function],
-      "formatNumber": [Function],
-      "formatNumberToParts": [Function],
-      "formatPlural": [Function],
-      "formatRelativeTime": [Function],
-      "formatTime": [Function],
-      "formatTimeToParts": [Function],
-      "formats": Object {},
-      "formatters": Object {
-        "getDateTimeFormat": [Function],
-        "getDisplayNames": [Function],
-        "getListFormat": [Function],
-        "getMessageFormat": [Function],
-        "getNumberFormat": [Function],
-        "getPluralRules": [Function],
-        "getRelativeTimeFormat": [Function],
-      },
-      "locale": "en",
-      "messages": Object {},
-      "onError": [Function],
-      "onWarn": [Function],
-      "textComponent": "span",
-      "timeZone": "Etc/UTC",
-    }
-  }
-  key="addUsersToGroupKey"
-  loading={true}
-  numRemainingText={null}
-  optionRenderer={[Function]}
-  options={
-    Array [
-      Object {
-        "delete_at": 0,
-        "id": "user-1",
-        "label": "user-1",
-        "value": "user-1",
-      },
-      Object {
-        "delete_at": 0,
-        "id": "user-2",
-        "label": "user-2",
-        "value": "user-2",
-      },
-    ]
-  }
-  perPage={50}
-  placeholderText={
-    Object {
-      "defaultMessage": "Search for people",
-      "id": "multiselect.placeholder",
-    }
-  }
-  required={true}
-  saveButtonPosition="bottom"
-  saving={false}
-  savingEnabled={false}
-  selectedItemRef={
-    Object {
-      "current": null,
-    }
-  }
-  valueWithImage={true}
-  values={Array []}
-/>
+<div>
+  <div
+    class="filtered-user-list"
+  >
+    <div
+      class="filter-row"
+    >
+      <div
+        class="multi-select__container react-select"
+      >
+        <div
+          class="css-1dedlln"
+          id="selectItems"
+        >
+          <span
+            class="css-1f43avz-a11yText-A11yText"
+            id="react-select-3-live-region"
+          />
+          <span
+            aria-atomic="false"
+            aria-live="polite"
+            aria-relevant="additions text"
+            class="css-1f43avz-a11yText-A11yText"
+            role="log"
+          />
+          <div
+            class="react-select-auto react-select__control css-13cymwt-control"
+          >
+            <div
+              class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi css-hlgwow"
+            >
+              <div
+                class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
+                id="react-select-3-placeholder"
+              >
+                Search for people
+              </div>
+              <div
+                class="react-select-auto react-select__input-container css-19bb58m"
+                data-value=""
+              >
+                <input
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-describedby="react-select-3-placeholder"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-invalid="false"
+                  aria-label="Search for people"
+                  autocapitalize="none"
+                  autocomplete="off"
+                  autocorrect="off"
+                  class="react-select-auto react-select__input"
+                  id="react-select-3-input"
+                  role="combobox"
+                  spellcheck="false"
+                  style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                  tabindex="0"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="multi-select__help"
+        id="multiSelectHelpMemberInfo"
+      />
+    </div>
+    <div
+      class="multi-select__help"
+      id="multiSelectMessageNote"
+    />
+  </div>
+  <div
+    class="multi-select__footer modal-footer"
+  >
+    <button
+      class="btn btn-primary"
+      data-testid="saveSetting"
+      disabled=""
+      id="saveItems"
+      type="submit"
+    >
+      <span>
+        Create Group
+      </span>
+    </button>
+  </div>
+</div>
 `;
 
 exports[`component/add_user_to_group_multiselect should match snapshot without any profiles 1`] = `
-<MultiSelect
-  ariaLabelRenderer={[Function]}
-  buttonSubmitLoadingText={
-    Object {
-      "defaultMessage": "Creating...",
-      "id": "multiselect.creating",
-    }
-  }
-  buttonSubmitText={
-    Object {
-      "defaultMessage": "Create Group",
-      "id": "multiselect.createGroup",
-    }
-  }
-  focusOnLoad={false}
-  handleAdd={[Function]}
-  handleDelete={[Function]}
-  handleInput={[Function]}
-  handlePageChange={[Function]}
-  handleSubmit={[Function]}
-  intl={
-    Object {
-      "$t": [Function],
-      "defaultFormats": Object {},
-      "defaultLocale": "en",
-      "defaultRichTextElements": undefined,
-      "fallbackOnEmptyString": true,
-      "formatDate": [Function],
-      "formatDateTimeRange": [Function],
-      "formatDateToParts": [Function],
-      "formatDisplayName": [Function],
-      "formatList": [Function],
-      "formatListToParts": [Function],
-      "formatMessage": [Function],
-      "formatNumber": [Function],
-      "formatNumberToParts": [Function],
-      "formatPlural": [Function],
-      "formatRelativeTime": [Function],
-      "formatTime": [Function],
-      "formatTimeToParts": [Function],
-      "formats": Object {},
-      "formatters": Object {
-        "getDateTimeFormat": [Function],
-        "getDisplayNames": [Function],
-        "getListFormat": [Function],
-        "getMessageFormat": [Function],
-        "getNumberFormat": [Function],
-        "getPluralRules": [Function],
-        "getRelativeTimeFormat": [Function],
-      },
-      "locale": "en",
-      "messages": Object {},
-      "onError": [Function],
-      "onWarn": [Function],
-      "textComponent": "span",
-      "timeZone": "Etc/UTC",
-    }
-  }
-  key="addUsersToGroupKey"
-  loading={true}
-  numRemainingText={null}
-  optionRenderer={[Function]}
-  options={Array []}
-  perPage={50}
-  placeholderText={
-    Object {
-      "defaultMessage": "Search for people",
-      "id": "multiselect.placeholder",
-    }
-  }
-  required={true}
-  saveButtonPosition="bottom"
-  saving={false}
-  savingEnabled={false}
-  selectedItemRef={
-    Object {
-      "current": null,
-    }
-  }
-  valueWithImage={true}
-  values={Array []}
-/>
+<div>
+  <div
+    class="filtered-user-list"
+  >
+    <div
+      class="filter-row"
+    >
+      <div
+        class="multi-select__container react-select"
+      >
+        <div
+          class="css-1dedlln"
+          id="selectItems"
+        >
+          <span
+            class="css-1f43avz-a11yText-A11yText"
+            id="react-select-2-live-region"
+          />
+          <span
+            aria-atomic="false"
+            aria-live="polite"
+            aria-relevant="additions text"
+            class="css-1f43avz-a11yText-A11yText"
+            role="log"
+          />
+          <div
+            class="react-select-auto react-select__control css-13cymwt-control"
+          >
+            <div
+              class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi css-hlgwow"
+            >
+              <div
+                class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
+                id="react-select-2-placeholder"
+              >
+                Search for people
+              </div>
+              <div
+                class="react-select-auto react-select__input-container css-19bb58m"
+                data-value=""
+              >
+                <input
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-describedby="react-select-2-placeholder"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-invalid="false"
+                  aria-label="Search for people"
+                  autocapitalize="none"
+                  autocomplete="off"
+                  autocorrect="off"
+                  class="react-select-auto react-select__input"
+                  id="react-select-2-input"
+                  role="combobox"
+                  spellcheck="false"
+                  style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                  tabindex="0"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="multi-select__help"
+        id="multiSelectHelpMemberInfo"
+      />
+    </div>
+    <div
+      class="multi-select__help"
+      id="multiSelectMessageNote"
+    />
+  </div>
+  <div
+    class="multi-select__footer modal-footer"
+  >
+    <button
+      class="btn btn-primary"
+      data-testid="saveSetting"
+      disabled=""
+      id="saveItems"
+      type="submit"
+    >
+      <span>
+        Create Group
+      </span>
+    </button>
+  </div>
+</div>
 `;

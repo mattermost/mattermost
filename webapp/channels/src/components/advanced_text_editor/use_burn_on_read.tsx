@@ -79,6 +79,10 @@ const useBurnOnRead = (
             }
         }
 
+        if (channel.shared) {
+            return false;
+        }
+
         return true; // Allow all other channel types
     }, [channel, currentUser, otherUser]);
 

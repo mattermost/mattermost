@@ -72,9 +72,7 @@ describe('components/marketplace/', () => {
             entities: {
                 general: {
                     firstAdminCompleteSetup: false,
-                    config: {
-                        FeatureFlagStreamlinedMarketplace: 'false',
-                    },
+                    config: {},
                     license: {
                         Cloud: 'false',
                     },
@@ -169,7 +167,7 @@ describe('components/marketplace/', () => {
         }
     });
 
-    test('hides search, shows web marketplace banner in FeatureFlags.StreamlinedMarketplace', () => {
+    test('hides search and shows web marketplace banner', () => {
         const setState = jest.fn();
         const useStateSpy = jest.spyOn(React, 'useState');
         useStateSpy.mockImplementation(() => [true, setState]);
@@ -178,8 +176,6 @@ describe('components/marketplace/', () => {
             samplePlugin,
             sampleInstalledPlugin,
         ];
-
-        (mockState.entities.general.config as any).FeatureFlagStreamlinedMarketplace = 'true';
 
         // Suppress expected errors from useState mock affecting all child components
         const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -197,12 +193,11 @@ describe('components/marketplace/', () => {
         }
     });
 
-    test("doesn't show web marketplace banner in FeatureFlags.StreamlinedMarketplace for Cloud", () => {
+    test("doesn't show web marketplace banner for Cloud", () => {
         const setState = jest.fn();
         const useStateSpy = jest.spyOn(React, 'useState');
         useStateSpy.mockImplementation(() => [true, setState]);
 
-        (mockState.entities.general.config as any).FeatureFlagStreamlinedMarketplace = 'true';
         mockState.entities.general.license.Cloud = 'true';
 
         // Suppress expected errors from useState mock affecting all child components

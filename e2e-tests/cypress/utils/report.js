@@ -132,13 +132,13 @@ function generateTestReport(summary, isUploadedToS3, reportLink, environment, te
     } = process.env;
     const {statsFieldValue, stats} = summary;
     const {
-        cypress_version,
-        browser_name,
-        browser_version,
+        cypress_version: cypressVersion,
+        browser_name: browserName,
+        browser_version: browserVersion,
         headless,
-        os_name,
-        os_version,
-        node_version,
+        os_name: osName,
+        os_version: osVersion,
+        node_version: nodeVersion,
     } = environment;
 
     let testResult;
@@ -150,7 +150,7 @@ function generateTestReport(summary, isUploadedToS3, reportLink, environment, te
     }
 
     const title = generateTitle();
-    const runnerEnvValue = `cypress@${cypress_version} | node@${node_version} | ${browser_name}@${browser_version}${headless ? ' (headless)' : ''} | ${os_name}@${os_version}`;
+    const runnerEnvValue = `cypress@${cypressVersion} | node@${nodeVersion} | ${browserName}@${browserVersion}${headless ? ' (headless)' : ''} | ${osName}@${osVersion}`;
 
     if (FULL_REPORT === 'true') {
         let reportField;

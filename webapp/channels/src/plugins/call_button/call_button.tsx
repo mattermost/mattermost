@@ -24,7 +24,7 @@ type Props = {
     channelMember?: ChannelMembership;
     pluginCallComponents: CallButtonAction[];
     sidebarOpen: boolean;
-}
+};
 
 export default function CallButton({pluginCallComponents, currentChannel, channelMember, sidebarOpen}: Props) {
     const [active, setActive] = useState(false);

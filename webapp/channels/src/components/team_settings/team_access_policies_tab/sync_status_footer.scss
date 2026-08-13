@@ -1,0 +1,32 @@
+.SyncStatusFooter {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    margin-top: -34px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 14px;
+    gap: 4px;
+
+    &__icon {
+        font-size: 16px;
+    }
+
+    &__text {
+        margin-right: 2px;
+    }
+
+    &__link {
+        color: var(--button-bg);
+        font-size: 12px;
+        font-weight: 600;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    &__syncing {
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+        font-style: italic;
+    }
+}

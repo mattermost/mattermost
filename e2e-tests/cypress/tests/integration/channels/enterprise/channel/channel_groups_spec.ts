@@ -10,11 +10,11 @@
 // Stage: @prod
 // Group: @channels @enterprise @ldap_group
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('channel groups', () => {
-    const groups = [];
-    let testTeam;
+    const groups: Array<{id: string; remote_id: string}> = [];
+    let testTeam: Cypress.Team;
 
     before(() => {
         cy.apiRequireLicenseForFeature('LDAP');
@@ -58,7 +58,7 @@ describe('channel groups', () => {
         openAddGroupsToChannelModal();
 
         // * Ensure at least 2 groups are listed
-        let beforeCount;
+        let beforeCount: number;
         cy.get('#addGroupsToChannelModal').find('.more-modal__row').then((items) => {
             beforeCount = Cypress.$(items).length;
         });
