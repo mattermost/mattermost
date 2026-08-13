@@ -111,6 +111,30 @@ describe('MediaGallery', () => {
         expect(onToggle).toHaveBeenCalledWith('p1');
     });
 
+    it('keeps the row height stable in a narrow container so a toggling scrollbar cannot resize tiles in a loop', () => {
+        const rectSpy = jest.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
+            width: 470,
+            height: 216,
+        } as DOMRect);
+
+        try {
+            const {container} = renderWithContext(
+                <MediaGallery
+                    fileInfos={[fileInfo({id: 'v', name: 'clip.mp4', extension: 'mp4', mime_type: 'video/mp4'})]}
+                    postId='p1'
+                    onItemClick={jest.fn()}
+                />,
+                baseState,
+            );
+
+            const row = container.querySelector<HTMLElement>('.MediaGallery__row');
+            expect(row).not.toBeNull();
+            expect(row!.style.height).toBe('216px');
+        } finally {
+            rectSpy.mockRestore();
+        }
+    });
+
     it('marks the tile container as hidden when isEmbedVisible is false', () => {
         const {container} = renderWithContext(
             <MediaGallery

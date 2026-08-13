@@ -40,7 +40,6 @@ const MIN_TILE_WIDTH = 50;
 const MAX_TILE_WIDTH = 500;
 const GAP = 8;
 const FALLBACK_WIDTH = 700;
-const NARROW_CONTAINER_WIDTH = 480;
 
 function tileKindFor(fileInfo: FileInfo): TileKind | null {
     const type = getFileType(fileInfo.extension);
@@ -73,10 +72,9 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
 
     const rows = useMemo(() => {
         const effectiveWidth = containerWidth > 0 ? containerWidth : FALLBACK_WIDTH;
-        const isNarrow = effectiveWidth < NARROW_CONTAINER_WIDTH;
         return packRows(tiles, {
             containerWidth: effectiveWidth,
-            rowHeight: (compactDisplay || isNarrow) ? COMPACT_ROW_HEIGHT : ROW_HEIGHT,
+            rowHeight: compactDisplay ? COMPACT_ROW_HEIGHT : ROW_HEIGHT,
             minTileWidth: MIN_TILE_WIDTH,
             maxTileWidth: MAX_TILE_WIDTH,
             gap: GAP,
