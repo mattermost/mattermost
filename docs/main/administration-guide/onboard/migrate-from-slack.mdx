@@ -139,7 +139,7 @@ Slack Enterprise Grid combines multiple workspaces in one management plane. The 
 - Slack **workspaces** roughly correspond to Mattermost **teams**.
 - Channels in Grid belong to individual workspaces. Shared channels across workspaces must be mapped to a **single** Mattermost team. Mattermost does not support shared channels between teams the way Slack does.
 - For most customers, importing into **one Mattermost team** is simplest. Use **multiple teams** only when you intentionally want workspace separation.
-- Org-wide and multi-party DMs need special attention; see [Direct messages and multi-party DMs](#direct-messages-and-multi-party-dms).
+- Multi-party DMs need special attention; see [Direct messages and multi-party DMs](#direct-messages-and-multi-party-dms). Org-wide DMs that span workspaces are assigned to a single team, and cross-workspace participants import as placeholder accounts; see [What happens to org-wide DMs in an Enterprise Grid export?](#org-wide-dms).
 - **Slack Connect** channels are not migrated as Connect. `mmetl` has no Connect-specific handling; if a Connect channel appears in the export it may transform as an ordinary channel with only your workspace’s members, without external org participants. For cross-organization collaboration in Mattermost after migration, see [Connected workspaces](/administration-guide/onboard/connected-workspaces). See also [What migrates](#what-migrates--what-doesnt).
 
 **Typical Grid layout**
@@ -561,6 +561,15 @@ Channel mentions are translated to Mattermost `~channel` form when possible. Lin
 ### How are multi-party DMs represented in Mattermost?
 
 They become Group Messages (or private channels if over the group size limit). See [Direct messages and multi-party DMs](#direct-messages-and-multi-party-dms).
+
+### What happens to org-wide DMs in an Enterprise Grid export? \{#org-wide-dms}
+
+`mmetl grid-transform` has no special handling for org-wide conversations. Root-level `dms.json` and `mpims.json` entries follow the same path as every other conversation: `grid-transform` reads the conversation's post files and assigns the whole conversation to the workspace named on the first post that carries a `team` field. A DM that spans two workspaces therefore lands in exactly **one** Mattermost team — it is never split across teams or duplicated into both. Two consequences to plan for:
+
+- **Participants from the other workspace become placeholder accounts.** `grid-transform` does not merge user lists between workspaces, so the participant who is not a member of the assigned workspace is missing from that team's `users.json`. `mmetl transform slack` then creates a deactivated placeholder user named after the Slack user ID, with a `<USERID>@local` email address. Correct those addresses before you import; see [User emails](#user-emails).
+- **Unassignable conversations are dropped.** If a conversation's posts carry no `team` field, or the workspace ID is not in the team mapping, `grid-transform` logs an error to `grid-transform-slack.log` and skips it. Skipped conversations are not written to any per-workspace zip, so review that log before you continue rather than relying on the exit code.
+
+If preserving cross-workspace DM history matters, decide in advance which team should own those conversations, and verify a sample of them in your trial import.
 
 ### How are Slack guests imported?
 
