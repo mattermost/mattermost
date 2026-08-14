@@ -114,22 +114,6 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		}
 	}
 
-	// Defense in depth: a team admin must remain within their own team policy's
-	// rules. The api4 handler enforces this for the request path, but guard here
-	// so any internal caller saving a team policy is held to the same invariant
-	// regardless of the masking flag. System admins and sessionless internal
-	// callers may intentionally set rules they don't match; that matches the
-	// always-on self-inclusion exemption in enforceAccessControlPolicyWriteGuards.
-	if policy.Type == model.AccessControlPolicyTypeTeam {
-		if session := rctx.Session(); session != nil && session.UserId != "" && !a.HasPermissionTo(session.UserId, model.PermissionManageSystem) {
-			for _, rule := range policy.Rules {
-				if appErr := a.ValidateTeamAdminSelfInclusion(rctx, session.UserId, rule.Expression); appErr != nil {
-					return nil, appErr
-				}
-			}
-		}
-	}
-
 	callerID := ""
 	if session := rctx.Session(); session != nil {
 		callerID = session.UserId

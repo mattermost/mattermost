@@ -646,10 +646,9 @@ func TestReconcilePolicyTeamScope(t *testing.T) {
 	})
 }
 
-// TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion verifies that the
-// team-specific self-inclusion guard at CreateOrUpdateAccessControlPolicy:124
-// is correctly wired into the create/update path. ValidateTeamAdminSelfInclusion
-// is tested in isolation elsewhere; these tests confirm the integration.
+// TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion verifies that
+// enforceAccessControlPolicyWriteGuards self-inclusion applies to team policy
+// saves. HTTP still uses ValidateTeamAdminSelfInclusion in the api4 handler.
 func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
 	t.Run("team admin excluded by own expression is rejected before save", func(t *testing.T) {
 		// AttributeValueMasking defaults to true
@@ -695,7 +694,7 @@ func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
 
 		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(rctx, teamPolicy)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.team.access_policies.self_exclusion.app_error", appErr.Id)
+		assert.Equal(t, "app.pap.save_policy.self_exclusion", appErr.Id)
 		assert.Nil(t, result)
 	})
 
@@ -705,9 +704,8 @@ func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
 			cfg.FeatureFlags.AttributeValueMasking = false
 		}).InitBasic(t)
 
-		callerID := th.BasicUser.Id
 		rctx := th.Context.WithSession(&model.Session{
-			UserId: callerID,
+			UserId: th.BasicUser.Id,
 			Id:     model.NewId(),
 			Roles:  model.SystemUserRoleId,
 		})
@@ -720,15 +718,6 @@ func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
 			mockACS.AssertExpectations(t)
 		})
 
-		// Guard: caller satisfies the expression → guard passes.
-		mockACS.On("QueryUsersForExpression",
-			mock.AnythingOfType("*request.Context"),
-			"true",
-			mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
-				return opts.SubjectID == callerID
-			}),
-		).Return([]*model.User{{Id: callerID}}, int64(1), nil).Once()
-
 		savedPolicy := &model.AccessControlPolicy{
 			ID:   th.BasicTeam.Id,
 			Type: model.AccessControlPolicyTypeTeam,
@@ -736,7 +725,7 @@ func TestCreateOrUpdateAccessControlPolicy_TeamSelfInclusion(t *testing.T) {
 				{Actions: []string{"membership"}, Expression: "true"},
 			},
 		}
-		// SavePolicy is reached after the guard passes.
+		// "true" skips checkSelfInclusion; SavePolicy is reached without a query.
 		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.Anything).
 			Return(savedPolicy, (*model.AppError)(nil)).Once()
 
