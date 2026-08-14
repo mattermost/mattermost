@@ -382,6 +382,8 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		model.JobTypeCloud,
 		model.JobTypeMobileSessionMetadata,
 		model.JobTypeExtractContent,
+		model.JobTypePostPersistentNotifications,
+		model.JobTypeDeleteExpiredPosts,
 		model.JobTypeCleanupExpiredAccessTokens:
 		permission = model.PermissionReadJobs
 	case model.JobTypeAccessControlSync:
