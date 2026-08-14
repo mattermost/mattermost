@@ -755,7 +755,6 @@ def main():
     note = build_pr_note(results)
     if not note:
         print("\nℹ️  No notable changes found across all checkers.")
-        return
 
     print("\n🔄 Fetching PR description …")
     body = get_pr_body()
