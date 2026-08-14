@@ -59,7 +59,7 @@ This guide assumes you already have a Mattermost Server ready to accept data. If
 - **Fresh server**: The most reliable imports use a fresh Mattermost installation. If importing into an existing server, never import over an existing team.
 - **Server version**: Use the latest supported [Mattermost](/product-overview/mattermost-server-releases) release.
 - **Backups**: Back up the database and file store before importing into an existing environment. If an import fails, roll back or reset.
-  - If merging multiple Slack workspaces into a single team is the desired end-result, we recommend completing the import to separate teams, validating the results, then using [mmctl](/administration-guide/manage/mmctl-command-line-tool.html#mmctl-channel-move) to move channels between teams.
+  - If merging multiple Slack workspaces into a single team is the desired end-result, we recommend completing the import to separate teams, validating the results, then using [mmctl](/administration-guide/manage/mmctl-command-line-tool#mmctl-channel-move) to move channels between teams.
 - **Configuration** before import:
   - [`TeamSettings.MaxChannelsPerTeam`](/administration-guide/configure/site-configuration-settings#max-channels-per-team): higher than the number of channels you will import.
   - [`TeamSettings.MaxUsersPerTeam`](/administration-guide/configure/site-configuration-settings#max-users-per-team): higher than the number of users you will import.
