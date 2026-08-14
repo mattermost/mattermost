@@ -4,26 +4,35 @@
 import React from 'react';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 
 import {renderWithContext, screen, userEvent, waitFor, waitForElementToBeRemoved} from 'tests/react_testing_utils';
+import {Preferences} from 'utils/constants';
 
 import CreateRecapModal from './create_recap_modal';
 
+const mockHistoryPush = jest.fn();
+
 jest.mock('mattermost-redux/actions/recaps', () => ({
     createRecap: jest.fn(() => ({type: 'CREATE_RECAP'})),
+    createScheduledRecap: jest.fn(() => ({type: 'CREATE_SCHEDULED_RECAP'})),
+    updateScheduledRecap: jest.fn(() => ({type: 'UPDATE_SCHEDULED_RECAP'})),
+    getRecapLimitStatus: jest.fn(() => ({type: 'GET_RECAP_LIMIT_STATUS'})),
 }));
 
 jest.mock('mattermost-redux/actions/agents', () => ({
     getAgents: jest.fn(() => ({type: 'GET_AGENTS'})),
 }));
 
+// Persist the selection straight into the store so the resolved agent updates without a network call.
+jest.mock('mattermost-redux/actions/preferences', () => ({
+    savePreferences: jest.fn((userId, preferences) => ({type: 'RECEIVED_PREFERENCES', data: preferences})),
+}));
+
 jest.mock('react-router-dom', () => ({
     ...jest.requireActual('react-router-dom'),
     useHistory: () => ({
-        push: jest.fn(),
-    }),
-    useRouteMatch: () => ({
-        url: '/team/test',
+        push: mockHistoryPush,
     }),
 }));
 
@@ -39,6 +48,7 @@ describe('CreateRecapModal', () => {
             username: 'copilot',
             service_id: 'copilot-service',
             service_type: 'copilot',
+            is_default: true,
         },
         {
             id: 'openai-bot',
@@ -114,6 +124,38 @@ describe('CreateRecapModal', () => {
             },
         },
     };
+
+    const makeRootTeamState = () => ({
+        ...initialState,
+        entities: {
+            ...initialState.entities,
+            teams: {
+                currentTeamId: 'root-team',
+                teams: {},
+                myMembers: {},
+            },
+            channels: {
+                ...initialState.entities.channels,
+                channels: {
+                    channel1: {
+                        ...initialState.entities.channels.channels.channel1,
+                        team_id: 'root-team',
+                    },
+                    channel2: {
+                        ...initialState.entities.channels.channels.channel2,
+                        team_id: 'root-team',
+                    },
+                },
+                channelsInTeam: {
+                    'root-team': new Set(['channel1', 'channel2']),
+                },
+            },
+        },
+    });
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
 
     test('should render modal with header including AI agent dropdown', () => {
         renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
@@ -207,6 +249,26 @@ describe('CreateRecapModal', () => {
 
         const paginationDots = document.querySelectorAll('.pagination-dot');
         expect(paginationDots.length).toBeGreaterThan(0);
+    });
+
+    test('should show two visible steps for scheduled all-unreads recaps', async () => {
+        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+
+        await waitFor(() => {
+            expect(screen.getByLabelText('Agent selector')).toHaveTextContent('Copilot');
+        });
+
+        await userEvent.type(screen.getByPlaceholderText('Give your recap a name'), 'Test Recap');
+        await userEvent.click(screen.getByText('Recap all my unreads'));
+        await userEvent.click(screen.getByRole('button', {name: /next/i}));
+
+        await waitFor(() => {
+            const paginationDots = document.querySelectorAll('.pagination-dot');
+
+            expect(paginationDots).toHaveLength(2);
+            expect(paginationDots[0]).not.toHaveClass('active');
+            expect(paginationDots[1]).toHaveClass('active');
+        });
     });
 
     test('should show Next button on first step', () => {
@@ -317,6 +379,30 @@ describe('CreateRecapModal', () => {
         await waitFor(() => expect(nextButton).not.toBeDisabled());
     });
 
+    test('should persist the selected agent as a preference when the user picks a bot', async () => {
+        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+
+        await waitFor(() => {
+            const dropdownButton = screen.getByLabelText('Agent selector');
+            expect(dropdownButton).toHaveTextContent('Copilot');
+        });
+
+        const dropdownButton = screen.getByLabelText('Agent selector');
+        await userEvent.click(dropdownButton);
+
+        const openAIOption = screen.getByText('OpenAI');
+        await userEvent.click(openAIOption);
+
+        await waitForElementToBeRemoved(() => screen.queryByText('CHOOSE A BOT'));
+
+        expect(savePreferences).toHaveBeenCalledWith('user1', [{
+            category: Preferences.CATEGORY_AGENTS,
+            name: Preferences.SELECTED_AGENT,
+            user_id: 'user1',
+            value: 'openai-bot',
+        }]);
+    });
+
     test('should maintain selected bot across step navigation', async () => {
         renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
@@ -347,6 +433,47 @@ describe('CreateRecapModal', () => {
 
         // OpenAI should still be selected in the header
         expect(screen.getByText('OpenAI')).toBeInTheDocument();
+    });
+
+    test('should normalize the run once redirect when the team URL is the root path', async () => {
+        renderWithContext(<CreateRecapModal {...defaultProps}/>, makeRootTeamState());
+
+        await waitFor(() => {
+            expect(screen.getByLabelText('Agent selector')).toHaveTextContent('Copilot');
+        });
+
+        await userEvent.type(screen.getByPlaceholderText('Give your recap a name'), 'Test Recap');
+        await userEvent.click(screen.getByText('Recap all my unreads'));
+        await userEvent.click(screen.getByLabelText('Run once'));
+        await userEvent.click(screen.getByRole('button', {name: /next/i}));
+
+        const startRecapButton = await screen.findByRole('button', {name: /start recap/i});
+        await userEvent.click(startRecapButton);
+
+        await waitFor(() => {
+            expect(mockHistoryPush).toHaveBeenCalledWith('/recaps');
+        });
+    });
+
+    test('should normalize the scheduled recap redirect when the team URL is the root path', async () => {
+        renderWithContext(<CreateRecapModal {...defaultProps}/>, makeRootTeamState());
+
+        await waitFor(() => {
+            expect(screen.getByLabelText('Agent selector')).toHaveTextContent('Copilot');
+        });
+
+        await userEvent.type(screen.getByPlaceholderText('Give your recap a name'), 'Test Recap');
+        await userEvent.click(screen.getByText('Recap all my unreads'));
+        await userEvent.click(screen.getByRole('button', {name: /next/i}));
+
+        const createScheduleButton = await screen.findByRole('button', {name: /create schedule/i});
+        await userEvent.click(screen.getByText('M', {selector: 'button'}));
+        await waitFor(() => expect(createScheduleButton).not.toBeDisabled());
+        await userEvent.click(createScheduleButton);
+
+        await waitFor(() => {
+            expect(mockHistoryPush).toHaveBeenCalledWith('/recaps?tab=scheduled');
+        });
     });
 });
 

@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"context"
 	"database/sql"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
@@ -75,6 +75,7 @@ type Store struct {
 	AutoTranslationStore            mocks.AutoTranslationStore
 	ContentFlaggingStore            mocks.ContentFlaggingStore
 	RecapStore                      mocks.RecapStore
+	ScheduledRecapStore             mocks.ScheduledRecapStore
 	ReadReceiptStore                mocks.ReadReceiptStore
 	TemporaryPostStore              mocks.TemporaryPostStore
 	ViewStore                       mocks.ViewStore
@@ -182,6 +183,9 @@ func (s *Store) ContentFlagging() store.ContentFlaggingStore {
 func (s *Store) Recap() store.RecapStore {
 	return &s.RecapStore
 }
+func (s *Store) ScheduledRecap() store.ScheduledRecapStore {
+	return &s.ScheduledRecapStore
+}
 func (s *Store) ReadReceipt() store.ReadReceiptStore {
 	return &s.ReadReceiptStore
 }
@@ -200,7 +204,7 @@ func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error
 	}, nil
 }
 
-func (s *Store) GetDiagnostics(_ context.Context) (*store.DatabaseDiagnostics, error) {
+func (s *Store) GetDiagnostics(_ request.CTX) (*store.DatabaseDiagnostics, error) {
 	return &store.DatabaseDiagnostics{}, nil
 }
 
@@ -253,6 +257,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.AutoTranslationStore,
 		&s.ContentFlaggingStore,
 		&s.RecapStore,
+		&s.ScheduledRecapStore,
 		&s.ReadReceiptStore,
 		&s.TemporaryPostStore,
 		&s.ViewStore,

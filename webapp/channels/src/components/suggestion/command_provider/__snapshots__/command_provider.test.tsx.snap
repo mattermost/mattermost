@@ -6,6 +6,7 @@ exports[`CommandSuggestion should match snapshot 1`] = `
     aria-describedby="test-suggestion-description"
     aria-labelledby="test-suggestion-label"
     class="suggestion-list__item suggestion--selected"
+    data-testid="suggestion-selected"
     id="test-suggestion"
     role="option"
     tabindex="-1"

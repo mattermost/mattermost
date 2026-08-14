@@ -15,8 +15,8 @@ import type {GlobalState} from 'types/store';
 
 import DialogRouter from './dialog_router';
 
-function mapStateToProps(state: GlobalState) {
-    const data = state.entities.integrations.dialog;
+function mapStateToProps(state: GlobalState, ownProps: {triggerId?: string}) {
+    const data = ownProps.triggerId ? state.entities.integrations.dialogs[ownProps.triggerId] : undefined;
     const emojiMap = getEmojiMap(state);
     if (!data || !data.dialog) {
         return {

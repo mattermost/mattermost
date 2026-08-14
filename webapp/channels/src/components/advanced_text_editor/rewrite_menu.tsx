@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {
     AiSummarizeIcon,
@@ -18,6 +19,8 @@ import {
 } from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import type {Agent} from '@mattermost/types/agents';
+
+import {getDefaultAgent} from 'mattermost-redux/selectors/entities/agents';
 
 import AgentDropdown from 'components/common/agents/agent_dropdown';
 import * as Menu from 'components/menu';
@@ -108,6 +111,7 @@ export default function RewriteMenu({
     customPromptRef,
 }: RewriteMenuProps) {
     const {formatMessage} = useIntl();
+    const defaultAgent = useSelector(getDefaultAgent);
 
     const showMenuItem = !isProcessing && draftMessage.trim();
 
@@ -146,6 +150,7 @@ export default function RewriteMenu({
                             selectedBotId={selectedAgentId}
                             onBotSelect={setSelectedAgentId}
                             bots={agents}
+                            defaultBotId={defaultAgent?.id}
                             disabled={isProcessing}
                             showLabel={true}
                         />
@@ -330,6 +335,7 @@ export function RewriteSubMenuHeader({
     customPromptRef,
 }: RewriteSubMenuHeaderProps) {
     const {formatMessage} = useIntl();
+    const defaultAgent = useSelector(getDefaultAgent);
 
     let placeholderText = formatMessage({
         id: 'texteditor.rewrite.prompt',
@@ -364,6 +370,7 @@ export function RewriteSubMenuHeader({
                     selectedBotId={selectedAgentId}
                     onBotSelect={setSelectedAgentId}
                     bots={agents}
+                    defaultBotId={defaultAgent?.id}
                     disabled={isProcessing}
                     showLabel={true}
                 />

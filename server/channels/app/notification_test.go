@@ -175,10 +175,12 @@ func TestSendNotifications(t *testing.T) {
 				UserId:    user.Id,
 				ChannelId: th.BasicChannel.Id,
 				Message:   "a message",
-				Props:     model.StringInterface{model.PostPropsFromWebhook: "true", model.PostPropsOverrideUsername: "a bot"},
+				Props:     model.StringInterface{model.PostPropsOverrideUsername: "a bot"},
 			}
 
-			rootPost, _, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
+			// from_webhook is now server-set via CreatePostFlags rather than client Props;
+			// use the flag-based path so the resulting post legitimately carries the marker.
+			rootPost, _, appErr := th.App.CreatePost(th.Context, rootPost, th.BasicChannel, model.CreatePostFlags{FromIncomingWebhook: true})
 			require.Nil(t, appErr)
 
 			childPost := &model.Post{
@@ -431,6 +433,179 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		assert.Equal(t, postURL, receivedPost.Message)
 		assert.Nil(t, receivedPost.Metadata.Embeds)
 	})
+}
+
+func TestSendNotifications_SilentPostBroadcastsPosted(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	bot := th.CreateBot(t)
+	botUser, appErr := th.App.GetUser(bot.UserId)
+	require.Nil(t, appErr)
+	th.LinkUserToTeam(t, botUser, th.BasicTeam)
+	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
+	messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
+	defer closeWS()
+
+	post := &model.Post{
+		UserId:    bot.UserId,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "silent delivery",
+	}
+	post.AddProp(model.PostPropsSilentNotification, true)
+	post.AddProp(model.PostPropsFromBot, "true")
+
+	_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, botUser, nil, false)
+	require.NoError(t, err)
+
+	received := <-messages
+	require.Equal(t, model.WebsocketEventPosted, received.EventType())
+	assert.Equal(t, th.BasicChannel.Id, received.GetBroadcast().ChannelId)
+
+	receivedPost := &model.Post{}
+	err = json.Unmarshal([]byte(received.GetData()["post"].(string)), &receivedPost)
+	require.NoError(t, err)
+	assert.True(t, receivedPost.HasSilentNotification())
+	assert.Equal(t, "true", receivedPost.GetProp(model.PostPropsFromBot))
+}
+
+func TestCreatePostSilentBroadcastsPostedWithProps(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	bot := th.CreateBot(t)
+	botUser, appErr := th.App.GetUser(bot.UserId)
+	require.Nil(t, appErr)
+	th.LinkUserToTeam(t, botUser, th.BasicTeam)
+	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
+	messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
+	defer closeWS()
+
+	createdPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    bot.UserId,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "silent via create post",
+	}, th.BasicChannel, model.CreatePostFlags{SilentNotification: true})
+	require.Nil(t, appErr)
+	require.True(t, createdPost.HasSilentNotification())
+
+	received := <-messages
+	require.Equal(t, model.WebsocketEventPosted, received.EventType())
+
+	receivedPost := &model.Post{}
+	unmarshalErr := json.Unmarshal([]byte(received.GetData()["post"].(string)), &receivedPost)
+	require.NoError(t, unmarshalErr)
+	assert.Equal(t, createdPost.Id, receivedPost.Id)
+	assert.True(t, receivedPost.HasSilentNotification())
+	assert.Equal(t, "true", receivedPost.GetProp(model.PostPropsFromBot))
+}
+
+// TestSendNotifications_SilentSkipsGroupMention verifies that a silent @-channel
+// mention does not populate the "mentions" field in the broadcast WS event for
+// any channel member. Covers the !suppressNotifications guard at the
+// allowGroupMentions branch in notification.go.
+func TestSendNotifications_SilentSkipsGroupMention(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	bot := th.CreateBot(t)
+	botUser, appErr := th.App.GetUser(bot.UserId)
+	require.Nil(t, appErr)
+	th.LinkUserToTeam(t, botUser, th.BasicTeam)
+	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
+	messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
+	defer closeWS1()
+	messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
+	defer closeWS2()
+
+	post := &model.Post{
+		UserId:    bot.UserId,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "@channel heads up",
+	}
+	post.AddProp(model.PostPropsSilentNotification, true)
+	post.AddProp(model.PostPropsFromBot, "true")
+
+	_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, botUser, nil, false)
+	require.NoError(t, err)
+
+	// The posted event still broadcasts (for live rendering), but mentions
+	// metadata must be absent under silent suppression.
+	received1 := <-messages1
+	require.Equal(t, model.WebsocketEventPosted, received1.EventType())
+	assert.Nil(t, received1.GetData()["mentions"], "silent @channel must not surface mentions for BasicUser")
+
+	received2 := <-messages2
+	require.Equal(t, model.WebsocketEventPosted, received2.EventType())
+	assert.Nil(t, received2.GetData()["mentions"], "silent @channel must not surface mentions for BasicUser2")
+}
+
+// TestSendNotifications_SilentSkipsCRTFollowers verifies that a silent reply
+// in a CRT thread does not populate the "followers" field in the broadcast
+// WS event. Covers the !suppressNotifications guard around the CRT follower
+// path in notification.go.
+func TestSendNotifications_SilentSkipsCRTFollowers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	bot := th.CreateBot(t)
+	botUser, appErr := th.App.GetUser(bot.UserId)
+	require.Nil(t, appErr)
+	th.LinkUserToTeam(t, botUser, th.BasicTeam)
+	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	// Sanity baseline: a non-silent reply populates followers for the root author.
+	baselineFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
+	baselineMsgs, baselineClose := connectFakeWebSocket(t, th, th.BasicUser.Id, "", baselineFilter)
+	defer baselineClose()
+
+	nonSilent := &model.Post{
+		UserId:    bot.UserId,
+		ChannelId: th.BasicChannel.Id,
+		RootId:    th.BasicPost.Id,
+		Message:   "normal reply",
+	}
+	_, _, appErr = th.App.CreatePost(th.Context, nonSilent, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	baseline := <-baselineMsgs
+	require.Equal(t, model.WebsocketEventPosted, baseline.EventType())
+	require.NotNil(t, baseline.GetData()["followers"], "baseline (non-silent) reply must populate followers — guards against unrelated regression in CRT plumbing")
+
+	// Now the actual silent case: followers must be absent.
+	silentMsgs, silentClose := connectFakeWebSocket(t, th, th.BasicUser.Id, "", baselineFilter)
+	defer silentClose()
+
+	silent := &model.Post{
+		UserId:    bot.UserId,
+		ChannelId: th.BasicChannel.Id,
+		RootId:    th.BasicPost.Id,
+		Message:   "silent reply",
+	}
+	_, _, appErr = th.App.CreatePost(th.Context, silent, th.BasicChannel, model.CreatePostFlags{SilentNotification: true})
+	require.Nil(t, appErr)
+
+	receivedSilent := <-silentMsgs
+	require.Equal(t, model.WebsocketEventPosted, receivedSilent.EventType())
+	assert.Nil(t, receivedSilent.GetData()["followers"], "silent CRT reply must not notify thread followers")
 }
 
 func assertUnmarshalsTo(t *testing.T, expected any, actual any) {
@@ -695,6 +870,53 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		assert.Len(t, outOfChannelUsers, 2)
 		assert.True(t, (outOfChannelUsers[0].Id == user2.Id || outOfChannelUsers[1].Id == user2.Id))
 		assert.True(t, (outOfChannelUsers[0].Id == user3.Id || outOfChannelUsers[1].Id == user3.Id))
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should return no results for system messages", func(t *testing.T) {
+		post := &model.Post{Type: model.PostTypeJoinChannel}
+		potentialMentions := []string{user2.Username, user3.Username}
+
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+
+		assert.NoError(t, err)
+		assert.Nil(t, outOfTeamUsers)
+		assert.Nil(t, outOfChannelUsers)
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should return no results for silent posts", func(t *testing.T) {
+		// A silent post must not trigger the "did you mean to invite X?"
+		// ephemeral that goes to the poster, so the helper returns nil
+		// for all three categories regardless of channel membership.
+		post := &model.Post{}
+		post.AddProp(model.PostPropsSilentNotification, true)
+		potentialMentions := []string{user2.Username, user3.Username}
+
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+
+		assert.NoError(t, err)
+		assert.Nil(t, outOfTeamUsers)
+		assert.Nil(t, outOfChannelUsers)
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("force notification overrides silent for out-of-channel mentions", func(t *testing.T) {
+		// IsNotificationSuppressed returns false when force is set, so the
+		// helper must run its normal logic and surface user3 (out-of-channel).
+		post := &model.Post{}
+		post.AddProp(model.PostPropsSilentNotification, true)
+		post.AddProp(model.PostPropsForceNotification, model.NewId())
+		potentialMentions := []string{user3.Username}
+
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+
+		assert.NoError(t, err)
+		assert.Len(t, outOfChannelUsers, 1)
+		assert.Equal(t, user3.Id, outOfChannelUsers[0].Id)
+		// Normal-logic fall-through returns an initialized empty slice for
+		// outOfTeamUsers (mirrors the "should return users not in the channel" case).
+		assert.Len(t, outOfTeamUsers, 0)
 		assert.Nil(t, outOfGroupUsers)
 	})
 
@@ -2572,6 +2794,38 @@ func TestUserAllowsEmail(t *testing.T) {
 	})
 }
 
+func TestUserAllowsEmailAccessControlTeamMembership(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	props := model.StringMap{
+		model.EmailNotifyProp:      model.ChannelNotifyDefault,
+		model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
+	}
+
+	t.Run("removal DM does not email", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.App.SetStatusOffline(user.Id, true, false)
+
+		assert.False(t, th.App.userAllowsEmail(th.Context, user, props, &model.Post{Type: model.PostTypeAccessControlTeamRemoval}))
+	})
+
+	t.Run("addition DM does not email", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.App.SetStatusOffline(user.Id, true, false)
+
+		assert.False(t, th.App.userAllowsEmail(th.Context, user, props, &model.Post{Type: model.PostTypeAccessControlTeamAddition}))
+	})
+
+	// Scoped to the two ABAC types: another system DM still emails.
+	t.Run("other system DM still emails", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.App.SetStatusOffline(user.Id, true, false)
+
+		assert.True(t, th.App.userAllowsEmail(th.Context, user, props, &model.Post{Type: model.PostTypeAddToTeam}))
+	})
+}
+
 func TestInsertGroupMentions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -2915,10 +3169,12 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 			UserId:    user.Id,
 			ChannelId: th.BasicChannel.Id,
 			Message:   "a message",
-			Props:     model.StringInterface{model.PostPropsFromWebhook: "true", model.PostPropsOverrideUsername: "a bot"},
+			Props:     model.StringInterface{model.PostPropsOverrideUsername: "a bot"},
 		}
 
-		rootPost, _, appErr := th.App.CreatePostMissingChannel(th.Context, rootPost, false, true)
+		// from_webhook is now server-set via CreatePostFlags rather than client Props;
+		// use the flag-based path so the resulting post legitimately carries the marker.
+		rootPost, _, appErr := th.App.CreatePost(th.Context, rootPost, th.BasicChannel, model.CreatePostFlags{FromIncomingWebhook: true})
 		require.Nil(t, appErr)
 
 		childPost := &model.Post{

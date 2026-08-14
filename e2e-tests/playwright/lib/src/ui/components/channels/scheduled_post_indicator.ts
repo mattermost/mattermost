@@ -17,8 +17,8 @@ export default class ScheduledPostIndicator {
 
         this.icon = container.getByTestId('scheduledPostIcon');
         this.messageText = container.locator('span').first();
-        this.seeAllLink = container.locator('a:has-text("See all")');
-        this.scheduledMessageLink = container.locator('a:has-text("scheduled message")');
+        this.seeAllLink = container.getByRole('link', {name: 'See all.'});
+        this.scheduledMessageLink = container.getByRole('link', {name: /scheduled messages?/});
     }
 
     async toBeVisible() {

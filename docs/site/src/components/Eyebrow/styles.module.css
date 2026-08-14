@@ -1,0 +1,16 @@
+.eyebrow {
+  display: inline-block;
+  font-family: var(--mm-font-heading);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mm-marigold-700);
+  border-bottom: 2px solid var(--mm-color-marigold);
+  padding-bottom: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+[data-theme='dark'] .eyebrow {
+  color: var(--mm-color-marigold);
+}

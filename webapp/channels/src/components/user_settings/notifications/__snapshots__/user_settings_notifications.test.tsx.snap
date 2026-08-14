@@ -85,6 +85,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -122,6 +123,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -158,6 +160,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -194,6 +197,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -230,6 +234,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -266,6 +271,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -432,6 +438,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -469,6 +476,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -505,6 +513,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -541,6 +550,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -577,6 +587,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -613,6 +624,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -845,6 +857,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -882,6 +895,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -918,6 +932,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -954,6 +969,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -990,6 +1006,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -1029,6 +1046,7 @@ Object {
           />
           <div
             class="section-min isDisabled"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -1194,6 +1212,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -1231,6 +1250,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -1267,6 +1287,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -1303,6 +1324,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -1339,6 +1361,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -1378,6 +1401,7 @@ Object {
         />
         <div
           class="section-min isDisabled"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -1609,6 +1633,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -1646,6 +1671,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -1682,6 +1708,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -1718,6 +1745,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -1754,6 +1782,7 @@ Object {
           />
           <div
             class="section-min"
+            data-testid="section-min"
           >
             <div
               class="section-min__header"
@@ -1920,6 +1949,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -1957,6 +1987,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -1993,6 +2024,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -2029,6 +2061,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"
@@ -2065,6 +2098,7 @@ Object {
         />
         <div
           class="section-min"
+          data-testid="section-min"
         >
           <div
             class="section-min__header"

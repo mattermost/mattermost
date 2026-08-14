@@ -39,6 +39,7 @@ import {reArg} from 'utils/func';
 import {registerRHSPluginPopoutListener, type PopoutListeners} from 'utils/popouts/popout_windows';
 import {generateId} from 'utils/utils';
 
+import type {ChannelSettingsTab} from 'types/plugins/channel_settings';
 import type {
     PluginsState,
     ProductComponent,
@@ -525,6 +526,41 @@ export default class PluginRegistry {
             text: resolveReactElement(text),
             action,
             shouldRender,
+        });
+
+        return id;
+    });
+
+    /**
+     * Register a tab for the channel settings modal. A registration is either:
+     *
+     * - A declarative `schema` (`sections` + `onSave`): the host renders the
+     *   controls, tracks changes, and owns the save bar. On save the host
+     *   collects the values and calls the plugin's `onSave(values, channel)`.
+     *   The plugin owns persistence; reject in `onSave` to keep the tab dirty.
+     * - A custom `component`: the plugin renders the whole tab body. It receives
+     *   the current `channel`, `setUnsaved`, and `registerHandlers` so the
+     *   host-owned save bar can delegate Save/Reset to plugin logic.
+     *
+     * Both branches accept `uiName`, `icon`, and `shouldRender(state, channel)`.
+     * Returns a unique identifier.
+     */
+    registerChannelSettingsTab = reArg([
+        'uiName',
+        'icon',
+        'shouldRender',
+        'sections',
+        'onSave',
+        'loadValues',
+        'component',
+    ], (registration: ChannelSettingsTab) => {
+        const id = generateId();
+
+        // The raw registration is validated and normalized in the plugins
+        // reducer (see `extractChannelSettingsTab`), mirroring user settings.
+        store.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_CHANNEL_SETTINGS_TAB,
+            data: {...registration, id, pluginId: this.id},
         });
 
         return id;
@@ -1211,6 +1247,7 @@ export default class PluginRegistry {
         'showAppBar',
         'wrapped',
         'publicComponent',
+        'isTeamScoped',
     ], ({
         baseURL,
         switcherIcon,
@@ -1223,6 +1260,7 @@ export default class PluginRegistry {
         showAppBar = false,
         wrapped = true,
         publicComponent,
+        isTeamScoped = false,
     }: Omit<ProductComponent, 'id' | 'pluginId'>) => {
         const id = generateId();
 
@@ -1240,6 +1278,7 @@ export default class PluginRegistry {
             showAppBar,
             wrapped,
             publicComponent,
+            isTeamScoped,
         });
 
         return id;

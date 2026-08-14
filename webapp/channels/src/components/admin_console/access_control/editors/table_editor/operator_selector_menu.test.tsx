@@ -93,4 +93,74 @@ describe('OperatorSelectorMenu', () => {
         expect(menuTexts).not.toContain('has any of');
         expect(menuTexts).not.toContain('has all of');
     });
+
+    test('restricts the menu to allowedOperators when provided (native attribute)', () => {
+        renderWithContext(
+            <OperatorSelectorMenu
+                {...defaultProps}
+                currentOperator='is'
+                attributeType='text'
+                allowedOperators={['is', 'is not']}
+            />,
+        );
+
+        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+
+        const menuItems = screen.getAllByRole('menuitemradio');
+        const menuTexts = menuItems.map((item) => item.textContent);
+        expect(menuTexts).toEqual(['is', 'is not']);
+    });
+
+    test('shows only the younger than operator for native createat', () => {
+        renderWithContext(
+            <OperatorSelectorMenu
+                {...defaultProps}
+                currentOperator='younger than'
+                attributeType='text'
+                allowedOperators={['younger than']}
+            />,
+        );
+
+        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+
+        const menuItems = screen.getAllByRole('menuitemradio');
+        const menuTexts = menuItems.map((item) => item.textContent);
+        expect(menuTexts).toEqual(['younger than (days)']);
+    });
+
+    test('shows advertised inCIDR operator for IP session attributes', () => {
+        renderWithContext(
+            <OperatorSelectorMenu
+                {...defaultProps}
+                currentOperator='in IP range'
+                attributeType='text'
+                allowedOperators={['is', 'in IP range']}
+            />,
+        );
+
+        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+
+        const menuItems = screen.getAllByRole('menuitemradio');
+        const menuTexts = menuItems.map((item) => item.textContent);
+        expect(menuTexts).toEqual(['is', 'in IP range']);
+    });
+
+    test('shows advertised version operators for version session attributes', () => {
+        renderWithContext(
+            <OperatorSelectorMenu
+                {...defaultProps}
+                currentOperator='version is at least'
+                attributeType='text'
+                allowedOperators={['version is at least', 'version is greater than']}
+            />,
+        );
+
+        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+
+        const menuItems = screen.getAllByRole('menuitemradio');
+        const menuTexts = menuItems.map((item) => item.textContent);
+        expect(menuTexts).toHaveLength(2);
+        expect(menuTexts[0]).toContain('version is at least');
+        expect(menuTexts[1]).toContain('version is greater than');
+    });
 });

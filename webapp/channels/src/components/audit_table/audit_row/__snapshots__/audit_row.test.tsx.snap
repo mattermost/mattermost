@@ -4,10 +4,10 @@ exports[`components/audit_table/audit_row/AuditRow should match snapshot with de
 <div>
   <table>
     <tbody>
-      <tr>
-        <td
-          class="whitespace--nowrap word-break--all"
-        >
+      <tr
+        class="AuditRow"
+      >
+        <td>
           <div>
             <div>
               Aug 11, 1971
@@ -17,24 +17,18 @@ exports[`components/audit_table/audit_row/AuditRow should match snapshot with de
             </div>
           </div>
         </td>
-        <td
-          class="word-break--all"
-        >
+        <td>
           test@example.com
         </td>
         <td
-          class="word-break--all"
+          class="AuditRowDesc"
         >
           Successfully authenticated
         </td>
-        <td
-          class="whitespace--nowrap word-break--all"
-        >
+        <td>
           ::1
         </td>
-        <td
-          class="whitespace--nowrap word-break--all"
-        >
+        <td>
           hb8febm9ytdiz8zqaxj18efqhy
         </td>
       </tr>
@@ -47,10 +41,10 @@ exports[`components/audit_table/audit_row/AuditRow should match snapshot with no
 <div>
   <table>
     <tbody>
-      <tr>
-        <td
-          class="whitespace--nowrap word-break--all"
-        >
+      <tr
+        class="AuditRow"
+      >
+        <td>
           <div>
             <div>
               Aug 11, 1971
@@ -60,24 +54,18 @@ exports[`components/audit_table/audit_row/AuditRow should match snapshot with no
             </div>
           </div>
         </td>
-        <td
-          class="word-break--all"
-        >
+        <td>
           test@example.com
         </td>
         <td
-          class="word-break--all"
+          class="AuditRowDesc"
         >
           Url yeye
         </td>
-        <td
-          class="whitespace--nowrap word-break--all"
-        >
+        <td>
           ::1
         </td>
-        <td
-          class="whitespace--nowrap word-break--all"
-        >
+        <td>
           hb8febm9ytdiz8zqaxj18efqhy
         </td>
       </tr>

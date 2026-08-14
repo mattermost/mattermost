@@ -14,7 +14,7 @@ import PolicyList from 'components/admin_console/access_control/policies';
 type Props = {
     show: boolean;
     onHide: () => void;
-    onPolicySelected: (policy: AccessControlPolicy) => void;
+    onPolicySelected: (policy: AccessControlPolicy, autoAdd?: boolean) => void;
     actions: {
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
     };

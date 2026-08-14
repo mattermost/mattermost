@@ -20,11 +20,16 @@ import {
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
+import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
+import {PLATFORM_ICONS, platformLabels} from 'components/admin_console/session_attributes/platform_icons';
+import {getSessionAttrs} from 'components/admin_console/session_attributes/utils';
 import * as Menu from 'components/menu';
 
 import {getUserPropertyFieldLabel} from 'utils/properties';
+
+import {hasControlledAttributeValues} from '../shared';
 
 import './selector_menus.scss';
 
@@ -73,9 +78,10 @@ const AttributeIcon = (props: IconProps & {attribute?: UserPropertyField}) => {
 
 interface AttributeSelectorProps {
     currentAttribute: string;
+    currentAttributeObjectType?: string;
     availableAttributes: UserPropertyField[];
     disabled: boolean;
-    onChange: (attribute: string) => void;
+    onChange: (attributeId: string) => void;
     menuId: string;
     buttonId: string;
     autoOpen?: boolean;
@@ -83,7 +89,13 @@ interface AttributeSelectorProps {
     enableUserManagedAttributes: boolean;
 }
 
-const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled, onChange, menuId, buttonId, autoOpen = false, onMenuOpened, enableUserManagedAttributes}: AttributeSelectorProps) => {
+// A CPA attribute and a session attribute can share the same name, so the
+// current selection is matched on both name and namespace.
+const matchesSelection = (attr: UserPropertyField, name: string, objectType?: string): boolean => {
+    return attr.name === name && (attr.object_type || 'user') === (objectType || 'user');
+};
+
+const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, availableAttributes, disabled, onChange, menuId, buttonId, autoOpen = false, onMenuOpened, enableUserManagedAttributes}: AttributeSelectorProps) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
     const prevAutoOpen = useRef(false);
@@ -102,14 +114,32 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
         });
     }, [availableAttributes, filter]);
 
-    const handleAttributeChange = React.useCallback((attribute: string) => {
-        onChange(attribute);
+    // Native (built-in) attributes and custom profile attributes are shown in
+    // separate sections; session attributes get their own section below both.
+    const {nativeOptions, customOptions, sessionOptions} = useMemo(() => {
+        const native: UserPropertyField[] = [];
+        const custom: UserPropertyField[] = [];
+        const session: UserPropertyField[] = [];
+        for (const attr of options) {
+            if (isSessionAttributeField(attr)) {
+                session.push(attr);
+            } else if (attr.attrs?.native) {
+                native.push(attr);
+            } else {
+                custom.push(attr);
+            }
+        }
+        return {nativeOptions: native, customOptions: custom, sessionOptions: session};
+    }, [options]);
+
+    const handleAttributeChange = React.useCallback((attributeId: string) => {
+        onChange(attributeId);
         setFilter(''); // Reset filter after selection
     }, [onChange]); // setFilter is stable, onChange is a dependency
 
     const selectedAttributeObject = useMemo(() => {
-        return availableAttributes.find((attr) => attr.name === currentAttribute);
-    }, [currentAttribute, availableAttributes]);
+        return availableAttributes.find((attr) => matchesSelection(attr, currentAttribute, currentAttributeObjectType));
+    }, [currentAttribute, currentAttributeObjectType, availableAttributes]);
 
     let selectedAttributeLabel;
     if (selectedAttributeObject) {
@@ -129,6 +159,128 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
         prevAutoOpen.current = autoOpen;
     }, [autoOpen, buttonId, onMenuOpened]);
 
+    const renderOption = (option: UserPropertyField) => {
+        const {name} = option;
+        const displayName = option.attrs?.display_name;
+
+        // hasSpaces checks the CEL identifier (name), not the display label.
+        // New fields cannot have spaces in name but leaving this check for backwards compatibility with grandfathered legacy fields.
+        const hasSpaces = name.includes(' ');
+        const isSessionAttribute = isSessionAttributeField(option);
+        const isNative = option.attrs?.native;
+        const isSelected = matchesSelection(option, currentAttribute, currentAttributeObjectType);
+        const isSynced = option.attrs?.ldap || option.attrs?.saml;
+        const allowed = isSessionAttribute || isNative || hasControlledAttributeValues(option) || enableUserManagedAttributes;
+
+        const platforms = isSessionAttribute ? getSessionAttrs(option).platforms : [];
+
+        const menuItem = (
+            <Menu.Item
+                id={`attribute-${option.id}`}
+                key={option.id}
+                role='menuitemradio'
+                forceCloseOnSelect={true}
+                aria-checked={isSelected}
+                onClick={hasSpaces ? undefined : () => handleAttributeChange(option.id)}
+                labels={
+                    displayName ? (
+                        <AttributeLabel
+                            displayName={displayName}
+                            name={name}
+                        />
+                    ) : <span>{name}</span>
+                }
+                disabled={hasSpaces || !allowed}
+                leadingElement={
+                    <AttributeIcon
+                        attribute={option}
+                        size={18}
+                    />
+                }
+                trailingElements={(
+                    <>
+                        {platforms.map((platform) => {
+                            const PlatformIcon = PLATFORM_ICONS[platform];
+                            if (!PlatformIcon) {
+                                return null;
+                            }
+                            const platformLabel = formatMessage(platformLabels[platform]);
+                            return (
+                                <WithTooltip
+                                    key={platform}
+                                    title={platformLabel}
+                                >
+                                    <span className='attribute-selector-platform-icon'>
+                                        <PlatformIcon
+                                            size={16}
+                                            color='var(--button-bg)'
+                                            aria-label={platformLabel}
+                                        />
+                                    </span>
+                                </WithTooltip>
+                            );
+                        })}
+                        {hasSpaces && (
+                            <InformationOutlineIcon
+                                size={18}
+                            />
+                        )}
+                        {!allowed && !isSynced && (
+                            <ShieldAlertOutlineIcon
+                                size={18}
+                                color='rgba(var(--center-channel-color-rgb), 0.5)'
+                            />
+                        )}
+                        {isSynced && (
+                            <SyncIcon
+                                size={18}
+                                color='rgba(var(--center-channel-color-rgb), 0.5)'
+                            />
+                        )}
+                        {isSelected &&
+                            <CheckIcon/>
+                        }
+                    </>
+                )}
+            />
+        );
+
+        // Determine tooltip content based on conditions
+        let tooltipContent = null;
+        if (hasSpaces) {
+            tooltipContent = formatMessage({
+                id: 'admin.access_control.table_editor.attribute_spaces_not_supported',
+                defaultMessage: 'CEL is not compatible with variable names containing spaces',
+            });
+        } else if (!allowed) {
+            tooltipContent = formatMessage({
+                id: 'admin.access_control.table_editor.not_safe_to_use',
+                defaultMessage: 'Values for this attribute are managed by users and should not be used for access control. Please link attribute to AD/LDAP for use in access policies.',
+            });
+        } else if (isSynced) {
+            tooltipContent = formatMessage({
+                id: 'admin.access_control.table_editor.attribute_synced',
+                defaultMessage: 'This attribute is synced from an external source',
+            });
+        }
+
+        // Wrap in tooltip if needed
+        if (tooltipContent) {
+            return (
+                <WithTooltip
+                    key={option.id}
+                    title={tooltipContent}
+                >
+                    <div className='menu-item-tooltip-wrapper'>
+                        {menuItem}
+                    </div>
+                </WithTooltip>
+            );
+        }
+
+        return menuItem;
+    };
+
     return (
         <Menu.Container
             menuButton={{
@@ -139,7 +291,9 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                 children: (
                     <>
                         <AttributeIcon attribute={selectedAttributeObject}/>
-                        {selectedAttributeLabel}
+                        <WithTooltip title={selectedAttributeLabel}>
+                            <span className='field-selector-menu-button__label'>{selectedAttributeLabel}</span>
+                        </WithTooltip>
                     </>
                 ),
                 dataTestId: 'attributeSelectorMenuButton',
@@ -160,103 +314,31 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                 value={filter}
                 onChange={onFilterChange}
             />
-            {options.map((option) => {
-                const {name} = option;
-                const displayName = option.attrs?.display_name;
-
-                // hasSpaces checks the CEL identifier (name), not the display label.
-                // New fields cannot have spaces in name but leaving this check for backwards compatibility with grandfathered legacy fields.
-                const hasSpaces = name.includes(' ');
-                const isSynced = option.attrs?.ldap || option.attrs?.saml;
-                const isAdminManaged = option.attrs?.managed === 'admin';
-                const isProtected = option.attrs?.protected;
-                const allowed = isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
-
-                const menuItem = (
-                    <Menu.Item
-                        id={`attribute-${name}`}
-                        key={name}
-                        role='menuitemradio'
-                        forceCloseOnSelect={true}
-                        aria-checked={name === currentAttribute}
-                        onClick={hasSpaces ? undefined : () => handleAttributeChange(name)}
-                        labels={
-                            displayName ? (
-                                <AttributeLabel
-                                    displayName={displayName}
-                                    name={name}
-                                />
-                            ) : <span>{name}</span>
-                        }
-                        disabled={hasSpaces || !allowed}
-                        leadingElement={
-                            <AttributeIcon
-                                attribute={option}
-                                size={18}
-                            />
-                        }
-                        trailingElements={(
-                            <>
-                                {hasSpaces && (
-                                    <InformationOutlineIcon
-                                        size={18}
-                                    />
-                                )}
-                                {!allowed && !isSynced && (
-                                    <ShieldAlertOutlineIcon
-                                        size={18}
-                                        color='rgba(var(--center-channel-color-rgb), 0.5)'
-                                    />
-                                )}
-                                {isSynced && (
-                                    <SyncIcon
-                                        size={18}
-                                        color='rgba(var(--center-channel-color-rgb), 0.5)'
-                                    />
-                                )}
-                                {name === currentAttribute &&
-                                    <CheckIcon/>
-                                }
-                            </>
-                        )}
-                    />
-                );
-
-                // Determine tooltip content based on conditions
-                let tooltipContent = null;
-                if (hasSpaces) {
-                    tooltipContent = formatMessage({
-                        id: 'admin.access_control.table_editor.attribute_spaces_not_supported',
-                        defaultMessage: 'CEL is not compatible with variable names containing spaces',
-                    });
-                } else if (!allowed) {
-                    tooltipContent = formatMessage({
-                        id: 'admin.access_control.table_editor.not_safe_to_use',
-                        defaultMessage: 'Values for this attribute are managed by users and should not be used for access control. Please link attribute to AD/LDAP for use in access policies.',
-                    });
-                } else if (isSynced) {
-                    tooltipContent = formatMessage({
-                        id: 'admin.access_control.table_editor.attribute_synced',
-                        defaultMessage: 'This attribute is synced from an external source',
-                    });
-                }
-
-                // Wrap in tooltip if needed
-                if (tooltipContent) {
-                    return (
-                        <WithTooltip
-                            key={name}
-                            title={tooltipContent}
-                        >
-                            <div className='menu-item-tooltip-wrapper'>
-                                {menuItem}
-                            </div>
-                        </WithTooltip>
-                    );
-                }
-
-                return menuItem;
-            })}
+            {nativeOptions.length > 0 && (
+                <Menu.Title role='presentation'>
+                    {formatMessage({id: 'admin.access_control.table_editor.selector.native_attributes', defaultMessage: 'Built-in attributes'})}
+                </Menu.Title>
+            )}
+            {nativeOptions.map(renderOption)}
+            {nativeOptions.length > 0 && customOptions.length > 0 && <Menu.Separator/>}
+            {customOptions.length > 0 && (
+                <Menu.Title role='presentation'>
+                    {formatMessage({id: 'admin.access_control.table_editor.selector.custom_attributes', defaultMessage: 'Custom attributes'})}
+                </Menu.Title>
+            )}
+            {customOptions.map(renderOption)}
+            {(nativeOptions.length + customOptions.length) > 0 && sessionOptions.length > 0 && (
+                <Menu.Separator/>
+            )}
+            {sessionOptions.length > 0 && (
+                <Menu.Title role='presentation'>
+                    {formatMessage({
+                        id: 'admin.access_control.table_editor.selector.session_attributes_header',
+                        defaultMessage: 'Session attributes',
+                    })}
+                </Menu.Title>
+            )}
+            {sessionOptions.map(renderOption)}
         </Menu.Container>
     );
 };

@@ -11,13 +11,15 @@ export default class DirectChannelsModal {
     readonly goButton;
     readonly results;
     readonly searchInput;
+    readonly memberLimitHelpText;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.goButton = container.getByRole('button', {name: 'Go'});
-        this.results = container.locator('.more-modal__list');
+        this.results = container.getByTestId('more-modal-list');
         this.searchInput = container.getByRole('combobox', {name: 'Search for people'});
+        this.memberLimitHelpText = container.locator('#multiSelectHelpMemberInfo');
     }
 
     async toBeVisible() {
@@ -28,17 +30,27 @@ export default class DirectChannelsModal {
         await this.fillSearchInput(user.username);
 
         // This may fail if there's too many group channels containing the provided user
-        const row = this.results
-            .locator('.more-modal__row:not(:has(.more-modal__gm-icon))')
-            .getByText(`@${user.username}`, {exact: false});
+        const row = this.results.getByTestId('direct-message-row').getByText(`@${user.username}`, {exact: false});
 
         await row.click();
 
-        await expect(this.container.getByRole('button', {name: `Remove ${user.username}`})).toBeVisible();
+        await expect(this.getRemoveButton(user.username)).toBeVisible();
+    }
+
+    /**
+     * Locates the "Remove {username}" button for a selected user.
+     * @param username
+     */
+    getRemoveButton(username: string): Locator {
+        return this.container.getByRole('button', {name: `Remove ${username}`});
+    }
+
+    async removeUser(username: string) {
+        await this.getRemoveButton(username).click();
     }
 
     async toHaveNUsersSelected(count: number) {
-        await expect(this.results.locator('.react-select_multi-value')).toHaveCount(count);
+        await expect(this.container.getByRole('button', {name: /^Remove /})).toHaveCount(count);
     }
 
     async goToChannel() {
@@ -48,7 +60,9 @@ export default class DirectChannelsModal {
     }
 
     async toHaveNResults(count: number) {
-        await expect(this.results.locator('.more-modal__row')).toHaveCount(count);
+        await expect(
+            this.results.locator('[data-testid="direct-message-row"], [data-testid="group-message-row"]'),
+        ).toHaveCount(count);
     }
 
     async fillSearchInput(text: string) {
@@ -56,7 +70,9 @@ export default class DirectChannelsModal {
     }
 
     async toHaveUserAsNthResult(user: UserProfile, index: number) {
-        const row = this.results.locator('.more-modal__row').nth(index);
+        const row = this.results
+            .locator('[data-testid="direct-message-row"], [data-testid="group-message-row"]')
+            .nth(index);
 
         await expect(row).toContainText(`@${user.username}`);
     }

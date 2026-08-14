@@ -16,7 +16,7 @@
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Client4} from '@mattermost/client';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import type {SystemConsolePage} from '@mattermost/playwright-lib';
 import {expect, getRandomId, test} from '@mattermost/playwright-lib';
@@ -62,11 +62,6 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // advanced, entry. If the CI license is a lower tier, CPA rendering is gated off.
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-
-        // Fast-fail if CustomProfileAttributes feature flag is off — prevents a
-        // misleading 30 s timeout on the UI assertion and gives a clear skip reason.
-        // Note: default_config.ts sets this to true, so it should always pass in CI.
-        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
 
         // Self-isolating setup — avoid pw.initSetup()'s destructive
         // adminClient.updateConfig() full-config reset which wipes CPA fields mid-run
