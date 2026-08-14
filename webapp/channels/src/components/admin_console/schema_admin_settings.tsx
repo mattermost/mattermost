@@ -374,14 +374,15 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
 
         return (
             <div className='PluginMetadataPanel__settingsWrapper'>
-                <PluginMetadataPanel
-                    name={this.props.plugin.name}
-                    id={this.props.plugin.id}
-                    version={this.props.pluginVersion || this.props.plugin.version}
-                    homepageUrl={this.props.plugin.homepage_url}
-                    releaseNotesUrl={this.props.plugin.release_notes_url}
-                />
                 <div className='PluginMetadataPanel__actionsPanel'>
+                    <PluginMetadataPanel
+                        name={this.props.plugin.name}
+                        id={this.props.plugin.id}
+                        version={this.props.pluginVersion || this.props.plugin.version}
+                        homepageUrl={this.props.plugin.homepage_url}
+                        releaseNotesUrl={this.props.plugin.release_notes_url}
+                        className='PluginMetadataPanel__header'
+                    />
                     {this.renderPluginStateDescription(pluginState, this.props.pluginStatus?.error)}
                     <PluginEnableButton
                         id={getPluginEnabledConfigKey(this.props.plugin.id)}
