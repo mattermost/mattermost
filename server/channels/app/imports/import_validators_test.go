@@ -889,6 +889,16 @@ func TestImportValidateReactionImportData(t *testing.T) {
 	err = ValidateReactionImportData(&data, parentCreateAt)
 	require.NotNil(t, err, "Should have failed due to missing required property.")
 
+	// Empty emoji name is present but invalid (distinct from missing).
+	data = ReactionImportData{
+		User:      new("username"),
+		EmojiName: new(""),
+		CreateAt:  new(model.GetMillis()),
+	}
+	err = ValidateReactionImportData(&data, parentCreateAt)
+	require.NotNil(t, err, "Should have failed due to empty emoji name.")
+	require.Equal(t, "app.import.validate_reaction_import_data.emoji_name_invalid.error", err.Id)
+
 	// Test with too long emoji name.
 	data = ReactionImportData{
 		User:      new("username"),

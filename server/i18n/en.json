@@ -7258,7 +7258,7 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_invalid.error",
-    "translation": "Reaction EmojiName property is invalid. It must be 1 to 64 letters, numbers, +, -, or _."
+    "translation": "Reaction EmojiName property is invalid. It must be 1 to 64 ASCII letters and numbers, +, -, or _."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
