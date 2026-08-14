@@ -291,7 +291,9 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
                 children: (
                     <>
                         <AttributeIcon attribute={selectedAttributeObject}/>
-                        <span className='field-selector-menu-button__label'>{selectedAttributeLabel}</span>
+                        <WithTooltip title={selectedAttributeLabel}>
+                            <span className='field-selector-menu-button__label'>{selectedAttributeLabel}</span>
+                        </WithTooltip>
                     </>
                 ),
                 dataTestId: 'attributeSelectorMenuButton',
