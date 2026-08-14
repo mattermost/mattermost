@@ -4,8 +4,10 @@
 package docextractor
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -50,4 +52,24 @@ func TestArchiveExtractorSkips7zip(t *testing.T) {
 		_, err := ae.Extract(context.Background(), "malicious.zip", bytes.NewReader(dataWithOffset), 0)
 		assert.Error(t, err) // fails to extract as any valid archive format
 	})
+}
+
+func TestArchiveExtractorErrorOmitsEntryName(t *testing.T) {
+	const entryName = "confidential-customer-list.txt"
+
+	var archive bytes.Buffer
+	zw := zip.NewWriter(&archive)
+	entry, err := zw.Create(entryName)
+	require.NoError(t, err)
+	_, err = entry.Write([]byte(strings.Repeat("a", 1024)))
+	require.NoError(t, err)
+	require.NoError(t, zw.Close())
+
+	ae := &archiveExtractor{SubExtractor: &plainExtractor{}}
+
+	// A maxFileSize below the entry size fails the entry read, the path that
+	// must not leak the entry name into the error the caller logs.
+	_, err = ae.Extract(context.Background(), "archive.zip", bytes.NewReader(archive.Bytes()), 8)
+	require.Error(t, err)
+	assert.NotContains(t, err.Error(), entryName)
 }
