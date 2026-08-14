@@ -563,7 +563,7 @@ func (a *App) userAccessTokenExpiryPolicyApplies(rctx request.CTX, user *model.U
 		return false, nil
 	}
 
-	if _, err := a.Srv().Store().User().Get(rctx.Context(), bot.OwnerId); err != nil {
+	if _, err := a.Srv().Store().User().Get(rctx, bot.OwnerId); err != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
 			return false, nil
