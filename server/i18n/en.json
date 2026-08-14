@@ -736,6 +736,10 @@
     "translation": "Invalid channel member update: A guest cannot be made team member or team admin, please promote as a user first."
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Invalid channel member update: A user must be a guest or an admin but not both."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "Invalid channel member update: A user must be a guest or a user but not both."
   },
@@ -2160,6 +2164,10 @@
   {
     "id": "api.data_spillage.error.disabled",
     "translation": "Data Spillage Handling feature is disabled."
+  },
+  {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Data Spillage Handling is not available for direct and group message channels."
   },
   {
     "id": "api.data_spillage.error.invalid_post_type",
@@ -3903,6 +3911,10 @@
     "translation": "Your license does not support guest accounts"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "The account associated with {{.Addresses}} has been deactivated. Please contact your System Administrator for details."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Email invitations are disabled."
   },
@@ -4057,6 +4069,10 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Invalid team member update: A guest cannot be made team member or team admin, please promote as a user first."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Invalid team member update: A user must be a guest or an admin but not both."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -5055,6 +5071,10 @@
     "translation": "Update password failed because context user_id did not match provided user's id."
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Unable to switch to email authentication using an integration session."
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "Magic Link is the only sign-in method available for this account."
   },
@@ -5121,6 +5141,10 @@
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 is not configured or supported on this server."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "SAML relay state is too long."
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -6677,30 +6701,6 @@
     "translation": "Unable to get the emoji."
   },
   {
-    "id": "app.eport.generate_presigned_url.config.app_error",
-    "translation": "This actions requires the use of a dedicated export store."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "Your export store driver does not support presign url generation."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.featureflag.app_error",
-    "translation": "This feature is restricted by a feature flag."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.fileexist.app_error",
-    "translation": "Unable to check if the file exists."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.link.app_error",
-    "translation": "Unable to generate the presigned url."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.notfound.app_error",
-    "translation": "The export file was not found."
-  },
-  {
     "id": "app.export.export_attachment.copy_file.error",
     "translation": "Failed to copy file during export."
   },
@@ -6731,6 +6731,30 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "An error occurred marshalling the JSON data for export."
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "This actions requires the use of a dedicated export store."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Direct download of exports is only available in Mattermost Cloud."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Your export store driver does not support presign url generation."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Unable to check if the file exists."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Unable to generate the presigned url."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "The export file was not found."
   },
   {
     "id": "app.export.marshal.app_error",
@@ -9099,6 +9123,10 @@
     "translation": "Private channel"
   },
   {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "Recurring scheduled posts are disabled on this server."
+  },
+  {
     "id": "app.scheduled_post.save.rejected_by_plugin",
     "translation": "Scheduled post rejected by plugin: {{.Reason}}"
   },
@@ -10343,6 +10371,10 @@
     "translation": "{{.Backend}} aggregator worker failed due to the indexing job failing"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Mattermost requires the analysis-icu plugin on every {{.Backend}} node. Install it on all nodes, then restart {{.Backend}}."
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} failed to backfill channel type on posts"
   },
@@ -10497,14 +10529,6 @@
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
     "translation": "Trying to index a new batch when all the entities are completed"
-  },
-  {
-    "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "{{.Backend}} version {{.Version}} is higher than max supported version of {{.MaxVersion}}"
-  },
-  {
-    "id": "ent.elasticsearch.min_version.app_error",
-    "translation": "{{.Backend}} version {{.Version}} is lower than min supported version of {{.MinVersion}}"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -11769,6 +11793,10 @@
   {
     "id": "model.compliance.is_valid.start_end_at.app_error",
     "translation": "To must be greater than From."
+  },
+  {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Invalid access control attribute refresh interval. Must be greater than or equal to 0."
   },
   {
     "id": "model.config.is_valid.access_control_sync_interval.app_error",
@@ -13213,6 +13241,22 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Invalid processed at time."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "Recurring scheduled posts cannot have file attachments."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "Repeat weekly scheduled posts require a valid timezone."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Invalid timezone for recurring scheduled post."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Invalid repeat type for scheduled post."
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",

@@ -9,7 +9,8 @@ import {useHistory} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
-import type {ScheduledPost} from '@mattermost/types/schedule_post';
+import {isRecurringScheduledPost} from '@mattermost/types/schedule_post';
+import type {SchedulingInfo, ScheduledPost} from '@mattermost/types/schedule_post';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
@@ -42,7 +43,7 @@ import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import {scheduledPostToPostDraft} from 'types/store/draft';
+import {draftHasAttachments, scheduledPostToPostDraft} from 'types/store/draft';
 
 import DraftActions from './draft_actions';
 import DraftTitle from './draft_title';
@@ -75,6 +76,7 @@ function DraftRow({
     const [isEditing, setIsEditing] = useState(false);
 
     const isScheduledPost = 'scheduled_at' in item;
+    const isWeeklyRecurringScheduledPost = isScheduledPost && isRecurringScheduledPost(item);
     const intl = useIntl();
 
     const rootId = ('rootId' in item) ? item.rootId : item.root_id;
@@ -213,14 +215,14 @@ function DraftRow({
         true,
     );
 
-    const onScheduleDraft = useCallback(async (scheduledAt: number): Promise<{error?: string}> => {
+    const onScheduleDraft = useCallback(async (schedulingInfo: SchedulingInfo): Promise<{error?: string}> => {
         isBeingScheduled.current = true;
-        await handleOnSend(item as PostDraft, {scheduled_at: scheduledAt});
+        await handleOnSend(item as PostDraft, schedulingInfo);
         return Promise.resolve({});
     }, [item, handleOnSend]);
 
     const draftActions = useMemo(() => {
-        if (!channel) {
+        if (!channel || isScheduledPost) {
             return null;
         }
         return (
@@ -236,6 +238,7 @@ function DraftRow({
                 canEdit={canEdit}
                 canSend={canSend}
                 onSchedule={onScheduleDraft}
+                allowRecurring={!draftHasAttachments(item)}
             />
         );
     }, [
@@ -245,6 +248,8 @@ function DraftRow({
         goToMessage,
         handleOnDelete,
         handleOnSend,
+        isScheduledPost,
+        item,
         user.id,
         onScheduleDraft,
     ]);
@@ -253,12 +258,14 @@ function DraftRow({
         setIsEditing(false);
     }, []);
 
-    const handleSchedulePostOnReschedule = useCallback(async (updatedScheduledAtTime: number) => {
+    const handleSchedulePostOnReschedule = useCallback(async (schedulingInfo: SchedulingInfo) => {
         handleCancelEdit();
 
         const updatedScheduledPost: ScheduledPost = {
             ...(item as ScheduledPost),
-            scheduled_at: updatedScheduledAtTime,
+            scheduled_at: schedulingInfo.scheduled_at,
+            repeat_type: schedulingInfo.repeat_type,
+            repeat_timezone: schedulingInfo.repeat_timezone,
         };
 
         const result = await dispatch(updateScheduledPost(updatedScheduledPost, connectionId));
@@ -393,6 +400,7 @@ function DraftRow({
                 timestamp={timestamp}
                 remote={isRemote || false}
                 error={postError || serverError?.message}
+                repeatsWeekly={isWeeklyRecurringScheduledPost}
             />
             {isEditing && (
                 <EditScheduledPost

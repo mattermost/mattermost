@@ -417,7 +417,11 @@ channels/db/migrations/postgres/000210_add_recap_skip_fields.down.sql
 channels/db/migrations/postgres/000210_add_recap_skip_fields.up.sql
 channels/db/migrations/postgres/000211_add_recaps_scheduled_recap_id_index.down.sql
 channels/db/migrations/postgres/000211_add_recaps_scheduled_recap_id_index.up.sql
-channels/db/migrations/postgres/000212_drop_channelmembers_autotranslation.down.sql
-channels/db/migrations/postgres/000212_drop_channelmembers_autotranslation.up.sql
-channels/db/migrations/postgres/000213_drop_channelmembers_autotranslation_column.down.sql
-channels/db/migrations/postgres/000213_drop_channelmembers_autotranslation_column.up.sql
+channels/db/migrations/postgres/000212_add_scheduled_post_recurrence.down.sql
+channels/db/migrations/postgres/000212_add_scheduled_post_recurrence.up.sql
+channels/db/migrations/postgres/000213_add_scheduled_post_pending_index.down.sql
+channels/db/migrations/postgres/000213_add_scheduled_post_pending_index.up.sql
+channels/db/migrations/postgres/000214_drop_channelmembers_autotranslation.down.sql
+channels/db/migrations/postgres/000214_drop_channelmembers_autotranslation.up.sql
+channels/db/migrations/postgres/000215_drop_channelmembers_autotranslation_column.down.sql
+channels/db/migrations/postgres/000215_drop_channelmembers_autotranslation_column.up.sql
