@@ -4,9 +4,11 @@ exports[`FilePreview should match snapshot 1`] = `
 <div>
   <div
     class="file-preview__container"
+    data-testid="file-preview-container"
   >
     <div
       class="file-preview post-image__column"
+      data-testid="file-preview-item"
     >
       <a
         aria-label="file thumbnail test_filename"
@@ -20,6 +22,7 @@ exports[`FilePreview should match snapshot 1`] = `
       </a>
       <div
         class="post-image__details"
+        data-testid="post-image-details"
       >
         <div
           class="post-image__detail_wrapper"
@@ -47,6 +50,7 @@ exports[`FilePreview should match snapshot 1`] = `
         <div>
           <a
             class="file-preview__remove"
+            data-testid="file-preview-remove"
           >
             <i
               class="icon icon-close"
@@ -121,9 +125,11 @@ exports[`FilePreview should match snapshot when props are changed 1`] = `
 <div>
   <div
     class="file-preview__container"
+    data-testid="file-preview-container"
   >
     <div
       class="file-preview post-image__column"
+      data-testid="file-preview-item"
     >
       <a
         aria-label="file thumbnail test_filename"
@@ -137,6 +143,7 @@ exports[`FilePreview should match snapshot when props are changed 1`] = `
       </a>
       <div
         class="post-image__details"
+        data-testid="post-image-details"
       >
         <div
           class="post-image__detail_wrapper"
@@ -164,6 +171,7 @@ exports[`FilePreview should match snapshot when props are changed 1`] = `
         <div>
           <a
             class="file-preview__remove"
+            data-testid="file-preview-remove"
           >
             <i
               class="icon icon-close"
@@ -238,9 +246,11 @@ exports[`FilePreview should match snapshot when props are changed 2`] = `
 <div>
   <div
     class="file-preview__container"
+    data-testid="file-preview-container"
   >
     <div
       class="file-preview post-image__column"
+      data-testid="file-preview-item"
     >
       <a
         aria-label="file thumbnail test_filename"
@@ -254,6 +264,7 @@ exports[`FilePreview should match snapshot when props are changed 2`] = `
       </a>
       <div
         class="post-image__details"
+        data-testid="post-image-details"
       >
         <div
           class="post-image__detail_wrapper"
@@ -281,6 +292,7 @@ exports[`FilePreview should match snapshot when props are changed 2`] = `
         <div>
           <a
             class="file-preview__remove"
+            data-testid="file-preview-remove"
           >
             <i
               class="icon icon-close"
@@ -291,6 +303,7 @@ exports[`FilePreview should match snapshot when props are changed 2`] = `
     </div>
     <div
       class="file-preview post-image__column"
+      data-testid="file-preview-item"
     >
       <a
         aria-label="file thumbnail file_two.jpg"
@@ -304,6 +317,7 @@ exports[`FilePreview should match snapshot when props are changed 2`] = `
       </a>
       <div
         class="post-image__details"
+        data-testid="post-image-details"
       >
         <div
           class="post-image__detail_wrapper"
@@ -331,6 +345,7 @@ exports[`FilePreview should match snapshot when props are changed 2`] = `
         <div>
           <a
             class="file-preview__remove"
+            data-testid="file-preview-remove"
           >
             <i
               class="icon icon-close"

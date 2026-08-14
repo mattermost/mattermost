@@ -4,7 +4,7 @@
 import type {ComponentProps} from 'react';
 import React from 'react';
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -371,6 +371,51 @@ describe('UserPropertyDotMenu', () => {
         expect(editableItem).toHaveAttribute('aria-checked', 'false');
         expect(within(editableItem).getByRole('button')).toBeDisabled();
         expect(screen.getByText('Synced attributes are managed by AD/LDAP or SAML')).toBeInTheDocument();
+    });
+
+    it('disables the "Editable by users" toggle and still offers link options for owner-managed fields', async () => {
+        const ownerManagedField: UserPropertyField = {
+            ...baseField,
+            id: 'owner-managed-field',
+            attrs: {
+                ...baseField.attrs,
+                owners: [{id: 'com.mattermost.scim', type: 'plugin', scopes: ['entra']}],
+            },
+        };
+
+        renderComponent(ownerManagedField);
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${ownerManagedField.id}`);
+        await userEvent.click(menuButton);
+
+        const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
+        expect(editableItem).toHaveAttribute('aria-checked', 'false');
+        expect(within(editableItem).getByRole('button')).toBeDisabled();
+        expect(screen.getByText('This attribute is managed by an integration')).toBeInTheDocument();
+
+        expect(screen.getByText('Link attribute to AD/LDAP')).toBeInTheDocument();
+        expect(screen.getByText('Link attribute to SAML')).toBeInTheDocument();
+    });
+
+    it('does not update an owner-managed field when clicking the "Editable by users" toggle', async () => {
+        const ownerManagedField: UserPropertyField = {
+            ...baseField,
+            id: 'owner-managed-toggle-click',
+            attrs: {
+                ...baseField.attrs,
+                owners: [{id: 'com.mattermost.scim', type: 'plugin', scopes: ['entra']}],
+            },
+        };
+
+        renderComponent(ownerManagedField);
+
+        const menuButton = screen.getByTestId(`user-property-field_dotmenu-${ownerManagedField.id}`);
+        await userEvent.click(menuButton);
+
+        const editableItem = screen.getByRole('menuitemcheckbox', {name: /Editable by users/});
+        editableItem.click();
+
+        expect(updateField).not.toHaveBeenCalled();
     });
 
     it('handles field duplication', async () => {

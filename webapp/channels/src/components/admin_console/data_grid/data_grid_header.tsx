@@ -34,7 +34,10 @@ export type Props = {
 
 const DataGridHeader = ({columns}: Props) => {
     return (
-        <div className='DataGrid_header'>
+        <div
+            className='DataGrid_header'
+            data-testid='dataGrid-header'
+        >
             {columns.map((col) => (
                 <HeaderElement
                     col={col}

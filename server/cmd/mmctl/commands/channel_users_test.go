@@ -179,6 +179,360 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 	})
 }
 
+func channelUsersListTestCmd() *cobra.Command {
+	cmd := &cobra.Command{}
+	cmd.Flags().Int("page", 0, "")
+	cmd.Flags().Int("per-page", DefaultPageSize, "")
+	cmd.Flags().Bool("all", false, "")
+	return cmd
+}
+
+func (s *MmctlUnitTestSuite) TestChannelUsersListCmd() {
+	channelArg := teamID + ":" + channelName
+	mockTeam := model.Team{Id: teamID}
+	mockChannel := model.Channel{Id: channelID, Name: channelName}
+	mockUser := model.User{Id: userID, Username: "user1", Email: userEmail}
+	mockUser2 := model.User{Id: userID + "2", Username: "user2", Email: userID + "2@example.com"}
+	mockUser3 := model.User{Id: userID + "3", Username: "user3", Email: userID + "3@example.com"}
+	member1 := model.ChannelMember{ChannelId: channelID, UserId: mockUser.Id, Roles: "channel_user"}
+	member2 := model.ChannelMember{ChannelId: channelID, UserId: mockUser2.Id, Roles: "channel_user channel_admin"}
+	member3 := model.ChannelMember{ChannelId: channelID, UserId: mockUser3.Id, Roles: "channel_user"}
+
+	s.Run("List users of a channel", func() {
+		printer.Clean()
+		cmd := channelUsersListTestCmd()
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelMembers(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return(model.ChannelMembers{member1, member2}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUsersByIds(context.TODO(), []string{mockUser.Id, mockUser2.Id}).
+			Return([]*model.User{&mockUser, &mockUser2}, &model.Response{}, nil).
+			Times(1)
+
+		err := channelUsersListCmdF(s.client, cmd, []string{channelArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		out1 := printer.GetLines()[0].(channelUserOut)
+		s.Require().Equal(mockUser.Id, out1.Id)
+		s.Require().Equal(mockUser.Username, out1.Username)
+		s.Require().Equal(mockUser.Email, out1.Email)
+		s.Require().Equal("channel_user", out1.Roles)
+
+		out2 := printer.GetLines()[1].(channelUserOut)
+		s.Require().Equal(mockUser2.Id, out2.Id)
+		s.Require().Equal(mockUser2.Username, out2.Username)
+		s.Require().Equal(mockUser2.Email, out2.Email)
+		s.Require().Equal("channel_user channel_admin", out2.Roles)
+	})
+
+	s.Run("List all users of a channel with the --all flag", func() {
+		printer.Clean()
+		cmd := channelUsersListTestCmd()
+		err := cmd.Flags().Set("all", "true")
+		s.Require().NoError(err)
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+		// The --all flag must keep paging until an empty page is returned,
+		// accumulating members across every non-empty page.
+		s.client.
+			EXPECT().
+			GetChannelMembers(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return(model.ChannelMembers{member1, member2}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelMembers(context.TODO(), channelID, 1, DefaultPageSize, "").
+			Return(model.ChannelMembers{member3}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelMembers(context.TODO(), channelID, 2, DefaultPageSize, "").
+			Return(model.ChannelMembers{}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUsersByIds(context.TODO(), []string{mockUser.Id, mockUser2.Id, mockUser3.Id}).
+			Return([]*model.User{&mockUser, &mockUser2, &mockUser3}, &model.Response{}, nil).
+			Times(1)
+
+		err = channelUsersListCmdF(s.client, cmd, []string{channelArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 3)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		s.Require().Equal(mockUser.Id, printer.GetLines()[0].(channelUserOut).Id)
+		s.Require().Equal(mockUser2.Id, printer.GetLines()[1].(channelUserOut).Id)
+		s.Require().Equal(mockUser3.Id, printer.GetLines()[2].(channelUserOut).Id)
+	})
+
+	s.Run("List users with custom --page and --per-page", func() {
+		printer.Clean()
+		cmd := channelUsersListTestCmd()
+		s.Require().NoError(cmd.Flags().Set("page", "2"))
+		s.Require().NoError(cmd.Flags().Set("per-page", "50"))
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+		// The --page and --per-page flags must be threaded through to the API call.
+		s.client.
+			EXPECT().
+			GetChannelMembers(context.TODO(), channelID, 2, 50, "").
+			Return(model.ChannelMembers{member1}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUsersByIds(context.TODO(), []string{mockUser.Id}).
+			Return([]*model.User{&mockUser}, &model.Response{}, nil).
+			Times(1)
+
+		err := channelUsersListCmdF(s.client, cmd, []string{channelArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(mockUser.Id, printer.GetLines()[0].(channelUserOut).Id)
+	})
+
+	s.Run("List users renders id, username, email and roles in plain output", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+		cmd := channelUsersListTestCmd()
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelMembers(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return(model.ChannelMembers{member2}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUsersByIds(context.TODO(), []string{mockUser2.Id}).
+			Return([]*model.User{&mockUser2}, &model.Response{}, nil).
+			Times(1)
+
+		err := channelUsersListCmdF(s.client, cmd, []string{channelArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		expected := fmt.Sprintf("%s: %s (%s) %s", mockUser2.Id, mockUser2.Username, mockUser2.Email, member2.Roles)
+		s.Require().Equal(expected, printer.GetLines()[0])
+	})
+
+	s.Run("List users when a member's user details are missing", func() {
+		printer.Clean()
+		cmd := channelUsersListTestCmd()
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelMembers(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return(model.ChannelMembers{member1, member2}, &model.Response{}, nil).
+			Times(1)
+		// GetUsersByIds omits member2's user (e.g. deactivated/deleted).
+		s.client.
+			EXPECT().
+			GetUsersByIds(context.TODO(), []string{mockUser.Id, mockUser2.Id}).
+			Return([]*model.User{&mockUser}, &model.Response{}, nil).
+			Times(1)
+
+		err := channelUsersListCmdF(s.client, cmd, []string{channelArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 2)
+
+		out1 := printer.GetLines()[0].(channelUserOut)
+		s.Require().Equal(mockUser.Id, out1.Id)
+		s.Require().Equal(mockUser.Username, out1.Username)
+		s.Require().Equal(mockUser.Email, out1.Email)
+
+		// The row for the missing user still lists its id and roles, with empty username/email.
+		out2 := printer.GetLines()[1].(channelUserOut)
+		s.Require().Equal(mockUser2.Id, out2.Id)
+		s.Require().Equal("channel_user channel_admin", out2.Roles)
+		s.Require().Empty(out2.Username)
+		s.Require().Empty(out2.Email)
+	})
+
+	s.Run("List all users when fetching members fails", func() {
+		printer.Clean()
+		cmd := channelUsersListTestCmd()
+		s.Require().NoError(cmd.Flags().Set("all", "true"))
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelMembers(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return(nil, &model.Response{}, errors.New("mock error")).
+			Times(1)
+
+		err := channelUsersListCmdF(s.client, cmd, []string{channelArg})
+		s.Require().ErrorContains(err, "unable to list users")
+		s.Require().ErrorContains(err, channelName)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("List users of a nonexistent channel", func() {
+		printer.Clean()
+		cmd := channelUsersListTestCmd()
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetTeamByName(context.TODO(), teamID, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		err := channelUsersListCmdF(s.client, cmd, []string{channelArg})
+		s.Require().EqualError(err, fmt.Sprintf("unable to find channel %q", channelArg))
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("List users of an empty channel", func() {
+		printer.Clean()
+		cmd := channelUsersListTestCmd()
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelMembers(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return(model.ChannelMembers{}, &model.Response{}, nil).
+			Times(1)
+
+		err := channelUsersListCmdF(s.client, cmd, []string{channelArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("No users found", printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("List users when fetching members fails", func() {
+		printer.Clean()
+		cmd := channelUsersListTestCmd()
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelMembers(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return(nil, &model.Response{}, errors.New("mock error")).
+			Times(1)
+
+		err := channelUsersListCmdF(s.client, cmd, []string{channelArg})
+		s.Require().ErrorContains(err, "unable to list users")
+		s.Require().ErrorContains(err, channelName)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("List users when fetching user details fails", func() {
+		printer.Clean()
+		cmd := channelUsersListTestCmd()
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), teamID, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(context.TODO(), channelName, teamID, "").
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannelMembers(context.TODO(), channelID, 0, DefaultPageSize, "").
+			Return(model.ChannelMembers{member1}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUsersByIds(context.TODO(), []string{mockUser.Id}).
+			Return(nil, &model.Response{}, errors.New("mock error")).
+			Times(1)
+
+		err := channelUsersListCmdF(s.client, cmd, []string{channelArg})
+		s.Require().ErrorContains(err, "unable to retrieve user details")
+		s.Require().ErrorContains(err, channelName)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+}
+
 func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 	mockUser := model.User{Id: userID, Email: userEmail}
 	mockUser2 := model.User{Id: userID + "2", Email: userID + "2@example.com"}

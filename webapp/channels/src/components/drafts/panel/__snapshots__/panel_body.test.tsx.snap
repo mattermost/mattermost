@@ -4,9 +4,11 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
 <div>
   <div
     class="DraftPanelBody post"
+    data-testid="draft-panel-body"
   >
     <div
       class="DraftPanelBody__left post__img"
+      data-testid="draft-post-img"
     >
       <button
         aria-expanded="false"
@@ -16,6 +18,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
       >
         <span
           class="profile-icon "
+          data-testid="profile-icon"
         >
           <img
             alt="username profile image"
@@ -61,6 +64,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
             >
               <div
                 class="post__header"
+                data-testid="draft-post-header"
               >
                 <strong>
                   display_name
@@ -68,6 +72,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
               </div>
               <div
                 class="post__body"
+                data-testid="draft-post-body"
               >
                 <p>
                   message
@@ -86,9 +91,11 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
 <div>
   <div
     class="DraftPanelBody post"
+    data-testid="draft-panel-body"
   >
     <div
       class="DraftPanelBody__left post__img"
+      data-testid="draft-post-img"
     >
       <button
         aria-expanded="false"
@@ -98,6 +105,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
       >
         <span
           class="profile-icon "
+          data-testid="profile-icon"
         >
           <img
             alt="username profile image"
@@ -143,6 +151,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
             >
               <div
                 class="post__header"
+                data-testid="draft-post-header"
               >
                 <strong>
                   display_name
@@ -150,6 +159,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
               </div>
               <div
                 class="post__body"
+                data-testid="draft-post-body"
               >
                 <p>
                   message
@@ -168,9 +178,11 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
 <div>
   <div
     class="DraftPanelBody post"
+    data-testid="draft-panel-body"
   >
     <div
       class="DraftPanelBody__left post__img"
+      data-testid="draft-post-img"
     >
       <button
         aria-expanded="false"
@@ -180,6 +192,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
       >
         <span
           class="profile-icon "
+          data-testid="profile-icon"
         >
           <img
             alt="username profile image"
@@ -225,6 +238,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
             >
               <div
                 class="post__header"
+                data-testid="draft-post-header"
               >
                 <strong>
                   display_name
@@ -258,6 +272,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
               </div>
               <div
                 class="post__body"
+                data-testid="draft-post-body"
               >
                 <p>
                   message
@@ -276,9 +291,11 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
 <div>
   <div
     class="DraftPanelBody post"
+    data-testid="draft-panel-body"
   >
     <div
       class="DraftPanelBody__left post__img"
+      data-testid="draft-post-img"
     >
       <button
         aria-expanded="false"
@@ -288,6 +305,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
       >
         <span
           class="profile-icon "
+          data-testid="profile-icon"
         >
           <img
             alt="username profile image"
@@ -333,6 +351,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
             >
               <div
                 class="post__header"
+                data-testid="draft-post-header"
               >
                 <strong>
                   display_name
@@ -352,6 +371,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
               </div>
               <div
                 class="post__body"
+                data-testid="draft-post-body"
               >
                 <p>
                   message

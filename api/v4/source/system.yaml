@@ -973,6 +973,9 @@
                   is_gov_sku:
                     type: boolean
                     description: Whether this is a government SKU license
+                  is_non_production:
+                    type: boolean
+                    description: Whether the license is a non-production (developer) key
                   customer:
                     type: object
                     properties:
