@@ -307,11 +307,9 @@ func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
 		plugins:     []string{"existing-plugin"},
 	}
 	defer func() { require.Nil(t, es.Stop()) }()
-	serverVersion, serverPlugins, testErr := es.TestConfigWithServerInfo(th.Context, th.App.Config())
+	testErr := es.TestConfig(th.Context, th.App.Config())
 	require.NotNil(t, testErr)
 	require.Equal(t, "ent.elasticsearch.analysis_icu_required", testErr.Id)
-	require.Equal(t, "8.19.0", serverVersion)
-	require.Equal(t, []string{"analysis-icu"}, serverPlugins)
 	require.Same(t, originalClient, es.client)
 	require.Equal(t, 8, es.version)
 	require.Equal(t, "8.18.0", es.fullVersion)
@@ -332,7 +330,7 @@ func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
 	}
 }
 
-func TestStartPreservesPluginsWhenDiscoveryFails(t *testing.T) {
+func TestStartClearsPluginsWhenDiscoveryFails(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
@@ -368,7 +366,7 @@ func TestStartPreservesPluginsWhenDiscoveryFails(t *testing.T) {
 	defer func() { require.Nil(t, es.Stop()) }()
 	require.Nil(t, es.Start(context.Background()))
 	require.Equal(t, "8.19.0", es.fullVersion)
-	require.Equal(t, []string{"analysis-nori"}, es.plugins)
+	require.Nil(t, es.plugins)
 }
 
 func TestTestConfigDoesNotActivateEngine(t *testing.T) {
@@ -405,10 +403,6 @@ func TestTestConfigDoesNotActivateEngine(t *testing.T) {
 		plugins:     []string{"existing-plugin"},
 	}
 	defer func() { require.Nil(t, es.Stop()) }()
-	serverVersion, serverPlugins, appErr := es.TestConfigWithServerInfo(th.Context, th.App.Config())
-	require.Nil(t, appErr)
-	require.Equal(t, "8.19.0", serverVersion)
-	require.Equal(t, []string{"analysis-icu"}, serverPlugins)
 	require.Nil(t, es.TestConfig(th.Context, th.App.Config()))
 	require.Equal(t, int32(0), es.ready.Load())
 	require.Same(t, originalClient, es.client)

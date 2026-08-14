@@ -221,9 +221,7 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 		es.version = info.version
 		es.fullVersion = info.fullVersion
 	}
-	if info.plugins != nil {
-		es.plugins = info.plugins
-	}
+	es.plugins = info.plugins
 	if appErr != nil {
 		return appErr
 	}
@@ -1664,30 +1662,21 @@ func (es *ElasticsearchInterfaceImpl) DeleteUser(user *model.User) *model.AppErr
 }
 
 func (es *ElasticsearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Config) *model.AppError {
-	_, _, appErr := es.TestConfigWithServerInfo(rctx, cfg)
-	return appErr
-}
-
-func (es *ElasticsearchInterfaceImpl) TestConfigWithServerInfo(rctx request.CTX, cfg *model.Config) (string, []string, *model.AppError) {
 	if license := es.Platform.License(); license == nil || !*license.Features.Elasticsearch {
-		return "", nil, model.NewAppError("Elasticsearch.TestConfig", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
+		return model.NewAppError("Elasticsearch.TestConfig", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
 	}
 
 	if !*cfg.ElasticsearchSettings.EnableIndexing {
-		return "", nil, model.NewAppError("Elasticsearch.TestConfig", "ent.elasticsearch.test_config.indexing_disabled.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusNotImplemented)
+		return model.NewAppError("Elasticsearch.TestConfig", "ent.elasticsearch.test_config.indexing_disabled.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusNotImplemented)
 	}
 
 	client, appErr := createTypedClient(rctx.Logger(), cfg, es.Platform.FileBackend(), true)
 	if appErr != nil {
-		return "", nil, appErr
+		return appErr
 	}
 
-	info, appErr := es.fetchServerInfo(rctx.Context(), client)
-	if appErr != nil {
-		return info.fullVersion, info.plugins, appErr
-	}
-
-	return info.fullVersion, info.plugins, nil
+	_, appErr = es.fetchServerInfo(rctx.Context(), client)
+	return appErr
 }
 
 func (es *ElasticsearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppError {

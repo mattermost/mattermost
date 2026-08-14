@@ -191,9 +191,7 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 		os.version = info.version
 		os.fullVersion = info.fullVersion
 	}
-	if info.plugins != nil {
-		os.plugins = info.plugins
-	}
+	os.plugins = info.plugins
 	if appErr != nil {
 		return appErr
 	}
@@ -1727,30 +1725,21 @@ func (os *OpensearchInterfaceImpl) DeleteUser(user *model.User) *model.AppError 
 }
 
 func (os *OpensearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Config) *model.AppError {
-	_, _, appErr := os.TestConfigWithServerInfo(rctx, cfg)
-	return appErr
-}
-
-func (os *OpensearchInterfaceImpl) TestConfigWithServerInfo(rctx request.CTX, cfg *model.Config) (string, []string, *model.AppError) {
 	if license := os.Platform.License(); license == nil || !*license.Features.Elasticsearch {
-		return "", nil, model.NewAppError("Opensearch.TestConfig", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
+		return model.NewAppError("Opensearch.TestConfig", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
 	}
 
 	if !*cfg.ElasticsearchSettings.EnableIndexing {
-		return "", nil, model.NewAppError("Opensearch.TestConfig", "ent.elasticsearch.test_config.indexing_disabled.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusNotImplemented)
+		return model.NewAppError("Opensearch.TestConfig", "ent.elasticsearch.test_config.indexing_disabled.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusNotImplemented)
 	}
 
 	client, appErr := createClient(rctx.Logger(), cfg, os.Platform.FileBackend(), true)
 	if appErr != nil {
-		return "", nil, appErr
+		return appErr
 	}
 
-	info, appErr := os.fetchServerInfo(rctx.Context(), client)
-	if appErr != nil {
-		return info.fullVersion, info.plugins, appErr
-	}
-
-	return info.fullVersion, info.plugins, nil
+	_, appErr = os.fetchServerInfo(rctx.Context(), client)
+	return appErr
 }
 
 func (os *OpensearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppError {

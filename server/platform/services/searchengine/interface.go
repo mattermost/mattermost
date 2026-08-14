@@ -68,9 +68,6 @@ type SearchEngineInterface interface {
 	DeleteUserFiles(rctx request.CTX, userID string) *model.AppError
 	DeleteFilesBatch(rctx request.CTX, endTime, limit int64) *model.AppError
 	TestConfig(rctx request.CTX, cfg *model.Config) *model.AppError
-	// TestConfigWithServerInfo returns the version and plugins fetched from the submitted config without updating
-	// the live engine's cached state. It may return partial server information alongside a validation error.
-	TestConfigWithServerInfo(rctx request.CTX, cfg *model.Config) (string, []string, *model.AppError)
 	PurgeIndexes(rctx request.CTX) *model.AppError
 	PurgeIndexList(rctx request.CTX, indexes []string) *model.AppError
 	RefreshIndexes(rctx request.CTX) *model.AppError

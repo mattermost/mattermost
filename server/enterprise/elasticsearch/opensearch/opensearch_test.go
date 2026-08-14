@@ -121,11 +121,9 @@ func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
 		plugins:     []string{"existing-plugin"},
 	}
 	defer func() { require.Nil(t, impl.Stop()) }()
-	serverVersion, serverPlugins, testErr := impl.TestConfigWithServerInfo(th.Context, th.App.Config())
+	testErr := impl.TestConfig(th.Context, th.App.Config())
 	require.NotNil(t, testErr)
 	require.Equal(t, "ent.elasticsearch.analysis_icu_required", testErr.Id)
-	require.Equal(t, "2.11.0", serverVersion)
-	require.Equal(t, []string{"analysis-icu"}, serverPlugins)
 	require.Same(t, originalClient, impl.client)
 	require.Equal(t, 2, impl.version)
 	require.Equal(t, "2.10.0", impl.fullVersion)
@@ -146,7 +144,7 @@ func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
 	}
 }
 
-func TestStartPreservesPluginsWhenDiscoveryFails(t *testing.T) {
+func TestStartClearsPluginsWhenDiscoveryFails(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case r.Method == http.MethodGet && r.URL.Path == "/":
@@ -180,7 +178,7 @@ func TestStartPreservesPluginsWhenDiscoveryFails(t *testing.T) {
 	defer func() { require.Nil(t, impl.Stop()) }()
 	require.Nil(t, impl.Start(context.Background()))
 	require.Equal(t, "2.11.0", impl.fullVersion)
-	require.Equal(t, []string{"analysis-nori"}, impl.plugins)
+	require.Nil(t, impl.plugins)
 }
 
 func TestTestConfigDoesNotActivateEngine(t *testing.T) {
@@ -215,10 +213,6 @@ func TestTestConfigDoesNotActivateEngine(t *testing.T) {
 		plugins:     []string{"existing-plugin"},
 	}
 	defer func() { require.Nil(t, impl.Stop()) }()
-	serverVersion, serverPlugins, appErr := impl.TestConfigWithServerInfo(th.Context, th.App.Config())
-	require.Nil(t, appErr)
-	require.Equal(t, "2.11.0", serverVersion)
-	require.Equal(t, []string{"analysis-icu"}, serverPlugins)
 	require.Nil(t, impl.TestConfig(th.Context, th.App.Config()))
 	require.Equal(t, int32(0), impl.ready.Load())
 	require.Same(t, originalClient, impl.client)
