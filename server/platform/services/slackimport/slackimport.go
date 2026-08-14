@@ -269,14 +269,18 @@ func (si *SlackImporter) slackAddUsers(rctx request.CTX, teamId string, slackuse
 			rctx.Logger().Warn("Slack Import: User does not have an email address in the Slack export. Used username as a placeholder. The user should update their email address once logged in to the system.", mlog.String("user_email", email), mlog.String("user_name", sUser.Username))
 		}
 
-		// Check for email conflict and use existing user if found
+		// Check for email conflict; only admin imports may merge into an existing account.
 		if existingUser, err := si.store.User().GetByEmail(email); err == nil {
-			addedUsers[sUser.Id] = existingUser
-			if _, err := si.actions.JoinUserToTeam(team, addedUsers[sUser.Id], ""); err != nil {
-				importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.merge_existing_failed", map[string]any{"Email": existingUser.Email, "Username": existingUser.Username}))
-			} else {
-				importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.merge_existing", map[string]any{"Email": existingUser.Email, "Username": existingUser.Username}))
+			if si.isAdminImport {
+				addedUsers[sUser.Id] = existingUser
+				if _, err := si.actions.JoinUserToTeam(team, addedUsers[sUser.Id], ""); err != nil {
+					importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.merge_existing_failed", map[string]any{"Email": existingUser.Email, "Username": existingUser.Username}))
+				} else {
+					importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.merge_existing", map[string]any{"Email": existingUser.Email, "Username": existingUser.Username}))
+				}
+				continue
 			}
+			importerLog.WriteString(i18n.T("api.slackimport.slack_add_users.merge_existing_skipped_non_admin", map[string]any{"Email": existingUser.Email, "Username": existingUser.Username}))
 			continue
 		}
 
