@@ -1,0 +1,81 @@
+package a
+
+import (
+	"errors"
+	"time"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+)
+
+const (
+	snakeKey = "batch_start_time"
+	camelKey = "batchStartTime"
+)
+
+type notMlog struct{}
+
+func (notMlog) String(key string, val string) string { return key }
+
+func valid() {
+	mlog.Debug("message",
+		mlog.String("user_id", "abc"),
+		mlog.Int("count", 1),
+		mlog.Uint("size", 1),
+		mlog.Float("ratio", 1.0),
+		mlog.Bool("is_leader", true),
+		mlog.Any("data", nil),
+		mlog.Array("ids", nil),
+		mlog.Map("props", nil),
+		mlog.Duration("elapsed", nil),
+		mlog.Millis("started_at", 0),
+		mlog.Time("created_at", time.Time{}),
+		mlog.Stringer("channel_type", nil),
+		mlog.NamedErr("upload_err", nil),
+		mlog.Err(errors.New("boom")),
+	)
+
+	// Digits are allowed within and as whole segments.
+	mlog.Info("message", mlog.String("sha256", ""), mlog.String("channel_id_2", ""))
+
+	// Keys resolved from constants are checked too.
+	mlog.Info("message", mlog.String(snakeKey, ""))
+}
+
+func fixable() {
+	mlog.Debug("message",
+		mlog.String("user_id", ""),              // want `mlog field key "userId" is not snake_case, use "user_id"`
+		mlog.String("user_id", ""),              // want `mlog field key "UserID" is not snake_case, use "user_id"`
+		mlog.Int("per_page", 0),                 // want `mlog field key "perPage" is not snake_case, use "per_page"`
+		mlog.String("cluster_discovery_id", ""), // want `mlog field key "ClusterDiscoveryID" is not snake_case, use "cluster_discovery_id"`
+		mlog.String("request_url_path", ""),     // want `mlog field key "requestURLPath" is not snake_case, use "request_url_path"`
+		mlog.String("diff", ""),                 // want `mlog field key "Diff" is not snake_case, use "diff"`
+		mlog.String("channel_name", ""),         // want `mlog field key "channel name" is not snake_case, use "channel_name"`
+		mlog.String("features_users", ""),       // want `mlog field key "features.users" is not snake_case, use "features_users"`
+		mlog.String("user_id", ""),              // want `mlog field key "user-id" is not snake_case, use "user_id"`
+		mlog.String("user_id", ""),              // want `mlog field key "_user_id" is not snake_case, use "user_id"`
+		mlog.String("user_id", ""),              // want `mlog field key "user__id" is not snake_case, use "user_id"`
+		mlog.String("channel_id2", ""),          // want `mlog field key "channelId2" is not snake_case, use "channel_id2"`
+		mlog.Array("user_ids", nil),             // want `mlog field key "userIDs" is not snake_case, use "user_ids"`
+	)
+}
+
+func unfixable() {
+	mlog.Debug("message",
+		// Would start with a digit, so there is no mechanical rename.
+		mlog.String("2fa", ""), // want `mlog field key "2fa" is not snake_case$`
+		mlog.String("", ""),    // want `mlog field key "" is not snake_case$`
+	)
+
+	// Renaming a constant's value is out of scope, so this is reported without
+	// a suggested fix.
+	mlog.Info("message", mlog.String(camelKey, "")) // want `mlog field key "batchStartTime" is not snake_case$`
+}
+
+func ignored(key string) {
+	// Not the mlog package.
+	var n notMlog
+	_ = n.String("userId", "")
+
+	// Not statically known.
+	mlog.Info("message", mlog.String(key, ""))
+}
