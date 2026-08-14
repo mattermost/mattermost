@@ -1983,6 +1983,37 @@ func TestImportUserTeams(t *testing.T) {
 		appErr := th.App.importUserTeams(th.Context, user, data)
 		require.NotNil(t, appErr)
 	})
+
+	t.Run("Group-synced admin should keep admin when imported roles omit team_admin", func(t *testing.T) {
+		user := th.CreateUser(t)
+
+		group := th.CreateGroup(t)
+		_, err := th.App.UpsertGroupMember(group.Id, user.Id)
+		require.Nil(t, err)
+
+		groupSyncable, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
+			GroupId:    group.Id,
+			AutoAdd:    false,
+			SyncableId: th.BasicTeam.Id,
+			Type:       model.GroupSyncableTypeTeam,
+		})
+		require.Nil(t, err)
+		groupSyncable.SchemeAdmin = true
+		_, err = th.App.UpdateGroupSyncable(groupSyncable)
+		require.Nil(t, err)
+
+		data := &[]imports.UserTeamImportData{
+			{
+				Name: &th.BasicTeam.Name,
+			},
+		}
+		appErr := th.App.importUserTeams(th.Context, user, data)
+		require.Nil(t, appErr)
+
+		teamMember, nErr := th.App.Srv().Store().Team().GetMember(th.Context, th.BasicTeam.Id, user.Id)
+		require.NoError(t, nErr)
+		require.True(t, teamMember.SchemeAdmin, "group-synced admin should retain admin even though imported roles omit team_admin")
+	})
 }
 
 func TestImportUserChannels(t *testing.T) {
