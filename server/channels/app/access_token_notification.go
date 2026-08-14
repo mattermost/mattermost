@@ -32,7 +32,7 @@ func (a *App) resolveAccessTokenNotificationRecipient(rctx request.CTX, token *m
 		return nil, nil, nil
 	}
 
-	owner, err := a.Srv().Store().User().Get(rctx.Context(), bot.OwnerId)
+	owner, err := a.Srv().Store().User().Get(rctx, bot.OwnerId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
