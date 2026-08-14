@@ -3691,6 +3691,10 @@
     "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n"
   },
   {
+    "id": "api.slackimport.slack_add_users.merge_existing_skipped_non_admin",
+    "translation": "Slack user with email {{.Email}} matches existing Mattermost user {{.Username}}. Merging into an existing Mattermost account is only available for imports run by a system admin, so this user's posts and channel memberships will not be imported. Re-run the import as a system admin to merge them.\r\n"
+  },
+  {
     "id": "api.slackimport.slack_add_users.missing_email_address",
     "translation": "User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
   },
