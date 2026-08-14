@@ -57,7 +57,7 @@ describe('System console - License preview/diff view', () => {
         //   mutable holder so we can simulate the server only reporting the new
         //   license once propagation completes (by the time the modal closes).
         const clientLicenseHolder = {body: currentClientLicense};
-        cy.intercept('GET', '**/api/v4/license/client*', (req) => {
+        cy.intercept('GET', '**/api/v4/license/client', (req) => {
             req.reply({statusCode: 200, body: clientLicenseHolder.body});
         }).as('getClientLicense');
 
@@ -121,7 +121,7 @@ describe('System console - License preview/diff view', () => {
 
     it('MM-67113 - Warns when re-uploading the currently applied license and leaves it unchanged', () => {
         // # The displayed license stays Professional throughout this flow
-        cy.intercept('GET', '**/api/v4/license/client*', {
+        cy.intercept('GET', '**/api/v4/license/client', {
             statusCode: 200,
             body: currentClientLicense,
         }).as('getClientLicense');
