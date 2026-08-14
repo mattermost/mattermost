@@ -4,6 +4,9 @@
 package mlogFieldNaming
 
 import (
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"golang.org/x/tools/go/analysis/analysistest"
@@ -11,6 +14,31 @@ import (
 
 func TestAll(t *testing.T) {
 	analysistest.RunWithSuggestedFixes(t, analysistest.TestData(), Analyzer, "a")
+}
+
+// TestFixtureCoversEveryConstructor keeps the fixture in step with
+// keyedFieldConstructors, so that dropping a constructor cannot silently go
+// unnoticed just because nothing exercises it.
+func TestFixtureCoversEveryConstructor(t *testing.T) {
+	src, err := os.ReadFile(filepath.Join("testdata", "src", "a", "a.go"))
+	if err != nil {
+		t.Fatalf("reading fixture: %v", err)
+	}
+
+	lines := strings.Split(string(src), "\n")
+	for name := range keyedFieldConstructors {
+		covered := false
+		for _, line := range lines {
+			if strings.Contains(line, "mlog."+name+`("`) && strings.Contains(line, "// want") {
+				covered = true
+				break
+			}
+		}
+
+		if !covered {
+			t.Errorf("no diagnostic case for mlog.%s in testdata/src/a/a.go; add one so removing %q from keyedFieldConstructors fails a test", name, name)
+		}
+	}
 }
 
 func TestToSnakeCase(t *testing.T) {

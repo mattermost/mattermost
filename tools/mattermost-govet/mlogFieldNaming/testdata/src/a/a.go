@@ -79,3 +79,23 @@ func ignored(key string) {
 	// Not statically known.
 	mlog.Info("message", mlog.String(key, ""))
 }
+
+// everyConstructor gives each keyed constructor its own diagnostic, so that
+// dropping one from keyedFieldConstructors fails a test.
+func everyConstructor() {
+	mlog.Debug("message",
+		mlog.Any("anyValue", nil),               // want `mlog field key "anyValue" is not snake_case, use "any_value"`
+		mlog.Array("arrayIds", nil),             // want `mlog field key "arrayIds" is not snake_case, use "array_ids"`
+		mlog.Bool("boolFlag", true),             // want `mlog field key "boolFlag" is not snake_case, use "bool_flag"`
+		mlog.Duration("durationElapsed", nil),   // want `mlog field key "durationElapsed" is not snake_case, use "duration_elapsed"`
+		mlog.Float("floatRatio", 1.0),           // want `mlog field key "floatRatio" is not snake_case, use "float_ratio"`
+		mlog.Int("intCount", 1),                 // want `mlog field key "intCount" is not snake_case, use "int_count"`
+		mlog.Map("mapProps", nil),               // want `mlog field key "mapProps" is not snake_case, use "map_props"`
+		mlog.Millis("millisStartedAt", 0),       // want `mlog field key "millisStartedAt" is not snake_case, use "millis_started_at"`
+		mlog.NamedErr("namedErr", nil),          // want `mlog field key "namedErr" is not snake_case, use "named_err"`
+		mlog.String("stringName", ""),           // want `mlog field key "stringName" is not snake_case, use "string_name"`
+		mlog.Stringer("stringerType", nil),      // want `mlog field key "stringerType" is not snake_case, use "stringer_type"`
+		mlog.Time("timeCreatedAt", time.Time{}), // want `mlog field key "timeCreatedAt" is not snake_case, use "time_created_at"`
+		mlog.Uint("uintSize", 1),                // want `mlog field key "uintSize" is not snake_case, use "uint_size"`
+	)
+}
