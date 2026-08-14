@@ -7,6 +7,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"io"
 	"strings"
 	"testing"
 
@@ -54,8 +55,29 @@ func TestArchiveExtractorSkips7zip(t *testing.T) {
 	})
 }
 
+// contextErrorExtractor fails every extraction with the given context error.
+type contextErrorExtractor struct {
+	err error
+}
+
+func (ce *contextErrorExtractor) Name() string {
+	return "contextErrorExtractor"
+}
+
+func (ce *contextErrorExtractor) Match(filename string) bool {
+	return true
+}
+
+func (ce *contextErrorExtractor) Extract(_ context.Context, _ string, _ io.ReadSeeker, _ int64) (string, error) {
+	return "", ce.err
+}
+
 func TestArchiveExtractorErrorOmitsEntryName(t *testing.T) {
+	// The entry name is transformed before reaching the nested extraction error
+	// (separators become spaces), so assert on the stem token as well: it
+	// survives that transformation and would appear in either leaky error.
 	const entryName = "confidential-customer-list.txt"
+	const entryStem = "confidential"
 
 	var archive bytes.Buffer
 	zw := zip.NewWriter(&archive)
@@ -65,11 +87,31 @@ func TestArchiveExtractorErrorOmitsEntryName(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, zw.Close())
 
-	ae := &archiveExtractor{SubExtractor: &plainExtractor{}}
+	requireNoEntryName := func(t *testing.T, err error) {
+		t.Helper()
+		require.Error(t, err)
+		assert.NotContains(t, err.Error(), entryName)
+		assert.NotContains(t, err.Error(), entryStem)
+	}
 
-	// A maxFileSize below the entry size fails the entry read, the path that
-	// must not leak the entry name into the error the caller logs.
-	_, err = ae.Extract(context.Background(), "archive.zip", bytes.NewReader(archive.Bytes()), 8)
-	require.Error(t, err)
-	assert.NotContains(t, err.Error(), entryName)
+	t.Run("entry read failure", func(t *testing.T) {
+		ae := &archiveExtractor{SubExtractor: &plainExtractor{}}
+
+		// A maxFileSize below the entry size fails the entry read.
+		_, err := ae.Extract(context.Background(), "archive.zip", bytes.NewReader(archive.Bytes()), 8)
+		requireNoEntryName(t, err)
+	})
+
+	for name, contextErr := range map[string]error{
+		"cancelled":         context.Canceled,
+		"deadline exceeded": context.DeadlineExceeded,
+	} {
+		t.Run("nested extraction "+name, func(t *testing.T) {
+			ae := &archiveExtractor{SubExtractor: &contextErrorExtractor{err: contextErr}}
+
+			_, err := ae.Extract(context.Background(), "archive.zip", bytes.NewReader(archive.Bytes()), 0)
+			requireNoEntryName(t, err)
+			assert.ErrorIs(t, err, contextErr)
+		})
+	}
 }
