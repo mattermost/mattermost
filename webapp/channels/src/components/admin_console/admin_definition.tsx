@@ -791,11 +791,17 @@ const AdminDefinition: AdminDefinitionType = {
                                     help_text: defineMessage({id: 'admin.accesscontrol.enableChannelPolicyIndicatorsDesc', defaultMessage: 'When enabled, channels restricted by a membership access policy display the matching user attributes as tags in the channel members list and the invite dialog. Disable this to avoid revealing policy details to end users.'}),
                                     isDisabled: it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                                 },
+                            ],
+                        },
+                        {
+                            key: 'admin.accesscontrol.session_attributes',
+                            title: defineMessage({id: 'admin.accesscontrol.session_attributes', defaultMessage: 'Session Attributes'}),
+                            settings: [
                                 {
                                     type: 'bool',
                                     key: 'AccessControlSettings.TrustProxyDeviceIdentityHeader',
                                     label: defineMessage({id: 'admin.accesscontrol.trustProxyDeviceIdentityHeader.title', defaultMessage: 'Trust proxy device identity header'}),
-                                    help_text: defineMessage({id: 'admin.accesscontrol.trustProxyDeviceIdentityHeader.desc', defaultMessage: 'When enabled, the **TLS device ID** attribute is populated from the `X-Mattermost-Session-Attribute-Device-Id` request header, letting a reverse proxy that performs mutual TLS assert a device identity that the client cannot forge.\n \n**Note:** The device identity is accepted from the request header, so all clients must connect to Mattermost through a proxy that sets it and strips it from inbound requests.'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.trustProxyDeviceIdentityHeader.desc', defaultMessage: 'When enabled, the **TLS device ID** attribute is populated from the `X-Mattermost-Session-Attribute-Device-Id` request header, letting a reverse proxy that performs mutual TLS assert a device identity that the client cannot forge. **Note:** The device identity is accepted from the request header, so all clients must connect to Mattermost through a proxy that sets it and strips it from inbound requests.'}),
                                     help_text_markdown: true,
                                     isHidden: it.any(
                                         it.configIsFalse('FeatureFlags', 'SessionAttributes'),
@@ -806,7 +812,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'bool',
                                     key: 'AccessControlSettings.EnforceDeviceIDConsistency',
                                     label: defineMessage({id: 'admin.accesscontrol.enforceDeviceIdConsistency.title', defaultMessage: 'Enforce device ID consistency'}),
-                                    help_text: defineMessage({id: 'admin.accesscontrol.enforceDeviceIdConsistency.desc', defaultMessage: 'When enabled, the **TLS device ID**, **Device ID**, and **Hardware ID** attributes are compared against the values cached for a session. If one of them changes mid-session, the session is revoked, the user must log in again, and the revocation is recorded in the audit log. This mitigates token theft, since a stolen token replayed from another device reports a different identifier. When disabled, a changed device identity overwrites the cached value and the session continues.\n \n**Note:** Confirm that these attributes report stable values across your fleet before enabling, since an identifier that legitimately changes will log users out.'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enforceDeviceIdConsistency.desc', defaultMessage: 'When enabled, the **TLS device ID**, **Device ID**, and **Hardware ID** attributes are compared against the values cached for a session. If one of them changes mid-session, the session is revoked, the user must log in again, and the revocation is recorded in the audit log. This mitigates token theft, since a stolen token replayed from another device reports a different identifier. When disabled, a changed device identity overwrites the cached value and the session continues. **Note:** Confirm that these attributes report stable values across your fleet before enabling, since an identifier that legitimately changes will log users out.'}),
                                     help_text_markdown: true,
                                     isHidden: it.any(
                                         it.configIsFalse('FeatureFlags', 'SessionAttributes'),
