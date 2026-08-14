@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/stretchr/testify/require"
 )
 
@@ -479,13 +480,13 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Restore the pre-conversion shape a server upgrade would find: free
-		// text with no options. Written with a nil request context so
+		// text with no options. Written with a system-caller context so
 		// SessionAttributesHook treats it as a system caller, the same way the
 		// seed itself does.
 		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
 		field.Type = model.PropertyFieldTypeText
 		delete(field.Attrs, model.PropertyFieldAttributeOptions)
-		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{field})
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
 		require.NoError(t, err)
 
 		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
@@ -537,7 +538,7 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 
 		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
 		delete(field.Attrs, model.NativeAttributeAttrOperators)
-		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{field})
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
 		require.NoError(t, err)
 
 		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
