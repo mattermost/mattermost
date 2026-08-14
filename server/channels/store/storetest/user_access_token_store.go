@@ -288,10 +288,7 @@ func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	botOwner, err := ss.User().Save(rctx, &model.User{Email: MakeEmail(), Username: model.NewUsername()})
 	require.NoError(t, err)
-	botUser, err := ss.User().Save(rctx, model.UserFromBot(&model.Bot{Username: model.NewUsername(), OwnerId: botOwner.Id}))
-	require.NoError(t, err)
-	_, err = ss.Bot().Save(&model.Bot{UserId: botUser.Id, Username: botUser.Username, OwnerId: botOwner.Id})
-	require.NoError(t, err)
+	botUser := saveBotWithOwner(t, rctx, ss, model.NewUsername(), botOwner.Id)
 	expiredBot := &model.UserAccessToken{
 		Token:       model.NewId(),
 		UserId:      botUser.Id,
@@ -480,20 +477,14 @@ func testUserAccessTokenGetExpiring(t *testing.T, rctx request.CTX, ss store.Sto
 	require.NoError(t, err)
 
 	// User-owned bot with an in-window token: its owner can be notified.
-	botUser, err := ss.User().Save(rctx, model.UserFromBot(&model.Bot{Username: model.NewUsername(), OwnerId: activeUser.Id}))
-	require.NoError(t, err)
-	_, nErr := ss.Bot().Save(&model.Bot{UserId: botUser.Id, Username: botUser.Username, OwnerId: activeUser.Id})
-	require.NoError(t, nErr)
+	botUser := saveBotWithOwner(t, rctx, ss, model.NewUsername(), activeUser.Id)
 	botToken := &model.UserAccessToken{Token: model.NewId(), UserId: botUser.Id, Description: "bot", ExpiresAt: now + 5*dayMillisTest}
 	_, err = ss.UserAccessToken().Save(botToken)
 	require.NoError(t, err)
 
 	// Plugin-owned bot with an in-window token: excluded because there is no
 	// human notification recipient.
-	pluginBotUser, err := ss.User().Save(rctx, model.UserFromBot(&model.Bot{Username: model.NewUsername(), OwnerId: "com.mattermost.test"}))
-	require.NoError(t, err)
-	_, nErr = ss.Bot().Save(&model.Bot{UserId: pluginBotUser.Id, Username: pluginBotUser.Username, OwnerId: "com.mattermost.test"})
-	require.NoError(t, nErr)
+	pluginBotUser := saveBotWithOwner(t, rctx, ss, model.NewUsername(), "com.mattermost.test")
 	pluginBotToken := &model.UserAccessToken{Token: model.NewId(), UserId: pluginBotUser.Id, Description: "plugin bot", ExpiresAt: now + 5*dayMillisTest}
 	_, err = ss.UserAccessToken().Save(pluginBotToken)
 	require.NoError(t, err)
@@ -560,6 +551,18 @@ func testUserAccessTokenGetExpiring(t *testing.T, rctx request.CTX, ss store.Sto
 	require.NoError(t, err)
 	require.Contains(t, tokenIDs(botRows), botToken.Id)
 	require.NotContains(t, tokenIDs(botRows), inWindow.Id)
+}
+
+// saveBotWithOwner creates a bot user owned by ownerId — a real user id for a
+// user-owned bot, or a plugin id string (e.g. "com.mattermost.test") for a
+// plugin-owned bot — and returns the bot's user record.
+func saveBotWithOwner(t *testing.T, rctx request.CTX, ss store.Store, username, ownerId string) *model.User {
+	t.Helper()
+	botUser, err := ss.User().Save(rctx, model.UserFromBot(&model.Bot{Username: username, OwnerId: ownerId}))
+	require.NoError(t, err)
+	_, err = ss.Bot().Save(&model.Bot{UserId: botUser.Id, Username: botUser.Username, OwnerId: ownerId})
+	require.NoError(t, err)
+	return botUser
 }
 
 func indexOfToken(tokens []*model.UserAccessToken, id string) int {
@@ -653,19 +656,13 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 	// Never-expiring token owned by a user-managed bot — non-compliant.
 	botOwner, err := ss.User().Save(rctx, &model.User{Email: MakeEmail(), Username: model.NewUsername()})
 	require.NoError(t, err)
-	botUser, err := ss.User().Save(rctx, model.UserFromBot(&model.Bot{Username: "noncompliant_bot", OwnerId: botOwner.Id}))
-	require.NoError(t, err)
-	_, nErr := ss.Bot().Save(&model.Bot{UserId: botUser.Id, Username: botUser.Username, OwnerId: botOwner.Id})
-	require.NoError(t, nErr)
+	botUser := saveBotWithOwner(t, rctx, ss, "noncompliant_bot", botOwner.Id)
 	botToken := &model.UserAccessToken{Token: model.NewId(), UserId: botUser.Id, Description: "bot token"}
 	_, err = ss.UserAccessToken().Save(botToken)
 	require.NoError(t, err)
 
 	// Plugin-owned bot tokens remain exempt.
-	pluginBotUser, err := ss.User().Save(rctx, model.UserFromBot(&model.Bot{Username: "plugin_noncompliant_bot", OwnerId: "com.mattermost.test"}))
-	require.NoError(t, err)
-	_, nErr = ss.Bot().Save(&model.Bot{UserId: pluginBotUser.Id, Username: pluginBotUser.Username, OwnerId: "com.mattermost.test"})
-	require.NoError(t, nErr)
+	pluginBotUser := saveBotWithOwner(t, rctx, ss, "plugin_noncompliant_bot", "com.mattermost.test")
 	pluginBotToken := &model.UserAccessToken{Token: model.NewId(), UserId: pluginBotUser.Id, Description: "plugin bot token"}
 	_, err = ss.UserAccessToken().Save(pluginBotToken)
 	require.NoError(t, err)
