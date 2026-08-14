@@ -28,9 +28,9 @@ type artifact struct {
 }
 
 func main() {
-	commandArgs, err := resolveCommandArgs(os.Args)
-	if err != nil {
-		log.Fatal(err)
+	commandArgs, resolveErr := resolveCommandArgs(os.Args)
+	if resolveErr != nil {
+		log.Fatal(resolveErr)
 	}
 
 	pluginDir := envOrDefault("MBE_PLUGIN_DIR", defaultPluginDir)
@@ -63,12 +63,12 @@ func main() {
 	}
 
 	log.Printf("installed current signed MBE demo bundle from %s", pluginURL)
-	commandPath, err := exec.LookPath(commandArgs[0])
-	if err != nil {
-		log.Fatalf("resolve Mattermost command: %v", err)
+	commandPath, lookupErr := exec.LookPath(commandArgs[0])
+	if lookupErr != nil {
+		log.Fatalf("resolve Mattermost command: %v", lookupErr)
 	}
-	if err := syscall.Exec(commandPath, commandArgs, os.Environ()); err != nil {
-		log.Fatalf("start Mattermost: %v", err)
+	if execErr := syscall.Exec(commandPath, commandArgs, os.Environ()); execErr != nil {
+		log.Fatalf("start Mattermost: %v", execErr)
 	}
 }
 
