@@ -27,6 +27,15 @@ func isError(typeName string) bool {
 	return strings.Contains(typeName, ErrorType)
 }
 
+// stripUnusedContextImport removes the unconditionally templated "context"
+// import when no generated code actually references the context package.
+func stripUnusedContextImport(code []byte) []byte {
+	if bytes.Contains(code, []byte("context.")) {
+		return code
+	}
+	return bytes.Replace(code, []byte("\t\"context\"\n"), []byte(""), 1)
+}
+
 func main() {
 	if err := buildTimerLayer(); err != nil {
 		log.Fatal(err)
@@ -41,6 +50,7 @@ func buildRetryLayer() error {
 	if err != nil {
 		return err
 	}
+	code = stripUnusedContextImport(code)
 	formatedCode, err := format.Source(code)
 	if err != nil {
 		return err
@@ -54,6 +64,7 @@ func buildTimerLayer() error {
 	if err != nil {
 		return err
 	}
+	code = stripUnusedContextImport(code)
 	formatedCode, err := format.Source(code)
 	if err != nil {
 		return err

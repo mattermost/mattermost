@@ -4,7 +4,6 @@
 package localcachelayer
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
