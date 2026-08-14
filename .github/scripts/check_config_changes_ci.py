@@ -293,18 +293,25 @@ def check_config(patches: dict[str, str]) -> CheckResult:
 
 # ── Checker 2 — api4/ ─────────────────────────────────────────────────────────
 
-# Matches Handle() route registrations after whitespace-collapsing the source.
-# Whitespace collapse makes multi-line declarations single-searchable.
-# Group 1: path   Group 2: handler func   Group 3: raw Methods(...) content
+# Start of a Handle() route registration, after whitespace-collapsing the
+# source (which makes multi-line declarations single-searchable).
 #
-# The wrapper pattern uses [^)]* so it tolerates any middleware arguments
-# (e.g. r.APIHandler(...), r.ApiSessionRequired(..., isLocal=true), etc.)
-# without having to enumerate every possible wrapper signature.
-_HANDLE_RE = re.compile(
-    r'\.Handle\("([^"]*)"'          # path
-    r',\s*[^)]*\((\w+)\)\)'        # wrapper(...handlerFunc))
-    r'\.Methods\(([^)]+)\)',        # .Methods(one or more methods)
-)
+# Only the path is matched by regex. The wrapper argument and the .Methods()
+# list are extracted by a paren-balanced scan instead, because a regex cannot
+# describe the wrapper shapes that actually occur in api4/:
+#
+#   api.APIHandler(getUser)                                    1 arg
+#   api.APISessionRequired(uploadFileStream, handlerParamFileAPI)   2 args
+#   api.APISessionRequired(contentFlaggingRequired(getConfig))  nested wrapper
+#   api.RateLimitedHandler(api.APIHandler(register), opts{...}) nested + opts
+#   api.APIHandler(manualtesting.ManualTest)                    qualified name
+#
+# The previous `\((\w+)\)\)` pattern only matched the first form, silently
+# dropping 33 of 760 registrations — including every file-upload endpoint and
+# all of content flagging.
+_HANDLE_START_RE = re.compile(r'\.Handle\("([^"]*)"\s*,')
+_IDENT_TAIL_RE   = re.compile(r'([A-Za-z_]\w*)\s*$')
+_FUNC_LITERAL_RE = re.compile(r'\bfunc\s*$')
 
 _METHOD_RE    = re.compile(r'(?:http\.Method)?(\w+)')
 _HTTP_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
@@ -329,20 +336,109 @@ def _format_endpoint(path: str, handler: str, method: str) -> str:
     return f"`{method.upper()} {path or '/'}` (`{handler}`)"
 
 
+def _matching_paren(text: str, open_idx: int) -> int:
+    """Index of the ')' closing the '(' at open_idx, or -1 if unbalanced."""
+    depth = 0
+    for i in range(open_idx, len(text)):
+        if text[i] == "(":
+            depth += 1
+        elif text[i] == ")":
+            depth -= 1
+            if depth == 0:
+                return i
+    return -1
+
+
+def _split_top_level(text: str) -> list[str]:
+    """Split an argument list on commas that are not nested inside brackets."""
+    parts: list[str] = []
+    current: list[str] = []
+    depth = 0
+    for ch in text:
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        if ch == "," and depth == 0:
+            parts.append("".join(current))
+            current = []
+        else:
+            current.append(ch)
+    if "".join(current).strip():
+        parts.append("".join(current))
+    return parts
+
+
+def _handler_name(expr: str) -> Optional[str]:
+    """Extract the handler function name from a route's wrapper argument.
+
+    Descends through wrapper calls, always following the first argument, then
+    returns the trailing identifier:
+
+        api.APIHandler(getUser)                        -> getUser
+        api.APISessionRequired(uploadFile, paramFlag)  -> uploadFile
+        api.APISessionRequired(required(getConfig))    -> getConfig
+        api.RateLimitedHandler(api.APIHandler(reg), o) -> reg
+        api.APIHandler(manualtesting.ManualTest)       -> ManualTest
+
+    Function literals are not descended into, so an inline
+    `func(w http.ResponseWriter, ...)` yields no handler rather than the name
+    of its first parameter.
+    """
+    expr = expr.strip()
+    while True:
+        open_idx = expr.find("(")
+        if open_idx == -1 or _FUNC_LITERAL_RE.search(expr[:open_idx]):
+            break
+        close_idx = _matching_paren(expr, open_idx)
+        if close_idx == -1:
+            break
+        args = _split_top_level(expr[open_idx + 1:close_idx])
+        if not args:
+            break
+        expr = args[0].strip()
+
+    m = _IDENT_TAIL_RE.search(expr)
+    return m.group(1) if m else None
+
+
 def _parse_endpoints(src: str) -> set[tuple[str, str, str]]:
     """
     Parse Handle() registrations from a Go source file.
 
     Whitespace-collapses the entire file first so multi-line declarations
-    (e.g. the 18 in group.go) are matched as a single token sequence.
-    Returns {(path, handler, method)} tuples.
+    (e.g. the 18 in group.go) are matched as a single token sequence, then
+    walks each registration with a paren-balanced scan so that wrappers with
+    extra arguments, nested wrappers, and package-qualified handler names are
+    all recognised. Returns {(path, handler, method)} tuples.
     """
     blob = " ".join(src.split())
     endpoints: set[tuple[str, str, str]] = set()
-    for m in _HANDLE_RE.finditer(blob):
-        path, handler, methods_raw = m.group(1), m.group(2), m.group(3)
-        for method in _parse_methods(methods_raw):
-            endpoints.add((path or "/", handler, method))
+
+    for m in _HANDLE_START_RE.finditer(blob):
+        handle_open  = blob.index("(", m.start())
+        handle_close = _matching_paren(blob, handle_open)
+        if handle_close == -1:
+            continue
+
+        # A registration only counts if .Methods(...) is chained directly on it.
+        if not blob.startswith(".Methods(", handle_close + 1):
+            continue
+        methods_open  = handle_close + 1 + len(".Methods")
+        methods_close = _matching_paren(blob, methods_open)
+        if methods_close == -1:
+            continue
+
+        args = _split_top_level(blob[handle_open + 1:handle_close])
+        if len(args) < 2:
+            continue
+        handler = _handler_name(args[1])
+        if not handler:
+            continue
+
+        for method in _parse_methods(blob[methods_open + 1:methods_close]):
+            endpoints.add((m.group(1) or "/", handler, method))
+
     return endpoints
 
 
