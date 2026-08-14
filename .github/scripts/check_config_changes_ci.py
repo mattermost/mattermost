@@ -661,7 +661,9 @@ _AUTO_LINE_RE = re.compile(
 # setting." is what a contributor types too — so a pattern match cannot tell the
 # two apart, and stripping by pattern with nothing to re-inject silently deletes
 # somebody's hand-written note.
-_MARKER_RE = re.compile(r"\n\n<!-- config-change-checker:v1 ([A-Za-z0-9+/=]*) -->\n?")
+_MARKER_RE = re.compile(
+    r"\r?\n\r?\n<!-- config-change-checker:v1 ([A-Za-z0-9+/=]*) -->[ \t]*\r?\n?"
+)
 
 
 def _read_marker(body: str) -> Optional[list[str]]:
@@ -676,7 +678,14 @@ def _read_marker(body: str) -> Optional[list[str]]:
         # A corrupted marker is treated as absent: fall back to the legacy path
         # rather than risk removing the wrong lines.
         return None
-    return recorded if isinstance(recorded, list) else None
+    # The marker lives in the description, which any contributor can edit. A
+    # payload decoding to anything other than a list of strings is treated as
+    # absent rather than allowed to raise part-way through a run.
+    if not isinstance(recorded, list):
+        return None
+    if not all(isinstance(entry, str) for entry in recorded):
+        return None
+    return recorded
 
 
 def _drop_marker(body: str) -> str:
@@ -921,7 +930,12 @@ def get_pr_body() -> str:
         timeout=_TIMEOUT,
     )
     r.raise_for_status()
-    return r.json().get("body") or ""
+    # Normalise to LF. GitHub returns CRLF for any description that has been
+    # edited in the web UI, because the textarea round-trips the whole body.
+    # With `edited` as a trigger that is a routine path, and CRLF would
+    # otherwise orphan the marker written by the previous run, leaving the old
+    # one in place and appending a second on every edit.
+    return (r.json().get("body") or "").replace("\r\n", "\n")
 
 
 def update_pr_body(new_body: str) -> None:
