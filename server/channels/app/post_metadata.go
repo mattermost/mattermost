@@ -182,7 +182,7 @@ func (a *App) OverrideIconURLIfEmoji(rctx request.CTX, post *model.Post) {
 	if emojiURL, err := a.GetEmojiStaticURL(rctx, emojiName); err == nil {
 		post.AddProp(model.PostPropsOverrideIconURL, emojiURL)
 	} else {
-		rctx.Logger().Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
+		rctx.Logger().Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emoji_name", emojiName), mlog.Err(err))
 	}
 }
 
@@ -633,7 +633,7 @@ func (a *App) getImagesForPost(rctx request.CTX, post *model.Post, isNewPost boo
 			if !ok {
 				rctx.Logger().Warn("Could not read the image data: the data could not be casted to OpenGraph",
 					mlog.String("post_id", post.Id),
-					mlog.String("data type", fmt.Sprintf("%t", embed.Data)),
+					mlog.String("data_type", fmt.Sprintf("%t", embed.Data)),
 				)
 				continue
 			}
