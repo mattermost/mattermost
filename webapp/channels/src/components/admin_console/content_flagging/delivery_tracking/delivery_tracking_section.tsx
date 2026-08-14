@@ -4,6 +4,7 @@
 import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {DeliveryTrackingConfig} from '@mattermost/types/delivery_tracking';
 
 import {Label} from 'components/admin_console/boolean_setting';
@@ -13,7 +14,10 @@ import {
     SectionContent,
     SectionHeader,
 } from 'components/admin_console/system_properties/controls';
+import ExternalLink from 'components/external_link';
 import BetaTag from 'components/widgets/tag/beta_tag';
+
+import {DocLinks} from 'utils/constants';
 
 import '../content_flagging_section_base.scss';
 import './delivery_tracking_section.scss';
@@ -58,6 +62,18 @@ export default function DeliveryTrackingSection({value, onChange, hasError = fal
                         />
                     </h5>
                 </hgroup>
+
+                <ExternalLink
+                    href={DocLinks.POST_DELIVERY_AUDIT_LOGGING}
+                    location='delivery_tracking_section'
+                    className={buttonClassNames({emphasis: 'tertiary'}, 'deliveryTracking-learnMore')}
+                    data-testid='deliveryTrackingLearnMore'
+                >
+                    <FormattedMessage
+                        id='admin.dataSpillage.deliveryTracking.learnMore'
+                        defaultMessage='Learn more'
+                    />
+                </ExternalLink>
             </SectionHeader>
 
             <SectionContent>
