@@ -808,7 +808,6 @@ func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Rea
 	}
 
 	rctx = rctx.WithLogFields(
-		mlog.String("file_name", name),
 		mlog.String("channel_id", channelID),
 		mlog.String("user_id", t.UserId),
 	)
@@ -821,6 +820,10 @@ func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Rea
 	}
 
 	t.init(a)
+
+	rctx = rctx.WithLogFields(
+		mlog.String("file_info_id", t.fileinfo.Id),
+	)
 
 	var aerr *model.AppError
 	if !t.Raw && t.fileinfo.IsImage() {
@@ -1713,6 +1716,9 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 		return nil
 	}
 
+	logger := rctx.Logger().With(mlog.String("file_info_id", fileInfo.Id))
+	logger.Debug("Extracting content from file", mlog.String("extension", fileInfo.Extension))
+
 	file, aerr := a.FileReader(fileInfo.Path)
 	if aerr != nil {
 		return errors.Wrap(aerr, "failed to open file for extract file content")
@@ -1721,7 +1727,7 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 	// ReaderCloser: with a timeout configured, extraction may continue on a
 	// detached goroutine after Extract returns, so closing the file here would
 	// race with that goroutine still reading it.
-	text, err := docextractor.Extract(rctx.Logger(), fileInfo.Name, file, docextractor.ExtractSettings{
+	text, err := docextractor.Extract(logger, fileInfo.Name, file, docextractor.ExtractSettings{
 		Ctx:              rctx.Context(),
 		ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
 		MaxFileSize:      *a.Config().FileSettings.MaxFileSize,
@@ -1740,7 +1746,7 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 		}
 		reloadFileInfo, storeErr := a.Srv().Store().FileInfo().Get(fileInfo.Id)
 		if storeErr != nil {
-			rctx.Logger().Warn("Failed to invalidate the fileInfo cache.", mlog.Err(storeErr), mlog.String("file_info_id", fileInfo.Id))
+			logger.Warn("Failed to invalidate the fileInfo cache.", mlog.Err(storeErr))
 		} else {
 			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(reloadFileInfo.PostId, false)
 		}
