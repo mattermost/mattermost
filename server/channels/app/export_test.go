@@ -1824,7 +1824,7 @@ func TestGeneratePresignURLForExport(t *testing.T) {
 		require.NotEmpty(t, resp.URL)
 
 		// The presigned URL should serve the exported file directly.
-		httpResp, err := http.Get(resp.URL)
+		httpResp, err := (&http.Client{Timeout: 30 * time.Second}).Get(resp.URL)
 		require.NoError(t, err)
 		defer httpResp.Body.Close()
 		assert.Equal(t, http.StatusOK, httpResp.StatusCode)
