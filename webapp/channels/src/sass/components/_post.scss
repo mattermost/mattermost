@@ -1958,8 +1958,8 @@
 // with a bottom fade so truncated content reads as "more below".
 .post-message--collapsed.post-message-preview--overflow {
     .post-message__text-container {
-        -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 64px), transparent 100%);
-        mask-image: linear-gradient(to bottom, black calc(100% - 64px), transparent 100%);
+        -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 82px), transparent calc(100% - 18px));
+        mask-image: linear-gradient(to bottom, black calc(100% - 82px), transparent calc(100% - 18px));
     }
 
     .post-preview-collapse__show-more-button {
