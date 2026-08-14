@@ -12,8 +12,13 @@
 
     &__status {
         display: flex;
+        align-items: center;
         width: fit-content;
         margin-top: 8px;
+
+        .fa {
+            margin-right: 5px;
+        }
     }
 
     &__actionError {
