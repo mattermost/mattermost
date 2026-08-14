@@ -8001,6 +8001,10 @@
     "translation": "A policy with this name already exists. Please choose a different name."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "This access rule uses channel attributes, which teams do not have. Remove the teams assigned to this policy before saving."
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Could not initialise attribute resolver for policy save."
   },
@@ -8011,6 +8015,10 @@
   {
     "id": "app.pap.save_policy.self_exclusion",
     "translation": "You do not satisfy one or more conditions in this policy."
+  },
+  {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "This access rule uses channel attributes, which teams do not have. Access rules with channel attributes can only be applied to channels."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
