@@ -114,7 +114,6 @@ func TestConfigIsValid(t *testing.T) {
 			require.Nil(t, c.IsValid())
 		})
 	})
-
 }
 
 func TestFeatureFlagsIsValid(t *testing.T) {
