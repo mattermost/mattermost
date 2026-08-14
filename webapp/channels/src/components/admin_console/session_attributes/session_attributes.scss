@@ -121,11 +121,11 @@
     border-radius: 4px;
     background: rgba(var(--center-channel-color-rgb), 0.08);
     color: rgba(var(--center-channel-color-rgb), 0.75);
+    cursor: pointer;
     font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
     user-select: none;
-    cursor: pointer;
 }
 
 .SessionAttributes__type-cell {
