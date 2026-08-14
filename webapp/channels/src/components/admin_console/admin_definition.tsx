@@ -796,6 +796,10 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             key: 'admin.accesscontrol.session_attributes',
                             title: defineMessage({id: 'admin.accesscontrol.session_attributes', defaultMessage: 'Session Attributes'}),
+                            isHidden: it.any(
+                                it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                                it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                            ),
                             settings: [
                                 {
                                     type: 'bool',
