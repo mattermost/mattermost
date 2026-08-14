@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class MessagePriority {
     readonly container: Locator;
@@ -46,7 +47,7 @@ export default class MessagePriority {
     async verifyPriorityMenuVisible() {
         await expect(this.priorityMenu).toBeVisible();
         // Look for beta text in header
-        await expect(this.priorityMenu.locator('text=Message Priority')).toBeVisible();
+        await expect(this.priorityMenu.getByText('Message Priority')).toBeVisible();
     }
 
     async closePriorityMenu() {
@@ -55,7 +56,7 @@ export default class MessagePriority {
     }
 
     async verifyNoPriorityLabel(postText: string) {
-        const post = this.container.locator(`text=${postText}`);
+        const post = this.container.getByText(postText);
         await expect(post).toBeVisible();
 
         // Verify no priority label exists

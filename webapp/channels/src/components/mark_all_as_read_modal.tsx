@@ -15,7 +15,7 @@ export type Props = {
     onConfirm: (dontAskAgain: boolean) => void;
     onExited?: () => void;
     onHide?: () => void;
-}
+};
 
 export default function MarkAllAsReadModal({
     onConfirm,

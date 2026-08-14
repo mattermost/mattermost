@@ -44,7 +44,7 @@ type State = BaseState & {
     saving: boolean;
     serverError: JSX.Element | string | null;
     errorTooltip: boolean;
-}
+};
 
 export const messages = defineMessages({
     termsOfServiceTitle: {id: 'admin.support.termsOfServiceTitle', defaultMessage: 'Custom Terms of Service'},

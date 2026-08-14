@@ -24,7 +24,7 @@ type Props = {
     actions: {
         toggleReaction: (postId: string, emojiName: string) => void;
     };
-}
+};
 
 export default class PostRecentReactions extends React.PureComponent<Props> {
     public static defaultProps: Partial<Props> = {

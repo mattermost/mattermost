@@ -1,12 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, enableABAC, getAdminClient, TestBrowser, getRandomId} from '@mattermost/playwright-lib';
-
 import {
-    CustomProfileAttribute,
-    setupCustomProfileAttributeFields,
-} from '../../../channels/custom_profile_attributes/helpers';
+    expect,
+    test,
+    enableABAC,
+    getAdminClient,
+    TestBrowser,
+    getRandomId,
+    testConfig,
+} from '@mattermost/playwright-lib';
+
+import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
+import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
 import {
     createUserForABAC,
     createPrivateChannelForABAC,
@@ -74,7 +80,22 @@ test.describe('ABAC Permission Policies - Download File Enforcement', () => {
             permissions: ['Download Files'],
             adminClient,
         });
-        await systemConsolePage.page.waitForTimeout(1000);
+
+        // Re-apply ABAC guard: a concurrent initSetup() may have reset
+        // AccessControlSettings.EnableAttributeBasedAccessControl to false between
+        // enableABAC() above and the denied user's login, preventing enforcement.
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+        } as any);
+        await expect
+            .poll(
+                async () => {
+                    const cfg = await adminClient.getConfig();
+                    return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === true;
+                },
+                {timeout: 15000, intervals: [500, 1000, 2000]},
+            )
+            .toBe(true);
 
         const {channelsPage: deniedChannelsPage, page: deniedPage} = await pw.testBrowser.login(deniedUser);
         await deniedChannelsPage.goto(team.name, channelName);
@@ -283,7 +304,22 @@ test.describe('ABAC Permission Policies - BOR and Permalink', () => {
             permissions: ['Download Files'],
             adminClient,
         });
-        await systemConsolePage.page.waitForTimeout(1000);
+
+        // Re-apply ABAC guard: a concurrent initSetup() may have reset
+        // AccessControlSettings.EnableAttributeBasedAccessControl to false between
+        // enableABAC() above and the denied user's login, preventing enforcement.
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+        } as any);
+        await expect
+            .poll(
+                async () => {
+                    const cfg = await adminClient.getConfig();
+                    return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === true;
+                },
+                {timeout: 15000, intervals: [500, 1000, 2000]},
+            )
+            .toBe(true);
 
         // # Denied user navigates to channel and reveals the BOR message
         const {channelsPage: deniedChannelsPage, page: deniedPage} = await pw.testBrowser.login(deniedUser);
@@ -322,8 +358,10 @@ test.describe('ABAC Permission Policies - BOR and Permalink', () => {
         // # Retrieve the post ID and construct the permalink URL
         const postsResult = await adminClient.getPosts(channelId, 0, 1);
         const postId = postsResult.order[0];
-        const serverUrl = adminClient.getBaseRoute().replace('/api/v4', '');
-        const permalinkUrl = `${serverUrl}/${team.name}/pl/${postId}`;
+        // Use testConfig.internalBaseURL, not adminClient's host-mapped route — the server itself
+        // must recognize this URL as its own SiteURL to embed it via an internal permalink lookup,
+        // instead of trying (and, in `testcontainers` mode, failing) to fetch it back over HTTP as a link.
+        const permalinkUrl = `${testConfig.internalBaseURL}/${team.name}/pl/${postId}`;
 
         // # Admin posts the permalink in the same channel (creates an embedded preview)
         await adminChannelsPage.centerView.postCreate.postMessage(permalinkUrl);
@@ -340,7 +378,22 @@ test.describe('ABAC Permission Policies - BOR and Permalink', () => {
             celExpression: 'false',
             permissions: ['Download Files'],
         });
-        await systemConsolePage.page.waitForTimeout(1000);
+
+        // Re-apply ABAC guard: a concurrent initSetup() may have reset
+        // AccessControlSettings.EnableAttributeBasedAccessControl to false between
+        // enableABAC() above and the denied user's login, preventing enforcement.
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+        } as any);
+        await expect
+            .poll(
+                async () => {
+                    const cfg = await adminClient.getConfig();
+                    return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === true;
+                },
+                {timeout: 15000, intervals: [500, 1000, 2000]},
+            )
+            .toBe(true);
 
         // # Denied user loads the channel
         const {channelsPage: deniedChannelsPage, page: deniedPage} = await pw.testBrowser.login(deniedUser);

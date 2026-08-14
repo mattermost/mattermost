@@ -10,7 +10,7 @@ export type DataModel = {
         icon: React.ReactNode;
         hide?: boolean;
     };
-}
+};
 
 export enum ItemStatus {
 
@@ -38,7 +38,7 @@ export type ItemModel = {
     telemetryAction?: string;
     infoUrl?: string;
     infoText?: string;
-}
+};
 
 export type UpdatesParam = {
     serverVersion: {
@@ -46,7 +46,7 @@ export type UpdatesParam = {
         status: ItemStatus;
         description: string;
     };
-}
+};
 
 type Analytics = {
     DAILY_ACTIVE_USERS: number;
@@ -60,7 +60,7 @@ type Analytics = {
     TOTAL_TEAMS: number;
     TOTAL_USERS: number;
     TOTAL_WEBSOCKET_CONNECTIONS: number;
-}
+};
 export type Options = {
     isLicensed: boolean;
     isEnterpriseLicense: boolean;

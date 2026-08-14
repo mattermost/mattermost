@@ -21,7 +21,7 @@ import 'tippy.js/animations/perspective-subtle.css';
 
 import './tour_tip.scss';
 
-export type TourTipEventSource = 'next' | 'prev' | 'dismiss' | 'jump' | 'skipped' | 'open' | 'punchOut'
+export type TourTipEventSource = 'next' | 'prev' | 'dismiss' | 'jump' | 'skipped' | 'open' | 'punchOut';
 
 // If this needs to alter, change in _variables $z-index-tour-tips-popover as well
 const DEFAULT_Z_INDEX_TOUR_TIPS_POPOVER = 1300;
@@ -39,7 +39,7 @@ type Props = {
     singleTip?: boolean;
     showOptOut?: boolean;
     placement?: Placement;
-    pulsatingDotPlacement?: Omit<Placement, 'auto'| 'auto-end'>;
+    pulsatingDotPlacement?: Omit<Placement, 'auto' | 'auto-end'>;
     pulsatingDotTranslate?: {x: number; y: number};
     offset?: [number, number];
     width?: string | number;
@@ -61,7 +61,7 @@ type Props = {
     handleSkip?: (e: React.MouseEvent) => void;
     handleDismiss?: (e: React.MouseEvent) => void;
     handlePunchOut?: (e: React.MouseEvent) => void;
-}
+};
 
 export const TourTip = ({
     title,

@@ -42,7 +42,8 @@ type Channels struct {
 	filestore       filestore.FileBackend
 	exportFilestore filestore.FileBackend
 
-	postActionCookieSecret []byte
+	postActionCookieSecret   []byte
+	samlRelayStateSigningKey []byte
 
 	pluginCommandsLock            sync.RWMutex
 	pluginCommands                []*PluginCommand
@@ -222,7 +223,8 @@ func NewChannels(s *Server) (*Channels, error) {
 		decoderConcurrency = runtime.NumCPU()
 	}
 	ch.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
-		ConcurrencyLevel: decoderConcurrency,
+		ConcurrencyLevel:     decoderConcurrency,
+		MaxDecodedResolution: *ch.cfgSvc.Config().FileSettings.MaxImageResolution,
 	})
 	if imgErr != nil {
 		return nil, errors.Wrap(imgErr, "failed to create image decoder")
@@ -310,6 +312,10 @@ func (ch *Channels) Start() error {
 
 	if err := ch.ensurePostActionCookieSecret(); err != nil {
 		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
+	}
+
+	if err := ch.ensureSamlRelayStateSigningKey(); err != nil {
+		return errors.Wrapf(err, "unable to ensure SAML RelayState signing key")
 	}
 
 	return nil

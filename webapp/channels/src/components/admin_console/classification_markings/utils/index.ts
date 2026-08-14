@@ -39,15 +39,19 @@ export const CLASSIFICATIONS_FIELD_TARGET_ID = '';
 export const CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE = 'template';
 export const CLASSIFICATIONS_TEMPLATE_FIELD_NAME = 'classification';
 
+// Admin console path for the Classification Markings page (System Console > Site
+// Configuration). Used by the Manage Attributes listing to link its read-only row here.
+export const CLASSIFICATIONS_MARKINGS_ADMIN_URL = '/admin_console/site_config/classification_markings';
+
 // System field — drives the global banner. Property *values* live on the
 // dedicated system endpoint and use the sentinel target_id 'system'.
 export const CLASSIFICATIONS_SYSTEM_OBJECT_TYPE = 'system';
-export const CLASSIFICATIONS_SYSTEM_FIELD_NAME = 'system_classification';
+export const CLASSIFICATIONS_SYSTEM_FIELD_NAME = 'classification';
 export const CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID = 'system';
 
 // Channel field — drives the per-channel banner.
 export const CLASSIFICATIONS_CHANNEL_OBJECT_TYPE = 'channel';
-export const CLASSIFICATIONS_CHANNEL_FIELD_NAME = 'channel_classification';
+export const CLASSIFICATIONS_CHANNEL_FIELD_NAME = 'classification';
 
 // Actions stored on the linked fields' attrs.actions to control banner placement.
 export const DISPLAY_BANNER_TOP = 'display_banner_top';
@@ -186,7 +190,7 @@ export async function saveCreateField(levels: ClassificationLevel[]): Promise<Pr
     const options = levelsToOptions(levels);
     return Client4.createPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, {
         name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
-        type: 'select' as PropertyField['type'],
+        type: 'rank' as PropertyField['type'],
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
         target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
         attrs: {options},
@@ -240,7 +244,7 @@ export async function fetchLinkedClassificationField(): Promise<PropertyField | 
 export async function saveCreateLinkedField(templateFieldId: string, config: GlobalBannerConfig): Promise<PropertyField> {
     return Client4.createPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, {
         name: CLASSIFICATIONS_SYSTEM_FIELD_NAME,
-        type: 'select' as PropertyField['type'],
+        type: 'rank' as PropertyField['type'],
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
         target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
         linked_field_id: templateFieldId,
@@ -321,7 +325,7 @@ export async function fetchChannelClassificationField(): Promise<PropertyField |
 export async function saveCreateChannelLinkedField(templateFieldId: string): Promise<PropertyField> {
     return Client4.createPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE, {
         name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
-        type: 'select' as PropertyField['type'],
+        type: 'rank' as PropertyField['type'],
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
         target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
         linked_field_id: templateFieldId,

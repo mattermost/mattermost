@@ -679,7 +679,7 @@ func (s SqlSharedChannelStore) GetRemotesStatus(channelId string) ([]*model.Shar
 	status := []*model.SharedChannelRemoteStatus{}
 
 	query := s.getQueryBuilder().
-		Select("scr.ChannelId, scr.RemoteId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, sc.ReadOnly, scr.IsInviteAccepted").
+		Select("scr.ChannelId, scr.RemoteId, rc.DisplayName, rc.SiteURL, rc.LastPingAt, sc.ReadOnly, scr.IsInviteAccepted, GREATEST(COALESCE(scr.LastPostCreateAt, 0), COALESCE(scr.LastPostUpdateAt, 0), COALESCE(scr.LastMembersSyncAt, 0)) AS LastSyncAt").
 		From("SharedChannelRemotes scr, RemoteClusters rc, SharedChannels sc").
 		Where("scr.RemoteId = rc.RemoteId").
 		Where("scr.DeleteAt = 0").
@@ -759,12 +759,14 @@ func (s SqlSharedChannelStore) GetSingleUser(userID string, channelID string, re
 	return &scu, nil
 }
 
-// GetUsersForUser fetches all shared channel user records based on userID.
+// GetUsersForUser fetches all shared channel user records based on userID,
+// excluding rows whose remote cluster has been deleted or no longer exists.
 func (s SqlSharedChannelStore) GetUsersForUser(userID string) ([]*model.SharedChannelUser, error) {
 	squery, args, err := s.getQueryBuilder().
-		Select(sharedChannelUserFields("")...).
-		From("SharedChannelUsers").
-		Where(sq.Eq{"SharedChannelUsers.UserId": userID}).
+		Select(sharedChannelUserFields("scu")...).
+		From("SharedChannelUsers AS scu").
+		Where(sq.Eq{"scu.UserId": userID}).
+		Where("EXISTS (SELECT 1 FROM RemoteClusters rc WHERE rc.RemoteId = scu.RemoteId AND rc.DeleteAt = 0)").
 		ToSql()
 
 	if err != nil {

@@ -63,6 +63,17 @@ export function isFromWebhook(post: Post): boolean {
     return post.props?.from_webhook === 'true';
 }
 
+export function isSilentNotification(post: Post): boolean {
+    return post.props?.silent_notification === true;
+}
+
+export function isNotificationSuppressed(post: Post): boolean {
+    if (post.props?.force_notification) {
+        return false;
+    }
+    return isSilentNotification(post);
+}
+
 export function isFromBot(post: Post): boolean {
     return post.props && post.props.from_bot === 'true';
 }
@@ -237,9 +248,13 @@ export function shouldFocusMainTextbox(e: React.KeyboardEvent | KeyboardEvent, a
         return false;
     }
 
-    // Do not focus if we're currently focused on a textarea or input
+    // Do not focus if we're currently focused on a textarea, an input, or a
+    // rich text editor
     const keepFocusTags = ['TEXTAREA', 'INPUT'];
     if (!activeElement || keepFocusTags.includes(activeElement.tagName)) {
+        return false;
+    }
+    if (activeElement.closest('[contenteditable="true"]')) {
         return false;
     }
 
@@ -470,9 +485,9 @@ export function makeGetMentionsFromMessage(): (state: GlobalState, post: Post) =
 export function usePostAriaLabel(post: Post | undefined, autotranslated: boolean) {
     const intl = useIntl();
 
-    const getDisplayName = useMemo(makeGetDisplayName, []);
-    const getReactionsForPost = useMemo(makeGetReactionsForPost, []);
-    const getMentionsFromMessage = useMemo(makeGetMentionsFromMessage, []);
+    const getDisplayName = useMemo(() => makeGetDisplayName(), []);
+    const getReactionsForPost = useMemo(() => makeGetReactionsForPost(), []);
+    const getMentionsFromMessage = useMemo(() => makeGetMentionsFromMessage(), []);
 
     const createAriaLabelMemoized = memoizeResult(createAriaLabelForPost);
 
@@ -671,6 +686,10 @@ export function splitMessageBasedOnTextSelection(selectionStart: number, selecti
 
 export function areConsecutivePostsBySameUser(post: Post, previousPost: Post): boolean {
     if (!(post && previousPost)) {
+        return false;
+    }
+
+    if (hasAiGeneratedMetadata(post)) {
         return false;
     }
 

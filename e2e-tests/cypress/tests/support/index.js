@@ -5,8 +5,6 @@
 // Read more at: https://on.cypress.io/configuration
 // ***********************************************************
 
-
-
 import dayjs from 'dayjs';
 import localforage from 'localforage';
 import '@testing-library/cypress/add-commands';

@@ -14,6 +14,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// A plugin-owned policy type and one of its plugin-defined actions.
+const (
+	testPluginPolicyType   = "mattermost-ai:agent"
+	testPluginPolicyAction = "use"
+)
+
 func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("Save", func(t *testing.T) { testAccessControlPolicyStoreSaveAndGet(t, rctx, ss) })
 	t.Run("SaveDuplicateName", func(t *testing.T) { testAccessControlPolicyStoreSaveDuplicateName(t, rctx, ss) })
@@ -22,12 +28,123 @@ func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("SetActiveMultiple", func(t *testing.T) { testAccessControlPolicyStoreSetActiveMultiple(t, rctx, ss) })
 	t.Run("GetAll", func(t *testing.T) { testAccessControlPolicyStoreGetAll(t, rctx, ss) })
 	t.Run("Search", func(t *testing.T) { testAccessControlPolicyStoreSearch(t, rctx, ss) })
+	t.Run("SearchChildCounts", func(t *testing.T) { testAccessControlPolicyStoreSearchChildCounts(t, rctx, ss) })
 	t.Run("SearchByActions", func(t *testing.T) { testAccessControlPolicyStoreSearchByActions(t, rctx, ss) })
 	t.Run("GetPoliciesByFieldID", func(t *testing.T) { testAccessControlPolicyStoreGetPoliciesByFieldID(t, rctx, ss) })
 	t.Run("ScopeRoundtrip", func(t *testing.T) { testAccessControlPolicyStoreScopeRoundtrip(t, rctx, ss) })
 	t.Run("SearchByTeamIDWithScope", func(t *testing.T) { testAccessControlPolicyStoreSearchByTeamIDWithScope(t, rctx, ss) })
 	t.Run("GetActionsForPolicy", func(t *testing.T) { testAccessControlPolicyStoreGetActionsForPolicy(t, rctx, ss) })
 	t.Run("GetActionsForPolicies", func(t *testing.T) { testAccessControlPolicyStoreGetActionsForPolicies(t, rctx, ss) })
+	t.Run("PluginPolicy", func(t *testing.T) { testAccessControlPolicyStorePluginPolicy(t, rctx, ss) })
+	t.Run("TypeImmutableOnSave", func(t *testing.T) { testAccessControlPolicyStoreTypeImmutableOnSave(t, rctx, ss) })
+}
+
+// testAccessControlPolicyStoreTypeImmutableOnSave pins the invariant the plugin
+// app layer depends on: a stored policy's Type never changes, so an ownership
+// decision taken from an earlier read cannot be invalidated by a later save.
+func testAccessControlPolicyStoreTypeImmutableOnSave(t *testing.T, rctx request.CTX, ss store.Store) {
+	newPolicy := func(policyType, version, action string) *model.AccessControlPolicy {
+		return &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Type Immutability " + model.NewId(),
+			Type:     policyType,
+			Active:   true,
+			Revision: 1,
+			Version:  version,
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{action},
+				Expression: "true",
+			}},
+		}
+	}
+
+	tests := []struct {
+		name    string
+		policy  *model.AccessControlPolicy
+		newType string
+	}{
+		{
+			name:    "plugin type cannot become a core type",
+			policy:  newPolicy(testPluginPolicyType, model.AccessControlPolicyVersionV0_5, testPluginPolicyAction),
+			newType: model.AccessControlPolicyTypeChannel,
+		},
+		{
+			name:    "core type cannot become a plugin type",
+			policy:  newPolicy(model.AccessControlPolicyTypeChannel, model.AccessControlPolicyVersionV0_2, model.AccessControlPolicyActionMembership),
+			newType: testPluginPolicyType,
+		},
+		{
+			name:    "plugin type cannot be taken over by another plugin",
+			policy:  newPolicy(testPluginPolicyType, model.AccessControlPolicyVersionV0_5, testPluginPolicyAction),
+			newType: "other-plugin:agent",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			saved, err := ss.AccessControlPolicy().Save(rctx, tc.policy)
+			require.NoError(t, err)
+			t.Cleanup(func() {
+				require.NoError(t, ss.AccessControlPolicy().Delete(rctx, saved.ID))
+			})
+
+			retyped := *saved
+			retyped.Type = tc.newType
+			_, err = ss.AccessControlPolicy().Save(rctx, &retyped)
+			require.Error(t, err, "the store must reject a type change on an existing policy")
+
+			got, err := ss.AccessControlPolicy().Get(rctx, saved.ID)
+			require.NoError(t, err)
+			require.Equal(t, tc.policy.Type, got.Type, "the stored type must survive the rejected save")
+		})
+	}
+}
+
+func testAccessControlPolicyStorePluginPolicy(t *testing.T, rctx request.CTX, ss store.Store) {
+	policy := &model.AccessControlPolicy{
+		ID:       model.NewId(),
+		Name:     "Agent Gate " + model.NewId(),
+		Type:     testPluginPolicyType,
+		Active:   true,
+		Revision: 1,
+		Version:  model.AccessControlPolicyVersionV0_5,
+		Rules: []model.AccessControlPolicyRule{{
+			Actions:    []string{testPluginPolicyAction},
+			Expression: `user.attributes.department == "eng"`,
+		}},
+	}
+
+	saved, err := ss.AccessControlPolicy().Save(rctx, policy)
+	require.NoError(t, err)
+	require.NotNil(t, saved)
+	require.Equal(t, testPluginPolicyType, saved.Type)
+
+	t.Run("Get round-trips type and rules", func(t *testing.T) {
+		got, err := ss.AccessControlPolicy().Get(rctx, policy.ID)
+		require.NoError(t, err)
+		require.Equal(t, testPluginPolicyType, got.Type)
+		require.Equal(t, model.AccessControlPolicyVersionV0_5, got.Version)
+		require.Equal(t, policy.Rules, got.Rules)
+	})
+
+	t.Run("SearchPolicies by plugin type finds it", func(t *testing.T) {
+		results, total, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Type:  testPluginPolicyType,
+			Limit: 10,
+		})
+		require.NoError(t, err)
+		require.EqualValues(t, 1, total)
+		require.Len(t, results, 1)
+		require.Equal(t, policy.ID, results[0].ID)
+	})
+
+	t.Run("Delete removes it", func(t *testing.T) {
+		require.NoError(t, ss.AccessControlPolicy().Delete(rctx, policy.ID))
+
+		_, err := ss.AccessControlPolicy().Get(rctx, policy.ID)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
+	})
 }
 
 func testAccessControlPolicyStoreSaveAndGet(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -576,8 +693,8 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		require.NotNil(t, policies)
 		require.Len(t, policies, 2)
 		require.Equal(t, parentPolicy.ID, policies[0].ID)
-		require.Equal(t, map[string]any{"child_ids": []string{resourcePolicy.ID}}, policies[0].Props)
-		require.Equal(t, map[string]any{"child_ids": []string{}}, policies[1].Props)
+		require.Equal(t, map[string]any{"child_ids": []string{resourcePolicy.ID}, "channel_count": 1, "team_count": 0}, policies[0].Props)
+		require.Equal(t, map[string]any{"child_ids": []string{}, "channel_count": 0, "team_count": 0}, policies[1].Props)
 
 		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{Type: model.AccessControlPolicyTypeChannel})
 		require.NoError(t, err)
@@ -646,6 +763,97 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		require.NotNil(t, policies)
 		require.Len(t, policies, 1)
 		require.Equal(t, parentPolicy.ID, policies[0].ID)
+	})
+}
+
+func testAccessControlPolicyStoreSearchChildCounts(t *testing.T, rctx request.CTX, ss store.Store) {
+	saveParent := func() string {
+		id := model.NewId()
+		_, err := ss.AccessControlPolicy().Save(rctx, &model.AccessControlPolicy{
+			ID:       id,
+			Name:     "Parent " + id,
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{model.AccessControlPolicyActionMembership},
+				Expression: "user.properties.program == \"engineering\"",
+			}},
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			require.NoError(t, ss.AccessControlPolicy().Delete(rctx, id))
+		})
+		return id
+	}
+
+	saveChild := func(parentID, policyType string) {
+		id := model.NewId()
+		// team-type policies validate only from v0.3 onward.
+		version := model.AccessControlPolicyVersionV0_2
+		if policyType == model.AccessControlPolicyTypeTeam {
+			version = model.AccessControlPolicyVersionV0_3
+		}
+		_, err := ss.AccessControlPolicy().Save(rctx, &model.AccessControlPolicy{
+			ID:       id,
+			Name:     id,
+			Type:     policyType,
+			Active:   true,
+			Revision: 1,
+			Version:  version,
+			Imports:  []string{parentID},
+			Rules: []model.AccessControlPolicyRule{{
+				Actions:    []string{model.AccessControlPolicyActionMembership},
+				Expression: "policies." + parentID + " == true",
+			}},
+		})
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			require.NoError(t, ss.AccessControlPolicy().Delete(rctx, id))
+		})
+	}
+
+	counts := func(parentID string) (int, int) {
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			IDs:             []string{parentID},
+			IncludeChildren: true,
+			Limit:           10,
+		})
+		require.NoError(t, err)
+		require.Len(t, policies, 1)
+		return policies[0].Props["channel_count"].(int), policies[0].Props["team_count"].(int)
+	}
+
+	t.Run("3 channel + 2 team children", func(t *testing.T) {
+		parentID := saveParent()
+		for range 3 {
+			saveChild(parentID, model.AccessControlPolicyTypeChannel)
+		}
+		for range 2 {
+			saveChild(parentID, model.AccessControlPolicyTypeTeam)
+		}
+		channelCount, teamCount := counts(parentID)
+		require.Equal(t, 3, channelCount)
+		require.Equal(t, 2, teamCount)
+	})
+
+	t.Run("only channel children", func(t *testing.T) {
+		parentID := saveParent()
+		for range 4 {
+			saveChild(parentID, model.AccessControlPolicyTypeChannel)
+		}
+		channelCount, teamCount := counts(parentID)
+		require.Equal(t, 4, channelCount)
+		require.Equal(t, 0, teamCount)
+	})
+
+	t.Run("no children", func(t *testing.T) {
+		parentID := saveParent()
+		channelCount, teamCount := counts(parentID)
+		require.Equal(t, 0, channelCount)
+		require.Equal(t, 0, teamCount)
 	})
 }
 

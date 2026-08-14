@@ -70,6 +70,12 @@ func TestConfigDefaults(t *testing.T) {
 		require.Equal(t, "", *c.SupportSettings.ReportAProblemMail)
 		require.Equal(t, true, *c.SupportSettings.AllowDownloadLogs)
 	})
+	t.Run("access control audit logging default", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		require.NotNil(t, c.AccessControlSettings.EnableAccessControlAuditLogging)
+		require.False(t, *c.AccessControlSettings.EnableAccessControlAuditLogging)
+	})
 }
 
 func TestConfigIsValid(t *testing.T) {
@@ -108,6 +114,33 @@ func TestConfigIsValid(t *testing.T) {
 			require.Nil(t, c.IsValid())
 		})
 	})
+}
+
+func TestAccessControlSettingsIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		AccessControlSettings AccessControlSettings
+		ExpectError           bool
+	}{
+		"sync_job_interval_zero":                {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(0)}, ExpectError: true},
+		"sync_job_interval_negative":            {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(-1000)}, ExpectError: true},
+		"sync_job_interval_sub-minute rejected": {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(30)}, ExpectError: true},
+		"sync_job_interval_just below minimum":  {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(59)}, ExpectError: true},
+		"sync_job_interval_minimum":             {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(60)}, ExpectError: false},
+		"sync_job_interval_default":             {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: nil}, ExpectError: false}, // Test will set default
+		"attribute_refresh_interval_zero":       {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: new(0)}, ExpectError: false},
+		"attribute_refresh_interval_negative":   {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: new(-1)}, ExpectError: true},
+		"attribute_refresh_interval_default":    {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: nil}, ExpectError: false}, // Test will set default
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.AccessControlSettings.SetDefaults()
+
+			if test.ExpectError {
+				require.NotNil(t, test.AccessControlSettings.isValid())
+			} else {
+				require.Nil(t, test.AccessControlSettings.isValid())
+			}
+		})
+	}
 }
 
 func TestConfigEmptySiteName(t *testing.T) {
@@ -346,6 +379,39 @@ func TestFileSettingsAzureRequestTimeoutBounds(t *testing.T) {
 	}
 }
 
+func TestFileSettingsExtractContentTimeout(t *testing.T) {
+	t.Run("default is valid", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.FileSettings.ExtractContentTimeout)
+		assert.Equal(t, 10, *cfg.FileSettings.ExtractContentTimeout)
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("zero disables the timeout and is valid", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExtractContentTimeout = NewPointer(0)
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("a positive value is valid", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExtractContentTimeout = NewPointer(10)
+		assert.Nil(t, cfg.FileSettings.isValid())
+	})
+
+	t.Run("a negative value is rejected", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExtractContentTimeout = NewPointer(-1)
+		err := cfg.FileSettings.isValid()
+		require.NotNil(t, err)
+		assert.Equal(t, "model.config.is_valid.extract_content_timeout.app_error", err.Id)
+	})
+}
+
 func TestFileSettingsAzureAuthMode(t *testing.T) {
 	t.Run("defaults to shared_key", func(t *testing.T) {
 		cfg := &Config{}
@@ -460,6 +526,110 @@ func TestFileSettingsAzureCloudValidation(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestFileSettingsAzureStorageAccountValidation(t *testing.T) {
+	// Managed clouds put the account name in the service hostname, so it must
+	// match Azure's documented format.
+	type accessors struct {
+		driver  func(*Config, *string)
+		cloud   func(*Config, *string)
+		account func(*Config, *string)
+	}
+	variants := []struct {
+		name string
+		accessors
+	}{
+		{
+			"upload",
+			accessors{
+				func(cfg *Config, v *string) { cfg.FileSettings.DriverName = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.AzureStorageAccount = v },
+			},
+		},
+		{
+			"export",
+			accessors{
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportDriverName = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureCloud = v },
+				func(cfg *Config, v *string) { cfg.FileSettings.ExportAzureStorageAccount = v },
+			},
+		},
+	}
+
+	for _, variant := range variants {
+		t.Run(variant.name, func(t *testing.T) {
+			t.Run("malformed account name is rejected for commercial cloud", func(t *testing.T) {
+				for _, bad := range []string{"", "ab", strings.Repeat("a", 25), "WithUppercase", "with-dash", "with.dot", "with/slash", "with#hash"} {
+					cfg := &Config{}
+					cfg.SetDefaults()
+					variant.driver(cfg, NewPointer(ImageDriverAzure))
+					variant.cloud(cfg, NewPointer(AzureCloudCommercial))
+					variant.account(cfg, NewPointer(bad))
+
+					err := cfg.FileSettings.isValid()
+					require.NotNil(t, err, "expected %q to be rejected", bad)
+					assert.Equal(t, "model.config.is_valid.azure_storage_account.app_error", err.Id)
+				}
+			})
+
+			t.Run("valid account name passes for managed clouds", func(t *testing.T) {
+				// Empty cloud is treated as commercial, so it is validated too.
+				for _, cloud := range []string{AzureCloudCommercial, AzureCloudGovernment, ""} {
+					cfg := &Config{}
+					cfg.SetDefaults()
+					variant.driver(cfg, NewPointer(ImageDriverAzure))
+					variant.cloud(cfg, NewPointer(cloud))
+					variant.account(cfg, NewPointer("acmemattermost"))
+
+					err := cfg.FileSettings.isValid()
+					require.Nil(t, err)
+				}
+			})
+
+			t.Run("malformed account name is rejected for empty (commercial) cloud", func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				variant.driver(cfg, NewPointer(ImageDriverAzure))
+				variant.cloud(cfg, NewPointer(""))
+				variant.account(cfg, NewPointer("with#hash"))
+
+				err := cfg.FileSettings.isValid()
+				require.NotNil(t, err)
+				assert.Equal(t, "model.config.is_valid.azure_storage_account.app_error", err.Id)
+			})
+
+			t.Run("custom cloud skips account name validation", func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				variant.driver(cfg, NewPointer(ImageDriverAzure))
+				variant.cloud(cfg, NewPointer(AzureCloudCustom))
+				variant.account(cfg, NewPointer("with#hash"))
+				// Custom mode derives the host from the endpoint, not the account.
+				if variant.name == "upload" {
+					cfg.FileSettings.AzureEndpoint = NewPointer("https://blob.example.com/")
+				} else {
+					cfg.FileSettings.ExportAzureEndpoint = NewPointer("https://blob.example.com/")
+				}
+
+				err := cfg.FileSettings.isValid()
+				require.Nil(t, err)
+			})
+
+			t.Run("non-azure driver skips account name validation", func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				// DriverName stays at its default (local); the malformed Azure
+				// account name must not block an unrelated driver's config.
+				variant.cloud(cfg, NewPointer(AzureCloudCommercial))
+				variant.account(cfg, NewPointer("with#hash"))
+
+				err := cfg.FileSettings.isValid()
+				require.Nil(t, err)
+			})
+		})
+	}
 }
 
 func TestFileSettingsAzurePathPrefixTraversal(t *testing.T) {
@@ -719,6 +889,30 @@ func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 
 	// should not fail if ts.SiteName is not set, defaults are used
 	require.Nil(t, c1.TeamSettings.isValid())
+}
+
+func TestTeamSettingsLockProfileFieldsForEmailUsersIsValid(t *testing.T) {
+	for name, testCase := range map[string]struct {
+		value        string
+		expectsError bool
+	}{
+		"none":              {value: TeamSettingsLockProfileFieldsNone},
+		"name and username": {value: TeamSettingsLockProfileFieldsNameAndUsername},
+		"all":               {value: TeamSettingsLockProfileFieldsAll},
+		"invalid":           {value: "invalid", expectsError: true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			config := Config{}
+			config.SetDefaults()
+			config.TeamSettings.LockProfileFieldsForEmailUsers = new(testCase.value)
+
+			if testCase.expectsError {
+				require.NotNil(t, config.TeamSettings.isValid())
+			} else {
+				require.Nil(t, config.TeamSettings.isValid())
+			}
+		})
+	}
 }
 
 func TestTeamSettingsDefaultJoinLeaveMessage(t *testing.T) {

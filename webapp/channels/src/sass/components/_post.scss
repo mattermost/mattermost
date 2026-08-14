@@ -134,7 +134,6 @@
 
 #post-list {
     position: relative;
-    height: 100%;
     flex: 1 1 auto;
     overflow-y: hidden;
 
@@ -177,62 +176,6 @@
         font-size: 13px;
         outline: none;
         text-align: center;
-    }
-
-    .new-messages__button {
-        position: absolute;
-        z-index: 3;
-        bottom: 0;
-        left: 50%;
-        margin: 5px auto;
-        font-size: 13.5px;
-        opacity: 0;
-        text-align: center;
-        transform: translateX(-50%);
-        visibility: hidden;
-
-        .fa {
-            position: relative;
-            top: 1px;
-            margin-right: 0.5rem;
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-
-        .icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: 5px;
-        }
-
-        div {
-            display: flex;
-            height: 28px;
-            align-items: center;
-            padding: 0 20px;
-            border-radius: 50px;
-            cursor: pointer;
-        }
-
-        body.enable-animations & {
-            transition-delay: 0s;
-            transition-duration: variables.$transition-quick;
-            transition-property: opacity, visibility;
-            transition-timing-function: ease-in, step-end;
-        }
-
-        &.visible {
-            opacity: 1;
-            visibility: visible;
-
-            body.enable-animations & {
-                transition-delay: 0s;
-                transition-duration: variables.$transition-quick;
-                transition-property: opacity, visibility;
-                transition-timing-function: ease-out, step-start;
-            }
-        }
     }
 }
 
@@ -462,7 +405,7 @@
     > button {
         @include mixins.button-small;
 
-        padding: 10px 16px;
+        flex-shrink: 0;
         border-width: 0;
         border-radius: 4px;
         box-shadow: none;
@@ -970,6 +913,8 @@
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 11px;
         font-style: italic;
+        line-height: normal;
+
         -webkit-user-select: none; /* Chrome all / Safari all */
         -moz-user-select: none; /* Firefox all */
         -ms-user-select: none; /* IE 10+ */
@@ -1418,10 +1363,6 @@
             }
 
             li {
-                p {
-                    display: inline;
-                }
-
                 ul {
                     padding: 0 0 0 20px;
                     margin: 0;
@@ -1607,12 +1548,6 @@
         position: relative;
         display: inline-block;
 
-        &:hover .image-preview-utility-buttons-container {
-            display: inline-block;
-        }
-    }
-
-    .small-image-utility-buttons-wrapper {
         &:hover .image-preview-utility-buttons-container {
             display: inline-block;
         }
@@ -1847,14 +1782,6 @@
             overflow: hidden;
         }
 
-        .post-message--collapsed.post-message-preview--overflow .post-message__text {
-            display: -webkit-box;
-            overflow: hidden;
-            -webkit-box-orient: vertical;
-            -webkit-line-clamp: 4;
-            text-overflow: ellipsis;
-        }
-
         .post-preview-collapse__show-more-button {
             padding: 0;
             border: none;
@@ -2024,6 +1951,32 @@
 
     .post-collapse__show-more {
         bottom: 10px;
+    }
+}
+
+// Permalink previews and other ellipsis ShowMore surfaces: soften the hard clip
+// with a bottom fade so truncated content reads as "more below".
+.post-message--collapsed.post-message-preview--overflow {
+    .post-message__text-container {
+        position: relative;
+
+        &::after {
+            position: absolute;
+            z-index: 1;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 40%;
+            min-height: 28px;
+            max-height: 64px;
+            background: linear-gradient(
+                to bottom,
+                rgba(var(--center-channel-bg-rgb), 0) 0%,
+                var(--center-channel-bg) 100%
+            );
+            content: '';
+            pointer-events: none;
+        }
     }
 }
 
@@ -2238,6 +2191,7 @@
     animation-duration: 2s;
     animation-fill-mode: forwards;
     animation-name: postHighlight;
+    background: rgba(var(--mention-highlight-bg-rgb), 0.5);
 }
 
 .post--pinned-or-flagged {

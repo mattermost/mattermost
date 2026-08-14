@@ -30,7 +30,7 @@ export type Props = {
     fileUrl: string;
     scale: number;
     handleBgClose: (e: React.MouseEvent<Element, MouseEvent>) => void;
-}
+};
 
 type Status = 'success' | 'loading' | 'fail';
 

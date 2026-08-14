@@ -32,7 +32,7 @@ type Props = {
     initialConnection?: OutgoingOAuthConnection;
 
     submitAction: (connection: OutgoingOAuthConnection) => Promise<void>;
-}
+};
 
 type State = {
     name: string;
@@ -563,7 +563,7 @@ type ValidateButtonProps = {
     status: ValidationStatus;
     onClick: (e: FormEvent) => void;
     setUnvalidated: (e: FormEvent) => void;
-}
+};
 
 const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) => {
     if (status === ValidationStatus.ERROR) {

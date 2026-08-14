@@ -679,7 +679,7 @@ export const useBookmarkLinkValidation = (link: string, onValidated: (validatedL
                     signal: AbortSignal.any([signal, AbortSignal.timeout(REQUEST_TIMEOUT)]),
                 });
                 onValidated(link);
-            } catch (err) {
+            } catch {
                 if (signal === abort.current?.signal) {
                     setError(continuableLinkErr(url, () => {
                         onValidated(link, true);

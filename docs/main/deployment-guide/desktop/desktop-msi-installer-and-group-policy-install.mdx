@@ -1,0 +1,243 @@
+---
+title: "Desktop MSI installer and group policy guide"
+---
+<PlanAvailability slug="all-commercial" />
+
+This page provides guidance on installing the desktop app MSI and use Group Policies in Windows for Mattermost Enterprise or Professional. The MSI installer package can be downloaded [here](https://github.com/mattermost/desktop/releases/latest).
+
+<Important>
+
+**Per-machine installation from v6.1.0**: From Mattermost Desktop v6.1.0, the Windows MSI installer defaults to per-machine (system-wide) installation to meet enterprise compliance requirements. This changes deployment strategies and upgrade paths. See the [Deployment considerations for v6.1.0+](#deployment-considerations-for-v610) section below for details.
+
+</Important>
+
+## Windows distribution options
+
+From desktop v6.1, organizations deploying on Windows have 2 primary distribution options:
+
+- **Windows Store**: Primary option for automatic updates. Recommended for most users. The Windows Store version handles updates automatically through the Microsoft Store infrastructure.
+- **MSI installer**: Direct download option for traditional deployment methods. This guide covers MSI deployment.
+
+The desktop v6.1 app includes in-app update notifications that check the Mattermost website for new versions. All distribution channels (Windows Store, MSI, Mac App Store, Flathub, APT/RPM) release simultaneously to ensure users receive consistent update notifications regardless of their installation method.
+
+## Upgrading to v6.1.0 with MSI installer
+
+Users upgrading from earlier Desktop app versions using the MSI installer may need to recreate taskbar shortcuts once after the upgrade. The v6.1.0 installer uses a more reliable method for shortcut icons that prevents shortcuts from breaking during future upgrades. This fixes a long-standing issue where shortcuts could break during MSI upgrades. This is a one-time action for the upgrade to v6.1.0. Future upgrades to v6.1.2 and later won't require shortcut recreation. Windows Store deployments aren't affected by this change.
+
+We recommend telling your users in advance that they may need to re-pin the taskbar shortcut after upgrading to desktop app v6.1. Desktop shortcuts are typically unaffected while taskbar shortcuts are most commonly impacted.
+
+If a user reports a broken shortcut after upgrading to v6.1.0, the user should:
+
+1.  Right-click the broken shortcut on the taskbar and select **Unpin from taskbar**.
+2.  Launch Mattermost Desktop from the Start Menu.
+3.  Right-click the Mattermost icon in the taskbar.
+4.  Select **Pin to taskbar**.
+
+## Download group policy and MSI installer files
+
+1.  Using a newly created Windows VM or dedicated Windows computer, make sure to use a Windows version that supports `Edit group policy` out of the box (i.e. Windows 10 Pro or Enterprise).
+
+    ![When downloading group policy and MIS installer files, ensure to use a Windows version that supports Edit group policy.](/images/desktop/msi_gpo/msi_gpo_installation_test_00001.png)
+
+2.  Navigate to the [Mattermost Desktop](https://github.com/mattermost/desktop) repository on [GitHub.com](https://github.com/).
+
+    ![Go to the mattermost/desktop repository on GitHub.](/images/desktop/msi_gpo/msi_gpo_installation_test_00002.png)
+
+3.  Navigate to the release page for [version v6.2.2](https://github.com/mattermost/desktop/releases/latest) and download the appropriate installer for your version of Windows (32-bit vs. 64-bit).
+
+4.  Download the [source.zip](https://github.com/mattermost/desktop/archive/v6.2.2.zip) file as well to extract group policy files.
+
+    ![In the mattermost/desktop repository on GitHub, go to the release page for the latest desktop release, then download the installer for your version of Windows. Download the source.zip file as well to extract group policy files.](/images/desktop/msi_gpo/msi_gpo_installation_test_00003.png)
+
+## Install group policy files locally
+
+The following group policies are available supporting a state option of Not Configured, Enabled, or Disabled:
+
+> <table style={{width: '99%'}}>
+> <colgroup>
+> <col style={{width: '19%'}} />
+> <col style={{width: '42%'}} />
+> <col style={{width: '16%'}} />
+> <col style={{width: '20%'}} />
+> </colgroup>
+> <thead>
+> <tr>
+> <th>Group policy</th>
+> <th>Description</th>
+> <th>Mattermost release</th>
+> <th>Setting</th>
+> </tr>
+> </thead>
+> <tbody>
+> <tr>
+> <td>Enable Server Management</td>
+> <td>If disabled, management of servers in the app settings are disabled.</td>
+> <td>v4.3 or later</td>
+> <td><code>EnableServerManagement</code></td>
+> </tr>
+> <tr>
+> <td>Default Server List</td>
+> <td>Define one or more default, permanent servers.</td>
+> <td>v4.3 or later</td>
+> <td><code>DefaultServerList</code></td>
+> </tr>
+> <tr>
+> <td>Update Notifications</td>
+> <td>If disabled, in-app update notifications are not shown.</td>
+> <td>v5.1 or later</td>
+> <td><code>EnableAutoUpdates</code></td>
+> </tr>
+> </tbody>
+> </table>
+
+1.  Browse to the folder the above files were downloaded to and unzip the `desktop-6.2.2.zip` file in place.
+
+    ![Go to the install download directory on your machine and unzip the ZIP file.](/images/desktop/msi_gpo/msi_gpo_installation_test_00004.png)
+
+2.  Navigate to the unzipped `desktop-6.2.2\resources\windows\gpo` folder and copy the contents.
+
+    ![Go to the \resources\windows\gpo directory and copy its contents.](/images/desktop/msi_gpo/msi_gpo_installation_test_00005.png)
+
+3.  Navigate to the `C:\Windows\PolicyDefinitions` folder and paste the files copied in the last step.
+
+    ![Go to the Windows\PolicyDefinitions directory and paste the files you copied in the previous step.](/images/desktop/msi_gpo/msi_gpo_installation_test_00006.png)
+
+4.  Verify the `mattermost.admx` file is in the `C:\Windows\PolicyDefinitions` folder.
+
+    ![Verify the mattermost.admx file is present in the Windows\PolicyDefinitions directory.](/images/desktop/msi_gpo/msi_gpo_installation_test_00007.png)
+
+5.  Verify the `mattermost.adml` file is in the `C:\Windows\PolicyDefinitions\en-US` folder.
+
+    ![Verify the mattermost.adml file is present in the Windows\PolicyDefinitions\en-US directory.](/images/desktop/msi_gpo/msi_gpo_installation_test_00008.png)
+
+<Note>
+
+- `\\FQDNDomain\sysvol\FQDNDomain\Policies\PolicyDefinitions` can be used instead of `C:\Windows\PolicyDefinitions` if available.
+- `\\FQDNDomain\sysvol\FQDNDomain\Policies\PolicyDefinitions\en-US` can be used instead of `C:\Windows\PolicyDefinitions\en-US` if available.
+
+</Note>
+
+**Disable update notifications**
+
+Update notifications can be disabled by configuring the supported group policy. Changes to group policies require you to restart Mattermost for those changes to take effect.
+
+## Configure Mattermost using group policy settings
+
+1.  Run the `Edit group policy` application by selecting **Start**, typing `gpedit` into the search field, then selecting the resulting **Edit group policy** search option.
+
+    ![When configuring Mattermost using group policy settings, run the Edit group policy application by going to Start, typing gpedit into the search field, then selecting the resulting Edit group policy search option.](/images/desktop/msi_gpo/msi_gpo_installation_test_00009.png)
+
+2.  In the **Edit group policy** window, navigate to `Local Computer Policy\Computer Configuration\Administrative Templates\Mattermost`. In this example, double-click on `DefaultServerList` to set one or more default servers that will appear on app launch.
+
+    ![In the Edit group policy window, go to Local Computer Policy \> Computer Configuration \> Administrative Templates \> Mattermost. To set one or more default servers to appear on app launch, for example, double-click on DefaultServerList to begin.](/images/desktop/msi_gpo/msi_gpo_installation_test_00010.png)
+
+3.  In the resulting window for **DefaultServerList**, select **Enabled** to turn the feature on, then select the **Show…** button in the **Options:** section of the window to add default servers.
+
+    ![In the DefaultServerList window, enable the feature, then select Show..., located under Options, to add the default servers.](/images/desktop/msi_gpo/msi_gpo_installation_test_00011.png)
+
+4.  In the resulting window, add desired Mattermost servers using a memorable name (i.e., Community) and the web URL of the Mattermost server (i.e., [https://community.mattermost.com](https://community.mattermost.com)).
+
+5.  Select **OK** twice, then close the **Edit group policy** app.
+
+    ![Add the default servers by name and by URL, then select OK twice to close the Edit group policy application.](/images/desktop/msi_gpo/msi_gpo_installation_test_00012.png)
+
+## Deployment considerations for v6.1.0+
+
+From Mattermost Desktop v6.1.0, the Windows MSI installer defaults to per-machine (system-wide) installation to meet enterprise compliance requirements. The application installs to `C:\Program Files\Mattermost` with registry keys in `HKLM` (HKEY_LOCAL_MACHINE), and requires administrator privileges for deployment.
+
+Users upgrading from v5.9 to v6.0.4 with per-user installations must manually uninstall the old version before installing v6.1.0 to avoid duplicate installs. See [Desktop troubleshooting](./desktop-troubleshooting#upgrade-to-v610-fails-or-installs-duplicate-version-windows-msi) for detailed upgrade instructions.
+
+## Multi-view and Group Policies
+
+From desktop v6.0, users can run multiple Mattermost workspaces at the same time in the desktop app. Use existing methods to pre-provision multiple workspaces for users, as follows:
+
+- On Windows, seed the approved list using the `DefaultServerList` Group Policy.
+- For scripted installs, seed `config.json` on first run to include multiple entries in the `teams` array. See the [Silent Windows desktop distribution](/deployment-guide/desktop/silent-windows-desktop-distribution) documentation for details.
+- To prevent users from adding or removing workspaces, use the existing `EnableServerManagement` Group Policy.
+- Disable `EnableAutoUpdates` to turn off update notifications.
+
+### Verify group policy settings have been applied
+
+1.  Open up the Registry Editor by selecting **Start**, typing `Registry Editor` in the search field, then selecting the **Registry Editor** option in the search results.
+
+    ![When verifying group policy settings, open the Registery Editor by going to Start, typing Registry Editor into the search field, then selecting the resulting Registry Editor search option.](/images/desktop/msi_gpo/msi_gpo_installation_test_00013.png)
+
+2.  In the **Registry Editor** window, navigate to `Computer\HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Mattermost\DefaultServerList` and verify the servers you added using the **Edit group policy** app are listed.
+
+3.  Once verified, close the **Registry Editor**.
+
+    ![Go to Computer \> HKEY_LOCAL_MACHINE \> SOFTWARE \> Policies \> Mattermost \> DefaultServerList to veryfiy the servers you added, then close the Registry Editor.](/images/desktop/msi_gpo/msi_gpo_installation_test_00014.png)
+
+## Install the Mattermost Desktop App using the MSI installer
+
+<Important>
+
+- If the desktop app is running when you install via the MSI, Mattermost prompts you to close the app manually. After acknkowledging the prompt, select **Retry** to continue the MSI installation.
+- Avoid selecting **Ignore**. If you do, force close the desktop app using Task Manager, ensure the `Mattermost.exe` process is stopped, and then restart the MSI installation.
+
+</Important>
+
+1.  Within the folder the MSI installer was downloaded to, double-click on the MSI installer to begin the Mattermost Desktop installation process.
+
+    ![Go to the folder where you downloaded the Mattermost Desktop App, and double-click on the MSI file to begin the installation process.](/images/desktop/msi_gpo/msi_gpo_installation_test_00015.png)
+
+2.  Installation of the MSI requires admin permission, so accept the resulting request to allow the installer to make changes to your device.
+
+    ![You'll be prompted to allow the Mattermost Desktop App to make changes to your system. You must select Yes to continue with the installation process.](/images/desktop/msi_gpo/msi_gpo_installation_test_00016.png)
+
+3.  Select **Finish** when the installation is complete.
+
+    ![When the installation is complete, select Finish.](/images/desktop/msi_gpo/msi_gpo_installation_test_00017.png)
+
+### Verify group policy settings in the installed desktop app
+
+1.  Launch the newly installed Mattermost app from the **Start** menu.
+
+2.  Verify the app loads the first server you defined in the **Edit group policy** app.
+
+    ![Verify group policy settings in the Mattermost Desktop App by opening the app from the Start menu, and verifying that the app loads the first server you defined in the Edit group policy.](/images/desktop/msi_gpo/msi_gpo_installation_test_00018.png)
+
+## Advanced MSI options
+
+<Important>
+
+You must be a system admin to run these commands, or you must run them from an admin command prompt or PowerShell.
+
+</Important>
+
+### Silent installation
+
+Perform a silent installation of the MSI by running the following command:
+
+<Important>
+
+Ensure the desktop app is closed before proceeding with a silent installation. Because it's a silent installation, Mattermost won't prompt you to close the desktop app.
+
+</Important>
+
+**Command Prompt:** `msiexec /i mattermost-desktop-v6.2.2-x64.msi /qn`
+
+**PowerShell:** `Start-Process -FilePath "$env:systemroot\system32\msiexec.exe" -ArgumentList '/i mattermost-desktop-v6.2.2-x64.msi /qn'`
+
+<Note>
+
+\- Replace `&lt;version&gt;` with the actual version number (e.g., `v6.2.2`). - From v6.1.0, the MSI installs per-machine by default, requiring administrator privileges.
+
+</Note>
+
+From version v5.9.0 of the Mattermost desktop app, the following silent MSI installation options are also available.
+
+### Specify an install directory
+
+Use the `APPLICATIONFOLDER` parameter to specify an installation directory for the MSI installation:
+
+- **Command Prompt:** `msiexec /i mattermost-desktop-v6.2.2-x64.msi APPLICATIONFOLDER="&lt;install directory&gt;"`
+- **PowerShell:** `Start-Process -FilePath "$env:systemroot\system32\msiexec.exe" -ArgumentList '/i mattermost-desktop-v6.2.2-x64.msi APPLICATIONFOLDER="&lt;install directory&gt;"'`
+
+Change this command as new versions of the Mattermost Desktop App are released.
+
+## macOS managed configuration (MDM)
+
+From Mattermost Desktop v6.2.0, admins can manage supported Desktop App configuration on macOS using managed preferences delivered through an MDM solution, in addition to the Windows group policy support described above. macOS managed preferences support the same configuration items as the Windows group policies listed in the [Install group policy files locally](#install-group-policy-files-locally) section, including predefined server lists, server management controls, and update notification controls.
+
+To apply managed configuration on macOS, deploy a configuration profile that sets the supported keys to client Macs through your MDM solution. The Mattermost Desktop App reads managed preference values on launch; restart the app after changing managed configuration for new values to take effect.

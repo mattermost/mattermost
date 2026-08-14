@@ -4,7 +4,7 @@
 import {formatWithRenderer} from './markdown';
 import PlainRenderer from './markdown/plain_renderer';
 
-export const emoticonPatterns: { [key: string]: RegExp } = {
+export const emoticonPatterns: {[key: string]: RegExp} = {
     slightly_smiling_face: /(^|\B)(\\?:-?\))($|\B)/g, // :)
     wink: /(^|\B)(\\?;-?\))($|\B)/g, // ;)
     open_mouth: /(^|\B)(\\?:o)($|\b)/gi, // :o

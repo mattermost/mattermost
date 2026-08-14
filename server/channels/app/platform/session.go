@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -12,6 +13,11 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
+)
+
+var (
+	ErrEmptyDeviceId     = errors.New("device id is empty")
+	ErrEmptyVoIPDeviceId = errors.New("voip device id is empty")
 )
 
 func (ps *PlatformService) CreateSession(rctx request.CTX, session *model.Session) (*model.Session, error) {
@@ -126,6 +132,15 @@ func (ps *PlatformService) ClearAllUsersSessionCache() error {
 	return err
 }
 
+func (ps *PlatformService) invalidateSessionAttributes(sessionID string) {
+	if !ps.Config().FeatureFlags.SessionAttributes || !model.MinimumEnterpriseAdvancedLicense(ps.License()) {
+		return
+	}
+	if err := ps.Store.SessionAttribute().Invalidate(sessionID); err != nil {
+		ps.logger.Warn("Failed to invalidate session attributes", mlog.String("session_id", sessionID), mlog.Err(err))
+	}
+}
+
 func (ps *PlatformService) GetSession(rctx request.CTX, token string) (*model.Session, error) {
 	var session model.Session
 	if err := ps.sessionCache.Get(token, &session); err == nil {
@@ -163,19 +178,45 @@ func (ps *PlatformService) RevokeSessionsFromAllUsers() error {
 	if err := ps.ClearAllUsersSessionCache(); err != nil {
 		ps.logger.Error("Failed to clear session cache", mlog.Err(err))
 	}
+	if err := ps.Store.SessionAttribute().Clear(); err != nil {
+		ps.logger.Error("Failed to clear session attribute cache", mlog.Err(err))
+	}
 	return nil
 }
 
-func (ps *PlatformService) RevokeSessionsForDeviceId(rctx request.CTX, userID string, deviceID string, currentSessionId string) error {
+func (ps *PlatformService) RevokeOtherSessionsForDeviceId(rctx request.CTX, userID string, deviceId string, currentSessionId string) error {
+	if deviceId == "" {
+		return ErrEmptyDeviceId
+	}
 	sessions, err := ps.Store.Session().GetSessions(rctx, userID)
 	if err != nil {
 		return err
 	}
 	for _, session := range sessions {
-		if session.DeviceId == deviceID && session.Id != currentSessionId {
+		if session.DeviceId == deviceId && session.Id != currentSessionId {
 			rctx.Logger().Debug("Revoking sessionId for userId. Re-login with the same device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userID))
 			if err := ps.RevokeSession(rctx, session); err != nil {
-				rctx.Logger().Warn("Could not revoke session for device", mlog.String("device_id", deviceID), mlog.Err(err))
+				rctx.Logger().Warn("Could not revoke session for device", mlog.String("session_id", session.Id), mlog.Err(err))
+			}
+		}
+	}
+
+	return nil
+}
+
+func (ps *PlatformService) RevokeOtherSessionsForVoIPDeviceId(rctx request.CTX, userID string, voIPDeviceId string, currentSessionId string) error {
+	if voIPDeviceId == "" {
+		return ErrEmptyVoIPDeviceId
+	}
+	sessions, err := ps.Store.Session().GetSessions(rctx, userID)
+	if err != nil {
+		return err
+	}
+	for _, session := range sessions {
+		if session.VoIPDeviceId == voIPDeviceId && session.Id != currentSessionId {
+			rctx.Logger().Debug("Revoking sessionId for userId. Re-login with the same VoIP device Id", mlog.String("session_id", session.Id), mlog.String("user_id", userID))
+			if err := ps.RevokeSession(rctx, session); err != nil {
+				rctx.Logger().Warn("Could not revoke session for VoIP device", mlog.String("session_id", session.Id), mlog.Err(err))
 			}
 		}
 	}
@@ -195,6 +236,7 @@ func (ps *PlatformService) RevokeSession(rctx request.CTX, session *model.Sessio
 	}
 
 	ps.ClearUserSessionCache(session.UserId)
+	ps.invalidateSessionAttributes(session.Id)
 
 	return nil
 }
@@ -279,24 +321,24 @@ func (ps *PlatformService) UpdateSessionsIsGuest(rctx request.CTX, user *model.U
 	return nil
 }
 
-func (ps *PlatformService) RevokeAllSessions(rctx request.CTX, userID string) error {
+func (ps *PlatformService) RevokeAllSessions(rctx request.CTX, userID string) ([]*model.Session, error) {
 	sessions, err := ps.Store.Session().GetSessions(rctx, userID)
 	if err != nil {
-		return fmt.Errorf("%s: %w", err.Error(), GetSessionError)
+		return nil, fmt.Errorf("%s: %w", err.Error(), GetSessionError)
 	}
 	for _, session := range sessions {
 		if session.IsOAuth {
 			if err := ps.RevokeAccessToken(rctx, session.Token); err != nil {
-				return err
+				return nil, err
 			}
 		} else {
 			if err := ps.Store.Session().Remove(session.Id); err != nil {
-				return fmt.Errorf("%s: %w", err.Error(), DeleteSessionError)
+				return nil, fmt.Errorf("%s: %w", err.Error(), DeleteSessionError)
 			}
+			ps.invalidateSessionAttributes(session.Id)
 		}
 	}
 
 	ps.ClearUserSessionCache(userID)
-
-	return nil
+	return sessions, nil
 }

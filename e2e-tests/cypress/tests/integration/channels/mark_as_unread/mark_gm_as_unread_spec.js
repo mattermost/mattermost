@@ -14,7 +14,6 @@ import {verifyPostNextToNewMessageSeparator} from './helpers';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('Mark as Unread', () => {
     let testUser;
     let otherUser1;

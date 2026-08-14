@@ -17,7 +17,7 @@ import type {SearchableStrings} from '../types';
 
 type Props = {
     disabled: boolean;
-}
+};
 
 export default function SystemProperties(props: Props) {
     const {formatMessage} = useIntl();

@@ -88,6 +88,9 @@ func (a *App) CreateJob(rctx request.CTX, job *model.Job) (*model.Job, *model.Ap
 	case model.JobTypeAccessControlSync:
 		// Route ABAC jobs to specialized deduplication handler
 		return a.CreateAccessControlSyncJob(rctx, job.Data)
+	case model.JobTypeAccessControlTeamSync:
+		// Route team ABAC jobs to specialized deduplication handler
+		return a.CreateAccessControlTeamSyncJob(rctx, job.Data)
 	default:
 		return a.Srv().Jobs.CreateJob(rctx, job.Type, job.Data)
 	}
@@ -104,11 +107,11 @@ func (a *App) CreateAccessControlSyncJob(rctx request.CTX, jobData map[string]st
 	delete(jobData, "requester_is_admin")
 
 	if policyID != "" {
-		a.cancelExistingAccessControlSyncJobs(rctx, map[string]string{"policy_id": policyID}, "policy_id", policyID)
+		a.cancelExistingAccessControlSyncJobs(rctx, model.JobTypeAccessControlSync, map[string]string{"policy_id": policyID}, "policy_id", policyID)
 	}
 
 	if teamID != "" && policyID == "" {
-		a.cancelExistingAccessControlSyncJobs(rctx, map[string]string{"team_id": teamID}, "team_id", teamID)
+		a.cancelExistingAccessControlSyncJobs(rctx, model.JobTypeAccessControlSync, map[string]string{"team_id": teamID}, "team_id", teamID)
 	}
 
 	// For team-scoped syncs by non-admins, resolve which channels the
@@ -126,10 +129,30 @@ func (a *App) CreateAccessControlSyncJob(rctx request.CTX, jobData map[string]st
 	return a.Srv().Jobs.CreateJob(rctx, model.JobTypeAccessControlSync, jobData)
 }
 
-// cancelExistingAccessControlSyncJobs cancels pending/in-progress sync jobs
-// matching the given data filter for deduplication.
-func (a *App) cancelExistingAccessControlSyncJobs(rctx request.CTX, dataFilter map[string]string, logKey, logValue string) {
-	existingJobs, err := a.Srv().Store().Job().GetByTypeAndData(rctx, model.JobTypeAccessControlSync, dataFilter, true, model.JobStatusPending, model.JobStatusInProgress)
+// CreateAccessControlTeamSyncJob creates a team membership sync job, first
+// canceling any pending/in-progress sync for the same policy so two never run
+// concurrently. A team-type policy's ID equals its team ID, so deduplicating on
+// policy_id deduplicates per team. Without this, overlapping syncs on separate
+// HA nodes emit duplicate removal/addition DMs and audit records for one change.
+func (a *App) CreateAccessControlTeamSyncJob(rctx request.CTX, jobData map[string]string) (*model.Job, *model.AppError) {
+	policyID := jobData["policy_id"]
+
+	// Strip transient fields before persisting. Only channel syncs inject these,
+	// so this is defensive against a hand-crafted request body.
+	delete(jobData, "requester_id")
+	delete(jobData, "requester_is_admin")
+
+	if policyID != "" {
+		a.cancelExistingAccessControlSyncJobs(rctx, model.JobTypeAccessControlTeamSync, map[string]string{"policy_id": policyID}, "policy_id", policyID)
+	}
+
+	return a.Srv().Jobs.CreateJob(rctx, model.JobTypeAccessControlTeamSync, jobData)
+}
+
+// cancelExistingAccessControlSyncJobs cancels pending/in-progress sync jobs of
+// the given type matching the data filter, for deduplication.
+func (a *App) cancelExistingAccessControlSyncJobs(rctx request.CTX, jobType string, dataFilter map[string]string, logKey, logValue string) {
+	existingJobs, err := a.Srv().Store().Job().GetByTypeAndData(rctx, jobType, dataFilter, true, model.JobStatusPending, model.JobStatusInProgress)
 	if err != nil {
 		rctx.Logger().Warn("Failed to query existing sync jobs for deduplication", mlog.Err(err))
 		return
@@ -224,8 +247,21 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeExportDelete,
 		model.JobTypeCloud,
 		model.JobTypeExtractContent,
-		model.JobTypeCleanupExpiredAccessTokens:
+		model.JobTypeCleanupExpiredAccessTokens,
+		model.JobTypeNotifyExpiringAccessTokens:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
+	case model.JobTypeAccessControlTeamSync:
+		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+			return true, model.PermissionManageSystem
+		}
+		// Team-type policies use the team ID as the policy ID.
+		// Allow a team admin to trigger a sync job for their own team's policy.
+		if policyID, ok := job.Data["policy_id"]; ok && policyID != "" && model.IsValidId(policyID) {
+			if a.SessionHasPermissionToTeam(session, policyID, model.PermissionManageTeamAccessRules) {
+				return true, model.PermissionManageTeamAccessRules
+			}
+		}
+		return false, model.PermissionManageSystem
 	case model.JobTypeAccessControlSync:
 		// Allow system admins to create access control sync jobs
 		hasSystemPermission := a.SessionHasPermissionTo(session, model.PermissionManageSystem)
@@ -300,6 +336,16 @@ func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.
 		permission = model.PermissionManageJobs
 	case model.JobTypeAccessControlSync:
 		permission = model.PermissionManageSystem
+	case model.JobTypeAccessControlTeamSync:
+		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+			return true, model.PermissionManageSystem
+		}
+		if policyID, ok := job.Data["policy_id"]; ok && policyID != "" && model.IsValidId(policyID) {
+			if a.SessionHasPermissionToTeam(session, policyID, model.PermissionManageTeamAccessRules) {
+				return true, model.PermissionManageTeamAccessRules
+			}
+		}
+		return false, model.PermissionManageSystem
 	}
 
 	if permission == nil {
@@ -338,6 +384,11 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		return a.SessionHasPermissionTo(session, model.PermissionReadJobs), model.PermissionReadJobs
 	case model.JobTypeAccessControlSync:
 		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
+	case model.JobTypeAccessControlTeamSync:
+		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+			return true, model.PermissionManageSystem
+		}
+		return a.SessionHasPermissionTo(session, model.PermissionManageTeamAccessRules), model.PermissionManageTeamAccessRules
 	}
 
 	return false, nil

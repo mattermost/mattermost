@@ -24,6 +24,7 @@ import * as Utils from 'utils/utils';
 import BooleanSetting from '../boolean_setting';
 import OLDAdminSettings from '../old_admin_settings';
 import type {BaseProps, BaseState} from '../old_admin_settings';
+import PluginMetadataPanel from '../plugin_metadata_panel/plugin_metadata_panel';
 import SettingSet from '../setting_set';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
@@ -174,10 +175,14 @@ type PluginStatus = {
         footer: string;
         settings?: unknown[];
     };
-}
+};
 
 type PluginItemProps = {
     pluginStatus: PluginStatus;
+    plugin?: {
+        homepage_url?: string;
+        release_notes_url?: string;
+    };
     removing: boolean;
     handleEnable: (e: any) => any;
     handleDisable: (e: any) => any;
@@ -228,6 +233,7 @@ export const searchableStrings = [
 
 const PluginItem = ({
     pluginStatus,
+    plugin,
     removing,
     handleEnable,
     handleDisable,
@@ -430,14 +436,13 @@ const PluginItem = ({
 
     return (
         <div data-testid={pluginStatus.id}>
-            <div>
-                <strong>{pluginStatus.name}</strong>
-                {' ('}
-                {pluginStatus.id}
-                {' - '}
-                {pluginStatus.version}
-                {')'}
-            </div>
+            <PluginMetadataPanel
+                name={pluginStatus.name}
+                id={pluginStatus.id}
+                version={pluginStatus.version}
+                homepageUrl={plugin?.homepage_url}
+                releaseNotesUrl={plugin?.release_notes_url}
+            />
             {description}
             <div className='pt-2'>
                 {activateButton}
@@ -476,7 +481,7 @@ type State = BaseState & {
     fileSelected: boolean;
     file: File | null;
     pluginDownloadUrl: string;
-    serverError: JSX.Element | string | null ;
+    serverError: JSX.Element | string | null;
     lastMessage: string | null;
     uploading: boolean;
     installing: boolean;
@@ -485,7 +490,7 @@ type State = BaseState & {
     overwritingInstall?: boolean;
     confirmOverwriteInstallModal: boolean;
     showRemoveModal: boolean;
-    resolveRemoveModal: string| null;
+    resolveRemoveModal: string | null;
     enable: boolean;
     enableUploads: boolean;
     allowInsecureDownloadUrl: boolean;
@@ -495,7 +500,7 @@ type State = BaseState & {
     marketplaceUrl: string;
     requirePluginSignature: boolean;
     removing: string | null;
-}
+};
 export class PluginManagement extends OLDAdminSettings<Props, State> {
     private fileInput: React.RefObject<HTMLInputElement>;
     constructor(props: Props) {
@@ -826,7 +831,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
 
     renderOverwritePluginModal = (
         {show, onConfirm, onCancel}:
-        {show: boolean; onConfirm: (checked: boolean) => void; onCancel: (checked: boolean) => void }) => {
+        {show: boolean; onConfirm: (checked: boolean) => void; onCancel: (checked: boolean) => void}) => {
         const title = (
             <FormattedMessage
                 id='admin.plugin.upload.overwrite_modal.title'
@@ -997,6 +1002,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                     <PluginItem
                         key={pluginStatus.id}
                         pluginStatus={pluginStatus}
+                        plugin={p}
                         removing={this.state.removing === pluginStatus.id}
                         handleEnable={this.handleEnable}
                         handleDisable={this.handleDisable}

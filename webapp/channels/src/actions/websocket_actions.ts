@@ -10,14 +10,16 @@ import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
 import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
-import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Channel, ChannelJoinRequest, ChannelMembership} from '@mattermost/types/channels';
 import type {Draft} from '@mattermost/types/drafts';
 import type {Emoji} from '@mattermost/types/emojis';
 import {FileDownloadTypes} from '@mattermost/types/files';
 import type {Group, GroupMember} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
+import type {Job} from '@mattermost/types/jobs';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
@@ -30,12 +32,12 @@ import {
     EmojiTypes,
     FileTypes,
     GroupTypes,
+    JobTypes,
     PostTypes,
     TeamTypes,
     UserTypes,
     RoleTypes,
     GeneralTypes,
-    AdminTypes,
     IntegrationTypes,
     PreferenceTypes,
     AppsTypes,
@@ -50,6 +52,7 @@ import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/a
 import {addChannelToInitialCategory, fetchMyCategories, handleManagedCategoryPropertyValuesUpdated, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
 import {
     getChannelAndMyMember,
+    getChannelMember,
     getMyChannelMember,
     getChannelStats,
     markMultipleChannelsAsRead,
@@ -61,6 +64,7 @@ import {
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {setServerVersion, getClientConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
+import {getJobsByType} from 'mattermost-redux/actions/jobs';
 import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {
     getCustomEmojiForReaction,
@@ -113,12 +117,12 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getFeatureFlagValue, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
-import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
+import {getScheduledPostTeamId, isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {
     getTeamIdByChannelId,
     getMyTeams,
@@ -170,8 +174,10 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
-import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import {ActionTypes, Constants, AnnouncementBarMessages, JobStatuses, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import {getIntl} from 'utils/i18n';
+import {MAX_OPEN_DIALOGS, getOpenDialogCount} from 'utils/interactive_dialog';
 import {isEnterpriseLicense} from 'utils/license_utils';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
@@ -338,7 +344,7 @@ export function reconnect() {
     });
 
     // Refresh custom profile attributes on reconnect
-    if (isEnterpriseLicense(getLicense(state)) && isCustomProfileAttributesEnabled(state)) {
+    if (isEnterpriseLicense(getLicense(state))) {
         dispatch(getCustomProfileAttributeFields());
     }
 
@@ -366,6 +372,9 @@ export function reconnect() {
     if (state.websocket.lastDisconnectAt) {
         dispatch(checkForModifiedUsers());
     }
+
+    // Manifest may have changed; tell the Desktop App to re-fetch it.
+    DesktopApp.invalidateSessionAttributeManifest();
 
     dispatch(resetWsErrorCount());
     dispatch(clearErrors());
@@ -410,6 +419,9 @@ function handleFirstConnect() {
         },
         clearErrors(),
     ]));
+
+    // Tell the Desktop App to re-deliver its session attributes on the next request.
+    DesktopApp.resendSessionAttributes();
 }
 
 function handleClose(failCount: number) {
@@ -553,6 +565,18 @@ export function handleEvent(msg: WebSocketMessage) {
         dispatch(handleChannelAccessControlUpdatedEvent(msg));
         break;
 
+    case WebSocketEvents.TeamAccessControlUpdated:
+        dispatch(handleTeamAccessControlUpdatedEvent(msg));
+        break;
+
+    case WebSocketEvents.ChannelJoinRequestCreated:
+        dispatch(handleChannelJoinRequestCreated(msg));
+        break;
+
+    case WebSocketEvents.ChannelJoinRequestUpdated:
+        dispatch(handleChannelJoinRequestUpdated(msg));
+        break;
+
     case WebSocketEvents.DirectAdded:
         dispatch(handleDirectAddedEvent(msg));
         break;
@@ -617,10 +641,6 @@ export function handleEvent(msg: WebSocketMessage) {
         handleLicenseChanged(msg);
         break;
 
-    case WebSocketEvents.PluginStatusesChanged:
-        handlePluginStatusesChangedEvent(msg);
-        break;
-
     case WebSocketEvents.OpenDialog:
         handleOpenDialogEvent(msg);
         break;
@@ -672,8 +692,8 @@ export function handleEvent(msg: WebSocketMessage) {
         dispatch(
             handlePropertyFieldCreatedOrUpdated(
                 msg as
-                    | WebSocketMessages.PropertyFieldCreated
-                    | WebSocketMessages.PropertyFieldUpdated,
+                    WebSocketMessages.PropertyFieldCreated |
+                    WebSocketMessages.PropertyFieldUpdated,
             ),
         );
         break;
@@ -756,6 +776,9 @@ export function handleEvent(msg: WebSocketMessage) {
         break;
     case WebSocketEvents.PostTranslationUpdated:
         dispatch(handlePostTranslationUpdated(msg));
+        break;
+    case WebSocketEvents.JobUpdated:
+        dispatch(handleJobUpdated(msg as WebSocketMessages.JobUpdated));
         break;
     case WebSocketEvents.RecapUpdated:
         dispatch(handleRecapUpdated(msg));
@@ -877,6 +900,81 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
         // consumers (e.g. the channel invite modal banner) refetch the
         // latest attribute set after a policy change.
         invalidateAccessControlAttributesCache(EntityType.Channel, channel.id);
+    };
+}
+
+export function handleTeamAccessControlUpdatedEvent(msg: WebSocketMessages.TeamAccessControlUpdated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        if (!msg.data.team) {
+            return;
+        }
+
+        const team = JSON.parse(msg.data.team) as Team;
+
+        // Refresh the team record so consumers see the latest policy_enforced
+        // flag (and any other access-control-derived fields).
+        doDispatch({type: TeamTypes.RECEIVED_TEAM, data: team});
+    };
+}
+
+// channel_join_request_created arrives on the admin set only (server-side
+// hook narrows the channel-id broadcast). When the current user is the
+// requester we never see this event — the create path's thunk dispatches the
+// row directly.
+function handleChannelJoinRequestCreated(msg: WebSocketMessages.ChannelJoinRequestCreated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        if (!msg.data.request) {
+            return;
+        }
+        let req: ChannelJoinRequest;
+        try {
+            req = JSON.parse(msg.data.request) as ChannelJoinRequest;
+        } catch {
+            return;
+        }
+        doDispatch({
+            type: ChannelTypes.CHANNEL_JOIN_REQUEST_CREATED,
+            data: req,
+        });
+
+        // If the current user happens to be the requester (e.g. tab open in
+        // two windows) keep myPendingByChannel in sync.
+        const currentUserId = getCurrentUserId(doGetState());
+        if (req.user_id === currentUserId) {
+            doDispatch({
+                type: ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUEST,
+                data: req,
+            });
+        }
+    };
+}
+
+// channel_join_request_updated covers approve / deny / withdraw transitions
+// AND the dedicated requester-scoped copy so a non-member requester sees
+// their own row flip in real time.
+function handleChannelJoinRequestUpdated(msg: WebSocketMessages.ChannelJoinRequestUpdated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        if (!msg.data.request) {
+            return;
+        }
+        let req: ChannelJoinRequest;
+        try {
+            req = JSON.parse(msg.data.request) as ChannelJoinRequest;
+        } catch {
+            return;
+        }
+        doDispatch({
+            type: ChannelTypes.CHANNEL_JOIN_REQUEST_UPDATED,
+            data: req,
+        });
+
+        const currentUserId = getCurrentUserId(doGetState());
+        if (req.user_id === currentUserId) {
+            doDispatch({
+                type: ChannelTypes.RECEIVED_MY_CHANNEL_JOIN_REQUEST,
+                data: req,
+            });
+        }
     };
 }
 
@@ -1274,7 +1372,7 @@ function handleGroupAddedEvent(msg: WebSocketMessages.GroupChannelCreated) {
     return fetchChannelAndAddToSidebar(msg.broadcast.channel_id);
 }
 
-function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkActionFunc<void> {
+export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkActionFunc<void> {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const config = getConfig(state);
@@ -1286,6 +1384,24 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
                 type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
                 data: {id: msg.broadcast.channel_id, user_id: msg.data.user_id},
             });
+
+            // The member list selectors drop users whose profile is not loaded. This
+            // happens for remote users synced into a shared channel, since the viewer
+            // has never loaded their profile. Fetch it if missing.
+            if (!getUser(state, msg.data.user_id)) {
+                doDispatch(loadUser(msg.data.user_id));
+            }
+
+            // The member list also requires the ChannelMembership relation, which the
+            // user_added event does not carry. Without it, the participant list filters
+            // the user out even when their profile is loaded (e.g. after they post), so
+            // members added while the channel is open (notably remote shared-channel
+            // members synced in from another server) never appear until the member list
+            // is fully reloaded. Fetch the membership if we don't already have it.
+            if (!getChannelMembersInChannels(state)[currentChannelId]?.[msg.data.user_id]) {
+                doDispatch(getChannelMember(currentChannelId, msg.data.user_id));
+            }
+
             if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && config.EnableConfirmNotificationsToChannel === 'true') {
                 doDispatch(getChannelMemberCountsByGroup(currentChannelId));
             }
@@ -1310,8 +1426,8 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
 
 function handlePropertyFieldCreatedOrUpdated(
     msg:
-    | WebSocketMessages.PropertyFieldCreated
-    | WebSocketMessages.PropertyFieldUpdated,
+    | WebSocketMessages.PropertyFieldCreated |
+    WebSocketMessages.PropertyFieldUpdated,
 ): ThunkActionFunc<void> {
     return (doDispatch) => {
         let field;
@@ -1325,6 +1441,11 @@ function handlePropertyFieldCreatedOrUpdated(
             type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
             data: {fields: [field]},
         });
+
+        // Session attribute field changed; forward the updated field to the Desktop App.
+        if (msg.data.object_type === SESSION_ATTRIBUTES_OBJECT_TYPE) {
+            DesktopApp.updateSessionAttribute(field);
+        }
     };
 }
 
@@ -1713,14 +1834,14 @@ function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
     dispatch(getServerLimits());
 }
 
-function handlePluginStatusesChangedEvent(msg: WebSocketMessages.PluginStatusesChanged) {
-    store.dispatch({type: AdminTypes.RECEIVED_PLUGIN_STATUSES, data: msg.data.plugin_statuses});
-}
-
 function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
     const data = (msg.data && msg.data.dialog);
     const dialog = JSON.parse(data) as OpenDialogRequest || {};
 
+    // Store the dialog before the trigger-id guard. The WS open_dialog event can
+    // arrive before the command/action response has set dialogTriggerId; storing
+    // the dialog now lets the store.subscribe fallback in interactive_dialog.ts
+    // open it once the trigger id lands. Skipping this dispatch loses the dialog.
     store.dispatch({type: IntegrationTypes.RECEIVED_DIALOG, data: dialog});
 
     const currentTriggerId = getState().entities.integrations.dialogTriggerId;
@@ -1729,7 +1850,22 @@ function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
         return;
     }
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
+    if (getOpenDialogCount(getState()) >= MAX_OPEN_DIALOGS) {
+        // eslint-disable-next-line no-console
+        console.warn('Maximum number of open dialogs reached');
+        store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: dialog.trigger_id});
+        return;
+    }
+
+    const modalId = `${ModalIdentifiers.INTERACTIVE_DIALOG}_${dialog.trigger_id}`;
+    store.dispatch(openModal({
+        modalId,
+        dialogType: DialogRouter,
+        dialogProps: {
+            triggerId: dialog.trigger_id,
+            onExited: () => store.dispatch({type: IntegrationTypes.REMOVE_DIALOG, data: dialog.trigger_id}),
+        },
+    }));
 }
 
 function handleGroupUpdatedEvent(msg: WebSocketMessages.ReceivedGroup) {
@@ -2124,11 +2260,13 @@ function handleCreateScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): T
 function handleUpdateScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): ThunkActionFunc<void> {
     return async (doDispatch) => {
         const scheduledPost = JSON.parse(msg.data.scheduledPost) as ScheduledPost;
+        const teamId = getScheduledPostTeamId(getState(), scheduledPost);
 
         doDispatch({
             type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,
             data: {
                 scheduledPost,
+                teamId,
             },
         });
     };
@@ -2280,6 +2418,35 @@ export function handlePostTranslationUpdated(msg: WebSocketMessages.PostTranslat
                 ...t,
             },
         });
+    };
+}
+
+const terminalJobStatuses = new Set([
+    JobStatuses.SUCCESS,
+    JobStatuses.ERROR,
+    JobStatuses.WARNING,
+    JobStatuses.CANCELED,
+]);
+
+export function handleJobUpdated(msg: WebSocketMessages.JobUpdated): ThunkActionFunc<void> {
+    return (dispatch) => {
+        let job;
+        try {
+            job = JSON.parse(msg.data.job) as Job;
+        } catch {
+            return;
+        }
+        dispatch({
+            type: JobTypes.RECEIVED_JOB,
+            data: job,
+        });
+
+        // Re-fetch the full job list on terminal status to populate details
+        // (run time, error message) that are intentionally omitted from the
+        // WebSocket payload for security.
+        if (terminalJobStatuses.has(job.status)) {
+            dispatch(getJobsByType(job.type));
+        }
     };
 }
 

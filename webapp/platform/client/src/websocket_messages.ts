@@ -3,14 +3,15 @@
 
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
-import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
+import type {Channel, ChannelJoinRequest, ChannelMembership, ChannelType} from '@mattermost/types/channels';
 import type {Limits, Subscription} from '@mattermost/types/cloud';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Draft} from '@mattermost/types/drafts';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {Group, GroupMember as GroupMemberType} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
-import type {PluginManifest, PluginStatus} from '@mattermost/types/plugins';
+import type {Job} from '@mattermost/types/jobs';
+import type {PluginManifest} from '@mattermost/types/plugins';
 import type {Post, PostAcknowledgement as PostAcknowledgementType} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
@@ -268,6 +269,26 @@ export type ChannelAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.C
     channel: JsonEncodedValue<Channel>;
 }>;
 
+export type TeamAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.TeamAccessControlUpdated, {
+    team: JsonEncodedValue<TeamType>;
+}>;
+
+// Discoverable Private Channels — join request messages
+//
+// Both events carry the request row as a JSON-encoded string under `request`,
+// plus the unencoded channel id under `channel_id` so consumers can route
+// without parsing the body when they only need to invalidate caches.
+
+export type ChannelJoinRequestCreated = BaseWebSocketMessage<WebSocketEvents.ChannelJoinRequestCreated, {
+    request: JsonEncodedValue<ChannelJoinRequest>;
+    channel_id: string;
+}>;
+
+export type ChannelJoinRequestUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelJoinRequestUpdated, {
+    request: JsonEncodedValue<ChannelJoinRequest>;
+    channel_id: string;
+}>;
+
 // Team and team member messages
 
 export type Team =
@@ -433,7 +454,7 @@ export type FirstAdminVisitMarketplaceStatusReceived =
 export type HostedCustomerSignupProgressUpdated =
     BaseWebSocketMessage<WebSocketEvents.HostedCustomerSignupProgressUpdated, {
         progress: string;
-    }>
+    }>;
 
 // Custom properties messages
 
@@ -463,6 +484,12 @@ export type ContentFlaggingReportValueUpdated =
         target_id: string;
     }>;
 
+// Job messages
+
+export type JobUpdated = BaseWebSocketMessage<WebSocketEvents.JobUpdated, {
+    job: JsonEncodedValue<Job>;
+}>;
+
 // Recap messages
 
 export type RecapUpdated = BaseWebSocketMessage<WebSocketEvents.RecapUpdated, {
@@ -487,8 +514,11 @@ export type Plugin = BaseWebSocketMessage<WebSocketEvents.PluginEnabled | WebSoc
     manifest: PluginManifest;
 }>;
 
+// Signals admin clients to refetch the full plugin statuses on demand. plugin_statuses is always
+// an empty array: it carries no data, but is retained (rather than omitted) so clients that call
+// array methods on it don't break.
 export type PluginStatusesChanged = BaseWebSocketMessage<WebSocketEvents.PluginStatusesChanged, {
-    plugin_statuses: PluginStatus[];
+    plugin_statuses: never[];
 }>;
 
 export type OpenDialog = BaseWebSocketMessage<WebSocketEvents.OpenDialog, {

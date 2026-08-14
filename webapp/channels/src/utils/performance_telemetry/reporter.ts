@@ -46,7 +46,7 @@ type PerformanceReportMeasure = {
      * in model/metrics.go on the server.
      */
     labels?: Record<string, string>;
-}
+};
 
 type PerformanceReport = {
     version: '0.1.0';
@@ -62,7 +62,7 @@ type PerformanceReport = {
 
     counters: PerformanceReportMeasure[];
     histograms: PerformanceReportMeasure[];
-}
+};
 
 export default class PerformanceReporter {
     private client: Client4;

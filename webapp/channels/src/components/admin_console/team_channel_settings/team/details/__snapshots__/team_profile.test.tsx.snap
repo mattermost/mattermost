@@ -50,31 +50,74 @@ exports[`admin_console/team_channel_settings/team/TeamProfile should match snaps
             </div>
           </div>
           <div
-            class="team-desc-col"
+            class="team-desc-col team-desc-col--edit"
           >
             <div
               class="row row-bottom-padding"
             >
-              <b>
-                Team Name
-              </b>
-              :
-              <br />
-              name
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="Input_fieldset Input_fieldset___legend"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend Input_legend___focus"
+                    for="input_"
+                  >
+                                            
+                    Team Name
+                  </label>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <input
+                      aria-label="Team Name"
+                      class="Input form-control medium Input__focus"
+                      data-testid="teamNameInput"
+                      id="teamName"
+                      maxlength="64"
+                      placeholder="Team Name"
+                      type="text"
+                      value="name"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
             <div
               class="row"
             >
-              <b>
-                Team Description
-              </b>
-              :
-              <br />
-              <span
-                class="greyed-out"
+              <div
+                class="Input_container"
               >
-                No team description added.
-              </span>
+                <div
+                  class="Input_fieldset"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend"
+                    for="input_"
+                  >
+                                            
+                  </label>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <textarea
+                      aria-label="Team Description"
+                      class="Input form-control medium"
+                      data-testid="teamDescriptionInput"
+                      id="teamDescription"
+                      maxlength="50"
+                      placeholder="Team Description"
+                      rows="3"
+                      type="textarea"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -147,31 +190,74 @@ exports[`admin_console/team_channel_settings/team/TeamProfile should match snaps
             </div>
           </div>
           <div
-            class="team-desc-col"
+            class="team-desc-col team-desc-col--edit"
           >
             <div
               class="row row-bottom-padding"
             >
-              <b>
-                Team Name
-              </b>
-              :
-              <br />
-              name
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="Input_fieldset Input_fieldset___legend"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend Input_legend___focus"
+                    for="input_"
+                  >
+                                            
+                    Team Name
+                  </label>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <input
+                      aria-label="Team Name"
+                      class="Input form-control medium Input__focus"
+                      data-testid="teamNameInput"
+                      id="teamName"
+                      maxlength="64"
+                      placeholder="Team Name"
+                      type="text"
+                      value="name"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
             <div
               class="row"
             >
-              <b>
-                Team Description
-              </b>
-              :
-              <br />
-              <span
-                class="greyed-out"
+              <div
+                class="Input_container"
               >
-                No team description added.
-              </span>
+                <div
+                  class="Input_fieldset"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend"
+                    for="input_"
+                  >
+                                            
+                  </label>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <textarea
+                      aria-label="Team Description"
+                      class="Input form-control medium"
+                      data-testid="teamDescriptionInput"
+                      id="teamDescription"
+                      maxlength="50"
+                      placeholder="Team Description"
+                      rows="3"
+                      type="textarea"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -244,31 +330,74 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud restore sho
             </div>
           </div>
           <div
-            class="team-desc-col"
+            class="team-desc-col team-desc-col--edit"
           >
             <div
               class="row row-bottom-padding"
             >
-              <b>
-                Team Name
-              </b>
-              :
-              <br />
-              name
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="Input_fieldset Input_fieldset___legend"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend Input_legend___focus"
+                    for="input_"
+                  >
+                                            
+                    Team Name
+                  </label>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <input
+                      aria-label="Team Name"
+                      class="Input form-control medium Input__focus"
+                      data-testid="teamNameInput"
+                      id="teamName"
+                      maxlength="64"
+                      placeholder="Team Name"
+                      type="text"
+                      value="name"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
             <div
               class="row"
             >
-              <b>
-                Team Description
-              </b>
-              :
-              <br />
-              <span
-                class="greyed-out"
+              <div
+                class="Input_container"
               >
-                No team description added.
-              </span>
+                <div
+                  class="Input_fieldset"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend"
+                    for="input_"
+                  >
+                                            
+                  </label>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <textarea
+                      aria-label="Team Description"
+                      class="Input form-control medium"
+                      data-testid="teamDescriptionInput"
+                      id="teamDescription"
+                      maxlength="50"
+                      placeholder="Team Description"
+                      rows="3"
+                      type="textarea"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -341,31 +470,74 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
             </div>
           </div>
           <div
-            class="team-desc-col"
+            class="team-desc-col team-desc-col--edit"
           >
             <div
               class="row row-bottom-padding"
             >
-              <b>
-                Team Name
-              </b>
-              :
-              <br />
-              name
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="Input_fieldset Input_fieldset___legend"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend Input_legend___focus"
+                    for="input_"
+                  >
+                                            
+                    Team Name
+                  </label>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <input
+                      aria-label="Team Name"
+                      class="Input form-control medium Input__focus"
+                      data-testid="teamNameInput"
+                      id="teamName"
+                      maxlength="64"
+                      placeholder="Team Name"
+                      type="text"
+                      value="name"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
             <div
               class="row"
             >
-              <b>
-                Team Description
-              </b>
-              :
-              <br />
-              <span
-                class="greyed-out"
+              <div
+                class="Input_container"
               >
-                No team description added.
-              </span>
+                <div
+                  class="Input_fieldset"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend"
+                    for="input_"
+                  >
+                                            
+                  </label>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <textarea
+                      aria-label="Team Description"
+                      class="Input form-control medium"
+                      data-testid="teamDescriptionInput"
+                      id="teamDescription"
+                      maxlength="50"
+                      placeholder="Team Description"
+                      rows="3"
+                      type="textarea"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -445,31 +617,74 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
             </div>
           </div>
           <div
-            class="team-desc-col"
+            class="team-desc-col team-desc-col--edit"
           >
             <div
               class="row row-bottom-padding"
             >
-              <b>
-                Team Name
-              </b>
-              :
-              <br />
-              name
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="Input_fieldset Input_fieldset___legend"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend Input_legend___focus"
+                    for="input_"
+                  >
+                                            
+                    Team Name
+                  </label>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <input
+                      aria-label="Team Name"
+                      class="Input form-control medium Input__focus"
+                      data-testid="teamNameInput"
+                      id="teamName"
+                      maxlength="64"
+                      placeholder="Team Name"
+                      type="text"
+                      value="name"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
             <div
               class="row"
             >
-              <b>
-                Team Description
-              </b>
-              :
-              <br />
-              <span
-                class="greyed-out"
+              <div
+                class="Input_container"
               >
-                No team description added.
-              </span>
+                <div
+                  class="Input_fieldset"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend"
+                    for="input_"
+                  >
+                                            
+                  </label>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <textarea
+                      aria-label="Team Description"
+                      class="Input form-control medium"
+                      data-testid="teamDescriptionInput"
+                      id="teamDescription"
+                      maxlength="50"
+                      placeholder="Team Description"
+                      rows="3"
+                      type="textarea"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

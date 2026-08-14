@@ -30,7 +30,7 @@ const markdownRenderingOptions: Partial<TextFormattingOptions> = {
 
 type Props = {
     channelId: string;
-}
+};
 
 export default function ChannelBanner({channelId}: Props) {
     const channelBannerInfo = useSelector((state: GlobalState) => getChannelBanner(state, channelId));

@@ -70,7 +70,7 @@ const ProfilePopoverOtherUserRow = ({
                 } else {
                     setCanMessage(false);
                 }
-            } catch (error) {
+            } catch {
                 // Error checking DM permissions
                 setCanMessage(false);
             } finally {

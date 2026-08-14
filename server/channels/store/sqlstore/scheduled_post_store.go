@@ -33,6 +33,7 @@ func normalizePrefix(prefix string) string {
 	return prefix
 }
 
+// Type is nullable, so it's kept out of baseColumns and coalesced on read.
 func baseColumns(prefix string) []string {
 	return []string{
 		prefix + "Id",
@@ -48,19 +49,19 @@ func baseColumns(prefix string) []string {
 		prefix + "ScheduledAt",
 		prefix + "ProcessedAt",
 		prefix + "ErrorCode",
+		prefix + "RepeatType",
+		prefix + "RepeatTimezone",
 	}
 }
 
 func (s *SqlScheduledPostStore) columnsForWrite(prefix string) []string {
 	prefix = normalizePrefix(prefix)
-	columns := baseColumns(prefix)
-	return append(columns, prefix+"Type")
+	return append(baseColumns(prefix), prefix+"Type")
 }
 
 func (s *SqlScheduledPostStore) columnsForRead(prefix string) []string {
 	prefix = normalizePrefix(prefix)
-	columns := baseColumns(prefix)
-	return append(columns, "COALESCE("+prefix+"Type, '') AS Type")
+	return append(baseColumns(prefix), "COALESCE("+prefix+"Type, '') AS Type")
 }
 
 func (s *SqlScheduledPostStore) scheduledPostToSlice(scheduledPost *model.ScheduledPost) []any {
@@ -78,6 +79,8 @@ func (s *SqlScheduledPostStore) scheduledPostToSlice(scheduledPost *model.Schedu
 		scheduledPost.ScheduledAt,
 		scheduledPost.ProcessedAt,
 		scheduledPost.ErrorCode,
+		scheduledPost.RepeatType,
+		scheduledPost.RepeatTimezone,
 		scheduledPost.Type,
 	}
 }
@@ -152,35 +155,34 @@ func (s *SqlScheduledPostStore) GetMaxMessageSize() int {
 }
 
 func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+	// The ScheduledAt <= beforeTime bound stays outside the keyset tie-break so Postgres can
+	// use it as the boundary of idx_scheduledposts_pending_scheduled_at_id; the equivalent
+	// pure OR form would force scanning the index from the top on every page.
+	pendingCursor := sq.And{sq.LtOrEq{"ScheduledAt": beforeTime}}
+	if lastScheduledPostId != "" {
+		pendingCursor = append(pendingCursor, sq.Or{
+			sq.Lt{"ScheduledAt": beforeTime},
+			sq.Gt{"Id": lastScheduledPostId},
+		})
+	}
+
 	query := s.getQueryBuilder().
 		Select(s.columnsForRead("")...).
 		From("ScheduledPosts").
 		Where(sq.Eq{"ErrorCode": ""}).
+		Where(pendingCursor).
+		Where(sq.Or{
+			sq.Eq{"RepeatType": model.ScheduledPostRepeatTypeWeekly},
+			sq.GtOrEq{"ScheduledAt": afterTime},
+		}).
 		OrderBy("ScheduledAt DESC", "Id").
 		Limit(perPage)
 
-	if lastScheduledPostId == "" {
-		query = query.Where(sq.And{
-			sq.LtOrEq{"ScheduledAt": beforeTime},
-			sq.GtOrEq{"ScheduledAt": afterTime},
-		})
-	}
-	if lastScheduledPostId != "" {
-		query = query.
-			Where(sq.Or{
-				sq.And{
-					sq.LtOrEq{"ScheduledAt": beforeTime},
-					sq.GtOrEq{"ScheduledAt": afterTime},
-				},
-				sq.And{
-					sq.Eq{"ScheduledAt": beforeTime},
-					sq.Gt{"Id": lastScheduledPostId},
-				},
-			})
-	}
-
+	// We read from the master here instead of a replica on purpose. The scheduled post job
+	// deletes processed posts and then fetches the next page of pending posts. Reading from a
+	// replica can return stale data, causing already-processed posts to reappear on later pages.
 	var scheduledPosts []*model.ScheduledPost
-	if err := s.GetReplica().SelectBuilder(&scheduledPosts, query); err != nil {
+	if err := s.GetMaster().SelectBuilder(&scheduledPosts, query); err != nil {
 		mlog.Error(
 			"SqlScheduledPostStore.GetPendingScheduledPosts: failed to fetch pending scheduled posts for processing",
 			mlog.Int("before_time", beforeTime),
@@ -223,6 +225,8 @@ func (s *SqlScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduledPostIDs
 	return nil
 }
 
+// UpdatedScheduledPost persists the scheduled post as given; ProcessedAt and ErrorCode are
+// caller-owned and stored verbatim.
 func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
 	scheduledPost.PreUpdate()
 
@@ -246,18 +250,60 @@ func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.Schedu
 	return nil
 }
 
+// UpdateRecurringScheduledPosts advances recurring scheduled posts to their next occurrence in a
+// single query, persisting each post's ScheduledAt and resetting ErrorCode/ProcessedAt so the posts
+// are pending again. It also stamps UpdateAt on the given posts.
+func (s *SqlScheduledPostStore) UpdateRecurringScheduledPosts(scheduledPosts []*model.ScheduledPost) error {
+	if len(scheduledPosts) == 0 {
+		return nil
+	}
+
+	updateAt := model.GetMillis()
+	scheduledAtCase := sq.Case("Id")
+	ids := make([]string, len(scheduledPosts))
+
+	for i, scheduledPost := range scheduledPosts {
+		scheduledPost.UpdateAt = updateAt
+		ids[i] = scheduledPost.Id
+		// The ::bigint cast is required for Postgres to infer the parameter type inside CASE...THEN.
+		scheduledAtCase = scheduledAtCase.When(sq.Expr("?", scheduledPost.Id), sq.Expr("?::bigint", scheduledPost.ScheduledAt))
+	}
+
+	builder := s.getQueryBuilder().
+		Update("ScheduledPosts").
+		Set("ScheduledAt", scheduledAtCase).
+		Set("ErrorCode", "").
+		Set("ProcessedAt", 0).
+		Set("UpdateAt", updateAt).
+		Where(sq.Eq{"Id": ids})
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		mlog.Error("SqlScheduledPostStore.UpdateRecurringScheduledPosts failed to generate SQL from updating scheduled posts", mlog.Err(err))
+		return errors.Wrap(err, "SqlScheduledPostStore.UpdateRecurringScheduledPosts failed to generate SQL from updating scheduled posts")
+	}
+
+	if _, err := s.GetMaster().Exec(query, args...); err != nil {
+		mlog.Error("SqlScheduledPostStore.UpdateRecurringScheduledPosts failed to update scheduled posts", mlog.Int("scheduled_post_count", len(scheduledPosts)), mlog.Err(err))
+		return errors.Wrap(err, "SqlScheduledPostStore.UpdateRecurringScheduledPosts failed to update scheduled posts")
+	}
+
+	return nil
+}
+
 func (s *SqlScheduledPostStore) toUpdateMap(scheduledPost *model.ScheduledPost) map[string]any {
-	now := model.GetMillis()
 	return map[string]any{
-		"UpdateAt":    now,
-		"Message":     scheduledPost.Message,
-		"Props":       model.StringInterfaceToJSON(scheduledPost.GetProps()),
-		"FileIds":     model.ArrayToJSON(scheduledPost.FileIds),
-		"Priority":    model.StringInterfaceToJSON(scheduledPost.Priority),
-		"ScheduledAt": scheduledPost.ScheduledAt,
-		"ProcessedAt": now,
-		"ErrorCode":   scheduledPost.ErrorCode,
-		"Type":        scheduledPost.Type,
+		"UpdateAt":       model.GetMillis(),
+		"Message":        scheduledPost.Message,
+		"Props":          model.StringInterfaceToJSON(scheduledPost.GetProps()),
+		"FileIds":        model.ArrayToJSON(scheduledPost.FileIds),
+		"Priority":       model.StringInterfaceToJSON(scheduledPost.Priority),
+		"ScheduledAt":    scheduledPost.ScheduledAt,
+		"ProcessedAt":    scheduledPost.ProcessedAt,
+		"ErrorCode":      scheduledPost.ErrorCode,
+		"Type":           scheduledPost.Type,
+		"RepeatType":     scheduledPost.RepeatType,
+		"RepeatTimezone": scheduledPost.RepeatTimezone,
 	}
 }
 
@@ -287,6 +333,7 @@ func (s *SqlScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error 
 		Set("ProcessedAt", model.GetMillis()).
 		Where(sq.And{
 			sq.Eq{"ErrorCode": ""},
+			sq.NotEq{"RepeatType": model.ScheduledPostRepeatTypeWeekly},
 			sq.Lt{"ScheduledAt": beforeTime},
 		})
 

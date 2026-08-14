@@ -5,6 +5,8 @@ import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import type {SchedulingInfo} from '@mattermost/types/schedule_post';
+
 import {openModal} from 'actions/views/modals';
 
 import ScheduledPostCustomTimeModal
@@ -30,9 +32,10 @@ type Props = {
     onSend: () => void;
     canEdit: boolean;
     canSend: boolean;
-    onSchedule: (timestamp: number) => Promise<{error?: string}>;
+    onSchedule: (schedulingInfo: SchedulingInfo) => Promise<{error?: string}>;
     channelId: string;
-}
+    allowRecurring: boolean;
+};
 
 function DraftActions({
     displayName,
@@ -43,6 +46,7 @@ function DraftActions({
     canSend,
     onSchedule,
     channelId,
+    allowRecurring,
 }: Props) {
     const dispatch = useDispatch();
 
@@ -75,9 +79,10 @@ function DraftActions({
             dialogProps: {
                 channelId,
                 onConfirm: onSchedule,
+                allowRecurring,
             },
         }));
-    }, [channelId, dispatch, onSchedule]);
+    }, [allowRecurring, channelId, dispatch, onSchedule]);
 
     return (
         <>

@@ -11,7 +11,7 @@ import FileCard from './file_card';
 
 type Props = {
     post: Post;
-}
+};
 
 function Attachment({post}: Props) {
     if (post.file_ids?.length) {

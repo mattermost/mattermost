@@ -216,6 +216,12 @@ func migrateCmdF(command *cobra.Command, args []string) error {
 				strings.Repeat("*", 80), fileName+".json", strings.Repeat("*", 80)))
 	}
 
+	if !dryRun {
+		if preMigrationError := migrator.PreMigrate(); preMigrationError != nil {
+			return errors.Wrap(preMigrationError, "failed to run pre-migrations")
+		}
+	}
+
 	err = migrator.MigrateWithPlan(plan, dryRun)
 	if err != nil {
 		return errors.Wrap(err, "failed to migrate with the plan")

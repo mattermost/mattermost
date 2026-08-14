@@ -15,7 +15,7 @@ type ProfileTimezoneProps = {
     profileUserTimezone?: UserTimezone;
     currentUserTimezone: string | undefined;
     haveOverrideProp: boolean;
-}
+};
 
 const TimeZoneDifference = ({
     currentUserTimezone,

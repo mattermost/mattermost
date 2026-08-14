@@ -9,7 +9,7 @@ import Header from 'components/widgets/header';
 
 type Props = {
     children: ReactNode;
-}
+};
 
 export default function DraftsAndSchedulePostsPageHeader(props: Props) {
     return (
@@ -20,6 +20,7 @@ export default function DraftsAndSchedulePostsPageHeader(props: Props) {
             <Header
                 level={2}
                 className='Drafts__header'
+                data-testid='drafts-header'
                 heading={
                     <FormattedMessage
                         id='drafts.heading'

@@ -34,7 +34,7 @@ const isCurrentChannelMuted = createSelector(
 
 type OwnProps = {
     location: Location;
-}
+};
 
 const mapStateToProps = (state: GlobalState, ownProps: OwnProps) => ({
     user: getCurrentUser(state),

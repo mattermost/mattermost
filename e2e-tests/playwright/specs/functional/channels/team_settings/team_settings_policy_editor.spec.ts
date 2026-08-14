@@ -15,7 +15,6 @@ import {
     assignChannelsToPolicy,
     unassignChannelsFromPolicy,
     createPrivateChannel,
-    createPublicChannel,
     createTeamAdmin,
     setUserAttribute,
     addAttributeRule,
@@ -784,7 +783,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
 
         // # Create 55 public channels — more than the 50-result autocomplete cap
         for (let i = 0; i < 55; i++) {
-            const pub = await createPublicChannel(adminClient, team.id);
+            const pub = await adminClient.createPublicChannel(team.id);
             await adminClient.addToChannel(teamAdmin.id, pub.id);
         }
 

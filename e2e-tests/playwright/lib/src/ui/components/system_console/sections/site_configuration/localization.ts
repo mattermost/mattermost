@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 /**
  * System Console -> Site Configuration -> Localization
@@ -27,15 +28,15 @@ export default class Localization {
 
         this.header = container.getByText('Localization', {exact: true});
         this.featureDiscoveryBlock = container.getByText('Remove language barriers with auto-translation');
-        this.autoTranslationSection = container.locator('.autotranslation-section-header');
-        this.autoTranslationToggle = container.locator('.autotranslation-section-toggle').locator('button');
+        this.autoTranslationSection = container.getByTestId('autotranslation-section-header');
+        this.autoTranslationToggle = container.getByTestId('autotranslation-section-toggle').locator('button');
         this.providerDropdown = container.getByTestId('Providerdropdown');
         this.mattermostAgentsInactiveNotice = container.getByText(
             'LLMs must first be configured in the Agents plugin.',
         );
         this.mattermostAgentsConfigLink = container.getByRole('link', {name: /Go to Agents plugin config/i});
-        this.libreTranslateUrlInput = container.locator('input[id="URL"]');
-        this.libreTranslateApiKeyInput = container.locator('input[id="APIKey"]');
+        this.libreTranslateUrlInput = container.locator('#URL');
+        this.libreTranslateApiKeyInput = container.locator('#APIKey');
         this.targetLanguagesMultiSelect = container.getByTestId('TargetLanguages');
         this.saveButton = container.getByRole('button', {name: 'Save'});
     }

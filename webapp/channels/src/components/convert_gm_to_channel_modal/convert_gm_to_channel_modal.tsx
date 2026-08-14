@@ -38,7 +38,7 @@ export type Props = {
     profilesInChannel: UserProfile[];
     teammateNameDisplaySetting: string;
     currentUserId: string;
-}
+};
 
 const ConvertGmToChannelModal = (props: Props) => {
     const intl = useIntl();

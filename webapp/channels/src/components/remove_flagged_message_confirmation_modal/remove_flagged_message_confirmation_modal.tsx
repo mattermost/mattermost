@@ -35,7 +35,7 @@ type Props = {
     onExited: () => void;
     flaggedPost: Post;
     reportingUser: UserProfile;
-}
+};
 
 type Step = 'form' | 'skip_confirm' | 'generating' | 'generated' | 'error';
 

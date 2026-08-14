@@ -276,7 +276,7 @@ const EnterpriseEditionLeftPanel = ({
     );
 };
 
-type LegendValues = 'START DATE:' | 'EXPIRES:' | 'LICENSED SEATS:' | 'ACTIVE USERS:' | 'SINGLE-CHANNEL GUESTS:' | 'EDITION:' | 'LICENSE ISSUED:' | 'NAME:' | 'COMPANY / ORG:'
+type LegendValues = 'START DATE:' | 'EXPIRES:' | 'LICENSED SEATS:' | 'ACTIVE USERS:' | 'SINGLE-CHANNEL GUESTS:' | 'EDITION:' | 'LICENSE ISSUED:' | 'NAME:' | 'COMPANY / ORG:';
 
 const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expirationDays: number, singleChannelGuestCount: number, singleChannelGuestLimit: number) => ({legend, value}: {legend: LegendValues; value: string | JSX.Element | null}, index: number): React.ReactNode => {
     if (legend === 'SINGLE-CHANNEL GUESTS:') {

@@ -7,6 +7,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -436,6 +437,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>
@@ -449,6 +451,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -877,6 +880,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>
@@ -890,6 +894,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -1162,6 +1167,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>
@@ -1175,6 +1181,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -1446,6 +1453,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>
@@ -1459,6 +1467,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -1690,6 +1699,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>
@@ -1703,6 +1713,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
   >
     <div
       class="admin-console__header with-back"
+      data-testid="admin-console-header"
     >
       <div>
         <a
@@ -1933,6 +1944,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
       </a>
       <div
         class="error-message"
+        data-testid="saveChangesPanel-errorMessage"
       />
     </div>
   </div>

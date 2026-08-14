@@ -815,6 +815,37 @@ func testGetRemotesStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.SharedChannel().SaveRemote(scr2)
 	require.NoError(t, err)
 
+	// Advance the sync cursors so the reported LastSyncAt reflects real activity.
+	// scr1's members sync is newer than its post sync, so LastSyncAt must track the
+	// members cursor. scr2's post-create cursor is the newest of all three cursors,
+	// so LastSyncAt must track it. The post-create cursor advances independently of
+	// the post-update cursor (see GetPostsSinceForSync), so it can be the most recent
+	// sync activity and must be one of the GREATEST operands.
+	now := model.GetMillis()
+	scr1PostSyncAt := now - 5000
+	scr1MembersSyncAt := now - 1000
+	scr2PostCreateAt := now - 500
+	scr2PostUpdateAt := now - 3000
+	scr2MembersSyncAt := now - 7000
+
+	err = ss.SharedChannel().UpdateRemoteCursor(scr1.Id, model.GetPostsSinceForSyncCursor{
+		LastPostUpdateAt: scr1PostSyncAt,
+		LastPostUpdateID: model.NewId(),
+	})
+	require.NoError(t, err)
+	err = ss.SharedChannel().UpdateRemoteMembershipCursor(scr1.Id, scr1MembersSyncAt)
+	require.NoError(t, err)
+
+	err = ss.SharedChannel().UpdateRemoteCursor(scr2.Id, model.GetPostsSinceForSyncCursor{
+		LastPostCreateAt: scr2PostCreateAt,
+		LastPostCreateID: model.NewId(),
+		LastPostUpdateAt: scr2PostUpdateAt,
+		LastPostUpdateID: model.NewId(),
+	})
+	require.NoError(t, err)
+	err = ss.SharedChannel().UpdateRemoteMembershipCursor(scr2.Id, scr2MembersSyncAt)
+	require.NoError(t, err)
+
 	t.Run("Get remotes status for channel", func(t *testing.T) {
 		statuses, err := ss.SharedChannel().GetRemotesStatus(channel.Id)
 		require.NoError(t, err)
@@ -833,6 +864,8 @@ func testGetRemotesStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, rc1.DisplayName, s1.DisplayName)
 		assert.Equal(t, rc1.SiteURL, s1.SiteURL)
 		assert.True(t, s1.IsInviteAccepted)
+		// LastSyncAt is the greater of the post and members cursors.
+		assert.Equal(t, scr1MembersSyncAt, s1.LastSyncAt)
 
 		s2 := statusMap[rc2.RemoteId]
 		require.NotNil(t, s2)
@@ -841,6 +874,34 @@ func testGetRemotesStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, rc2.DisplayName, s2.DisplayName)
 		assert.Equal(t, rc2.SiteURL, s2.SiteURL)
 		assert.False(t, s2.IsInviteAccepted)
+		// The post-create cursor is the newest cursor, so LastSyncAt tracks it. If the
+		// post-create cursor were excluded from GREATEST, this would report the older
+		// post-update cursor instead.
+		assert.Equal(t, scr2PostCreateAt, s2.LastSyncAt)
+	})
+
+	t.Run("Reports zero last sync when the remote has never synced", func(t *testing.T) {
+		unsyncedChannel, err := createTestChannel(ss, rctx, "test_remotes_status_unsynced")
+		require.NoError(t, err)
+
+		_, scErr := shareChannel(ss, unsyncedChannel, true, "")
+		require.NoError(t, scErr)
+
+		scrUnsynced := &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         unsyncedChannel.Id,
+			RemoteId:          rc1.RemoteId,
+			CreatorId:         rc1.CreatorId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+		}
+		_, err = ss.SharedChannel().SaveRemote(scrUnsynced)
+		require.NoError(t, err)
+
+		statuses, err := ss.SharedChannel().GetRemotesStatus(unsyncedChannel.Id)
+		require.NoError(t, err)
+		require.Len(t, statuses, 1)
+		assert.Zero(t, statuses[0].LastSyncAt)
 	})
 
 	t.Run("Get remotes status for channel with no remotes", func(t *testing.T) {
@@ -1297,11 +1358,22 @@ func testGetSingleSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Sto
 }
 
 func testGetSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Store) {
+	// GetUsersForUser only returns rows whose remote cluster still exists and
+	// is not deleted, so point the rows at a live remote.
+	liveRemote := &model.RemoteCluster{
+		RemoteId:  model.NewId(),
+		SiteURL:   "http://example.com",
+		CreatorId: model.NewId(),
+		Name:      "live-remote",
+	}
+	_, err := ss.RemoteCluster().Save(liveRemote)
+	require.NoError(t, err, "couldn't save remote cluster", err)
+
 	userId := model.NewId()
 	for range 10 {
 		scUser := &model.SharedChannelUser{
 			UserId:    userId,
-			RemoteId:  model.NewId(),
+			RemoteId:  liveRemote.RemoteId,
 			ChannelId: model.NewId(),
 		}
 		_, err := ss.SharedChannel().SaveUser(scUser)
@@ -1320,6 +1392,53 @@ func testGetSharedChannelUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		scus, err := ss.SharedChannel().GetUsersForUser(model.NewId())
 		require.NoError(t, err, "should not error when not found")
 		require.Empty(t, scus, "should be empty")
+	})
+
+	t.Run("Excludes rows for deleted or missing remote clusters", func(t *testing.T) {
+		deletedRemote := &model.RemoteCluster{
+			RemoteId:  model.NewId(),
+			SiteURL:   "http://example.com",
+			CreatorId: model.NewId(),
+			Name:      "deleted-remote",
+		}
+		_, err := ss.RemoteCluster().Save(deletedRemote)
+		require.NoError(t, err)
+
+		mixedUserId := model.NewId()
+		// Two rows for the live remote: these should be returned.
+		for range 2 {
+			_, err = ss.SharedChannel().SaveUser(&model.SharedChannelUser{
+				UserId:    mixedUserId,
+				RemoteId:  liveRemote.RemoteId,
+				ChannelId: model.NewId(),
+			})
+			require.NoError(t, err)
+		}
+		// One row for a soft-deleted remote: should be excluded.
+		_, err = ss.SharedChannel().SaveUser(&model.SharedChannelUser{
+			UserId:    mixedUserId,
+			RemoteId:  deletedRemote.RemoteId,
+			ChannelId: model.NewId(),
+		})
+		require.NoError(t, err)
+		// One row for a remote that never existed: should be excluded.
+		_, err = ss.SharedChannel().SaveUser(&model.SharedChannelUser{
+			UserId:    mixedUserId,
+			RemoteId:  model.NewId(),
+			ChannelId: model.NewId(),
+		})
+		require.NoError(t, err)
+
+		deleted, err := ss.RemoteCluster().Delete(deletedRemote.RemoteId)
+		require.NoError(t, err)
+		require.True(t, deleted)
+
+		scus, err := ss.SharedChannel().GetUsersForUser(mixedUserId)
+		require.NoError(t, err)
+		require.Len(t, scus, 2, "should only return rows pointing at the live remote")
+		for _, scu := range scus {
+			require.Equal(t, liveRemote.RemoteId, scu.RemoteId)
+		}
 	})
 }
 

@@ -18,7 +18,6 @@ import {
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import * as MESSAGES from '@/fixtures/messages';
 
-
 describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last message', () => {
     let testUser;
     let testTeam;

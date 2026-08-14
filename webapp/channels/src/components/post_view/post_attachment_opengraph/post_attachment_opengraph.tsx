@@ -17,22 +17,23 @@ import type {
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
+import SizeAwareImage from 'components/size_aware_image';
 
 import {PostTypes} from 'utils/constants';
 import {isSystemMessage} from 'utils/post_utils';
 import {makeUrlSafe} from 'utils/url';
 
+import {
+    OPEN_GRAPH_LARGE_IMAGE_MIN_WIDTH,
+    OPEN_GRAPH_LARGE_IMAGE_RATIO,
+    OPEN_GRAPH_MAX_IMAGE_HEIGHT,
+    OPEN_GRAPH_MAX_IMAGE_WIDTH,
+    OPEN_GRAPH_NEAREST_POINT_IMAGE,
+    OPEN_GRAPH_THUMBNAIL_SIZE,
+} from './constants';
 import {getNearestPoint} from './get_nearest_point';
 
 import './post_attachment_opengraph.scss';
-
-const DIMENSIONS_NEAREST_POINT_IMAGE = {
-    height: 80,
-    width: 80,
-};
-
-const LARGE_IMAGE_RATIO = 4 / 3;
-const LARGE_IMAGE_WIDTH = 150;
 
 export type Props = {
     postId: string;
@@ -45,7 +46,7 @@ export type Props = {
     isEmbedVisible?: boolean;
     toggleEmbedVisibility: () => void;
     actions: {
-        editPost: (post: { id: string; props: Record<string, any> }) => void;
+        editPost: (post: Post) => void;
     };
     isInPermalink?: boolean;
     imageCollapsed?: boolean;
@@ -71,18 +72,49 @@ export function getBestImage(openGraphData?: OpenGraphMetadata, imagesMetadata?:
         };
     });
 
-    return getNearestPoint<ImageMetadata>(DIMENSIONS_NEAREST_POINT_IMAGE, images);
+    return getNearestPoint<ImageMetadata>(OPEN_GRAPH_NEAREST_POINT_IMAGE, images);
 }
 
-export const getIsLargeImage = (data: ImageMetadata|null) => {
+export const getIsLargeImage = (data: ImageMetadata | null) => {
     if (!data) {
         return false;
     }
 
     const {height, width} = data;
 
-    return width >= LARGE_IMAGE_WIDTH && (width / height) >= LARGE_IMAGE_RATIO;
+    return width >= OPEN_GRAPH_LARGE_IMAGE_MIN_WIDTH && (width / height) >= OPEN_GRAPH_LARGE_IMAGE_RATIO;
 };
+
+export function getScaledImageDimensions(imageMetadata: ImageMetadata, large: boolean): Partial<PostImage> {
+    const {width = 0, height = 0} = imageMetadata;
+
+    if (width <= 0 || height <= 0) {
+        return {};
+    }
+
+    if (large) {
+        const ratio = Math.min(
+            OPEN_GRAPH_MAX_IMAGE_WIDTH / width,
+            OPEN_GRAPH_MAX_IMAGE_HEIGHT / height,
+            1,
+        );
+
+        return {
+            width: width * ratio,
+            height: height * ratio,
+        };
+    }
+
+    const ratio = Math.min(
+        OPEN_GRAPH_THUMBNAIL_SIZE / width,
+        OPEN_GRAPH_THUMBNAIL_SIZE / height,
+    );
+
+    return {
+        width: width * ratio,
+        height: height * ratio,
+    };
+}
 
 const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermalink, previewEnabled, ...rest}: Props) => {
     const {formatMessage} = useIntl();
@@ -115,7 +147,7 @@ const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermal
             props,
         };
 
-        return actions.editPost(patchedPost);
+        return actions.editPost(patchedPost as Post);
     };
 
     const safeLink = makeUrlSafe(openGraphData?.url || link);
@@ -127,6 +159,11 @@ const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermal
             href={safeLink}
             title={openGraphData?.title || openGraphData?.url || link}
             location='post_attachment_opengraph'
+            style={{
+                '--open-graph-thumbnail-size': `${OPEN_GRAPH_THUMBNAIL_SIZE}px`,
+                '--open-graph-max-image-width': `${OPEN_GRAPH_MAX_IMAGE_WIDTH}px`,
+                '--open-graph-max-image-height': `${OPEN_GRAPH_MAX_IMAGE_HEIGHT}px`,
+            } as React.CSSProperties}
         >
             {rest.currentUserId === post.user_id && !isInPermalink && (
                 <WithTooltip
@@ -168,7 +205,7 @@ type BodyProps = {
     isInPermalink?: boolean;
     sitename?: string;
     description?: string;
-}
+};
 
 export const PostAttachmentOpenGraphBody = memo(({title, isInPermalink, sitename = '', description = ''}: BodyProps) => {
     return title ? (
@@ -182,11 +219,11 @@ export const PostAttachmentOpenGraphBody = memo(({title, isInPermalink, sitename
 
 type ImageProps = {
     title?: string;
-    imageMetadata?: ImageMetadata|null;
+    imageMetadata?: ImageMetadata | null;
     isInPermalink: Props['isInPermalink'];
     isEmbedVisible: Props['isEmbedVisible'];
     toggleEmbedVisibility: Props['toggleEmbedVisibility'];
-}
+};
 
 export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink, toggleEmbedVisibility, isEmbedVisible = true, title = ''}: ImageProps) => {
     const {formatMessage} = useIntl();
@@ -230,6 +267,8 @@ export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink,
         </button>
     );
 
+    const imageDimensions = getScaledImageDimensions(imageMetadata, large);
+
     const image = (
         <ExternalImage
             src={src}
@@ -237,13 +276,14 @@ export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink,
         >
             {(source) => (
                 <>
+                    <SizeAwareImage
+                        src={source}
+                        dimensions={imageDimensions}
+                        showLoader={true}
+                        alt={title}
+                        hideUtilities={true}
+                    />
                     {large && imageCollapseButton}
-                    <figure>
-                        <img
-                            src={source}
-                            alt={title}
-                        />
-                    </figure>
                 </>
             )}
         </ExternalImage>

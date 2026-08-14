@@ -27,7 +27,7 @@ type Props = BaseSettingItemProps & {
     isContentInline?: boolean;
     className?: string;
     descriptionAboveContent?: boolean;
-}
+};
 
 function BaseSettingItem({title, description, content, className, error, descriptionAboveContent = false, isContentInline = false, dataTestId}: Props): JSX.Element {
     const {formatMessage} = useIntl();

@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Browser, Page, test as base} from '@playwright/test';
-import {AxeResults} from 'axe-core';
+import type {Browser, Page} from '@playwright/test';
+import {test as base} from '@playwright/test';
+import type {AxeResults} from 'axe-core';
 import {AxeBuilder} from '@axe-core/playwright';
 
 import {TestBrowser} from './browser_context';
@@ -19,6 +20,8 @@ import {
 import {getBlobFromAsset, getFileFromAsset} from './file';
 import {
     configureAIBridgeMock,
+    createKeycloakUser,
+    createLdapUser,
     createMockAIAgent,
     createNewUserProfile,
     createNewTeam,
@@ -27,11 +30,23 @@ import {
     createRandomTeam,
     createRandomUser,
     createUserWithAttributes,
+    deleteKeycloakUser,
+    deleteLdapUser,
     enableAIBridgeTestMode,
+    listMinioObjectKeys,
+    ensureMinio,
+    ensureAzurite,
+    listAzuriteBlobNames,
+    ensureLocalFile,
+    ensurePostgresSearch,
+    ensureFeatureFlag,
+    generateLdapUser,
     getAIBridgeMock,
     getAdminClient,
     initSetup,
     isOutsideRemoteUserHour,
+    ldapServerConfig,
+    ensureOpenldap,
     makeClient,
     mergeWithOnPremServerConfig,
     recapCompletion,
@@ -39,6 +54,15 @@ import {
     rewriteCompletion,
     installAndEnablePlugin,
     isPluginActive,
+    samlServerConfig,
+    ensureKeycloak,
+    elasticsearchServerConfig,
+    opensearchServerConfig,
+    ensureElasticsearch,
+    ensureOpensearch,
+    runMmctl,
+    ensureMmctl,
+    updateLdapUser,
 } from './server';
 import {
     toBeFocusedWithFocusVisible,
@@ -49,7 +73,15 @@ import {
 } from './test_action';
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
-import {stubNotification, waitForNotification} from './mock_browser_api';
+import {
+    clearCapturedNotifications,
+    clickNotification,
+    closeWebsockets,
+    connectWebsockets,
+    mockWebsockets,
+    stubNotification,
+    waitForNotification,
+} from './mock_browser_api';
 import {duration, getRandomId, newTestPassword, simpleEmailRe, wait} from './util';
 
 export {expect} from '@playwright/test';
@@ -65,7 +97,6 @@ type AxeBuilderOptions = {
 };
 
 export const test = base.extend<ExtendedFixtures>({
-    // eslint-disable-next-line no-empty-pattern
     axe: async ({}, use) => {
         const ab = new AxeBuilderExtended();
         await use(ab);
@@ -109,6 +140,31 @@ export class PlaywrightExtended {
     readonly installAndEnablePlugin;
     readonly isPluginActive;
 
+    // ./server/openldap, ./server/keycloak, ./server/elasticsearch, ./server/opensearch, ./server/minio
+    readonly generateLdapUser;
+    readonly createLdapUser;
+    readonly updateLdapUser;
+    readonly deleteLdapUser;
+    readonly ldapServerConfig;
+    readonly ensureOpenldap;
+    readonly createKeycloakUser;
+    readonly deleteKeycloakUser;
+    readonly samlServerConfig;
+    readonly ensureKeycloak;
+    readonly elasticsearchServerConfig;
+    readonly opensearchServerConfig;
+    readonly ensureElasticsearch;
+    readonly ensureOpensearch;
+    readonly listMinioObjectKeys;
+    readonly ensureMinio;
+    readonly ensureAzurite;
+    readonly ensureLocalFile;
+    readonly ensurePostgresSearch;
+    readonly ensureFeatureFlag;
+    readonly listAzuriteBlobNames;
+    readonly runMmctl;
+    readonly ensureMmctl;
+
     // ./test_action
     readonly toBeFocusedWithFocusVisible;
     readonly hideDynamicChannelsContent;
@@ -118,7 +174,12 @@ export class PlaywrightExtended {
 
     // ./mock_browser_api
     readonly stubNotification;
+    readonly clearCapturedNotifications;
     readonly waitForNotification;
+    readonly clickNotification;
+    readonly mockWebsockets;
+    readonly connectWebsockets;
+    readonly closeWebsockets;
 
     // ./server
     readonly createNewUserProfile;
@@ -179,6 +240,31 @@ export class PlaywrightExtended {
         this.installAndEnablePlugin = installAndEnablePlugin;
         this.isPluginActive = isPluginActive;
 
+        // ./server/openldap, ./server/keycloak, ./server/elasticsearch, ./server/opensearch, ./server/minio
+        this.generateLdapUser = generateLdapUser;
+        this.createLdapUser = createLdapUser;
+        this.updateLdapUser = updateLdapUser;
+        this.deleteLdapUser = deleteLdapUser;
+        this.ldapServerConfig = ldapServerConfig;
+        this.ensureOpenldap = ensureOpenldap;
+        this.createKeycloakUser = createKeycloakUser;
+        this.deleteKeycloakUser = deleteKeycloakUser;
+        this.samlServerConfig = samlServerConfig;
+        this.ensureKeycloak = ensureKeycloak;
+        this.elasticsearchServerConfig = elasticsearchServerConfig;
+        this.opensearchServerConfig = opensearchServerConfig;
+        this.ensureElasticsearch = ensureElasticsearch;
+        this.ensureOpensearch = ensureOpensearch;
+        this.listMinioObjectKeys = listMinioObjectKeys;
+        this.ensureMinio = ensureMinio;
+        this.ensureAzurite = ensureAzurite;
+        this.ensureLocalFile = ensureLocalFile;
+        this.ensurePostgresSearch = ensurePostgresSearch;
+        this.ensureFeatureFlag = ensureFeatureFlag;
+        this.listAzuriteBlobNames = listAzuriteBlobNames;
+        this.runMmctl = runMmctl;
+        this.ensureMmctl = ensureMmctl;
+
         // ./test_action
         this.toBeFocusedWithFocusVisible = toBeFocusedWithFocusVisible;
         this.hideDynamicChannelsContent = hideDynamicChannelsContent;
@@ -194,7 +280,12 @@ export class PlaywrightExtended {
 
         // ./mock_browser_api
         this.stubNotification = stubNotification;
+        this.clearCapturedNotifications = clearCapturedNotifications;
         this.waitForNotification = waitForNotification;
+        this.clickNotification = clickNotification;
+        this.mockWebsockets = mockWebsockets;
+        this.connectWebsockets = connectWebsockets;
+        this.closeWebsockets = closeWebsockets;
 
         // ./server
         this.createNewUserProfile = createNewUserProfile;
@@ -222,7 +313,7 @@ export class PlaywrightExtended {
         this.hasSeenLandingPage = async () => {
             // Visit the base URL to be able to set the localStorage
             await page.goto('/');
-            return await waitUntilLocalStorageIsSet(page, '__landingPageSeen__', 'true');
+            return waitUntilLocalStorageIsSet(page, '__landingPageSeen__', 'true');
         };
     }
 }

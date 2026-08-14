@@ -146,6 +146,10 @@ const (
 	TeamSettingsDefaultCustomDescriptionText = ""
 	TeamSettingsDefaultUserStatusAwayTimeout = 300
 
+	TeamSettingsLockProfileFieldsNone            = "none"
+	TeamSettingsLockProfileFieldsNameAndUsername = "name_and_username"
+	TeamSettingsLockProfileFieldsAll             = "all"
+
 	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
 
 	FileSettingsDefaultDirectory                   = "./data/"
@@ -1811,6 +1815,7 @@ type FileSettings struct {
 	Directory                          *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	EnablePublicLink                   *bool   `access:"site_public_links,cloud_restrictable"`
 	ExtractContent                     *bool   `access:"environment_file_storage,write_restrictable"`
+	ExtractContentTimeout              *int    `access:"environment_file_storage,write_restrictable"` // In seconds. 0 disables the timeout.
 	ArchiveRecursion                   *bool   `access:"environment_file_storage,write_restrictable"`
 	PublicLinkSalt                     *string `access:"site_public_links,cloud_restrictable"`                           // telemetry: none
 	InitialFont                        *string `access:"environment_file_storage,cloud_restrictable"`                    // telemetry: none
@@ -1905,6 +1910,10 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.ExtractContent == nil {
 		s.ExtractContent = new(true)
+	}
+
+	if s.ExtractContentTimeout == nil {
+		s.ExtractContentTimeout = new(10)
 	}
 
 	if s.ArchiveRecursion == nil {
@@ -2554,6 +2563,7 @@ type TeamSettings struct {
 	ExperimentalViewArchivedChannels   *bool    `access:"experimental_features,site_users_and_teams"`
 	ExperimentalEnableAutomaticReplies *bool    `access:"experimental_features"`
 	LockTeammateNameDisplay            *bool    `access:"site_users_and_teams"`
+	LockProfileFieldsForEmailUsers     *string  `access:"site_users_and_teams"`
 	ExperimentalPrimaryTeam            *string  `access:"experimental_features"`
 	ExperimentalDefaultChannels        []string `access:"experimental_features"`
 }
@@ -2654,6 +2664,10 @@ func (s *TeamSettings) SetDefaults() {
 	if s.LockTeammateNameDisplay == nil {
 		s.LockTeammateNameDisplay = new(false)
 	}
+
+	if s.LockProfileFieldsForEmailUsers == nil {
+		s.LockProfileFieldsForEmailUsers = new(TeamSettingsLockProfileFieldsNone)
+	}
 }
 
 type ClientRequirements struct {
@@ -2710,10 +2724,6 @@ type LdapSettings struct {
 
 	// Customization
 	LoginFieldName *string `access:"authentication_ldap"`
-
-	LoginButtonColor       *string `access:"experimental_features"`
-	LoginButtonBorderColor *string `access:"experimental_features"`
-	LoginButtonTextColor   *string `access:"experimental_features"`
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -2850,18 +2860,6 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.LoginFieldName == nil {
 		s.LoginFieldName = new(LdapSettingsDefaultLoginFieldName)
-	}
-
-	if s.LoginButtonColor == nil {
-		s.LoginButtonColor = new("#0000")
-	}
-
-	if s.LoginButtonBorderColor == nil {
-		s.LoginButtonBorderColor = new("#2389D7")
-	}
-
-	if s.LoginButtonTextColor == nil {
-		s.LoginButtonTextColor = new("#2389D7")
 	}
 }
 
@@ -3029,10 +3027,6 @@ type SamlSettings struct {
 	PositionAttribute    *string `access:"authentication_saml"`
 
 	LoginButtonText *string `access:"authentication_saml"`
-
-	LoginButtonColor       *string `access:"experimental_features"`
-	LoginButtonBorderColor *string `access:"experimental_features"`
-	LoginButtonTextColor   *string `access:"experimental_features"`
 }
 
 func (s *SamlSettings) SetDefaults() {
@@ -3160,18 +3154,6 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.LocaleAttribute == nil {
 		s.LocaleAttribute = new(SamlSettingsDefaultLocaleAttribute)
-	}
-
-	if s.LoginButtonColor == nil {
-		s.LoginButtonColor = new("#34a28b")
-	}
-
-	if s.LoginButtonBorderColor == nil {
-		s.LoginButtonBorderColor = new("#2389D7")
-	}
-
-	if s.LoginButtonTextColor == nil {
-		s.LoginButtonTextColor = new("#ffffff")
 	}
 }
 
@@ -4093,6 +4075,14 @@ func (s *ExportSettings) SetDefaults() {
 type AccessControlSettings struct {
 	EnableAttributeBasedAccessControl *bool
 	EnableUserManagedAttributes       *bool `access:"write_restrictable"`
+	EnableChannelPolicyIndicators     *bool `access:"write_restrictable"`
+	TrustProxyDeviceIdentityHeader    *bool `access:"write_restrictable,cloud_restrictable"`
+	EnforceDeviceIDConsistency        *bool `access:"write_restrictable,cloud_restrictable"`
+	EnableAccessControlAuditLogging   *bool `access:"write_restrictable,cloud_restrictable"`
+	// Shared interval for both the channel and team membership sync schedulers;
+	// applied at scheduler construction (needs a restart to take effect).
+	SyncJobIntervalSeconds          *int `access:"write_restrictable,cloud_restrictable"`
+	AttributeRefreshIntervalSeconds *int `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -4103,6 +4093,47 @@ func (s *AccessControlSettings) SetDefaults() {
 	if s.EnableUserManagedAttributes == nil {
 		s.EnableUserManagedAttributes = new(false)
 	}
+
+	// Channel policy indicators are shown by default to preserve existing
+	// behavior; admins may disable them to avoid leaking policy details.
+	if s.EnableChannelPolicyIndicators == nil {
+		s.EnableChannelPolicyIndicators = new(true)
+	}
+
+	if s.TrustProxyDeviceIdentityHeader == nil {
+		s.TrustProxyDeviceIdentityHeader = new(false)
+	}
+
+	if s.EnforceDeviceIDConsistency == nil {
+		s.EnforceDeviceIDConsistency = new(false)
+	}
+
+	if s.EnableAccessControlAuditLogging == nil {
+		s.EnableAccessControlAuditLogging = new(false)
+	}
+
+	if s.SyncJobIntervalSeconds == nil {
+		s.SyncJobIntervalSeconds = new(3600)
+	}
+
+	if s.AttributeRefreshIntervalSeconds == nil {
+		s.AttributeRefreshIntervalSeconds = new(30)
+	}
+}
+
+func (s *AccessControlSettings) isValid() *AppError {
+	// The sync schedulers run at most once per minute; a sub-minute interval
+	// would hammer the store to no effect, so reject it outright.
+	if *s.SyncJobIntervalSeconds < 60 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_sync_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+	// Refresh interval is designed to avoid spamming a refresh of the AttributeView in the database.
+	// Minimum is set to 0, so an operator can effectively disable this protection if desired.
+	if *s.AttributeRefreshIntervalSeconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_attribute_refresh_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 type ConfigFunc func() *Config
@@ -4200,6 +4231,7 @@ type Config struct {
 	AccessControlSettings       AccessControlSettings
 	ContentFlaggingSettings     ContentFlaggingSettings
 	AutoTranslationSettings     AutoTranslationSettings
+	AIRecapSettings             AIRecapSettings
 }
 
 func (o *Config) Auditable() map[string]any {
@@ -4320,6 +4352,7 @@ func (o *Config) SetDefaults() {
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
 	o.ContentFlaggingSettings.SetDefaults()
+	o.AIRecapSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -4480,11 +4513,19 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if appErr := o.AIRecapSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
 	if appErr := o.MobileEphemeralModeSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
 	if appErr := o.GuestAccountsSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.AccessControlSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
@@ -4522,6 +4563,10 @@ func (s *TeamSettings) isValid() *AppError {
 
 	if !*s.ExperimentalViewArchivedChannels {
 		return NewAppError("Config.IsValid", "model.config.is_valid.experimental_view_archived_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !(*s.LockProfileFieldsForEmailUsers == TeamSettingsLockProfileFieldsNone || *s.LockProfileFieldsForEmailUsers == TeamSettingsLockProfileFieldsNameAndUsername || *s.LockProfileFieldsForEmailUsers == TeamSettingsLockProfileFieldsAll) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.lock_profile_fields.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -4579,9 +4624,22 @@ func (s *SqlSettings) isValid() *AppError {
 	return nil
 }
 
+// See https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview#storage-account-name
+var azureStorageAccountNameRegex = regexp.MustCompile(`^[a-z0-9]{3,24}$`)
+
+// IsValidAzureStorageAccountName reports whether name matches Azure's storage
+// account name format: 3 to 24 lowercase letters and digits.
+func IsValidAzureStorageAccountName(name string) bool {
+	return azureStorageAccountNameRegex.MatchString(name)
+}
+
 func (s *FileSettings) isValid() *AppError {
 	if *s.MaxFileSize <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.ExtractContentTimeout < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.extract_content_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !(*s.DriverName == ImageDriverLocal || *s.DriverName == ImageDriverS3 || *s.DriverName == ImageDriverAzure) {
@@ -4617,14 +4675,22 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_auth_mode.app_error", map[string]any{"Value": *s.AzureAuthMode}, "", http.StatusBadRequest)
 	}
 
+	// Empty cloud is treated as commercial for configs that pre-date the field,
+	// matching buildAzureServiceURL.
 	switch *s.AzureCloud {
-	case AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom:
+	case AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom, "":
 	default:
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_cloud.app_error", map[string]any{"Setting": "FileSettings.AzureCloud", "Value": *s.AzureCloud}, "", http.StatusBadRequest)
 	}
 
 	if *s.AzureCloud == AzureCloudCustom && *s.AzureEndpoint == "" {
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_custom_endpoint.app_error", map[string]any{"Setting": "FileSettings.AzureEndpoint"}, "", http.StatusBadRequest)
+	}
+
+	// For managed clouds the account name forms the service hostname and must
+	// match Azure's format; custom mode uses AzureEndpoint instead.
+	if *s.DriverName == ImageDriverAzure && *s.AzureCloud != AzureCloudCustom && !IsValidAzureStorageAccountName(*s.AzureStorageAccount) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_storage_account.app_error", map[string]any{"Setting": "FileSettings.AzureStorageAccount", "Value": *s.AzureStorageAccount}, "", http.StatusBadRequest)
 	}
 
 	if *s.AmazonS3StorageClass != "" && !slices.Contains([]string{StorageClassStandard, StorageClassReducedRedundancy, StorageClassStandardIA, StorageClassOnezoneIA, StorageClassIntelligentTiering, StorageClassGlacier, StorageClassDeepArchive, StorageClassOutposts, StorageClassGlacierIR, StorageClassSnow, StorageClassExpressOnezone}, *s.AmazonS3StorageClass) {
@@ -4656,13 +4722,17 @@ func (s *FileSettings) isValid() *AppError {
 	}
 
 	switch *s.ExportAzureCloud {
-	case AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom:
+	case AzureCloudCommercial, AzureCloudGovernment, AzureCloudCustom, "":
 	default:
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_cloud.app_error", map[string]any{"Setting": "FileSettings.ExportAzureCloud", "Value": *s.ExportAzureCloud}, "", http.StatusBadRequest)
 	}
 
 	if *s.ExportAzureCloud == AzureCloudCustom && *s.ExportAzureEndpoint == "" {
 		return NewAppError("Config.IsValid", "model.config.is_valid.azure_custom_endpoint.app_error", map[string]any{"Setting": "FileSettings.ExportAzureEndpoint"}, "", http.StatusBadRequest)
+	}
+
+	if *s.ExportDriverName == ImageDriverAzure && *s.ExportAzureCloud != AzureCloudCustom && !IsValidAzureStorageAccountName(*s.ExportAzureStorageAccount) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.azure_storage_account.app_error", map[string]any{"Setting": "FileSettings.ExportAzureStorageAccount", "Value": *s.ExportAzureStorageAccount}, "", http.StatusBadRequest)
 	}
 
 	if strings.TrimSpace(*s.ExportAmazonS3PathPrefix) != *s.ExportAmazonS3PathPrefix {

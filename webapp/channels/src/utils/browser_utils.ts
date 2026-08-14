@@ -7,3 +7,10 @@
 export function reloadPage(): void {
     window.location.reload();
 }
+
+/**
+ * Wrapper for assigning window.location.href to make it mockable in tests.
+ */
+export function navigateTo(href: string): void {
+    window.location.href = href;
+}

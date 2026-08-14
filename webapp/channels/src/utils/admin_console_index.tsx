@@ -27,7 +27,7 @@ export type Index = {
      * @param query string to be used for search.
      */
     search(query: string): string[];
-}
+};
 
 function pushText(texts: string[], value: string | MessageDescriptor | JSX.Element, intl: IntlShape, values?: Record<string, any>) {
     if (typeof value === 'string') {

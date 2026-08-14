@@ -379,6 +379,51 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         });
     });
 
+    it('MM-69928 should not create a synced/visible draft when editing a post and unmounting', async () => {
+        const editStorageKey = StoragePrefixes.EDIT_DRAFT + 'post_id_1';
+        const {unmount} = renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+                postId='post_id_1'
+                isInEditMode={true}
+                storageKey={editStorageKey}
+            />,
+            mergeObjects(initialState, {
+                entities: {
+                    general: {
+                        config: {
+                            AllowSyncedDrafts: 'true',
+                        },
+                    },
+                },
+                storage: {
+                    storage: {
+                        [editStorageKey]: {
+                            value: TestHelper.getPostDraftMock({
+                                message: 'original message',
+                                channelId,
+                            }),
+                        },
+                    },
+                },
+            }),
+        );
+
+        await userEvent.type(screen.getByTestId('edit_textbox'), ' edited');
+
+        expect(mockedUpdateDraft).not.toHaveBeenCalled();
+
+        unmount();
+
+        // The edit content may be persisted locally, but it must never be flagged
+        // as visible (show) or synced to the server (save), which would surface it
+        // as a draft in the drafts UI.
+        mockedUpdateDraft.mock.calls.forEach((call) => {
+            expect(call[1]).not.toMatchObject({show: true});
+            expect(call[3]).toBeFalsy();
+        });
+    });
+
     it('should deleted a deleted draft when changing channels', async () => {
         const {rerender} = renderWithContext(
             <AdvancedTextEditor
@@ -608,6 +653,66 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).toHaveValue('aaa \uD83D\uDE0A bbb');
             expect(textbox.selectionStart).toEqual(7);
             expect(textbox.selectionEnd).toEqual(textbox.selectionEnd);
+        });
+    });
+
+    describe('composer placeholder', () => {
+        const suffixState = {
+            plugins: {
+                components: {
+                    ComposerPlaceholder: [
+                        {
+                            id: 'suffix-1',
+                            pluginId: 'test-plugin',
+                            transform: (placeholder: string) => `${placeholder} (encrypted)`,
+                        },
+                    ],
+                },
+            },
+        };
+
+        it('appends registered suffix to the composer placeholder', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                mergeObjects(initialState, suffixState),
+            );
+
+            expect(screen.getByPlaceholderText('Write to Test Channel (encrypted)')).toBeInTheDocument();
+        });
+
+        it('appends suffix to the thread-reply placeholder', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    rootId='root-post-id'
+                />,
+                mergeObjects(initialState, suffixState),
+            );
+
+            expect(screen.getByPlaceholderText('Reply to this thread... (encrypted)')).toBeInTheDocument();
+        });
+
+        it('appends suffix to the read-only channel placeholder', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                mergeObjects(mergeObjects(initialState, suffixState), {
+                    entities: {
+                        roles: {
+                            roles: {
+                                user_roles: {permissions: []},
+                            },
+                        },
+                    },
+                }),
+            );
+
+            expect(screen.getByPlaceholderText(
+                'This channel is read-only. Only members with permission can post here. (encrypted)',
+            )).toBeInTheDocument();
         });
     });
 });

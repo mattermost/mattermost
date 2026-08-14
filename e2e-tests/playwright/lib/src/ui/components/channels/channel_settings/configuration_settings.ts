@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Locator, expect} from '@playwright/test';
+import type {Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 
 export default class ConfigurationSettings {
     readonly container: Locator;
@@ -24,7 +25,6 @@ export default class ConfigurationSettings {
         if (!isVisible) {
             await saveButton.waitFor({state: 'visible', timeout: 5000}).catch(() => {
                 // Panel didn't appear — change may already be applied or nothing to save.
-                return;
             });
 
             // Double-check — if still not visible, bail out silently.
@@ -49,7 +49,9 @@ export default class ConfigurationSettings {
         await expect
             .poll(
                 async () => {
-                    if (!(await saveButton.isVisible())) return 'hidden';
+                    if (!(await saveButton.isVisible())) {
+                        return 'hidden';
+                    }
                     return (await saveButton.getAttribute('class')) ?? '';
                 },
                 {timeout: 10000},

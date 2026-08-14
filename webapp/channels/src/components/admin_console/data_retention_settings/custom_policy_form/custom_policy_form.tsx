@@ -68,7 +68,7 @@ type State = {
     serverError: boolean;
     inputErrorText: React.ReactNode;
     formErrorText: React.ReactNode;
-}
+};
 
 export default class CustomPolicyForm extends React.PureComponent<Props, State> {
     constructor(props: Props) {

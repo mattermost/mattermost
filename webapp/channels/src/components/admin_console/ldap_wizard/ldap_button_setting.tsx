@@ -18,7 +18,7 @@ type Props = {
     disabled: boolean;
     ldapSettingsState: LdapSettings;
     onFilterTestResults?: (results: TestLdapFiltersResponse) => void;
-} & GeneralSettingProps
+} & GeneralSettingProps;
 
 const LDAPButtonSetting = (props: Props) => {
     const intl = useIntl();
@@ -27,7 +27,7 @@ const LDAPButtonSetting = (props: Props) => {
         return null;
     }
 
-    const handleRequestAction = (success: () => void, error: (error: { message: string }) => void) => {
+    const handleRequestAction = (success: () => void, error: (error: {message: string}) => void) => {
         if (!props.setting.skipSaveNeeded && props.saveNeeded !== false) {
             error({
                 message: intl.formatMessage({id: 'admin_settings.save_unsaved_changes', defaultMessage: 'Please save unsaved changes first'}),

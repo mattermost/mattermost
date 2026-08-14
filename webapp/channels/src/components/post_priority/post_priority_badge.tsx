@@ -10,7 +10,7 @@ import {PostPriority} from '@mattermost/types/posts';
 type Props = {
     priority?: PostPriority;
     className?: string;
-}
+};
 
 const Badge = styled.span`
     display: flex;

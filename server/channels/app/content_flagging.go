@@ -253,7 +253,9 @@ func (a *App) GetPostContentFlaggingPropertyValue(postId, propertyFieldName stri
 		return nil, model.NewAppError("GetPostContentFlaggingPropertyValue", "app.data_spillage.get_group.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	statusPropertyField, appErr := a.GetPropertyFieldByName(nil, groupId, "", propertyFieldName)
+	// Content flagging fields carry no object type, so the empty object type is
+	// their exact scope.
+	statusPropertyField, appErr := a.GetPropertyFieldByNameForObjectType(nil, groupId, "", "", propertyFieldName)
 	if appErr != nil {
 		return nil, model.NewAppError("GetPostContentFlaggingPropertyValue", "app.data_spillage.get_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}

@@ -33,7 +33,7 @@ export type Props = {
     urlError?: string;
     readOnly?: boolean;
     isEditingExistingChannel?: boolean;
-}
+};
 
 import './channel_name_form_field.scss';
 

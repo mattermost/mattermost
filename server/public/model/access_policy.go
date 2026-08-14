@@ -5,6 +5,7 @@ package model
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -16,13 +17,34 @@ const (
 	AccessControlPolicyTypeParent     = "parent"
 	AccessControlPolicyTypeChannel    = "channel"
 	AccessControlPolicyTypePermission = "permission"
+	AccessControlPolicyTypeTeam       = "team"
 
 	MaxPolicyNameLength = 128
+
+	// PluginAccessControlPolicyTypeSeparator separates the owning plugin ID
+	// from the resource-type segment of a plugin-owned policy type, e.g.
+	// "mattermost-ai:agent". Ownership is encoded in the key itself, so core
+	// treats these types opaquely.
+	PluginAccessControlPolicyTypeSeparator = ":"
+
+	// MaxPluginResourceTypeLength bounds the resource-type segment of a
+	// plugin-owned policy type.
+	MaxPluginResourceTypeLength = 64
+
+	// MaxPolicyTypeLength bounds a whole policy type to the width of the
+	// AccessControlPolicies.Type column. A valid plugin ID alone can exceed
+	// it, so the combined key must be bounded here or an otherwise-valid type
+	// would fail at insert time instead of validation.
+	MaxPolicyTypeLength = 128
+
+	// MaxPolicyActionLength bounds an action name.
+	MaxPolicyActionLength = 64
 
 	AccessControlPolicyVersionV0_1 = "v0.1"
 	AccessControlPolicyVersionV0_2 = "v0.2"
 	AccessControlPolicyVersionV0_3 = "v0.3"
 	AccessControlPolicyVersionV0_4 = "v0.4"
+	AccessControlPolicyVersionV0_5 = "v0.5"
 
 	AccessControlPolicyActionMembership             = "membership"
 	AccessControlPolicyActionUploadFileAttachment   = "upload_file_attachment"
@@ -57,6 +79,57 @@ var allowedPermissionActionsV0_4 = map[string]bool{
 // permission action governed by a v0.4 channel rule.
 func IsPermissionAction(action string) bool {
 	return allowedPermissionActionsV0_4[action]
+}
+
+// pluginResourceTypeRe constrains the resource-type segment of a plugin-owned
+// policy type to the same charset as a plugin ID.
+var pluginResourceTypeRe = regexp.MustCompile(ValidIdRegex)
+
+// policyActionRe constrains action names to lowercase alphanumeric segments
+// joined by single underscores, matching the shape of the built-in actions
+// (membership, upload_file_attachment). It rejects the "*" wildcard.
+var policyActionRe = regexp.MustCompile(`^[a-z0-9]+(_[a-z0-9]+)*$`)
+
+// SplitPluginAccessControlPolicyType splits a plugin-owned policy type into
+// its owning plugin ID and resource-type segment. ok is false unless both
+// segments are well formed.
+func SplitPluginAccessControlPolicyType(policyType string) (pluginID string, resourceType string, ok bool) {
+	if len(policyType) > MaxPolicyTypeLength {
+		return "", "", false
+	}
+	pluginID, resourceType, found := strings.Cut(policyType, PluginAccessControlPolicyTypeSeparator)
+	if !found || !IsValidPluginId(pluginID) {
+		return "", "", false
+	}
+	if resourceType == "" || len(resourceType) > MaxPluginResourceTypeLength || !pluginResourceTypeRe.MatchString(resourceType) {
+		return "", "", false
+	}
+	return pluginID, resourceType, true
+}
+
+// IsPluginAccessControlPolicyType reports whether policyType is a well-formed
+// plugin-owned resource-policy type ("<pluginID>:<resourceType>").
+func IsPluginAccessControlPolicyType(policyType string) bool {
+	_, _, ok := SplitPluginAccessControlPolicyType(policyType)
+	return ok
+}
+
+// PluginOwnsAccessControlPolicyType reports whether policyType is a
+// well-formed plugin policy type whose plugin-ID prefix is pluginID. The
+// prefix is the entire ownership check. The comparison is exact: the stored
+// type is matched byte-for-byte everywhere (delete, evaluation), so accepting
+// case variants here would let a mixed-case type be read but never deleted or
+// evaluated.
+func PluginOwnsAccessControlPolicyType(pluginID, policyType string) bool {
+	owner, _, ok := SplitPluginAccessControlPolicyType(policyType)
+	return ok && owner == pluginID
+}
+
+// IsValidPolicyAction reports whether action is a well-formed action name.
+// Plugin policies choose their own action names, so core validates only the
+// format.
+func IsValidPolicyAction(action string) bool {
+	return len(action) <= MaxPolicyActionLength && policyActionRe.MatchString(action)
 }
 
 // HasPermissionRuleAction reports whether ANY rule on this policy
@@ -207,6 +280,8 @@ func (p *AccessControlPolicy) IsValid() *AppError {
 		return p.accessPolicyVersionV0_3()
 	case AccessControlPolicyVersionV0_4:
 		return p.accessPolicyVersionV0_4()
+	case AccessControlPolicyVersionV0_5:
+		return p.accessPolicyVersionV0_5()
 	default:
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.version.app_error", nil, "", 400)
 	}
@@ -315,7 +390,7 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_2() *AppError {
 }
 
 func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
-	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel, AccessControlPolicyTypePermission}, p.Type) {
+	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel, AccessControlPolicyTypePermission, AccessControlPolicyTypeTeam}, p.Type) {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.type.app_error", nil, "", 400)
 	}
 
@@ -345,6 +420,10 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.imports.app_error", nil, "", 400)
 		}
 	case AccessControlPolicyTypeChannel:
+		if len(p.Rules) == 0 && len(p.Imports) == 0 {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rules_imports.app_error", nil, "", 400)
+		}
+	case AccessControlPolicyTypeTeam:
 		if len(p.Rules) == 0 && len(p.Imports) == 0 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rules_imports.app_error", nil, "", 400)
 		}
@@ -399,7 +478,7 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 //     `parent` and system `permission` policy types remain membership-only at
 //     v0.4 (multi-action support there is a follow-up iteration).
 func (p *AccessControlPolicy) accessPolicyVersionV0_4() *AppError {
-	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel, AccessControlPolicyTypePermission}, p.Type) {
+	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel, AccessControlPolicyTypePermission, AccessControlPolicyTypeTeam}, p.Type) {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.type.app_error", nil, "", 400)
 	}
 
@@ -428,6 +507,10 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_4() *AppError {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.imports.app_error", nil, "", 400)
 		}
 	case AccessControlPolicyTypeChannel:
+		if len(p.Rules) == 0 && len(p.Imports) == 0 {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rules_imports.app_error", nil, "", 400)
+		}
+	case AccessControlPolicyTypeTeam:
 		if len(p.Rules) == 0 && len(p.Imports) == 0 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rules_imports.app_error", nil, "", 400)
 		}
@@ -506,6 +589,71 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_4() *AppError {
 	return nil
 }
 
+// accessPolicyVersionV0_5 validates a v0.5 policy. v0.5 is the lane for
+// plugin-owned resource policies, which differ from the core versions in ways
+// that are not expressible there: the type is a "<pluginID>:<resourceType>"
+// key rather than one of the core type constants, and actions are
+// plugin-defined rather than drawn from the core action set. On top of that it
+// pins resource-scoped policies to system scope with no imports or roles.
+func (p *AccessControlPolicy) accessPolicyVersionV0_5() *AppError {
+	if !IsPluginAccessControlPolicyType(p.Type) {
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.plugin_type.app_error", nil, "", 400)
+	}
+
+	if !IsValidId(p.ID) {
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.id.app_error", nil, "", 400)
+	}
+
+	// Name is required — no backing entity supplies one for plugin types.
+	if p.Name == "" || len(p.Name) > MaxPolicyNameLength {
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.name.app_error", nil, "", 400)
+	}
+
+	if p.Revision < 0 {
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.revision.app_error", nil, "", 400)
+	}
+
+	if !semver.IsValid(p.Version) {
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.version.app_error", nil, "", 400)
+	}
+
+	if len(p.Rules) == 0 {
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rules.app_error", nil, "", 400)
+	}
+
+	if len(p.Imports) > 0 {
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.imports.app_error", nil, "", 400)
+	}
+
+	if len(p.Roles) > 0 {
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.roles.app_error", nil, "", 400)
+	}
+
+	// validateScope allows team scopes; plugin policies are system scope only.
+	if p.Scope != "" || p.ScopeID != "" {
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.scope.app_error", nil, "", 400)
+	}
+
+	for _, rule := range p.Rules {
+		if len(rule.Actions) == 0 {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.app_error", nil, "actions must not be empty", 400)
+		}
+		for _, action := range rule.Actions {
+			if !IsValidPolicyAction(action) {
+				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.app_error", nil, fmt.Sprintf("malformed action: %s", action), 400)
+			}
+		}
+		if rule.Role != "" {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rule_role.app_error", nil, "plugin policy rules must not have a role", 400)
+		}
+		if len(rule.Name) > MaxPolicyNameLength {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rule_name.app_error", nil, "rule name exceeds the policy max length", 400)
+		}
+	}
+
+	return nil
+}
+
 func (p *AccessControlPolicy) Inherit(parent *AccessControlPolicy) *AppError {
 	rules := make([]AccessControlPolicyRule, len(p.Rules))
 
@@ -528,6 +676,9 @@ func (p *AccessControlPolicy) Inherit(parent *AccessControlPolicy) *AppError {
 	case AccessControlPolicyVersionV0_3:
 		if p.Type == AccessControlPolicyTypePermission || parent.Type == AccessControlPolicyTypePermission {
 			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.permission.app_error", nil, "", 400)
+		}
+		if parent.Type != AccessControlPolicyTypeParent {
+			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.parent_type.app_error", nil, "imports must target a parent-type policy", 400)
 		}
 		if parent.Version != AccessControlPolicyVersionV0_3 {
 			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.version.app_error", nil, "", 400)

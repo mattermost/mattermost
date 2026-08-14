@@ -29,7 +29,7 @@ import {doesCookieContainsMMUserId} from 'utils/utils';
 import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
 import type {Translations} from 'types/store/i18n';
 
-export type TranslationPluginFunction = (locale: string) => Translations
+export type TranslationPluginFunction = (locale: string) => Translations;
 
 /**
  * This function meant to be used in root.tsx component loads config, license and if user is logged in, it loads user and its related data.
@@ -160,12 +160,12 @@ export function handleLoginLogoutSignal(e: StorageEvent): ThunkActionFunc<void> 
 
 export function logIfConcurrentReactEnabled(): ActionFuncAsync<boolean> {
     return async () => {
-        const concurrentReactEnabled = localStorage.getItem('enable_concurrent_react_experimental') === 'true';
+        const concurrentReactEnabled = window.enableConcurrentReact;
 
         if (concurrentReactEnabled) {
             Client4.logClientError(
-                "This user's session is using experimental concurrent React which may cause visual bugs. It can be " +
-                    'disabled from Settings > Advanced or by clearing their browser storage.',
+                "This user's session is using experimental concurrent React which may cause visual bugs. It is enabled " +
+                    'for all users due to a feature flag.',
                 LogLevel.Debug,
             );
         }

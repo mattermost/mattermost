@@ -22,7 +22,7 @@ type UserProfileValue = Value & UserProfile;
 
 type OwnProps = {
     groupId?: string;
-}
+};
 
 function mapStateToProps(state: GlobalState, props: OwnProps) {
     let profiles: UserProfileValue[];

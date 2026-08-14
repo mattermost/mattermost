@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Page} from '@playwright/test';
-import {Client4} from '@mattermost/client';
+import type {Client4} from '@mattermost/client';
 
 import {expect, getFileFromAsset, test} from '@mattermost/playwright-lib';
 
@@ -112,8 +112,8 @@ test('should list uploaded files with running total via /list_files command', as
         .filter({hasText: 'Last 2 Files uploaded to this channel'})
         .last();
     await expect(response2).toBeVisible();
-    await expect(response2.getByRole('heading', {name: 'mattermost-icon_128x128.png'})).toBeVisible();
-    await expect(response2.getByRole('heading', {name: 'sample_text_file.txt'})).toBeVisible();
+    await expect(response2.getByRole('link', {name: 'mattermost-icon_128x128.png'})).toBeVisible();
+    await expect(response2.getByRole('link', {name: 'sample_text_file.txt'})).toBeVisible();
 
     // 7. Upload second batch of 2 more files via API
     await uploadAndPostFiles(adminClient, createdChannel.id, ['mattermost.png', 'archive.zip']);
@@ -132,8 +132,8 @@ test('should list uploaded files with running total via /list_files command', as
         .filter({hasText: 'Last 4 Files uploaded to this channel'})
         .last();
     await expect(response4).toBeVisible();
-    await expect(response4.getByRole('heading', {name: 'mattermost.png'})).toBeVisible();
-    await expect(response4.getByRole('heading', {name: 'archive.zip'})).toBeVisible();
-    await expect(response4.getByRole('heading', {name: 'mattermost-icon_128x128.png'})).toBeVisible();
-    await expect(response4.getByRole('heading', {name: 'sample_text_file.txt'})).toBeVisible();
+    await expect(response4.getByRole('link', {name: 'mattermost.png'})).toBeVisible();
+    await expect(response4.getByRole('link', {name: 'archive.zip'})).toBeVisible();
+    await expect(response4.getByRole('link', {name: 'mattermost-icon_128x128.png'})).toBeVisible();
+    await expect(response4.getByRole('link', {name: 'sample_text_file.txt'})).toBeVisible();
 });

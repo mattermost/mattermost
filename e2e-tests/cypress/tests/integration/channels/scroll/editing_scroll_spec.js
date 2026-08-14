@@ -14,7 +14,6 @@ import {postListOfMessages, scrollCurrentChannelFromTop} from './helpers';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-
 describe('Scroll', () => {
     let firstPostBeforeScroll;
     let lastPostBeforeScroll;

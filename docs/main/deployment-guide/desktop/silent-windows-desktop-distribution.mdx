@@ -1,0 +1,116 @@
+---
+title: "Silent Windows desktop distribution"
+---
+<PlanAvailability slug="all-commercial" />
+
+You can distribute the official Windows desktop app silently to end users using the MSI installer, pre-configured with server URLs and settings. For comprehensive MSI installation options including Group Policy configuration, see the [MSI installer and Group Policy guide](/deployment-guide/desktop/desktop-msi-installer-and-group-policy-install).
+
+## Silent MSI installation
+
+1.  Download the latest Windows MSI installer from the [Mattermost Desktop releases page on GitHub](https://github.com/mattermost/desktop/releases/latest).
+
+2.  Move the MSI file to a shared location such as a file server with read-only permissions.
+
+3.  Use your software deployment tool (SCCM, Intune, PDQ Deploy, etc.) to deploy the MSI with silent installation parameters:
+
+    **Silent install:**
+
+    ``` text
+    msiexec /i \\SERVER\shared_folder\mattermost-desktop-v6.1.0-x64.msi /qn
+    ```
+
+## Pre-configuration with config.json
+
+To pre-configure servers and settings, create a `config.json` file in the user's Mattermost data directory before first launch:
+
+**Location**: `%APPDATA%\Mattermost\config.json`
+
+**Example config.json**:
+
+``` json
+{
+  "version": 2,
+  "teams": [
+    {
+      "name": "core",
+      "url": "https://community.mattermost.com",
+      "order": 0
+    },
+    {
+      "name": "hq",
+      "url": "https://hq.example.com",
+      "order": 1
+    }
+  ],
+  "showTrayIcon": true,
+  "trayIconTheme": "light",
+  "minimizeToTray": true,
+  "notifications": {
+    "flashWindow": 2,
+    "bounceIcon": true,
+    "bounceIconType": "informational"
+  },
+  "showUnreadBadge": true,
+  "useSpellChecker": true,
+  "enableHardwareAcceleration": true,
+  "autostart": false,
+  "spellCheckerLocale": "en-US",
+  "darkMode": false
+}
+```
+
+**Batch script for silent install with pre-configuration:**
+
+``` batch
+rem Install Mattermost desktop app silently
+msiexec /i \\SERVER\shared_folder\mattermost-desktop-v6.1.0-x64.msi /qn
+
+rem Wait for installation to complete
+timeout /t 10
+
+rem Create config directory if it doesn't exist
+if not exist "%APPDATA%\Mattermost" mkdir %APPDATA%\Mattermost
+
+rem Copy pre-configured config.json
+copy \\SERVER\shared_folder\config.json %APPDATA%\Mattermost\config.json
+```
+
+## Windows App: Silently removing the app
+
+The MSI installer can be silently uninstalled using:
+
+``` text
+msiexec /x {PRODUCT-CODE-GUID} /qn
+```
+
+To find the product code for your installed version:
+
+``` powershell
+Get-WmiObject -Class Win32_Product | Where-Object {$_.Name -like "*Mattermost*"} | Select-Object Name, IdentifyingNumber
+```
+
+Alternatively, uninstall by searching for the MSI file:
+
+``` text
+msiexec /x mattermost-desktop-v6.1.0-x64.msi /qn
+```
+
+## Migration from EXE to MSI
+
+Organizations currently using the Windows EXE installer must migrate to the MSI installer or Microsoft Store version:
+
+1.  **Uninstall existing EXE version** (if desired, optional):
+
+    ``` text
+    %userprofile%\AppData\local\Programs\mattermost-desktop\Uninstall Mattermost.exe /currentuser /S
+    ```
+
+2.  **Install MSI version** using silent installation commands above.
+
+3.  **User data preservation**: User settings and credentials are stored in `%APPDATA%\Mattermost` and will be preserved across the migration.
+
+<Note>
+
+The EXE installer will not receive v6.1.0 or later updates. Plan your migration accordingly.
+
+</Note>

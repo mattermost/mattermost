@@ -15,7 +15,7 @@ type Props = {
     team: Team;
     onRemoveTeam: (teamId: string) => void;
     isDisabled: boolean;
-}
+};
 
 const TeamInList = ({
     team,

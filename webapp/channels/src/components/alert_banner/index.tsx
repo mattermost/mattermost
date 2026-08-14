@@ -33,7 +33,7 @@ export type AlertBannerProps = {
     closeBtnTooltip?: string;
     onDismiss?: () => void;
     variant?: 'sys' | 'app';
-}
+};
 
 const AlertBanner = ({
     id,

@@ -13,15 +13,16 @@
  * For multi-language support, these assertions would need refactoring.
  */
 
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {Client4} from '@mattermost/client';
-import {UserPropertyField} from '@mattermost/types/properties';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {Client4} from '@mattermost/client';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {expect, getRandomId, test, SystemConsolePage} from '@mattermost/playwright-lib';
+import type {SystemConsolePage} from '@mattermost/playwright-lib';
+import {expect, getRandomId, test} from '@mattermost/playwright-lib';
 
+import type {CustomProfileAttribute} from '../../channels/custom_profile_attributes/helpers';
 import {
-    CustomProfileAttribute,
     setupCustomProfileAttributeFields,
     setupCustomProfileAttributeValuesForUser,
     deleteCustomProfileAttributes,
@@ -61,11 +62,6 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // advanced, entry. If the CI license is a lower tier, CPA rendering is gated off.
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-
-        // Fast-fail if CustomProfileAttributes feature flag is off — prevents a
-        // misleading 30 s timeout on the UI assertion and gives a clear skip reason.
-        // Note: default_config.ts sets this to true, so it should always pass in CI.
-        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
 
         // Self-isolating setup — avoid pw.initSetup()'s destructive
         // adminClient.updateConfig() full-config reset which wipes CPA fields mid-run
@@ -193,7 +189,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
             throw new Error(
                 `CPA field creation failed for: [${missingFields.join(', ')}]. ` +
                     `Server currently has ${all.length} fields: [${all.map((f) => f.name).join(', ')}]. ` +
-                    `Possible 20-field limit breach — check for leaked fields from other test suites.`,
+                    'Possible 20-field limit breach — check for leaked fields from other test suites.',
             );
         }
 

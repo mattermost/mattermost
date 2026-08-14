@@ -412,6 +412,11 @@ func (_m *MetricsInterface) ObserveClientTimeToLastByte(platform string, agent s
 	_m.Called(platform, agent, userID, elapsed)
 }
 
+// ObserveClusterReliableFallbackLength provides a mock function with given fields: event, length
+func (_m *MetricsInterface) ObserveClusterReliableFallbackLength(event model.ClusterEvent, length int) {
+	_m.Called(event, length)
+}
+
 // ObserveClusterRequestDuration provides a mock function with given fields: elapsed
 func (_m *MetricsInterface) ObserveClusterRequestDuration(elapsed float64) {
 	_m.Called(elapsed)

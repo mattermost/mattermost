@@ -48,14 +48,14 @@ type MenuButtonProps = {
     class?: string;
     as?: 'button' | 'div';
     children: ReactNode;
-}
+};
 
 type MenuButtonTooltipProps = {
     isVertical?: boolean;
     class?: string;
     text: string;
     disabled?: boolean;
-}
+};
 
 type MenuProps = {
 
@@ -94,7 +94,7 @@ type MenuProps = {
      * Defaults to true (standard MUI behavior).
      */
     autoFocusItem?: boolean;
-}
+};
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
 const defaultTransformOrigin = {vertical: 'top', horizontal: 'left'} as PopoverOrigin;

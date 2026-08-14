@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 /**
  * Returns the user-facing label for a CPA field.
@@ -75,9 +75,9 @@ export function filterCELIdentifier(input: string): string {
 }
 
 export type CPAFieldNameValidationError =
-    | {kind: 'invalid_charset'}
-    | {kind: 'reserved_word'; word: string}
-    | {kind: 'too_long'; max: number};
+    {kind: 'invalid_charset'} |
+    {kind: 'reserved_word'; word: string} |
+    {kind: 'too_long'; max: number};
 
 /**
  * Client-side mirror of server ValidateCPAFieldName.

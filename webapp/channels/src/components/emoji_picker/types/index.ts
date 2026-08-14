@@ -32,7 +32,7 @@ export type CategoryHeaderRow = {
         emojiId: '';
         item: undefined;
     }>;
-}
+};
 
 export type EmojiRow = {
     index: number;
@@ -44,7 +44,7 @@ export type EmojiRow = {
         emojiId: CustomEmoji['id'] | SystemEmoji['unified'];
         item: Emoji;
     }>;
-}
+};
 
 export type EmojiCursor = {
     rowIndex: number;
@@ -56,7 +56,7 @@ export type EmojiPosition = {
     rowIndex: number;
     emojiId: CustomEmoji['id'] | SystemEmoji['unified'];
     categoryName: EmojiCategory;
-}
+};
 
 export enum NavigationDirection {
     NextEmoji = 'next',

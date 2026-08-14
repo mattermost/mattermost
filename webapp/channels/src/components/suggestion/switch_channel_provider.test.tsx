@@ -12,7 +12,7 @@ import {General, Preferences} from 'mattermost-redux/constants';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
-import {StoragePrefixes} from 'utils/constants';
+import Constants, {StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import SwitchChannelProvider, {ConnectedSwitchChannelSuggestion} from './switch_channel_provider';
@@ -222,6 +222,123 @@ describe('components/SwitchChannelProvider', () => {
         }));
         expect(set2.size).toEqual(1);
         expect(result.items.length).toEqual(2);
+    });
+
+    it('flags discoverable non-member private channels in the recent list for the request-to-join flow (MM-68764)', () => {
+        const switchProvider = new SwitchChannelProvider();
+        const store = mockStore({
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                general: {config: {FeatureFlagDiscoverableChannels: 'true'}},
+                channels: {
+                    ...defaultState.entities.channels,
+                    joinRequests: {
+                        myPendingByChannel: {},
+                        byChannel: {},
+                        countsByChannel: {},
+                        myList: [],
+                    },
+                },
+            },
+        });
+        switchProvider.store = store;
+
+        const discoverableChannel = TestHelper.getChannelMock({
+            id: 'discoverable_channel_id',
+            type: 'P',
+            name: 'discoverable-ops',
+            display_name: 'Discoverable Ops',
+            discoverable: true,
+            delete_at: 0,
+        });
+
+        const wrapped = switchProvider.wrapChannels([discoverableChannel], Constants.MENTION_RECENT_CHANNELS);
+
+        expect(wrapped).toHaveLength(1);
+        expect(wrapped[0].discoverableNonMember).toBe(true);
+        expect(wrapped[0].hasPendingJoinRequest).toBe(false);
+    });
+
+    it('marks a discoverable recent-list channel with a pending request so the row offers Withdraw', () => {
+        const switchProvider = new SwitchChannelProvider();
+        const store = mockStore({
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                general: {config: {FeatureFlagDiscoverableChannels: 'true'}},
+                channels: {
+                    ...defaultState.entities.channels,
+                    joinRequests: {
+                        myPendingByChannel: {
+                            discoverable_channel_id: {
+                                id: 'req1',
+                                channel_id: 'discoverable_channel_id',
+                                user_id: 'current_user_id',
+                                message: '',
+                                status: 'pending',
+                                denial_reason: '',
+                                create_at: 1,
+                                update_at: 1,
+                                reviewed_by: '',
+                                reviewed_at: 0,
+                            },
+                        },
+                        byChannel: {},
+                        countsByChannel: {},
+                        myList: [],
+                    },
+                },
+            },
+        });
+        switchProvider.store = store;
+
+        const discoverableChannel = TestHelper.getChannelMock({
+            id: 'discoverable_channel_id',
+            type: 'P',
+            name: 'discoverable-ops',
+            display_name: 'Discoverable Ops',
+            discoverable: true,
+            delete_at: 0,
+        });
+
+        const wrapped = switchProvider.wrapChannels([discoverableChannel], Constants.MENTION_RECENT_CHANNELS);
+
+        expect(wrapped[0].discoverableNonMember).toBe(true);
+        expect(wrapped[0].hasPendingJoinRequest).toBe(true);
+    });
+
+    it('does not flag discoverable channels when the feature flag is off', () => {
+        const switchProvider = new SwitchChannelProvider();
+        const store = mockStore({
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    joinRequests: {
+                        myPendingByChannel: {},
+                        byChannel: {},
+                        countsByChannel: {},
+                        myList: [],
+                    },
+                },
+            },
+        });
+        switchProvider.store = store;
+
+        const discoverableChannel = TestHelper.getChannelMock({
+            id: 'discoverable_channel_id',
+            type: 'P',
+            name: 'discoverable-ops',
+            display_name: 'Discoverable Ops',
+            discoverable: true,
+            delete_at: 0,
+        });
+
+        const wrapped = switchProvider.wrapChannels([discoverableChannel], Constants.MENTION_RECENT_CHANNELS);
+
+        expect(wrapped[0].discoverableNonMember).toBeUndefined();
     });
 
     it('should not fail if nothing matches', () => {
@@ -1606,5 +1723,54 @@ describe('SwitchChannelSuggestion', () => {
 
             jest.useRealTimers();
         });
+    });
+
+    test('should render override icon when matcher matches', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One', type: 'O'});
+        const overrideState = {
+            ...getBaseState([team1], [channel1]),
+            plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'mbe', matcher: () => true, iconName: 'shield-outline'}]}},
+        };
+
+        const {container} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            overrideState,
+        );
+
+        const icon = container.querySelector('.suggestion-list__icon i');
+        expect(icon).toHaveClass('icon', 'icon-shield-outline');
+        expect(icon).not.toHaveClass('icon-globe');
+    });
+
+    test('should render fallback globe icon when matcher returns false', () => {
+        const channel1 = TestHelper.getChannelMock({id: 'channel1', team_id: 'team1', name: 'channel_one', display_name: 'Channel One', type: 'O'});
+        const overrideState = {
+            ...getBaseState([team1], [channel1]),
+            plugins: {components: {ChannelIconOverride: [{id: '1', pluginId: 'mbe', matcher: () => false, iconName: 'shield-outline'}]}},
+        };
+
+        const {container} = renderWithContext(
+            <ConnectedSwitchChannelSuggestion
+                {...baseProps}
+                term={channel1.name}
+                item={{
+                    channel: channel1,
+                    name: channel1.name,
+                    deactivated: false,
+                }}
+            />,
+            overrideState,
+        );
+
+        const icon = container.querySelector('.suggestion-list__icon i');
+        expect(icon).toHaveClass('icon', 'icon-globe');
     });
 });

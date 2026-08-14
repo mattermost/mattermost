@@ -15,7 +15,7 @@ const noop = () => {};
 type Props = {
     value?: PropertyValue<unknown>;
     metadata?: PostPreviewFieldMetadata;
-}
+};
 
 export default function PostPreviewPropertyRenderer({metadata}: Props) {
     const post = metadata?.post;

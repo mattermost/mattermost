@@ -14,7 +14,13 @@ export type ClassificationPreset = {
     levels: ClassificationLevel[];
 };
 
+export const PRESET_EMPTY = '';
 export const PRESET_CUSTOM = 'custom';
+
+// Prefix used for the id of a level that has been added in the UI but not yet persisted.
+export const PENDING_LEVEL_PREFIX = 'pending_';
+
+export const isPendingLevel = (level: ClassificationLevel): boolean => level.id.startsWith(PENDING_LEVEL_PREFIX);
 
 export const presets: ClassificationPreset[] = [
     {

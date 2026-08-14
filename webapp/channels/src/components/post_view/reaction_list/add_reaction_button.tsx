@@ -20,7 +20,7 @@ type Props = {
     teamId: string;
 
     onEmojiClick: (emoji: Emoji) => void;
-}
+};
 
 export default function AddReactionButton({
     post,

@@ -32,7 +32,7 @@ const BODY_CLASS_FOR_CHANNEL = ['channel-view'];
 
 type Props = {
     shouldRenderCenterChannel: boolean;
-}
+};
 
 export default function ChannelController(props: Props) {
     const isMobileView = useSelector(getIsMobileView);

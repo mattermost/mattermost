@@ -35,7 +35,7 @@ export type Props = {
     inviteType: InviteType;
     titleClass?: string;
     canInviteGuests?: boolean;
-}
+};
 
 export default function InviteAs(props: Props) {
     const {formatMessage} = useIntl();

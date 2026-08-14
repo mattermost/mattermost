@@ -66,7 +66,9 @@ test.fixme(
             username: poster.username,
             password: poster.password,
         });
-        if (!posterClient) throw new Error('Failed to create poster client');
+        if (!posterClient) {
+            throw new Error('Failed to create poster client');
+        }
 
         // Re-apply config immediately before the post so the server translates it.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
@@ -202,7 +204,9 @@ test.fixme(
             username: poster.username,
             password: poster.password,
         });
-        if (!posterClient) throw new Error('Failed to create poster client');
+        if (!posterClient) {
+            throw new Error('Failed to create poster client');
+        }
 
         const originalText = 'Solo texto original';
         // Re-apply config immediately before posting so the server translates this message.
@@ -300,7 +304,9 @@ test.fixme(
             username: poster.username,
             password: poster.password,
         });
-        if (!posterClient) throw new Error('Failed to create poster client');
+        if (!posterClient) {
+            throw new Error('Failed to create poster client');
+        }
 
         // Create a second poster to test translation indicators (only show with multiple users)
         const poster2 = await pw.random.user('poster2');
@@ -311,7 +317,9 @@ test.fixme(
             username: poster2.username,
             password: poster2.password,
         });
-        if (!posterClient2) throw new Error('Failed to create second poster client');
+        if (!posterClient2) {
+            throw new Error('Failed to create second poster client');
+        }
 
         // Re-apply config immediately before posting so the server translates these messages.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
@@ -411,7 +419,9 @@ test.fixme(
             username: poster.username,
             password: poster.password,
         });
-        if (!posterClient) throw new Error('Failed to create poster client');
+        if (!posterClient) {
+            throw new Error('Failed to create poster client');
+        }
 
         // Create a second poster to test translation indicators (only show with multiple users)
         const poster2 = await pw.random.user('poster2');
@@ -422,7 +432,9 @@ test.fixme(
             username: poster2.username,
             password: poster2.password,
         });
-        if (!posterClient2) throw new Error('Failed to create second poster client');
+        if (!posterClient2) {
+            throw new Error('Failed to create second poster client');
+        }
 
         // Re-apply config immediately before posting so the server translates these messages.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});

@@ -28,10 +28,10 @@ test.describe('Mobile view RHS auto-focus', () => {
 
             // # Set up a listener to track if the search box ever gets focus
             await page.evaluate(() => {
-                (window as any).__sbrSearchBoxFocusCount = 0;
+                (window as any).sbrSearchBoxFocusCount = 0;
                 document.addEventListener('focusin', (e) => {
                     if (e.target && 'id' in e.target && e.target.id === 'sbrSearchBox') {
-                        (window as any).__sbrSearchBoxFocusCount += 1;
+                        (window as any).sbrSearchBoxFocusCount += 1;
                     }
                 });
             });
@@ -47,7 +47,7 @@ test.describe('Mobile view RHS auto-focus', () => {
             }
 
             // * Verify the mobile RHS search input never received focus
-            const searchFocusCount = await page.evaluate(() => (window as any).__sbrSearchBoxFocusCount);
+            const searchFocusCount = await page.evaluate(() => (window as any).sbrSearchBoxFocusCount);
             expect(searchFocusCount).toBe(0);
         },
     );
@@ -59,17 +59,89 @@ test.describe('Mobile view RHS auto-focus', () => {
         const {user} = await pw.initSetup();
 
         // # Log in as the test user
-        const {channelsPage, page} = await pw.testBrowser.login(user);
+        const {channelsPage} = await pw.testBrowser.login(user);
 
         // # Visit a default channel page
         await channelsPage.goto();
         await channelsPage.toBeVisible();
 
         // # Click the mobile channel header search button to open the search RHS
-        await page.locator('#navbar').getByRole('button', {name: 'Search', exact: true}).click();
+        await channelsPage.mobileNavbar.openSearch();
         await channelsPage.sidebarRight.toBeVisible();
 
         // * Verify the mobile RHS search input is focused
-        await expect(page.locator('#sbrSearchBox')).toBeFocused();
+        await expect(channelsPage.sidebarRight.mobileSearchInput).toBeFocused();
     });
+
+    /**
+     * @objective Tapping the mobile menu backdrop should dismiss/close the modal
+     */
+    test('closes mobile menu when clicking the backdrop layer', {tag: '@mobile'}, async ({pw}) => {
+        const {user} = await pw.initSetup();
+
+        // # Log in as the test user and navigate to channels page
+        const {channelsPage, page} = await pw.testBrowser.login(user);
+        await channelsPage.goto();
+        await channelsPage.toBeVisible();
+
+        // # Open the mobile channel header menu
+        await channelsPage.centerView.header.openChannelMenu();
+
+        // # Define the mobile menu modal locator
+        const menuModal = page.locator('.modal-dialog.menuModal');
+
+        // * Verify the menu modal is visible after the click
+        await expect(menuModal).toBeVisible();
+
+        // # Click the modal's backdrop layer outside the menu content
+        await page.mouse.click(5, 5);
+
+        // * Verify the mobile menu modal is now successfully dismissed/hidden
+        await expect(menuModal).toBeHidden();
+    });
+
+    /**
+     * @objective Verify that in narrow/mobile view, the channel header shows an icon-only Search
+     * button; clicking it opens the RHS search panel where a search can be performed, and closing
+     * the panel returns to the icon-only Search button.
+     */
+    test(
+        'MM-T349 MM-T369 search icon in narrow view opens search, searches, and closes back to icon',
+        {tag: '@search'},
+        async ({pw}) => {
+            const {user} = await pw.initSetup();
+
+            // # Log in as the test user
+            const {channelsPage} = await pw.testBrowser.login(user);
+
+            // # Visit a default channel page and post a message to search for
+            await channelsPage.goto();
+            await channelsPage.toBeVisible();
+            const message = `test message for narrow view search ${pw.random.id()}`;
+            await channelsPage.centerView.postCreate.postMessage(message);
+
+            // * Verify the icon-only Search button is shown in the narrow-width header
+            await expect(channelsPage.mobileNavbar.searchButton).toBeVisible();
+
+            // # Click it to open the RHS search panel
+            await channelsPage.mobileNavbar.openSearch();
+            await channelsPage.sidebarRight.toBeVisible();
+            const {mobileSearchInput} = channelsPage.sidebarRight;
+            await expect(mobileSearchInput).toBeFocused();
+
+            // # Perform a search
+            await mobileSearchInput.fill(message);
+            await mobileSearchInput.press('Enter');
+
+            // * Verify search results appear
+            await channelsPage.searchResultsPanel.toContainText(message);
+
+            // # Close the search panel
+            await channelsPage.sidebarRight.closeMobile();
+
+            // * Verify it collapses back to the icon-only Search button
+            await expect(channelsPage.sidebarRight.container).not.toBeVisible();
+            await expect(channelsPage.mobileNavbar.searchButton).toBeVisible();
+        },
+    );
 });

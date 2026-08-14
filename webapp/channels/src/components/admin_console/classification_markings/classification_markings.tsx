@@ -54,7 +54,7 @@ import {
 } from './utils';
 import {classificationPresetDropdownStyles} from './utils/preset_dropdown_styles';
 import type {ClassificationLevel} from './utils/presets';
-import {PRESET_CUSTOM, presets} from './utils/presets';
+import {PENDING_LEVEL_PREFIX, PRESET_CUSTOM, PRESET_EMPTY, presets} from './utils/presets';
 
 import SaveChangesPanel from '../save_changes_panel';
 import {AdminSection, AdminWrapper, SectionHeader, SectionHeading} from '../system_properties/controls';
@@ -102,9 +102,10 @@ export default function ClassificationMarkings({disabled}: Props) {
     const [existingLinkedField, setExistingLinkedField] = useState<PropertyField | null>(null);
 
     const [enabled, setEnabled] = useState(false);
-    const [presetId, setPresetId] = useState<string>(PRESET_CUSTOM);
+    const [presetId, setPresetId] = useState<string>(PRESET_EMPTY);
     const [levels, setLevels] = useState<ClassificationLevel[]>([]);
     const [globalBanner, setGlobalBanner] = useState<GlobalBannerConfig>({...DEFAULT_GLOBAL_BANNER});
+    const [cachedCustomLevels, setCachedCustomLevels] = useState<ClassificationLevel[]>([]);
 
     const [initialEnabled, setInitialEnabled] = useState(false);
     const [initialLevels, setInitialLevels] = useState<ClassificationLevel[]>([]);
@@ -211,16 +212,36 @@ export default function ClassificationMarkings({disabled}: Props) {
     }, []);
 
     const applyPreset = useCallback((newPresetId: string) => {
+        if (newPresetId === PRESET_CUSTOM) {
+            setPresetId(PRESET_CUSTOM);
+            setLevels(cachedCustomLevels.map((l) => ({...l})));
+            return;
+        }
         const preset = presets.find((p) => p.id === newPresetId);
         if (preset) {
+            if (presetId === PRESET_CUSTOM) {
+                setCachedCustomLevels(levels);
+            }
             setPresetId(newPresetId);
             setLevels(preset.levels.map((l) => ({...l})));
         }
-    }, []);
+    }, [cachedCustomLevels, presetId, levels]);
+
+    const showCustomOption = presetId === PRESET_CUSTOM || cachedCustomLevels.length > 0;
 
     const presetDropdownOptions = useMemo((): ValueType[] => {
-        const options = presets.map((p) => ({value: p.id, label: p.label}));
-        if (presetId === PRESET_CUSTOM) {
+        const options: ValueType[] = [];
+        if (presetId === PRESET_EMPTY) {
+            options.push({
+                value: PRESET_EMPTY,
+                label: formatMessage({
+                    id: 'admin.classification_markings.preset.empty',
+                    defaultMessage: 'Select a preset…',
+                }),
+            });
+        }
+        options.push(...presets.map((p) => ({value: p.id, label: p.label})));
+        if (showCustomOption) {
             options.push({
                 value: PRESET_CUSTOM,
                 label: formatMessage({
@@ -230,7 +251,7 @@ export default function ClassificationMarkings({disabled}: Props) {
             });
         }
         return options;
-    }, [formatMessage, presetId]);
+    }, [formatMessage, presetId, showCustomOption]);
 
     const presetDropdownValue = useMemo(() => {
         return presetDropdownOptions.find((o) => o.value === presetId) ?? presetDropdownOptions[0]!;
@@ -241,12 +262,19 @@ export default function ClassificationMarkings({disabled}: Props) {
             return;
         }
         const newPresetId = selected.value;
-        if (levels.length > 0) {
+        if (newPresetId === PRESET_EMPTY) {
+            return;
+        }
+        if (newPresetId === PRESET_CUSTOM) {
+            applyPreset(newPresetId);
+            return;
+        }
+        if (levels.length > 0 && presetId !== PRESET_EMPTY) {
             setConfirmPresetSwitch(newPresetId);
             return;
         }
         applyPreset(newPresetId);
-    }, [levels.length, applyPreset]);
+    }, [levels.length, presetId, applyPreset]);
 
     const handleConfirmPresetSwitch = useCallback(() => {
         if (confirmPresetSwitch) {
@@ -278,7 +306,7 @@ export default function ClassificationMarkings({disabled}: Props) {
     const addLevel = useCallback(() => {
         setLevels((prev) => {
             const maxRank = prev.reduce((max, l) => Math.max(max, l.rank), 0);
-            return [...prev, {id: `pending_${Date.now()}`, name: '', color: '#000000', rank: maxRank + 1}];
+            return [...prev, {id: `${PENDING_LEVEL_PREFIX}${Date.now()}`, name: '', color: '#000000', rank: maxRank + 1}];
         });
         switchToCustom();
     }, [switchToCustom]);
@@ -352,6 +380,19 @@ export default function ClassificationMarkings({disabled}: Props) {
             }
             const result = processClassificationField(savedTemplate);
 
+            // Remap banner level_id: pending_ IDs are stripped on save and the
+            // server generates new ones. Match by rank to resolve the real ID.
+            const resolvedBanner = {...effectiveBanner};
+            if (resolvedBanner.level_id) {
+                const oldLevel = levels.find((l) => l.id === resolvedBanner.level_id);
+                if (oldLevel) {
+                    const newLevel = result.levels.find((l) => l.rank === oldLevel.rank);
+                    if (newLevel) {
+                        resolvedBanner.level_id = newLevel.id;
+                    }
+                }
+            }
+
             // Create/patch linked field with empty actions first, upsert the
             // selected value, then activate the banner — ensures the banner
             // never points at a stale option if the value write fails.
@@ -363,14 +404,14 @@ export default function ClassificationMarkings({disabled}: Props) {
                 savedLinked = await saveCreateLinkedField(savedTemplate.id, disabledBanner);
             }
 
-            if (effectiveBanner.enabled && effectiveBanner.level_id) {
-                const savedValues = await saveUpsertSystemValue(savedLinked.id, effectiveBanner.level_id);
+            if (resolvedBanner.enabled && resolvedBanner.level_id) {
+                const savedValues = await saveUpsertSystemValue(savedLinked.id, resolvedBanner.level_id);
                 dispatch({type: PropertyTypes.RECEIVED_PROPERTY_VALUES, data: {values: savedValues}});
 
-                savedLinked = await savePatchLinkedField(savedLinked.id, effectiveBanner);
+                savedLinked = await savePatchLinkedField(savedLinked.id, resolvedBanner);
             }
 
-            // Ensure the channel_classification linked field exists as part of the set.
+            // Ensure the channel-scoped classification linked field exists as part of the set.
             // Push saved fields into Redux eagerly so the banner updates
             // atomically rather than waiting for out-of-order WS events.
             const existingChannelField = await fetchChannelClassificationField();
@@ -386,8 +427,8 @@ export default function ClassificationMarkings({disabled}: Props) {
             setLevels(result.levels);
             setInitialLevels(result.levels);
             setPresetId(result.presetId);
-            setGlobalBanner(effectiveBanner);
-            setInitialGlobalBanner(effectiveBanner);
+            setGlobalBanner(resolvedBanner);
+            setInitialGlobalBanner(resolvedBanner);
             setInitialEnabled(true);
         } else if (templateField) {
             // Linked fields must be deleted before the template (deletion protection).
@@ -409,7 +450,8 @@ export default function ClassificationMarkings({disabled}: Props) {
             setInitialEnabled(false);
             setInitialLevels([]);
             setLevels([]);
-            setPresetId(PRESET_CUSTOM);
+            setPresetId(PRESET_EMPTY);
+            setCachedCustomLevels([]);
             setGlobalBanner({...DEFAULT_GLOBAL_BANNER});
             setInitialGlobalBanner({...DEFAULT_GLOBAL_BANNER});
         }

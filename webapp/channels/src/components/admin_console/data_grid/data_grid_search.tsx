@@ -22,7 +22,7 @@ type Props = {
         keys: string[];
         onFilter: (options: FilterOptions) => void;
     };
-}
+};
 
 const DataGridSearch = ({
     term: termFromProps = '',

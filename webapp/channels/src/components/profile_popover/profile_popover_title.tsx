@@ -27,7 +27,7 @@ type Props = {
     hide?: () => void;
     userId: string;
     channelId?: string;
-}
+};
 
 function getIsTeamAdmin(state: GlobalState, userId: string) {
     const team = getCurrentTeam(state);

@@ -10,16 +10,15 @@
 // Group: @channels @channel @channel_bookmarks
 // node run_tests.js --group='@channel'
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 import {getRandomId, stubClipboard} from '@/utils';
 
 describe('Channel Bookmarks', () => {
     let testTeam: Team;
-
 
     let user1: UserProfile;
     let admin: UserProfile;
@@ -471,7 +470,6 @@ describe('Channel Bookmarks', () => {
 
                 cy.makeClient().then(async (client) => {
                     for (let i = 1; i <= OVERFLOW_COUNT; i++) {
-                        // eslint-disable-next-line no-await-in-loop
                         await client.createChannelBookmark(overflowChannel.id, {
                             type: 'link',
                             display_name: `OvBm ${String(i).padStart(2, '0')}`,
@@ -530,20 +528,20 @@ describe('Channel Bookmarks', () => {
 
                     // # Select first item with Space, move down, confirm with Space
                     cy.get('#channelBookmarksBarMenuDropdown').within(() => {
-                        cy.contains('[data-bookmark-id]', firstName).focus()
-                            .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                        cy.contains('[data-bookmark-id]', firstName).focus().
+                            trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
                     });
                     cy.wait(TIMEOUTS.HALF_SEC);
 
                     cy.get('#channelBookmarksBarMenuDropdown').within(() => {
-                        cy.contains('[data-bookmark-id]', firstName)
-                            .trigger('keydown', {key: 'ArrowDown', code: 'ArrowDown', bubbles: true});
+                        cy.contains('[data-bookmark-id]', firstName).
+                            trigger('keydown', {key: 'ArrowDown', code: 'ArrowDown', bubbles: true});
                     });
                     cy.wait(TIMEOUTS.HALF_SEC);
 
                     cy.get('#channelBookmarksBarMenuDropdown').within(() => {
-                        cy.contains('[data-bookmark-id]', firstName)
-                            .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                        cy.contains('[data-bookmark-id]', firstName).
+                            trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
                     });
                     cy.wait(TIMEOUTS.ONE_SEC);
 
@@ -565,20 +563,20 @@ describe('Channel Bookmarks', () => {
 
                 // # Select, move, then Escape to cancel
                 cy.get('#channelBookmarksBarMenuDropdown').within(() => {
-                    cy.contains('[data-bookmark-id]', firstName).focus()
-                        .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                    cy.contains('[data-bookmark-id]', firstName).focus().
+                        trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
                 });
                 cy.wait(TIMEOUTS.HALF_SEC);
 
                 cy.get('#channelBookmarksBarMenuDropdown').within(() => {
-                    cy.contains('[data-bookmark-id]', firstName)
-                        .trigger('keydown', {key: 'ArrowDown', code: 'ArrowDown', bubbles: true});
+                    cy.contains('[data-bookmark-id]', firstName).
+                        trigger('keydown', {key: 'ArrowDown', code: 'ArrowDown', bubbles: true});
                 });
                 cy.wait(TIMEOUTS.HALF_SEC);
 
                 cy.get('#channelBookmarksBarMenuDropdown').within(() => {
-                    cy.contains('[data-bookmark-id]', firstName)
-                        .trigger('keydown', {key: 'Escape', code: 'Escape', bubbles: true});
+                    cy.contains('[data-bookmark-id]', firstName).
+                        trigger('keydown', {key: 'Escape', code: 'Escape', bubbles: true});
                 });
                 cy.wait(TIMEOUTS.ONE_SEC);
 
@@ -719,8 +717,8 @@ describe('Channel Bookmarks', () => {
                 const lastName = text.trim();
 
                 // # Start reorder, move right to cross into overflow, confirm
-                cy.findByRole('link', {name: lastName}).focus()
-                    .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                cy.findByRole('link', {name: lastName}).focus().
+                    trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
                 cy.focused().trigger('keydown', {key: 'ArrowRight', code: 'ArrowRight', bubbles: true});
                 cy.focused().trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
 
@@ -733,10 +731,10 @@ describe('Channel Bookmarks', () => {
 
                 // * Verify DOM: item is present in the open overflow menu (menu stays
                 //   open after confirm when item ends in overflow)
-                cy.get('#channelBookmarksBarMenuDropdown')
-                    .should('be.visible')
-                    .contains(lastName)
-                    .should('be.visible');
+                cy.get('#channelBookmarksBarMenuDropdown').
+                    should('be.visible').
+                    contains(lastName).
+                    should('be.visible');
 
                 // # Close menu to remove MUI backdrop covering the bar
                 dismissMenu();
@@ -760,10 +758,10 @@ describe('Channel Bookmarks', () => {
                 const firstOverflowName = text.trim();
 
                 cy.get('#channelBookmarksBarMenuDropdown').within(() => {
-                    cy.contains('[data-bookmark-id]', firstOverflowName).focus()
-                        .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
-                    cy.contains('[data-bookmark-id]', firstOverflowName)
-                        .trigger('keydown', {key: 'ArrowUp', code: 'ArrowUp', bubbles: true});
+                    cy.contains('[data-bookmark-id]', firstOverflowName).focus().
+                        trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                    cy.contains('[data-bookmark-id]', firstOverflowName).
+                        trigger('keydown', {key: 'ArrowUp', code: 'ArrowUp', bubbles: true});
                 });
 
                 // * Verify overflow menu closed (transitioned to bar)
@@ -814,12 +812,12 @@ describe('Channel Bookmarks', () => {
 
                 // # Space to select, ArrowDown to move, Space to confirm
                 cy.get('#channelBookmarksBarMenuDropdown').within(() => {
-                    cy.contains('[data-bookmark-id]', firstName).focus()
-                        .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
-                    cy.contains('[data-bookmark-id]', firstName)
-                        .trigger('keydown', {key: 'ArrowDown', code: 'ArrowDown', bubbles: true});
-                    cy.contains('[data-bookmark-id]', firstName)
-                        .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                    cy.contains('[data-bookmark-id]', firstName).focus().
+                        trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                    cy.contains('[data-bookmark-id]', firstName).
+                        trigger('keydown', {key: 'ArrowDown', code: 'ArrowDown', bubbles: true});
+                    cy.contains('[data-bookmark-id]', firstName).
+                        trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
                 });
 
                 // * Verify we did NOT navigate (URL unchanged, no new tab)
@@ -896,8 +894,8 @@ describe('Channel Bookmarks', () => {
 
             // # Press Enter on "Open" menu item — the keydown + ButtonBase synthetic click
             // used to fire onClick twice. handledRef guard ensures single dispatch.
-            cy.findByRole('menuitem', {name: 'Open'}).should('exist').focus()
-                .trigger('keydown', {key: 'Enter', code: 'Enter', bubbles: true});
+            cy.findByRole('menuitem', {name: 'Open'}).should('exist').focus().
+                trigger('keydown', {key: 'Enter', code: 'Enter', bubbles: true});
 
             // * Verify window.open called exactly once (no Menu.Item double-fire)
             cy.get('@windowOpen').should('have.been.calledOnce');
@@ -1125,8 +1123,8 @@ function dismissMenu() {
  * mode. force:true bypasses the visibility check.
  */
 function clickOverflowDotMenu(item: Cypress.Chainable) {
-    item.scrollIntoView()
-        .find('.channelBookmarksDotMenuButton--overflow').click({force: true});
+    item.scrollIntoView().
+        find('.channelBookmarksDotMenuButton--overflow').click({force: true});
 }
 
 /**

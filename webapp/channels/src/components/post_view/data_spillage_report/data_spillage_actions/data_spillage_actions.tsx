@@ -20,7 +20,7 @@ import {ModalIdentifiers} from 'utils/constants';
 type Props = {
     flaggedPost: Post;
     reportingUser: UserProfile;
-}
+};
 
 export default function DataSpillageAction({flaggedPost, reportingUser}: Props) {
     const dispatch = useDispatch();

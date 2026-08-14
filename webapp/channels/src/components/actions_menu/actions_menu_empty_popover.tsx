@@ -18,7 +18,7 @@ type Props = {
     onOpenMarketplace: () => void;
     onToggle: (open: boolean) => void;
     isOpen: boolean;
-}
+};
 
 export default function ActionsMenuEmptyPopover({
     anchorElement,

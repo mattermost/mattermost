@@ -30,7 +30,7 @@ type Props = {
 
 type State = {
     selectedDateTime: moment.Moment;
-}
+};
 
 export default injectIntl(class DndCustomTimePicker extends React.PureComponent<Props, State> {
     constructor(props: Props) {

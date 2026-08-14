@@ -22,4 +22,4 @@ export type SystemSection = {
     hasDescription?: boolean;
     subsections?: SystemSection[];
     disabled?: boolean;
-}
+};

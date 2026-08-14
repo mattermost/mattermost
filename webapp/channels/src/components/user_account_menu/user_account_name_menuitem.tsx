@@ -53,9 +53,9 @@ export default function UserAccountNameMenuItem({profilePicture, ...rest}: Props
         const username = `@${currentUser?.username}`?.trim();
 
         return (
-            <h2 className='userAccountMenu_nameMenuItem_primaryLabel'>
+            <span className='userAccountMenu_nameMenuItem_primaryLabel'>
                 {username}
-            </h2>
+            </span>
         );
     }
 

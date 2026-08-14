@@ -14,7 +14,14 @@ const (
 	maxUsersHardLimit = 250
 )
 
-func (a *App) GetServerLimits() (*model.ServerLimits, *model.AppError) {
+// GetServerLimits returns the server's seat/post-history limits. The license-derived
+// limit fields and post-history fields are always computed (they are cheap and needed
+// by all users). The active user and single-channel guest counts are only computed when
+// includeUserCounts is true, because those queries are expensive and the counts are only
+// consumed by admin-gated UI and internal seat-limit checks. Callers that do not need the
+// counts (e.g. non-admin API requests) should pass false to keep the expensive queries off
+// the hot path.
+func (a *App) GetServerLimits(includeUserCounts bool) (*model.ServerLimits, *model.AppError) {
 	limits := &model.ServerLimits{}
 	license := a.License()
 
@@ -45,6 +52,12 @@ func (a *App) GetServerLimits() (*model.ServerLimits, *model.AppError) {
 			return nil, appErr
 		}
 		limits.LastAccessiblePostTime = lastAccessibleTime
+	}
+
+	// The user/guest count queries are expensive (the single-channel guest count is a
+	// full ChannelMembers scan). Only run them when the caller actually needs the counts.
+	if !includeUserCounts {
+		return limits, nil
 	}
 
 	activeUserCount, appErr := a.Srv().Store().User().Count(model.UserCountOptions{})
@@ -99,7 +112,7 @@ func (a *App) GetPostHistoryLimit() int64 {
 }
 
 func (a *App) isAtUserLimit() (bool, *model.AppError) {
-	userLimits, appErr := a.GetServerLimits()
+	userLimits, appErr := a.GetServerLimits(true)
 	if appErr != nil {
 		return false, appErr
 	}

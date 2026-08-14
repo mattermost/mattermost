@@ -10,6 +10,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
+import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
@@ -27,7 +28,7 @@ type Props = {
     dmUser?: UserProfile;
     gmMembers?: UserProfile[];
     remoteNames?: string[];
-}
+};
 
 const ChannelHeaderTitle = ({
     dmUser,
@@ -35,6 +36,7 @@ const ChannelHeaderTitle = ({
     remoteNames,
 }: Props) => {
     const channel = useSelector(getCurrentChannel);
+    const overrideName = useChannelIconOverrideName(channel ?? undefined);
 
     if (!channel) {
         return null;
@@ -46,10 +48,12 @@ const ChannelHeaderTitle = ({
 
     let archivedIcon;
     if (channelIsArchived) {
-        const ArchiveIcon = getArchiveIconComponent(channel.type);
+        const OverrideIcon = overrideName ? compassIconForName(overrideName) : null;
+        const IconComponent = OverrideIcon ?? getArchiveIconComponent(channel.type);
+
         archivedIcon = (
-            <ArchiveIcon
-                className='icon icon__archive channel-header-archived-icon svg-text-color'
+            <IconComponent
+                className={OverrideIcon ? 'svg-text-color' : 'icon icon__archive channel-header-archived-icon svg-text-color'}
                 data-testid='channel-header-archive-icon'
             />
         );
