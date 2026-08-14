@@ -6,15 +6,25 @@
         margin-bottom: 16px;
     }
 
+    &__actionsPanel {
+        padding: 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: var(--radius-m);
+        margin-top: 12px;
+        background: var(--center-channel-bg);
+    }
+
     &__actions {
-        margin-top: 16px;
+        // negative side margins offset __actionsPanel's padding so the divider spans the full box width
+        padding: 16px 16px 0;
+        border-top: 1px solid rgba(61, 60, 64, 0.08);
+        margin: 16px -16px 0;
     }
 
     &__status {
         display: flex;
         width: fit-content;
         align-items: center;
-        margin-top: 8px;
 
         .fa {
             margin-right: 5px;
