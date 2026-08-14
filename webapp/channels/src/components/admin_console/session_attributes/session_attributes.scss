@@ -124,6 +124,8 @@
     font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
+    user-select: none;
+    cursor: pointer;
 }
 
 .SessionAttributes__type-cell {

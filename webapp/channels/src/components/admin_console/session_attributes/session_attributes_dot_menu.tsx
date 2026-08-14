@@ -15,7 +15,7 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import DisableAttributeModal from './disable_attribute_modal';
 import type {StagedAttrs} from './use_session_attribute_edits';
-import {DURATION_PRESETS_SECONDS, formatDuration, getSessionAttrs, getSessionDisplayName} from './utils';
+import {DURATION_PRESETS_SECONDS, formatDuration, getSessionAttrs, getSessionDisplayName, isServerSourced} from './utils';
 import type {SessionAttributeField} from './utils';
 
 type Props = {
@@ -30,6 +30,7 @@ export default function SessionAttributesDotMenu({field, onStageChange, disabled
 
     const attrs = getSessionAttrs(field);
     const menuId = `session-attribute-dotmenu-${field.id}`;
+    const isServerAttribute = isServerSourced(field.name);
 
     const handleTtlChange = useCallback((seconds: number) => {
         onStageChange(field.id, {ttl_seconds: seconds});
@@ -80,45 +81,49 @@ export default function SessionAttributesDotMenu({field, onStageChange, disabled
                 'aria-label': formatMessage({id: 'admin.session_attributes.dotmenu.menu.aria_label', defaultMessage: 'Select an action'}),
             }}
         >
-            <Menu.SubMenu
-                id={`${menuId}-ttl`}
-                menuId={`${menuId}-ttl-menu`}
-                leadingElement={<UpdateIcon size={18}/>}
-                labels={(
-                    <FormattedMessage
-                        id='admin.session_attributes.dotmenu.ttl.label'
-                        defaultMessage='Time-to-live (TTL)'
-                    />
-                )}
-                trailingElements={(
-                    <>
-                        {formatDuration(attrs.ttl_seconds)}
-                        <ChevronRightIcon size={16}/>
-                    </>
-                )}
-            >
-                {renderPresets(attrs.ttl_seconds, `session-attribute-ttl-option-${field.id}`, handleTtlChange)}
-            </Menu.SubMenu>
-            <Menu.SubMenu
-                id={`${menuId}-grace`}
-                menuId={`${menuId}-grace-menu`}
-                leadingElement={<AlertCircleOutlineIcon size={18}/>}
-                labels={(
-                    <FormattedMessage
-                        id='admin.session_attributes.dotmenu.grace.label'
-                        defaultMessage='Grace Period'
-                    />
-                )}
-                trailingElements={(
-                    <>
-                        {formatDuration(attrs.grace_period_seconds)}
-                        <ChevronRightIcon size={16}/>
-                    </>
-                )}
-            >
-                {renderPresets(attrs.grace_period_seconds, `session-attribute-grace-option-${field.id}`, (seconds) => onStageChange(field.id, {grace_period_seconds: seconds}))}
-            </Menu.SubMenu>
-            <Menu.Separator/>
+            {!isServerAttribute && (
+                <>
+                    <Menu.SubMenu
+                        id={`${menuId}-ttl`}
+                        menuId={`${menuId}-ttl-menu`}
+                        leadingElement={<UpdateIcon size={18}/>}
+                        labels={(
+                            <FormattedMessage
+                                id='admin.session_attributes.dotmenu.ttl.label'
+                                defaultMessage='Time-to-live (TTL)'
+                            />
+                        )}
+                        trailingElements={(
+                            <>
+                                {formatDuration(attrs.ttl_seconds)}
+                                <ChevronRightIcon size={16}/>
+                            </>
+                        )}
+                    >
+                        {renderPresets(attrs.ttl_seconds, `session-attribute-ttl-option-${field.id}`, handleTtlChange)}
+                    </Menu.SubMenu>
+                    <Menu.SubMenu
+                        id={`${menuId}-grace`}
+                        menuId={`${menuId}-grace-menu`}
+                        leadingElement={<AlertCircleOutlineIcon size={18}/>}
+                        labels={(
+                            <FormattedMessage
+                                id='admin.session_attributes.dotmenu.grace.label'
+                                defaultMessage='Grace Period'
+                            />
+                        )}
+                        trailingElements={(
+                            <>
+                                {formatDuration(attrs.grace_period_seconds)}
+                                <ChevronRightIcon size={16}/>
+                            </>
+                        )}
+                    >
+                        {renderPresets(attrs.grace_period_seconds, `session-attribute-grace-option-${field.id}`, (seconds) => onStageChange(field.id, {grace_period_seconds: seconds}))}
+                    </Menu.SubMenu>
+                    <Menu.Separator/>
+                </>
+            )}
             {attrs.enabled ? (
                 <Menu.Item
                     id={`session-attribute-disable-${field.id}`}
