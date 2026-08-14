@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage} from 'react-intl';
 import {connect} from 'react-redux';
@@ -11,6 +12,8 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
+
+import usePluginStatusesSync from 'components/common/hooks/usePluginStatusesSync';
 
 import {getAdminConsoleCustomComponents, getAdminConsoleCustomSections} from 'selectors/admin_console';
 
@@ -211,4 +214,11 @@ function makeMapStateToProps() {
     };
 }
 
-export default connect(makeMapStateToProps)(CustomPluginSettings);
+const ConnectedCustomPluginSettings = connect(makeMapStateToProps)(CustomPluginSettings);
+
+// Wrap the legacy class-based settings component so it can subscribe to plugin status changes
+// and refetch on demand while the page is mounted.
+export default function CustomPluginSettingsWithStatusesSync(props: React.ComponentProps<typeof ConnectedCustomPluginSettings>) {
+    usePluginStatusesSync();
+    return <ConnectedCustomPluginSettings {...props}/>;
+}
