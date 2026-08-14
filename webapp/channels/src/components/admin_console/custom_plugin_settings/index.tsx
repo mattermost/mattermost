@@ -13,9 +13,9 @@ import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 
-import usePluginStatusesSync from 'components/common/hooks/usePluginStatusesSync';
-
 import {getAdminConsoleCustomComponents, getAdminConsoleCustomSections} from 'selectors/admin_console';
+
+import usePluginStatusesSync from 'components/common/hooks/usePluginStatusesSync';
 
 import {appsPluginID} from 'utils/apps';
 import {Constants} from 'utils/constants';
