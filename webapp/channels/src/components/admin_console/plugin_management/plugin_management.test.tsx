@@ -624,8 +624,8 @@ describe('components/PluginManagement', () => {
     });
 
     test.each([
-        ['upgrade', '1.0.0', '2.0.0', 'This upload upgrades the existing plugin. Overwriting will reinstall it.'],
-        ['same', '1.0.0', '1.0.0', 'This upload has the same version as the existing plugin. Overwriting will reinstall it.'],
+        ['upgrade', '1.0.0', '2.0.0', 'This upload upgrades the existing plugin.'],
+        ['same', '1.0.0', '1.0.0', 'This upload has the same version as the existing plugin.'],
         ['downgrade', '2.0.0', '1.0.0', 'This upload downgrades the existing plugin. Downgrades can remove fixes or features.'],
         ['unknown', '1.0.0', 'not-semver', 'Review the uploaded plugin before overwriting the existing installation. The server could not compare these plugin versions.'],
     ])('should render overwrite review panel for %s uploads', async (direction, existingVersion, uploadedVersion, message) => {

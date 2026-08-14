@@ -901,14 +901,14 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             warningCopy = (
                 <FormattedMessage
                     id='admin.plugin.upload.overwrite_review.upgrade'
-                    defaultMessage='This upload upgrades the existing plugin. Overwriting will reinstall it.'
+                    defaultMessage='This upload upgrades the existing plugin.'
                 />
             );
         } else if (direction === 'same') {
             warningCopy = (
                 <FormattedMessage
                     id='admin.plugin.upload.overwrite_review.same'
-                    defaultMessage='This upload has the same version as the existing plugin. Overwriting will reinstall it.'
+                    defaultMessage='This upload has the same version as the existing plugin.'
                 />
             );
         } else if (direction === 'downgrade') {
