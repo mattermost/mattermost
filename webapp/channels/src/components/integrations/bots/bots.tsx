@@ -58,6 +58,7 @@ type Props = {
     users: Record<string, UserProfile>;
     pluginDisplayNames?: Record<string, string>;
     createBots?: boolean;
+    maxLifetimeDays: number;
 
     actions: {
 
@@ -74,11 +75,12 @@ type Props = {
         /**
         * Access token managment
         */
-        createUserAccessToken: (userId: string, description: string) => Promise<ActionResult<UserAccessToken>>;
+        createUserAccessToken: (userId: string, description: string, expiresAt?: number) => Promise<ActionResult<UserAccessToken>>;
 
         revokeUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         enableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         disableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        rotateUserAccessToken: (tokenId: string, expiresAt?: number) => Promise<ActionResult<UserAccessToken>>;
 
         /**
         * Load owner of bot account
@@ -256,6 +258,7 @@ export default class Bots extends React.PureComponent<Props, State> {
                 actions={this.props.actions}
                 team={this.props.team}
                 fromApp={this.props.appsBotIDs.includes(bot.user_id)}
+                maxLifetimeDays={this.props.maxLifetimeDays}
             />
         );
     };
