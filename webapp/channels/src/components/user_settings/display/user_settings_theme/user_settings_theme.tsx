@@ -5,6 +5,7 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Preferences} from 'mattermost-redux/constants';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import ExternalLink from 'components/external_link';
@@ -13,7 +14,7 @@ import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {Constants} from 'utils/constants';
-import {isSystemInDarkMode} from 'utils/theme_utils';
+import {isLightTheme, isSystemInDarkMode} from 'utils/theme_utils';
 import {applyTheme} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
@@ -85,7 +86,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
     componentWillUnmount() {
         if (this.props.selected) {
             const useDark = this.props.themeAutoSwitch && isSystemInDarkMode();
-            applyTheme(useDark ? this.props.darkTheme : this.props.theme);
+            this.applyPreview(useDark ? this.props.darkTheme : this.props.theme, this.props.themeAutoSwitch);
         }
     }
 
@@ -113,6 +114,13 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         };
     }
 
+    applyPreview = (theme: Theme | undefined, isUsingSystemTheme: boolean) => {
+        if (!theme) {
+            return;
+        }
+        applyTheme(theme, {isUsingSystemTheme});
+    };
+
     focusEditButton(): void {
         this.minRef.current?.focus();
     }
@@ -131,9 +139,9 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
         // Apply the appropriate theme based on system preference when auto-switch is enabled
         if (isSystemInDarkMode() && this.state.themeAutoSwitch) {
-            applyTheme(this.state.darkTheme);
+            this.applyPreview(this.state.darkTheme, this.state.themeAutoSwitch);
         } else {
-            applyTheme(this.state.theme);
+            this.applyPreview(this.state.theme, this.state.themeAutoSwitch);
         }
 
         if (this.state.applyToAllTeams) {
@@ -174,9 +182,10 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
         this.setState({theme});
 
-        // Only apply the light theme immediately if auto-switch is disabled or system is in light mode
-        if (!this.state.themeAutoSwitch || !isSystemInDarkMode()) {
-            applyTheme(theme);
+        if (!this.state.themeAutoSwitch) {
+            this.applyPreview(theme, false);
+        } else if (!isSystemInDarkMode() && isLightTheme(theme)) {
+            this.applyPreview(theme, true);
         }
     };
 
@@ -185,9 +194,8 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
         this.setState({darkTheme});
 
-        // Apply the dark theme immediately if we're in dark mode and auto-switch is enabled
-        if (this.state.themeAutoSwitch && isSystemInDarkMode()) {
-            applyTheme(darkTheme);
+        if (this.state.themeAutoSwitch && isSystemInDarkMode() && !isLightTheme(darkTheme)) {
+            this.applyPreview(darkTheme, this.state.themeAutoSwitch);
         }
     };
 
@@ -197,19 +205,22 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
     toggleThemeAutoSwitch = (): void => {
         const themeAutoSwitch = !this.state.themeAutoSwitch;
-        this.setState({themeAutoSwitch});
-        this.props.setRequireConfirm?.(this.hasUnsavedChanges(undefined, undefined, themeAutoSwitch));
+        let darkTheme = this.state.darkTheme;
+        let darkType = this.state.darkType;
 
-        // Apply the appropriate theme immediately based on the current system preference
-        if (themeAutoSwitch) {
-            if (isSystemInDarkMode() && this.state.darkTheme) {
-                applyTheme(this.state.darkTheme);
-            } else {
-                applyTheme(this.state.theme);
-            }
+        // Default the dark slot to Onyx when it still holds a light theme (first-time auto-switch).
+        if (themeAutoSwitch && isLightTheme(darkTheme)) {
+            darkTheme = {...Preferences.THEMES.onyx};
+            darkType = darkTheme.type || 'premade';
+        }
+
+        this.setState({themeAutoSwitch, darkTheme, darkType});
+        this.props.setRequireConfirm?.(this.hasUnsavedChanges(undefined, darkTheme, themeAutoSwitch));
+
+        if (themeAutoSwitch && isSystemInDarkMode()) {
+            this.applyPreview(darkTheme, true);
         } else {
-            // If auto-switch is being disabled, revert to the light theme
-            applyTheme(this.state.theme);
+            this.applyPreview(this.state.theme, themeAutoSwitch);
         }
     };
 
@@ -218,7 +229,10 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         state.serverError = '';
         this.setState(state);
 
-        applyTheme((state.themeAutoSwitch && isSystemInDarkMode()) ? state.darkTheme : state.theme);
+        this.applyPreview(
+            (state.themeAutoSwitch && isSystemInDarkMode()) ? state.darkTheme : state.theme,
+            state.themeAutoSwitch,
+        );
 
         this.props.setRequireConfirm?.(false);
     };
@@ -252,6 +266,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                     <PremadeThemeChooser
                         theme={this.state.theme}
                         updateTheme={this.updateTheme}
+                        variant={this.state.themeAutoSwitch ? 'light' : undefined}
                     />
                 </div>
             );
@@ -276,6 +291,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                     <PremadeThemeChooser
                         theme={this.state.darkTheme}
                         updateTheme={this.updateDarkTheme}
+                        variant={this.state.themeAutoSwitch ? 'dark' : undefined}
                     />
                 </div>
             );

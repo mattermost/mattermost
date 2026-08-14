@@ -7,6 +7,7 @@ import {Preferences} from 'mattermost-redux/constants';
 import type {Theme, ThemeKey} from 'mattermost-redux/selectors/entities/preferences';
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
+import {isLightTheme} from 'utils/theme_utils';
 import {toTitleCase} from 'utils/utils';
 
 import ThemeThumbnail from '../theme_thumbnail';
@@ -15,9 +16,10 @@ type Props = {
     theme: Theme;
     updateTheme: (theme: Theme) => void;
     allowedThemes: string[];
+    variant?: 'light' | 'dark';
 };
 
-const PremadeThemeChooser = ({theme, updateTheme, allowedThemes = []}: Props) => {
+const PremadeThemeChooser = ({theme, updateTheme, allowedThemes = [], variant}: Props) => {
     const premadeThemes = [];
     const hasAllowedThemes = allowedThemes.length > 1 || (allowedThemes[0] && allowedThemes[0].trim().length > 0);
 
@@ -28,6 +30,13 @@ const PremadeThemeChooser = ({theme, updateTheme, allowedThemes = []}: Props) =>
             }
 
             const premadeTheme: Theme = Object.assign({}, Preferences.THEMES[k as ThemeKey]);
+
+            if (variant === 'light' && !isLightTheme(premadeTheme)) {
+                continue;
+            }
+            if (variant === 'dark' && isLightTheme(premadeTheme)) {
+                continue;
+            }
 
             let activeClass = '';
             if (premadeTheme.type === theme.type) {

@@ -6,15 +6,19 @@ import type {ComponentProps} from 'react';
 
 import {Preferences} from 'mattermost-redux/constants';
 
+import matchMedia from 'tests/helpers/match_media.mock';
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import UserSettingsTheme from './user_settings_theme';
 
 jest.mock('utils/utils', () => ({
     applyTheme: jest.fn(),
-    toTitleCase: jest.fn(),
+    toTitleCase: (s: string) => s,
     a11yFocus: jest.fn(),
 }));
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const {applyTheme} = require('utils/utils');
 
 describe('components/user_settings/display/user_settings_theme/user_settings_theme', () => {
     const requiredProps: ComponentProps<typeof UserSettingsTheme> = {
@@ -111,6 +115,56 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
 
         await waitFor(() => {
             expect(props.actions.deleteTeamSpecificThemes).toHaveBeenCalled();
+        });
+    });
+
+    describe('auto-switch', () => {
+        beforeEach(() => {
+            applyTheme.mockClear();
+        });
+
+        afterEach(() => {
+            matchMedia.clear();
+        });
+
+        it('tells Desktop to follow the system theme when auto-switch is toggled on before save', async () => {
+            matchMedia.useMediaQuery('(prefers-color-scheme: dark)');
+
+            renderWithContext(
+                <UserSettingsTheme
+                    {...requiredProps}
+                    selected={true}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('checkbox', {name: /automatically switch between light and dark themes/i}));
+
+            expect(applyTheme).toHaveBeenCalledWith(
+                expect.objectContaining({type: Preferences.THEMES.onyx.type}),
+                {isUsingSystemTheme: true},
+            );
+        });
+
+        it('hides dark premades from the light chooser and light premades from the dark chooser', () => {
+            renderWithContext(
+                <UserSettingsTheme
+                    {...requiredProps}
+                    selected={true}
+                    themeAutoSwitch={true}
+                    darkTheme={Preferences.THEMES.onyx}
+                />,
+            );
+
+            const sections = document.querySelectorAll('.appearance-section');
+            expect(sections).toHaveLength(2);
+
+            const lightIds = Array.from(sections[0].querySelectorAll('.premadeThemeButton')).map((el) => el.id);
+            expect(lightIds).toEqual(expect.arrayContaining(['premadeThemeDenim', 'premadeThemeSapphire', 'premadeThemeQuartz']));
+            expect(lightIds).not.toEqual(expect.arrayContaining(['premadeThemeOnyx', 'premadeThemeIndigo']));
+
+            const darkIds = Array.from(sections[1].querySelectorAll('.premadeThemeButton')).map((el) => el.id);
+            expect(darkIds).toEqual(expect.arrayContaining(['premadeThemeOnyx', 'premadeThemeIndigo']));
+            expect(darkIds).not.toEqual(expect.arrayContaining(['premadeThemeDenim', 'premadeThemeSapphire', 'premadeThemeQuartz']));
         });
     });
 });

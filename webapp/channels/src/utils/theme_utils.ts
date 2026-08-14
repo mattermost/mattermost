@@ -124,3 +124,29 @@ export function applySystemThemeIfNeeded(): boolean {
 export function isSystemInDarkMode(): boolean {
     return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
 }
+
+/**
+ * Returns whether a theme is light based on center-channel background luminance.
+ * Matches the Desktop App's isLightColor heuristic so auto-switch can keep
+ * light and dark slots from driving nativeTheme.themeSource the wrong way.
+ */
+export function isLightTheme(theme?: Theme | null): boolean {
+    const hex = theme?.centerChannelBg?.replace('#', '');
+    if (!hex) {
+        return true;
+    }
+
+    const full = hex.length === 3 ? hex.split('').map((c) => c + c).join('') : hex;
+    if (full.length < 6) {
+        return true;
+    }
+
+    const r = parseInt(full.slice(0, 2), 16);
+    const g = parseInt(full.slice(2, 4), 16);
+    const b = parseInt(full.slice(4, 6), 16);
+    if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) {
+        return true;
+    }
+
+    return ((r * 299) + (g * 587) + (b * 114)) / 1000 >= 128;
+}

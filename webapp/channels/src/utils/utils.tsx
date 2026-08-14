@@ -357,8 +357,12 @@ export function toRgbValues(hexStr: string): string {
     return rgbaStr;
 }
 
-export function applyTheme(theme: Theme) {
-    const isUsingSystemTheme = getBool(store.getState(), Preferences.CATEGORY_DISPLAY_SETTINGS, 'theme_auto_switch');
+type ApplyThemeOptions = {
+    isUsingSystemTheme?: boolean;
+};
+
+export function applyTheme(theme: Theme, options?: ApplyThemeOptions) {
+    const isUsingSystemTheme = options?.isUsingSystemTheme ?? getBool(store.getState(), Preferences.CATEGORY_DISPLAY_SETTINGS, 'theme_auto_switch');
     DesktopApp.updateTheme({...theme, isUsingSystemTheme});
 
     if (theme.centerChannelColor) {
