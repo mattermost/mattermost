@@ -35,11 +35,17 @@ const noop = () => {};
  * confirmation can explain where the leftover attribute came from. It is an
  * object rather than a bare flag so there is no way to declare a field orphaned
  * without supplying the plugin it came from.
+ *
+ * `onExited` runs once the modal has finished closing, whether it was confirmed
+ * or cancelled. ModalController composes it with its own close handling, so the
+ * caller's callback runs after the dialog is actually gone -- which is when it is
+ * safe to move focus or scroll, since react-bootstrap restores focus to whatever
+ * opened the modal on the way out.
  */
 export const useGlobalAttributeFieldDelete = () => {
     const dispatch = useDispatch();
 
-    return (name: string, onConfirm: () => void, orphan?: {sourcePluginId?: string}) => {
+    return (name: string, onConfirm: () => void, orphan?: {sourcePluginId?: string}, onExited?: () => void) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.GLOBAL_ATTRIBUTE_FIELD_DELETE,
             dialogType: GlobalAttributeDeleteModal,
@@ -48,6 +54,7 @@ export const useGlobalAttributeFieldDelete = () => {
                 onConfirm,
                 isOrphaned: Boolean(orphan),
                 sourcePluginId: orphan?.sourcePluginId,
+                onExited,
             },
         }));
     };

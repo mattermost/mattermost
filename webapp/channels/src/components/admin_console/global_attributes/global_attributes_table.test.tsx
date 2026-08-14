@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor, within} from '@testing-library/react';
+import {act, screen, waitFor, within} from '@testing-library/react';
 import React from 'react';
 
 import {ClientError} from '@mattermost/client';
@@ -499,16 +499,25 @@ describe('GlobalAttributesTable', () => {
             deletePropertyField.mockReset();
         });
 
+        // The class here is not decoration: the System Console scrolls in
+        // .admin-console__wrapper, and that is the ancestor the table pulls back to
+        // the top when a delete fails. jsdom implements no scrolling at all, so the
+        // method is stubbed to record the call.
         function renderTable(fields: PropertyField[], state: DeepPartial<GlobalState> = getBaseState()) {
             getPropertyFields.mockResolvedValueOnce(fields).mockResolvedValue([]);
 
             renderWithContext(
-                <div>
+                <div className='admin-console__wrapper'>
                     <GlobalAttributesTable/>
                     <ModalController/>
                 </div>,
                 state,
             );
+
+            const scrollTo = jest.fn();
+            Object.assign(document.querySelector('.admin-console__wrapper')!, {scrollTo});
+
+            return {scrollTo};
         }
 
         // A plugin-owned row is server-protected only while its plugin is still
@@ -641,6 +650,98 @@ describe('GlobalAttributesTable', () => {
             expect(liveRegion).toBeInTheDocument();
         });
 
+        it('scrolls the page back to the top and takes focus once a failed delete has closed the modal', async () => {
+            deletePropertyField.mockRejectedValue(makeClientError(500));
+            const {scrollTo} = renderTable([makeField({attrs: {display_name: 'Department'}})]);
+
+            await openDeleteModal();
+            await userEvent.click(await screen.findByRole('button', {name: /^delete$/i}));
+
+            const liveRegion = await screen.findByRole('alert');
+
+            await waitFor(() => {
+                expect(scrollTo).toHaveBeenCalledWith({top: 0});
+            });
+
+            // * Focus lands on the banner rather than being restored to the row's
+            // actions button, which is what would otherwise scroll the page away
+            // from the error again
+            expect(liveRegion).toHaveFocus();
+        });
+
+        it('still scrolls to the error when the delete outlasts the modal close animation', async () => {
+            // GenericModal starts closing before it calls handleConfirm, so a slow
+            // request can land after the modal is already gone — the reverse of the
+            // usual order, and the case a plain onExited hook would miss
+            let failDelete: (error: unknown) => void = () => {};
+            deletePropertyField.mockImplementation(() => new Promise((_resolve, reject) => {
+                failDelete = reject;
+            }));
+
+            const {scrollTo} = renderTable([makeField({attrs: {display_name: 'Department'}})]);
+
+            await openDeleteModal();
+            await userEvent.click(await screen.findByRole('button', {name: /^delete$/i}));
+
+            await waitFor(() => {
+                expect(screen.queryByText(/permanently remove its definition/i)).not.toBeInTheDocument();
+            });
+            expect(scrollTo).not.toHaveBeenCalled();
+
+            await act(async () => {
+                failDelete(makeClientError(500));
+            });
+
+            await waitFor(() => {
+                expect(scrollTo).toHaveBeenCalledWith({top: 0});
+            });
+        });
+
+        it('leaves the scroll position alone when the delete succeeds', async () => {
+            deletePropertyField.mockResolvedValue({status: 'OK'});
+            const {scrollTo} = renderTable([makeField({attrs: {display_name: 'Department'}})]);
+
+            await openDeleteModal();
+            await userEvent.click(await screen.findByRole('button', {name: /^delete$/i}));
+
+            expect(await screen.findByTestId('global-attributes-empty')).toBeInTheDocument();
+            expect(scrollTo).not.toHaveBeenCalled();
+        });
+
+        it('leaves the scroll position alone when the modal is cancelled', async () => {
+            const {scrollTo} = renderTable([makeField({attrs: {display_name: 'Department'}})]);
+
+            await openDeleteModal();
+            await userEvent.click(await screen.findByRole('button', {name: /cancel/i}));
+
+            await waitFor(() => {
+                expect(screen.queryByText(/permanently remove its definition/i)).not.toBeInTheDocument();
+            });
+            expect(scrollTo).not.toHaveBeenCalled();
+        });
+
+        it('keeps scrolling to the error on a second failed delete', async () => {
+            deletePropertyField.mockRejectedValue(makeClientError(500));
+            const {scrollTo} = renderTable([makeField({attrs: {display_name: 'Department'}})]);
+
+            await openDeleteModal();
+            await userEvent.click(await screen.findByRole('button', {name: /^delete$/i}));
+            await waitFor(() => {
+                expect(scrollTo).toHaveBeenCalledTimes(1);
+            });
+
+            await openDeleteModal();
+            await userEvent.click(await screen.findByRole('button', {name: /^delete$/i}));
+
+            // * The behaviour is per-attempt rather than one-shot. Note this does not
+            // pin down *when* the second scroll fires: jsdom completes the modal's
+            // fade before the rejection lands, so the ordering the component re-arms
+            // for is not reproducible here.
+            await waitFor(() => {
+                expect(scrollTo).toHaveBeenCalledTimes(2);
+            });
+        });
+
         it('keeps Delete disabled with a reason on a plugin-owned row while the plugin is installed', async () => {
             renderTable([makePluginOwnedField()], getStateWithInstalledPlugin(PLUGIN_ID));
 
@@ -684,6 +785,28 @@ describe('GlobalAttributesTable', () => {
             await waitFor(() => {
                 expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-1');
             });
+        });
+
+        it('treats a plugin-owned row as protected while the plugin inventory is still in flight', async () => {
+            // An inventory that has not arrived looks byte-for-byte like a server with
+            // the plugin uninstalled, so only the settled fetch tells the two apart.
+            // This one never settles, pinning the row in the not-yet-known state; the
+            // 're-enables Delete' test above covers the settled side.
+            const getPluginStatuses = jest.spyOn(Client4, 'getPluginStatuses').
+                mockImplementation(() => new Promise(() => {}));
+
+            renderTable([makePluginOwnedField()]);
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+
+            const del = (await screen.findAllByRole('menuitem')).find((el) => el.textContent?.includes('Delete attribute'));
+
+            // * Without the gate the empty inventory reads as "plugin gone", offering
+            // Delete behind a dialog that wrongly says the plugin was uninstalled
+            expect(del!).toHaveAttribute('aria-disabled', 'true');
+            expect(del!).toHaveTextContent('Plugin-managed');
+
+            getPluginStatuses.mockRestore();
         });
 
         it('omits the plugin explanation for an ordinary attribute', async () => {

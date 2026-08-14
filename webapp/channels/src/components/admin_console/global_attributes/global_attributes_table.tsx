@@ -213,10 +213,12 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
 
 type ActionsCellProps = ClassificationAwareCellProps & {
     isMobileView: boolean;
+    pluginInventoryLoaded: boolean;
     onDeleteError: (message: string | null) => void;
+    onDeleteModalExited: () => void;
 };
 
-function ActionsCell({field, isClassificationRow, isMobileView, onDeleteError}: ActionsCellProps) {
+function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryLoaded, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const promptDelete = useGlobalAttributeFieldDelete();
@@ -227,7 +229,9 @@ function ActionsCell({field, isClassificationRow, isMobileView, onDeleteError}: 
     // Once the plugin is uninstalled the server allows the delete (see
     // checkFieldDeleteAccess in server/channels/app/properties/access_control.go) —
     // that is how an admin cleans up what the plugin left behind.
-    const isOrphaned = useIsFieldOrphaned(field);
+    // Not short-circuited into the hook call, which has to run unconditionally.
+    const fieldLooksOrphaned = useIsFieldOrphaned(field);
+    const isOrphaned = pluginInventoryLoaded && fieldLooksOrphaned;
     const isPluginManaged = getSourceKind(field) === 'plugin' && !isOrphaned;
 
     const handleConfirmed = useCallback(async () => {
@@ -315,6 +319,7 @@ function ActionsCell({field, isClassificationRow, isMobileView, onDeleteError}: 
                     getDisplayName(field),
                     handleConfirmed,
                     isOrphaned ? {sourcePluginId: field.attrs?.source_plugin_id as string | undefined} : undefined,
+                    onDeleteModalExited,
                 )}
                 labels={(
                     <>
@@ -333,6 +338,7 @@ export default function GlobalAttributesTable() {
     const [loaded, setLoaded] = useState(false);
     const [loadError, setLoadError] = useState(false);
     const [deleteError, setDeleteError] = useState<string | null>(null);
+    const [deleteModalExited, setDeleteModalExited] = useState(false);
     const bannerRef = useRef<HTMLDivElement>(null);
 
     const groupId = useSelector((state: GlobalState) =>
@@ -378,10 +384,21 @@ export default function GlobalAttributesTable() {
     // The Source column resolves plugin-owned rows to a plugin display name, but
     // server-only plugins are absent from the webapp manifest registry — their names
     // live in the admin plugin statuses, which nothing else on this page loads.
-    // Fetched once, and only when a plugin-owned row is actually present; failure
-    // just leaves the column showing the plugin ID, so the result is not awaited.
+    // Fetched once, and only when a plugin-owned row is actually present.
     const hasPluginOwnedFields = useMemo(() => fields.some((field) => Boolean(field.attrs?.source_plugin_id)), [fields]);
     const pluginStatusesRequested = useRef(false);
+
+    // Whether the plugin inventory is known yet. This gates the orphan check
+    // rather than the Source column, which degrades harmlessly to the plugin ID:
+    // an inventory that has not arrived is indistinguishable from one where
+    // nothing is installed, and isFieldOrphaned reads the latter as "every
+    // plugin-owned field is orphaned". Acting on that would briefly offer Delete
+    // on a still-protected field, behind a dialog wrongly claiming the plugin was
+    // uninstalled -- and the server would then refuse it anyway. Settled rather
+    // than resolved: a failed fetch still leaves the inventory as good as it will
+    // get, and staying false forever would strand genuine leftovers as
+    // undeletable.
+    const [pluginInventoryLoaded, setPluginInventoryLoaded] = useState(false);
 
     useEffect(() => {
         if (!hasPluginOwnedFields || pluginStatusesRequested.current) {
@@ -389,16 +406,38 @@ export default function GlobalAttributesTable() {
         }
 
         pluginStatusesRequested.current = true;
-        dispatch(getPluginStatuses());
+        dispatch(getPluginStatuses()).finally(() => setPluginInventoryLoaded(true));
     }, [dispatch, hasPluginOwnedFields]);
 
+    const handleDeleteModalExited = useCallback(() => setDeleteModalExited(true), []);
+
     // The banner sits above the table, so a delete triggered from a row further
-    // down can land off-screen. Pull it into view whenever a new error appears.
+    // down can land off-screen. Two things make the timing here load-bearing:
+    //
+    // GenericModal passes restoreFocus, so on close react-bootstrap returns focus
+    // to the row's actions button -- far down the list -- and focusing an
+    // off-screen element scrolls it back into view. Scrolling before that happens
+    // is simply undone, so the page has to settle first.
+    //
+    // GenericModal also starts closing *before* it invokes handleConfirm, and the
+    // delete request may finish either side of the modal's fade. So the error and
+    // the exit arrive in either order; act only once both have landed.
     useEffect(() => {
-        if (deleteError) {
-            bannerRef.current?.scrollIntoView?.({block: 'nearest'});
+        if (!deleteError || !deleteModalExited) {
+            return;
         }
-    }, [deleteError]);
+
+        // Disarmed so the next delete waits for its own modal to close rather
+        // than acting on this attempt's stale exit.
+        setDeleteModalExited(false);
+
+        // Focus without its own scroll, then scroll deliberately: the banner ends
+        // up owning focus for keyboard and screen reader users -- who would
+        // otherwise be returned to a row button and have to hunt for the error --
+        // and the browser never scrolls anywhere we did not ask it to.
+        bannerRef.current?.focus?.({preventScroll: true});
+        bannerRef.current?.closest('.admin-console__wrapper')?.scrollTo?.({top: 0});
+    }, [deleteError, deleteModalExited]);
 
     const rows = useMemo(
         () => [...fields].sort((a, b) => getDisplayName(a).localeCompare(getDisplayName(b))),
@@ -476,13 +515,15 @@ export default function GlobalAttributesTable() {
                         field={row.original}
                         isClassificationRow={isClassificationRow(row.original)}
                         isMobileView={isMobileView}
+                        pluginInventoryLoaded={pluginInventoryLoaded}
                         onDeleteError={setDeleteError}
+                        onDeleteModalExited={handleDeleteModalExited}
                     />
                 ),
                 enableHiding: false,
             }),
         ];
-    }, [groupId, classificationMarkingsReachable, isMobileView]);
+    }, [groupId, classificationMarkingsReachable, isMobileView, pluginInventoryLoaded, handleDeleteModalExited]);
 
     const table = useReactTable<PropertyField>({
         data: rows,
@@ -530,6 +571,10 @@ export default function GlobalAttributesTable() {
             <div
                 ref={bannerRef}
                 role='alert'
+
+                // Focused programmatically when a delete fails, so it takes focus
+                // without becoming a stop in the normal tab order.
+                tabIndex={-1}
             >
                 {deleteError && (
                     <AlertBanner
