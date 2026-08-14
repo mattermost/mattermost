@@ -213,18 +213,18 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, deactiv
 }
 
 func (a *App) BulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (int, *model.AppError) {
-	_, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, true, workers, "", "", &imports.ImportReport{})
+	_, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, true, workers, "", "", false, &imports.ImportReport{})
 	return 0, err
 }
 
 func (a *App) BulkImportWithPath(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError) {
-	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, "", &imports.ImportReport{})
+	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, "", false, &imports.ImportReport{})
 	return lineNumber, err
 }
 
 func (a *App) BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, opts model.BulkImportOpts) (int, *model.AppError) {
 	report := &imports.ImportReport{}
-	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeam, report)
+	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeam, opts.SkipPreflight, report)
 	return lineNumber, err
 }
 
@@ -232,7 +232,7 @@ func (a *App) BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader,
 // not nil. If it is nil, it will look for attachments on the
 // filesystem in the locations specified by the JSONL file according
 // to the older behavior
-func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, destinationTeam string, report *imports.ImportReport) (int, *model.AppError) {
+func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, destinationTeam string, skipPreflight bool, report *imports.ImportReport) (int, *model.AppError) {
 	scanner := bufio.NewScanner(jsonlReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
@@ -291,9 +291,10 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 					sourceTeamName = scope.TeamName
 					if scope.ChannelName != "" || scope.TeamName != "" {
 						deactivateMissingUsers = true
-						// Pre-create SSO users from the export so the main pass can
-						// match them by auth_data rather than creating deactivated shells.
 						if attachmentsReader != nil {
+							if appErr := a.checkSSOProviderConfig(rctx, attachmentsReader, skipPreflight); appErr != nil {
+								return lineNumber, appErr
+							}
 							a.preCreateSSOUsers(rctx, attachmentsReader, dryRun)
 						}
 					}
@@ -464,6 +465,125 @@ func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun b
 	default:
 		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]any{"Type": line.Type}, "", http.StatusBadRequest)
 	}
+}
+
+// checkSSOProviderConfig scans the export for SSO user accounts and fails when
+// the corresponding auth provider is not enabled on the destination. This prevents
+// silent deactivated shells for users whose auth provider is misconfigured.
+// For LDAP and SAML it also logs the configured IdAttribute and IdP URL so admins
+// can verify they match the source before proceeding.
+//
+// Returns a non-nil AppError if any hard mismatch is detected. Callers that set
+// skipPreflight=true skip all checks and log a warning instead.
+func (a *App) checkSSOProviderConfig(rctx request.CTX, zipReader *zip.Reader, skipPreflight bool) *model.AppError {
+	var jsonlEntry *zip.File
+	for _, f := range zipReader.File {
+		if imports.IsRootJsonlFile(f.Name) {
+			jsonlEntry = f
+			break
+		}
+	}
+	if jsonlEntry == nil {
+		return nil
+	}
+
+	rc, err := jsonlEntry.Open()
+	if err != nil {
+		return nil
+	}
+	defer rc.Close()
+
+	scanner := bufio.NewScanner(rc)
+	buf := make([]byte, 0, 64*1024)
+	scanner.Buffer(buf, maxScanTokenSize)
+
+	seen := make(map[string]struct{})
+	lineNumber := 0
+	for scanner.Scan() {
+		lineNumber++
+		if lineNumber == 1 {
+			continue
+		}
+		var line imports.LineImportData
+		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
+			continue
+		}
+		if line.Type != "user" {
+			continue
+		}
+		if line.User == nil || line.User.AuthService == nil || *line.User.AuthService == "" {
+			continue
+		}
+		svc := *line.User.AuthService
+		if _, already := seen[svc]; already {
+			continue
+		}
+		seen[svc] = struct{}{}
+
+		cfg := a.Config()
+
+		providerEnabled := false
+		var failMsg string
+
+		switch svc {
+		case model.UserAuthServiceLdap:
+			if !*cfg.LdapSettings.Enable {
+				failMsg = "export contains LDAP users but LDAP is not enabled on the destination"
+			} else if *cfg.LdapSettings.IdAttribute == "" {
+				failMsg = "LdapSettings.IdAttribute is empty on the destination — auth_data matching will fail for LDAP users"
+			} else {
+				providerEnabled = true
+				rctx.Logger().Info("PREFLIGHT: LDAP configured on destination",
+					mlog.String("id_attribute", *cfg.LdapSettings.IdAttribute))
+			}
+		case model.UserAuthServiceSaml:
+			if !*cfg.SamlSettings.Enable {
+				failMsg = "export contains SAML users but SAML is not enabled on the destination"
+			} else {
+				providerEnabled = true
+				rctx.Logger().Info("PREFLIGHT: SAML configured on destination",
+					mlog.String("id_attribute", *cfg.SamlSettings.IdAttribute),
+					mlog.String("idp_url", *cfg.SamlSettings.IdpURL))
+			}
+		case model.ServiceGitlab:
+			if !*cfg.GitLabSettings.Enable {
+				failMsg = "export contains GitLab OAuth users but GitLab OAuth is not enabled on the destination"
+			} else {
+				providerEnabled = true
+			}
+		case model.ServiceGoogle:
+			if !*cfg.GoogleSettings.Enable {
+				failMsg = "export contains Google OAuth users but Google OAuth is not enabled on the destination"
+			} else {
+				providerEnabled = true
+			}
+		case model.ServiceOffice365:
+			if !*cfg.Office365Settings.Enable {
+				failMsg = "export contains Office 365 OAuth users but Office 365 OAuth is not enabled on the destination"
+			} else {
+				providerEnabled = true
+			}
+		case model.ServiceOpenid:
+			if !*cfg.OpenIdSettings.Enable {
+				failMsg = "export contains OpenID users but OpenID is not enabled on the destination"
+			} else {
+				providerEnabled = true
+			}
+		default:
+			providerEnabled = true
+		}
+
+		if !providerEnabled && failMsg != "" {
+			if skipPreflight {
+				rctx.Logger().Warn("PREFLIGHT (skipped): "+failMsg+" — proceeding anyway as --skip-preflight was set",
+					mlog.String("auth_service", svc))
+			} else {
+				return model.NewAppError("BulkImport", "app.import.preflight.auth_provider_not_configured.error",
+					map[string]any{"Service": svc, "Detail": failMsg}, "", http.StatusBadRequest)
+			}
+		}
+	}
+	return nil
 }
 
 // preCreateSSOUsers does a lightweight first pass over the JSONL to create SSO

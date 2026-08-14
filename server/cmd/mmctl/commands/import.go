@@ -126,6 +126,7 @@ func init() {
 	ImportProcessCmd.Flags().Bool("extract-content", true, "If this is set, document attachments will be extracted and indexed during the import process. It is advised to disable it to improve performance.")
 	ImportProcessCmd.Flags().Int("workers", 0, "The number of concurrent import worker goroutines. Controls database load during import. When set to 0 (default), uses the number of CPUs available. Maximum allowed is 4x the CPU count.")
 	ImportProcessCmd.Flags().String("destination-team", "", "Map the source team in the export to a differently-named team on the destination server. Works with both channel-scoped and full-team exports.")
+	ImportProcessCmd.Flags().Bool("skip-preflight", false, "Skip SSO provider configuration checks. By default the import fails if an auth provider present in the export is not enabled on the destination. Use this flag only after reviewing the preflight error and accepting the risk.")
 
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
@@ -321,6 +322,7 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	}
 
 	destinationTeam, _ := command.Flags().GetString("destination-team")
+	skipPreflight, _ := command.Flags().GetBool("skip-preflight")
 
 	jobData := map[string]string{
 		"import_file":     importFile,
@@ -332,6 +334,9 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	}
 	if destinationTeam != "" {
 		jobData["destination_team"] = destinationTeam
+	}
+	if skipPreflight {
+		jobData["skip_preflight"] = "true"
 	}
 
 	job, _, err := c.CreateJob(context.TODO(), &model.Job{

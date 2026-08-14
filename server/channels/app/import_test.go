@@ -851,3 +851,152 @@ func TestDeleteImport(t *testing.T) {
 		require.Nil(t, delErr)
 	})
 }
+
+func TestCheckSSOProviderConfig(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	// Enterprise license required to enable LDAP/SAML via UpdateConfig validation.
+	th.App.Srv().SetLicense(model.NewTestLicense())
+	defer th.App.Srv().SetLicense(nil)
+
+	versionLine := `{"type":"version","version":1,"info":{"generator":"mattermost-server","version":"test","created":"2026-01-01T00:00:00Z","additional":{"team_name":"acme"}}}`
+
+	makeJSONL := func(authService string) string {
+		userLine := `{"type":"user","user":{"username":"testuser","email":"test@example.com","auth_service":"` + authService + `","auth_data":"some-id"}}`
+		return versionLine + "\n" + userLine
+	}
+
+	t.Run("LDAP enabled — no error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.Enable = model.NewPointer(true)
+			cfg.LdapSettings.LdapServer = model.NewPointer("localhost")
+			cfg.LdapSettings.BaseDN = model.NewPointer("dc=mm,dc=test,dc=com")
+			cfg.LdapSettings.BindUsername = model.NewPointer("cn=admin,dc=mm,dc=test,dc=com")
+			cfg.LdapSettings.BindPassword = model.NewPointer("mostest")
+			cfg.LdapSettings.EmailAttribute = model.NewPointer("mail")
+			cfg.LdapSettings.UsernameAttribute = model.NewPointer("uid")
+			cfg.LdapSettings.IdAttribute = model.NewPointer("uid")
+			cfg.LdapSettings.LoginIdAttribute = model.NewPointer("uid")
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.UserAuthServiceLdap))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("LDAP disabled — error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.Enable = model.NewPointer(false)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.UserAuthServiceLdap))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("LDAP enabled but IdAttribute empty — error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.Enable = model.NewPointer(true)
+			cfg.LdapSettings.IdAttribute = model.NewPointer("")
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.UserAuthServiceLdap))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("SAML enabled — no error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.Verify = model.NewPointer(false)
+			cfg.SamlSettings.Encrypt = model.NewPointer(false)
+			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
+			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
+			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml/descriptor")
+			cfg.SamlSettings.AssertionConsumerServiceURL = model.NewPointer("http://localhost:8065/login/sso/saml")
+			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
+			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
+			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
+			cfg.SamlSettings.IdAttribute = model.NewPointer("id")
+			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.UserAuthServiceSaml))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("SAML disabled — error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(false)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.UserAuthServiceSaml))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("skip-preflight bypasses disabled provider check", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.Enable = model.NewPointer(false)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.UserAuthServiceLdap))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, true)
+		require.Nil(t, appErr, "skip-preflight should suppress the error")
+	})
+
+	t.Run("email-only export — no error regardless of SSO config", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.Enable = model.NewPointer(false)
+			cfg.SamlSettings.Enable = model.NewPointer(false)
+		})
+		emailOnlyJSONL := versionLine + "\n" +
+			`{"type":"user","user":{"username":"alice","email":"alice@example.com"}}`
+		zr := makeZipWithJSONL(t, emailOnlyJSONL)
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr, "email-only export should never trigger preflight failures")
+	})
+
+	t.Run("mixed SSO types — all checked, first failure returns error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.Enable = model.NewPointer(true)
+			cfg.LdapSettings.IdAttribute = model.NewPointer("uid")
+			cfg.SamlSettings.Enable = model.NewPointer(false)
+		})
+		mixed := versionLine + "\n" +
+			`{"type":"user","user":{"username":"ldap-user","email":"ldap@example.com","auth_service":"ldap","auth_data":"uid1"}}` + "\n" +
+			`{"type":"user","user":{"username":"saml-user","email":"saml@example.com","auth_service":"saml","auth_data":"saml-id"}}`
+		zr := makeZipWithJSONL(t, mixed)
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr, "should fail because SAML is disabled")
+	})
+
+	t.Run("no attachments reader (non-zip import) — preflight skipped silently", func(t *testing.T) {
+		// When attachmentsReader is nil the call site skips checkSSOProviderConfig entirely.
+		// This test documents that the function itself handles a nil-entry zip gracefully.
+		emptyZR := makeZipWithJSONL(t, "")
+		appErr := th.App.checkSSOProviderConfig(th.Context, emptyZR, false)
+		require.Nil(t, appErr, "empty JSONL should not trigger any failure")
+	})
+}
+
+// makeZipWithJSONL creates an in-memory zip containing a single import.jsonl
+// entry with the provided content, returning a *zip.Reader over it.
+func makeZipWithJSONL(t *testing.T, jsonl string) *zip.Reader {
+	t.Helper()
+	pr, pw := io.Pipe()
+	zw := zip.NewWriter(pw)
+	go func() {
+		f, err := zw.Create("import.jsonl")
+		if err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+		if _, err := strings.NewReader(jsonl).WriteTo(f); err != nil {
+			pw.CloseWithError(err)
+			return
+		}
+		pw.CloseWithError(zw.Close())
+	}()
+	raw, err := io.ReadAll(pr)
+	require.NoError(t, err)
+	r, err := zip.NewReader(strings.NewReader(string(raw)), int64(len(raw)))
+	require.NoError(t, err)
+	return r
+}

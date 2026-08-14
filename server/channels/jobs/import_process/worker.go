@@ -136,6 +136,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		// do the actual import.
 		importOpts := model.BulkImportOpts{
 			DestinationTeam: job.Data["destination_team"],
+			SkipPreflight:   job.Data["skip_preflight"] == "true",
 		}
 		lineNumber, appErr := app.BulkImportWithPathAndOpts(appContext, jsonFile, importZipReader, false, extractContent, numWorkers, model.ExportDataDir, importOpts)
 		if appErr != nil {

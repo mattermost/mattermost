@@ -21,4 +21,11 @@ type BulkImportOpts struct {
 	// DestinationTeam remaps the source team name to a different team name on
 	// the destination server.
 	DestinationTeam string
+
+	// SkipPreflight bypasses SSO provider configuration checks. By default the
+	// import fails if the export contains users from an auth provider that is
+	// not enabled on the destination, to prevent silent deactivated shells.
+	// Set this to true only after reviewing the preflight error and accepting
+	// the risk of proceeding with a mismatched configuration.
+	SkipPreflight bool
 }
