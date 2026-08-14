@@ -213,6 +213,8 @@ const messages = defineMessages({
     automaticPrepackagedPluginsDesc: {id: 'admin.plugins.settings.automaticPrepackagedPluginsDesc', defaultMessage: 'When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.'},
     marketplaceUrl: {id: 'admin.plugins.settings.marketplaceUrl', defaultMessage: 'Marketplace URL:'},
     marketplaceUrlDesc: {id: 'admin.plugins.settings.marketplaceUrlDesc', defaultMessage: 'URL of the marketplace server.'},
+    uploadSuccess: {id: 'admin.plugin.upload.success', defaultMessage: 'Successfully uploaded plugin: {pluginName}'},
+    uploadSuccessUpdated: {id: 'admin.plugin.upload.success_updated', defaultMessage: 'Successfully updated plugin: {pluginName}'},
 });
 
 export const searchableStrings = [
@@ -644,7 +646,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
 
     helpSubmitUpload = async (file: File, force: boolean) => {
         this.setState({uploading: true});
-        const {error} = await this.props.actions.uploadPlugin(file, force);
+        const {data, error} = await this.props.actions.uploadPlugin(file, force);
 
         if (error) {
             if (error.server_error_id === 'app.plugin.install_id.app_error' && !force) {
@@ -674,10 +676,8 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         this.setState({loading: true});
         await this.props.actions.getPlugins();
 
-        let msg = `Successfully uploaded plugin from ${file?.name}`;
-        if (this.state.overwritingUpload) {
-            msg = `Successfully updated plugin from ${file?.name}`;
-        }
+        const pluginName = data?.name || file?.name;
+        const msg = this.state.overwritingUpload ? this.props.intl.formatMessage(messages.uploadSuccessUpdated, {pluginName}) : this.props.intl.formatMessage(messages.uploadSuccess, {pluginName});
 
         this.setState({
             file: null,

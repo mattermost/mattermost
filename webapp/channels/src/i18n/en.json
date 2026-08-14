@@ -2775,6 +2775,8 @@
   "admin.plugin.upload.overwrite_modal.title": "Overwrite existing plugin?",
   "admin.plugin.upload.progress": "Plugin upload progress",
   "admin.plugin.upload.selected_file": "Selected: {fileName}",
+  "admin.plugin.upload.success": "Successfully uploaded plugin: {pluginName}",
+  "admin.plugin.upload.success_updated": "Successfully updated plugin: {pluginName}",
   "admin.plugin.uploadAndPluginDisabledDesc": "To enable plugins, set <strong>Enable Plugins</strong> to true. See <link>documentation</link> to learn more.",
   "admin.plugin.uploadDesc": "Upload a plugin for your Mattermost server. See <link>documentation</link> to learn more.",
   "admin.plugin.uploadDisabledDesc": "Enable plugin uploads in config.json. See <link>documentation</link> to learn more.",
