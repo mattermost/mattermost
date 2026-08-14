@@ -6701,30 +6701,6 @@
     "translation": "Unable to get the emoji."
   },
   {
-    "id": "app.eport.generate_presigned_url.config.app_error",
-    "translation": "This actions requires the use of a dedicated export store."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "Your export store driver does not support presign url generation."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.featureflag.app_error",
-    "translation": "This feature is restricted by a feature flag."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.fileexist.app_error",
-    "translation": "Unable to check if the file exists."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.link.app_error",
-    "translation": "Unable to generate the presigned url."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.notfound.app_error",
-    "translation": "The export file was not found."
-  },
-  {
     "id": "app.export.export_attachment.copy_file.error",
     "translation": "Failed to copy file during export."
   },
@@ -6755,6 +6731,30 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "An error occurred marshalling the JSON data for export."
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "This actions requires the use of a dedicated export store."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Direct download of exports is only available in Mattermost Cloud."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Your export store driver does not support presign url generation."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Unable to check if the file exists."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Unable to generate the presigned url."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "The export file was not found."
   },
   {
     "id": "app.export.marshal.app_error",

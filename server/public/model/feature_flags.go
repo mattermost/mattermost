@@ -30,8 +30,6 @@ type FeatureFlags struct {
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
 
-	EnableExportDirectDownload bool
-
 	MoveThreadsEnabled bool
 
 	NotificationMonitoring bool
@@ -165,7 +163,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.WysiwygEditor = false
-	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
 	f.NotificationMonitoring = true
 	f.AttributeValueMasking = true
