@@ -501,13 +501,6 @@ func TestQueryLogs(t *testing.T) {
 	}
 	require.NoError(t, th.TestLogger.Flush(), "failed to flush log")
 
-	post := func(t *testing.T, c *model.Client4, filter *model.LogFilter) (*http.Response, error) {
-		t.Helper()
-		buf, err := json.Marshal(filter)
-		require.NoError(t, err)
-		return c.DoAPIPost(context.Background(), "/logs/query?page=0&logs_per_page=200", string(buf))
-	}
-
 	containsAllMessages := func(combined string) bool {
 		for _, expected := range expectedMessages {
 			if !strings.Contains(combined, expected) {
@@ -517,21 +510,15 @@ func TestQueryLogs(t *testing.T) {
 		return true
 	}
 
-	// waitForFilteredLogs posts the filter, asserting a 200 response, and polls
-	// until the expected messages appear (log availability after Flush is
+	// waitForFilteredLogs queries with the filter, asserting a successful response, and
+	// polls until the expected messages appear (log availability after Flush is
 	// asynchronous). It returns the per-node lines from the last response.
 	waitForFilteredLogs := func(t *testing.T, filter *model.LogFilter) map[string][]json.RawMessage {
 		t.Helper()
 		var nodes map[string][]json.RawMessage
 		require.Eventually(t, func() bool {
-			resp, err := post(t, th.SystemAdminClient, filter)
-			if err != nil || resp.StatusCode != http.StatusOK {
-				return false
-			}
-			defer resp.Body.Close()
-
-			var decoded map[string][]json.RawMessage
-			if err := json.NewDecoder(resp.Body).Decode(&decoded); err != nil {
+			decoded, _, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, filter)
+			if err != nil {
 				return false
 			}
 
@@ -565,29 +552,21 @@ func TestQueryLogs(t *testing.T) {
 	})
 
 	t.Run("malformed date_from is rejected with 400", func(t *testing.T) {
-		resp, err := post(t, th.SystemAdminClient, &model.LogFilter{DateFrom: "not-a-date", DateTo: ""})
-		require.Error(t, err)
-		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
-
-		var appErr *model.AppError
-		require.ErrorAs(t, err, &appErr)
-		require.Equal(t, "model.log_filter.is_valid.date_from.app_error", appErr.Id)
+		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{DateFrom: "not-a-date", DateTo: ""})
+		CheckErrorID(t, err, "model.log_filter.is_valid.date_from.app_error")
+		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("malformed date_to is rejected with 400", func(t *testing.T) {
-		resp, err := post(t, th.SystemAdminClient, &model.LogFilter{DateFrom: "", DateTo: "also-not-a-date"})
-		require.Error(t, err)
-		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
-
-		var appErr *model.AppError
-		require.ErrorAs(t, err, &appErr)
-		require.Equal(t, "model.log_filter.is_valid.date_to.app_error", appErr.Id)
+		_, resp, err := th.SystemAdminClient.QueryLogs(context.Background(), 0, 200, &model.LogFilter{DateFrom: "", DateTo: "also-not-a-date"})
+		CheckErrorID(t, err, "model.log_filter.is_valid.date_to.app_error")
+		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("non-admin is forbidden", func(t *testing.T) {
-		resp, err := post(t, th.Client, &model.LogFilter{})
+		_, resp, err := th.Client.QueryLogs(context.Background(), 0, 200, &model.LogFilter{})
 		require.Error(t, err)
-		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 
