@@ -336,6 +336,91 @@ def _format_endpoint(path: str, handler: str, method: str) -> str:
     return f"`{method.upper()} {path or '/'}` (`{handler}`)"
 
 
+def _strip_go_comments(src: str) -> str:
+    """Remove // and /* */ comments from Go source, keeping everything else
+    — including string, rune, and raw string literals — byte-for-byte intact.
+
+    _parse_endpoints collapses all whitespace before scanning, which erases
+    line boundaries. Without this filter, a commented-out registration such as
+
+        // r.Handle("/old", api.APIHandler(oldHandler)).Methods("GET")
+
+    reads exactly like live code once collapsed and would be picked up as a
+    phantom added/removed endpoint; a comment landing mid-registration could
+    also splice two unrelated lines together. _strip_go_noise cannot be reused
+    here because it blanks string contents too, destroying the quoted path
+    and method literals _HANDLE_START_RE and _parse_methods depend on.
+    """
+    out: list[str] = []
+    in_line_comment  = False
+    in_block_comment = False
+    in_raw_string    = False
+
+    i, n = 0, len(src)
+    while i < n:
+        ch = src[i]
+
+        if in_line_comment:
+            if ch == "\n":
+                in_line_comment = False
+                out.append(ch)
+            i += 1
+            continue
+
+        if in_block_comment:
+            if src.startswith("*/", i):
+                in_block_comment = False
+                i += 2
+            else:
+                i += 1
+            continue
+
+        if in_raw_string:
+            out.append(ch)
+            if ch == "`":
+                in_raw_string = False
+            i += 1
+            continue
+
+        if src.startswith("//", i):
+            in_line_comment = True
+            i += 2
+            continue
+
+        if src.startswith("/*", i):
+            in_block_comment = True
+            i += 2
+            continue
+
+        if ch == "`":
+            in_raw_string = True
+            out.append(ch)
+            i += 1
+            continue
+
+        if ch in ('"', "'"):
+            quote = ch
+            out.append(ch)
+            i += 1
+            while i < n:
+                out.append(src[i])
+                if src[i] == "\\" and i + 1 < n:
+                    i += 1
+                    out.append(src[i])
+                    i += 1
+                    continue
+                if src[i] == quote:
+                    i += 1
+                    break
+                i += 1
+            continue
+
+        out.append(ch)
+        i += 1
+
+    return "".join(out)
+
+
 def _matching_paren(text: str, open_idx: int) -> int:
     """Index of the ')' closing the '(' at open_idx, or -1 if unbalanced."""
     depth = 0
@@ -406,13 +491,14 @@ def _parse_endpoints(src: str) -> set[tuple[str, str, str]]:
     """
     Parse Handle() registrations from a Go source file.
 
-    Whitespace-collapses the entire file first so multi-line declarations
+    Strips comments first so a commented-out registration isn't mistaken for
+    a live one, then whitespace-collapses the file so multi-line declarations
     (e.g. the 18 in group.go) are matched as a single token sequence, then
     walks each registration with a paren-balanced scan so that wrappers with
     extra arguments, nested wrappers, and package-qualified handler names are
     all recognised. Returns {(path, handler, method)} tuples.
     """
-    blob = " ".join(src.split())
+    blob = " ".join(_strip_go_comments(src).split())
     endpoints: set[tuple[str, str, str]] = set()
 
     for m in _HANDLE_START_RE.finditer(blob):
