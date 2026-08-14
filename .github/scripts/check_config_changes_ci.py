@@ -20,6 +20,8 @@ All inputs come from environment variables set by the GitHub Actions workflow:
   REPO          — owner/repo  (e.g. mattermost/mattermost)
 """
 
+import base64
+import json
 import os
 import re
 import sys
@@ -644,6 +646,57 @@ _AUTO_LINE_RE = re.compile(
     r"|^🗑️  Removed API file:"
 )
 
+# ── Injected-note bookkeeping ─────────────────────────────────────────────────
+#
+# The exact set of lines injected on the previous run is recorded in a hidden
+# marker appended to the end of the description.
+#
+# The marker lives OUTSIDE the ```release-note fence deliberately. An HTML
+# comment is invisible in rendered Markdown, but inside a fenced code block it
+# would be displayed literally and would pollute the release-note text that
+# downstream changelog tooling reads.
+#
+# Exact recall is what makes stale-note removal safe. The generated phrasing is
+# also the house style for hand-written notes — "Added ``Foo.Bar`` configuration
+# setting." is what a contributor types too — so a pattern match cannot tell the
+# two apart, and stripping by pattern with nothing to re-inject silently deletes
+# somebody's hand-written note.
+_MARKER_RE = re.compile(r"\n\n<!-- config-change-checker:v1 ([A-Za-z0-9+/=]*) -->\n?")
+
+
+def _read_marker(body: str) -> Optional[list[str]]:
+    """Return the lines injected by the previous run, or None if unmarked."""
+    m = _MARKER_RE.search(body or "")
+    if not m:
+        return None
+    try:
+        decoded = base64.b64decode(m.group(1).encode("ascii"))
+        recorded = json.loads(decoded.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        # A corrupted marker is treated as absent: fall back to the legacy path
+        # rather than risk removing the wrong lines.
+        return None
+    return recorded if isinstance(recorded, list) else None
+
+
+def _drop_marker(body: str) -> str:
+    return _MARKER_RE.sub("", body or "")
+
+
+def _write_marker(body: str, lines: list[str]) -> str:
+    """Append the hidden record of the lines just injected.
+
+    The body is not trimmed first. Appending a fixed suffix and removing that
+    exact suffix in _drop_marker makes the round trip lossless, so a run with
+    nothing new to say reproduces the stored description byte-for-byte and the
+    no-op guard in main() actually fires.
+    """
+    payload = base64.b64encode(
+        json.dumps(lines, separators=(",", ":")).encode("utf-8")
+    ).decode("ascii")
+    return f"{body}\n\n<!-- config-change-checker:v1 {payload} -->\n"
+
+
 # Matches placeholder content inside a release-note fence that means "nothing
 # to report yet" (e.g. NONE, N/A, ---).  When detected, we replace the
 # placeholder rather than appending alongside it.
@@ -697,42 +750,124 @@ def build_pr_note(results: list[CheckResult]) -> str:
     return "\n".join(lines)
 
 
-def strip_old_note(body: str) -> str:
-    """
-    Remove previously auto-generated lines from the PR description.
+def _strip_by_pattern(body: str, note_lines: set[str]) -> str:
+    """Legacy removal for descriptions written before the marker existed.
 
-    Primary path  — lines inside the ```release-note ... ``` fence.
-    Fallback path — auto-generated lines that were appended outside any fence
-                    (e.g. via the ## Release Notes section on earlier runs).
+    Only lines that are about to be re-emitted verbatim are removed. The
+    generated phrasing is also the house style for hand-written notes, so a
+    pattern match cannot prove a line came from this script — but if the line is
+    one we are re-adding anyway, removing it can only ever dedupe.
 
-    Lines are identified by pattern rather than visible markers, so the PR
-    description stays clean for human readers.
+    The cost is that a generated line from an older run which is no longer
+    valid (the field it described has since been dropped from the PR) is left
+    in place instead of being cleaned up. Leaving a stale line behind is the
+    better failure: the alternative deletes a contributor's note. This only
+    affects descriptions written before the marker existed.
     """
     def _clean_fence(m: re.Match) -> str:
         open_tag, content, close_tag = m.group(1), m.group(2), m.group(3)
         cleaned_lines = [
             line for line in content.split("\n")
-            if not _AUTO_LINE_RE.match(line.strip())
+            if not (_AUTO_LINE_RE.match(line.strip()) and line.strip() in note_lines)
         ]
         return open_tag + "\n".join(cleaned_lines) + close_tag
 
     cleaned = re.sub(
         r"(```release-note)(.*?)(```)",
         _clean_fence,
-        body or "",
+        body,
         flags=re.DOTALL | re.IGNORECASE,
     )
 
-    # Fallback: strip any auto-generated lines that appear outside a fence
-    # (written by an older version of this script or via the header-inject path).
-    cleaned_lines = [
-        line for line in cleaned.splitlines()
-        if not _AUTO_LINE_RE.match(line.strip())
-    ]
-    return "\n".join(cleaned_lines).rstrip()
+    # Also dedupe generated lines that landed outside any fence (written by an
+    # older version of this script via the header-inject path).
+    return "\n".join(
+        line for line in cleaned.split("\n")
+        if not (_AUTO_LINE_RE.match(line.strip()) and line.strip() in note_lines)
+    )
+
+
+def strip_old_note(body: str, note: str = "") -> str:
+    """
+    Remove the lines this script injected on a previous run.
+
+    When the description carries a marker, exactly those recorded lines are
+    removed and nothing else can be mistaken for generated content. Removal is
+    count-limited, so a line a contributor happens to duplicate elsewhere in the
+    description survives.
+
+    When there is no marker — a PR whose description predates it — fall back to
+    _strip_by_pattern, which only dedupes lines being re-emitted.
+
+    Surrounding whitespace is left alone; only whole lines are dropped. Trimming
+    it here would make every run differ from the stored description and defeat
+    the no-op guard in main().
+    """
+    body = body or ""
+    previous = _read_marker(body)
+    body = _drop_marker(body)
+
+    if previous is None:
+        if not note:
+            return body
+        return _strip_by_pattern(body, {line.strip() for line in note.split("\n")})
+
+    remaining: dict[str, int] = {}
+    for line in previous:
+        key = line.strip()
+        remaining[key] = remaining.get(key, 0) + 1
+
+    kept: list[str] = []
+    for line in body.split("\n"):
+        key = line.strip()
+        if remaining.get(key):
+            remaining[key] -= 1
+            continue
+        kept.append(line)
+    return "\n".join(kept)
+
+
+def _restore_placeholder(body: str) -> str:
+    """Put NONE back if removing generated lines emptied the release-note fence.
+
+    An empty fence is not a valid release note, and the placeholder is what the
+    description held before this script ever wrote to it.
+    """
+    def _fill(m: re.Match) -> str:
+        open_tag, content, close_tag = m.group(1), m.group(2), m.group(3)
+        if content.strip():
+            return m.group(0)
+        return f"{open_tag}\nNONE\n{close_tag}"
+
+    return re.sub(
+        r"(```release-note)(.*?)(```)",
+        _fill,
+        body,
+        count=1,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
 
 
 def inject_note(body: str, note: str) -> str:
+    """
+    Replace the previous run's generated lines with `note`, and record exactly
+    what was written so the next run can remove it precisely.
+
+    An empty `note` removes any previously generated lines and the marker with
+    them, restoring the NONE placeholder if that empties the fence. A
+    description this script has never written to is returned byte-for-byte
+    unchanged.
+    """
+    original = body or ""
+    stripped = strip_old_note(original, note)
+
+    if not note:
+        return _restore_placeholder(stripped) if stripped != original else original
+
+    return _write_marker(_insert_note(stripped, note), note.split("\n"))
+
+
+def _insert_note(body: str, note: str) -> str:
     """
     Insert `note` using this priority order:
 
@@ -741,10 +876,6 @@ def inject_note(body: str, note: str) -> str:
     2. After a recognised release-notes section header (## Release Notes, etc.)
     3. Fallback: append a new ## Release Notes section at the end
     """
-    body = strip_old_note(body)
-    if not note:
-        return body
-
     # 1. Mattermost-style ```release-note ... ``` block — inject INSIDE the fence.
     #    If the fence currently contains only a placeholder (NONE / N/A / ---),
     #    replace the placeholder rather than appending alongside it.
