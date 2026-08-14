@@ -4529,10 +4529,10 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
-	// The Apps framework is being retired. The AppsEnabled feature flag must
-	// remain disabled; refuse to start with it enabled until the code is removed.
-	if o.FeatureFlags != nil && o.FeatureFlags.AppsEnabled {
-		return NewAppError("Config.IsValid", "model.config.is_valid.apps_feature_flag.app_error", nil, "", http.StatusBadRequest)
+	if o.FeatureFlags != nil {
+		if appErr := o.FeatureFlags.isValid(); appErr != nil {
+			return appErr
+		}
 	}
 
 	return nil

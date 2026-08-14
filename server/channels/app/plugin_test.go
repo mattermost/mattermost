@@ -1265,8 +1265,22 @@ func TestGetPluginStateOverride(t *testing.T) {
 			require.False(t, value)
 		})
 
-		// AppsEnabled=true is rejected by Config.IsValid, so the enabled-flag path
-		// that previously skipped the override is no longer reachable.
+		t.Run("with enabled flag set to true", func(t *testing.T) {
+			// AppsEnabled=true is now rejected by Config.IsValid (MM-69643), so this
+			// override path can no longer be reached at runtime. Kept skipped rather
+			// than deleted so it is removed alongside the rest of the Apps code.
+			t.Skip("AppsEnabled feature flag is retired (MM-69643)")
+
+			mainHelper.Parallel(t)
+			th2 := SetupConfig(t, func(cfg *model.Config) {
+				cfg.FeatureFlags.AppsEnabled = true
+			})
+
+			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
+			require.False(t, overrides)
+			require.False(t, value)
+		})
+
 		t.Run("with enabled flag set to false", func(t *testing.T) {
 			mainHelper.Parallel(t)
 			th2 := SetupConfig(t, func(cfg *model.Config) {

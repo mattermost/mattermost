@@ -506,7 +506,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		_, _, err := configStore.Set(newCfg)
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.apps_feature_flag.app_error")
+			assert.EqualError(t, err, "new configuration is invalid: FeatureFlags.IsValid: model.config.is_valid.feature_flags.apps_enabled.app_error")
 		}
 
 		assert.False(t, configStore.Get().FeatureFlags.AppsEnabled)

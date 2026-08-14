@@ -4,6 +4,7 @@
 package model
 
 import (
+	"net/http"
 	"reflect"
 	"strconv"
 )
@@ -220,6 +221,17 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableMFIPluginSignaturePublicKey = true
 
 	f.RecurringScheduledPosts = false
+}
+
+// isValid rejects feature flag combinations that are no longer supported.
+func (f *FeatureFlags) isValid() *AppError {
+	// The Apps framework is being retired, so the server refuses to start
+	// while the AppsEnabled feature flag is enabled.
+	if f.AppsEnabled {
+		return NewAppError("FeatureFlags.IsValid", "model.config.is_valid.feature_flags.apps_enabled.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope

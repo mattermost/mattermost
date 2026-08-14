@@ -115,34 +115,39 @@ func TestConfigIsValid(t *testing.T) {
 		})
 	})
 
-	t.Run("AppsEnabled feature flag", func(t *testing.T) {
-		t.Run("enabled is rejected", func(t *testing.T) {
-			c := Config{}
-			c.SetDefaults()
-			c.FeatureFlags.AppsEnabled = true
+}
 
-			appErr := c.IsValid()
-			require.NotNil(t, appErr)
-			require.Equal(t, "model.config.is_valid.apps_feature_flag.app_error", appErr.Id)
-		})
-
-		t.Run("disabling the flag makes the config valid again", func(t *testing.T) {
-			c := Config{}
-			c.SetDefaults()
-			c.FeatureFlags.AppsEnabled = true
-			require.NotNil(t, c.IsValid())
-
-			c.FeatureFlags.AppsEnabled = false
-			require.Nil(t, c.IsValid())
-		})
-
-		t.Run("nil FeatureFlags does not panic and is valid", func(t *testing.T) {
-			c := Config{}
-			c.SetDefaults()
-			c.FeatureFlags = nil
-			require.Nil(t, c.IsValid())
-		})
+func TestFeatureFlagsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		f := &FeatureFlags{}
+		f.SetDefaults()
+		require.Nil(t, f.isValid())
 	})
+
+	t.Run("AppsEnabled is rejected", func(t *testing.T) {
+		f := &FeatureFlags{}
+		f.SetDefaults()
+		f.AppsEnabled = true
+
+		appErr := f.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.feature_flags.apps_enabled.app_error", appErr.Id)
+	})
+}
+
+func TestConfigIsValidAppsEnabled(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+	require.Nil(t, c.IsValid())
+
+	c.FeatureFlags.AppsEnabled = true
+	appErr := c.IsValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.feature_flags.apps_enabled.app_error", appErr.Id)
+
+	// A nil FeatureFlags must not panic the validation chain.
+	c.FeatureFlags = nil
+	require.Nil(t, c.IsValid())
 }
 
 func TestAccessControlSettingsIsValid(t *testing.T) {
