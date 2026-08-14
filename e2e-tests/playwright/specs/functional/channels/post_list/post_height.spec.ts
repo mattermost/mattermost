@@ -7,7 +7,7 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Disposable, Locator, Page} from '@playwright/test';
 
-import {expect, setupFileServer, test, watchElementSize} from '@mattermost/playwright-lib';
+import {expect, setupFileServer, test, testConfig, watchElementSize} from '@mattermost/playwright-lib';
 import type {ChannelsPage, ChannelsPost, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 test.describe('Post height', () => {
@@ -495,6 +495,32 @@ test.describe('Post height', () => {
 
         // * Verify that the post height changed since it now takes up an extra line
         expect(await sizeWatcher.getObservations()).toHaveLength(2);
+    });
+
+    test('a post preview with a "Show more" control keeps a fixed height as it loads', {tag: '@post_list'}, async () => {
+        // # Create a tall post whose permalink preview will overflow the collapsed max height
+        const linkedPost = await userClient.createPost({
+            channel_id: channel.id,
+            message: new Array(50).fill('This linked post is tall enough to overflow the preview.').join('\n'),
+        });
+
+        // # Post a permalink to it so it renders as a collapsed preview with a "Show more" control
+        const post = await seedPost({
+            message: `${testConfig.internalBaseURL}/${team.name}/pl/${linkedPost.id}`,
+        });
+
+        const {sizeWatcher, postComponent} = await openChannelAndGetPost(post.id);
+
+        // * Verify the preview overflowed and revealed the "Show more" control after being measured on mount
+        const showMoreButton = postComponent.container.locator('.post-preview-collapse__show-more-button');
+        await expect(showMoreButton).toBeVisible();
+        await expect(postComponent.container.locator('.post-message-preview--overflow')).toBeVisible();
+
+        // # Wait for all network requests to finish
+        await page.waitForLoadState('networkidle');
+
+        // * Verify no height changes were detected since the control is overlaid on the preview, not added below it
+        expect(await sizeWatcher.getObservations()).toHaveLength(1);
     });
 
     // Helpers specific to these tests
