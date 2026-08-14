@@ -3659,98 +3659,6 @@
     "translation": "Could not uninvite remote to channel"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email",
-    "translation": "The Integration/Slack Bot user with email {{.Email}} has been imported.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Unable to import the Integration/Slack Bot user {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\nChannels added:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Unable to add Slack user {{.Username}} to channel.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Unable to import Slack channel {{.DisplayName}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "The Slack channel {{.DisplayName}} already exists as an active Mattermost channel. Both channels have been merged.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\nUsers created:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email",
-    "translation": "Slack user with email {{.Email}} has been imported.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_skipped_non_admin",
-    "translation": "Slack user with email {{.Email}} matches existing Mattermost user {{.Username}}. Merging into an existing Mattermost account is only available for imports run by a system admin, so this user's posts and channel memberships will not be imported. Re-run the import as a system admin to merge them.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
-    "translation": "Unable to send password reset email to {{.Username}} at {{.Email}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Unable to import Slack user: {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Mattermost Slack Import Log\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- Some messages may not have been imported because they were not supported by this importer.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- Slack bot messages are currently not supported.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- Additional errors may be found in the server logs.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\nNotes:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Unable to open the file: {{.Filename}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Unable to get the team to import into.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Unable to open the Slack export zip file.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
-  },
-  {
     "id": "api.status.user_not_found.app_error",
     "translation": "User not found."
   },
@@ -3853,38 +3761,6 @@
   {
     "id": "api.team.get_team_icon.read_file.app_error",
     "translation": "Unable to read the team icon file."
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "Empty array under 'file' in request."
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "Filesize not an integer."
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "No file under 'file' in request."
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Malformed request: importFrom field is not present."
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "Could not open file."
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "Could not parse multipart form."
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Malformed request: filesize field is not present."
-  },
-  {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "Unknown import source."
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",

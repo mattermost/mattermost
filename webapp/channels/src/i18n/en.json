@@ -2453,8 +2453,6 @@
   "admin.permissions.permission.edit_others_posts.name": "Edit Others' Posts",
   "admin.permissions.permission.edit_post.description": "{editTimeLimitButton} after posting, allow users to edit their own posts.",
   "admin.permissions.permission.edit_post.name": "Edit Own Posts",
-  "admin.permissions.permission.import_team.description": "Import team",
-  "admin.permissions.permission.import_team.name": "Import team",
   "admin.permissions.permission.invite_guest.description": "Invite guests to channels and send guest email invites.",
   "admin.permissions.permission.invite_guest.name": "Invite guests",
   "admin.permissions.permission.list_team_channels.description": "List team channels",
