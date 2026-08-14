@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
+	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -290,6 +291,11 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 					sourceTeamName = scope.TeamName
 					if scope.ChannelName != "" || scope.TeamName != "" {
 						deactivateMissingUsers = true
+						// Pre-create SSO users from the export so the main pass can
+						// match them by auth_data rather than creating deactivated shells.
+						if attachmentsReader != nil {
+							a.preCreateSSOUsers(rctx, attachmentsReader, dryRun)
+						}
 					}
 				}
 			}
@@ -458,6 +464,108 @@ func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun b
 	default:
 		return model.NewAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]any{"Type": line.Type}, "", http.StatusBadRequest)
 	}
+}
+
+// preCreateSSOUsers does a lightweight first pass over the JSONL to create SSO
+// user accounts on the dest before the main import runs. This ensures every
+// SAML/LDAP/OpenID user has a record with their auth_data set so the main pass
+// can match them by auth_data rather than creating deactivated shells.
+//
+// Only users with auth_service + auth_data are handled here — email-auth users
+// are skipped (no auth_data to anchor on, and they don't benefit from pre-creation).
+// Team/channel memberships, preferences, and profile images are intentionally
+// omitted; the main pass populates those after teams and channels exist on dest.
+func (a *App) preCreateSSOUsers(rctx request.CTX, zipReader *zip.Reader, dryRun bool) {
+	var jsonlEntry *zip.File
+	for _, f := range zipReader.File {
+		if imports.IsRootJsonlFile(f.Name) {
+			jsonlEntry = f
+			break
+		}
+	}
+	if jsonlEntry == nil {
+		return
+	}
+
+	rc, err := jsonlEntry.Open()
+	if err != nil {
+		rctx.Logger().Warn("preCreateSSOUsers: failed to open JSONL for pre-creation pass", mlog.Err(err))
+		return
+	}
+	defer rc.Close()
+
+	scanner := bufio.NewScanner(rc)
+	buf := make([]byte, 0, 64*1024)
+	scanner.Buffer(buf, maxScanTokenSize)
+
+	lineNumber := 0
+	for scanner.Scan() {
+		lineNumber++
+		if lineNumber == 1 {
+			continue // skip version line
+		}
+
+		var line imports.LineImportData
+		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
+			continue
+		}
+
+		if line.Type != "user" {
+			continue // skip roles, teams, channels, etc. — only process user lines
+		}
+
+		if line.User == nil ||
+			line.User.AuthService == nil ||
+			line.User.AuthData == nil ||
+			*line.User.AuthData == "" {
+			continue // skip email-auth users
+		}
+
+		if dryRun {
+			continue
+		}
+
+		if appErr := a.preCreateSSOUser(rctx, line.User); appErr != nil {
+			rctx.Logger().Warn("preCreateSSOUsers: failed to pre-create SSO user; main pass will handle it",
+				mlog.String("username", *line.User.Username),
+				mlog.String("auth_service", *line.User.AuthService),
+				mlog.Err(appErr))
+		}
+	}
+}
+
+// preCreateSSOUser ensures a single SSO user exists on the dest with their
+// auth_data set. It tries auth_data first, then username, then creates fresh.
+// Errors are non-fatal — the main import pass will handle unresolved users.
+func (a *App) preCreateSSOUser(rctx request.CTX, data *imports.UserImportData) *model.AppError {
+	// Already exists by auth_data — nothing to do.
+	if _, nErr := a.Srv().Store().User().GetByAuth(data.AuthData, *data.AuthService); nErr == nil {
+		return nil
+	}
+
+	// Exists by username — attach auth_data to the existing account.
+	if existing, nErr := a.Srv().Store().User().GetByUsername(*data.Username); nErr == nil {
+		if _, uErr := a.Srv().Store().User().UpdateAuthData(existing.Id, *data.AuthService, data.AuthData, existing.Email, false); uErr != nil {
+			return model.NewAppError("preCreateSSOUser", "app.user.update_auth_data.app_error", nil, "", http.StatusInternalServerError).Wrap(uErr)
+		}
+		return nil
+	}
+
+	// Create a minimal user record — main pass fills in profile, teams, prefs.
+	newUser := &model.User{
+		Username:    *data.Username,
+		Email:       *data.Email,
+		AuthService: *data.AuthService,
+		AuthData:    data.AuthData,
+		Roles:       model.SystemUserRoleId,
+	}
+	newUser.MakeNonNil()
+	newUser.SetDefaultNotifications()
+
+	if _, err := a.ch.srv.userService.CreateUser(rctx, newUser, users.UserCreateOptions{FromImport: true}); err != nil {
+		return model.NewAppError("preCreateSSOUser", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return nil
 }
 
 func (a *App) ListImports() ([]string, *model.AppError) {
