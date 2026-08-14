@@ -1181,13 +1181,6 @@
                 margin-right: 6px;
             }
 
-            // Keep the author avatar column at its natural size so the round
-            // avatar isn't squished when the preview sits inside a constrained
-            // flex container (e.g. the content flagging RHS card).
-            &:has(.post__img) {
-                flex: 0 0 auto;
-            }
-
             .user-popover {
                 @include mixins.clearfix;
 
