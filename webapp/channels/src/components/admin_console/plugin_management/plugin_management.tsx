@@ -6,6 +6,7 @@ import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
+import semver from 'semver';
 
 import {Button} from '@mattermost/shared/components/button';
 import type {AdminConfig} from '@mattermost/types/config';
@@ -25,7 +26,7 @@ import * as Utils from 'utils/utils';
 import BooleanSetting from '../boolean_setting';
 import OLDAdminSettings from '../old_admin_settings';
 import type {BaseProps, BaseState} from '../old_admin_settings';
-import PluginMetadataPanel from '../plugin_metadata_panel/plugin_metadata_panel';
+import PluginMetadataPanel, {formatPluginVersion} from '../plugin_metadata_panel/plugin_metadata_panel';
 import SettingSet from '../setting_set';
 import SettingsGroup from '../settings_group';
 import TextSetting from '../text_setting';
@@ -215,6 +216,9 @@ const messages = defineMessages({
     marketplaceUrlDesc: {id: 'admin.plugins.settings.marketplaceUrlDesc', defaultMessage: 'URL of the marketplace server.'},
     uploadSuccess: {id: 'admin.plugin.upload.success', defaultMessage: 'Successfully uploaded plugin: {pluginName}'},
     uploadSuccessUpdated: {id: 'admin.plugin.upload.success_updated', defaultMessage: 'Successfully updated plugin: {pluginName}'},
+    uploadSuccessUpgraded: {id: 'admin.plugin.upload.success_upgraded', defaultMessage: 'Successfully upgraded plugin: {pluginName} ({previousVersion} → {version})'},
+    uploadSuccessDowngraded: {id: 'admin.plugin.upload.success_downgraded', defaultMessage: 'Successfully downgraded plugin: {pluginName} ({previousVersion} → {version})'},
+    uploadSuccessSame: {id: 'admin.plugin.upload.success_same', defaultMessage: 'Successfully replaced plugin: {pluginName} (same version {version})'},
 });
 
 export const searchableStrings = [
@@ -644,6 +648,19 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         }
     };
 
+    formatUploadOverwriteMessage = (pluginName: string | undefined, previousVersion: string | undefined, newVersion: string | undefined) => {
+        if (previousVersion && newVersion && semver.valid(previousVersion) && semver.valid(newVersion)) {
+            if (semver.gt(newVersion, previousVersion)) {
+                return this.props.intl.formatMessage(messages.uploadSuccessUpgraded, {pluginName, previousVersion: formatPluginVersion(previousVersion), version: formatPluginVersion(newVersion)});
+            }
+            if (semver.lt(newVersion, previousVersion)) {
+                return this.props.intl.formatMessage(messages.uploadSuccessDowngraded, {pluginName, previousVersion: formatPluginVersion(previousVersion), version: formatPluginVersion(newVersion)});
+            }
+            return this.props.intl.formatMessage(messages.uploadSuccessSame, {pluginName, version: formatPluginVersion(newVersion)});
+        }
+        return this.props.intl.formatMessage(messages.uploadSuccessUpdated, {pluginName});
+    };
+
     helpSubmitUpload = async (file: File, force: boolean) => {
         this.setState({uploading: true});
         const {data, error} = await this.props.actions.uploadPlugin(file, force);
@@ -673,11 +690,14 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             return;
         }
 
+        // Look up the version being replaced before getPlugins() refreshes the store with the new one.
+        const previousVersion = this.state.overwritingUpload && data ? this.props.plugins[data.id]?.version : undefined;
+
         this.setState({loading: true});
         await this.props.actions.getPlugins();
 
         const pluginName = data?.name || file?.name;
-        const msg = this.state.overwritingUpload ? this.props.intl.formatMessage(messages.uploadSuccessUpdated, {pluginName}) : this.props.intl.formatMessage(messages.uploadSuccess, {pluginName});
+        const msg = this.state.overwritingUpload ? this.formatUploadOverwriteMessage(pluginName, previousVersion, data?.version) : this.props.intl.formatMessage(messages.uploadSuccess, {pluginName});
 
         this.setState({
             file: null,
