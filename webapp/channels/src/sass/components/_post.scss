@@ -1958,33 +1958,12 @@
 // with a bottom fade so truncated content reads as "more below".
 .post-message--collapsed.post-message-preview--overflow {
     .post-message__text-container {
-        position: relative;
-
-        &::after {
-            position: absolute;
-            z-index: 1;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            height: 40%;
-            min-height: 28px;
-            max-height: 64px;
-            background: linear-gradient(
-                to bottom,
-                rgba(var(--center-channel-bg-rgb), 0) 0%,
-                var(--center-channel-bg) 100%
-            );
-            content: '';
-            pointer-events: none;
-        }
+        -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 64px), transparent 100%);
+        mask-image: linear-gradient(to bottom, black calc(100% - 64px), transparent 100%);
     }
 
-    // Overlay the "Show more" affordance on the faded bottom of the preview.
-    // It is measured and revealed after mount, so keeping it out of the flow
-    // avoids growing the preview's height (a layout shift) when it appears.
     .post-preview-collapse__show-more-button {
         position: absolute;
-        z-index: 2;
         bottom: 0;
         left: 0;
     }
