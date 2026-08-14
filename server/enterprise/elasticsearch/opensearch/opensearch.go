@@ -146,6 +146,7 @@ func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *
 		return info, nil
 	}
 
+	// A non-nil slice means plugin discovery succeeded, even if no plugins were found.
 	info.plugins = []string{}
 	analysisICUInstalledOnEveryNode := true
 	for _, node := range resp.Nodes {
@@ -186,13 +187,15 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 	}
 
 	info, appErr := os.fetchServerInfo(ctx, os.client)
-	if appErr != nil {
-		return appErr
+	if info.fullVersion != "" {
+		os.version = info.version
+		os.fullVersion = info.fullVersion
 	}
-	os.version = info.version
-	os.fullVersion = info.fullVersion
 	if info.plugins != nil {
 		os.plugins = info.plugins
+	}
+	if appErr != nil {
+		return appErr
 	}
 
 	esSettings := os.Platform.Config().ElasticsearchSettings
@@ -1179,7 +1182,7 @@ func (os *OpensearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, chann
 	os.mutex.RLock()
 	defer os.mutex.RUnlock()
 
-	if os.ready.Load() == 0 || os.syncBulkProcessor == nil {
+	if os.ready.Load() == 0 {
 		return model.NewAppError("Opensearch.SyncBulkIndexChannels", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
 	}
 

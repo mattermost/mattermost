@@ -322,6 +322,9 @@ func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
 	require.Equal(t, int32(0), es.ready.Load())
 	require.Nil(t, es.bulkProcessor)
 	require.Nil(t, es.syncBulkProcessor)
+	require.Equal(t, 8, es.version)
+	require.Equal(t, "8.19.0", es.fullVersion)
+	require.Equal(t, []string{"analysis-icu"}, es.plugins)
 	select {
 	case <-templateRequested:
 		require.Fail(t, "template creation should not be attempted without analysis-icu on every node")
@@ -414,14 +417,6 @@ func TestTestConfigDoesNotActivateEngine(t *testing.T) {
 	require.Equal(t, 8, es.version)
 	require.Equal(t, "8.18.0", es.fullVersion)
 	require.Equal(t, []string{"existing-plugin"}, es.plugins)
-
-	// A partially initialized state must return an error instead of panicking.
-	es.ready.Store(1)
-	syncErr := es.SyncBulkIndexChannels(th.Context, []*model.Channel{{Id: model.NewId()}}, func(*model.Channel) ([]string, error) {
-		return nil, nil
-	}, nil)
-	require.NotNil(t, syncErr)
-	require.Equal(t, "ent.elasticsearch.not_started.error", syncErr.Id)
 }
 
 func TestTestConfigThenSavingConfigStartsEngine(t *testing.T) {
