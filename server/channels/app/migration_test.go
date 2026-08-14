@@ -27,9 +27,9 @@ import (
 // ────────────────────────────────────────────────────────────────────────────
 
 // channelScopedJSONL builds a minimal JSONL stream where the version line
-// carries ExportScopeAdditional (triggering existingUsersOnly mode on import).
+// carries ExportScopeAdditional (triggering deactivateMissingUsers mode on import).
 // Each name in postAuthors gets one post. userRecords controls which of those
-// authors have a user line in the JSONL (in existingUsersOnly mode the import
+// authors have a user line in the JSONL (in deactivateMissingUsers mode the import
 // skips creating users not already in the DB, so this typically doesn't matter
 // for the user creation path, but the records are still written for realism).
 func channelScopedJSONL(t *testing.T, teamName, chanName string, postAuthors []string, userRecords []string) *strings.Reader {
@@ -340,7 +340,7 @@ func TestFullTeamImportErrorsOnMissingUser(t *testing.T) {
 	var sb strings.Builder
 	enc := json.NewEncoder(&sb)
 
-	// Version line WITHOUT ExportScopeAdditional → existingUsersOnly stays false.
+	// Version line WITHOUT ExportScopeAdditional → deactivateMissingUsers stays false.
 	version := 1
 	require.NoError(t, enc.Encode(imports.LineImportData{
 		Type:    "version",
@@ -733,7 +733,7 @@ func TestChannelImportReplyFromMissingUserSkipped(t *testing.T) {
 	chanName := model.NewId()
 	aliceUsername := model.NewUsername()
 
-	// alice must pre-exist on dest (existingUsersOnly mode).
+	// alice must pre-exist on dest (deactivateMissingUsers mode).
 	createUserInDB(t, th, aliceUsername)
 
 	var sb strings.Builder
@@ -1669,7 +1669,7 @@ func TestChannelMigrationReactionsPreserved(t *testing.T) {
 
 	// SOURCE: post with two reactions (different emojis, same user).
 	// BasicUser is the post author and guaranteed to get a deactivated shell on
-	// the destination (channel-scoped existingUsersOnly mode). Using one user
+	// the destination (channel-scoped deactivateMissingUsers mode). Using one user
 	// avoids the complication of BasicUser2 not being a channel member and
 	// therefore absent from the deactivated-shell creation path.
 	post := th1.CreatePost(t, th1.BasicChannel)

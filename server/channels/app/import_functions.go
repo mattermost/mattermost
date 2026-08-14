@@ -332,7 +332,7 @@ func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, d
 	return nil
 }
 
-func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun bool, existingUsersOnly bool, report *imports.ImportReport) *model.AppError {
+func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun bool, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
 	var fields []mlog.Field
 	if data != nil && data.Username != nil {
 		fields = append(fields, mlog.String("user_name", *data.Username))
@@ -359,39 +359,60 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 
 	var user *model.User
 	var nErr error
-	// createDeactivated is true when we're in a scoped import (existingUsersOnly)
-	// and the user doesn't yet exist on the destination. We still create the account so
-	// their posts are preserved, but we deactivate it so they can't log in until an admin
-	// explicitly reactivates them.
+	// createDeactivated is true when deactivateMissingUsers is set and the user
+	// doesn't exist on the destination. We still create the account so their posts
+	// are preserved, but deactivate it so they can't log in until an admin reviews
+	// and explicitly reactivates them.
 	createDeactivated := false
 
-	hasSSOIdentity := existingUsersOnly && data.AuthService != nil && data.AuthData != nil && *data.AuthData != ""
+	// hasSSOIdentity is true whenever the import data carries a stable SSO identity
+	// (auth_service + auth_data). This is independent of import scope — auth_data
+	// is always the safer lookup key when present, regardless of whether this is a
+	// scoped or full-server import.
+	hasSSOIdentity := data.AuthService != nil && data.AuthData != nil && *data.AuthData != ""
 	matchedByAuthData := false
 	if hasSSOIdentity {
-		// For SSO users in a scoped import, match exclusively on auth_data.
-		// Falling back to username is unsafe: usernames can change (e.g. via SAML
-		// attribute sync), so a username match could silently link content to the
-		// wrong account. If auth_data doesn't match, flag and skip — do not create.
+		// Always match SSO users by auth_data. Falling back to username is unsafe:
+		// usernames can change (e.g. via SAML attribute sync), so a username match
+		// could silently link content to the wrong account.
 		user, nErr = a.Srv().Store().User().GetByAuth(data.AuthData, *data.AuthService)
 		if nErr != nil {
 			var nfErr *store.ErrNotFound
 			if !errors.As(nErr, &nfErr) {
 				return model.NewAppError("importUser", "app.user.get_by_auth.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
-			// No dest account matched this SSO identity. Create a deactivated shell so
-			// their posts are preserved, but flag it clearly for admin review — this is
-			// NOT a normal missing-user shell, it's an unresolved SSO identity.
-			rctx.Logger().Warn(
-				"auth_data match failed during scoped import; creating deactivated shell to preserve posts — review and reactivate manually if needed",
-				mlog.String("username", *data.Username),
-				mlog.String("auth_service", *data.AuthService),
-				mlog.String("auth_data", *data.AuthData),
-			)
-			createDeactivated = true
-			user = &model.User{}
-			user.MakeNonNil()
-			user.SetDefaultNotifications()
-			hasUserChanged = true
+			// No dest account matched this SSO identity.
+			if deactivateMissingUsers {
+				// Scoped import: no username fallback — the source and dest are different
+				// instances and a username match could silently link content to the wrong
+				// account (e.g. if usernames changed via SAML attribute sync). Create a
+				// deactivated shell so posts are preserved pending admin review.
+				rctx.Logger().Warn(
+					"auth_data match failed during scoped import; creating deactivated shell to preserve posts — review and reactivate manually if needed",
+					mlog.String("username", *data.Username),
+					mlog.String("auth_service", *data.AuthService),
+					mlog.String("auth_data", *data.AuthData),
+				)
+				createDeactivated = true
+				user = &model.User{}
+				user.MakeNonNil()
+				user.SetDefaultNotifications()
+				hasUserChanged = true
+			} else {
+				// Full import (backup/restore of same instance): fall back to username
+				// so existing accounts are found and updated rather than duplicated.
+				user, nErr = a.Srv().Store().User().GetByUsername(*data.Username)
+				if nErr != nil {
+					var nfUsernameErr *store.ErrNotFound
+					if !errors.As(nErr, &nfUsernameErr) {
+						return model.NewAppError("importUser", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+					}
+					user = &model.User{}
+					user.MakeNonNil()
+					user.SetDefaultNotifications()
+					hasUserChanged = true
+				}
+			}
 		} else {
 			matchedByAuthData = true
 			// If the username changed on the dest, record the mapping so post/reply/reaction
@@ -407,10 +428,9 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			if !errors.As(nErr, &nfErr) {
 				return model.NewAppError("importUser", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
-			if existingUsersOnly {
+			if deactivateMissingUsers {
 				rctx.Logger().Info("User not found on destination during scoped import; creating as deactivated to preserve post authorship", mlog.String("username", *data.Username))
 				createDeactivated = true
-			} else {
 			}
 			user = &model.User{}
 			user.MakeNonNil()
@@ -1444,7 +1464,7 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, team *model
 	return nil
 }
 
-func (a *App) importReaction(rctx request.CTX, data *imports.ReactionImportData, post *model.Post, existingUsersOnly bool, report *imports.ImportReport) *model.AppError {
+func (a *App) importReaction(rctx request.CTX, data *imports.ReactionImportData, post *model.Post, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
 	if err := imports.ValidateReactionImportData(data, post.CreateAt); err != nil {
 		return err
 	}
@@ -1459,8 +1479,8 @@ func (a *App) importReaction(rctx request.CTX, data *imports.ReactionImportData,
 		}
 	}
 	if nErr != nil {
-		if existingUsersOnly {
-			rctx.Logger().Warn("Skipping reaction from user not found on destination during channel-scoped import", mlog.String("username", *data.User))
+		if deactivateMissingUsers {
+			rctx.Logger().Warn("Skipping reaction from user not found on destination during scoped import", mlog.String("username", *data.User))
 			return nil
 		}
 		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]any{"Username": data.User}, "", http.StatusBadRequest).Wrap(nErr)
@@ -1485,7 +1505,7 @@ func (a *App) importReaction(rctx request.CTX, data *imports.ReactionImportData,
 	return nil
 }
 
-func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, post *model.Post, teamID string, extractContent bool, existingUsersOnly bool, report *imports.ImportReport) *model.AppError {
+func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, post *model.Post, teamID string, extractContent bool, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
 	var err *model.AppError
 	usernames := []string{}
 	for _, replyData := range data {
@@ -1498,7 +1518,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		}
 	}
 
-	users, err := a.getUsersByUsernames(usernames, existingUsersOnly, report)
+	users, err := a.getUsersByUsernames(usernames, deactivateMissingUsers, report)
 	if err != nil {
 		return err
 	}
@@ -1520,7 +1540,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		user := users[strings.ToLower(*replyData.User)]
 
 		if user == nil {
-			rctx.Logger().Warn("Skipping reply from user not found on destination during channel-scoped import", mlog.String("username", *replyData.User))
+			rctx.Logger().Warn("Skipping reply from user not found on destination during scoped import", mlog.String("username", *replyData.User))
 			continue
 		}
 
@@ -1624,7 +1644,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 
 	for _, postAndReactions := range reactionsForCreateMap {
 		for _, reaction := range *postAndReactions.reactions {
-			if err := a.importReaction(rctx, &reaction, postAndReactions.post, existingUsersOnly, report); err != nil {
+			if err := a.importReaction(rctx, &reaction, postAndReactions.post, deactivateMissingUsers, report); err != nil {
 				return err
 			}
 		}
@@ -1831,14 +1851,14 @@ type postAndData struct {
 	lineNumber     int
 }
 
-func (a *App) getUsersByUsernames(usernames []string, existingUsersOnly bool, report *imports.ImportReport) (map[string]*model.User, *model.AppError) {
+func (a *App) getUsersByUsernames(usernames []string, deactivateMissingUsers bool, report *imports.ImportReport) (map[string]*model.User, *model.AppError) {
 	uniqueUsernames := utils.RemoveDuplicatesFromStringArray(usernames)
 	allUsers, err := a.Srv().Store().User().GetProfilesByUsernames(uniqueUsernames, nil)
 	if err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	if len(allUsers) != len(uniqueUsernames) && !existingUsersOnly {
+	if len(allUsers) != len(uniqueUsernames) && !deactivateMissingUsers {
 		return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1937,7 +1957,7 @@ func getPostStrID(post *model.Post) string {
 
 // importMultiplePostLines will return an error and the line that
 // caused it whenever possible
-func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun, extractContent, existingUsersOnly bool, report *imports.ImportReport) (int, *model.AppError) {
+func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun, extractContent, deactivateMissingUsers bool, report *imports.ImportReport) (int, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
@@ -1969,7 +1989,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		postsData[i] = line.Post
 	}
 
-	users, err := a.getUsersByUsernames(usernames, existingUsersOnly, report)
+	users, err := a.getUsersByUsernames(usernames, deactivateMissingUsers, report)
 	if err != nil {
 		return 0, err
 	}
@@ -2000,7 +2020,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		user := users[strings.ToLower(*line.Post.User)]
 
 		if user == nil {
-			rctx.Logger().Warn("Skipping post from user not found on destination during channel-scoped import", mlog.String("username", *line.Post.User))
+			rctx.Logger().Warn("Skipping post from user not found on destination during scoped import", mlog.String("username", *line.Post.User))
 			continue
 		}
 
@@ -2175,14 +2195,14 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 
 		if postWithData.postData.Reactions != nil {
 			for _, reaction := range *postWithData.postData.Reactions {
-				if err := a.importReaction(rctx, &reaction, postWithData.post, existingUsersOnly, report); err != nil {
+				if err := a.importReaction(rctx, &reaction, postWithData.post, deactivateMissingUsers, report); err != nil {
 					return postWithData.lineNumber, err
 				}
 			}
 		}
 
 		if postWithData.postData.Replies != nil && len(*postWithData.postData.Replies) > 0 {
-			err := a.importReplies(rctx, *postWithData.postData.Replies, postWithData.post, postWithData.team.Id, extractContent, existingUsersOnly, report)
+			err := a.importReplies(rctx, *postWithData.postData.Replies, postWithData.post, postWithData.team.Id, extractContent, deactivateMissingUsers, report)
 			if err != nil {
 				return postWithData.lineNumber, err
 			}
@@ -2489,7 +2509,7 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 
 // importMultipleDirectPostLines will return an error and the line
 // that caused it whenever possible
-func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun, extractContent, existingUsersOnly bool, report *imports.ImportReport) (int, *model.AppError) {
+func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.LineImportWorkerData, dryRun, extractContent, deactivateMissingUsers bool, report *imports.ImportReport) (int, *model.AppError) {
 	if len(lines) == 0 {
 		return 0, nil
 	}
@@ -2514,7 +2534,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		usernames = append(usernames, *line.DirectPost.ChannelMembers...)
 	}
 
-	users, err := a.getUsersByUsernames(usernames, existingUsersOnly, report)
+	users, err := a.getUsersByUsernames(usernames, deactivateMissingUsers, report)
 	if err != nil {
 		return 0, err
 	}
@@ -2717,14 +2737,14 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 
 		if postWithData.directPostData.Reactions != nil {
 			for _, reaction := range *postWithData.directPostData.Reactions {
-				if err := a.importReaction(rctx, &reaction, postWithData.post, existingUsersOnly, report); err != nil {
+				if err := a.importReaction(rctx, &reaction, postWithData.post, deactivateMissingUsers, report); err != nil {
 					return postWithData.lineNumber, err
 				}
 			}
 		}
 
 		if postWithData.directPostData.Replies != nil {
-			if err := a.importReplies(rctx, *postWithData.directPostData.Replies, postWithData.post, "noteam", extractContent, existingUsersOnly, report); err != nil {
+			if err := a.importReplies(rctx, *postWithData.directPostData.Replies, postWithData.post, "noteam", extractContent, deactivateMissingUsers, report); err != nil {
 				return postWithData.lineNumber, err
 			}
 		}

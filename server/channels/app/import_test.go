@@ -760,7 +760,7 @@ func TestRewriteTeamName(t *testing.T) {
 	})
 }
 
-func TestExistingUsersOnlyMode(t *testing.T) {
+func TestDeactivateMissingUsersMode(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
@@ -768,7 +768,7 @@ func TestExistingUsersOnlyMode(t *testing.T) {
 	existingUser := th.CreateUser(t)
 
 	// Build a channel-scoped import JSONL — the additional field in the
-	// version line triggers existingUsersOnly mode automatically.
+	// version line triggers deactivateMissingUsers mode automatically.
 	teamName := model.NewRandomTeamName()
 	channelName := model.NewId()
 	newUsername := model.NewUsername() // does not exist on this server
@@ -788,7 +788,7 @@ func TestExistingUsersOnlyMode(t *testing.T) {
 
 	// The new user should have been created as a deactivated placeholder account.
 	u, err := th.App.Srv().Store().User().GetByUsername(newUsername)
-	require.NoError(t, err, "new user should have been created in existingUsersOnly mode")
+	require.NoError(t, err, "new user should have been created in deactivateMissingUsers mode")
 	assert.NotZero(t, u.DeleteAt, "newly-created user should be deactivated")
 }
 

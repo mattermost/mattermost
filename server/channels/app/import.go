@@ -151,7 +151,7 @@ func processAttachments(rctx request.CTX, line *imports.LineImportData, basePath
 	return nil
 }
 
-func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, existingUsersOnly bool, report *imports.ImportReport, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
+func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, deactivateMissingUsers bool, report *imports.ImportReport, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
 	workerID := model.NewId()
 	processedLines := uint64(0)
 
@@ -171,7 +171,7 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, existin
 				errors <- imports.LineImportWorkerError{Error: model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest), LineNumber: line.LineNumber}
 			}
 			if len(postLines) >= importMultiplePostsThreshold {
-				if errLine, err := a.importMultiplePostLines(rctx, postLines, dryRun, extractContent, existingUsersOnly, report); err != nil {
+				if errLine, err := a.importMultiplePostLines(rctx, postLines, dryRun, extractContent, deactivateMissingUsers, report); err != nil {
 					errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 				}
 				postLines = []imports.LineImportWorkerData{}
@@ -182,13 +182,13 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, existin
 				errors <- imports.LineImportWorkerError{Error: model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest), LineNumber: line.LineNumber}
 			}
 			if len(directPostLines) >= importMultiplePostsThreshold {
-				if errLine, err := a.importMultipleDirectPostLines(rctx, directPostLines, dryRun, extractContent, existingUsersOnly, report); err != nil {
+				if errLine, err := a.importMultipleDirectPostLines(rctx, directPostLines, dryRun, extractContent, deactivateMissingUsers, report); err != nil {
 					errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 				}
 				directPostLines = []imports.LineImportWorkerData{}
 			}
 		default:
-			if err := a.importLine(rctx, line.LineImportData, dryRun, existingUsersOnly, report); err != nil {
+			if err := a.importLine(rctx, line.LineImportData, dryRun, deactivateMissingUsers, report); err != nil {
 				errors <- imports.LineImportWorkerError{Error: err, LineNumber: line.LineNumber}
 			}
 		}
@@ -200,12 +200,12 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, existin
 	}
 
 	if len(postLines) > 0 {
-		if errLine, err := a.importMultiplePostLines(rctx, postLines, dryRun, extractContent, existingUsersOnly, report); err != nil {
+		if errLine, err := a.importMultiplePostLines(rctx, postLines, dryRun, extractContent, deactivateMissingUsers, report); err != nil {
 			errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 		}
 	}
 	if len(directPostLines) > 0 {
-		if errLine, err := a.importMultipleDirectPostLines(rctx, directPostLines, dryRun, extractContent, existingUsersOnly, report); err != nil {
+		if errLine, err := a.importMultipleDirectPostLines(rctx, directPostLines, dryRun, extractContent, deactivateMissingUsers, report); err != nil {
 			errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
 		}
 	}
@@ -237,7 +237,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 	scanner.Buffer(buf, maxScanTokenSize)
 
 	lineNumber := 0
-	existingUsersOnly := false
+	deactivateMissingUsers := false
 	sourceTeamName := ""
 
 
@@ -289,7 +289,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 				} else {
 					sourceTeamName = scope.TeamName
 					if scope.ChannelName != "" || scope.TeamName != "" {
-						existingUsersOnly = true
+						deactivateMissingUsers = true
 					}
 				}
 			}
@@ -332,7 +332,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 			linesChan = make(chan imports.LineImportWorkerData, workers)
 			for range workers {
 				wg.Add(1)
-				go a.bulkImportWorker(rctx, dryRun, extractContent, existingUsersOnly, report, &wg, linesChan, errorsChan)
+				go a.bulkImportWorker(rctx, dryRun, extractContent, deactivateMissingUsers, report, &wg, linesChan, errorsChan)
 			}
 		}
 
@@ -413,7 +413,7 @@ func processImportDataFileVersionLine(line imports.LineImportData) (int, *model.
 	return *line.Version, nil
 }
 
-func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun bool, existingUsersOnly bool, report *imports.ImportReport) *model.AppError {
+func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun bool, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
 	switch {
 	case line.Type == "role":
 		if line.Role == nil {
@@ -439,7 +439,7 @@ func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun b
 		if line.User == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_user.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importUser(rctx, line.User, dryRun, existingUsersOnly, report)
+		return a.importUser(rctx, line.User, dryRun, deactivateMissingUsers, report)
 	case line.Type == "bot":
 		if line.Bot == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_bot.error", nil, "", http.StatusBadRequest)

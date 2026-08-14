@@ -1816,7 +1816,7 @@ func TestImportUserScopedMatching(t *testing.T) {
 
 	})
 
-	t.Run("email user matched by username in existingUsersOnly mode", func(t *testing.T) {
+	t.Run("email user matched by username in deactivateMissingUsers mode", func(t *testing.T) {
 		existing := th.CreateUser(t)
 		data := imports.UserImportData{
 			Username: &existing.Username,
@@ -1828,7 +1828,7 @@ func TestImportUserScopedMatching(t *testing.T) {
 
 	})
 
-	t.Run("email user not on dest in existingUsersOnly — deactivated shell created", func(t *testing.T) {
+	t.Run("email user not on dest in deactivateMissingUsers — deactivated shell created", func(t *testing.T) {
 		username := model.NewUsername()
 		data := imports.UserImportData{
 			Username: &username,
@@ -1904,8 +1904,10 @@ func TestImportUserScopedMatching(t *testing.T) {
 		assert.NotZero(t, shell.DeleteAt, "unmatched SSO identity should produce a deactivated shell")
 	})
 
-	t.Run("SSO user in non-scoped import uses username matching", func(t *testing.T) {
-		// existingUsersOnly=false — even with auth_data present, username matching is used.
+	t.Run("SSO user in non-scoped import falls back to username when auth_data not found", func(t *testing.T) {
+		// deactivateMissingUsers=false (full-server import / backup-restore): auth_data is tried
+		// first, but if no match is found the import falls back to username so existing
+		// accounts are found and updated rather than producing a duplicate.
 		authData := model.NewId()
 		existing := th.CreateUser(t)
 		data := imports.UserImportData{
@@ -1918,6 +1920,11 @@ func TestImportUserScopedMatching(t *testing.T) {
 		appErr := th.App.importUser(th.Context, &data, false, false, report)
 		require.Nil(t, appErr)
 
+		// User should still exist and now have auth_data attached.
+		u, err := th.App.Srv().Store().User().GetByUsername(existing.Username)
+		require.NoError(t, err)
+		require.NotNil(t, u.AuthData)
+		assert.Equal(t, authData, *u.AuthData)
 	})
 
 	t.Run("deactivated SSO user on dest is NOT reactivated by import — requires manual action", func(t *testing.T) {
@@ -2126,6 +2133,51 @@ func TestImportUsernamRemap(t *testing.T) {
 		require.NoError(t, rErr)
 		require.Len(t, reactions, 1, "reaction should have been created")
 		assert.Equal(t, destUser.Id, reactions[0].UserId, "reaction should belong to the dest user")
+	})
+
+	t.Run("remap is built in non-scoped import — prevents duplicate accounts", func(t *testing.T) {
+		// This is the regression test for the bug where hasSSOIdentity required
+		// deactivateMissingUsers, causing full-server imports to match SSO users by
+		// username even when auth_data was present. If a username had changed on
+		// dest, the import would create a duplicate account instead of updating
+		// the existing one.
+		authData := model.NewId()
+		renamedUsername := "renamed-" + model.NewUsername()
+
+		// Dest user has a different username but the same auth_data.
+		destUser, appErr := th.App.CreateUser(th.Context, &model.User{
+			Username: renamedUsername,
+			Email:    model.NewId() + "@example.com",
+			Password: "Password1",
+		})
+		require.Nil(t, appErr)
+		_, err := th.App.Srv().Store().User().UpdateAuthData(destUser.Id, model.UserAuthServiceLdap, &authData, "", false)
+		require.NoError(t, err)
+
+		srcUsername := "src-" + model.NewUsername()
+		data := imports.UserImportData{
+			Username:    &srcUsername,
+			Email:       &destUser.Email,
+			AuthService: ptrStr(model.UserAuthServiceLdap),
+			AuthData:    &authData,
+		}
+
+		// Non-scoped import (deactivateMissingUsers=false) — previously would try
+		// GetByUsername(srcUsername), fail, and create a duplicate "srcUsername" account.
+		// Now tries GetByAuth first, finds renamedUsername, no duplicate.
+		report := &imports.ImportReport{}
+		appErr = th.App.importUser(th.Context, &data, false, false, report)
+		require.Nil(t, appErr)
+
+		// Only one user should exist with this auth_data — no duplicate.
+		u, err := th.App.Srv().Store().User().GetByAuth(&authData, model.UserAuthServiceLdap)
+		require.NoError(t, err)
+		assert.Equal(t, destUser.Id, u.Id, "should match the existing dest user, not create a duplicate")
+
+		// Remap should be populated so posts from srcUsername land on renamedUsername.
+		remapped, ok := report.Remap.Lookup(srcUsername)
+		require.True(t, ok, "remap should record the source→dest username mapping")
+		assert.Equal(t, renamedUsername, remapped)
 	})
 }
 
