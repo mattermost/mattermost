@@ -221,7 +221,9 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 		es.version = info.version
 		es.fullVersion = info.fullVersion
 	}
-	es.plugins = info.plugins
+	if info.plugins != nil {
+		es.plugins = info.plugins
+	}
 	if appErr != nil {
 		return appErr
 	}

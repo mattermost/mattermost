@@ -330,7 +330,7 @@ func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
 	}
 }
 
-func TestStartClearsPluginsWhenDiscoveryFails(t *testing.T) {
+func TestStartPreservesPluginsWhenDiscoveryFails(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("X-Elastic-Product", "Elasticsearch")
@@ -366,7 +366,7 @@ func TestStartClearsPluginsWhenDiscoveryFails(t *testing.T) {
 	defer func() { require.Nil(t, es.Stop()) }()
 	require.Nil(t, es.Start(context.Background()))
 	require.Equal(t, "8.19.0", es.fullVersion)
-	require.Nil(t, es.plugins)
+	require.Equal(t, []string{"analysis-nori"}, es.plugins)
 }
 
 func TestTestConfigDoesNotActivateEngine(t *testing.T) {

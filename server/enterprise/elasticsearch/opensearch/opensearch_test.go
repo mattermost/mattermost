@@ -144,7 +144,7 @@ func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
 	}
 }
 
-func TestStartClearsPluginsWhenDiscoveryFails(t *testing.T) {
+func TestStartPreservesPluginsWhenDiscoveryFails(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case r.Method == http.MethodGet && r.URL.Path == "/":
@@ -178,7 +178,7 @@ func TestStartClearsPluginsWhenDiscoveryFails(t *testing.T) {
 	defer func() { require.Nil(t, impl.Stop()) }()
 	require.Nil(t, impl.Start(context.Background()))
 	require.Equal(t, "2.11.0", impl.fullVersion)
-	require.Nil(t, impl.plugins)
+	require.Equal(t, []string{"analysis-nori"}, impl.plugins)
 }
 
 func TestTestConfigDoesNotActivateEngine(t *testing.T) {

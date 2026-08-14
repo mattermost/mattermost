@@ -191,7 +191,9 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 		os.version = info.version
 		os.fullVersion = info.fullVersion
 	}
-	os.plugins = info.plugins
+	if info.plugins != nil {
+		os.plugins = info.plugins
+	}
 	if appErr != nil {
 		return appErr
 	}
