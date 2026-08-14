@@ -811,6 +811,7 @@ const AdminDefinition: AdminDefinitionType = {
                                         it.configIsFalse('FeatureFlags', 'SessionAttributes'),
                                         it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                                     ),
+                                    isDisabled: it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                                 },
                                 {
                                     type: 'bool',
@@ -822,6 +823,7 @@ const AdminDefinition: AdminDefinitionType = {
                                         it.configIsFalse('FeatureFlags', 'SessionAttributes'),
                                         it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                                     ),
+                                    isDisabled: it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                                 },
                             ],
                         },
