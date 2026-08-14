@@ -1043,6 +1043,41 @@ func clearActualValuesInTree(node *model.PolicySimulationEvaluationNode) {
 	}
 }
 
+// SanitizeSimulationEvaluationTracesForCaller strips evaluation trace
+// trees from a PolicySimulationResponse before it is returned to
+// non-system-admin callers. Evaluation traces are sysadmin-only;
+// channel/team admins still receive flat blame expressions where
+// the simulator attached them, and the frontend falls back to
+// rendering those when evaluation_tree is absent.
+func (a *App) SanitizeSimulationEvaluationTracesForCaller(resp *model.PolicySimulationResponse, callerIsSystemAdmin bool) {
+	if resp == nil || callerIsSystemAdmin {
+		return
+	}
+	for i := range resp.Results {
+		r := &resp.Results[i]
+		for action, dec := range r.Decisions {
+			stripEvaluationTracesFromDecision(&dec)
+			r.Decisions[action] = dec
+		}
+		for j := range r.Sessions {
+			for action, dec := range r.Sessions[j].Decisions {
+				stripEvaluationTracesFromDecision(&dec)
+				r.Sessions[j].Decisions[action] = dec
+			}
+		}
+	}
+}
+
+func stripEvaluationTracesFromDecision(dec *model.PolicySimulationActionDecision) {
+	for i := range dec.Blame {
+		b := &dec.Blame[i]
+		b.EvaluationTree = nil
+		for j := range b.MergedRules {
+			b.MergedRules[j].EvaluationTree = nil
+		}
+	}
+}
+
 // enrichBlameForDraftScope walks the simulator response and:
 //   - copies the failing rule's expression into draft-side blame entries
 //     (this_rule / sibling_rule / sibling_saved) using params.Policy.Rules

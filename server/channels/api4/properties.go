@@ -23,7 +23,8 @@ func (api *API) InitProperties() {
 	if api.srv.Config().FeatureFlags.IntegratedBoards ||
 		api.srv.Config().FeatureFlags.ManagedChannelCategories ||
 		api.srv.Config().FeatureFlags.ClassificationMarkings ||
-		api.srv.Config().FeatureFlags.SessionAttributes {
+		api.srv.Config().FeatureFlags.SessionAttributes ||
+		api.srv.Config().FeatureFlags.PostAttributes {
 		api.BaseRoutes.PropertyFields.Handle("", api.APISessionRequired(getPropertyFields)).Methods(http.MethodGet)
 		api.BaseRoutes.PropertyFieldsSearch.Handle("", api.APISessionRequired(searchPropertyFields)).Methods(http.MethodPost)
 		api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(getPropertyValues)).Methods(http.MethodGet)

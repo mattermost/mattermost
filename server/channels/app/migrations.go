@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -57,10 +56,10 @@ const (
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() error {
-	return a.Srv().doAdvancedPermissionsMigration()
+	return a.Srv().doAdvancedPermissionsMigration(request.EmptyContext(a.Srv().Log()))
 }
 
-func (s *Server) doAdvancedPermissionsMigration() error {
+func (s *Server) doAdvancedPermissionsMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(model.AdvancedPermissionsMigrationKey); err == nil {
@@ -81,7 +80,7 @@ func (s *Server) doAdvancedPermissionsMigration() error {
 		mlog.Warn("Couldn't save the role for advanced permissions migration, this can be an expected case", mlog.Err(err))
 
 		// If this failed for reasons other than the role already existing, don't mark the migration as done.
-		fetchedRole, err := s.Store().Role().GetByName(context.Background(), role.Name)
+		fetchedRole, err := s.Store().Role().GetByName(rctx, role.Name)
 		if err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to migrate role to database: %w", err))
 			continue
@@ -133,13 +132,13 @@ func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 }
 
 func (a *App) DoEmojisPermissionsMigration() error {
-	if err := a.Srv().doEmojisPermissionsMigration(); err != nil {
+	if err := a.Srv().doEmojisPermissionsMigration(request.EmptyContext(a.Srv().Log())); err != nil {
 		return fmt.Errorf("Failed to complete emojis permissions migration: %w", err)
 	}
 	return nil
 }
 
-func (s *Server) doEmojisPermissionsMigration() error {
+func (s *Server) doEmojisPermissionsMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(EmojisPermissionsMigrationKey); err == nil {
@@ -155,7 +154,7 @@ func (s *Server) doEmojisPermissionsMigration() error {
 	mlog.Info("Migrating emojis config to database.")
 
 	// Emoji creation is set to all by default
-	role, err = s.GetRoleByName(context.Background(), model.SystemUserRoleId)
+	role, err = s.GetRoleByName(rctx, model.SystemUserRoleId)
 	if err != nil {
 		return fmt.Errorf("failed to get role for system user: %w", err)
 	}
@@ -167,7 +166,7 @@ func (s *Server) doEmojisPermissionsMigration() error {
 		}
 	}
 
-	systemAdminRole, err = s.GetRoleByName(context.Background(), model.SystemAdminRoleId)
+	systemAdminRole, err = s.GetRoleByName(rctx, model.SystemAdminRoleId)
 	if err != nil {
 		return fmt.Errorf("failed to get role for system admin: %w", err)
 	}
@@ -194,13 +193,13 @@ func (s *Server) doEmojisPermissionsMigration() error {
 }
 
 func (a *App) DoGuestRolesCreationMigration() error {
-	if err := a.Srv().doGuestRolesCreationMigration(); err != nil {
+	if err := a.Srv().doGuestRolesCreationMigration(request.EmptyContext(a.Srv().Log())); err != nil {
 		return fmt.Errorf("Failed to complete guest roles creation migration: %w", err)
 	}
 	return nil
 }
 
-func (s *Server) doGuestRolesCreationMigration() error {
+func (s *Server) doGuestRolesCreationMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(GuestRolesCreationMigrationKey); err == nil {
@@ -211,17 +210,17 @@ func (s *Server) doGuestRolesCreationMigration() error {
 
 	roles := model.MakeDefaultRoles()
 	var multiErr *multierror.Error
-	if _, err := s.Store().Role().GetByName(context.Background(), model.ChannelGuestRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.ChannelGuestRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.ChannelGuestRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new guest role to database: %w", err))
 		}
 	}
-	if _, err := s.Store().Role().GetByName(context.Background(), model.TeamGuestRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.TeamGuestRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.TeamGuestRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new guest role to database: %w", err))
 		}
 	}
-	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemGuestRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.SystemGuestRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemGuestRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new guest role to database: %w", err))
 		}
@@ -287,10 +286,10 @@ func (s *Server) doGuestRolesCreationMigration() error {
 }
 
 func (a *App) DoSystemConsoleRolesCreationMigration() error {
-	return a.Srv().doSystemConsoleRolesCreationMigration()
+	return a.Srv().doSystemConsoleRolesCreationMigration(request.EmptyContext(a.Srv().Log()))
 }
 
-func (s *Server) doSystemConsoleRolesCreationMigration() error {
+func (s *Server) doSystemConsoleRolesCreationMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(SystemConsoleRolesCreationMigrationKey); err == nil {
@@ -301,17 +300,17 @@ func (s *Server) doSystemConsoleRolesCreationMigration() error {
 
 	roles := model.MakeDefaultRoles()
 	var multiErr *multierror.Error
-	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemManagerRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.SystemManagerRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemManagerRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new role %q: %w", model.SystemManagerRoleId, err))
 		}
 	}
-	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemReadOnlyAdminRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.SystemReadOnlyAdminRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemReadOnlyAdminRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new role %q: %w", model.SystemReadOnlyAdminRoleId, err))
 		}
 	}
-	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemUserManagerRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.SystemUserManagerRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.SystemUserManagerRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new role %q: %w", model.SystemUserManagerRoleId, err))
 		}
@@ -333,7 +332,7 @@ func (s *Server) doSystemConsoleRolesCreationMigration() error {
 	return nil
 }
 
-func (s *Server) doSingleRoleCreationMigration(migrationKey, roleId string) error {
+func (s *Server) doSingleRoleCreationMigration(rctx request.CTX, migrationKey, roleId string) error {
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(migrationKey); err == nil {
@@ -348,7 +347,7 @@ func (s *Server) doSingleRoleCreationMigration(migrationKey, roleId string) erro
 		return fmt.Errorf("unknown role id: %q", roleId)
 	}
 	var nfRoleErr *store.ErrNotFound
-	if _, err := s.Store().Role().GetByName(context.Background(), roleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, roleId); err != nil {
 		if !errors.As(err, &nfRoleErr) {
 			return fmt.Errorf("could not query role %q: %w", roleId, err)
 		}
@@ -369,12 +368,12 @@ func (s *Server) doSingleRoleCreationMigration(migrationKey, roleId string) erro
 	return nil
 }
 
-func (s *Server) doCustomGroupAdminRoleCreationMigration() error {
-	return s.doSingleRoleCreationMigration(CustomGroupAdminRoleCreationMigrationKey, model.SystemCustomGroupAdminRoleId)
+func (s *Server) doCustomGroupAdminRoleCreationMigration(rctx request.CTX) error {
+	return s.doSingleRoleCreationMigration(rctx, CustomGroupAdminRoleCreationMigrationKey, model.SystemCustomGroupAdminRoleId)
 }
 
-func (s *Server) doSharedChannelManagerRoleCreationMigration() error {
-	return s.doSingleRoleCreationMigration(SharedChannelManagerRoleCreationMigrationKey, model.SharedChannelManagerRoleId)
+func (s *Server) doSharedChannelManagerRoleCreationMigration(rctx request.CTX) error {
+	return s.doSingleRoleCreationMigration(rctx, SharedChannelManagerRoleCreationMigrationKey, model.SharedChannelManagerRoleId)
 }
 
 func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
@@ -402,7 +401,7 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
 	return nil
 }
 
-func (s *Server) doPlaybooksRolesCreationMigration() error {
+func (s *Server) doPlaybooksRolesCreationMigration(rctx request.CTX) error {
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
 	if _, err := s.Store().System().GetByName(PlaybookRolesCreationMigrationKey); err == nil {
@@ -413,22 +412,22 @@ func (s *Server) doPlaybooksRolesCreationMigration() error {
 
 	roles := model.MakeDefaultRoles()
 	var multiErr *multierror.Error
-	if _, err := s.Store().Role().GetByName(context.Background(), model.PlaybookAdminRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.PlaybookAdminRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.PlaybookAdminRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new playbook %q role to database: %w", model.PlaybookAdminRoleId, err))
 		}
 	}
-	if _, err := s.Store().Role().GetByName(context.Background(), model.PlaybookMemberRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.PlaybookMemberRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.PlaybookMemberRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new playbook %q role to database: %w", model.PlaybookMemberRoleId, err))
 		}
 	}
-	if _, err := s.Store().Role().GetByName(context.Background(), model.RunAdminRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.RunAdminRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.RunAdminRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("ffailed to create new playbook %q role to database: %w", model.RunAdminRoleId, err))
 		}
 	}
-	if _, err := s.Store().Role().GetByName(context.Background(), model.RunMemberRoleId); err != nil {
+	if _, err := s.Store().Role().GetByName(rctx, model.RunMemberRoleId); err != nil {
 		if _, err := s.Store().Role().Save(roles[model.RunMemberRoleId]); err != nil {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("failed to create new playbook %q role to database: %w", model.RunMemberRoleId, err))
 		}
@@ -941,6 +940,51 @@ func mergeBoardsStatusColors(attrs model.StringInterface, colorByName map[string
 	return out
 }
 
+// syncSessionAttributeOptions replaces the persisted select options on an
+// already-seeded session attribute field with the ones the schema declares.
+// Each existing option's ID is reused by name so IDs stay stable across
+// restarts, while a field the schema has converted from text to select picks
+// up its options for the first time. Options are dropped entirely for fields
+// the schema declares without them, so a select → text conversion doesn't
+// leave the UI rendering a stale dropdown.
+func syncSessionAttributeOptions(current, expected *model.PropertyField) error {
+	expectedOptions, ok := expected.Attrs[model.PropertyFieldAttributeOptions]
+	if !ok {
+		delete(current.Attrs, model.PropertyFieldAttributeOptions)
+		return nil
+	}
+
+	idByName := make(map[string]string)
+	if raw, found := current.Attrs[model.PropertyFieldAttributeOptions]; found {
+		currentOptions, err := model.NewPropertyOptionsFromFieldAttrs[*model.PluginPropertyOption](raw)
+		if err != nil {
+			return fmt.Errorf("failed to read persisted options: %w", err)
+		}
+		for _, option := range currentOptions {
+			idByName[option.GetName()] = option.GetID()
+		}
+	}
+
+	options, err := model.NewPropertyOptionsFromFieldAttrs[*model.PluginPropertyOption](expectedOptions)
+	if err != nil {
+		return fmt.Errorf("failed to read schema options: %w", err)
+	}
+
+	// Written back as []any of map[string]any, the canonical attrs shape every
+	// downstream reader of attrs["options"] expects.
+	merged := make([]any, len(options))
+	for i, option := range options {
+		id := option.GetID()
+		if existingID, found := idByName[option.GetName()]; found {
+			id = existingID
+		}
+		merged[i] = map[string]any{"id": id, "name": option.GetName()}
+	}
+	current.Attrs[model.PropertyFieldAttributeOptions] = merged
+
+	return nil
+}
+
 // seedSessionAttributeFields idempotently seeds the built-in session attribute property fields.
 func (s *Server) seedSessionAttributeFields(groupID string) error {
 	rctx := properties.SystemCallerContext(request.EmptyContext(s.Log()))
@@ -962,6 +1006,14 @@ func (s *Server) seedSessionAttributeFields(groupID string) error {
 			current.Type = expected.Type
 			current.Attrs["platforms"] = expected.Attrs["platforms"]
 			current.Attrs[model.SAAttrDisplayName] = expected.Attrs[model.SAAttrDisplayName]
+			if operators, ok := expected.Attrs[model.NativeAttributeAttrOperators]; ok {
+				current.Attrs[model.NativeAttributeAttrOperators] = operators
+			} else {
+				delete(current.Attrs, model.NativeAttributeAttrOperators)
+			}
+			if err := syncSessionAttributeOptions(current, expected); err != nil {
+				return fmt.Errorf("failed to sync options for session attribute field %q: %w", expected.Name, err)
+			}
 			current.ObjectType = expected.ObjectType
 			current.TargetType = expected.TargetType
 			current.Protected = expected.Protected
@@ -1287,21 +1339,23 @@ func (a *App) DoAppMigrations() {
 }
 
 func (s *Server) doAppMigrations() {
+	rctx := request.EmptyContext(s.Log())
+
 	type migration struct {
 		name    string
 		handler func() error
 	}
 	m1 := []migration{
-		{"Advanced Permissions Migration", s.doAdvancedPermissionsMigration},
-		{"Emojis Permissions Migration", s.doEmojisPermissionsMigration},
-		{"GuestRolesCreationMigration", s.doGuestRolesCreationMigration},
-		{"System Console Roles Creation Migration", s.doSystemConsoleRolesCreationMigration},
-		{"Custom Group Admin Role Creation Migration", s.doCustomGroupAdminRoleCreationMigration},
-		{"Shared Channel Manager Role Creation Migration", s.doSharedChannelManagerRoleCreationMigration},
+		{"Advanced Permissions Migration", func() error { return s.doAdvancedPermissionsMigration(rctx) }},
+		{"Emojis Permissions Migration", func() error { return s.doEmojisPermissionsMigration(rctx) }},
+		{"GuestRolesCreationMigration", func() error { return s.doGuestRolesCreationMigration(rctx) }},
+		{"System Console Roles Creation Migration", func() error { return s.doSystemConsoleRolesCreationMigration(rctx) }},
+		{"Custom Group Admin Role Creation Migration", func() error { return s.doCustomGroupAdminRoleCreationMigration(rctx) }},
+		{"Shared Channel Manager Role Creation Migration", func() error { return s.doSharedChannelManagerRoleCreationMigration(rctx) }},
 		// This migration always run after dependent migrations such as the guest roles migration.
 		{"Permissions Migrations", s.doPermissionsMigrations},
 		{"Content Extraction Config Default True Migration", s.doContentExtractionConfigDefaultTrueMigration},
-		{"Playbooks Roles Creation Migration", s.doPlaybooksRolesCreationMigration},
+		{"Playbooks Roles Creation Migration", func() error { return s.doPlaybooksRolesCreationMigration(rctx) }},
 		{"First Admin Setup Complete Migration", s.doFirstAdminSetupCompleteMigration},
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
@@ -1334,7 +1388,6 @@ func (s *Server) doAppMigrations() {
 		{"CPA DisplayName Backfill", s.doSetupCPADisplayNameBackfill},
 	}
 
-	rctx := request.EmptyContext(s.Log())
 	for i := range m2 {
 		err := m2[i].handler(rctx)
 		if err != nil {

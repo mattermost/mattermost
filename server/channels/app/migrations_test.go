@@ -361,6 +361,53 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 	require.Equal(t, "true", data.Value)
 }
 
+var expectedOSPlatformOptions = []string{"macos", "windows", "linux", "ios", "android"}
+
+func sessionAttributeFieldByName(t *testing.T, th *TestHelper, groupID, name string) *model.PropertyField {
+	t.Helper()
+
+	fields, appErr := th.App.SearchPropertyFields(th.Context, groupID, model.PropertyFieldSearchOpts{PerPage: 100})
+	require.Nil(t, appErr)
+	for _, field := range fields {
+		if field.Name == name {
+			return field
+		}
+	}
+
+	require.FailNowf(t, "session attribute field not found", "field %q was not seeded", name)
+	return nil
+}
+
+func sessionAttributeOptions(t *testing.T, field *model.PropertyField) model.PropertyOptions[*model.PluginPropertyOption] {
+	t.Helper()
+
+	options, err := model.NewPropertyOptionsFromFieldAttrs[*model.PluginPropertyOption](field.Attrs[model.PropertyFieldAttributeOptions])
+	require.NoError(t, err)
+	return options
+}
+
+func sessionAttributeOptionNames(t *testing.T, field *model.PropertyField) []string {
+	t.Helper()
+
+	options := sessionAttributeOptions(t, field)
+	names := make([]string, 0, len(options))
+	for _, option := range options {
+		names = append(names, option.GetName())
+	}
+	return names
+}
+
+func sessionAttributeOptionIDsByName(t *testing.T, field *model.PropertyField) map[string]string {
+	t.Helper()
+
+	options := sessionAttributeOptions(t, field)
+	idsByName := make(map[string]string, len(options))
+	for _, option := range options {
+		idsByName[option.GetName()] = option.GetID()
+	}
+	return idsByName
+}
+
 func TestDoSetupSessionAttributesProperties(t *testing.T) {
 	expectedFieldCount := len(model.SessionAttributeSystemFields("group-id"))
 
@@ -412,6 +459,58 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		)
 	})
 
+	t.Run("os_platform seeds as a select with the known platform values", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
+		require.Equal(t, model.PropertyFieldTypeSelect, field.Type)
+		require.Equal(t, expectedOSPlatformOptions, sessionAttributeOptionNames(t, field))
+		require.True(t, model.IsValidSessionAttributeValue(field, "windows"))
+		require.False(t, model.IsValidSessionAttributeValue(field, "darwin"))
+	})
+
+	t.Run("converts a legacy text os_platform field into a select", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		// Restore the pre-conversion shape a server upgrade would find: free
+		// text with no options. Written with a nil request context so
+		// SessionAttributesHook treats it as a system caller, the same way the
+		// seed itself does.
+		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
+		field.Type = model.PropertyFieldTypeText
+		delete(field.Attrs, model.PropertyFieldAttributeOptions)
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{field})
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		converted := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
+		require.Equal(t, model.PropertyFieldTypeSelect, converted.Type)
+		require.Equal(t, expectedOSPlatformOptions, sessionAttributeOptionNames(t, converted))
+		require.True(t, model.IsValidSessionAttributeValue(converted, "windows"))
+	})
+
+	t.Run("re-seeding preserves select option IDs", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		before := sessionAttributeOptionIDsByName(t, sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform))
+		require.Len(t, before, len(expectedOSPlatformOptions))
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		after := sessionAttributeOptionIDsByName(t, sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform))
+		require.Equal(t, before, after, "re-seeding must not regenerate option IDs")
+	})
+
 	t.Run("re-running is idempotent", func(t *testing.T) {
 		th := Setup(t)
 
@@ -428,6 +527,23 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.Nil(t, appErr)
 		require.Len(t, after, expectedFieldCount, "re-running must not create duplicate fields")
+	})
+
+	t.Run("backfills operators on legacy fields missing attrs.operators", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
+		delete(field.Attrs, model.NativeAttributeAttrOperators)
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{field})
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		updated := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
+		require.NotNil(t, updated.Attrs[model.NativeAttributeAttrOperators])
 	})
 
 	t.Run("concurrent runs tolerate update conflicts", func(t *testing.T) {

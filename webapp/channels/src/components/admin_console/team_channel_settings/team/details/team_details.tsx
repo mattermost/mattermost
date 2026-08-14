@@ -66,7 +66,9 @@ export type Props = {
         updateAccessControlPoliciesActive: (states: Array<{id: string; active: boolean}>) => Promise<ActionResult>;
         createAccessControlTeamSyncJob: (data: {policy_id?: string}) => Promise<ActionResult>;
         getTeamStats: (teamId: string) => Promise<ActionResult>;
+        getTeamMembers: (teamId: string, page?: number, perPage?: number) => Promise<ActionResult>;
         saveTeamAccessPolicy: (policy: AccessControlPolicy) => Promise<ActionResult>;
+        deleteAccessControlPolicy: (policyId: string) => Promise<ActionResult>;
         getAccessControlFields: (after: string, limit: number) => Promise<ActionResult>;
         searchUsersForExpression: (expression: string, term: string, after: string, limit: number, channelId?: string, teamId?: string) => Promise<ActionResult>;
     };
@@ -108,8 +110,8 @@ type State = {
     showAbacSaveConfirm: boolean;
     abacAffectedCount: number | null;
     abacQualifyingCount: number | null;
+    abacAddCount: number | null;
 
-    // Team-level access rules state
     teamRulesExpression: string;
     teamRulesOriginalExpression: string;
     teamRulesExistingRules: AccessControlPolicyRule[];
@@ -156,8 +158,8 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             showAbacSaveConfirm: false,
             abacAffectedCount: null,
             abacQualifyingCount: null,
+            abacAddCount: null,
 
-            // Team-level access rules state
             teamRulesExpression: '',
             teamRulesOriginalExpression: '',
             teamRulesExistingRules: [],
@@ -290,16 +292,18 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         });
     };
 
-    private handleTeamRulesChange = (hasChanges: boolean, expression: string, autoSync: boolean) => {
-        const hasRealTeamRulesChanges = hasChanges && (
+    private handleTeamRulesChange = (_hasChanges: boolean, expression: string, autoSync: boolean) => {
+        // Ignore the child's own hasChanges: it freezes its "original" at first mount,
+        // before the policy loads, so removing the only rule reads as "no change". Compare
+        // against our own loaded/last-saved originals instead.
+        const hasRealTeamRulesChanges =
             expression !== this.state.teamRulesOriginalExpression ||
-            autoSync !== this.state.teamRulesOriginalAutoSync
-        );
+            autoSync !== this.state.teamRulesOriginalAutoSync;
 
         this.setState({
             teamRulesExpression: expression,
             teamRulesAutoSync: autoSync,
-            teamRulesHaveChanges: hasChanges,
+            teamRulesHaveChanges: hasRealTeamRulesChanges,
             policyEnforced: true,
         });
 
@@ -314,31 +318,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         this.props.actions.setNavigationBlocked(true);
     };
 
-    onPolicySelected = (policy: AccessControlPolicy, autoAdd?: boolean) => {
+    onPolicySelected = (policy: AccessControlPolicy) => {
         const {accessControlPolicies} = this.state;
         if (accessControlPolicies.find((p) => p.id === policy.id)) {
             return;
         }
 
-        // The team child policy carries a single auto-add flag (teamRulesAutoSync,
-        // persisted as the child's active). Seed it from the checkbox chosen in the
-        // selection modal, which itself defaults to the parent policy's own active.
-        // The parent policy is never modified — only the team child's flag changes.
+        // Linking a parent does not seed auto-add: it is the team child's own flag,
+        // set explicitly in the rules section, never inherited from the parent.
         this.setState({
             accessControlPolicies: [...accessControlPolicies, policy],
-            policyEnforced: true,
-            saveNeeded: true,
-            teamRulesAutoSync: autoAdd === undefined ? this.state.teamRulesAutoSync : autoAdd,
-        });
-        this.props.actions.setNavigationBlocked(true);
-    };
-
-    onAutoAddChange = (autoAdd: boolean) => {
-        // Toggle auto-add on an already-linked team from the Membership policies
-        // list. Updates only the team child's flag (teamRulesAutoSync → child
-        // active on save); the linked parent policy is left untouched.
-        this.setState({
-            teamRulesAutoSync: autoAdd,
             policyEnforced: true,
             saveNeeded: true,
         });
@@ -347,10 +336,16 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
 
     onPolicyRemove = (policyId: string) => {
         const {accessControlPolicies, accessControlPoliciesToRemove} = this.state;
+        const remaining = accessControlPolicies.filter((policy) => policy.id !== policyId);
         this.setState({
             accessControlPoliciesToRemove: [...accessControlPoliciesToRemove, policyId],
-            accessControlPolicies: accessControlPolicies.filter((policy) => policy.id !== policyId),
+            accessControlPolicies: remaining,
             saveNeeded: true,
+
+            // Removing the last policy with no custom rules leaves nothing to enforce;
+            // drop enforcement so the save cleanly disables ABAC instead of failing the
+            // "must select a policy or define rules" guard (which forced a manual toggle-off).
+            policyEnforced: this.abacRemainsEnforced(remaining),
         });
         this.props.actions.setNavigationBlocked(true);
     };
@@ -361,8 +356,22 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             accessControlPoliciesToRemove: [...accessControlPoliciesToRemove, ...accessControlPolicies.map((p) => p.id)],
             accessControlPolicies: [],
             saveNeeded: true,
+            policyEnforced: this.abacRemainsEnforced([]),
         });
         this.props.actions.setNavigationBlocked(true);
+    };
+
+    // Enforcement holds as long as something still governs membership: a linked
+    // parent policy or the team's own custom rules.
+    private abacRemainsEnforced = (remainingPolicies: AccessControlPolicy[]): boolean => {
+        const hasTeamRules = Boolean(this.state.teamRulesExpression && this.state.teamRulesExpression.trim());
+        return remainingPolicies.length > 0 || hasTeamRules;
+    };
+
+    // True once a policy is saved server-side: only load/save set the originals, so
+    // staged (unsaved) links and rules read as not-yet-persisted.
+    private hasPersistedAbacPolicy = (): boolean => {
+        return this.state.originalPolicyIds.length > 0 || Boolean(this.state.teamRulesOriginalExpression.trim());
     };
 
     handleNameChange = (name: string) => {
@@ -572,27 +581,47 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
         if (this.props.abacSupported) {
             const {policyEnforced, accessControlPolicies, accessControlPoliciesToRemove, teamRulesExpression, teamRulesAutoSync, teamRulesHaveChanges, teamRulesExistingRules} = this.state;
 
-            // Allow save when there are custom rules even without parent policies.
             const hasTeamRules = teamRulesExpression && teamRulesExpression.trim().length > 0;
             const hasParentPolicies = accessControlPolicies.length > 0;
 
-            if (policyEnforced && !hasTeamRules && !hasParentPolicies) {
-                serverError = (
-                    <FormError
-                        error={
-                            <FormattedMessage
-                                id='admin.team_settings.team_detail.policy_required_error'
-                                defaultMessage='You must select a membership policy or define custom access rules when attribute based team access is enabled.'
-                            />}
-                    />
-                );
-                saveNeeded = true;
-                this.setState({serverError, saving: false, saveNeeded, showAbacSaveConfirm: false});
-                actions.setNavigationBlocked(saveNeeded);
-                return;
+            // Nothing left to govern: delete the team's own policy to clear enforcement
+            // ("not found" is benign). Gate on hasPersistedAbacPolicy(), not policyEnforced:
+            // the latter flips with the order the rule and policy were removed in, so trusting
+            // it would skip teardown and orphan the child policy (and its custom rule).
+            const isEmptyAbacState = (policyEnforced || this.hasPersistedAbacPolicy()) && !hasTeamRules && !hasParentPolicies;
+            if (isEmptyAbacState) {
+                try {
+                    // deleteAccessControlPolicy resolves with {error} on failure rather
+                    // than throwing, so inspect the result; the catch only covers an
+                    // unexpected throw. A "not found" policy is benign (already gone).
+                    const result = await actions.deleteAccessControlPolicy(teamID);
+                    const message = (result?.error as {message?: string} | undefined)?.message ?? '';
+                    if (message && !message.includes('not found')) {
+                        serverError = <FormError error={message}/>;
+                        saveNeeded = true;
+                    }
+                } catch (deleteError) {
+                    const message = deleteError instanceof Error ? deleteError.message : String(deleteError);
+                    if (message && !message.includes('not found')) {
+                        serverError = <FormError error={message || 'Failed to delete team access policy'}/>;
+                        saveNeeded = true;
+                    }
+                }
+                if (!saveNeeded) {
+                    this.setState({
+                        policyEnforced: false,
+                        teamRulesOriginalExpression: '',
+                        teamRulesOriginalAutoSync: false,
+                        teamRulesAutoSync: false,
+                        teamRulesHaveChanges: false,
+
+                        // Policy deleted — clear the loaded ids with the other originals
+                        // so hasPersistedAbacPolicy() stays honest.
+                        originalPolicyIds: [],
+                    });
+                }
             }
 
-            // Assign only policies not already on the server.
             const policiesToAssign = accessControlPolicies.filter((policy) => !this.state.originalPolicyIds.includes(policy.id));
             if (policiesToAssign.length > 0) {
                 const result = await Promise.all(
@@ -620,8 +649,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 }
             }
 
-            // Save the team-level rules policy when rules have changes or there are parent policies.
-            if (!saveNeeded && policyEnforced && (teamRulesHaveChanges || hasParentPolicies)) {
+            if (!saveNeeded && !isEmptyAbacState && policyEnforced && (teamRulesHaveChanges || hasParentPolicies)) {
                 try {
                     const teamPolicy: AccessControlPolicy = {
                         id: teamID,
@@ -645,14 +673,11 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             saveNeeded = true;
                         }
 
-                        // Kick an immediate reconcile so membership changes apply on
-                        // save rather than waiting for the hourly scheduler. The sync
-                        // worker decides removal vs. add by team privacy and the
-                        // policy's active flag, so this must fire whenever an enforced
-                        // policy is saved — custom rules OR a linked parent policy —
-                        // not only when auto-add is on; otherwise non-qualifying
-                        // members linger on strict teams until the periodic scheduler
-                        // runs. On advisory (public) teams the worker no-ops.
+                        // Reconcile now instead of waiting for the scheduler. A private
+                        // team runs the removal pass regardless of auto-add, so any
+                        // enforced save (custom rules or a parent policy) must fire a job
+                        // even with auto-add off or non-qualifying members linger; public
+                        // teams no-op.
                         if (!saveNeeded && (hasTeamRules || hasParentPolicies || teamRulesAutoSync)) {
                             await actions.createAccessControlTeamSyncJob({policy_id: teamID});
                         }
@@ -671,19 +696,6 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                     serverError = <FormError error={message || 'Failed to save team access rules'}/>;
                     saveNeeded = true;
                 }
-            } else if (!saveNeeded && policyEnforced && !teamRulesHaveChanges) {
-                // auto-add flag may have changed independently via a future toggle; update active status.
-                const autoSyncChanged = teamRulesAutoSync !== this.state.teamRulesOriginalAutoSync;
-                if (autoSyncChanged) {
-                    const activeResult = await actions.updateAccessControlPoliciesActive([{id: teamID, active: teamRulesAutoSync}]);
-                    if (activeResult.error) {
-                        serverError = <FormError error={activeResult.error?.message}/>;
-                        saveNeeded = true;
-                    }
-                    if (!saveNeeded && teamRulesAutoSync && !this.state.teamRulesOriginalAutoSync) {
-                        await actions.createAccessControlTeamSyncJob({policy_id: teamID});
-                    }
-                }
             }
         }
 
@@ -699,6 +711,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             showAbacSaveConfirm: false,
             abacAffectedCount: null,
             abacQualifyingCount: null,
+            abacAddCount: null,
         }, () => {
             actions.setNavigationBlocked(saveNeeded);
             if (!saveNeeded && !serverError) {
@@ -826,39 +839,87 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             return;
         }
 
-        const hasAbacChanges = this.props.abacSupported && this.state.policyEnforced && (
+        // Disabling ABAC (no rule, no policy) drops enforcement rather than applying
+        // criteria, so it skips the affected-count confirm.
+        const isEmptyAbacState = !this.state.teamRulesExpression.trim() && this.state.accessControlPolicies.length === 0;
+
+        // Confirm on changes that move membership at the next sync: a newly linked policy
+        // or edited expression (can remove members), or newly enabling auto-add (backfills
+        // matching non-members — count previewed per UX spec §4.4). Compare against loaded
+        // originals, not teamRulesHaveChanges. Disabling auto-add is additive-only — no confirm.
+        const ruleExpressionEdited = this.state.teamRulesExpression !== this.state.teamRulesOriginalExpression;
+        const autoAddNewlyEnabled = this.state.teamRulesAutoSync && !this.state.teamRulesOriginalAutoSync;
+        const hasAbacChanges = this.props.abacSupported && this.state.policyEnforced && !isEmptyAbacState && (
             this.state.accessControlPolicies.some((p) => !this.state.originalPolicyIds.includes(p.id)) ||
-            this.state.accessControlPoliciesToRemove.length > 0 ||
-            this.state.teamRulesHaveChanges
+            ruleExpressionEdited ||
+            autoAddNewlyEnabled
         );
 
         if (hasAbacChanges) {
+            // Computing the preview pages through team members and can take a moment on
+            // large teams; show the Save button as busy so it doesn't look frozen.
+            this.setState({saving: true});
+
             let affectedCount: number | null = null;
             let qualifyingCount: number | null = null;
+            let addCount: number | null = null;
             try {
-                const statsResult = await this.props.actions.getTeamStats(this.props.teamID);
-                const totalMembers = (statsResult?.data as {total_member_count?: number} | null)?.total_member_count ?? null;
                 const effectiveExpression = this.combineTeamAndPolicyExpressions(this.state.teamRulesExpression ?? '');
-                if (totalMembers !== null && effectiveExpression.trim()) {
-                    const exprResult = await this.props.actions.searchUsersForExpression(
-                        effectiveExpression,
-                        '',
-                        '',
-                        1,
-                        undefined,
-                        this.props.teamID,
+                if (effectiveExpression.trim()) {
+                    // The expression endpoint neither resolves policy imports nor scopes
+                    // to a team, so match against all users and intersect with the team's
+                    // current members. Counting matches within the team directly (a
+                    // team-scoped .total) undercounts qualifying members to zero.
+                    const matchResult = await this.props.actions.searchUsersForExpression(effectiveExpression, '', '', 1000);
+
+                    // These actions resolve to {error} instead of throwing; a failed query
+                    // would otherwise read as "zero matches" and show a false empty-team
+                    // warning. Bail to the generic prompt (unknown counts) instead.
+                    if (matchResult?.error || !matchResult?.data) {
+                        throw new Error('failed to evaluate matching users');
+                    }
+                    const matchingUserIds = new Set(
+                        ((matchResult.data as {users?: Array<{id: string}>}).users ?? []).map((u) => u.id),
                     );
-                    const qualifying = (exprResult?.data as {total?: number} | null)?.total ?? null;
-                    qualifyingCount = qualifying;
-                    affectedCount = qualifying === null ? totalMembers : totalMembers - qualifying;
+
+                    // Page through every member — a single 200-row page would undercount
+                    // both totals on teams larger than that.
+                    const perPage = 200;
+                    const currentMemberIds: string[] = [];
+                    for (let page = 0; ; page++) {
+                        // eslint-disable-next-line no-await-in-loop
+                        const membersResult = await this.props.actions.getTeamMembers(this.props.teamID, page, perPage);
+                        if (membersResult?.error) {
+                            throw new Error('failed to load team members');
+                        }
+                        const batch = (membersResult?.data as Array<{user_id: string}> | null) ?? [];
+                        for (const member of batch) {
+                            currentMemberIds.push(member.user_id);
+                        }
+                        if (batch.length < perPage) {
+                            break;
+                        }
+                    }
+                    const currentMemberSet = new Set(currentMemberIds);
+                    qualifyingCount = currentMemberIds.filter((id) => matchingUserIds.has(id)).length;
+                    affectedCount = currentMemberIds.length - qualifyingCount;
+
+                    // Matching non-members the auto-add pass will pull in — so the modal
+                    // previews additions, not just removals.
+                    addCount = [...matchingUserIds].filter((id) => !currentMemberSet.has(id)).length;
                 } else {
-                    affectedCount = totalMembers;
+                    const statsResult = await this.props.actions.getTeamStats(this.props.teamID);
+                    affectedCount = (statsResult?.data as {total_member_count?: number} | null)?.total_member_count ?? null;
                 }
             } catch {
                 affectedCount = null;
                 qualifyingCount = null;
+                addCount = null;
             }
-            this.setState({showAbacSaveConfirm: true, abacAffectedCount: affectedCount, abacQualifyingCount: qualifyingCount});
+
+            // Hand off to the confirmation modal; clear the busy state so the panel isn't
+            // spinning behind it (the modal's Apply button drives the actual save).
+            this.setState({saving: false, showAbacSaveConfirm: true, abacAffectedCount: affectedCount, abacQualifyingCount: qualifyingCount, abacAddCount: addCount});
             return;
         }
 
@@ -909,7 +970,14 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
             return null;
         }
 
-        const {totalGroups, saving, saveNeeded, serverError, groups, allAllowedChecked, allowedDomainsChecked, allowedDomains, syncChecked, showRemoveConfirmation, usersToRemoveCount, isLocalArchived, showArchiveConfirmModal, showAbacSaveConfirm, abacAffectedCount, abacQualifyingCount} = this.state;
+        const {totalGroups, saving, saveNeeded, serverError, groups, allAllowedChecked, allowedDomainsChecked, allowedDomains, syncChecked, showRemoveConfirmation, usersToRemoveCount, isLocalArchived, showArchiveConfirmModal, showAbacSaveConfirm, abacAffectedCount, abacQualifyingCount, abacAddCount, teamRulesAutoSync} = this.state;
+
+        // Preview lines for the apply-policy confirmation. Use the edited privacy state
+        // (allAllowedChecked), not the saved prop, since the admin may flip public/private
+        // in the same save. Empty only when nothing is kept and nothing is added.
+        const willBePrivate = !allAllowedChecked;
+        const willAutoAdd = teamRulesAutoSync && abacAddCount !== null && abacAddCount > 0;
+        const willEndEmpty = willBePrivate && abacQualifyingCount === 0 && !willAutoAdd;
         const missingGroup = (og: {id: string}) => !groups.find((g) => g.id === og.id);
         const removedGroups = this.props.groups.filter(missingGroup);
         const nonArchivedContent = (
@@ -940,11 +1008,9 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                     <>
                         <TeamAccessControl
                             parentPolicies={this.state.accessControlPolicies}
-                            autoAddMembers={this.state.teamRulesAutoSync}
                             actions={{
                                 onPolicySelected: this.onPolicySelected,
                                 onPolicyRemove: this.onPolicyRemove,
-                                onAutoAddChange: this.onAutoAddChange,
                                 searchPolicies: this.props.actions.searchPolicies,
                             }}
                         />
@@ -956,10 +1022,11 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             initialExpression={this.state.teamRulesExpression}
                             initialAutoSync={this.state.teamRulesAutoSync}
                             isDisabled={this.props.isDisabled}
+                            hasParentPolicies={this.state.accessControlPolicies.length > 0}
                             syncFooter={
                                 <TeamMembershipSyncFooter
                                     teamId={this.props.teamID}
-                                    hasAbacPolicy={true}
+                                    hasAbacPolicy={this.hasPersistedAbacPolicy()}
                                 />
                             }
                         />
@@ -1056,7 +1123,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             }
                             message={
                                 <div>
-                                    {abacQualifyingCount === 0 && !team.allow_open_invite && (
+                                    {willEndEmpty && (
                                         <p className='text-warning'>
                                             <FormattedMessage
                                                 id='admin.team_settings.team_detail.save_confirm.empty_team_warning'
@@ -1064,11 +1131,20 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                                             />
                                         </p>
                                     )}
-                                    {abacQualifyingCount !== 0 && abacAffectedCount !== null && abacAffectedCount > 0 && (
+                                    {willAutoAdd && (
+                                        <p>
+                                            <FormattedMessage
+                                                id='admin.team_settings.team_detail.save_confirm.add_body'
+                                                defaultMessage='{count} qualifying {count, plural, one {user} other {users}} will be added at the next sync.'
+                                                values={{count: abacAddCount}}
+                                            />
+                                        </p>
+                                    )}
+                                    {willBePrivate && abacAffectedCount !== null && abacAffectedCount > 0 && (
                                         <p>
                                             <FormattedMessage
                                                 id='admin.team_settings.team_detail.save_confirm.body'
-                                                defaultMessage='{count} {count, plural, one {member does} other {members do}} not currently meet the criteria and will be affected at next sync.'
+                                                defaultMessage='{count} {count, plural, one {member does} other {members do}} not currently meet the criteria and will be removed at the next sync.'
                                                 values={{count: abacAffectedCount}}
                                             />
                                         </p>
@@ -1094,7 +1170,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                                 />
                             }
                             onConfirm={this.handleSubmit}
-                            onCancel={() => this.setState({showAbacSaveConfirm: false, abacAffectedCount: null, abacQualifyingCount: null, saving: false})}
+                            onCancel={() => this.setState({showAbacSaveConfirm: false, abacAffectedCount: null, abacQualifyingCount: null, abacAddCount: null, saving: false})}
                         />
                         {!isLocalArchived && nonArchivedContent}
                     </div>

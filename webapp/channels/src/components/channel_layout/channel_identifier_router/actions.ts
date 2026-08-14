@@ -10,14 +10,18 @@ import {joinChannel, getChannelByNameAndTeamName, getChannelMember, markGroupCha
 import {getUser, getUserByUsername, getUserByEmail} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {getChannelByName, getOtherChannels, getChannel, getChannelsNameMapInTeam, getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
+import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUserByUsername as selectUserByUsername, getUser as selectUser, getUserByEmail as selectUserByEmail} from 'mattermost-redux/selectors/entities/users';
 
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import * as GlobalActions from 'actions/global_actions';
+import {openModal} from 'actions/views/modals';
+
+import RequestJoinChannelModal from 'components/request_join_channel_modal/request_join_channel_modal';
 
 import {joinPrivateChannelPrompt} from 'utils/channel_utils';
-import {Constants} from 'utils/constants';
+import {Constants, ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import type {ActionFuncAsync} from 'types/store';
@@ -186,6 +190,22 @@ export function goToChannelByChannelName(match: Match, history: History): Action
 
         if (!channel || !member) {
             if (channel?.type === Constants.PRIVATE_CHANNEL) {
+                // Discoverable private channels the user isn't a member of must
+                // go through the Request to Join flow. The legacy join prompt
+                // would attempt a direct join the server rejects for a
+                // non-member, dropping the user on a broken channel view. Send
+                // them to a safe channel and open the request modal instead.
+                if (isDiscoverableChannelsEnabled(state) && channel.discoverable) {
+                    const redirectChannelName = getRedirectChannelNameForTeam(state, teamObj!.id);
+                    history.replace(`/${team}/channels/${redirectChannelName}`);
+                    dispatch(openModal({
+                        modalId: ModalIdentifiers.REQUEST_JOIN_CHANNEL,
+                        dialogType: RequestJoinChannelModal,
+                        dialogProps: {channel, teamName: teamObj!.name},
+                    }));
+                    return {data: undefined};
+                }
+
                 // If we are here, we have permissions to join the channel
                 // and the channel is private. Therefore prompt always.
                 const joinPromptResult = await dispatch(joinPrivateChannelPrompt(teamObj, channel.display_name));

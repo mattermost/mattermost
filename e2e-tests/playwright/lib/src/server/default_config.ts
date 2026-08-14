@@ -79,7 +79,12 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             },
         },
         ServiceSettings: {
-            SiteURL: testConfig.baseURL,
+            // SiteURL is the server's own view of itself (e.g. for building plugin callback
+            // URLs), so it must use an address the server can reach itself with. In `testcontainers` mode
+            // testConfig.baseURL is a host-mapped port the server's own container can't reach;
+            // internalBaseURL is the Docker network alias there, and the same as baseURL in
+            // `external` mode — correct in both cases.
+            SiteURL: testConfig.internalBaseURL,
             EnableOnboardingFlow: false,
             EnableSecurityFixAlert: false,
             GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',
@@ -537,9 +542,6 @@ const defaultServerConfig: AdminConfig = {
         QueryTimeout: 60,
         MaxPageSize: 0,
         LoginFieldName: '',
-        LoginButtonColor: '#0000',
-        LoginButtonBorderColor: '#2389D7',
-        LoginButtonTextColor: '#2389D7',
     },
     ComplianceSettings: {
         Enable: false,
@@ -585,9 +587,6 @@ const defaultServerConfig: AdminConfig = {
         LocaleAttribute: '',
         PositionAttribute: '',
         LoginButtonText: 'SAML',
-        LoginButtonColor: '#34a28b',
-        LoginButtonBorderColor: '#2389D7',
-        LoginButtonTextColor: '#ffffff',
     },
     NativeAppSettings: {
         AppCustomURLSchemes: ['mmauth://', 'mmauthbeta://'],
@@ -797,11 +796,8 @@ const defaultServerConfig: AdminConfig = {
         AppsEnabled: false,
         NormalizeLdapDNs: false,
         WysiwygEditor: false,
-        EnableExportDirectDownload: false,
         MoveThreadsEnabled: false,
-        CloudDedicatedExportUI: false,
         NotificationMonitoring: true,
-        CustomProfileAttributes: true,
         AttributeValueMasking: false,
         PermissionPolicies: false,
         ChannelPermissionPolicies: false,
@@ -823,7 +819,7 @@ const defaultServerConfig: AdminConfig = {
         DiscoverableChannels: false,
         MobileEphemeralMode: false,
         PropertyFieldRank: false,
-        TeamMembershipAccessControl: false,
+        TeamMembershipAccessControl: true,
         MmBlocksEnabled: true,
     },
     ImportSettings: {
@@ -858,6 +854,7 @@ const defaultServerConfig: AdminConfig = {
         EnableChannelPolicyIndicators: true,
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
+        EnableAccessControlAuditLogging: false,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: false,

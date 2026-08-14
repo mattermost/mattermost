@@ -2330,6 +2330,28 @@ func TestGetChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("Content reviewer should not be able to get a DM or GM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		contentReviewClient := th.CreateClient()
+		_, _, err := contentReviewClient.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+
+		dmPost := createDmPost(t, th, contentReviewClient)
+		_, resp, err := contentReviewClient.GetChannelAsContentReviewer(context.Background(), dmPost.ChannelId, "", dmPost.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+
+		gmPost := createGmPost(t, th, contentReviewClient)
+		_, resp, err = contentReviewClient.GetChannelAsContentReviewer(context.Background(), gmPost.ChannelId, "", gmPost.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+	})
 }
 
 func TestGetDeletedChannelsForTeam(t *testing.T) {
@@ -5037,8 +5059,9 @@ func TestUpdateChannelMemberRolesRejectsNonChannelScopedRoles(t *testing.T) {
 	require.Nil(t, appErr)
 
 	invalidRoles := []struct {
-		name  string
-		roles string
+		name        string
+		roles       string
+		expectedErr string
 	}{
 		{name: "system manager with channel user", roles: channelMember + " " + model.SystemManagerRoleId},
 		{name: "system user manager with channel user", roles: channelMember + " " + model.SystemUserManagerRoleId},
@@ -5049,6 +5072,7 @@ func TestUpdateChannelMemberRolesRejectsNonChannelScopedRoles(t *testing.T) {
 		{name: "system post all with channel user", roles: channelMember + " " + model.SystemPostAllRoleId},
 		{name: "system read only admin with channel user", roles: channelMember + " " + model.SystemReadOnlyAdminRoleId},
 		{name: "custom group user with channel user", roles: channelMember + " " + model.CustomGroupUserRoleId},
+		{name: "channel guest with channel admin", roles: model.ChannelGuestRoleId + " " + model.ChannelAdminRoleId, expectedErr: "api.channel.update_channel_member_roles.guest_and_admin.app_error"},
 	}
 
 	for _, tc := range invalidRoles {
@@ -5060,6 +5084,9 @@ func TestUpdateChannelMemberRolesRejectsNonChannelScopedRoles(t *testing.T) {
 			resp, err := client.UpdateChannelRoles(context.Background(), channel.Id, th.BasicUser2.Id, tc.roles)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
+			if tc.expectedErr != "" {
+				CheckErrorID(t, err, tc.expectedErr)
+			}
 
 			memberAfter, _, err := client.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
 			require.NoError(t, err)
