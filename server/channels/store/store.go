@@ -890,7 +890,7 @@ type RoleStore interface {
 	SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error)
 	Get(roleID string) (*model.Role, error)
 	GetAll() ([]*model.Role, error)
-	GetByName(ctx context.Context, name string) (*model.Role, error)
+	GetByName(rctx request.CTX, name string) (*model.Role, error)
 	GetByNames(names []string) ([]*model.Role, error)
 	Delete(roleID string) (*model.Role, error)
 	PermanentDeleteAll() error
@@ -1174,6 +1174,7 @@ type ScheduledPostStore interface {
 	GetPendingScheduledPosts(beforeTime, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error)
 	PermanentlyDeleteScheduledPosts(scheduledPostIDs []string) error
 	UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error
+	UpdateRecurringScheduledPosts(scheduledPosts []*model.ScheduledPost) error
 	Get(scheduledPostId string) (*model.ScheduledPost, error)
 	UpdateOldScheduledPosts(beforeTime int64) error
 	PermanentDeleteByUser(userId string) error

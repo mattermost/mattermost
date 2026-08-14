@@ -170,6 +170,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// if there is a valid session and userID then include the user_id
 		if c.AppContext.Session() != nil && c.AppContext.Session().UserId != "" {
 			responseLogFields = append(responseLogFields, mlog.String("user_id", c.AppContext.Session().UserId))
+			if c.AppContext.Session().IsUserAccessToken() {
+				responseLogFields = append(responseLogFields, mlog.String("user_access_token_id", c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]))
+			}
 		}
 
 		statusCode := strconv.Itoa(w.(*responseWriterWrapper).StatusCode())
@@ -321,13 +324,17 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.Logger = c.App.Log().With(
+	loggerFields := []mlog.Field{
 		mlog.String("path", c.AppContext.Path()),
 		mlog.String("request_id", c.AppContext.RequestId()),
 		mlog.String("ip_addr", c.AppContext.IPAddress()),
 		mlog.String("user_id", c.AppContext.Session().UserId),
 		mlog.String("method", r.Method),
-	)
+	}
+	if c.AppContext.Session().IsUserAccessToken() {
+		loggerFields = append(loggerFields, mlog.String("user_access_token_id", c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]))
+	}
+	c.Logger = c.App.Log().With(loggerFields...)
 	c.AppContext = c.AppContext.WithLogger(c.Logger)
 	c.App.ProcessSessionAttributesRequest(c.AppContext, r)
 

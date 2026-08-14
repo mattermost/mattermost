@@ -230,7 +230,7 @@ func testAttributesStoreRefresh(t *testing.T, rctx request.CTX, ss store.Store) 
 }
 
 // testAttributesStoreGetChannelSubject verifies the per-object-type view split
-// (migration 000212): a channel-scoped attribute is readable via
+// (migration 000214): a channel-scoped attribute is readable via
 // GetSubject(..., "channel") from ChannelAttributeView, and is *not* visible
 // through the user view — proving the two views filter by ObjectType.
 func testAttributesStoreGetChannelSubject(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -283,7 +283,7 @@ func testAttributesStoreGetChannelSubject(t *testing.T, rctx request.CTX, ss sto
 }
 
 // testAttributesStoreEmptyMultiselect pins the fail-closed contract for
-// multiselect attributes (migration 000212): an empty multiselect resolves to
+// multiselect attributes (migration 000214): an empty multiselect resolves to
 // NULL in the matview, never an empty array. The view builds the value with
 // jsonb_agg over the joined option rows, and jsonb_agg over zero rows yields
 // NULL — there is no NULLIF/COALESCE. A refactor that wrapped it in
