@@ -901,7 +901,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             warningCopy = (
                 <FormattedMessage
                     id='admin.plugin.upload.overwrite_review.upgrade'
-                    defaultMessage='This upload appears to upgrade the existing plugin. Overwriting will reinstall it.'
+                    defaultMessage='This upload upgrades the existing plugin. Overwriting will reinstall it.'
                 />
             );
         } else if (direction === 'same') {
@@ -915,7 +915,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             warningCopy = (
                 <FormattedMessage
                     id='admin.plugin.upload.overwrite_review.downgrade'
-                    defaultMessage='This upload appears to downgrade the existing plugin. Downgrades can remove fixes or features.'
+                    defaultMessage='This upload downgrades the existing plugin. Downgrades can remove fixes or features.'
                 />
             );
         }
