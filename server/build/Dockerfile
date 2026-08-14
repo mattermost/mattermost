@@ -46,7 +46,9 @@ RUN mkdir -p /mattermost/.postgresql \
 FROM gcr.io/distroless/base-debian12
 
 # Some ENV variables
-ENV PATH="/mattermost/bin:${PATH}"
+# Mattermost Operator overrides the image ENTRYPOINT with `command: ["mattermost"]`.
+# Put the demo wrapper first on PATH so operator-managed pods still download MBE before startup.
+ENV PATH="/mattermost/mbe-bin:/mattermost/bin:${PATH}"
 ENV MM_SERVICESETTINGS_ENABLELOCALMODE="true"
 ENV MM_INSTALL_TYPE="docker"
 ENV MBE_PLUGIN_URL="https://pr-builds.mattermost.com/mattermost-plugin-message-based-encryption/latest/message-based-encryption.tar.gz"
@@ -77,6 +79,7 @@ COPY --from=builder /usr/lib/libfontconfig.so* /usr/lib/
 # each start; that directory is deliberately not a volume so its signed files reach the server.
 COPY --from=builder --chown=2000:2000 /mattermost /mattermost
 COPY --from=mbe-demo-entrypoint --chown=2000:2000 /mbe-demo-entrypoint /mattermost/bin/mbe-demo-entrypoint
+COPY --from=mbe-demo-entrypoint --chown=2000:2000 /mbe-demo-entrypoint /mattermost/mbe-bin/mattermost
 
 # Copy passwd including mattermost user
 COPY  passwd /etc/passwd

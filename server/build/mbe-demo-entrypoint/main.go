@@ -16,8 +16,9 @@ import (
 )
 
 const (
-	defaultPluginDir = "/mattermost/prepackaged_plugins"
-	defaultPluginURL = "https://pr-builds.mattermost.com/mattermost-plugin-message-based-encryption/latest/message-based-encryption.tar.gz"
+	defaultPluginDir        = "/mattermost/prepackaged_plugins"
+	defaultPluginURL        = "https://pr-builds.mattermost.com/mattermost-plugin-message-based-encryption/latest/message-based-encryption.tar.gz"
+	defaultMattermostBinary = "/mattermost/bin/mattermost"
 )
 
 type artifact struct {
@@ -27,8 +28,9 @@ type artifact struct {
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		log.Fatal("no Mattermost command supplied")
+	commandArgs, err := resolveCommandArgs(os.Args)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	pluginDir := envOrDefault("MBE_PLUGIN_DIR", defaultPluginDir)
@@ -61,13 +63,35 @@ func main() {
 	}
 
 	log.Printf("installed current signed MBE demo bundle from %s", pluginURL)
-	commandPath, err := exec.LookPath(os.Args[1])
+	commandPath, err := exec.LookPath(commandArgs[0])
 	if err != nil {
 		log.Fatalf("resolve Mattermost command: %v", err)
 	}
-	if err := syscall.Exec(commandPath, os.Args[1:], os.Environ()); err != nil {
+	if err := syscall.Exec(commandPath, commandArgs, os.Environ()); err != nil {
 		log.Fatalf("start Mattermost: %v", err)
 	}
+}
+
+func resolveCommandArgs(args []string) ([]string, error) {
+	if len(args) == 0 {
+		return nil, fmt.Errorf("no Mattermost command supplied")
+	}
+
+	// Mattermost Operator replaces the image ENTRYPOINT with `command: ["mattermost"]`.
+	// In that case this wrapper is found first on PATH and must invoke the real server binary.
+	if filepath.Base(args[0]) == "mattermost" {
+		return append([]string{defaultMattermostBinary}, args[1:]...), nil
+	}
+
+	if len(args) < 2 {
+		return nil, fmt.Errorf("no Mattermost command supplied")
+	}
+
+	commandArgs := append([]string(nil), args[1:]...)
+	if filepath.Base(commandArgs[0]) == "mattermost" {
+		commandArgs[0] = defaultMattermostBinary
+	}
+	return commandArgs, nil
 }
 
 func download(client *http.Client, dir, url string) (string, error) {
