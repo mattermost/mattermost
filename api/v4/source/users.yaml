@@ -2619,8 +2619,7 @@
       description: >
         Count the active personal access tokens that violate the configured
         `ServiceSettings.MaximumPersonalAccessTokenLifetimeDays` policy (tokens
-        that never expire or expire beyond the cap). Tokens for user-owned bot
-        accounts are included; tokens for plugin-owned bot accounts are exempt.
+        that never expire or expire beyond the cap).
         Returns 0 when no maximum lifetime is configured.
 
 
@@ -2656,8 +2655,7 @@
         Revoke (hard-delete) every active personal access token that violates
         the configured `ServiceSettings.MaximumPersonalAccessTokenLifetimeDays`
         policy, along with any sessions created from them, and return the number
-        of tokens revoked. Tokens for user-owned bot accounts are included;
-        tokens for plugin-owned bot accounts are exempt. The request is rejected
+        of tokens revoked. The request is rejected
         with 400 when no maximum lifetime is configured, since there is nothing
         to revoke. This is irreversible; use
         `/users/tokens/non_compliant/count` first to preview the blast radius.
