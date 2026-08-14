@@ -1116,6 +1116,7 @@
   "admin.dataSpillage.deliveryTracking.description": "Record an audit log entry each time a message is delivered to a user, so you can determine who a quarantined message reached. Delivery records add storage and processing cost, so enable them only where they're needed.",
   "admin.dataSpillage.deliveryTracking.enable": "Enable post delivery audit logging",
   "admin.dataSpillage.deliveryTracking.enable.help": "When true, an audit log entry is recorded each time a message is delivered to a user. These records are written to the audit log only and are not surfaced anywhere in the Mattermost interface.",
+  "admin.dataSpillage.deliveryTracking.learnMore": "Learn more",
   "admin.dataSpillage.deliveryTracking.title": "Post Delivery Audit Logging",
   "admin.dataSpillage.deliveryTracking.trackIn": "Record deliveries in",
   "admin.dataSpillage.deliveryTracking.trackIn.allChannels": "All channels",

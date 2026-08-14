@@ -1724,6 +1724,103 @@ func TestHookNotificationWillBePushedTransportPreserved(t *testing.T) {
 	}
 }
 
+func TestHookNotificationWillBePushedIdentityPreservedForDelivery(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping TestHookNotificationWillBePushedIdentityPreservedForDelivery test in short mode")
+	}
+
+	// A plugin returning a replacement notification must not be able to point the delivery audit
+	// record at another post, nor suppress it by dropping the identifiers the record is built from.
+	tests := []struct {
+		name           string
+		testCode       string
+		expectedRecord bool
+	}{
+		{
+			name: "plugin rewriting the identifiers keeps the original in the record",
+			testCode: `notification.PostId = "abcdefghijklmnopqrstuvwxyz"
+	notification.ChannelId = "zyxwvutsrqponmlkjihgfedcba"
+	return notification, ""`,
+			expectedRecord: true,
+		},
+		{
+			name: "plugin zeroing PostId still records the delivery",
+			testCode: `notification.PostId = ""
+	return notification, ""`,
+			expectedRecord: true,
+		},
+		{
+			name: "plugin marking the post as a system message still records the delivery",
+			testCode: `notification.PostType = "system_join_channel"
+	return notification, ""`,
+			expectedRecord: true,
+		},
+		{
+			name:           "plugin rejecting the notification records nothing",
+			testCode:       `return nil, "rejected"`,
+			expectedRecord: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			th := setupDeliveryTracking(t)
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.PushNotificationContents = model.NewPointer(model.FullNotification)
+			})
+
+			templatedPlugin := fmt.Sprintf(hookNotificationWillBePushedTmpl, tt.testCode)
+			tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{templatedPlugin}, th.App, th.NewPluginAPI)
+			defer tearDown()
+
+			handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+			pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+			defer pushServer.Close()
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+			})
+
+			_, err := th.App.CreateSession(th.Context, &model.Session{
+				UserId:    th.BasicUser2.Id,
+				DeviceId:  model.PushNotifyAppleReactNative + ":standardtoken",
+				ExpiresAt: model.GetMillis() + 100000,
+			})
+			require.Nil(t, err)
+
+			capture := startDeliveryAuditCapture(t, th)
+
+			// BasicUser wrote BasicPost; BasicUser2 is notified about it.
+			msg := &model.PushNotification{
+				Type:      model.PushTypeMessage,
+				PostId:    th.BasicPost.Id,
+				ChannelId: th.BasicPost.ChannelId,
+				SenderId:  th.BasicPost.UserId,
+				Message:   "notification content",
+			}
+			appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser2.Id, "")
+			require.Nil(t, appErr)
+
+			if !tt.expectedRecord {
+				require.Never(t, func() bool {
+					return len(capture.records()) > 0
+				}, 2*time.Second, 100*time.Millisecond)
+				return
+			}
+
+			require.Eventually(t, func() bool {
+				return len(capture.records()) == 1
+			}, 5*time.Second, 20*time.Millisecond, "the push carried the post, so the delivery must be recorded")
+
+			actorUserID, meta := capture.requireOne()
+			require.Equal(t, th.BasicUser2.Id, actorUserID)
+			require.Equal(t, th.BasicPost.Id, meta[model.PostDeliveryKeyPostID], "plugin must not change the recorded post")
+			require.Equal(t, th.BasicPost.ChannelId, meta[model.PostDeliveryKeyChannelID], "plugin must not change the recorded channel")
+			require.Equal(t, model.DeliveryMechanismPush, meta[model.PostDeliveryKeyMechanism])
+		})
+	}
+}
+
 //go:embed test_templates/hook_email_notification_will_be_sent.tmpl
 var hookEmailNotificationWillBeSentTmpl string
 

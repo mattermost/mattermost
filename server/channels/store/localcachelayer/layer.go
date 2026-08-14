@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru/v2"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -77,6 +79,10 @@ const (
 	PostTranslationEtagCacheSec  = 15 * 60
 
 	ContentFlaggingCacheSize = 100
+
+	DeliveryTrackingCacheSize = 100
+
+	DeliveryTrackingChannelCacheSize = 20000
 
 	ReadReceiptCacheSize = 50000
 
@@ -149,6 +155,9 @@ type LocalCacheStore struct {
 
 	contentFlagging      LocalCacheContentFlaggingStore
 	contentFlaggingCache cache.Cache
+
+	deliveryTracking      *LocalCacheDeliveryTrackingStore
+	deliveryTrackingCache cache.Cache
 
 	readReceipt                     LocalCacheReadReceiptStore
 	readReceiptCache                cache.Cache
@@ -432,6 +441,27 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}
 	localCacheStore.contentFlagging = LocalCacheContentFlaggingStore{ContentFlaggingStore: baseStore.ContentFlagging(), rootStore: &localCacheStore}
 
+	if localCacheStore.deliveryTrackingCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   DeliveryTrackingCacheSize,
+		Name:                   "DeliveryTracking",
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForDeliveryTracking,
+	}); err != nil {
+		return
+	}
+	var trackedChannels, trackableChannels *lru.Cache[string, bool]
+	if trackedChannels, err = lru.New[string, bool](DeliveryTrackingChannelCacheSize); err != nil {
+		return
+	}
+	if trackableChannels, err = lru.New[string, bool](DeliveryTrackingChannelCacheSize); err != nil {
+		return
+	}
+	localCacheStore.deliveryTracking = &LocalCacheDeliveryTrackingStore{
+		DeliveryTrackingStore: baseStore.DeliveryTracking(),
+		rootStore:             &localCacheStore,
+		trackedChannels:       trackedChannels,
+		trackableChannels:     trackableChannels,
+	}
+
 	// Read Receipts
 	if localCacheStore.readReceiptCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   ReadReceiptCacheSize,
@@ -515,6 +545,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserAutoTranslation, localCacheStore.autotranslation.handleClusterInvalidateUserAutoTranslation)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForPostTranslationEtag, localCacheStore.autotranslation.handleClusterInvalidatePostTranslationEtag)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForContentFlagging, localCacheStore.contentFlagging.handleClusterInvalidateContentFlagging)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForDeliveryTracking, localCacheStore.deliveryTracking.handleClusterInvalidateDeliveryTracking)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForReadReceipts, localCacheStore.readReceipt.handleClusterInvalidateReadReceipts)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForTemporaryPosts, localCacheStore.temporaryPost.handleClusterInvalidateTemporaryPosts)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForSessionAttributes, localCacheStore.sessionAttribute.handleClusterInvalidateSessionAttributes)
@@ -573,6 +604,10 @@ func (s LocalCacheStore) AutoTranslation() store.AutoTranslationStore {
 
 func (s LocalCacheStore) ContentFlagging() store.ContentFlaggingStore {
 	return s.contentFlagging
+}
+
+func (s LocalCacheStore) DeliveryTracking() store.DeliveryTrackingStore {
+	return s.deliveryTracking
 }
 
 func (s LocalCacheStore) ReadReceipt() store.ReadReceiptStore {
@@ -726,6 +761,7 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.rolePermissionsCache)
 	s.doClearCacheCluster(s.userAutoTranslationCache)
 	s.doClearCacheCluster(s.postTranslationEtagCache)
+	s.doClearCacheCluster(s.deliveryTrackingCache)
 	s.doClearCacheCluster(s.readReceiptCache)
 	s.doClearCacheCluster(s.readReceiptPostReadersCache)
 	s.doClearCacheCluster(s.temporaryPostCache)

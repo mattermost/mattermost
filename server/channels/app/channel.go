@@ -3351,6 +3351,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(rctx request.CTX, postID
 			}
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil, "")
 			message.Add("thread", string(payload))
+			a.markPostDeliveryForBroadcast(rctx, message, thread.Post)
 			a.Publish(message)
 		}
 	}

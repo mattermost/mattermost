@@ -1133,6 +1133,8 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	} else {
+		c.App.RecordPostListDelivery(c.AppContext, c.AppContext.Session().UserId, clientPostList, model.DeliveryMechanismProduct)
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelMemberRoles, model.AuditStatusSuccess)

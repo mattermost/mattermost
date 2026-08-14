@@ -51,6 +51,15 @@ describe('DeliveryTrackingSection', () => {
         expect(screen.getByText('BETA')).toBeInTheDocument();
     });
 
+    test('should render the Learn more link to the docs', () => {
+        renderSection();
+
+        const link = screen.getByTestId('deliveryTrackingLearnMore');
+        expect(link).toHaveTextContent('Learn more');
+        expect(link).toHaveAttribute('href', expect.stringContaining('post-delivery-audit-logging'));
+        expect(link).toHaveAttribute('target', '_blank');
+    });
+
     test('should hide the scope radios and the picker when disabled', () => {
         renderSection({Enable: false});
 

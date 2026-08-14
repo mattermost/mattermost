@@ -348,6 +348,8 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 					removePermalinkMetadataFromPost(post)
 					// Since we remove the permalink metadata, we return true for isMember
 					isMemberForPreviews = true
+				} else {
+					a.RecordPermalinkPreviewDelivery(rctx, userID, previewPost.Post, post)
 				}
 			}
 		}

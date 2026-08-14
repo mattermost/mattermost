@@ -374,6 +374,8 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	} else {
+		c.App.RecordPostListDelivery(c.AppContext, c.AppContext.Session().UserId, clientPostList, model.DeliveryMechanismProduct)
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetPostsForChannel, model.AuditStatusSuccess)
@@ -458,6 +460,8 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	}
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	} else {
+		c.App.RecordPostListDelivery(c.AppContext, c.AppContext.Session().UserId, clientPostList, model.DeliveryMechanismProduct)
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetPostsForChannelAroundLastUnread, model.AuditStatusSuccess)
@@ -568,6 +572,8 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	} else {
+		c.App.RecordPostListDelivery(c.AppContext, c.AppContext.Session().UserId, clientPostList, model.DeliveryMechanismProduct)
 	}
 }
 
@@ -596,6 +602,10 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
+		return
+	}
+
 	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true})
 	post, previewIsMember, err := c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
 	if err != nil {
@@ -603,13 +613,11 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
-		return
-	}
-
 	w.Header().Set(model.HeaderEtagServer, post.Etag())
 	if err := post.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	} else {
+		c.App.RecordPostDelivery(c.AppContext, c.AppContext.Session().UserId, post, model.DeliveryMechanismProduct)
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetPost, model.AuditStatusSuccess)
@@ -687,6 +695,8 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(posts); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	} else {
+		c.App.RecordPostsDelivery(c.AppContext, c.AppContext.Session().UserId, posts, model.DeliveryMechanismProduct)
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetPostsByIds, model.AuditStatusSuccess)
@@ -739,6 +749,8 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(postsList); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	} else {
+		c.App.RecordPostsDelivery(c.AppContext, c.AppContext.Session().UserId, postsList, model.DeliveryMechanismProduct)
 	}
 }
 
@@ -935,6 +947,8 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	} else {
+		c.App.RecordPostListDelivery(c.AppContext, c.AppContext.Session().UserId, clientPostList, model.DeliveryMechanismProduct)
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetPostThread, model.AuditStatusSuccess)
@@ -1046,6 +1060,8 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if err := results.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	} else {
+		c.App.RecordPostListDelivery(c.AppContext, c.AppContext.Session().UserId, clientPostList, model.DeliveryMechanismProduct)
 	}
 }
 

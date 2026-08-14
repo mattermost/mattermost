@@ -1095,6 +1095,7 @@ export const DocLinks = {
     MULTI_FACTOR_AUTH: 'https://mattermost.com/pl/multi-factor-authentication',
     ONBOARD_ADVANCED_PERMISSIONS: 'https://mattermost.com/pl/advanced-permissions',
     ONBOARD_LDAP: 'https://mattermost.com/pl/setup-ldap',
+    POST_DELIVERY_AUDIT_LOGGING: 'https://mattermost.com/pl/post-delivery-audit-logging',
     SELF_HOSTED_BILLING: HostedCustomerLinks.SELF_HOSTED_BILLING,
     SESSION_LENGTHS: 'https://mattermost.com/pl/configure-session-lengths',
     SETUP_IMAGE_PROXY: 'https://mattermost.com/pl/setup-image-proxy',

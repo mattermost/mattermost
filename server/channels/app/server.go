@@ -308,6 +308,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// After channel is initialized set it to the App object
 	app := New(ServerConnector(channels))
 
+	s.platform.SetPostDeliveryRecorder(app.RecordBroadcastDelivery)
+
 	// Register property-service hooks AFTER s.ch is populated. The
 	// access-control and attribute-validation hooks capture s and use
 	// s.ch for plugin-status and permission lookups; registering them
@@ -465,6 +467,9 @@ func NewServer(options ...Option) (*Server, error) {
 		UserService:        s.userService,
 		Store:              s.GetStore(),
 		Logger:             s.Log(),
+		PostDeliveryRecorderFn: func(userID string, post *model.Post) {
+			app.RecordPostDelivery(request.EmptyContext(s.Log()), userID, post, model.DeliveryMechanismEmail)
+		},
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to initialize email service")

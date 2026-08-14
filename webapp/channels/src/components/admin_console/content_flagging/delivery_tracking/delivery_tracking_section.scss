@@ -12,6 +12,11 @@
     }
 }
 
+.deliveryTracking-learnMore {
+    flex-shrink: 0;
+    margin-left: 16px;
+}
+
 .deliveryTracking-error {
     margin-top: 8px;
     color: var(--error-text);

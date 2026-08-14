@@ -21,6 +21,91 @@ func TestDeliveryTrackingStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("SaveDeduplicates", func(t *testing.T) { testDeliveryTrackingSaveDeduplicates(t, rctx, ss) })
 	t.Run("SaveDropsEmptyIDs", func(t *testing.T) { testDeliveryTrackingSaveDropsEmptyIDs(t, rctx, ss) })
 	t.Run("GetOnEmptyTable", func(t *testing.T) { testDeliveryTrackingGetOnEmptyTable(t, rctx, ss) })
+	t.Run("IsChannelTracked", func(t *testing.T) { testDeliveryTrackingIsChannelTracked(t, rctx, ss) })
+	t.Run("IsChannelTrackable", func(t *testing.T) { testDeliveryTrackingIsChannelTrackable(t, rctx, ss) })
+}
+
+func testDeliveryTrackingIsChannelTracked(t *testing.T, rctx request.CTX, ss store.Store) {
+	tracked := model.NewId()
+	untracked := model.NewId()
+
+	require.NoError(t, ss.DeliveryTracking().SaveTrackedChannelIDs(rctx, []string{tracked}))
+
+	isTracked, err := ss.DeliveryTracking().IsChannelTracked(rctx, tracked)
+	require.NoError(t, err)
+	assert.True(t, isTracked)
+
+	isTracked, err = ss.DeliveryTracking().IsChannelTracked(rctx, untracked)
+	require.NoError(t, err)
+	assert.False(t, isTracked)
+
+	require.NoError(t, ss.DeliveryTracking().SaveTrackedChannelIDs(rctx, []string{}))
+
+	isTracked, err = ss.DeliveryTracking().IsChannelTracked(rctx, tracked)
+	require.NoError(t, err)
+	assert.False(t, isTracked, "clearing the list must untrack the channel")
+}
+
+func testDeliveryTrackingIsChannelTrackable(t *testing.T, rctx request.CTX, ss store.Store) {
+	saveChannel := func(channelType model.ChannelType) *model.Channel {
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: "test",
+			Name:        model.NewId(),
+			Type:        channelType,
+		}, -1)
+		require.NoError(t, err)
+		return channel
+	}
+
+	for _, tc := range []struct {
+		name        string
+		channelType model.ChannelType
+		expected    bool
+	}{
+		{"open", model.ChannelTypeOpen, true},
+		{"private", model.ChannelTypePrivate, true},
+		{"group", model.ChannelTypeGroup, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			channel := saveChannel(tc.channelType)
+
+			trackable, err := ss.DeliveryTracking().IsChannelTrackable(rctx, channel.Id)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, trackable)
+		})
+	}
+
+	t.Run("direct", func(t *testing.T) {
+		u1 := &model.User{Email: MakeEmail(), Nickname: model.NewId()}
+		_, err := ss.User().Save(rctx, u1)
+		require.NoError(t, err)
+
+		u2 := &model.User{Email: MakeEmail(), Nickname: model.NewId()}
+		_, err = ss.User().Save(rctx, u2)
+		require.NoError(t, err)
+
+		dm := &model.Channel{
+			DisplayName: "dm",
+			Name:        model.GetDMNameFromIds(u1.Id, u2.Id),
+			Type:        model.ChannelTypeDirect,
+		}
+		m1 := &model.ChannelMember{UserId: u1.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}
+		m2 := &model.ChannelMember{UserId: u2.Id, NotifyProps: model.GetDefaultChannelNotifyProps()}
+
+		dm, nErr := ss.Channel().SaveDirectChannel(rctx, dm, m1, m2)
+		require.NoError(t, nErr)
+
+		trackable, err := ss.DeliveryTracking().IsChannelTrackable(rctx, dm.Id)
+		require.NoError(t, err)
+		assert.False(t, trackable)
+	})
+
+	t.Run("unknown channel", func(t *testing.T) {
+		trackable, err := ss.DeliveryTracking().IsChannelTrackable(rctx, model.NewId())
+		require.NoError(t, err)
+		assert.False(t, trackable)
+	})
 }
 
 func testDeliveryTrackingSaveAndGet(t *testing.T, rctx request.CTX, ss store.Store) {

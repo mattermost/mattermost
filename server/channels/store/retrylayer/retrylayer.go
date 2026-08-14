@@ -5075,11 +5075,59 @@ func (s *RetryLayerContentFlaggingStore) SaveReviewerSettings(reviewerSettings m
 
 }
 
+func (s *RetryLayerDeliveryTrackingStore) ClearCaches() {
+
+	s.DeliveryTrackingStore.ClearCaches()
+
+}
+
 func (s *RetryLayerDeliveryTrackingStore) GetTrackedChannelIDs(rctx request.CTX) ([]string, error) {
 
 	tries := 0
 	for {
 		result, err := s.DeliveryTrackingStore.GetTrackedChannelIDs(rctx)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDeliveryTrackingStore) IsChannelTrackable(rctx request.CTX, channelID string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.DeliveryTrackingStore.IsChannelTrackable(rctx, channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerDeliveryTrackingStore) IsChannelTracked(rctx request.CTX, channelID string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.DeliveryTrackingStore.IsChannelTracked(rctx, channelID)
 		if err == nil {
 			return result, nil
 		}

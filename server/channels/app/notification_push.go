@@ -111,6 +111,7 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 	}
 
 	originalTransportType := msg.Transport
+	originalMessage := msg.DeepCopy()
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 		var replacementNotification *model.PushNotification
 		replacementNotification, rejectionReason = hooks.NotificationWillBePushed(msg, userID)
@@ -165,6 +166,8 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		)
 		return appErr
 	}
+
+	recordDelivery := true
 
 	for _, session := range sessions {
 		// Don't send notifications to this session if it's expired or we want to skip it
@@ -253,6 +256,11 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 				mlog.Err(err),
 			)
 			continue
+		}
+
+		if recordDelivery {
+			a.RecordPushDelivery(rctx, userID, originalMessage)
+			recordDelivery = false
 		}
 
 		rctx.Logger().LogM(mlog.MlvlNotificationTrace, "Notification sent to push proxy",
