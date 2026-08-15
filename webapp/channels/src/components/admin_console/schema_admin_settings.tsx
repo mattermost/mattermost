@@ -126,7 +126,11 @@ function getSchemaSettings(schema: AdminDefinitionSubSectionSchema | null): Admi
 
     const settings = 'settings' in schema && schema.settings ? [...schema.settings] : [];
     if ('sections' in schema && schema.sections) {
-        schema.sections.forEach((section) => settings.push(...section.settings));
+        schema.sections.forEach((section) => {
+            if (section.settings) {
+                settings.push(...section.settings);
+            }
+        });
     }
 
     return settings;
@@ -1076,86 +1080,61 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             return null;
         }
 
-        if ('settings' in schema && schema.settings) {
+        const buildSettingsList = (settings: AdminDefinitionSetting[] | undefined) => {
             const settingsList: React.ReactNode[] = [];
-            if (schema.settings) {
-                schema.settings.forEach((setting) => {
+            if (settings) {
+                settings.forEach((setting) => {
                     if (this.buildSettingFunctions[setting.type] && !this.isHidden(setting)) {
                         settingsList.push(this.buildSettingFunctions[setting.type](setting));
                     }
                 });
             }
 
-            let header;
-            if (schema.header) {
-                header = (
-                    <div className='banner'>
-                        <SchemaText
-                            text={schema.header}
-                            isMarkdown={true}
-                        />
-                    </div>
-                );
-            }
+            return settingsList;
+        };
 
-            let footer;
-            if (schema.footer) {
-                footer = (
-                    <div className='banner'>
-                        <SchemaText
-                            text={schema.footer}
-                            isMarkdown={true}
-                        />
-                    </div>
-                );
-            }
+        let header;
+        if ('header' in schema && schema.header) {
+            header = (
+                <div className='banner'>
+                    <SchemaText
+                        text={schema.header}
+                        isMarkdown={true}
+                    />
+                </div>
+            );
+        }
 
+        let footer;
+        if ('footer' in schema && schema.footer) {
+            footer = (
+                <div className='banner'>
+                    <SchemaText
+                        text={schema.footer}
+                        isMarkdown={true}
+                    />
+                </div>
+            );
+        }
+
+        const schemaSections = 'sections' in schema ? schema.sections : undefined;
+        if ('settings' in schema && schema.settings && !schemaSections) {
             return (
                 <SettingsGroup container={false}>
                     {header}
-                    {settingsList}
+                    {buildSettingsList(schema.settings)}
                     {footer}
                 </SettingsGroup>
             );
-        } else if ('sections' in schema && schema.sections) {
+        } else if (schemaSections) {
             const sections: React.ReactNode[] = [];
-            let header;
-            if (schema.header) {
-                header = (
-                    <div className='banner'>
-                        <SchemaText
-                            text={schema.header}
-                            isMarkdown={true}
-                        />
-                    </div>
-                );
-            }
 
-            let footer;
-            if (schema.footer) {
-                footer = (
-                    <div className='banner'>
-                        <SchemaText
-                            text={schema.footer}
-                            isMarkdown={true}
-                        />
-                    </div>
-                );
-            }
-
-            schema.sections.forEach((section) => {
+            schemaSections.forEach((section) => {
                 if (this.isSectionHidden(section)) {
                     return;
                 }
 
-                const settingsList: React.ReactNode[] = [];
-                if (section.settings) {
-                    section.settings.forEach((setting) => {
-                        if (this.buildSettingFunctions[setting.type] && !this.isHidden(setting)) {
-                            settingsList.push(this.buildSettingFunctions[setting.type](setting));
-                        }
-                    });
-                }
+                const settingsList = buildSettingsList(section.settings);
 
                 if (section.component) {
                     const CustomComponent = section.component;
@@ -1259,6 +1238,11 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             return (
                 <div>
                     {header}
+                    {'settings' in schema && schema.settings && schema.settings.length > 0 && (
+                        <SettingsGroup container={false}>
+                            {buildSettingsList(schema.settings)}
+                        </SettingsGroup>
+                    )}
                     {sections}
                     {footer}
                 </div>

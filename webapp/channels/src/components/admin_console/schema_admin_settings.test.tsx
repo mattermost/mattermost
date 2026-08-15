@@ -287,6 +287,27 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
+    test('should render a component-only section without settings', () => {
+        renderWithContext(
+            <SchemaAdminSettings
+                {...DefaultProps}
+                config={config}
+                environmentConfig={environmentConfig}
+                schema={{
+                    id: 'Config',
+                    name: 'config',
+                    sections: [{
+                        key: 'component-only',
+                        component: () => <p>{'Component-only section'}</p>,
+                    }],
+                } as unknown as AdminDefinitionSubSectionSchema}
+                patchConfig={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByText('Component-only section')).toBeInTheDocument();
+    });
+
     test('should render header text with markdown links', () => {
         const headerText = 'This is [a link](!https://example.com) in the header';
         const props = {
@@ -361,6 +382,45 @@ describe('components/admin_console/SchemaAdminSettings', () => {
 
         expect(text.indexOf('Schema header')).toBeLessThan(text.indexOf('Plugin section'));
         expect(text.indexOf('Plugin section')).toBeLessThan(text.indexOf('Schema footer'));
+    });
+
+    test('should render top-level settings and sections between the schema header and footer', () => {
+        const props = {
+            ...DefaultProps,
+            config,
+            environmentConfig,
+            schema: {
+                id: 'Config',
+                name: 'config',
+                header: 'Schema header',
+                footer: 'Schema footer',
+                settings: [{
+                    key: 'ServiceSettings.SiteURL',
+                    label: 'Top-level Setting',
+                    type: 'text' as const,
+                }],
+                sections: [{
+                    key: 'section',
+                    title: 'Plugin section',
+                    settings: [{
+                        key: 'ServiceSettings.ConnectionURL',
+                        label: 'Section Setting',
+                        type: 'text' as const,
+                    }],
+                }],
+            } as AdminDefinitionSubSectionSchema,
+            patchConfig: jest.fn(),
+        };
+
+        const {container} = renderWithContext(<SchemaAdminSettings {...props}/>);
+        const text = container.textContent || '';
+
+        expect(screen.getByText('Top-level Setting')).toBeInTheDocument();
+        expect(screen.getByText('Section Setting')).toBeInTheDocument();
+        expect(text.indexOf('Schema header')).toBeLessThan(text.indexOf('Top-level Setting'));
+        expect(text.indexOf('Top-level Setting')).toBeLessThan(text.indexOf('Plugin section'));
+        expect(text.indexOf('Plugin section')).toBeLessThan(text.indexOf('Section Setting'));
+        expect(text.indexOf('Section Setting')).toBeLessThan(text.indexOf('Schema footer'));
     });
 
     test('should render page not found', () => {
