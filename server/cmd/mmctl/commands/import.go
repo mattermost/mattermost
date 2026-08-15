@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -339,6 +340,30 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 		jobData["skip_preflight"] = "true"
 	}
 
+	// Check for a previous failed import of the same file with a checkpoint.
+	// If found, ask the user whether to resume or start fresh.
+	if checkpoint, checkpointFile, totalLines := findImportCheckpoint(c, importFile); checkpoint > 0 && checkpointFile == importFile {
+		if totalLines > 0 {
+			pct := float64(checkpoint) / float64(totalLines) * 100
+			fmt.Printf("\nA previous import of '%s' was interrupted at line %d of %d (%.0f%% complete).\n",
+				importFile, checkpoint, totalLines, pct)
+		} else {
+			fmt.Printf("\nA previous import of '%s' was interrupted at line %d.\n", importFile, checkpoint)
+		}
+		fmt.Println("Resume from that point? Starting fresh will re-import everything from the beginning.")
+		fmt.Print("[Y/n]: ")
+		reader := bufio.NewReader(os.Stdin)
+		answer, _ := reader.ReadString('\n')
+		answer = strings.TrimSpace(strings.ToLower(answer))
+		if answer == "" || answer == "y" || answer == "yes" {
+			jobData["resume_from_line"] = strconv.Itoa(checkpoint)
+			jobData["checkpoint_file"] = checkpointFile
+			fmt.Printf("Resuming from line %d.\n", checkpoint)
+		} else {
+			fmt.Println("Starting fresh.")
+		}
+	}
+
 	job, _, err := c.CreateJob(context.TODO(), &model.Job{
 		Type: model.JobTypeImportProcess,
 		Data: jobData,
@@ -350,6 +375,40 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	printer.PrintT("Import process job successfully created, ID: {{.Id}}", job)
 
 	return nil
+}
+
+// findImportCheckpoint searches recent import jobs for a failed run of the
+// given file that has a checkpoint stored. Also checks for a prior successful
+// run to derive the total line count for percentage display.
+// Returns (checkpoint, checkpointFile, totalLines). totalLines is 0 if unknown.
+func findImportCheckpoint(c client.Client, importFile string) (int, string, int) {
+	jobs, _, err := c.GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusError, 0, 10)
+	if err != nil {
+		return 0, "", 0
+	}
+	for _, job := range jobs {
+		if job.Data["import_file"] != importFile {
+			continue
+		}
+		cpStr := job.Data["checkpoint"]
+		if cpStr == "" {
+			continue
+		}
+		n, err := strconv.Atoi(cpStr)
+		if err != nil || n <= 0 {
+			continue
+		}
+		// total_lines is stored by the pre-creation pass at the start of the
+		// import — available even on first failure, no prior successful run needed.
+		totalLines := 0
+		if tlStr := job.Data["total_lines"]; tlStr != "" {
+			if tl, err := strconv.Atoi(tlStr); err == nil {
+				totalLines = tl
+			}
+		}
+		return n, job.Data["checkpoint_file"], totalLines
+	}
+	return 0, "", 0
 }
 
 func importJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {

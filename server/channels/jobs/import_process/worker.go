@@ -133,10 +133,53 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			}
 		}
 
+		// Resolve resume checkpoint if the job was previously interrupted.
+		resumeFromLine := 0
+		if checkpoint, ok := job.Data["checkpoint"]; ok && checkpoint != "" {
+			if n, err := strconv.Atoi(checkpoint); err == nil {
+				// Only resume if the file identity matches — a different file would
+				// make the stored line number meaningless.
+				if job.Data["checkpoint_file"] == importFileName {
+					resumeFromLine = n
+					logger.Info("Resuming import from checkpoint",
+						mlog.Int("resume_from_line", resumeFromLine),
+						mlog.String("import_file", importFileName))
+				} else {
+					logger.Warn("Import file changed since last checkpoint; starting from beginning",
+						mlog.String("checkpoint_file", job.Data["checkpoint_file"]),
+						mlog.String("current_file", importFileName))
+				}
+			}
+		}
+
+		// Enable checkpointing for large imports so a failure can be resumed
+		// without restarting from line 1. Use the uncompressed JSONL size since
+		// zip compression can reduce a large import to a fraction of its actual size.
+		const checkpointThresholdBytes = 1 * 1024 * 1024 // 1 MB uncompressed (lowered for testing; restore to 100 MB for production)
+		jsonlUncompressedSize := int64(jsonZipFile.UncompressedSize64)
+		var onCheckpoint func(int)
+		if jsonlUncompressedSize >= checkpointThresholdBytes {
+			onCheckpoint = func(lineNumber int) {
+				if lineNumber < 0 {
+					// Negative signals total line count from pre-creation pass —
+					// store separately so resume can show percentage progress.
+					job.Data["total_lines"] = strconv.Itoa(-lineNumber)
+				} else {
+					job.Data["checkpoint"] = strconv.Itoa(lineNumber)
+					job.Data["checkpoint_file"] = importFileName
+				}
+				if _, uErr := jobServer.Store.Job().UpdateOptimistically(job, model.JobStatusInProgress); uErr != nil {
+					logger.Warn("Failed to persist import checkpoint", mlog.Err(uErr))
+				}
+			}
+		}
+
 		// do the actual import.
 		importOpts := model.BulkImportOpts{
 			DestinationTeam: job.Data["destination_team"],
 			SkipPreflight:   job.Data["skip_preflight"] == "true",
+			ResumeFromLine:  resumeFromLine,
+			OnCheckpoint:    onCheckpoint,
 		}
 		lineNumber, appErr := app.BulkImportWithPathAndOpts(appContext, jsonFile, importZipReader, false, extractContent, numWorkers, model.ExportDataDir, importOpts)
 		if appErr != nil {

@@ -28,4 +28,16 @@ type BulkImportOpts struct {
 	// Set this to true only after reviewing the preflight error and accepting
 	// the risk of proceeding with a mismatched configuration.
 	SkipPreflight bool
+
+	// ResumeFromLine skips post and direct_post lines up to and including this
+	// line number, re-processing all other segment types (roles, teams, channels,
+	// users, bots) from the start to restore consistent state. 0 means no resume.
+	ResumeFromLine int
+
+	// OnCheckpoint is called after each segment boundary completes (i.e. after
+	// wg.Wait() drains all workers for that segment type). The argument is the
+	// last line number fully processed. Callers use this to persist a checkpoint
+	// so a failed import can be resumed without restarting from line 1.
+	// Nil means no checkpointing.
+	OnCheckpoint func(lineNumber int)
 }

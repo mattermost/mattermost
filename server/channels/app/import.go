@@ -213,18 +213,18 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, deactiv
 }
 
 func (a *App) BulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (int, *model.AppError) {
-	_, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, true, workers, "", "", false, &imports.ImportReport{})
+	_, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, true, workers, "", "", false, 0, nil, &imports.ImportReport{})
 	return 0, err
 }
 
 func (a *App) BulkImportWithPath(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError) {
-	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, "", false, &imports.ImportReport{})
+	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, "", false, 0, nil, &imports.ImportReport{})
 	return lineNumber, err
 }
 
 func (a *App) BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, opts model.BulkImportOpts) (int, *model.AppError) {
 	report := &imports.ImportReport{}
-	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeam, opts.SkipPreflight, report)
+	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeam, opts.SkipPreflight, opts.ResumeFromLine, opts.OnCheckpoint, report)
 	return lineNumber, err
 }
 
@@ -232,7 +232,7 @@ func (a *App) BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader,
 // not nil. If it is nil, it will look for attachments on the
 // filesystem in the locations specified by the JSONL file according
 // to the older behavior
-func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, destinationTeam string, skipPreflight bool, report *imports.ImportReport) (int, *model.AppError) {
+func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, destinationTeam string, skipPreflight bool, resumeFromLine int, onCheckpoint func(int), report *imports.ImportReport) (int, *model.AppError) {
 	scanner := bufio.NewScanner(jsonlReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
@@ -295,13 +295,27 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 							if appErr := a.checkSSOProviderConfig(rctx, attachmentsReader, skipPreflight); appErr != nil {
 								return lineNumber, appErr
 							}
-							a.preCreateSSOUsers(rctx, attachmentsReader, dryRun)
+							totalLines := a.preCreateSSOUsers(rctx, attachmentsReader, dryRun)
+							if onCheckpoint != nil && totalLines > 0 {
+								// Store total line count early so a later failure
+								// can show percentage progress on resume.
+								onCheckpoint(-totalLines)
+							}
 						}
 					}
 				}
 			}
 
 			lastLineType = line.Type
+			continue
+		}
+
+		// Skip post/direct_post lines already processed before the checkpoint.
+		// Non-post segments (roles, teams, channels, users, bots) are always
+		// re-processed to ensure consistent state — remap rebuilt, teams/channels
+		// exist, etc. This is safe because all non-post operations are idempotent.
+		if resumeFromLine > 0 && lineNumber <= resumeFromLine &&
+			(line.Type == "post" || line.Type == "direct_post") {
 			continue
 		}
 
@@ -317,6 +331,12 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 				// Changing type. Clear out the worker queue before continuing.
 				close(linesChan)
 				wg.Wait()
+
+				// Checkpoint after each completed segment so a crashed import
+				// can resume without restarting from line 1.
+				if onCheckpoint != nil {
+					onCheckpoint(lineNumber - 1)
+				}
 
 				// Check no errors occurred while waiting for the queue to empty.
 				if len(errorsChan) != 0 {
@@ -369,6 +389,11 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 		close(linesChan)
 	}
 	wg.Wait()
+
+	// Final checkpoint — all content processed successfully.
+	if onCheckpoint != nil {
+		onCheckpoint(lineNumber)
+	}
 
 	// Check no errors occurred while waiting for the queue to empty.
 	if len(errorsChan) != 0 {
@@ -595,7 +620,9 @@ func (a *App) checkSSOProviderConfig(rctx request.CTX, zipReader *zip.Reader, sk
 // are skipped (no auth_data to anchor on, and they don't benefit from pre-creation).
 // Team/channel memberships, preferences, and profile images are intentionally
 // omitted; the main pass populates those after teams and channels exist on dest.
-func (a *App) preCreateSSOUsers(rctx request.CTX, zipReader *zip.Reader, dryRun bool) {
+// preCreateSSOUsers returns the total number of lines in the JSONL so callers
+// can store it for percentage display on resume.
+func (a *App) preCreateSSOUsers(rctx request.CTX, zipReader *zip.Reader, dryRun bool) int {
 	var jsonlEntry *zip.File
 	for _, f := range zipReader.File {
 		if imports.IsRootJsonlFile(f.Name) {
@@ -604,13 +631,13 @@ func (a *App) preCreateSSOUsers(rctx request.CTX, zipReader *zip.Reader, dryRun 
 		}
 	}
 	if jsonlEntry == nil {
-		return
+		return 0
 	}
 
 	rc, err := jsonlEntry.Open()
 	if err != nil {
 		rctx.Logger().Warn("preCreateSSOUsers: failed to open JSONL for pre-creation pass", mlog.Err(err))
-		return
+		return 0
 	}
 	defer rc.Close()
 
@@ -652,6 +679,7 @@ func (a *App) preCreateSSOUsers(rctx request.CTX, zipReader *zip.Reader, dryRun 
 				mlog.Err(appErr))
 		}
 	}
+	return lineNumber
 }
 
 // preCreateSSOUser ensures a single SSO user exists on the dest with their
