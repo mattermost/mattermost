@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {act} from 'react-dom/test-utils';
 import {defineMessage} from 'react-intl';
 
 import type {CloudState} from '@mattermost/types/cloud';
@@ -446,6 +447,102 @@ describe('components/admin_console/SchemaAdminSettings', () => {
 
         expect(ref.current?.canSave()).toBe(true);
         expect(mockValidate).toHaveBeenCalled();
+    });
+
+    test('should persist permissions from sections in a mixed schema', async () => {
+        const permissionKey = 'Permissions.enableTeamCreation';
+        const editRole = jest.fn().mockResolvedValue({});
+        const roles = {
+            system_user: {
+                name: 'system_user',
+                permissions: [],
+            },
+        };
+        const mixedSchema = {
+            id: 'Config',
+            name: 'config',
+            settings: [{
+                key: 'ServiceSettings.SiteURL',
+                label: 'Site URL',
+                type: 'text' as const,
+            }],
+            sections: [{
+                key: 'permissions',
+                settings: [{
+                    key: permissionKey,
+                    label: 'Enable Team Creation',
+                    type: 'permission' as const,
+                    permissions_mapping_name: 'enableTeamCreation' as const,
+                }],
+            }],
+        };
+        const ref = React.createRef<SchemaAdminSettingsClass>();
+        renderWithContext(
+            <SchemaAdminSettingsClass
+                ref={ref}
+                {...DefaultProps}
+                config={config}
+                editRole={editRole}
+                environmentConfig={environmentConfig}
+                roles={roles as any}
+                schema={mixedSchema}
+                patchConfig={jest.fn()}
+                intl={defaultIntl}
+            />,
+        );
+
+        act(() => {
+            ref.current!.setState({
+                [permissionKey]: true,
+                saveNeeded: 'permissions',
+            } as any);
+        });
+        await ref.current!.handleSubmit({preventDefault: jest.fn()} as any);
+
+        expect(editRole).toHaveBeenCalledWith(expect.objectContaining({
+            name: 'system_user',
+            permissions: ['create_team'],
+        }));
+    });
+
+    test('should validate top-level and section settings in a mixed schema', () => {
+        const topLevelValidate = jest.fn(() => new ValidationResult(true, ''));
+        const sectionValidate = jest.fn(() => new ValidationResult(false, 'Invalid section setting'));
+        const mixedSchema = {
+            id: 'Config',
+            name: 'config',
+            settings: [{
+                key: 'ServiceSettings.SiteURL',
+                label: 'Site URL',
+                type: 'text' as const,
+                validate: topLevelValidate,
+            }],
+            sections: [{
+                key: 'connection',
+                settings: [{
+                    key: 'ServiceSettings.ConnectionURL',
+                    label: 'Connection URL',
+                    type: 'text' as const,
+                    validate: sectionValidate,
+                }],
+            }],
+        };
+        const ref = React.createRef<SchemaAdminSettingsClass>();
+        renderWithContext(
+            <SchemaAdminSettingsClass
+                ref={ref}
+                {...DefaultProps}
+                config={config}
+                environmentConfig={environmentConfig}
+                schema={mixedSchema}
+                patchConfig={jest.fn()}
+                intl={defaultIntl}
+            />,
+        );
+
+        expect(ref.current?.canSave()).toBe(false);
+        expect(topLevelValidate).toHaveBeenCalled();
+        expect(sectionValidate).toHaveBeenCalled();
     });
 
     test('should handle changing text input values', async () => {

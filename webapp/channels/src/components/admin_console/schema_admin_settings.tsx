@@ -119,6 +119,19 @@ export function descriptorOrStringToString(text: string | MessageDescriptor | un
     return typeof text === 'string' ? text : intl.formatMessage(text, values);
 }
 
+function getSchemaSettings(schema: AdminDefinitionSubSectionSchema | null): AdminDefinitionSetting[] {
+    if (!schema || !('settings' in schema || 'sections' in schema)) {
+        return [];
+    }
+
+    const settings = 'settings' in schema && schema.settings ? [...schema.settings] : [];
+    if ('sections' in schema && schema.sections) {
+        schema.sections.forEach((section) => settings.push(...section.settings));
+    }
+
+    return settings;
+}
+
 export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettingsProps, State> {
     private isPlugin: boolean;
     private saveActions: Array<() => Promise<{error?: {message?: string}}>>;
@@ -189,7 +202,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         });
 
         if (this.state.saveNeeded === 'both' || this.state.saveNeeded === 'permissions') {
-            const settings = (this.props.schema && 'settings' in this.props.schema && this.props.schema.settings) || [];
+            const settings = getSchemaSettings(this.props.schema);
             const rolesBinding = settings.reduce<Record<string, string>>((acc, val) => {
                 if (val.type === Constants.SettingsTypes.TYPE_PERMISSION) {
                     acc[val.permissions_mapping_name] = this.state[val.key].toString();
@@ -233,13 +246,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         let state: Partial<State> = {};
 
         if (schema) {
-            let settings: AdminDefinitionSetting[] = [];
-
-            if ('settings' in schema && schema.settings) {
-                settings = schema.settings;
-            } else if ('sections' in schema && schema.sections) {
-                schema.sections.map((section) => section.settings).forEach((sectionSettings) => settings.push(...sectionSettings));
-            }
+            const settings = getSchemaSettings(schema);
 
             // Recursively collect settings from expandable settings
             const collectSettingsRecursively = (settingsArray: AdminDefinitionSetting[]): AdminDefinitionSetting[] => {
@@ -1337,11 +1344,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
     };
 
     canSave = () => {
-        if (!this.props.schema || !('settings' in this.props.schema) || !this.props.schema.settings) {
-            return true;
-        }
-
-        for (const setting of this.props.schema.settings) {
+        for (const setting of getSchemaSettings(this.props.schema)) {
             // Some settings are actually not settings (banner)
             // and don't have a key, skip those ones
             if (!('key' in setting) || !setting.key) {
@@ -1586,13 +1589,7 @@ export const getConfigFromState = (
     isDisabled: (setting: AdminDefinitionSetting) => boolean,
 ) => {
     if (schema) {
-        let settings: AdminDefinitionSetting[] = [];
-
-        if ('settings' in schema && schema.settings) {
-            settings = schema.settings;
-        } else if ('sections' in schema && schema.sections) {
-            schema.sections.map((section) => section.settings).forEach((sectionSettings) => settings.push(...sectionSettings));
-        }
+        const settings = getSchemaSettings(schema);
 
         // Recursively collect settings from expandable settings
         const collectSettingsRecursively = (settingsArray: AdminDefinitionSetting[]): AdminDefinitionSetting[] => {
