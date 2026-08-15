@@ -4,7 +4,10 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import ExternalLink from 'components/external_link';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 import * as TextFormatting from 'utils/text_formatting';
@@ -21,6 +24,9 @@ type Props = {
     goToPage: (page: number) => void;
     onReload: () => void;
     downloadUrl: string;
+
+    // Rendered alongside the other filters so both viewers share one filter row
+    logFormatMenu?: React.ReactNode;
 };
 
 const NO_LOGS: string[] = [];
@@ -198,6 +204,7 @@ function getCopyLabel(success: boolean, failed: boolean): React.ReactNode {
 
 export default function PlainLogList({
     loading, logs: rawLogs, page, perPage, nextPage, previousPage, goToPage, onReload, downloadUrl,
+    logFormatMenu,
 }: Props) {
     // A shared constant keeps the fallback stable, so the memos below are not
     // invalidated on every render
@@ -312,40 +319,14 @@ export default function PlainLogList({
 
     return (
         <div className='PlainLogViewer'>
-            {/* Toolbar */}
-            <div className='PlainLogViewer__toolbar'>
-                <div className='PlainLogViewer__toolbar-group'>
+            {/* Filters */}
+            <div className='PlainLogViewer__filters admin-console__filters-rows'>
+                {logFormatMenu}
+                <WithTooltip title={intl.formatMessage(newestFirst ? sortMessages.oldestFirst : sortMessages.newestFirst)}>
                     <button
                         type='button'
-                        className='PlainLogViewer__action-btn'
-                        onClick={onReload}
-                        title={intl.formatMessage({id: 'admin.logs.reload', defaultMessage: 'Reload'})}
-                    >
-                        <i className='icon icon-refresh'/>
-                        <FormattedMessage
-                            id='admin.logs.reload'
-                            defaultMessage='Reload'
-                        />
-                    </button>
-                    <ExternalLink
-                        location='download_plain_logs'
-                        className='PlainLogViewer__action-btn'
-                        href={downloadUrl}
-                    >
-                        <i className='icon icon-download-outline'/>
-                        <FormattedMessage
-                            id='admin.logs.download'
-                            defaultMessage='Download'
-                        />
-                    </ExternalLink>
-                </div>
-                <div className='PlainLogViewer__toolbar-spacer'/>
-                <div className='PlainLogViewer__toolbar-group'>
-                    <button
-                        type='button'
-                        className={`PlainLogViewer__action-btn ${newestFirst ? 'PlainLogViewer__action-btn--active' : ''}`}
+                        className={`btn btn-sm ${newestFirst ? 'btn-tertiary' : 'btn-quaternary'}`}
                         onClick={() => setNewestFirst(!newestFirst)}
-                        title={intl.formatMessage(newestFirst ? sortMessages.oldestFirst : sortMessages.newestFirst)}
                     >
                         <i className={newestFirst ? 'icon icon-arrow-down' : 'icon icon-arrow-up'}/>
                         {newestFirst ? (
@@ -360,46 +341,30 @@ export default function PlainLogList({
                             />
                         )}
                     </button>
-                    {/* The label stays 'Lines' either way, so the state needs announcing.
-                        The sort and wrap buttons carry their state in their label instead. */}
-                    <button
-                        type='button'
-                        className={`PlainLogViewer__action-btn ${showLineNumbers ? 'PlainLogViewer__action-btn--active' : ''}`}
-                        onClick={() => setShowLineNumbers(!showLineNumbers)}
-                        aria-pressed={showLineNumbers}
-                    >
-                        <i className='icon icon-format-list-numbered'/>
-                        <FormattedMessage
-                            id='admin.logs.lineNumbers'
-                            defaultMessage='Lines'
-                        />
-                    </button>
-                    <button
-                        type='button'
-                        className={`PlainLogViewer__action-btn ${wrapText ? 'PlainLogViewer__action-btn--active' : ''}`}
-                        onClick={() => setWrapText(!wrapText)}
-                    >
-                        {wrapText ? (
-                            <FormattedMessage
-                                id='admin.logs.nowrap'
-                                defaultMessage='No wrap'
-                            />
-                        ) : (
-                            <FormattedMessage
-                                id='admin.logs.wrap'
-                                defaultMessage='Wrap'
-                            />
-                        )}
-                    </button>
-                    <button
-                        type='button'
-                        className='PlainLogViewer__action-btn'
-                        onClick={handleCopyAll}
-                    >
-                        <i className={getCopyIconClass(copySuccess, copyFailed)}/>
-                        {getCopyLabel(copySuccess, copyFailed)}
-                    </button>
-                </div>
+                </WithTooltip>
+                <div className='PlainLogViewer__filters-spacer'/>
+                <button
+                    type='button'
+                    className='btn btn-sm btn-tertiary'
+                    onClick={onReload}
+                >
+                    <i className='icon icon-refresh'/>
+                    <FormattedMessage
+                        id='admin.logs.reload'
+                        defaultMessage='Reload'
+                    />
+                </button>
+                <ExternalLink
+                    location='download_plain_logs'
+                    className='btn btn-sm btn-primary'
+                    href={downloadUrl}
+                >
+                    <i className='icon icon-download-outline'/>
+                    <FormattedMessage
+                        id='admin.logs.download'
+                        defaultMessage='Download'
+                    />
+                </ExternalLink>
             </div>
 
             {/* Log content */}
@@ -414,16 +379,19 @@ export default function PlainLogList({
                 tabIndex={-1}
             >
                 {loading && (
-                    <div className='PlainLogViewer__loading'>
-                        <div className='PlainLogViewer__loading-spinner'/>
-                        <FormattedMessage
-                            id='admin.logs.plain.loading'
-                            defaultMessage='Loading...'
+                    <div className='PlainLogViewer__placeholder'>
+                        <LoadingSpinner
+                            text={
+                                <FormattedMessage
+                                    id='admin.logs.plain.loading'
+                                    defaultMessage='Loading logs'
+                                />
+                            }
                         />
                     </div>
                 )}
                 {!loading && displayLogs.length === 0 && (
-                    <div className='PlainLogViewer__empty'>
+                    <div className='PlainLogViewer__placeholder'>
                         <FormattedMessage
                             id='admin.logs.plain.noLogs'
                             defaultMessage='No logs to display.'
@@ -475,90 +443,19 @@ export default function PlainLogList({
 
             {/* Footer */}
             <div className='PlainLogViewer__footer'>
-                <div className='PlainLogViewer__footer-left'>
-                    <span className='PlainLogViewer__footer-info'>
-                        <FormattedMessage
-                            id='admin.logs.plain.pageInfo'
-                            defaultMessage='Page {page, number} · {count, plural, one {# line} other {# lines}}'
-                            values={{page: page + 1, count: totalShowing}}
-                        />
-                    </span>
-                    <div className='PlainLogViewer__footer-pagination'>
-                        <button
-                            type='button'
-                            className='PlainLogViewer__page-btn'
-                            onClick={() => goToPage(0)}
-                            disabled={!hasPrevious}
-                            title={intl.formatMessage({id: 'admin.logs.firstPage', defaultMessage: 'First page'})}
-                        >
-                            <span className='PlainLogViewer__double-chevron'>{'«'}</span>
-                        </button>
-                        <button
-                            type='button'
-                            className='PlainLogViewer__page-btn'
-                            onClick={previousPage}
-                            disabled={!hasPrevious}
-                            title={intl.formatMessage({id: 'admin.logs.prevPage', defaultMessage: 'Previous page'})}
-                        >
-                            <i className='icon icon-chevron-left'/>
-                        </button>
-                        <button
-                            type='button'
-                            className='PlainLogViewer__page-btn PlainLogViewer__page-btn--page-num'
-                            onClick={() => {
-                                setGoToPageInput(String(page + 1));
-                                setShowGoToPage(!showGoToPage);
-                            }}
-                            title={intl.formatMessage({id: 'admin.logs.goToPage', defaultMessage: 'Go to page'})}
-                        >
-                            {page + 1}
-                        </button>
-                        <button
-                            type='button'
-                            className='PlainLogViewer__page-btn'
-                            onClick={nextPage}
-                            disabled={!hasMore}
-                            title={intl.formatMessage({id: 'admin.logs.nextPage', defaultMessage: 'Next page'})}
-                        >
-                            <i className='icon icon-chevron-right'/>
-                        </button>
-                    </div>
-                    {showGoToPage && (
-                        <div className='PlainLogViewer__goto-page'>
-                            <label htmlFor='plainLogsGoToPage'>
-                                <FormattedMessage
-                                    id='admin.logs.goToPageLabel'
-                                    defaultMessage='Go to page:'
-                                />
-                            </label>
-                            <input
-                                id='plainLogsGoToPage'
-                                type='number'
-                                className='PlainLogViewer__goto-input'
-                                value={goToPageInput}
-                                onChange={(e) => setGoToPageInput(e.target.value)}
-                                onKeyDown={handleGoToPageKeyDown}
-                                min={1}
-                                autoFocus={true} // eslint-disable-line jsx-a11y/no-autofocus
-                            />
-                            <button
-                                type='button'
-                                className='PlainLogViewer__action-btn PlainLogViewer__action-btn--small'
-                                onClick={handleGoToPage}
-                            >
-                                <FormattedMessage
-                                    id='admin.logs.go'
-                                    defaultMessage='Go'
-                                />
-                            </button>
-                        </div>
-                    )}
-                </div>
-                <div className='PlainLogViewer__footer-right'>
+                <span className='PlainLogViewer__footer-info'>
+                    <FormattedMessage
+                        id='admin.logs.plain.pageInfo'
+                        defaultMessage='Showing page {page, number} · {count, plural, one {# line} other {# lines}}'
+                        values={{page: page + 1, count: totalShowing}}
+                    />
+                </span>
+
+                <div className='PlainLogViewer__footer-controls'>
                     {!followTail && (
                         <button
                             type='button'
-                            className='PlainLogViewer__action-btn PlainLogViewer__action-btn--small'
+                            className='btn btn-sm btn-quaternary'
                             onClick={() => {
                                 setFollowTail(true);
                                 if (logPanelRef.current) {
@@ -579,6 +476,112 @@ export default function PlainLogList({
                                 />
                             )}
                         </button>
+                    )}
+
+                    {/* The label stays 'Lines' either way, so the state needs announcing.
+                        The sort and wrap buttons carry their state in their label instead. */}
+                    <button
+                        type='button'
+                        className={`btn btn-sm ${showLineNumbers ? 'btn-tertiary' : 'btn-quaternary'}`}
+                        onClick={() => setShowLineNumbers(!showLineNumbers)}
+                        aria-pressed={showLineNumbers}
+                    >
+                        <i className='icon icon-format-list-numbered'/>
+                        <FormattedMessage
+                            id='admin.logs.lineNumbers'
+                            defaultMessage='Lines'
+                        />
+                    </button>
+                    <button
+                        type='button'
+                        className={`btn btn-sm ${wrapText ? 'btn-tertiary' : 'btn-quaternary'}`}
+                        onClick={() => setWrapText(!wrapText)}
+                        aria-pressed={wrapText}
+                    >
+                        <FormattedMessage
+                            id='admin.logs.wrap'
+                            defaultMessage='Wrap text'
+                        />
+                    </button>
+                    <button
+                        type='button'
+                        className='btn btn-sm btn-quaternary'
+                        onClick={handleCopyAll}
+                    >
+                        <i className={getCopyIconClass(copySuccess, copyFailed)}/>
+                        {getCopyLabel(copySuccess, copyFailed)}
+                    </button>
+
+                    <div className='PlainLogViewer__pagination'>
+                        <button
+                            type='button'
+                            className='btn btn-icon btn-sm'
+                            onClick={() => goToPage(0)}
+                            disabled={!hasPrevious}
+                            aria-label={intl.formatMessage({id: 'admin.logs.firstPage', defaultMessage: 'First page'})}
+                        >
+                            <i className='icon icon-page-first'/>
+                        </button>
+                        <button
+                            type='button'
+                            className='btn btn-icon btn-sm'
+                            onClick={previousPage}
+                            disabled={!hasPrevious}
+                            aria-label={intl.formatMessage({id: 'admin.logs.prevPage', defaultMessage: 'Previous page'})}
+                        >
+                            <i className='icon icon-chevron-left'/>
+                        </button>
+                        <button
+                            type='button'
+                            className='btn btn-sm btn-quaternary PlainLogViewer__page-num'
+                            onClick={() => {
+                                setGoToPageInput(String(page + 1));
+                                setShowGoToPage(!showGoToPage);
+                            }}
+                            aria-label={intl.formatMessage({id: 'admin.logs.goToPage', defaultMessage: 'Go to page'})}
+                        >
+                            {page + 1}
+                        </button>
+                        <button
+                            type='button'
+                            className='btn btn-icon btn-sm'
+                            onClick={nextPage}
+                            disabled={!hasMore}
+                            aria-label={intl.formatMessage({id: 'admin.logs.nextPage', defaultMessage: 'Next page'})}
+                        >
+                            <i className='icon icon-chevron-right'/>
+                        </button>
+                    </div>
+
+                    {showGoToPage && (
+                        <div className='PlainLogViewer__goto-page'>
+                            <label htmlFor='plainLogsGoToPage'>
+                                <FormattedMessage
+                                    id='admin.logs.goToPageLabel'
+                                    defaultMessage='Go to page:'
+                                />
+                            </label>
+                            <input
+                                id='plainLogsGoToPage'
+                                type='number'
+                                className='PlainLogViewer__goto-input'
+                                value={goToPageInput}
+                                onChange={(e) => setGoToPageInput(e.target.value)}
+                                onKeyDown={handleGoToPageKeyDown}
+                                min={1}
+                                autoFocus={true} // eslint-disable-line jsx-a11y/no-autofocus
+                            />
+                            <button
+                                type='button'
+                                className='btn btn-sm btn-tertiary'
+                                onClick={handleGoToPage}
+                            >
+                                <FormattedMessage
+                                    id='admin.logs.go'
+                                    defaultMessage='Go'
+                                />
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>

@@ -6,7 +6,12 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import ExternalLink from 'components/external_link';
+import * as Menu from 'components/menu';
+import Input from 'components/widgets/inputs/input/input';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import LogRow from './log_row';
 import type {LogObjectWithAdditionalInfo} from './types';
@@ -34,9 +39,7 @@ type Props = {
     pollInterval: number;
     onPollIntervalChange: (interval: number) => void;
     pollIntervals: readonly number[];
-    pollIntervalLabels: Record<number, string>;
-    showPollDropdown: boolean;
-    onTogglePollDropdown: () => void;
+    pollIntervalLabels: Record<number, MessageDescriptor>;
     lastUpdatedText: string | null;
 
     // Time presets
@@ -44,6 +47,9 @@ type Props = {
     activeTimePreset: number | null;
     onTimePreset: (minutes: number) => void;
     onClearTimePreset: () => void;
+
+    // Rendered alongside the other filters so both viewers share one filter row
+    logFormatMenu?: React.ReactNode;
 };
 
 const PAGE_SIZES = [50, 100, 200, 500] as const;
@@ -61,6 +67,11 @@ const LEVEL_LABELS = defineMessages({
     warn: {id: 'admin.logs.level.warn', defaultMessage: 'Warn'},
     info: {id: 'admin.logs.level.info', defaultMessage: 'Info'},
     debug: {id: 'admin.logs.level.debug', defaultMessage: 'Debug'},
+});
+
+const messages = defineMessages({
+    allTime: {id: 'admin.logs.time.allTime', defaultMessage: 'All time'},
+    allLevels: {id: 'admin.logs.allLevels', defaultMessage: 'All levels'},
 });
 
 const PREFS_KEY = 'mm_admin_logs_prefs';
@@ -139,8 +150,9 @@ export default function LogList({
     loading, logs, onSearchChange, search,
     onReload, downloadUrl,
     liveTailEnabled, onToggleLiveTail, pollInterval, onPollIntervalChange,
-    pollIntervals, pollIntervalLabels, showPollDropdown, onTogglePollDropdown, lastUpdatedText,
+    pollIntervals, pollIntervalLabels, lastUpdatedText,
     timePresets, activeTimePreset, onTimePreset, onClearTimePreset,
+    logFormatMenu,
 }: Props) {
     const intl = useIntl();
     const initialPrefs = useMemo(() => loadPrefs(), []);
@@ -378,14 +390,250 @@ export default function LogList({
         }
     }, [visibleLogs, rowKeys, focusedIndex, focusRow]);
 
+    const activePresetLabel = timePresets.find((preset) => preset.minutes === activeTimePreset)?.label;
+    const enabledLevelCount = LEVEL_ORDER.filter((level) => enabledLevels.has(level)).length;
+
+    const filters = (
+        <div className='LogViewer__filters admin-console__filters-rows'>
+            <Input
+                type='text'
+                name='serverLogsSearch'
+                containerClassName='LogViewer__search'
+                placeholder={intl.formatMessage({id: 'admin.logs.search.placeholder', defaultMessage: 'Search logs'})}
+                value={searchInput}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                inputPrefix={
+                    <i
+                        className='icon icon-magnify'
+                        aria-hidden='true'
+                    />
+                }
+                inputSuffix={searchInput ? (
+                    <button
+                        className='LogViewer__search-clear btn btn-icon btn-xs'
+                        onClick={clearSearch}
+                        type='button'
+                        aria-label={intl.formatMessage({id: 'admin.logs.search.clear', defaultMessage: 'Clear search'})}
+                    >
+                        <i
+                            className='icon icon-close'
+                            aria-hidden='true'
+                        />
+                    </button>
+                ) : undefined}
+            />
+
+            <Menu.Container
+                menuButton={{
+                    id: 'serverLogsLevelsMenuButton',
+                    class: 'inputWithMenu',
+                    'aria-label': intl.formatMessage({id: 'admin.logs.levels.menuButtonAriaLabel', defaultMessage: 'Open menu to select which log levels to show'}),
+                    as: 'div',
+                    children: (
+                        <Input
+                            label={intl.formatMessage({id: 'admin.logs.levels', defaultMessage: 'Levels'})}
+                            name='serverLogsLevels'
+                            value={allLevelsEnabled ? intl.formatMessage(messages.allLevels) : intl.formatMessage({id: 'admin.logs.levels.selected', defaultMessage: '{count} selected'}, {count: enabledLevelCount})}
+                            readOnly={true}
+                            inputSuffix={<i className='icon icon-chevron-down'/>}
+                        />
+                    ),
+                }}
+                menu={{
+                    id: 'serverLogsLevelsMenu',
+                    'aria-label': intl.formatMessage({id: 'admin.logs.levels.dropdownAriaLabel', defaultMessage: 'Log levels menu'}),
+                    width: '260px',
+                }}
+            >
+                {LEVEL_ORDER.map((level) => (
+                    <Menu.Item
+                        key={level}
+                        id={`serverLogsLevel-${level}`}
+                        role='menuitemcheckbox'
+                        aria-checked={enabledLevels.has(level)}
+                        leadingElement={
+                            <i className={enabledLevels.has(level) ? 'icon icon-checkbox-marked' : 'icon icon-checkbox-blank-outline'}/>
+                        }
+                        labels={<FormattedMessage {...LEVEL_LABELS[level]}/>}
+                        trailingElements={<span className='LogViewer__level-count'>{levelCounts[level]}</span>}
+
+                        // Ctrl/Cmd-click narrows to a single level; clicking it again restores all
+                        onClick={(event) => {
+                            if (event.ctrlKey || event.metaKey) {
+                                soloLevel(level);
+                            } else {
+                                toggleLevel(level);
+                            }
+                        }}
+                    />
+                ))}
+                <Menu.Separator/>
+                <Menu.Item
+                    id='serverLogsLevelsSelectAll'
+                    disabled={allLevelsEnabled}
+                    labels={
+                        <FormattedMessage
+                            id='admin.logs.levels.selectAll'
+                            defaultMessage='Select all levels'
+                        />
+                    }
+                    onClick={enableAllLevels}
+                />
+            </Menu.Container>
+
+            <Menu.Container
+                menuButton={{
+                    id: 'serverLogsDurationMenuButton',
+                    class: 'inputWithMenu',
+                    'aria-label': intl.formatMessage({id: 'admin.logs.duration.menuButtonAriaLabel', defaultMessage: 'Open menu to select a time range'}),
+                    as: 'div',
+                    children: (
+                        <Input
+                            label={intl.formatMessage({id: 'admin.logs.duration', defaultMessage: 'Duration'})}
+                            name='serverLogsDuration'
+                            value={intl.formatMessage(activePresetLabel ?? messages.allTime)}
+                            readOnly={true}
+                            inputSuffix={<i className='icon icon-chevron-down'/>}
+                        />
+                    ),
+                }}
+                menu={{
+                    id: 'serverLogsDurationMenu',
+                    'aria-label': intl.formatMessage({id: 'admin.logs.duration.dropdownAriaLabel', defaultMessage: 'Time range menu'}),
+                    width: '220px',
+                }}
+            >
+                <Menu.Item
+                    id='serverLogsDuration-all'
+                    role='menuitemradio'
+                    aria-checked={activeTimePreset === null}
+                    forceCloseOnSelect={true}
+                    labels={<FormattedMessage {...messages.allTime}/>}
+                    trailingElements={activeTimePreset === null && <i className='icon icon-check'/>}
+                    onClick={onClearTimePreset}
+                />
+                {timePresets.map((preset) => (
+                    <Menu.Item
+                        key={preset.minutes}
+                        id={`serverLogsDuration-${preset.minutes}`}
+                        role='menuitemradio'
+                        aria-checked={activeTimePreset === preset.minutes}
+                        forceCloseOnSelect={true}
+                        labels={<FormattedMessage {...preset.label}/>}
+                        trailingElements={activeTimePreset === preset.minutes && <i className='icon icon-check'/>}
+                        onClick={() => onTimePreset(preset.minutes)}
+                    />
+                ))}
+            </Menu.Container>
+
+            {logFormatMenu}
+
+            <div className='LogViewer__filters-spacer'/>
+
+            <div className='LogViewer__live-tail'>
+                <button
+                    type='button'
+                    className={`btn btn-sm ${liveTailEnabled ? 'btn-tertiary' : 'btn-quaternary'}`}
+                    onClick={onToggleLiveTail}
+                    aria-pressed={liveTailEnabled}
+                >
+                    {liveTailEnabled ? (
+                        <span
+                            className='LogViewer__live-dot'
+                            aria-hidden='true'
+                        />
+                    ) : (
+                        <i
+                            className='icon icon-play-outline'
+                            aria-hidden='true'
+                        />
+                    )}
+                    <FormattedMessage
+                        id='admin.logs.liveTail'
+                        defaultMessage='Live'
+                    />
+                </button>
+                <Menu.Container
+                    menuButton={{
+                        id: 'serverLogsPollIntervalMenuButton',
+                        class: 'btn btn-sm btn-quaternary',
+                        'aria-label': intl.formatMessage({id: 'admin.logs.pollInterval.menuButtonAriaLabel', defaultMessage: 'Open menu to select how often to refresh'}),
+                        children: (
+                            <>
+                                <FormattedMessage {...pollIntervalLabels[pollInterval]}/>
+                                <i className='icon icon-chevron-down'/>
+                            </>
+                        ),
+                    }}
+                    menu={{
+                        id: 'serverLogsPollIntervalMenu',
+                        'aria-label': intl.formatMessage({id: 'admin.logs.pollInterval.dropdownAriaLabel', defaultMessage: 'Refresh interval menu'}),
+                        width: '220px',
+                    }}
+                >
+                    {pollIntervals.map((interval) => (
+                        <Menu.Item
+                            key={interval}
+                            id={`serverLogsPollInterval-${interval}`}
+                            role='menuitemradio'
+                            aria-checked={interval === pollInterval}
+                            forceCloseOnSelect={true}
+                            labels={<FormattedMessage {...pollIntervalLabels[interval]}/>}
+                            trailingElements={interval === pollInterval && <i className='icon icon-check'/>}
+                            onClick={() => onPollIntervalChange(interval)}
+                        />
+                    ))}
+                </Menu.Container>
+                {liveTailEnabled && lastUpdatedText && (
+                    <span className='LogViewer__last-updated'>
+                        {lastUpdatedText}
+                    </span>
+                )}
+            </div>
+
+            <button
+                type='button'
+                className='btn btn-sm btn-tertiary'
+                onClick={onReload}
+            >
+                <i
+                    className='icon icon-refresh'
+                    aria-hidden='true'
+                />
+                <FormattedMessage
+                    id='admin.logs.ReloadLogs'
+                    defaultMessage='Reload'
+                />
+            </button>
+            <ExternalLink
+                location='download_logs'
+                className='btn btn-sm btn-primary'
+                href={downloadUrl}
+            >
+                <i
+                    className='icon icon-download-outline'
+                    aria-hidden='true'
+                />
+                <FormattedMessage
+                    id='admin.logs.DownloadLogs'
+                    defaultMessage='Download'
+                />
+            </ExternalLink>
+        </div>
+    );
+
     if (loading && logs.length === 0) {
         return (
             <div className='LogViewer'>
-                <div className='LogViewer__loading'>
-                    <div className='LogViewer__loading-spinner'/>
-                    <FormattedMessage
-                        id='admin.logs.loading'
-                        defaultMessage='Loading logs...'
+                {filters}
+                <div className='LogViewer__placeholder'>
+                    <LoadingSpinner
+                        text={
+                            <FormattedMessage
+                                id='admin.logs.loading'
+                                defaultMessage='Loading logs'
+                            />
+                        }
                     />
                 </div>
             </div>
@@ -397,208 +645,7 @@ export default function LogList({
             className='LogViewer'
             onKeyDown={handleKeyDown}
         >
-            {/* Toolbar row 1: Actions */}
-            <div className='LogViewer__toolbar'>
-                <div className='LogViewer__toolbar-group'>
-                    {/* Time range presets */}
-                    {timePresets.map((preset) => (
-                        <button
-                            key={preset.minutes}
-                            type='button'
-                            className={`LogViewer__action-btn ${activeTimePreset === preset.minutes ? 'LogViewer__action-btn--active' : ''}`}
-                            onClick={() => onTimePreset(preset.minutes)}
-                        >
-                            <FormattedMessage {...preset.label}/>
-                        </button>
-                    ))}
-                    {activeTimePreset !== null && (
-                        <button
-                            type='button'
-                            className='LogViewer__action-btn LogViewer__action-btn--icon'
-                            onClick={onClearTimePreset}
-                            aria-label={intl.formatMessage({id: 'admin.logs.clearTimePreset', defaultMessage: 'Clear time preset'})}
-                        >
-                            <i
-                                className='icon icon-close'
-                                aria-hidden='true'
-                            />
-                        </button>
-                    )}
-                </div>
-
-                <div className='LogViewer__toolbar-group'>
-                    {/* Live tail */}
-                    <button
-                        type='button'
-                        className={`LogViewer__action-btn ${liveTailEnabled ? 'LogViewer__action-btn--live' : ''}`}
-                        onClick={onToggleLiveTail}
-                    >
-                        {liveTailEnabled && <span className='LogViewer__live-dot'/>}
-                        <FormattedMessage
-                            id='admin.logs.liveTail'
-                            defaultMessage='Live'
-                        />
-                    </button>
-                    <div className='LogViewer__poll-interval-wrapper'>
-                        <button
-                            type='button'
-                            className='LogViewer__action-btn'
-                            onClick={onTogglePollDropdown}
-                        >
-                            {pollIntervalLabels[pollInterval]}
-                            <i
-                                className='icon icon-chevron-down'
-                                aria-hidden='true'
-                            />
-                        </button>
-                        {showPollDropdown && (
-                            <div className='LogViewer__poll-dropdown'>
-                                {pollIntervals.map((interval) => (
-                                    <button
-                                        key={interval}
-                                        type='button'
-                                        className={`LogViewer__poll-option ${interval === pollInterval ? 'LogViewer__poll-option--active' : ''}`}
-                                        onClick={() => {
-                                            onPollIntervalChange(interval);
-                                            onTogglePollDropdown();
-                                        }}
-                                    >
-                                        {pollIntervalLabels[interval]}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                    {liveTailEnabled && lastUpdatedText && (
-                        <span className='LogViewer__last-updated'>
-                            {lastUpdatedText}
-                        </span>
-                    )}
-                </div>
-
-                <div className='LogViewer__toolbar-spacer'/>
-
-                <div className='LogViewer__toolbar-group'>
-                    <button
-                        type='button'
-                        className='LogViewer__action-btn'
-                        onClick={onReload}
-                    >
-                        <i
-                            className='icon icon-refresh'
-                            aria-hidden='true'
-                        />
-                        <FormattedMessage
-                            id='admin.logs.ReloadLogs'
-                            defaultMessage='Reload'
-                        />
-                    </button>
-                    <ExternalLink
-                        location='download_logs'
-                        className='LogViewer__action-btn'
-                        href={downloadUrl}
-                    >
-                        <i
-                            className='icon icon-download-outline'
-                            aria-hidden='true'
-                        />
-                        <FormattedMessage
-                            id='admin.logs.DownloadLogs'
-                            defaultMessage='Download'
-                        />
-                    </ExternalLink>
-                </div>
-            </div>
-
-            {/* Toolbar row 2: Search + levels + wrap */}
-            <div className='LogViewer__filterbar'>
-                <div className='LogViewer__search'>
-                    <i
-                        className='icon icon-magnify LogViewer__search-icon'
-                        aria-hidden='true'
-                    />
-                    <input
-                        className='LogViewer__search-input'
-                        type='text'
-                        placeholder={intl.formatMessage({id: 'admin.logs.search.placeholder', defaultMessage: 'Search logs...'})}
-                        value={searchInput}
-                        onChange={(e) => handleSearchChange(e.target.value)}
-                    />
-                    {searchInput && (
-                        <button
-                            className='LogViewer__search-clear'
-                            onClick={clearSearch}
-                            type='button'
-                            aria-label={intl.formatMessage({id: 'admin.logs.search.clear', defaultMessage: 'Clear search'})}
-                        >
-                            <i
-                                className='icon icon-close'
-                                aria-hidden='true'
-                            />
-                        </button>
-                    )}
-                    {matchCount !== null && (
-                        <span className='LogViewer__match-count'>
-                            <FormattedMessage
-                                id='admin.logs.matchCount'
-                                defaultMessage='{count, number} of {total, number}'
-                                values={{count: matchCount, total: totalCount}}
-                            />
-                        </span>
-                    )}
-                </div>
-
-                {/* Level toggles */}
-                <div className='LogViewer__level-filters'>
-                    <button
-                        className={`LogViewer__level-btn ${allLevelsEnabled ? 'LogViewer__level-btn--active' : ''}`}
-                        onClick={enableAllLevels}
-                        type='button'
-                    >
-                        <FormattedMessage
-                            id='admin.logs.allLevels'
-                            defaultMessage='All'
-                        />
-                        <span className='LogViewer__level-count'>{totalCount}</span>
-                    </button>
-                    {LEVEL_ORDER.map((level) => (
-                        <button
-                            key={level}
-                            className={`LogViewer__level-btn LogViewer__level-btn--${level} ${enabledLevels.has(level) ? 'LogViewer__level-btn--on' : ''}`}
-                            onClick={(event) => {
-                                if (event.ctrlKey || event.metaKey) {
-                                    soloLevel(level);
-                                } else {
-                                    toggleLevel(level);
-                                }
-                            }}
-                            title={intl.formatMessage({id: 'admin.logs.levelPill.title', defaultMessage: 'Click to toggle · Ctrl/Cmd-click to show only this level'})}
-                            type='button'
-                        >
-                            <FormattedMessage {...LEVEL_LABELS[level]}/>
-                            <span className='LogViewer__level-count'>{levelCounts[level]}</span>
-                        </button>
-                    ))}
-                </div>
-
-                <button
-                    className={`LogViewer__action-btn ${wrapText ? 'LogViewer__action-btn--active' : ''}`}
-                    onClick={() => setWrapText(!wrapText)}
-                    type='button'
-                >
-                    {wrapText ? (
-                        <FormattedMessage
-                            id='admin.logs.wrap'
-                            defaultMessage='Wrap'
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='admin.logs.nowrap'
-                            defaultMessage='No wrap'
-                        />
-                    )}
-                </button>
-            </div>
+            {filters}
 
             {/* Column header */}
             <div className='LogViewer__header'>
@@ -612,6 +659,7 @@ export default function LogList({
                     className='LogViewer__header-timestamp'
                     onClick={toggleSort}
                     type='button'
+                    aria-label={intl.formatMessage({id: 'admin.logs.header.timeSort', defaultMessage: 'Sort by time'})}
                 >
                     <FormattedMessage
                         id='admin.logs.header.time'
@@ -638,7 +686,7 @@ export default function LogList({
 
             {/* Empty state — kept outside the list so it only owns rows */}
             {visibleLogs.length === 0 && !loading && (
-                <div className='LogViewer__empty'>
+                <div className='LogViewer__placeholder'>
                     {search || !allLevelsEnabled ? (
                         <FormattedMessage
                             id='admin.logs.noMatchingLogs'
@@ -691,67 +739,73 @@ export default function LogList({
                 ))}
             </div>
 
-            {loading && logs.length > 0 && (
-                <div className='LogViewer__loading-overlay'>
-                    <FormattedMessage
-                        id='admin.logs.refreshing'
-                        defaultMessage='Refreshing...'
-                    />
-                </div>
-            )}
-
             {/* Footer */}
             <div className='LogViewer__footer'>
-                <div className='LogViewer__footer-left'>
-                    <span className='LogViewer__footer-info'>
+                <span className='LogViewer__footer-info'>
+                    {loading && (
+                        <FormattedMessage
+                            id='admin.logs.refreshing'
+                            defaultMessage='Refreshing…'
+                        />
+                    )}
+                    {!loading && matchCount !== null && (
+                        <FormattedMessage
+                            id='admin.logs.showingMatching'
+                            defaultMessage='Showing {start, number} - {end, number} of {matches, number} entries matching your filters ({total, number} total)'
+                            values={{
+                                start: processedLogs.length > 0 ? startIndex + 1 : 0,
+                                end: endIndex,
+                                matches: matchCount,
+                                total: totalCount,
+                            }}
+                        />
+                    )}
+                    {!loading && matchCount === null && (
                         <FormattedMessage
                             id='admin.logs.showing'
-                            defaultMessage='{start, number}-{end, number} of {total, number}'
+                            defaultMessage='Showing {start, number} - {end, number} of {total, number}'
                             values={{
                                 start: processedLogs.length > 0 ? startIndex + 1 : 0,
                                 end: endIndex,
                                 total: processedLogs.length,
                             }}
                         />
-                    </span>
-                    <div className='LogViewer__footer-pagination'>
-                        <button
-                            className='LogViewer__page-btn'
-                            onClick={goPrevPage}
-                            disabled={page === 0}
-                            type='button'
-                            aria-label={intl.formatMessage({id: 'admin.logs.prevPage', defaultMessage: 'Previous page'})}
-                        >
-                            <i
-                                className='icon icon-chevron-left'
-                                aria-hidden='true'
-                            />
-                        </button>
-                        <span className='LogViewer__page-indicator'>
+                    )}
+                    <WithTooltip
+                        title={
                             <FormattedMessage
-                                id='admin.logs.pageOf'
-                                defaultMessage='Page {page, number} of {total, number}'
-                                values={{page: page + 1, total: totalPages}}
+                                id='admin.logs.keyboardHints'
+                                defaultMessage='Keyboard shortcuts: Up and Down arrows navigate entries, Enter expands the selected entry, E jumps to the next error, and / focuses the search box.'
                             />
-                        </span>
-                        <button
-                            className='LogViewer__page-btn'
-                            onClick={goNextPage}
-                            disabled={page >= totalPages - 1}
-                            type='button'
-                            aria-label={intl.formatMessage({id: 'admin.logs.nextPage', defaultMessage: 'Next page'})}
-                        >
-                            <i
-                                className='icon icon-chevron-right'
-                                aria-hidden='true'
-                            />
-                        </button>
-                    </div>
-                    <div className='LogViewer__footer-pagesize'>
+                        }
+                    >
+                        <i
+                            className='icon icon-information-outline LogViewer__footer-help'
+                            tabIndex={0}
+                            role='button'
+                            aria-label={intl.formatMessage({id: 'admin.logs.keyboardHintsLabel', defaultMessage: 'Keyboard shortcuts'})}
+                        />
+                    </WithTooltip>
+                </span>
+
+                <div className='LogViewer__footer-controls'>
+                    <button
+                        type='button'
+                        className={`btn btn-sm ${wrapText ? 'btn-tertiary' : 'btn-quaternary'}`}
+                        onClick={() => setWrapText(!wrapText)}
+                        aria-pressed={wrapText}
+                    >
+                        <FormattedMessage
+                            id='admin.logs.wrap'
+                            defaultMessage='Wrap text'
+                        />
+                    </button>
+
+                    <div className='LogViewer__pagesize'>
                         <label htmlFor='logPageSize'>
                             <FormattedMessage
                                 id='admin.logs.rowsPerPage'
-                                defaultMessage='Rows:'
+                                defaultMessage='Show'
                             />
                         </label>
                         <select
@@ -768,37 +822,45 @@ export default function LogList({
                                 </option>
                             ))}
                         </select>
+                        <FormattedMessage
+                            id='admin.logs.rowsPerPageSuffix'
+                            defaultMessage='rows per page'
+                        />
                     </div>
-                </div>
-                <div className='LogViewer__keyboard-hints'>
-                    <span className='LogViewer__kbd-group'>
-                        <kbd>{'↑'}</kbd><kbd>{'↓'}</kbd>{' '}
-                        <FormattedMessage
-                            id='admin.logs.kbd.navigate'
-                            defaultMessage='navigate'
-                        />
-                    </span>
-                    <span className='LogViewer__kbd-group'>
-                        <kbd>{'Enter'}</kbd>{' '}
-                        <FormattedMessage
-                            id='admin.logs.kbd.expand'
-                            defaultMessage='expand'
-                        />
-                    </span>
-                    <span className='LogViewer__kbd-group'>
-                        <kbd>{'e'}</kbd>{' '}
-                        <FormattedMessage
-                            id='admin.logs.kbd.jumpError'
-                            defaultMessage='next error'
-                        />
-                    </span>
-                    <span className='LogViewer__kbd-group'>
-                        <kbd>{'/'}</kbd>{' '}
-                        <FormattedMessage
-                            id='admin.logs.kbd.search'
-                            defaultMessage='search'
-                        />
-                    </span>
+
+                    <div className='LogViewer__pagination'>
+                        <span className='LogViewer__page-indicator'>
+                            <FormattedMessage
+                                id='admin.logs.pageOf'
+                                defaultMessage='Page {page, number} of {total, number}'
+                                values={{page: page + 1, total: totalPages}}
+                            />
+                        </span>
+                        <button
+                            className='btn btn-icon btn-sm'
+                            onClick={goPrevPage}
+                            disabled={page === 0}
+                            type='button'
+                            aria-label={intl.formatMessage({id: 'admin.logs.prevPage', defaultMessage: 'Previous page'})}
+                        >
+                            <i
+                                className='icon icon-chevron-left'
+                                aria-hidden='true'
+                            />
+                        </button>
+                        <button
+                            className='btn btn-icon btn-sm'
+                            onClick={goNextPage}
+                            disabled={page >= totalPages - 1}
+                            type='button'
+                            aria-label={intl.formatMessage({id: 'admin.logs.nextPage', defaultMessage: 'Next page'})}
+                        >
+                            <i
+                                className='icon icon-chevron-right'
+                                aria-hidden='true'
+                            />
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

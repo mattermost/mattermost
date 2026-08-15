@@ -1,265 +1,125 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+@use "./log_viewer";
+
 // ============================
 // Log Viewer
 // ============================
 
 .LogViewer {
-    display: flex;
-    min-height: 0;
-    flex: 1;
-    flex-direction: column;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-    border-radius: 4px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    @include log_viewer.viewer-shell;
 
     // ---------------------
-    // Toolbar row 1: Actions
+    // Filters
     // ---------------------
-    &__toolbar {
-        display: flex;
-        align-items: center;
-        padding: 8px 12px;
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-        background: rgba(var(--center-channel-color-rgb), 0.02);
-        gap: 8px;
+    // Padding and wrapping come from .admin-console__filters-rows, matching the
+    // System Users filter row.
+    &__filters {
+        column-gap: 12px;
     }
 
-    &__toolbar-group {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    &__toolbar-spacer {
+    &__filters-spacer {
         flex: 1;
     }
 
-    // Unified action button used across toolbars
-    &__action-btn {
-        display: inline-flex;
-        align-items: center;
-        padding: 4px 10px;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-        border-radius: 4px;
-        background: transparent;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
-        cursor: pointer;
+    &__search {
+        width: 240px;
+
+        .Input_wrapper {
+            gap: 4px;
+        }
+
+        .icon-magnify {
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-size: 18px;
+        }
+    }
+
+    &__search-clear {
+        margin-inline-start: -4px;
+    }
+
+    // Count of entries per level, shown next to each level in the filter menu
+    &__level-count {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
         font-size: 12px;
-        font-weight: 500;
+        font-weight: 600;
+    }
+
+    // ---------------------
+    // Live tail
+    // ---------------------
+    &__live-tail {
+        display: flex;
+        align-items: center;
         gap: 4px;
-        line-height: 20px;
-        text-decoration: none;
-        transition: all 0.15s ease;
+    }
+
+    &__live-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: var(--radius-full);
+        animation: log-live-pulse 1.5s ease-in-out infinite;
+        background: var(--dnd-indicator);
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
+    }
+
+    &__last-updated {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
         white-space: nowrap;
+    }
+
+    // ---------------------
+    // Column header
+    // ---------------------
+    // Mirrors the `thead` of .adminConsoleListTable so the log list reads as a
+    // table alongside the other admin console lists.
+    &__header {
+        display: flex;
+        align-items: center;
+        padding: 12px 24px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        font-weight: 600;
+        gap: 12px;
+        line-height: 16px;
+        white-space: nowrap;
+    }
+
+    &__header-level {
+        width: log_viewer.$level-column-width;
+        flex-shrink: 0;
+    }
+
+    &__header-timestamp {
+        display: inline-flex;
+        width: log_viewer.$timestamp-column-width;
+        flex-shrink: 0;
+        align-items: center;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        font-size: inherit;
+        font-weight: inherit;
+        gap: 2px;
+        text-align: left;
 
         i {
             font-size: 14px;
         }
 
         &:hover {
-            border-color: rgba(var(--center-channel-color-rgb), 0.24);
-            background: rgba(var(--center-channel-color-rgb), 0.06);
-            color: rgba(var(--center-channel-color-rgb), 0.80);
-            text-decoration: none;
-        }
-
-        &--active {
-            border-color: rgba(var(--button-bg-rgb), 0.32);
-            background: rgba(var(--button-bg-rgb), 0.08);
-            color: var(--button-bg);
-        }
-
-        &--live {
-            border-color: rgba(var(--dnd-indicator-rgb), 0.32);
-            background: rgba(var(--dnd-indicator-rgb), 0.08);
-            color: var(--dnd-indicator);
-        }
-
-        &--icon {
-            padding: 4px 6px;
-        }
-    }
-
-    // ---------------------
-    // Toolbar row 2: Filters
-    // ---------------------
-    &__filterbar {
-        display: flex;
-        align-items: center;
-        padding: 6px 12px 8px;
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-        gap: 12px;
-    }
-
-    // Search
-    &__search {
-        display: flex;
-        max-width: 360px;
-        flex: 1;
-        align-items: center;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 4px;
-        background: var(--center-channel-bg);
-
-        &:focus-within {
-            border-color: var(--button-bg);
-            box-shadow: 0 0 0 1px var(--button-bg);
-        }
-    }
-
-    &__search-icon {
-        padding: 0 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.48);
-        font-size: 16px;
-    }
-
-    &__search-input {
-        flex: 1;
-        padding: 5px 0;
-        border: none;
-        background: transparent;
-        color: var(--center-channel-color);
-        font-size: 13px;
-        outline: none;
-
-        &::placeholder {
-            color: rgba(var(--center-channel-color-rgb), 0.48);
-        }
-    }
-
-    &__search-clear {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 4px 8px;
-        border: none;
-        background: transparent;
-        color: rgba(var(--center-channel-color-rgb), 0.48);
-        cursor: pointer;
-
-        &:hover {
             color: var(--center-channel-color);
-        }
-    }
-
-    &__match-count {
-        padding-right: 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.48);
-        font-size: 12px;
-        white-space: nowrap;
-    }
-
-    // Level filter toggles
-    &__level-filters {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    &__level-btn {
-        display: inline-flex;
-        align-items: center;
-        padding: 3px 10px;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-        border-radius: 12px;
-        background: transparent;
-        color: rgba(var(--center-channel-color-rgb), 0.48);
-        cursor: pointer;
-        font-size: 12px;
-        font-weight: 600;
-        gap: 4px;
-        line-height: 18px;
-        transition: all 0.15s ease;
-
-        &:hover {
-            background: rgba(var(--center-channel-color-rgb), 0.04);
-        }
-
-        // "All" button active state
-        &--active {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: var(--center-channel-color);
-        }
-
-        // Per-level active states (--on modifier)
-        &--error.LogViewer__level-btn--on {
-            border-color: rgba(var(--dnd-indicator-rgb), 0.32);
-            background: rgba(var(--dnd-indicator-rgb), 0.08);
-            color: var(--dnd-indicator);
-        }
-
-        &--warn.LogViewer__level-btn--on {
-            border-color: rgba(var(--away-indicator-rgb), 0.32);
-            background: rgba(var(--away-indicator-rgb), 0.08);
-            color: var(--away-indicator);
-        }
-
-        &--info.LogViewer__level-btn--on {
-            border-color: rgba(var(--button-bg-rgb), 0.32);
-            background: rgba(var(--button-bg-rgb), 0.08);
-            color: var(--button-bg);
-        }
-
-        &--debug.LogViewer__level-btn--on {
-            border-color: rgba(var(--center-channel-color-rgb), 0.24);
-            background: rgba(var(--center-channel-color-rgb), 0.06);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-        }
-    }
-
-    &__level-count {
-        padding: 0 4px;
-        border-radius: 8px;
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        font-size: 11px;
-        font-weight: 400;
-    }
-
-    // ---------------------
-    // Column header
-    // ---------------------
-    &__header {
-        display: flex;
-        align-items: center;
-        padding: 4px 12px;
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-        background: rgba(var(--center-channel-color-rgb), 0.04);
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 11px;
-        font-weight: 600;
-        gap: 8px;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-    }
-
-    &__header-level {
-        width: 32px;
-        flex-shrink: 0;
-    }
-
-    &__header-timestamp {
-        width: 92px;
-        flex-shrink: 0;
-        padding: 2px 4px;
-        border: none;
-        border-radius: 2px;
-        background: transparent;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        cursor: pointer;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        text-align: left;
-        text-transform: uppercase;
-
-        i {
-            font-size: 12px;
-        }
-
-        &:hover {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
         }
     }
 
@@ -269,7 +129,8 @@
     }
 
     &__header-caller {
-        width: 216px; // 192px caller + 8px gap + 16px expand indicator
+        // Caller column plus the gap and the expand chevron beside it
+        width: log_viewer.$caller-column-width + 12px + 16px;
         flex-shrink: 0;
         text-align: right;
     }
@@ -283,222 +144,55 @@
         overflow-y: auto;
     }
 
-    // Empty state
-    &__empty {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 48px 24px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 14px;
+    // Loading and empty states
+    &__placeholder {
+        @include log_viewer.viewer-placeholder;
 
-        .btn-link {
-            padding: 0;
-            font-size: 14px;
-        }
-    }
-
-    // Loading
-    &__loading {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 48px 24px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 14px;
-        gap: 8px;
-    }
-
-    &__loading-spinner {
-        width: 20px;
-        height: 20px;
-        border: 2px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 50%;
-        border-top-color: var(--button-bg);
-        animation: log-spin 0.8s linear infinite;
-
-        @media (prefers-reduced-motion: reduce) {
-            animation: none;
-        }
-    }
-
-    &__loading-overlay {
-        padding: 8px 12px;
-        color: rgba(var(--center-channel-color-rgb), 0.48);
-        font-size: 12px;
-        text-align: center;
+        flex: 1;
     }
 
     // ---------------------
-    // Live tail
-    // ---------------------
-    &__live-dot {
-        display: inline-block;
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        margin-right: 4px;
-        animation: live-pulse 1.5s ease-in-out infinite;
-        background: currentColor;
-
-        @media (prefers-reduced-motion: reduce) {
-            animation: none;
-        }
-    }
-
-    &__poll-interval-wrapper {
-        position: relative;
-    }
-
-    &__poll-dropdown {
-        position: absolute;
-        z-index: 10;
-        top: 100%;
-        left: 0;
-        min-width: 60px;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 4px;
-        margin-top: 2px;
-        background: var(--center-channel-bg);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    }
-
-    &__poll-option {
-        display: block;
-        width: 100%;
-        padding: 6px 12px;
-        border: none;
-        background: transparent;
-        color: var(--center-channel-color);
-        cursor: pointer;
-        font-size: 12px;
-        text-align: left;
-
-        &:hover {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-        }
-
-        &--active {
-            background: rgba(var(--button-bg-rgb), 0.08);
-            color: var(--button-bg);
-            font-weight: 600;
-        }
-    }
-
-    &__last-updated {
-        color: rgba(var(--center-channel-color-rgb), 0.48);
-        font-size: 11px;
-        white-space: nowrap;
-    }
-
-    // ---------------------
-    // Footer / Pagination
+    // Footer
     // ---------------------
     &__footer {
-        display: flex;
-        align-items: center;
-        padding: 6px 12px;
-        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-        background: rgba(var(--center-channel-color-rgb), 0.02);
-        font-size: 12px;
-        gap: 12px;
-    }
-
-    &__footer-left {
-        display: flex;
-        align-items: center;
-        gap: 12px;
+        @include log_viewer.viewer-footer;
     }
 
     &__footer-info {
-        min-width: 140px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        white-space: nowrap;
-    }
-
-    &__footer-pagination {
         display: flex;
         align-items: center;
-        gap: 0;
+        gap: 6px;
     }
 
-    &__page-btn {
-        display: flex;
-        width: 28px;
-        height: 28px;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-        border-radius: 4px;
-        background: transparent;
+    &__footer-help {
         color: rgba(var(--center-channel-color-rgb), 0.56);
-        cursor: pointer;
+        cursor: help;
+        font-size: 16px;
 
-        &:hover:not(:disabled) {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
+        &:hover {
             color: var(--center-channel-color);
         }
+    }
 
-        &:disabled {
-            cursor: default;
-            opacity: 0.32;
-        }
+    &__footer-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    &__pagesize {
+        @include log_viewer.viewer-page-size;
+    }
+
+    &__pagination {
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
 
     &__page-indicator {
-        display: inline-block;
-        min-width: 120px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        text-align: center;
+        margin-inline-end: 8px;
         white-space: nowrap;
-    }
-
-    &__footer-pagesize {
-        display: flex;
-        align-items: center;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        gap: 4px;
-
-        select {
-            padding: 2px 4px;
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            border-radius: 4px;
-            background: var(--center-channel-bg);
-            color: var(--center-channel-color);
-            font-size: 12px;
-        }
-    }
-
-    &__keyboard-hints {
-        display: flex;
-        align-items: center;
-        margin-left: auto;
-        color: rgba(var(--center-channel-color-rgb), 0.40);
-        font-size: 11px;
-        gap: 12px;
-        white-space: nowrap;
-    }
-
-    &__kbd-group {
-        display: inline-flex;
-        align-items: center;
-        gap: 2px;
-
-        kbd {
-            display: inline-block;
-            min-width: 18px;
-            padding: 1px 4px;
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            border-radius: 3px;
-            background: rgba(var(--center-channel-color-rgb), 0.04);
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-            font-family: inherit;
-            font-size: 10px;
-            font-weight: 500;
-            line-height: 16px;
-            text-align: center;
-        }
     }
 }
 
@@ -507,10 +201,12 @@
 // ============================
 
 .LogRow {
-    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.06);
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     cursor: pointer;
-    outline: none;
-    transition: background-color 0.1s ease;
+
+    &:first-child {
+        border-top: none;
+    }
 
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.04);
@@ -522,97 +218,75 @@
     }
 
     &--expanded {
-        background: rgba(var(--center-channel-color-rgb), 0.02);
-    }
-
-    // Error/warn background tints
-    &--error-bg {
-        background: rgba(var(--dnd-indicator-rgb), 0.03);
-
-        &:hover {
-            background: rgba(var(--dnd-indicator-rgb), 0.06);
-        }
-    }
-
-    &--warn-bg {
-        background: rgba(var(--away-indicator-rgb), 0.02);
-
-        &:hover {
-            background: rgba(var(--away-indicator-rgb), 0.04);
-        }
-    }
-
-    // Density modes
-    &--compact .LogRow__main {
-        padding: 3px 12px;
-        font-size: 12px;
-        line-height: 22px;
-    }
-
-    &--comfortable .LogRow__main {
-        padding: 8px 12px;
-        font-size: 13px;
-        line-height: 24px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
     }
 
     // Main row content
     &__main {
         display: flex;
+        min-height: 36px;
         align-items: flex-start;
-        gap: 8px;
+        padding: 8px 24px;
+        font-family: log_viewer.$mono-font;
+        font-size: 13px;
+        gap: 12px;
+        line-height: 20px;
+
+        &:focus-visible {
+            outline: 2px solid var(--button-bg);
+            outline-offset: -2px;
+        }
     }
 
-    // Level badge
+    // Level chip. Sized to the level column so the rows stay aligned, and
+    // otherwise built to the same metrics as the shared Tag widget.
     &__level {
         display: inline-flex;
-        width: 32px;
+        width: log_viewer.$level-column-width;
+        height: 20px;
         flex-shrink: 0;
         align-items: center;
         justify-content: center;
-        padding: 1px 0;
-        border-radius: 3px;
-        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.3px;
+        border-radius: var(--radius-s);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        line-height: 16px;
         text-transform: uppercase;
 
         &--error {
-            background: rgba(var(--dnd-indicator-rgb), 0.12);
-            color: var(--dnd-indicator);
+            background: rgba(var(--semantic-color-danger), 0.12);
+            color: rgb(var(--semantic-color-danger));
         }
 
         &--warn {
-            background: rgba(var(--away-indicator-rgb), 0.12);
-            color: var(--away-indicator);
+            background: rgba(var(--semantic-color-warning), 0.12);
+            color: rgb(var(--semantic-color-warning));
         }
 
         &--info {
-            background: rgba(var(--button-bg-rgb), 0.10);
-            color: var(--button-bg);
+            background: rgba(var(--semantic-color-info), 0.12);
+            color: rgb(var(--semantic-color-info));
         }
 
         &--debug {
             background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
         }
     }
 
-    // Timestamp
     &__timestamp {
-        width: 92px;
+        width: log_viewer.$timestamp-column-width;
         flex-shrink: 0;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
     }
 
-    // Message
     &__message {
         min-width: 0;
         flex: 1;
         color: var(--center-channel-color);
-        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
     }
 
     &--wrap &__message {
@@ -633,64 +307,52 @@
     &__caller {
         overflow: hidden;
         min-width: 60px;
-        flex: 0 1 192px;
-        color: rgba(var(--center-channel-color-rgb), 0.40);
+        flex: 0 1 log_viewer.$caller-column-width;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
         direction: rtl;
-        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-        font-size: 11px;
+        font-size: 12px;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
-    // Expand indicator
     &__expand-indicator {
         width: 16px;
         flex-shrink: 0;
-        color: rgba(var(--center-channel-color-rgb), 0.24);
-        font-size: 8px;
-        text-align: center;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 16px;
     }
 
-    // Search highlight
     &__highlight {
         padding: 0 1px;
-        border-radius: 2px;
-        background: rgba(var(--mention-highlight-bg-rgb, 255, 213, 0), 0.4);
+        border-radius: var(--radius-xs);
+        background: rgba(var(--mention-highlight-bg-rgb), 0.48);
+        color: inherit;
     }
 
+    // ---------------------
     // Expanded details
+    // ---------------------
     &__details {
-        padding: 8px 12px 12px 52px;
-        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.06);
-        animation: log-expand 0.15s ease;
-
-        @media (prefers-reduced-motion: reduce) {
-            animation: none;
-        }
+        padding: 16px 24px 16px log_viewer.$details-indent;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     }
 
-    // Core fields section (timestamp, level, caller, message)
-    &__details-core {
-        display: grid;
-        padding-bottom: 8px;
-        gap: 6px 24px;
-        grid-template-columns: 1fr 1fr;
-    }
-
-    // Extra fields section (dynamic fields with copy/links)
-    &__details-extra {
-        padding-top: 8px;
-        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.06);
-    }
-
+    &__details-core,
     &__details-grid {
         display: grid;
-        gap: 6px 24px;
-        grid-template-columns: 1fr 1fr;
+        gap: 12px 24px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    &__details-extra {
+        padding-top: 16px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-top: 16px;
     }
 
     &__detail-item {
         display: flex;
+        min-width: 0;
         flex-direction: column;
         gap: 2px;
 
@@ -700,59 +362,36 @@
     }
 
     &__detail-label {
-        color: rgba(var(--center-channel-color-rgb), 0.48);
-        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
         font-weight: 600;
-        letter-spacing: 0.3px;
-        text-transform: uppercase;
+        line-height: 16px;
     }
 
     &__detail-value {
         display: flex;
         align-items: center;
         color: var(--center-channel-color);
-        font-size: 13px;
+        font-size: 14px;
         gap: 4px;
+        line-height: 20px;
         word-break: break-word;
 
         &--mono {
-            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-            font-size: 12px;
-        }
-    }
-
-    // Inline copy button next to copyable values
-    &__copy-btn {
-        display: inline-flex;
-        width: 20px;
-        height: 20px;
-        flex-shrink: 0;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: none;
-        border-radius: 3px;
-        background: transparent;
-        color: rgba(var(--center-channel-color-rgb), 0.32);
-        cursor: pointer;
-
-        i {
+            font-family: log_viewer.$mono-font;
             font-size: 13px;
         }
-
-        &:hover {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.64);
-        }
     }
 
-    // Deep link to admin console pages
+    &__copy-btn {
+        flex-shrink: 0;
+    }
+
     &__detail-link {
         display: inline-flex;
         align-items: center;
-        color: var(--button-bg);
+        color: var(--link-color);
         gap: 2px;
-        text-decoration: none;
 
         &:hover {
             text-decoration: underline;
@@ -760,70 +399,20 @@
     }
 
     &__detail-link-icon {
-        font-size: 12px;
-        opacity: 0.64;
+        font-size: 14px;
     }
 
-    // Action buttons row
     &__details-actions {
         display: flex;
         align-items: center;
-        padding-top: 8px;
-        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.06);
-        margin-top: 8px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-top: 16px;
         gap: 8px;
     }
-
-    &__action-btn {
-        display: inline-flex;
-        align-items: center;
-        padding: 4px 10px;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-        border-radius: 4px;
-        background: transparent;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
-        cursor: pointer;
-        font-size: 12px;
-        font-weight: 500;
-        gap: 4px;
-        line-height: 20px;
-        transition: all 0.15s ease;
-
-        i {
-            font-size: 14px;
-        }
-
-        &:hover {
-            border-color: rgba(var(--center-channel-color-rgb), 0.24);
-            background: rgba(var(--center-channel-color-rgb), 0.06);
-            color: rgba(var(--center-channel-color-rgb), 0.80);
-        }
-    }
 }
 
-// ============================
-// Animations
-// ============================
-
-@keyframes log-spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-@keyframes log-expand {
-    from {
-        opacity: 0;
-        transform: translateY(-4px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes live-pulse {
+@keyframes log-live-pulse {
     0%,
     100% {
         opacity: 1;

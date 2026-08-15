@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState, memo} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {LogObjectWithAdditionalInfo} from './types';
@@ -26,11 +27,11 @@ type Props = {
     wrapText: boolean;
 };
 
-const LEVEL_CONFIG: Record<string, {label: string; className: string}> = {
-    error: {label: 'ERR', className: 'LogRow__level--error'},
-    warn: {label: 'WRN', className: 'LogRow__level--warn'},
-    info: {label: 'INF', className: 'LogRow__level--info'},
-    debug: {label: 'DBG', className: 'LogRow__level--debug'},
+const LEVEL_CONFIG: Record<string, {label: MessageDescriptor; className: string}> = {
+    error: {label: defineMessage({id: 'admin.logs.level.error', defaultMessage: 'Error'}), className: 'LogRow__level--error'},
+    warn: {label: defineMessage({id: 'admin.logs.level.warn', defaultMessage: 'Warn'}), className: 'LogRow__level--warn'},
+    info: {label: defineMessage({id: 'admin.logs.level.info', defaultMessage: 'Info'}), className: 'LogRow__level--info'},
+    debug: {label: defineMessage({id: 'admin.logs.level.debug', defaultMessage: 'Debug'}), className: 'LogRow__level--debug'},
 };
 
 // Fields that link to admin console pages
@@ -122,9 +123,9 @@ function CopyButton({value}: {value: string}) {
     return (
         <button
             type='button'
-            className='LogRow__copy-btn'
+            className='LogRow__copy-btn btn btn-icon btn-xs btn-compact'
             onClick={handleCopy}
-            title={intl.formatMessage({id: 'admin.logs.copyToClipboard', defaultMessage: 'Copy to clipboard'})}
+            aria-label={intl.formatMessage({id: 'admin.logs.copyToClipboard', defaultMessage: 'Copy to clipboard'})}
         >
             <i className={copied ? 'icon icon-check' : 'icon icon-content-copy'}/>
         </button>
@@ -163,7 +164,7 @@ function DetailValue({fieldKey, value}: {fieldKey: string; value: string}) {
 function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm, wrapText}: Props) {
     const [copyJsonSuccess, setCopyJsonSuccess] = useState(false);
     const [copyLineSuccess, setCopyLineSuccess] = useState(false);
-    const levelConfig = LEVEL_CONFIG[log.level] || {label: log.level?.toUpperCase()?.slice(0, 3) || '???', className: 'LogRow__level--debug'};
+    const levelConfig = LEVEL_CONFIG[log.level];
 
     const handleClick = useCallback(() => {
         onToggleExpand(log);
@@ -248,8 +249,8 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                 tabIndex={0}
                 aria-expanded={isExpanded}
             >
-                <span className={`LogRow__level ${levelConfig.className}`}>
-                    {levelConfig.label}
+                <span className={`LogRow__level ${levelConfig ? levelConfig.className : 'LogRow__level--debug'}`}>
+                    {levelConfig ? <FormattedMessage {...levelConfig.label}/> : log.level}
                 </span>
                 <span
                     className='LogRow__timestamp'
@@ -266,9 +267,10 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                 >
                     {log.caller}
                 </span>
-                <span className='LogRow__expand-indicator'>
-                    {isExpanded ? '\u25BC' : '\u25B6'}
-                </span>
+                <i
+                    className={`icon ${isExpanded ? 'icon-chevron-down' : 'icon-chevron-right'} LogRow__expand-indicator`}
+                    aria-hidden='true'
+                />
             </div>
             {isExpanded && (
                 <div
@@ -342,7 +344,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                     <div className='LogRow__details-actions'>
                         <button
                             type='button'
-                            className='LogRow__action-btn'
+                            className='btn btn-sm btn-tertiary'
                             onClick={handleCopyJson}
                         >
                             <i className={copyJsonSuccess ? 'icon icon-check' : 'icon icon-code-json'}/>
@@ -360,7 +362,7 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                         </button>
                         <button
                             type='button'
-                            className='LogRow__action-btn'
+                            className='btn btn-sm btn-quaternary'
                             onClick={handleCopyLine}
                         >
                             <i className={copyLineSuccess ? 'icon icon-check' : 'icon icon-content-copy'}/>

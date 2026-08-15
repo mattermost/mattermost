@@ -14,10 +14,13 @@ import {Client4} from 'mattermost-redux/client';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import LogFormatMenu from './log_format_menu';
 import LogList from './log_list';
 import PlainLogList from './plain_log_list';
 import type {LogObjectWithAdditionalInfo} from './types';
 import useLogPolling from './use_log_polling';
+
+import './logs.scss';
 
 type Props = {
     logs: LogObjectWithAdditionalInfo[];
@@ -34,9 +37,6 @@ type Props = {
 
 const messages = defineMessages({
     title: {id: 'admin.logs.title', defaultMessage: 'Server Logs'},
-    logFormatTitle: {id: 'admin.logs.logFormatTitle', defaultMessage: 'Log Format:'},
-    logFormatStructured: {id: 'admin.logs.logFormatStructured', defaultMessage: 'Structured'},
-    logFormatPlain: {id: 'admin.logs.logFormatPlain', defaultMessage: 'Plain text'},
 });
 
 export const searchableStrings = [
@@ -44,18 +44,18 @@ export const searchableStrings = [
 ];
 
 const POLL_INTERVALS = [5000, 10000, 30000, 60000] as const;
-const POLL_INTERVAL_LABELS: Record<number, string> = {
-    5000: '5s',
-    10000: '10s',
-    30000: '30s',
-    60000: '60s',
-};
+const POLL_INTERVAL_LABELS = defineMessages<number>({
+    5000: {id: 'admin.logs.pollInterval.5s', defaultMessage: 'Every 5 seconds'},
+    10000: {id: 'admin.logs.pollInterval.10s', defaultMessage: 'Every 10 seconds'},
+    30000: {id: 'admin.logs.pollInterval.30s', defaultMessage: 'Every 30 seconds'},
+    60000: {id: 'admin.logs.pollInterval.60s', defaultMessage: 'Every 60 seconds'},
+});
 
 const timePresetMessages = defineMessages({
-    fiveMinutes: {id: 'admin.logs.time.5m', defaultMessage: '5m'},
-    fifteenMinutes: {id: 'admin.logs.time.15m', defaultMessage: '15m'},
-    oneHour: {id: 'admin.logs.time.1h', defaultMessage: '1h'},
-    oneDay: {id: 'admin.logs.time.24h', defaultMessage: '24h'},
+    fiveMinutes: {id: 'admin.logs.time.5m', defaultMessage: 'Last 5 minutes'},
+    fifteenMinutes: {id: 'admin.logs.time.15m', defaultMessage: 'Last 15 minutes'},
+    oneHour: {id: 'admin.logs.time.1h', defaultMessage: 'Last hour'},
+    oneDay: {id: 'admin.logs.time.24h', defaultMessage: 'Last 24 hours'},
 });
 
 const TIME_PRESETS = [
@@ -130,7 +130,6 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
     // Live tail state
     const [liveTailEnabled, setLiveTailEnabled] = useState(false);
     const [pollInterval, setPollInterval] = useState(5000);
-    const [showPollDropdown, setShowPollDropdown] = useState(false);
 
     // Active time preset
     const [activeTimePreset, setActiveTimePreset] = useState<number | null>(null);
@@ -212,8 +211,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
         );
     }, [logs, search]);
 
-    const onLogFormatToggle = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        const plain = event.target.value === 'plain';
+    const onLogFormatChange = useCallback((plain: boolean) => {
         setIsPlainLogs(plain);
         try {
             localStorage.setItem(LOG_FORMAT_PREF_KEY, plain ? 'plain' : 'structured');
@@ -294,6 +292,13 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
 
     const displayLogs = searchFilteredLogs;
 
+    const logFormatMenu = configIsPlainLogs ? null : (
+        <LogFormatMenu
+            isPlainLogs={isPlainLogs}
+            onChange={onLogFormatChange}
+        />
+    );
+
     const list = isPlainLogs ? (
         <PlainLogList
             loading={loading}
@@ -305,6 +310,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             perPage={PLAIN_LOGS_PER_PAGE}
             onReload={handleReload}
             downloadUrl={Client4.getUrl() + '/api/v4/logs/download'}
+            logFormatMenu={logFormatMenu}
         />
     ) : (
         <LogList
@@ -320,49 +326,13 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             onPollIntervalChange={setPollInterval}
             pollIntervals={POLL_INTERVALS}
             pollIntervalLabels={POLL_INTERVAL_LABELS}
-            showPollDropdown={showPollDropdown}
-            onTogglePollDropdown={() => setShowPollDropdown(!showPollDropdown)}
             lastUpdatedText={lastUpdatedText}
             timePresets={TIME_PRESETS}
             activeTimePreset={activeTimePreset}
             onTimePreset={handleTimePreset}
             onClearTimePreset={clearTimePreset}
+            logFormatMenu={logFormatMenu}
         />
-    );
-
-    const toggleLogFormat = configIsPlainLogs ? null : (
-        <div
-            className='logs-banner__format'
-            id='admin.logs.LogFormat'
-            role='radiogroup'
-            aria-labelledby='admin.logs.LogFormat.legend'
-        >
-            <span id='admin.logs.LogFormat.legend'>
-                <FormattedMessage {...messages.logFormatTitle}/>
-            </span>
-            <label>
-                <input
-                    type='radio'
-                    id='admin.logs.LogFormat.json'
-                    name='log-format'
-                    value='json'
-                    checked={!isPlainLogs}
-                    onChange={onLogFormatToggle}
-                />
-                <FormattedMessage {...messages.logFormatStructured}/>
-            </label>
-            <label>
-                <input
-                    type='radio'
-                    id='admin.logs.LogFormat.plain'
-                    name='log-format'
-                    value='plain'
-                    checked={isPlainLogs}
-                    onChange={onLogFormatToggle}
-                />
-                <FormattedMessage {...messages.logFormatPlain}/>
-            </label>
-        </div>
     );
 
     return (
@@ -371,12 +341,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
                 <FormattedMessage {...messages.title}/>
             </AdminHeader>
             <div className='admin-console__wrapper'>
-                <div className='admin-logs-content admin-console__content'>
-                    {toggleLogFormat && (
-                        <div className='logs-banner'>
-                            {toggleLogFormat}
-                        </div>
-                    )}
+                <div className='admin-console__container ServerLogs'>
                     {list}
                 </div>
             </div>
