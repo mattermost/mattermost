@@ -7,32 +7,27 @@ import {Client4} from 'mattermost-redux/client';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
-import AttributeAppliesToItem from './attribute_applies_to_item';
+import AttributeAppliesToUserItem from './attribute_applies_to_user_item';
 
-describe('AttributeAppliesToItem', () => {
+describe('AttributeAppliesToUserItem', () => {
     const onRemove = jest.fn();
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    const renderComponent = (props: Partial<React.ComponentProps<typeof AttributeAppliesToItem>> = {}) => {
+    const renderComponent = (props: Partial<React.ComponentProps<typeof AttributeAppliesToUserItem>> = {}) => {
         return renderWithContext(
-            <AttributeAppliesToItem
-                resourceType='user'
+            <AttributeAppliesToUserItem
                 onRemove={onRemove}
                 {...props}
             />,
         );
     };
 
-    it.each([
-        ['user', 'Users'],
-        ['channel', 'Channels'],
-        ['post', 'Posts'],
-    ] as const)('renders the correct label for resourceType %s', (resourceType, label) => {
-        renderComponent({resourceType});
-        expect(screen.getByTestId(`attributeAppliesToRow-${resourceType}`)).toHaveTextContent(label);
+    it('renders the Users label', () => {
+        renderComponent();
+        expect(screen.getByTestId('attributeAppliesToRow-user')).toHaveTextContent('Users');
     });
 
     it('starts collapsed, and clicking the toggle reveals then hides the placeholder body', async () => {

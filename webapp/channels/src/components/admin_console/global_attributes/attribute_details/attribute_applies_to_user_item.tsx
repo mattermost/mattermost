@@ -5,39 +5,33 @@ import classNames from 'classnames';
 import React, {useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
-import {ChevronDownIcon, CloseIcon} from '@mattermost/compass-icons/components';
+import {AccountOutlineIcon, ChevronDownIcon, CloseIcon} from '@mattermost/compass-icons/components';
 
-import {RESOURCE_TYPE_ICONS, resourceTypeLabels} from './attribute_applies_to_constants';
-import type {ResourceObjectType} from './attribute_applies_to_constants';
+import {resourceTypeLabels} from './attribute_applies_to_constants';
+import type {AttributeAppliesToItemProps} from './attribute_applies_to_constants';
 
 import './attribute_applies_to_item.scss';
 
-type Props = {
-    resourceType: ResourceObjectType;
-    disabled?: boolean;
-    onRemove: () => void;
-};
+const BODY_ID = 'attribute-applies-to-user-panel';
 
-// One row per selected resource type -- owns its own expand/collapse state
+// The Users row of the Applies-to list -- owns its own expand/collapse state
 // (deliberately not the shared Accordion component, see the plan's Decisions
 // table: AccordionCard renders the row itself from plain data with no slot
 // for a child component to own it, and its open-row tracking is by array
 // index, which misattributes state when a row is removed from the middle of
 // the list).
-function AttributeAppliesToItem({resourceType, disabled = false, onRemove}: Props): JSX.Element {
+function AttributeAppliesToUserItem({disabled = false, onRemove}: AttributeAppliesToItemProps): JSX.Element {
     const {formatMessage} = useIntl();
     const [isOpen, setIsOpen] = useState(false);
 
-    const Icon = RESOURCE_TYPE_ICONS[resourceType];
-    const label = formatMessage(resourceTypeLabels[resourceType]);
+    const label = formatMessage(resourceTypeLabels.user);
     const removeLabel = formatMessage(messages.removeLabel, {label});
     const toggleLabel = formatMessage(isOpen ? messages.collapseLabel : messages.expandLabel, {label});
-    const bodyId = `attribute-applies-to-${resourceType}-panel`;
 
     return (
         <div
             className='AttributeAppliesToItem'
-            data-testid={`attributeAppliesToRow-${resourceType}`}
+            data-testid='attributeAppliesToRow-user'
         >
             <div className='AttributeAppliesToItem__header'>
                 <button
@@ -46,15 +40,15 @@ function AttributeAppliesToItem({resourceType, disabled = false, onRemove}: Prop
                     onClick={() => setIsOpen((prev) => !prev)}
                     disabled={disabled}
                     aria-expanded={isOpen}
-                    aria-controls={bodyId}
+                    aria-controls={BODY_ID}
                     aria-label={toggleLabel}
-                    data-testid={`attributeAppliesToRow-${resourceType}-toggle`}
+                    data-testid='attributeAppliesToRow-user-toggle'
                 >
                     <ChevronDownIcon
                         size={16}
                         className={classNames('AttributeAppliesToItem__chevron', {'AttributeAppliesToItem__chevron--open': isOpen})}
                     />
-                    <Icon size={18}/>
+                    <AccountOutlineIcon size={18}/>
                     <span className='AttributeAppliesToItem__label'>{label}</span>
                 </button>
                 <button
@@ -63,18 +57,18 @@ function AttributeAppliesToItem({resourceType, disabled = false, onRemove}: Prop
                     onClick={onRemove}
                     disabled={disabled}
                     aria-label={removeLabel}
-                    data-testid={`attributeAppliesToRow-${resourceType}-remove`}
+                    data-testid='attributeAppliesToRow-user-remove'
                 >
                     <CloseIcon size={16}/>
                 </button>
             </div>
             {isOpen && (
                 <div
-                    id={bodyId}
+                    id={BODY_ID}
                     role='region'
                     aria-label={label}
                     className='AttributeAppliesToItem__body'
-                    data-testid={`attributeAppliesToRow-${resourceType}-body`}
+                    data-testid='attributeAppliesToRow-user-body'
                 >
                     <FormattedMessage {...messages.bodyPlaceholder}/>
                 </div>
@@ -83,7 +77,7 @@ function AttributeAppliesToItem({resourceType, disabled = false, onRemove}: Prop
     );
 }
 
-export default AttributeAppliesToItem;
+export default AttributeAppliesToUserItem;
 
 const messages = defineMessages({
     expandLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.expand', defaultMessage: 'Expand {label}'},

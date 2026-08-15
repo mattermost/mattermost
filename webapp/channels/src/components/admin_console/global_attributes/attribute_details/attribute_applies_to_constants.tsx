@@ -15,6 +15,17 @@ export type ResourceObjectType = 'user' | 'channel' | 'post';
 // the insertion order of a saved appliesTo array, which is separate.
 export const ALL_RESOURCE_TYPES: ResourceObjectType[] = ['user', 'channel', 'post'];
 
+// Every per-resource-type row component (AttributeAppliesToUserItem/
+// ChannelItem/PostItem) implements exactly this prop signature -- there's no
+// resourceType prop, since each component already knows its own type. Sharing
+// one type here (rather than each component declaring an identical local
+// `Props`) is what AttributeAppliesTo relies on to treat all three
+// interchangeably in its render switch.
+export type AttributeAppliesToItemProps = {
+    disabled?: boolean;
+    onRemove: () => void;
+};
+
 // Shared between AttributeAppliesTo (which owns the button) and AttributeDetails
 // (which moves focus back to it after a pre-save resource removal).
 export const ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID = 'attribute-applies-to-add-header';

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
+import type {ComponentType} from 'react';
 import React, {useMemo} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
@@ -11,9 +12,11 @@ import {buttonClassNames} from '@mattermost/shared/components/button';
 import Card from 'components/card/card';
 import * as Menu from 'components/menu';
 
+import AttributeAppliesToChannelItem from './attribute_applies_to_channel_item';
 import {ALL_RESOURCE_TYPES, ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID, RESOURCE_TYPE_ICONS, resourceTypeLabels} from './attribute_applies_to_constants';
-import type {ResourceObjectType} from './attribute_applies_to_constants';
-import AttributeAppliesToItem from './attribute_applies_to_item';
+import type {AttributeAppliesToItemProps, ResourceObjectType} from './attribute_applies_to_constants';
+import AttributeAppliesToPostItem from './attribute_applies_to_post_item';
+import AttributeAppliesToUserItem from './attribute_applies_to_user_item';
 
 import './attribute_applies_to.scss';
 
@@ -24,11 +27,23 @@ type Props = {
     onRemove: (type: ResourceObjectType) => void;
 };
 
+// Every entry here must implement AttributeAppliesToItemProps exactly --
+// TypeScript rejects the map itself if any of the three row components'
+// props drift from that shared signature, rather than only failing wherever
+// they happen to get used.
+const RESOURCE_TYPE_ITEM_COMPONENTS: Record<ResourceObjectType, ComponentType<AttributeAppliesToItemProps>> = {
+    user: AttributeAppliesToUserItem,
+    channel: AttributeAppliesToChannelItem,
+    post: AttributeAppliesToPostItem,
+};
+
 // Owns only the Card chrome (header, "Add resource" triggers, empty state)
-// and renders one AttributeAppliesToItem per entry in appliesTo. Holds no
-// selection state of its own -- "available" picker options are derived
-// purely from props on every render. Makes no data-mutating dispatch calls,
-// no Client4/API calls (see R6 -- the page owns all of that).
+// and renders one per-type row component per entry in appliesTo (a dedicated
+// component per resource type -- AttributeAppliesToUserItem/ChannelItem/
+// PostItem -- rather than one generic item parameterized by resourceType).
+// Holds no selection state of its own -- "available" picker options are
+// derived purely from props on every render. Makes no data-mutating dispatch
+// calls, no Client4/API calls (see R6 -- the page owns all of that).
 function AttributeAppliesTo({appliesTo, disabled = false, onAdd, onRemove}: Props): JSX.Element {
     const {formatMessage} = useIntl();
 
@@ -117,14 +132,16 @@ function AttributeAppliesTo({appliesTo, disabled = false, onAdd, onRemove}: Prop
                     ) : (
                         <>
                             <div className='AttributeAppliesTo__list'>
-                                {appliesTo.map((type) => (
-                                    <AttributeAppliesToItem
-                                        key={type}
-                                        resourceType={type}
-                                        disabled={disabled}
-                                        onRemove={() => onRemove(type)}
-                                    />
-                                ))}
+                                {appliesTo.map((type) => {
+                                    const Item = RESOURCE_TYPE_ITEM_COMPONENTS[type];
+                                    return (
+                                        <Item
+                                            key={type}
+                                            disabled={disabled}
+                                            onRemove={() => onRemove(type)}
+                                        />
+                                    );
+                                })}
                             </div>
                             {availableTypes.length > 0 && renderAddResourceMenu(
                                 'attribute-applies-to-add-inline',
