@@ -9,6 +9,7 @@ import type {PropertyField, PropertyFieldOption} from '@mattermost/types/propert
 import {supportsOptions} from '@mattermost/types/properties';
 
 import DropdownInput from 'components/dropdown_input';
+import type {ValueType as Option} from 'components/dropdown_input';
 import Input from 'components/widgets/inputs/input/input';
 
 import './channel_attributes_form.scss';
@@ -22,29 +23,16 @@ type Props = {
     disabled?: boolean;
 };
 
-type Option = {label: string; value: string};
-
 // The menu is portalled to the body to escape the modal's overflow, which drops
 // it out of the modal's stacking context — without these it paints behind the
-// modal and swallows clicks. Same values as the classification dropdown above.
+// modal and swallows clicks.
 const dropdownStyles = {
     menu: (provided: Record<string, unknown>) => ({...provided, zIndex: 100}),
     menuPortal: (provided: Record<string, unknown>) => ({...provided, zIndex: 1100}),
 };
 
-// Date and user-valued attributes are storable through the API but have no
-// assignment UI in this release, so they are skipped rather than rendered as
-// something the user cannot fill in.
 function isText(field: PropertyField): boolean {
     return field.type === 'text';
-}
-
-function isMultiselect(field: PropertyField): boolean {
-    return field.type === 'multiselect';
-}
-
-function isSupported(field: PropertyField): boolean {
-    return supportsOptions(field) || isText(field);
 }
 
 function fieldLabel(field: PropertyField): string {
@@ -60,7 +48,10 @@ function toOptions(field: PropertyField): Option[] {
 const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
     const {formatMessage} = useIntl();
 
-    const supported = useMemo(() => fields.filter(isSupported), [fields]);
+    // Date and user-valued attributes are storable through the API but have no
+    // assignment UI in this release, so they are skipped rather than rendered as
+    // something the user cannot fill in.
+    const supported = useMemo(() => fields.filter((field) => supportsOptions(field) || isText(field)), [fields]);
 
     // react-select hands back an array for isMulti and a single option otherwise,
     // so the shape is narrowed here rather than trusted from the field type.
@@ -136,7 +127,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                                     options={toOptions(field)}
                                     value={resolveSelected(field, selected)}
                                     onChange={(option) => handleSelect(field.id, option)}
-                                    isMulti={isMultiselect(field)}
+                                    isMulti={field.type === 'multiselect'}
                                     isClearable={true}
                                     isDisabled={disabled}
                                     placeholder={selectPlaceholder}

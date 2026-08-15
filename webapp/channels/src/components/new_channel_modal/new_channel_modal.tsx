@@ -477,11 +477,16 @@ const NewChannelModal = () => {
     const pluginCreateGate = isBuiltInType(type) ? canCreateFromPluggable : pluginCanCreate;
     const classificationValid = !classificationEnabled || (Boolean(selectedClassificationId) && bannerText.trim().length > 0);
 
+    const hasCompleteForm = Boolean(displayName) && hasValidType && classificationValid;
+    const hasNoErrors = !urlError && !purposeError && !serverError && !channelInputError;
+
+    // Attribute definitions gate submission: until they load the form is missing
+    // controls the user may still need to fill in.
+    const canSubmit = pluginCreateGate && !isSubmitting && !channelAttributes.loading;
+
     // Once the channel exists but its attributes failed to save, the only action
     // left is to acknowledge and go to it — creating again would collide on the URL.
-    // Also block while attribute definitions are still loading so the form is fully
-    // populated before the user can submit.
-    const canCreate = createdChannel ? true : Boolean(displayName && !urlError && hasValidType && !purposeError && !serverError && pluginCreateGate && !channelInputError && classificationValid && !isSubmitting && !channelAttributes.loading);
+    const canCreate = Boolean(createdChannel) || (hasCompleteForm && hasNoErrors && canSubmit);
 
     const pluginOptions = useMemo<PluginOptionButtonProps[]>(() => availableOptions.map((o) => ({
         id: o.id,

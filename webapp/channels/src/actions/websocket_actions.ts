@@ -107,6 +107,7 @@ import {
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
 import {Client4} from 'mattermost-redux/client';
 import {General, Permissions} from 'mattermost-redux/constants';
+import {ACCESS_CONTROL_PROPERTY_GROUP} from 'mattermost-redux/constants/properties';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {
     getChannel,
@@ -161,7 +162,6 @@ import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
 import {
-    CLASSIFICATIONS_GROUP_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
     CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
@@ -353,7 +353,7 @@ export function reconnect() {
     if (getFeatureFlagValue(state, 'ClassificationMarkings') === 'true') {
         dispatch(
             fetchPropertyFields(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
                 CLASSIFICATIONS_FIELD_TARGET_TYPE,
                 CLASSIFICATIONS_FIELD_TARGET_ID,
@@ -361,13 +361,13 @@ export function reconnect() {
         );
         dispatch(
             fetchPropertyFields(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
                 CLASSIFICATIONS_FIELD_TARGET_TYPE,
                 CLASSIFICATIONS_FIELD_TARGET_ID,
             ),
         );
-        dispatch(fetchSystemPropertyValues(CLASSIFICATIONS_GROUP_NAME));
+        dispatch(fetchSystemPropertyValues(ACCESS_CONTROL_PROPERTY_GROUP));
     }
 
     if (state.websocket.lastDisconnectAt) {
