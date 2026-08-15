@@ -10,6 +10,10 @@
     // System Users filter row.
     &__filters {
         column-gap: 12px;
+
+        .inputWithMenu input.form-control {
+            width: 140px;
+        }
     }
 
     &__filters-spacer {

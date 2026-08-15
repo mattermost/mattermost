@@ -65,16 +65,18 @@ describe('components/admin_console/server_logs/Logs', () => {
         expect(screen.getByText('caller 2')).toBeInTheDocument();
     });
 
-    test('should show level filter toggles', () => {
-        expect(screen.getByText('Error')).toBeInTheDocument();
-        expect(screen.getByText('Warn')).toBeInTheDocument();
-        expect(screen.getByText('Info')).toBeInTheDocument();
-        expect(screen.getByText('Debug')).toBeInTheDocument();
+    test('should offer every level in the level filter menu', async () => {
+        await userEvent.click(screen.getByLabelText('Open menu to select which log levels to show'));
+
+        expect(screen.getByRole('menuitemcheckbox', {name: /^Error/})).toBeInTheDocument();
+        expect(screen.getByRole('menuitemcheckbox', {name: /^Warn/})).toBeInTheDocument();
+        expect(screen.getByRole('menuitemcheckbox', {name: /^Info/})).toBeInTheDocument();
+        expect(screen.getByRole('menuitemcheckbox', {name: /^Debug/})).toBeInTheDocument();
     });
 
     test.each(['caller', 'msg', 'worker', 'job_id', 'whatever'])('should search input be performed on %s attribute',
         async (searchString: string) => {
-            const searchInput = screen.getByPlaceholderText('Search logs...');
+            const searchInput = screen.getByLabelText('Search logs');
             await userEvent.type(searchInput, searchString);
 
             // Use container text check since search highlights split text across <mark> elements
@@ -89,7 +91,7 @@ describe('components/admin_console/server_logs/Logs', () => {
 
     test.each(['level', 'timestamp'])('should search input not be performed on %s attribute',
         async (searchString: string) => {
-            const searchInput = screen.getByPlaceholderText('Search logs...');
+            const searchInput = screen.getByLabelText('Search logs');
             await userEvent.type(searchInput, searchString);
 
             await waitFor(() => {
@@ -109,7 +111,7 @@ describe('components/admin_console/server_logs/Logs', () => {
     });
 
     test('should keep the empty state outside the list', async () => {
-        const searchInput = screen.getByPlaceholderText('Search logs...');
+        const searchInput = screen.getByLabelText('Search logs');
         await userEvent.type(searchInput, 'nothing matches this');
 
         await waitFor(() => {
@@ -121,7 +123,7 @@ describe('components/admin_console/server_logs/Logs', () => {
     });
 
     test('should update the search input without waiting for the filtering', async () => {
-        const searchInput = screen.getByPlaceholderText('Search logs...');
+        const searchInput = screen.getByLabelText('Search logs');
         await userEvent.type(searchInput, 'msg 1');
 
         // Typing is not gated on the debounced filter pass
@@ -133,7 +135,7 @@ describe('components/admin_console/server_logs/Logs', () => {
     });
 
     test('should apply a cleared search immediately', async () => {
-        const searchInput = screen.getByPlaceholderText('Search logs...');
+        const searchInput = screen.getByLabelText('Search logs');
         await userEvent.type(searchInput, 'msg 1');
 
         await waitFor(() => {
@@ -148,15 +150,27 @@ describe('components/admin_console/server_logs/Logs', () => {
         });
     });
 
-    test('should display live tail toggle', () => {
-        expect(screen.getByText('Live')).toBeInTheDocument();
+    test('should default the live tail selector to off', () => {
+        expect(screen.getByLabelText('Live tail')).toHaveValue('Off');
     });
 
-    test('should display time range presets', () => {
-        expect(screen.getByText('5m')).toBeInTheDocument();
-        expect(screen.getByText('15m')).toBeInTheDocument();
-        expect(screen.getByText('1h')).toBeInTheDocument();
-        expect(screen.getByText('24h')).toBeInTheDocument();
+    test('should offer every time range in the duration menu', async () => {
+        await userEvent.click(screen.getByLabelText('Open menu to select a time range'));
+
+        expect(screen.getByRole('menuitemradio', {name: 'All time'})).toBeInTheDocument();
+        expect(screen.getByRole('menuitemradio', {name: 'Last 5 minutes'})).toBeInTheDocument();
+        expect(screen.getByRole('menuitemradio', {name: 'Last 15 minutes'})).toBeInTheDocument();
+        expect(screen.getByRole('menuitemradio', {name: 'Last hour'})).toBeInTheDocument();
+        expect(screen.getByRole('menuitemradio', {name: 'Last 24 hours'})).toBeInTheDocument();
+    });
+
+    test('should offer both log formats in the format menu', async () => {
+        expect(screen.getByLabelText('Log format')).toHaveValue('Structured');
+
+        await userEvent.click(screen.getByLabelText('Open menu to select the log format'));
+
+        expect(screen.getByRole('menuitemradio', {name: 'Structured'})).toBeInTheDocument();
+        expect(screen.getByRole('menuitemradio', {name: 'Plain text'})).toBeInTheDocument();
     });
 });
 

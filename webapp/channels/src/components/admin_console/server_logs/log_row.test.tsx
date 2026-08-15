@@ -58,7 +58,7 @@ describe('components/admin_console/server_logs/LogRow', () => {
         test('should render the level label, short timestamp, message and caller', () => {
             renderLogRow();
 
-            expect(screen.getByText('INF')).toBeInTheDocument();
+            expect(screen.getByText('Info')).toBeInTheDocument();
 
             // Only the time portion of the timestamp is displayed
             expect(screen.getByText('12:34:56.789')).toBeInTheDocument();
@@ -79,20 +79,20 @@ describe('components/admin_console/server_logs/LogRow', () => {
         });
 
         test.each([
-            [LogLevelEnum.ERROR, 'ERR'],
-            [LogLevelEnum.WARN, 'WRN'],
-            [LogLevelEnum.INFO, 'INF'],
-            [LogLevelEnum.DEBUG, 'DBG'],
+            [LogLevelEnum.ERROR, 'Error'],
+            [LogLevelEnum.WARN, 'Warn'],
+            [LogLevelEnum.INFO, 'Info'],
+            [LogLevelEnum.DEBUG, 'Debug'],
         ])('should render the %s level as %s', (level, label) => {
             renderLogRow({log: {...baseLog, level}});
 
             expect(screen.getByText(label)).toHaveClass(`LogRow__level--${level}`);
         });
 
-        test('should fall back to a truncated label for levels without a config entry', () => {
+        test('should fall back to the raw level for levels without a config entry', () => {
             renderLogRow({log: {...baseLog, level: LogLevelEnum.SILLY}});
 
-            const level = screen.getByText('SIL');
+            const level = screen.getByText('silly');
             expect(level).toBeInTheDocument();
             expect(level).toHaveClass('LogRow__level--debug');
         });
@@ -290,9 +290,10 @@ describe('components/admin_console/server_logs/LogRow', () => {
             expect(screen.getByText('Caller')).toBeInTheDocument();
             expect(screen.getByText('Message')).toBeInTheDocument();
 
-            // The details show the unabbreviated timestamp and level
+            // The details show the unabbreviated timestamp, and repeat the row's
+            // level chip
             expect(screen.getByText(baseLog.timestamp)).toBeInTheDocument();
-            expect(screen.getByText('info')).toBeInTheDocument();
+            expect(screen.getAllByText('Info')).toHaveLength(2);
         });
 
         test('should render extra fields beyond timestamp, level, msg and caller', () => {

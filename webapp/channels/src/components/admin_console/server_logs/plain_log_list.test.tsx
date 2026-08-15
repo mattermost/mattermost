@@ -49,7 +49,7 @@ describe('components/admin_console/server_logs/PlainLogList', () => {
         );
 
         // Page is 0-indexed, displayed as page+1 = 3
-        expect(screen.getByText(/Page 3/)).toBeInTheDocument();
+        expect(screen.getByText(/Showing page 3/)).toBeInTheDocument();
         expect(screen.getByText(/4 lines/)).toBeInTheDocument();
     });
 
@@ -61,7 +61,7 @@ describe('components/admin_console/server_logs/PlainLogList', () => {
             />,
         );
 
-        expect(screen.getByText('Loading...')).toBeInTheDocument();
+        expect(screen.getByText('Loading logs')).toBeInTheDocument();
     });
 
     test('should show empty state when no logs', () => {
@@ -92,7 +92,7 @@ describe('components/admin_console/server_logs/PlainLogList', () => {
             />,
         );
 
-        const nextButton = screen.getByTitle('Next page');
+        const nextButton = screen.getByLabelText('Next page');
         await userEvent.click(nextButton);
 
         expect(defaultProps.nextPage).toHaveBeenCalledTimes(1);
@@ -106,7 +106,7 @@ describe('components/admin_console/server_logs/PlainLogList', () => {
             />,
         );
 
-        const prevButton = screen.getByTitle('Previous page');
+        const prevButton = screen.getByLabelText('Previous page');
         await userEvent.click(prevButton);
 
         expect(defaultProps.previousPage).toHaveBeenCalledTimes(1);
@@ -120,8 +120,8 @@ describe('components/admin_console/server_logs/PlainLogList', () => {
             />,
         );
 
-        const firstPageButton = screen.getByTitle('First page');
-        const prevButton = screen.getByTitle('Previous page');
+        const firstPageButton = screen.getByLabelText('First page');
+        const prevButton = screen.getByLabelText('Previous page');
 
         expect(firstPageButton).toBeDisabled();
         expect(prevButton).toBeDisabled();
@@ -135,7 +135,7 @@ describe('components/admin_console/server_logs/PlainLogList', () => {
             />,
         );
 
-        const firstPageButton = screen.getByTitle('First page');
+        const firstPageButton = screen.getByLabelText('First page');
         await userEvent.click(firstPageButton);
 
         expect(defaultProps.goToPage).toHaveBeenCalledWith(0);
@@ -151,7 +151,7 @@ describe('components/admin_console/server_logs/PlainLogList', () => {
         );
 
         // 4 logs < 100 perPage, so hasMore is false
-        const nextButton = screen.getByTitle('Next page');
+        const nextButton = screen.getByLabelText('Next page');
         expect(nextButton).toBeDisabled();
     });
 
@@ -165,7 +165,7 @@ describe('components/admin_console/server_logs/PlainLogList', () => {
         );
 
         // 4 logs === 4 perPage, so hasMore is true
-        const nextButton = screen.getByTitle('Next page');
+        const nextButton = screen.getByLabelText('Next page');
         expect(nextButton).not.toBeDisabled();
     });
 
@@ -255,19 +255,18 @@ describe('components/admin_console/server_logs/PlainLogList', () => {
         // Wrap is off by default
         expect(content).not.toHaveClass('PlainLogViewer__content--wrap');
 
-        // Default state shows "Wrap" button
-        const wrapButton = screen.getByText('Wrap');
+        const wrapButton = screen.getByRole('button', {name: 'Wrap text'});
+        expect(wrapButton).toHaveAttribute('aria-pressed', 'false');
+
         await userEvent.click(wrapButton);
 
-        // After clicking, wrap should be on, button text changes to "No wrap"
         expect(content).toHaveClass('PlainLogViewer__content--wrap');
-        expect(screen.getByText('No wrap')).toBeInTheDocument();
+        expect(wrapButton).toHaveAttribute('aria-pressed', 'true');
 
-        await userEvent.click(screen.getByText('No wrap'));
+        await userEvent.click(wrapButton);
 
-        // After clicking again, wrap should be off
         expect(content).not.toHaveClass('PlainLogViewer__content--wrap');
-        expect(screen.getByText('Wrap')).toBeInTheDocument();
+        expect(wrapButton).toHaveAttribute('aria-pressed', 'false');
     });
 
     test('should toggle newest first ordering', async () => {
@@ -304,7 +303,7 @@ describe('components/admin_console/server_logs/PlainLogList', () => {
         );
 
         // Click the page number button
-        const pageNumButton = screen.getByTitle('Go to page');
+        const pageNumButton = screen.getByLabelText('Go to page');
         await userEvent.click(pageNumButton);
 
         await waitFor(() => {
@@ -325,7 +324,7 @@ describe('components/admin_console/server_logs/PlainLogList', () => {
         );
 
         // Open go-to-page
-        const pageNumButton = screen.getByTitle('Go to page');
+        const pageNumButton = screen.getByLabelText('Go to page');
         await userEvent.click(pageNumButton);
 
         await waitFor(() => {

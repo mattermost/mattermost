@@ -81,8 +81,7 @@ test.describe('System Console - Reporting - Server Logs', () => {
             await serverLogs.toBeVisible();
 
             // # Turn on live tail at the shortest poll interval
-            await serverLogs.selectPollInterval('5s');
-            await serverLogs.toggleLiveTail();
+            await serverLogs.selectLiveTailInterval('Every 5 seconds');
 
             // * Verify polling is running
             await expect(serverLogs.lastUpdated).toBeVisible();
@@ -130,7 +129,7 @@ test.describe('System Console - Reporting - Server Logs', () => {
                 (request) => request.url().includes('/api/v4/logs/query') && request.method() === 'POST',
             );
             const queryResponse = page.waitForResponse((response) => response.url().includes('/api/v4/logs/query'));
-            await serverLogs.timePreset('5m').click();
+            await serverLogs.selectDuration('Last 5 minutes');
 
             // * Verify both range bounds are sent in the layout the server parses. An
             // unparseable date is silently dropped server side rather than rejected, so
@@ -145,7 +144,7 @@ test.describe('System Console - Reporting - Server Logs', () => {
             await expect(serverLogs.row(marker)).toBeVisible();
 
             // # Clear the preset
-            await serverLogs.clearTimePresetButton.click();
+            await serverLogs.selectDuration('All time');
 
             // * Verify the unfiltered list comes back
             await expect(serverLogs.rows.first()).toBeVisible();

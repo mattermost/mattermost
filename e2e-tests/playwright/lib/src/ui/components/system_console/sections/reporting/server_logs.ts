@@ -10,13 +10,23 @@ import {expect} from '@playwright/test';
  * The page renders one of two viewers depending on the selected log format:
  * the structured viewer (JSON logs, one expandable row per entry) or the plain
  * text viewer.
+ *
+ * The filter row is built from the same Menu.Container selectors the rest of
+ * the system console uses. Their triggers are divs rather than buttons, so they
+ * are located by their aria-label and the values they show are read off the
+ * readonly input inside them.
  */
 export default class ServerLogs {
     readonly container: Locator;
 
-    // Log format toggle
-    readonly structuredFormatOption: Locator;
-    readonly plainFormatOption: Locator;
+    // Filter row selectors
+    readonly logFormatMenuButton: Locator;
+    readonly logFormatValue: Locator;
+    readonly levelsMenuButton: Locator;
+    readonly durationMenuButton: Locator;
+    readonly durationValue: Locator;
+    readonly liveTailMenuButton: Locator;
+    readonly liveTailValue: Locator;
 
     // Structured viewer
     readonly searchInput: Locator;
@@ -24,8 +34,6 @@ export default class ServerLogs {
     readonly list: Locator;
     readonly rows: Locator;
     readonly reloadButton: Locator;
-    readonly liveTailButton: Locator;
-    readonly clearTimePresetButton: Locator;
     readonly lastUpdated: Locator;
 
     // Plain text viewer
@@ -34,16 +42,19 @@ export default class ServerLogs {
     constructor(container: Locator) {
         this.container = container;
 
-        this.structuredFormatOption = container.getByRole('radio', {name: 'Structured'});
-        this.plainFormatOption = container.getByRole('radio', {name: 'Plain text'});
+        this.logFormatMenuButton = container.getByLabel('Open menu to select the log format');
+        this.logFormatValue = container.getByLabel('Log format', {exact: true});
+        this.levelsMenuButton = container.getByLabel('Open menu to select which log levels to show');
+        this.durationMenuButton = container.getByLabel('Open menu to select a time range');
+        this.durationValue = container.getByLabel('Duration', {exact: true});
+        this.liveTailMenuButton = container.getByLabel('Open menu to turn live tail on or off');
+        this.liveTailValue = container.getByLabel('Live tail', {exact: true});
 
-        this.searchInput = container.getByPlaceholder('Search logs...');
+        this.searchInput = container.getByLabel('Search logs', {exact: true});
         this.clearSearchButton = container.getByRole('button', {name: 'Clear search'});
         this.list = container.getByRole('list', {name: 'Server log entries'});
         this.rows = this.list.getByRole('listitem');
         this.reloadButton = container.getByRole('button', {name: 'Reload'});
-        this.liveTailButton = container.getByRole('button', {name: 'Live', exact: true});
-        this.clearTimePresetButton = container.getByRole('button', {name: 'Clear time preset'});
 
         // The elapsed-time indicator is a plain span with no role or stable text
         this.lastUpdated = container.locator('.LogViewer__last-updated');
@@ -64,49 +75,56 @@ export default class ServerLogs {
         return this.rows.filter({hasText: text});
     }
 
-    /**
-     * A time range preset button, e.g. '5m', '15m', '1h' or '24h'.
-     */
-    timePreset(label: string): Locator {
-        return this.container.getByRole('button', {name: label, exact: true});
-    }
-
     async search(term: string) {
         await this.searchInput.fill(term);
     }
 
-    async toggleLiveTail() {
-        await this.liveTailButton.click();
+    /**
+     * Turn live tail on at the given poll interval, e.g. 'Every 5 seconds'.
+     * Picking an interval is what enables polling.
+     */
+    async selectLiveTailInterval(interval: string) {
+        await this.liveTailMenuButton.click();
+        await this.page().getByRole('menuitemradio', {name: interval}).click();
     }
 
     /**
-     * Open the poll interval dropdown and pick an interval, e.g. '5s'.
+     * Apply a time range, e.g. 'Last 5 minutes' or 'All time'.
      */
-    async selectPollInterval(interval: string) {
-        // The toggle shows the current interval and is only ambiguous with the
-        // dropdown options, which are not rendered until it is open
-        await this.container.getByRole('button', {name: /^\d+s$/}).click();
-
-        // The dropdown has no landmark role of its own
-        await this.container.locator('.LogViewer__poll-dropdown').getByRole('button', {name: interval}).click();
+    async selectDuration(duration: string) {
+        await this.durationMenuButton.click();
+        await this.page().getByRole('menuitemradio', {name: duration, exact: true}).click();
     }
 
     async selectStructuredFormat() {
-        await this.structuredFormatOption.check();
+        await this.selectLogFormat('Structured');
     }
 
     async selectPlainFormat() {
-        await this.plainFormatOption.check();
+        await this.selectLogFormat('Plain text');
     }
 
     async toBeStructuredFormat() {
-        await expect(this.structuredFormatOption).toBeChecked();
+        await expect(this.logFormatValue).toHaveValue('Structured');
         await expect(this.searchInput).toBeVisible();
     }
 
     async toBePlainFormat() {
-        await expect(this.plainFormatOption).toBeChecked();
+        await expect(this.logFormatValue).toHaveValue('Plain text');
         await expect(this.lineNumbersButton).toBeVisible();
         await expect(this.searchInput).not.toBeVisible();
+    }
+
+    private async selectLogFormat(format: string) {
+        await this.logFormatMenuButton.click();
+        await this.page().getByRole('menuitemradio', {name: format, exact: true}).click();
+    }
+
+    /**
+     * Menus render in a portal outside the page container, so their items have to
+     * be located from the page rather than from the container.
+     */
+    private page() {
+        return this.container.page();
     }
 }

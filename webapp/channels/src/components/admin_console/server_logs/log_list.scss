@@ -17,10 +17,20 @@
     // System Users filter row.
     &__filters {
         column-gap: 12px;
+
+        // Wide enough for the longest selector value, 'Every 5 seconds'
+        .inputWithMenu input.form-control {
+            width: 140px;
+        }
     }
 
+    // Also carries the live tail status, which belongs next to its selector but
+    // must not push the actions off the row
     &__filters-spacer {
+        display: flex;
         flex: 1;
+        align-items: center;
+        justify-content: flex-start;
     }
 
     &__search {
@@ -50,16 +60,11 @@
     // ---------------------
     // Live tail
     // ---------------------
-    &__live-tail {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
     &__live-dot {
         display: inline-block;
         width: 8px;
         height: 8px;
+        flex-shrink: 0;
         border-radius: var(--radius-full);
         animation: log-live-pulse 1.5s ease-in-out infinite;
         background: var(--dnd-indicator);
@@ -221,6 +226,24 @@
         background: rgba(var(--center-channel-color-rgb), 0.04);
     }
 
+    // A tint on the rows that need attention, kept faint enough that hover and
+    // selection still read on top of it
+    &--error-bg {
+        background: rgba(var(--semantic-color-danger), 0.04);
+
+        &:hover {
+            background: rgba(var(--semantic-color-danger), 0.08);
+        }
+    }
+
+    &--warn-bg {
+        background: rgba(var(--semantic-color-warning), 0.04);
+
+        &:hover {
+            background: rgba(var(--semantic-color-warning), 0.08);
+        }
+    }
+
     // Main row content
     &__main {
         display: flex;
@@ -337,7 +360,14 @@
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     }
 
-    &__details-core,
+    // Level and timestamp are narrow, so the core fields get their own column
+    // widths instead of the even split the dynamic fields use
+    &__details-core {
+        display: grid;
+        gap: 12px 24px;
+        grid-template-columns: minmax(0, max-content) minmax(0, max-content) minmax(0, 1fr);
+    }
+
     &__details-grid {
         display: grid;
         gap: 12px 24px;

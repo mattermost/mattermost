@@ -295,7 +295,11 @@ function LogRow({log, isExpanded, isFocused, onToggleExpand, onFocus, searchTerm
                                     defaultMessage='Level'
                                 />
                             </span>
-                            <span className='LogRow__detail-value'>{log.level}</span>
+                            <span className='LogRow__detail-value'>
+                                <span className={`LogRow__level ${levelConfig ? levelConfig.className : 'LogRow__level--debug'}`}>
+                                    {levelConfig ? <FormattedMessage {...levelConfig.label}/> : log.level}
+                                </span>
+                            </span>
                         </div>
                         <div className='LogRow__detail-item'>
                             <span className='LogRow__detail-label'>

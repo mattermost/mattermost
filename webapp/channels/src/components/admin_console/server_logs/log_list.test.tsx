@@ -5,7 +5,7 @@ import React from 'react';
 
 import {LogLevelEnum} from '@mattermost/types/admin';
 
-import {renderWithContext, fireEvent, screen} from 'tests/react_testing_utils';
+import {renderWithContext, fireEvent, screen, waitFor} from 'tests/react_testing_utils';
 
 import LogList from './log_list';
 import type {LogObjectWithAdditionalInfo} from './types';
@@ -43,9 +43,7 @@ const baseProps = {
     pollInterval: 5000,
     onPollIntervalChange: jest.fn(),
     pollIntervals: [5000],
-    pollIntervalLabels: {5000: '5s'},
-    showPollDropdown: false,
-    onTogglePollDropdown: jest.fn(),
+    pollIntervalLabels: {5000: {id: 'test.pollInterval.5s', defaultMessage: 'Every 5 seconds'}},
     lastUpdatedText: null,
     timePresets: [],
     activeTimePreset: null,
@@ -84,8 +82,12 @@ function rowMessages(): string[] {
     return Array.from(document.querySelectorAll('.LogRow__message')).map((el) => el.textContent ?? '');
 }
 
-function levelPill(label: string): HTMLElement {
-    return screen.getByRole('button', {name: new RegExp(`^${label}`)});
+function openLevelsMenu() {
+    fireEvent.click(screen.getByLabelText('Open menu to select which log levels to show'));
+}
+
+function levelMenuItem(label: string): HTMLElement {
+    return screen.getByRole('menuitemcheckbox', {name: new RegExp(`^${label}`)});
 }
 
 function storedPrefs() {
@@ -208,44 +210,61 @@ describe('components/admin_console/server_logs/LogList', () => {
             makeLog('a debug line', '2026-03-12T10:00:04.000Z', LogLevelEnum.DEBUG),
         ];
 
-        test('should hide and restore a level when its pill is clicked', () => {
+        test('should show a count of the entries per level', () => {
             renderList(mixedLevels);
+            openLevelsMenu();
 
-            fireEvent.click(levelPill('Debug'));
+            expect(levelMenuItem('Error')).toHaveTextContent('Error1');
+            expect(levelMenuItem('Debug')).toHaveTextContent('Debug1');
+        });
+
+        test('should hide and restore a level when it is unchecked', () => {
+            renderList(mixedLevels);
+            openLevelsMenu();
+
+            fireEvent.click(levelMenuItem('Debug'));
             expect(rowMessages()).toEqual(['an error', 'a warning', 'some info']);
 
-            fireEvent.click(levelPill('Debug'));
+            fireEvent.click(levelMenuItem('Debug'));
             expect(rowMessages()).toEqual(['an error', 'a warning', 'some info', 'a debug line']);
         });
 
         test('should keep the last enabled level on, so the list cannot filter itself empty', () => {
             renderList(mixedLevels);
+            openLevelsMenu();
 
-            fireEvent.click(levelPill('Error'), {ctrlKey: true});
+            fireEvent.click(levelMenuItem('Error'), {ctrlKey: true});
             expect(rowMessages()).toEqual(['an error']);
 
-            fireEvent.click(levelPill('Error'));
+            fireEvent.click(levelMenuItem('Error'));
             expect(rowMessages()).toEqual(['an error']);
         });
 
         test('should solo a level on ctrl-click and restore every level on a second ctrl-click', () => {
             renderList(mixedLevels);
+            openLevelsMenu();
 
-            fireEvent.click(levelPill('Warn'), {ctrlKey: true});
+            fireEvent.click(levelMenuItem('Warn'), {ctrlKey: true});
             expect(rowMessages()).toEqual(['a warning']);
 
-            fireEvent.click(levelPill('Warn'), {ctrlKey: true});
+            fireEvent.click(levelMenuItem('Warn'), {ctrlKey: true});
             expect(rowMessages()).toEqual(['an error', 'a warning', 'some info', 'a debug line']);
         });
 
-        test('should re-enable every level from the All pill', () => {
+        test('should re-enable every level from the select all item', async () => {
             renderList(mixedLevels);
+            openLevelsMenu();
 
-            fireEvent.click(levelPill('Info'), {ctrlKey: true});
+            fireEvent.click(levelMenuItem('Info'), {ctrlKey: true});
             expect(rowMessages()).toEqual(['some info']);
 
-            fireEvent.click(levelPill('All'));
-            expect(rowMessages()).toEqual(['an error', 'a warning', 'some info', 'a debug line']);
+            fireEvent.click(screen.getByRole('menuitem', {name: 'Select all levels'}));
+
+            // Selecting all levels closes the menu, which defers the handler
+            // until the close animation has finished
+            await waitFor(() => {
+                expect(rowMessages()).toEqual(['an error', 'a warning', 'some info', 'a debug line']);
+            });
         });
     });
 
@@ -282,13 +301,13 @@ describe('components/admin_console/server_logs/LogList', () => {
 
             expect(rowMessages()).toHaveLength(50);
             expect(rowMessages()[0]).toBe('msg 1');
-            expect(footerInfo()).toBe('1-50 of 60');
+            expect(footerInfo()).toContain('Showing 1 - 50 of 60');
             expect(pageIndicator()).toBe('Page 1 of 2');
             expect(screen.getByLabelText('Previous page')).toBeDisabled();
 
             fireEvent.click(screen.getByLabelText('Next page'));
             expect(rowMessages()).toEqual(['msg 51', 'msg 52', 'msg 53', 'msg 54', 'msg 55', 'msg 56', 'msg 57', 'msg 58', 'msg 59', 'msg 60']);
-            expect(footerInfo()).toBe('51-60 of 60');
+            expect(footerInfo()).toContain('Showing 51 - 60 of 60');
             expect(screen.getByLabelText('Next page')).toBeDisabled();
 
             fireEvent.click(screen.getByLabelText('Previous page'));
@@ -301,7 +320,7 @@ describe('components/admin_console/server_logs/LogList', () => {
 
             expect(rowMessages()).toHaveLength(50);
 
-            fireEvent.change(screen.getByLabelText('Rows:'), {target: {value: '100'}});
+            fireEvent.change(screen.getByLabelText('Show'), {target: {value: '100'}});
             expect(rowMessages()).toHaveLength(60);
             expect(pageIndicator()).toBe('Page 1 of 1');
         });
@@ -341,14 +360,14 @@ describe('components/admin_console/server_logs/LogList', () => {
             ]);
 
             expect(rowMessages()).toEqual(['a later error', 'an error']);
-            expect(screen.getByLabelText('Rows:')).toHaveValue('50');
-            expect(screen.getByText('No wrap')).toBeInTheDocument();
+            expect(screen.getByLabelText('Show')).toHaveValue('50');
+            expect(screen.getByRole('button', {name: 'Wrap text'})).toHaveAttribute('aria-pressed', 'false');
         });
 
         test('should save a preference change', () => {
             renderList([first]);
 
-            fireEvent.click(screen.getByText('Wrap'));
+            fireEvent.click(screen.getByRole('button', {name: 'Wrap text'}));
 
             expect(storedPrefs()).toEqual({
                 pageSize: 200,
@@ -421,13 +440,13 @@ describe('components/admin_console/server_logs/LogList', () => {
 
             pressKey('/');
 
-            expect(document.activeElement).toBe(screen.getByPlaceholderText('Search logs...'));
+            expect(document.activeElement).toBe(screen.getByLabelText('Search logs'));
         });
 
         test('should leave typing in the search input alone', () => {
             renderList(withErrors);
 
-            fireEvent.keyDown(screen.getByPlaceholderText('Search logs...'), {key: 'e'});
+            fireEvent.keyDown(screen.getByLabelText('Search logs'), {key: 'e'});
 
             expect(focusedRow()).toBeNull();
         });

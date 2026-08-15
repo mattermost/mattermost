@@ -72,6 +72,8 @@ const LEVEL_LABELS = defineMessages({
 const messages = defineMessages({
     allTime: {id: 'admin.logs.time.allTime', defaultMessage: 'All time'},
     allLevels: {id: 'admin.logs.allLevels', defaultMessage: 'All levels'},
+    liveTail: {id: 'admin.logs.liveTail', defaultMessage: 'Live tail'},
+    liveTailOff: {id: 'admin.logs.liveTail.off', defaultMessage: 'Off'},
 });
 
 const PREFS_KEY = 'mm_admin_logs_prefs';
@@ -173,6 +175,7 @@ export default function LogList({
     const [searchInput, setSearchInput] = useState(search);
 
     const listRef = useRef<HTMLDivElement>(null);
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
     const debouncedSearchChange = useMemo(
         () => debounce(onSearchChange, SEARCH_DEBOUNCE_MS),
@@ -366,7 +369,7 @@ export default function LogList({
             break;
         case '/':
             e.preventDefault();
-            listRef.current?.closest('.LogViewer')?.querySelector<HTMLInputElement>('.LogViewer__search-input')?.focus();
+            searchInputRef.current?.focus();
             break;
         case 'e':
         case 'E': {
@@ -393,9 +396,25 @@ export default function LogList({
     const activePresetLabel = timePresets.find((preset) => preset.minutes === activeTimePreset)?.label;
     const enabledLevelCount = LEVEL_ORDER.filter((level) => enabledLevels.has(level)).length;
 
+    // The live tail selector folds the on/off toggle and the interval into one
+    // control, so picking an interval is what turns polling on
+    const setLiveTail = (interval: number | null) => {
+        if (interval === null) {
+            if (liveTailEnabled) {
+                onToggleLiveTail();
+            }
+            return;
+        }
+        onPollIntervalChange(interval);
+        if (!liveTailEnabled) {
+            onToggleLiveTail();
+        }
+    };
+
     const filters = (
         <div className='LogViewer__filters admin-console__filters-rows'>
             <Input
+                ref={searchInputRef}
                 type='text'
                 name='serverLogsSearch'
                 containerClassName='LogViewer__search'
@@ -528,65 +547,65 @@ export default function LogList({
 
             {logFormatMenu}
 
-            <div className='LogViewer__filters-spacer'/>
-
-            <div className='LogViewer__live-tail'>
-                <button
-                    type='button'
-                    className={`btn btn-sm ${liveTailEnabled ? 'btn-tertiary' : 'btn-quaternary'}`}
-                    onClick={onToggleLiveTail}
-                    aria-pressed={liveTailEnabled}
-                >
-                    {liveTailEnabled ? (
-                        <span
-                            className='LogViewer__live-dot'
-                            aria-hidden='true'
+            <Menu.Container
+                menuButton={{
+                    id: 'serverLogsLiveTailMenuButton',
+                    class: 'inputWithMenu',
+                    'aria-label': intl.formatMessage({id: 'admin.logs.liveTail.menuButtonAriaLabel', defaultMessage: 'Open menu to turn live tail on or off'}),
+                    as: 'div',
+                    children: (
+                        <Input
+                            label={intl.formatMessage(messages.liveTail)}
+                            name='serverLogsLiveTail'
+                            value={liveTailEnabled ? intl.formatMessage(pollIntervalLabels[pollInterval]) : intl.formatMessage(messages.liveTailOff)}
+                            readOnly={true}
+                            inputPrefix={liveTailEnabled ? (
+                                <span
+                                    className='LogViewer__live-dot'
+                                    aria-hidden='true'
+                                />
+                            ) : undefined}
+                            inputSuffix={<i className='icon icon-chevron-down'/>}
                         />
-                    ) : (
-                        <i
-                            className='icon icon-play-outline'
-                            aria-hidden='true'
-                        />
-                    )}
-                    <FormattedMessage
-                        id='admin.logs.liveTail'
-                        defaultMessage='Live'
+                    ),
+                }}
+                menu={{
+                    id: 'serverLogsLiveTailMenu',
+                    'aria-label': intl.formatMessage({id: 'admin.logs.liveTail.dropdownAriaLabel', defaultMessage: 'Live tail menu'}),
+                    width: '220px',
+                }}
+            >
+                <Menu.Item
+                    id='serverLogsLiveTail-off'
+                    role='menuitemradio'
+                    aria-checked={!liveTailEnabled}
+                    forceCloseOnSelect={true}
+                    labels={<FormattedMessage {...messages.liveTailOff}/>}
+                    trailingElements={!liveTailEnabled && <i className='icon icon-check'/>}
+                    onClick={() => setLiveTail(null)}
+                />
+                {pollIntervals.map((interval) => (
+                    <Menu.Item
+                        key={interval}
+                        id={`serverLogsLiveTail-${interval}`}
+                        role='menuitemradio'
+                        aria-checked={liveTailEnabled && interval === pollInterval}
+                        forceCloseOnSelect={true}
+                        labels={<FormattedMessage {...pollIntervalLabels[interval]}/>}
+                        trailingElements={liveTailEnabled && interval === pollInterval && <i className='icon icon-check'/>}
+                        onClick={() => setLiveTail(interval)}
                     />
-                </button>
-                <Menu.Container
-                    menuButton={{
-                        id: 'serverLogsPollIntervalMenuButton',
-                        class: 'btn btn-sm btn-quaternary',
-                        'aria-label': intl.formatMessage({id: 'admin.logs.pollInterval.menuButtonAriaLabel', defaultMessage: 'Open menu to select how often to refresh'}),
-                        children: (
-                            <>
-                                <FormattedMessage {...pollIntervalLabels[pollInterval]}/>
-                                <i className='icon icon-chevron-down'/>
-                            </>
-                        ),
-                    }}
-                    menu={{
-                        id: 'serverLogsPollIntervalMenu',
-                        'aria-label': intl.formatMessage({id: 'admin.logs.pollInterval.dropdownAriaLabel', defaultMessage: 'Refresh interval menu'}),
-                        width: '220px',
-                    }}
-                >
-                    {pollIntervals.map((interval) => (
-                        <Menu.Item
-                            key={interval}
-                            id={`serverLogsPollInterval-${interval}`}
-                            role='menuitemradio'
-                            aria-checked={interval === pollInterval}
-                            forceCloseOnSelect={true}
-                            labels={<FormattedMessage {...pollIntervalLabels[interval]}/>}
-                            trailingElements={interval === pollInterval && <i className='icon icon-check'/>}
-                            onClick={() => onPollIntervalChange(interval)}
-                        />
-                    ))}
-                </Menu.Container>
+                ))}
+            </Menu.Container>
+
+            <div className='LogViewer__filters-spacer'>
                 {liveTailEnabled && lastUpdatedText && (
                     <span className='LogViewer__last-updated'>
-                        {lastUpdatedText}
+                        <FormattedMessage
+                            id='admin.logs.lastUpdated'
+                            defaultMessage='Updated {elapsed}'
+                            values={{elapsed: lastUpdatedText}}
+                        />
                     </span>
                 )}
             </div>
@@ -659,7 +678,7 @@ export default function LogList({
                     className='LogViewer__header-timestamp'
                     onClick={toggleSort}
                     type='button'
-                    aria-label={intl.formatMessage({id: 'admin.logs.header.timeSort', defaultMessage: 'Sort by time'})}
+                    aria-sort={sortAsc ? 'ascending' : 'descending'}
                 >
                     <FormattedMessage
                         id='admin.logs.header.time'
