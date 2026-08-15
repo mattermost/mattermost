@@ -5,11 +5,12 @@ import * as ReactRedux from 'react-redux';
 
 import type {PropertyField} from '@mattermost/types/properties';
 
+import {ACCESS_CONTROL_PROPERTY_GROUP} from 'mattermost-redux/constants/properties';
+
 import {
     CLASSIFICATIONS_CHANNEL_FIELD_NAME,
     CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
-    CLASSIFICATIONS_GROUP_NAME,
 } from 'components/admin_console/classification_markings/utils';
 
 import {renderHookWithContext} from 'tests/react_testing_utils';
@@ -63,8 +64,8 @@ function stateWith({featureFlag, license, fields = {}}: {
             },
             properties: {
                 groups: {
-                    byId: {[GROUP_ID]: {id: GROUP_ID, name: CLASSIFICATIONS_GROUP_NAME}},
-                    byName: {[CLASSIFICATIONS_GROUP_NAME]: {id: GROUP_ID, name: CLASSIFICATIONS_GROUP_NAME}},
+                    byId: {[GROUP_ID]: {id: GROUP_ID, name: ACCESS_CONTROL_PROPERTY_GROUP}},
+                    byName: {[ACCESS_CONTROL_PROPERTY_GROUP]: {id: GROUP_ID, name: ACCESS_CONTROL_PROPERTY_GROUP}},
                 },
                 fields: {
                     byId: fields,

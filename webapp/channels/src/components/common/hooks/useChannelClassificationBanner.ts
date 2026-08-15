@@ -23,10 +23,7 @@ import {getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getChannelAttributeFields, getPropertyValueForTargetField, makeGetResolvedChannelAttributes} from 'mattermost-redux/selectors/entities/properties';
 
-import {
-    CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
-    CLASSIFICATIONS_GROUP_NAME,
-} from 'components/admin_console/classification_markings/utils';
+import {CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
 import {renderBannerTemplate} from 'components/channel_attributes/banner_template';
 
 import {isEnterpriseLicense} from 'utils/license_utils';
@@ -136,7 +133,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
 
         if (!propertyValue) {
             Client4.getPropertyValues(
-                CLASSIFICATIONS_GROUP_NAME,
+                ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                 channelId,
             ).then((values) => {

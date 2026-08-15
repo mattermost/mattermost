@@ -13,15 +13,13 @@ import {patchChannel} from 'mattermost-redux/actions/channels';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {Client4} from 'mattermost-redux/client';
 import {Permissions} from 'mattermost-redux/constants';
+import {ACCESS_CONTROL_PROPERTY_GROUP} from 'mattermost-redux/constants/properties';
 import {isChannelAutotranslated as isChannelAutotranslatedSelector} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getRemotesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 
 import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
-import {
-    CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
-    CLASSIFICATIONS_GROUP_NAME,
-} from 'components/admin_console/classification_markings/utils';
+import {CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
 import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
 import BannerTokenControls from 'components/channel_attributes/banner_token_controls';
 import ColorInput from 'components/color_input';
@@ -489,7 +487,7 @@ function ChannelSettingsConfigurationTab({
             if (classificationEnabled && selectedClassificationId) {
                 try {
                     const values = await Client4.patchPropertyValues(
-                        CLASSIFICATIONS_GROUP_NAME,
+                        ACCESS_CONTROL_PROPERTY_GROUP,
                         CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                         channel.id,
                         [{field_id: classification.channelField.id, value: selectedClassificationId}],
@@ -502,7 +500,7 @@ function ChannelSettingsConfigurationTab({
             } else if (!classificationEnabled && initialClassificationState.enabled) {
                 try {
                     await Client4.patchPropertyValues(
-                        CLASSIFICATIONS_GROUP_NAME,
+                        ACCESS_CONTROL_PROPERTY_GROUP,
                         CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
                         channel.id,
                         [{field_id: classification.channelField.id, value: null}],

@@ -92,12 +92,15 @@ export function getTypeLabel(fieldType: FieldType): MessageDescriptor {
     return (typeLabels as Partial<Record<FieldType, MessageDescriptor>>)[fieldType] ?? typeLabels.fallback;
 }
 
-type SourceKind = 'plugin' | 'ldap' | 'saml' | 'managed';
+type SourceKind = 'plugin' | 'ldap_and_saml' | 'ldap' | 'saml' | 'managed';
 
 export function getSourceKind(field: PropertyField): SourceKind {
     const attrs = field.attrs ?? {};
     if (attrs.source_plugin_id && attrs.protected) {
         return 'plugin';
+    }
+    if (attrs.ldap && attrs.saml) {
+        return 'ldap_and_saml';
     }
     if (attrs.ldap) {
         return 'ldap';
@@ -110,6 +113,7 @@ export function getSourceKind(field: PropertyField): SourceKind {
 
 const SOURCE_ICONS: Partial<Record<SourceKind, ComponentType<IconProps>>> = {
     plugin: PowerPlugOutlineIcon,
+    ldap_and_saml: SyncIcon,
     ldap: SyncIcon,
     saml: SyncIcon,
 };
@@ -134,6 +138,8 @@ function SourceCell({field, isClassificationRow}: ClassificationAwareCellProps) 
         content = <FormattedMessage {...sourceLabels.classificationMarkings}/>;
     } else if (kind === 'plugin') {
         content = pluginDisplayName;
+    } else if (kind === 'ldap_and_saml') {
+        content = <FormattedMessage {...sourceLabels.ldapAndSaml}/>;
     } else if (kind === 'ldap') {
         content = <FormattedMessage {...sourceLabels.ldap}/>;
     } else if (kind === 'saml') {
@@ -481,6 +487,7 @@ export const typeLabels = defineMessages({
 });
 
 const sourceLabels = defineMessages({
+    ldapAndSaml: {id: 'admin.global_attributes.table.source.ldap_and_saml', defaultMessage: 'AD/LDAP, SAML'},
     ldap: {id: 'admin.global_attributes.table.source.ldap', defaultMessage: 'AD/LDAP'},
     saml: {id: 'admin.global_attributes.table.source.saml', defaultMessage: 'SAML'},
     managed: {id: 'admin.global_attributes.table.source.managed', defaultMessage: 'Managed here'},
