@@ -336,6 +336,32 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(container.textContent).toContain('in the footer');
     });
 
+    test('should render a schema footer after all sections', () => {
+        const props = {
+            ...DefaultProps,
+            config,
+            environmentConfig,
+            schema: {
+                id: 'Config',
+                name: 'config',
+                header: 'Schema header',
+                footer: 'Schema footer',
+                sections: [{
+                    key: 'section',
+                    title: 'Plugin section',
+                    settings: [],
+                }],
+            } as AdminDefinitionSubSectionSchema,
+            patchConfig: jest.fn(),
+        };
+
+        const {container} = renderWithContext(<SchemaAdminSettings {...props}/>);
+        const text = container.textContent || '';
+
+        expect(text.indexOf('Schema header')).toBeLessThan(text.indexOf('Plugin section'));
+        expect(text.indexOf('Plugin section')).toBeLessThan(text.indexOf('Schema footer'));
+    });
+
     test('should render page not found', () => {
         const props = {
             ...DefaultProps,

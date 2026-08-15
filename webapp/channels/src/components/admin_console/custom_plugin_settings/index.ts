@@ -82,7 +82,7 @@ function makeGetPluginSchema() {
                         banner_type: bannerType,
                         component,
                         showTitle: customComponents[key] ? customComponents[key].options.showTitle : false,
-                    } as Partial<AdminDefinitionSetting>;
+                    } as AdminDefinitionSetting;
                 });
             };
 
@@ -90,7 +90,7 @@ function makeGetPluginSchema() {
                 return sections.map((section) => {
                     const key = section.key.toLowerCase();
                     let component;
-                    let settings: Array<Partial<AdminDefinitionSetting>> = [];
+                    let settings: AdminDefinitionSetting[] = [];
                     if (section.custom) {
                         if (customSections[key]) {
                             component = customSections[key]?.component;
@@ -126,10 +126,11 @@ function makeGetPluginSchema() {
             };
 
             let sections: AdminDefinitionConfigSchemaSection[] = [];
-            let settings: Array<Partial<AdminDefinitionSetting>> = [];
-            if (plugin.settings_schema && plugin.settings_schema.sections) {
+            let settings: AdminDefinitionSetting[] = [];
+            if (plugin.settings_schema?.sections?.length) {
                 sections = parsePluginSettingSections(plugin.settings_schema.sections);
-            } else if (plugin.settings_schema && plugin.settings_schema.settings) {
+            }
+            if (plugin.settings_schema?.settings?.length) {
                 settings = parsePluginSettings(plugin.settings_schema.settings);
             }
 
@@ -150,22 +151,28 @@ function makeGetPluginSchema() {
 
                     sections = [{
                         key: pluginEnabledConfigKey + '.Section',
-                        header: plugin.settings_schema?.header,
-                        footer: plugin.settings_schema?.footer,
-                        settings: [pluginEnableSetting, warningBanner],
+                        settings: [pluginEnableSetting, ...settings, warningBanner],
                     }];
+                    settings = [];
                 } else if (sections.length > 0) {
                     // Have a separate section on top with the plugin enable/disable setting.
                     sections.unshift({
                         key: pluginEnabledConfigKey + '.Section',
-                        header: plugin.settings_schema?.header,
-                        footer: plugin.settings_schema?.footer,
-                        settings: [pluginEnableSetting],
+                        settings: [pluginEnableSetting, ...settings],
                     });
+                    settings = [];
                 } else {
                     // Otherwise we retain existing behaviour and add the setting in front.
                     settings.unshift(pluginEnableSetting);
                 }
+            }
+
+            if (sections.length > 0 && settings.length > 0) {
+                sections.unshift({
+                    key: pluginEnabledConfigKey + '.Section',
+                    settings,
+                });
+                settings = [];
             }
 
             const checkDisableSetting = (s: Partial<AdminDefinitionSetting>) => {

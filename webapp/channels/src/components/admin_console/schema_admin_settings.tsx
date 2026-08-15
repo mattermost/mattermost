@@ -1112,6 +1112,29 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             );
         } else if ('sections' in schema && schema.sections) {
             const sections: React.ReactNode[] = [];
+            let header;
+            if (schema.header) {
+                header = (
+                    <div className='banner'>
+                        <SchemaText
+                            text={schema.header}
+                            isMarkdown={true}
+                        />
+                    </div>
+                );
+            }
+
+            let footer;
+            if (schema.footer) {
+                footer = (
+                    <div className='banner'>
+                        <SchemaText
+                            text={schema.footer}
+                            isMarkdown={true}
+                        />
+                    </div>
+                );
+            }
 
             schema.sections.forEach((section) => {
                 if (this.isSectionHidden(section)) {
@@ -1228,7 +1251,9 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
 
             return (
                 <div>
+                    {header}
                     {sections}
+                    {footer}
                 </div>
             );
         }
