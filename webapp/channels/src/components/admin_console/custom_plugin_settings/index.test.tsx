@@ -293,7 +293,7 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByText('In order to view this setting, enable the plugin and click Save.')).toBeInTheDocument();
     });
 
-    it('mixed custom section fallback with plugin disabled keeps fallback sections configurable', () => {
+    it('mixed custom section fallback with plugin disabled keeps fallback sections visible', () => {
         const state = {
             ...baseState,
             entities: {
@@ -370,6 +370,80 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByText('Fallback Number Setting Help Text')).toBeInTheDocument();
 
         // The non-fallback section is hidden behind its own per-section warning.
+        expect(screen.getByText('No Fallback Section')).toBeInTheDocument();
+        expect(screen.getByText('In order to view this section, enable the plugin and click Save.')).toBeInTheDocument();
+        expect(screen.queryByText('No Fallback Number Setting Help Text')).not.toBeInTheDocument();
+    });
+
+    it('mixed custom section fallback is order-independent', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: {
+                            ...plugin,
+                            settings_schema: {
+                                ...plugin.settings_schema,
+                                sections: [
+                                    {
+                                        key: 'section1',
+                                        title: 'No Fallback Section',
+                                        settings: [
+                                            {
+                                                key: 'nofallbacknumbersetting',
+                                                label: 'No Fallback Number Setting',
+                                                type: 'number' as const,
+                                                help_text: 'No Fallback Number Setting Help Text',
+                                            },
+                                        ],
+                                        custom: true,
+                                        fallback: false,
+                                    },
+                                    {
+                                        key: 'section2',
+                                        title: 'Fallback Section',
+                                        settings: [
+                                            {
+                                                key: 'fallbacknumbersetting',
+                                                label: 'Fallback Number Setting',
+                                                type: 'number' as const,
+                                                help_text: 'Fallback Number Setting Help Text',
+                                            },
+                                        ],
+                                        custom: true,
+                                        fallback: true,
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        const props = {
+            ...baseProps,
+            config: {
+                ...baseProps.config,
+                PluginStates: {
+                    testplugin: {
+                        Enabled: false,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...props}
+                patchConfig={jest.fn()}
+            />,
+            {...state});
+
+        expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin and click Save.')).not.toBeInTheDocument();
+        expect(screen.getByText('Fallback Section')).toBeInTheDocument();
+        expect(screen.getByText('Fallback Number Setting Help Text')).toBeInTheDocument();
         expect(screen.getByText('No Fallback Section')).toBeInTheDocument();
         expect(screen.getByText('In order to view this section, enable the plugin and click Save.')).toBeInTheDocument();
         expect(screen.queryByText('No Fallback Number Setting Help Text')).not.toBeInTheDocument();
