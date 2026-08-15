@@ -812,5 +812,203 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 'Engineering',
             );
         });
+
+        /**
+         * @objective Ensure a Text attribute can be linked to AD/LDAP via the external source
+         * picker end-to-end, and that the Manage Attributes list picks up the new attrs.ldap
+         * value with no further changes needed on that page.
+         */
+        test('creates a Text attribute linked to AD/LDAP via the external source picker', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright LDAP Linked Attribute ${timestamp}`;
+            const expectedName = `playwright_ldap_linked_attribute_${timestamp}`;
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await systemConsolePage.page.getByTestId('newAttributeButton').click();
+                await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+
+                // # Open the external source picker and link AD/LDAP
+                await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
+                await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+                await systemConsolePage.page.getByRole('textbox').fill('employeeID');
+                await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+
+                // * A chip for AD/LDAP now appears, and Type shows Text
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toBeVisible();
+                await expect(systemConsolePage.page.getByTestId('attributeTypeMenuButton')).toContainText('Text');
+
+                await systemConsolePage.page.getByTestId('saveSetting').click();
+
+                // * The new attribute shows "AD/LDAP" in the Source column
+                await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+                const row = systemConsolePage.page.locator('tr', {
+                    has: systemConsolePage.page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row.getByTestId('global-attribute-source')).toContainText('AD/LDAP');
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
+         * @objective Ensure both AD/LDAP and SAML can be linked on the same attribute, that an
+         * already-linked source is excluded from the "add" menu (and the trigger disappears
+         * once both are linked), and that each chip shows the actual linked value, not just the
+         * source name.
+         */
+        test('links both AD/LDAP and SAML, excludes an already-linked source from the menu, and shows the linked value in each chip', async ({
+            pw,
+        }) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright Dual Linked Attribute ${timestamp}`;
+            const expectedName = `playwright_dual_linked_attribute_${timestamp}`;
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await systemConsolePage.page.getByTestId('newAttributeButton').click();
+                await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+
+                // # Before anything is linked, the menu offers both sources
+                await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
+                await expect(systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/})).toBeVisible();
+                await expect(systemConsolePage.page.getByRole('menuitem', {name: /^SAML/})).toBeVisible();
+
+                // # Link AD/LDAP
+                await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+                await systemConsolePage.page.getByPlaceholder('department').fill('employeeID');
+                await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+
+                // * The chip shows the source and the value that was actually typed
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
+                    'AD/LDAP: employeeID',
+                );
+
+                // # Reopen the trigger -- AD/LDAP is no longer offered, only SAML
+                await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
+                await expect(systemConsolePage.page.getByRole('menuitem', {name: /^SAML/})).toBeVisible();
+                await expect(systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/})).not.toBeVisible();
+
+                // # Link SAML too
+                await systemConsolePage.page.getByRole('menuitem', {name: /^SAML/}).click();
+                await systemConsolePage.page.getByPlaceholder('department').fill('position');
+                await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+
+                // * Both chips are shown with their own values, and the trigger disappears
+                // entirely -- there is nothing left to add
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
+                    'AD/LDAP: employeeID',
+                );
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-saml')).toHaveText(
+                    'SAML: position',
+                );
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceTrigger')).not.toBeVisible();
+
+                await systemConsolePage.page.getByTestId('saveSetting').click();
+
+                // * With both linked, the list's Source column shows both sources together
+                await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+                const row = systemConsolePage.page.locator('tr', {
+                    has: systemConsolePage.page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row.getByTestId('global-attribute-source')).toContainText('AD/LDAP, SAML');
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
+         * @objective Ensure a linked chip's edit action reopens the modal pre-filled and commits
+         * a changed value, and that its remove action clears the link immediately with no modal.
+         */
+        test("edits a linked chip's value via its edit action, and removes a link via its remove action with no modal", async ({
+            pw,
+        }) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+            await systemConsolePage.page.getByTestId('newAttributeButton').click();
+
+            // # Link AD/LDAP
+            await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
+            await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+            await systemConsolePage.page.getByPlaceholder('department').fill('employeeID');
+            await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
+                'AD/LDAP: employeeID',
+            );
+
+            // # Click the chip's edit action -- the modal reopens pre-filled with the current value
+            await systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap-edit').click();
+            await expect(systemConsolePage.page.getByPlaceholder('department')).toHaveValue('employeeID');
+
+            // # Change the value and save
+            await systemConsolePage.page.getByPlaceholder('department').fill('newEmployeeID');
+            await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
+                'AD/LDAP: newEmployeeID',
+            );
+
+            // # Click the chip's remove action -- the link clears immediately, no modal opens
+            await systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap-remove').click();
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).not.toBeVisible();
+            await expect(systemConsolePage.page.getByPlaceholder('department')).not.toBeVisible();
+
+            // * The trigger is back, offering AD/LDAP again since nothing is linked anymore
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceTrigger')).toBeVisible();
+        });
+
+        /**
+         * @objective Ensure the picker warns before converting a non-Text field to Text, and that
+         * manually switching Type away from Text afterward clears the link and announces it via
+         * the status region (not just a silently-removed chip).
+         */
+        test('warns before converting a non-Text field, and clears + announces the link when Type is switched away from Text', async ({
+            pw,
+        }) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+            await systemConsolePage.page.getByTestId('newAttributeButton').click();
+
+            // # Switch to Select, then try linking AD/LDAP
+            await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
+            await systemConsolePage.page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
+            await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
+            await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+
+            // * The modal warns the field will convert to Text
+            await expect(systemConsolePage.page.getByText(/converted to a TEXT attribute/i)).toBeVisible();
+
+            // # Save the link anyway
+            await systemConsolePage.page.getByPlaceholder('department').fill('employeeID');
+            await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+
+            // * Type switched to Text, and a chip appeared
+            await expect(systemConsolePage.page.getByTestId('attributeTypeMenuButton')).toContainText('Text');
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toBeVisible();
+
+            // # Switch Type away from Text again
+            await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
+            await systemConsolePage.page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
+
+            // * The link is cleared, and the removal is announced via the status region
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).not.toBeVisible();
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceStatus')).toHaveText(
+                'External source link removed',
+            );
+        });
     });
 });

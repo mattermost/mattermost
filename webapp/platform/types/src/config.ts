@@ -141,6 +141,7 @@ export type ClientConfig = {
     FeatureFlagSessionAttributes: string;
     FeatureFlagPostAttributes: string;
     FeatureFlagDiscoverableChannels: string;
+    FeatureFlagRecurringScheduledPosts: string;
 
     ForgotPasswordLink: string;
     GiphySdkKey: string;
