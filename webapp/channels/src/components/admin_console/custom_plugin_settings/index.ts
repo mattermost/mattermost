@@ -62,7 +62,10 @@ function makeGetPluginSchema() {
                         type = Constants.SettingsTypes.TYPE_BANNER;
                         displayName = defineMessage({id: 'admin.plugin.customSetting.pluginDisabledWarning', defaultMessage: 'In order to view this setting, enable the plugin and click Save.'});
                         bannerType = 'warning';
-                        isDisabled = it.any(it.stateIsTrue(pluginEnabledConfigKey), it.not(it.userHasWritePermissionOnResource('plugins')));
+                        isDisabled = it.any(
+                            it.all(Boolean(plugin.active), it.stateIsTrue(pluginEnabledConfigKey)),
+                            it.not(it.userHasWritePermissionOnResource('plugins')),
+                        );
                     }
 
                     const isHidden = () => {
