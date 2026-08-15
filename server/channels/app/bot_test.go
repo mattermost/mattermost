@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func TestCreateBot(t *testing.T) {
@@ -680,6 +681,104 @@ func TestPermanentDeleteBot(t *testing.T) {
 	_, err = th.App.GetBot(th.Context, bot.UserId, false)
 	require.NotNil(t, err)
 	require.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+}
+
+func TestPermanentDeleteBotDeletesAccessTokens(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	bot, err := th.App.CreateBot(th.Context, &model.Bot{
+		Username:    "token_bot",
+		Description: "a bot with tokens",
+		OwnerId:     th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+
+	token1, err := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{
+		UserId:      bot.UserId,
+		Description: "token 1",
+	})
+	require.Nil(t, err)
+
+	token2, err := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{
+		UserId:      bot.UserId,
+		Description: "token 2",
+	})
+	require.Nil(t, err)
+
+	// Each token gets a backing session so we can verify the sessions are
+	// deleted alongside the tokens.
+	session1, err := th.App.GetSession(token1.Token)
+	require.Nil(t, err)
+	require.NotEmpty(t, session1.Id)
+
+	session2, err := th.App.GetSession(token2.Token)
+	require.Nil(t, err)
+	require.NotEmpty(t, session2.Id)
+
+	// A second bot whose tokens/sessions must survive, proving the deletion is
+	// scoped to the deleted bot's user ID.
+	otherBot, err := th.App.CreateBot(th.Context, &model.Bot{
+		Username:    "other_token_bot",
+		Description: "an unrelated bot",
+		OwnerId:     th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+
+	otherToken, err := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{
+		UserId:      otherBot.UserId,
+		Description: "keep me",
+	})
+	require.Nil(t, err)
+
+	otherSession, err := th.App.GetSession(otherToken.Token)
+	require.Nil(t, err)
+	require.NotEmpty(t, otherSession.Id)
+
+	tokens, err := th.App.GetUserAccessTokensForUser(bot.UserId, 0, 100)
+	require.Nil(t, err)
+	require.Len(t, tokens, 2)
+
+	require.Nil(t, th.App.PermanentDeleteBot(th.Context, bot.UserId))
+
+	tokens, err = th.App.GetUserAccessTokensForUser(bot.UserId, 0, 100)
+	require.Nil(t, err)
+	require.Empty(t, tokens, "bot access tokens should be deleted with the bot")
+
+	_, err = th.App.GetUserAccessToken(token1.Id, false)
+	require.NotNil(t, err, "token 1 should be deleted with the bot")
+	require.Equal(t, http.StatusNotFound, err.StatusCode)
+	_, err = th.App.GetUserAccessToken(token2.Id, false)
+	require.NotNil(t, err, "token 2 should be deleted with the bot")
+	require.Equal(t, http.StatusNotFound, err.StatusCode)
+
+	var nfErr *store.ErrNotFound
+	_, nErr := th.App.Srv().Store().Session().Get(th.Context, session1.Id)
+	require.ErrorAs(t, nErr, &nfErr, "session backed by the bot's first token should be deleted")
+	_, nErr = th.App.Srv().Store().Session().Get(th.Context, session2.Id)
+	require.ErrorAs(t, nErr, &nfErr, "session backed by the bot's second token should be deleted")
+
+	// Sessions are cached in memory by token, so the tokens must no longer
+	// authenticate once the bot is deleted. This exercises the session cache
+	// clearing, which plain SQL token deletion alone does not cover.
+	_, err = th.App.GetSession(token1.Token)
+	require.NotNil(t, err, "the deleted bot's first token must no longer authenticate")
+	require.Equal(t, http.StatusUnauthorized, err.StatusCode)
+	_, err = th.App.GetSession(token2.Token)
+	require.NotNil(t, err, "the deleted bot's second token must no longer authenticate")
+	require.Equal(t, http.StatusUnauthorized, err.StatusCode)
+
+	// The unrelated bot's credentials must be untouched.
+	otherTokens, err := th.App.GetUserAccessTokensForUser(otherBot.UserId, 0, 100)
+	require.Nil(t, err)
+	require.Len(t, otherTokens, 1, "an unrelated bot's tokens must not be deleted")
+
+	_, nErr = th.App.Srv().Store().Session().Get(th.Context, otherSession.Id)
+	require.NoError(t, nErr, "an unrelated bot's session must survive")
+
+	otherSessionAfter, err := th.App.GetSession(otherToken.Token)
+	require.Nil(t, err, "an unrelated bot's token must still authenticate")
+	require.Equal(t, otherSession.Id, otherSessionAfter.Id)
 }
 
 func TestDisableUserBots(t *testing.T) {
