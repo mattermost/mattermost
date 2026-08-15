@@ -734,6 +734,16 @@ func TestPermanentDeleteBotDeletesAccessTokens(t *testing.T) {
 	_, nErr = th.App.Srv().Store().Session().Get(th.Context, session2.Id)
 	require.ErrorAs(t, nErr, &nfErr, "session backed by the bot's second token should be deleted")
 
+	// Sessions are cached in memory by token, so the tokens must no longer
+	// authenticate once the bot is deleted. This exercises the session cache
+	// clearing, which plain SQL token deletion alone does not cover.
+	_, err = th.App.GetSession(token1.Token)
+	require.NotNil(t, err, "the deleted bot's first token must no longer authenticate")
+	require.Equal(t, http.StatusUnauthorized, err.StatusCode)
+	_, err = th.App.GetSession(token2.Token)
+	require.NotNil(t, err, "the deleted bot's second token must no longer authenticate")
+	require.Equal(t, http.StatusUnauthorized, err.StatusCode)
+
 	// The unrelated bot's credentials must be untouched.
 	otherTokens, err := th.App.GetUserAccessTokensForUser(otherBot.UserId, 0, 100)
 	require.Nil(t, err)
@@ -741,6 +751,10 @@ func TestPermanentDeleteBotDeletesAccessTokens(t *testing.T) {
 
 	_, nErr = th.App.Srv().Store().Session().Get(th.Context, otherSession.Id)
 	require.NoError(t, nErr, "an unrelated bot's session must survive")
+
+	otherSessionAfter, err := th.App.GetSession(otherToken.Token)
+	require.Nil(t, err, "an unrelated bot's token must still authenticate")
+	require.Equal(t, otherSession.Id, otherSessionAfter.Id)
 }
 
 func TestDisableUserBots(t *testing.T) {
