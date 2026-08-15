@@ -834,6 +834,7 @@ export const StoragePrefixes = {
     INLINE_IMAGE_VISIBLE: 'isInlineImageVisible_',
     DELINQUENCY: 'delinquency_',
     HIDE_JOINED_CHANNELS: 'hideJoinedChannels',
+    HIDE_ARCHIVED_CHANNELS: 'hideArchivedChannels',
     HIDE_NOTIFICATION_PERMISSION_REQUEST_BANNER: 'hideNotificationPermissionRequestBanner',
     MARK_ALL_READ_WITHOUT_CONFIRM: 'mark_all_as_read_without_confirm',
     HAS_SEEN_FEATURE_TOAST: 'has_seen_feature_toast',

@@ -206,6 +206,24 @@ func (_m *ScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
 	return r0
 }
 
+// UpdateRecurringScheduledPosts provides a mock function with given fields: scheduledPosts
+func (_m *ScheduledPostStore) UpdateRecurringScheduledPosts(scheduledPosts []*model.ScheduledPost) error {
+	ret := _m.Called(scheduledPosts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateRecurringScheduledPosts")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]*model.ScheduledPost) error); ok {
+		r0 = rf(scheduledPosts)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdatedScheduledPost provides a mock function with given fields: scheduledPost
 func (_m *ScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
 	ret := _m.Called(scheduledPost)
