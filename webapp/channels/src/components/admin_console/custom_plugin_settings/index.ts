@@ -137,10 +137,10 @@ function makeGetPluginSchema() {
                 const pluginEnableSetting = getEnablePluginSetting(plugin) as AdminDefinitionSetting;
 
                 const hasAllCustomSectionsDisabled = plugin.settings_schema?.sections?.every((s) => s.custom && !customSections[s.key.toLowerCase()]);
-                const allCustomSectionsAllowFallback = plugin.settings_schema?.sections?.every((s) => s.custom && s.fallback);
+                const anyCustomSectionAllowsFallback = plugin.settings_schema?.sections?.some((s) => s.custom && s.fallback);
 
-                if (plugin.settings_schema && hasAllCustomSectionsDisabled && !allCustomSectionsAllowFallback) {
-                    // If the plugin is composed of purely custom sections (e.g. Calls), it's disabled (custom components are not found), and they don't allow a fallback, we show a single warning.
+                if (plugin.settings_schema && hasAllCustomSectionsDisabled && !anyCustomSectionAllowsFallback) {
+                    // If the plugin is composed of purely custom sections (e.g. Calls), it's disabled (custom components are not found), and none allow a fallback, we show a single warning. If any section allows a fallback, we render the sections so fallback-enabled ones stay configurable while the rest show a per-section warning.
                     const warningBanner = {
                         key: 'admin.plugin.customSections.pluginDisabledWarning',
                         type: Constants.SettingsTypes.TYPE_BANNER,
