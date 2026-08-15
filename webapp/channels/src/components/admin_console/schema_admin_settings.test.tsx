@@ -415,6 +415,8 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         const {container} = renderWithContext(<SchemaAdminSettings {...props}/>);
         const text = container.textContent || '';
 
+        expect(screen.getByText('Schema header')).toBeInTheDocument();
+        expect(screen.getByText('Schema footer')).toBeInTheDocument();
         expect(screen.getByText('Top-level Setting')).toBeInTheDocument();
         expect(screen.getByText('Section Setting')).toBeInTheDocument();
         expect(text.indexOf('Schema header')).toBeLessThan(text.indexOf('Top-level Setting'));
