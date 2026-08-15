@@ -1,0 +1,74 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.AttributeAppliesToItem {
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+}
+
+.AttributeAppliesToItem__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px 0 12px;
+    gap: 8px;
+}
+
+.AttributeAppliesToItem__toggle {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    padding: 10px 0;
+    border: none;
+    background: transparent;
+    color: var(--center-channel-color);
+    cursor: pointer;
+    gap: 8px;
+    text-align: left;
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+}
+
+.AttributeAppliesToItem__chevron {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    transition: transform 150ms ease-in-out;
+}
+
+.AttributeAppliesToItem__chevron--open {
+    transform: rotate(-180deg);
+}
+
+.AttributeAppliesToItem__label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.AttributeAppliesToItem__remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border: none;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: pointer;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+}
+
+.AttributeAppliesToItem__body {
+    padding: 0 12px 12px 46px;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+}

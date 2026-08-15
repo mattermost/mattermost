@@ -10,6 +10,8 @@
  * Professional-only licenses hide this admin route (React Router redirects away).
  */
 
+import type {PropertyField} from '@mattermost/types/properties';
+
 import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
 import {
@@ -22,9 +24,12 @@ import {
     GLOBAL_ATTRIBUTES_ADMIN_PATH,
     createGlobalAttributeField,
     deleteGlobalAttributeFieldIfExists,
+    deleteLinkedDependentField,
+    fetchLinkedFieldsForTemplate,
     requireGlobalAttributesEnabled,
     setGlobalAttributesFeatureFlag,
 } from './global_attributes_helpers';
+import type {ResourceObjectType} from './global_attributes_helpers';
 
 test.describe('System Console - Global Attributes', {tag: '@system_console'}, () => {
     // All tests here toggle the same server-wide GlobalAttributes config flag, so the whole
@@ -1009,6 +1014,260 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             await expect(systemConsolePage.page.getByTestId('attributeExternalSourceStatus')).toHaveText(
                 'External source link removed',
             );
+        });
+    });
+
+    test.describe('applies to', () => {
+        /**
+         * @objective Ensure a brand-new attribute's Applies-to card renders its empty state
+         * correctly, with no resources and both "Add resource" triggers available.
+         */
+        test('shows the empty state with both Add-resource triggers, and no rows', async ({pw}) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+            await systemConsolePage.page.getByTestId('newAttributeButton').click();
+
+            // * Empty state renders with its heading/helper text
+            await expect(systemConsolePage.page.getByTestId('attributeAppliesToEmptyState')).toBeVisible();
+
+            // * No resource rows exist yet
+            for (const type of ['user', 'channel', 'post']) {
+                await expect(systemConsolePage.page.getByTestId(`attributeAppliesToRow-${type}`)).not.toBeVisible();
+            }
+
+            // * Both triggers are available
+            await expect(systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonHeader')).toBeVisible();
+            await expect(systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonInline')).toBeVisible();
+        });
+
+        /**
+         * @objective Ensure the picker offers exactly the not-yet-selected types, adding one
+         * removes it from the picker and renders its row, and once all three are added both
+         * triggers disappear entirely.
+         */
+        test('offers only unselected types, renders a row per addition, and hides both triggers once all three are added', async ({pw}) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+            await systemConsolePage.page.getByTestId('newAttributeButton').click();
+
+            // # Open the picker; all three types are offered, in order
+            await systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+            const menuItems = systemConsolePage.page.getByRole('menuitem');
+            await expect(menuItems).toHaveText(['Users', 'Channels', 'Posts']);
+
+            // # Pick Users
+            await systemConsolePage.page.getByRole('menuitem', {name: 'Users'}).click();
+
+            // * Users row renders, empty state is gone
+            await expect(systemConsolePage.page.getByTestId('attributeAppliesToRow-user')).toBeVisible();
+            await expect(systemConsolePage.page.getByTestId('attributeAppliesToEmptyState')).not.toBeVisible();
+
+            // # Reopen the picker -- only Channels and Posts remain
+            await systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+            await expect(systemConsolePage.page.getByRole('menuitem')).toHaveText(['Channels', 'Posts']);
+
+            // # Add Channels, then Posts
+            await systemConsolePage.page.getByRole('menuitem', {name: 'Channels'}).click();
+            await systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+            await systemConsolePage.page.getByRole('menuitem', {name: 'Posts'}).click();
+
+            // * All three rows render, in insertion order
+            await expect(systemConsolePage.page.getByTestId('attributeAppliesToRow-user')).toBeVisible();
+            await expect(systemConsolePage.page.getByTestId('attributeAppliesToRow-channel')).toBeVisible();
+            await expect(systemConsolePage.page.getByTestId('attributeAppliesToRow-post')).toBeVisible();
+
+            // * Both triggers are gone now that all three types are selected
+            await expect(systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonHeader')).not.toBeVisible();
+            await expect(systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonInline')).not.toBeVisible();
+        });
+
+        /**
+         * @objective Ensure removing a not-yet-saved resource is an immediate local change -- no
+         * confirmation modal, no network call -- and the removed type becomes available in the
+         * picker again.
+         */
+        test('removes a pending resource locally with no confirm modal and no delete request', async ({pw}) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+            await systemConsolePage.page.getByTestId('newAttributeButton').click();
+
+            // Regression guard: no property-field delete request fires for a pre-save removal.
+            let deleteRequestFired = false;
+            await systemConsolePage.page.route('**/api/v4/properties/groups/access_control/*/fields/*', async (route) => {
+                if (route.request().method() === 'DELETE') {
+                    deleteRequestFired = true;
+                }
+                await route.continue();
+            });
+
+            // # Add Channels
+            await systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+            await systemConsolePage.page.getByRole('menuitem', {name: 'Channels'}).click();
+            await expect(systemConsolePage.page.getByTestId('attributeAppliesToRow-channel')).toBeVisible();
+
+            // # Remove it
+            await systemConsolePage.page.getByTestId('attributeAppliesToRow-channel-remove').click();
+
+            // * The row disappears immediately, no modal/dialog ever rendered
+            await expect(systemConsolePage.page.getByTestId('attributeAppliesToRow-channel')).not.toBeVisible();
+            await expect(systemConsolePage.page.getByRole('dialog')).not.toBeVisible();
+
+            // # Reopen the picker -- Channels is offered again
+            await systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+            await expect(systemConsolePage.page.getByRole('menuitem', {name: 'Channels'})).toBeVisible();
+
+            expect(deleteRequestFired).toBe(false);
+        });
+
+        /**
+         * @objective Ensure Save creates the template, then one linked field per selected
+         * resource, each correctly pointing back at the template -- verified end-to-end against
+         * the real server via the admin API, since the listing table's Applies-to column is a
+         * hardcoded placeholder (see Out of Scope).
+         */
+        test('saves the template plus one linked field per selected resource', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright Applies To ${timestamp}`;
+            const expectedName = `playwright_applies_to_${timestamp}`;
+
+            let linkedFields: PropertyField[] = [];
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                await systemConsolePage.page.getByTestId('newAttributeButton').click();
+
+                // # Fill Display name, add Users and Channels
+                await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+                await systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+                await systemConsolePage.page.getByRole('menuitem', {name: 'Users'}).click();
+                await systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+                await systemConsolePage.page.getByRole('menuitem', {name: 'Channels'}).click();
+
+                // # Save
+                await systemConsolePage.page.getByTestId('saveSetting').click();
+
+                // * Redirected back to the Manage Attributes list
+                await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                // * Exactly two linked fields exist, pointing back at the template
+                const templateFields = await adminClient.getPropertyFields(
+                    'access_control',
+                    'template',
+                    'system',
+                    undefined,
+                    {perPage: 200},
+                );
+                const templateField = templateFields.find((f) => f.name === expectedName && f.delete_at === 0);
+                expect(templateField).toBeDefined();
+
+                linkedFields = await fetchLinkedFieldsForTemplate(adminClient, templateField!.id);
+                expect(linkedFields).toHaveLength(2);
+
+                const userField = linkedFields.find((f) => f.object_type === 'user');
+                const channelField = linkedFields.find((f) => f.object_type === 'channel');
+                expect(userField).toBeDefined();
+                expect(channelField).toBeDefined();
+                for (const field of [userField!, channelField!]) {
+                    expect(field.target_type).toBe('system');
+                    expect(field.linked_field_id).toBe(templateField!.id);
+                    expect(field.attrs?.display_name).toBe(displayName);
+                }
+            } finally {
+                for (const field of linkedFields) {
+                    await deleteLinkedDependentField(adminClient, field.id, field.object_type as ResourceObjectType);
+                }
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
+         * @objective Ensure a mid-save failure rolls back everything created in that attempt and
+         * leaves Save retryable, rather than leaving an orphaned template or linked field behind.
+         */
+        test('rolls back a partial save and lets the admin retry successfully', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright Applies To Retry ${timestamp}`;
+            const expectedName = `playwright_applies_to_retry_${timestamp}`;
+
+            let linkedFields: PropertyField[] = [];
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                await systemConsolePage.page.getByTestId('newAttributeButton').click();
+
+                // # Fill Display name, add Users, Channels, and Posts
+                await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+                for (const label of ['Users', 'Channels', 'Posts']) {
+                    await systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+                    await systemConsolePage.page.getByRole('menuitem', {name: label}).click();
+                }
+
+                // # Force the "post" linked-field creation request to fail; let user/channel/template through
+                await systemConsolePage.page.route('**/api/v4/properties/groups/access_control/post/fields', async (route) => {
+                    if (route.request().method() === 'POST') {
+                        await route.fulfill({status: 500, contentType: 'application/json', body: JSON.stringify({message: 'forced failure'})});
+                    } else {
+                        await route.continue();
+                    }
+                });
+
+                // # Click Save
+                await systemConsolePage.page.getByTestId('saveSetting').click();
+
+                // * The banner names the failed resource, and Save is re-clickable
+                await expect(systemConsolePage.page.getByTestId('attributeSaveError')).toContainText('Posts');
+                await expect(systemConsolePage.page.getByTestId('saveSetting')).not.toBeDisabled();
+
+                // * Nothing survived the rollback -- no template, no user/channel linked fields
+                const templateFieldsAfterFailure = await adminClient.getPropertyFields(
+                    'access_control',
+                    'template',
+                    'system',
+                    undefined,
+                    {perPage: 200},
+                );
+                expect(templateFieldsAfterFailure.find((f) => f.name === expectedName && f.delete_at === 0)).toBeUndefined();
+
+                const userFields = await adminClient.getPropertyFields('access_control', 'user', 'system', undefined, {perPage: 200});
+                const channelFields = await adminClient.getPropertyFields('access_control', 'channel', 'system', undefined, {perPage: 200});
+                expect(userFields.find((f) => f.name === expectedName && f.delete_at === 0)).toBeUndefined();
+                expect(channelFields.find((f) => f.name === expectedName && f.delete_at === 0)).toBeUndefined();
+
+                // # Remove the interception and retry
+                await systemConsolePage.page.unroute('**/api/v4/properties/groups/access_control/post/fields');
+                await systemConsolePage.page.getByTestId('saveSetting').click();
+
+                // * This time it succeeds
+                await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                const templateFieldsAfterRetry = await adminClient.getPropertyFields(
+                    'access_control',
+                    'template',
+                    'system',
+                    undefined,
+                    {perPage: 200},
+                );
+                const templateField = templateFieldsAfterRetry.find((f) => f.name === expectedName && f.delete_at === 0);
+                expect(templateField).toBeDefined();
+
+                linkedFields = await fetchLinkedFieldsForTemplate(adminClient, templateField!.id);
+                expect(linkedFields).toHaveLength(3);
+            } finally {
+                for (const field of linkedFields) {
+                    await deleteLinkedDependentField(adminClient, field.id, field.object_type as ResourceObjectType);
+                }
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
         });
     });
 });

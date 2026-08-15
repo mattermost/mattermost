@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Client4} from '@mattermost/client';
+import type {PropertyField} from '@mattermost/types/properties';
 
 import {getAdminClient, licenseTier, test} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
@@ -13,6 +14,11 @@ export const GLOBAL_ATTRIBUTES_ADMIN_PATH = '/admin_console/system_attributes/ma
 const PROPERTY_GROUP = 'access_control';
 const OBJECT_TYPE = 'template';
 const TARGET_TYPE = 'system';
+
+// The three resource object types an Applies-to linked field can use.
+// Canonical values: webapp/channels/.../attribute_details/attribute_applies_to_constants.tsx
+export type ResourceObjectType = 'user' | 'channel' | 'post';
+const ALL_RESOURCE_OBJECT_TYPES: ResourceObjectType[] = ['user', 'channel', 'post'];
 
 // Server clamps per_page to this max (see web.PerPageMaximum in server/channels/web/params.go).
 // Directory-mode search with no cursor sorts CreateAt ASC, so the default 60-item page only
@@ -95,4 +101,58 @@ export async function createGlobalAttributeField(
         target_id: '',
         ...field,
     } as Parameters<Client4['createPropertyField']>[2]);
+}
+
+/**
+ * Creates a linked property field for one Applies-to resource, pointing back at `sourceFieldId`
+ * (the template). Used for E2E seeding of an already-saved Applies-to resource (e.g. verifying
+ * a delete is blocked, or that a pre-existing linked field surfaces correctly) -- the create
+ * flow itself is exercised through the UI, not this helper.
+ */
+export async function createLinkedDependentField(
+    adminClient: Client4,
+    name: string,
+    sourceFieldId: string,
+    type: string,
+    objectType: ResourceObjectType = 'user',
+) {
+    return adminClient.createPropertyField(PROPERTY_GROUP, objectType, {
+        name,
+        type,
+        target_type: TARGET_TYPE,
+        target_id: '',
+        linked_field_id: sourceFieldId,
+    } as Parameters<Client4['createPropertyField']>[2]);
+}
+
+/**
+ * Deletes a linked property field, ignoring failures -- mirrors deleteGlobalAttributeFieldIfExists'
+ * best-effort cleanup style, since a test's own save/rollback assertions may have already deleted it.
+ */
+export async function deleteLinkedDependentField(adminClient: Client4, fieldId: string, objectType: ResourceObjectType = 'user') {
+    try {
+        await adminClient.deletePropertyField(PROPERTY_GROUP, objectType, fieldId);
+    } catch {
+        // May already be gone (e.g. a prior rollback already deleted it); ignore.
+    }
+}
+
+/**
+ * Finds every linked field (across all three resource object types) pointing at `templateFieldId`.
+ * Queries user/channel/post separately -- there is no single "all object types" listing endpoint --
+ * and requests the max page size per call, since the `user` object type's result page is shared
+ * with every Custom Profile Attributes field on the server (see deleteGlobalAttributeFieldIfExists'
+ * own MAX_PROPERTY_FIELDS_PER_PAGE comment) and a freshly-created linked field is exactly the kind
+ * of newest-row a default ascending-CreateAt page can drop.
+ */
+export async function fetchLinkedFieldsForTemplate(adminClient: Client4, templateFieldId: string): Promise<PropertyField[]> {
+    const results = await Promise.all(ALL_RESOURCE_OBJECT_TYPES.map((objectType) =>
+        adminClient.getPropertyFields(PROPERTY_GROUP, objectType, TARGET_TYPE, undefined, {
+            perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
+        }),
+    ));
+
+    return results.
+        flat().
+        filter((field) => field.linked_field_id === templateFieldId && field.delete_at === 0);
 }
