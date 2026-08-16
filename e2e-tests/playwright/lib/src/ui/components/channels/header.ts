@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {ChannelAttributeLabels} from './channel_attributes';
+
 export default class ChannelsHeader {
     readonly container: Locator;
 
@@ -11,10 +13,12 @@ export default class ChannelsHeader {
     readonly channelMenuDropdown;
     readonly callButton: Locator;
     readonly pinnedMessagesButton: Locator;
+    readonly attributes: ChannelAttributeLabels;
 
     constructor(container: Locator) {
         this.container = container;
 
+        this.attributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels'));
         this.title = container.locator('#channelHeaderTitle');
         this.channelMenuDropdown = container.locator('#channelHeaderDropdownButton');
         this.callButton = container.getByRole('button', {name: /call/i}).first();

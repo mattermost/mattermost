@@ -98,7 +98,10 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
     const textPlaceholder = formatMessage({id: 'channel_attributes.enter_value', defaultMessage: 'Enter a value'});
 
     return (
-        <div className='channel-attributes-form'>
+        <div
+            className='channel-attributes-form'
+            data-testid='channelAttributesForm'
+        >
             <h4 className='channel-attributes-form__title'>
                 <FormattedMessage
                     id='channel_attributes.title'

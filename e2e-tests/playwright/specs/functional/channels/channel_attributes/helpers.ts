@@ -2,7 +2,9 @@
 // See LICENSE.txt for license information.
 
 import type {Client4} from '@mattermost/client';
+import type {Channel} from '@mattermost/types/channels';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {Team} from '@mattermost/types/teams';
 
 // Channel attributes share the access_control group with Classification Markings.
 export const GROUP = 'access_control';
@@ -104,6 +106,37 @@ export async function setChannelValue(
     await client.patchPropertyValues(GROUP, 'channel', channelId, [
         {field_id: field.id, value} as Parameters<Client4['patchPropertyValues']>[3][number],
     ]);
+}
+
+export async function createChannelForAttributes(
+    adminClient: Client4,
+    team: Team,
+    suffix: string,
+    displayName = `Attr ${suffix}`,
+): Promise<Channel> {
+    return adminClient.createChannel({
+        team_id: team.id,
+        name: `attr-${suffix}`.toLowerCase(),
+        display_name: displayName,
+        type: 'O',
+    } as Channel);
+}
+
+// The banner template as an admin would author it, tokens included.
+export async function setBannerTemplate(
+    client: Client4,
+    channelId: string,
+    text: string,
+    backgroundColor = '#1E325C',
+): Promise<void> {
+    await client.patchChannel(channelId, {
+        banner_info: {enabled: true, text, background_color: backgroundColor},
+    } as Partial<Channel>);
+}
+
+// Mirrors attributeToken() in components/channel_attributes/banner_template.ts.
+export function attributeToken(name: string): string {
+    return `{{${name}}}`;
 }
 
 export function optionId(field: PropertyField, name: string): string {

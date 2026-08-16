@@ -327,6 +327,27 @@ export default class ChannelsPage {
         return this.channelSettingsModal;
     }
 
+    /**
+     * Opens the Channel Info panel in the RHS, toggling it open if a different
+     * panel is already showing there.
+     */
+    async openChannelInfo() {
+        const infoButton = this.page.locator('#channel-info-btn');
+        await expect(infoButton).toBeVisible();
+
+        // The button toggles, so clicking it while Info is already showing would close it.
+        const infoHeading = this.sidebarRight.container.getByText('Info', {exact: true});
+        const alreadyOpen = await infoHeading.isVisible().catch(() => false);
+        if (!alreadyOpen) {
+            await infoButton.click();
+            await expect(infoHeading).toBeVisible();
+        }
+
+        await this.sidebarRight.toBeVisible();
+
+        return this.sidebarRight;
+    }
+
     async openChannelNotificationPreferences(): Promise<ChannelNotificationPreferencesModal> {
         const channelMenu = await this.openChannelMenu();
         await channelMenu.notificationPreferences.click();

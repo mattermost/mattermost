@@ -1,0 +1,327 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import type {PropertyField} from '@mattermost/types/properties';
+
+import {expect, test} from '@mattermost/playwright-lib';
+
+import {
+    DISPLAY_BANNER_TOP,
+    DISPLAY_LABEL_INFO,
+    attributeName,
+    attributeToken,
+    createAttribute,
+    createChannelForAttributes,
+    deleteAttributes,
+    optionId,
+    purgeAttributes,
+    setChannelValue,
+} from './helpers';
+
+const BANNER_COLOR = '#1e325c';
+
+test.describe('Channel attribute banner composition', {tag: ['@channel_attributes']}, () => {
+    test.describe.configure({mode: 'serial'});
+
+    /**
+     * @objective Verify an attribute token can be inserted from Channel Settings and previews its resolved value.
+     */
+    test('inserts an attribute token from the Attributes menu and previews the resolved text', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, adminUser, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+
+            const marking = await createAttribute(adminClient, attributeName('preview', suffix), {
+                options: ['RESTRICTED'],
+                actions: [DISPLAY_BANNER_TOP],
+                optionColors: {RESTRICTED: BANNER_COLOR},
+            });
+            created.push(marking);
+
+            const channel = await createChannelForAttributes(adminClient, team, `banner-preview-${suffix}`);
+            await adminClient.addToChannel(adminUser.id, channel.id);
+            await setChannelValue(adminClient, channel.id, marking, optionId(marking, 'RESTRICTED'));
+
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            // # Open the banner composer and insert the attribute. The composer seeds
+            // # itself with the banner already on screen, so start from a clean template.
+            const settings = await channelsPage.openChannelSettings();
+            const configuration = await settings.openConfigurationTab();
+            await configuration.enableChannelBanner();
+            await configuration.setChannelBannerText('');
+            await configuration.insertBannerToken(marking.name);
+
+            // * The token lands in the text as authored, and the preview resolves it
+            await expect(configuration.bannerTextbox).toHaveValue(
+                new RegExp(attributeToken(marking.name).replace(/[{}]/g, '\\$&')),
+            );
+            await expect(configuration.bannerTokenPreview).toContainText('RESTRICTED');
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+
+    /**
+     * @objective Verify a banner authored as custom text plus a token renders both in the channel.
+     */
+    test('saves a banner mixing custom text with a token', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, adminUser, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+
+            const marking = await createAttribute(adminClient, attributeName('mixed', suffix), {
+                options: ['NOFORN'],
+                actions: [DISPLAY_BANNER_TOP],
+                optionColors: {NOFORN: BANNER_COLOR},
+            });
+            created.push(marking);
+
+            const channel = await createChannelForAttributes(adminClient, team, `banner-mixed-${suffix}`);
+            await adminClient.addToChannel(adminUser.id, channel.id);
+            await setChannelValue(adminClient, channel.id, marking, optionId(marking, 'NOFORN'));
+
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            const settings = await channelsPage.openChannelSettings();
+            const configuration = await settings.openConfigurationTab();
+            await configuration.enableChannelBanner();
+
+            // # Author the literal part first: the menu appends, it does not insert at the caret
+            await configuration.setChannelBannerText('Handling:');
+            await configuration.insertBannerToken(marking.name);
+            await configuration.setChannelBannerBackgroundColor(BANNER_COLOR.replace('#', ''));
+            await configuration.save();
+            await settings.close();
+
+            // * The channel banner shows the literal and the resolved token together
+            await channelsPage.centerView.assertChannelBanner('Handling: NOFORN', BANNER_COLOR);
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+
+    /**
+     * @objective Verify a separator between two tokens is dropped when one of them has no value.
+     */
+    test('tidies the separator when one of two tokens is unset', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, adminUser, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+
+            const marking = await createAttribute(adminClient, attributeName('tidy_set', suffix), {
+                options: ['SECRET'],
+                actions: [DISPLAY_BANNER_TOP],
+                optionColors: {SECRET: BANNER_COLOR},
+                sortOrder: 0,
+            });
+
+            // Deliberately left without a value on this channel.
+            const program = await createAttribute(adminClient, attributeName('tidy_unset', suffix), {
+                options: ['AURORA'],
+                actions: [DISPLAY_LABEL_INFO],
+                sortOrder: 1,
+            });
+            created.push(marking, program);
+
+            const channel = await createChannelForAttributes(adminClient, team, `banner-tidy-${suffix}`);
+            await adminClient.addToChannel(adminUser.id, channel.id);
+            await setChannelValue(adminClient, channel.id, marking, optionId(marking, 'SECRET'));
+
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            const settings = await channelsPage.openChannelSettings();
+            const configuration = await settings.openConfigurationTab();
+            await configuration.enableChannelBanner();
+            await configuration.setChannelBannerText(
+                `${attributeToken(marking.name)} · ${attributeToken(program.name)}`,
+            );
+
+            // * The stranded separator is collapsed, not rendered next to nothing
+            await expect(configuration.bannerTokenPreview).toContainText('SECRET');
+            await expect(configuration.bannerTokenPreview).not.toContainText('·');
+
+            await configuration.setChannelBannerBackgroundColor(BANNER_COLOR.replace('#', ''));
+            await configuration.save();
+            await settings.close();
+
+            await channelsPage.centerView.assertChannelBanner('SECRET', BANNER_COLOR);
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+
+    /**
+     * @objective Verify a template whose tokens are all unset says so rather than previewing a blank line.
+     */
+    test('says so when every token in the template is unset', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, adminUser, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+
+            const marking = await createAttribute(adminClient, attributeName('empty_preview', suffix), {
+                options: ['UNUSED'],
+                actions: [DISPLAY_BANNER_TOP],
+                optionColors: {UNUSED: BANNER_COLOR},
+            });
+            created.push(marking);
+
+            const channel = await createChannelForAttributes(adminClient, team, `banner-empty-${suffix}`);
+            await adminClient.addToChannel(adminUser.id, channel.id);
+
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            const settings = await channelsPage.openChannelSettings();
+            const configuration = await settings.openConfigurationTab();
+            await configuration.enableChannelBanner();
+            await configuration.insertBannerToken(marking.name);
+
+            // * The preview names the empty result instead of rendering nothing
+            await expect(configuration.bannerTokenPreview).toContainText('no values are set');
+
+            await settings.close();
+
+            // * And no banner is rendered from a template that resolves to nothing
+            await channelsPage.centerView.assertChannelBannerNotVisible();
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+
+    /**
+     * @objective Verify a banner keeps resolving after the attribute's display name changes,
+     * because tokens key off the machine name.
+     */
+    test('keeps resolving after the attribute display name changes', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, adminUser, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+
+            const marking = await createAttribute(adminClient, attributeName('renamed', suffix), {
+                options: ['ORCON'],
+                actions: [DISPLAY_BANNER_TOP],
+                optionColors: {ORCON: BANNER_COLOR},
+            });
+            created.push(marking);
+
+            const channel = await createChannelForAttributes(adminClient, team, `banner-rename-${suffix}`);
+            await adminClient.addToChannel(adminUser.id, channel.id);
+            await setChannelValue(adminClient, channel.id, marking, optionId(marking, 'ORCON'));
+
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            const settings = await channelsPage.openChannelSettings();
+            const configuration = await settings.openConfigurationTab();
+            await configuration.enableChannelBanner();
+            await configuration.setChannelBannerText('');
+            await configuration.insertBannerToken(marking.name);
+            await configuration.setChannelBannerBackgroundColor(BANNER_COLOR.replace('#', ''));
+            await configuration.save();
+            await settings.close();
+
+            // * Exactly what was authored is persisted, tokens unresolved
+            const saved = await adminClient.getChannel(channel.id);
+            expect(saved.banner_info?.text).toBe(attributeToken(marking.name));
+
+            await channelsPage.centerView.assertChannelBanner('ORCON', BANNER_COLOR);
+
+            // # Rename the attribute as an administrator would
+            await adminClient.patchPropertyField('access_control', 'channel', marking.id, {
+                attrs: {...marking.attrs, display_name: `Renamed ${suffix}`},
+            } as never);
+
+            // * The authored token still resolves, because it keys off the machine name
+            await channelsPage.page.reload();
+            await channelsPage.toBeVisible();
+            await channelsPage.centerView.assertChannelBanner('ORCON', BANNER_COLOR);
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+
+    /**
+     * @objective Verify classification is composed as one attribute among many once channel
+     * attributes are on, rather than through its own dedicated controls.
+     */
+    test('treats classification as one attribute among many', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, adminUser, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+
+            const classification = await createAttribute(adminClient, attributeName('classification', suffix), {
+                options: ['SECRET'],
+                actions: [DISPLAY_BANNER_TOP],
+                optionColors: {SECRET: BANNER_COLOR},
+            });
+            created.push(classification);
+
+            const channel = await createChannelForAttributes(adminClient, team, `banner-class-${suffix}`);
+            await adminClient.addToChannel(adminUser.id, channel.id);
+            await setChannelValue(adminClient, channel.id, classification, optionId(classification, 'SECRET'));
+
+            const {page, channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            const settings = await channelsPage.openChannelSettings();
+            const configuration = await settings.openConfigurationTab();
+
+            // * The dedicated classification controls are gone
+            await expect(page.locator('#channelClassificationToggle')).toHaveCount(0);
+            await expect(page.getByTestId('channelClassificationLevel')).toHaveCount(0);
+
+            // * The same marking is offered as an ordinary banner token instead
+            await configuration.enableChannelBanner();
+            await configuration.bannerTokenButton.click();
+            await expect(page.getByTestId(`bannerAttributeToken-${classification.name}`)).toBeVisible();
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+});

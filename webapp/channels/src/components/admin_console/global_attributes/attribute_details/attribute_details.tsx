@@ -5,12 +5,17 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {IntlShape} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {ClientError} from '@mattermost/client';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
+import type {GlobalState} from '@mattermost/types/store';
+
+import {Client4} from 'mattermost-redux/client';
+import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
+import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
@@ -32,6 +37,9 @@ import type {ExternalSource} from './attribute_external_source';
 import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
 
+import AppliesToCard from '../applies_to/applies_to_card';
+import {buildChannelFieldPayload} from '../applies_to/channels';
+import type {ChannelResourceConfig} from '../applies_to/channels';
 import {getTypeIcon, getTypeLabel, typeLabels} from '../global_attributes_table';
 import type {AttributeFieldType} from '../utils';
 import {createAttributeField} from '../utils';
@@ -80,7 +88,7 @@ function computeAutoSlugDisplay(displayName: string): string | null {
     return slug === '_copy' ? null : slug;
 }
 
-type ErrorKind = 'name_conflict' | 'invalid_charset' | 'reserved_word' | 'limit_reached' | 'invalid_options' | 'generic';
+type ErrorKind = 'name_conflict' | 'invalid_charset' | 'reserved_word' | 'limit_reached' | 'invalid_options' | 'channel_resource' | 'generic';
 
 function errorKindFromError(error: unknown): ErrorKind {
     const serverErrorId = (error as ClientError | undefined)?.server_error_id;
@@ -153,6 +161,17 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // the same field). See attribute_external_source.tsx.
     const [ldapAttr, setLdapAttr] = useState('');
     const [samlAttr, setSamlAttr] = useState('');
+
+    const channelAttributesEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'ChannelAttributes') === 'true');
+
+    // null means the attribute does not apply to channels.
+    const [channelResource, setChannelResource] = useState<ChannelResourceConfig | null>(null);
+
+    // Held so a Save that failed on the linked channel field retries only that
+    // write instead of colliding with the name the template already took. The
+    // definition locks alongside it: it is saved, and this page cannot edit it.
+    const [createdTemplate, setCreatedTemplate] = useState<PropertyField | null>(null);
+    const definitionLocked = createdTemplate !== null;
 
     const [saving, setSaving] = useState(false);
     const [errorKind, setErrorKind] = useState<ErrorKind | null>(null);
@@ -356,7 +375,35 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         setSaving(true);
         setErrorKind(null);
         try {
-            await createAttributeField(displayName, currentName, fieldType, options, {ldapAttr, samlAttr});
+            // Reused when a previous attempt got this far and failed below.
+            let template = createdTemplate;
+            if (!template) {
+                template = await createAttributeField(displayName, currentName, fieldType, options, {ldapAttr, samlAttr});
+                if (!isMountedRef.current) {
+                    return;
+                }
+                setCreatedTemplate(template);
+            }
+
+            // Its own error, and no navigation: the attribute exists but does not
+            // apply to channels yet, and leaving for the list would read as a
+            // clean save.
+            if (channelResource) {
+                try {
+                    await Client4.createPropertyField(
+                        ACCESS_CONTROL_PROPERTY_GROUP,
+                        CHANNEL_OBJECT_TYPE,
+                        buildChannelFieldPayload(template, channelResource),
+                    );
+                } catch (error) {
+                    if (isMountedRef.current) {
+                        setErrorKind('channel_resource');
+                        setServerErrorMessage((error as ClientError | undefined)?.message ?? null);
+                    }
+                    return;
+                }
+            }
+
             if (!isMountedRef.current) {
                 return;
             }
@@ -372,7 +419,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setSaving(false);
             }
         }
-    }, [canSave, displayName, currentName, fieldType, options, ldapAttr, samlAttr, dispatch]);
+    }, [canSave, displayName, currentName, fieldType, options, ldapAttr, samlAttr, channelResource, createdTemplate, dispatch]);
+
+    const handleChannelResourceChange = useCallback((next: ChannelResourceConfig | null) => {
+        setChannelResource(next);
+        markDirty();
+    }, [markDirty]);
 
     const TypeIcon = getTypeIcon(fieldType);
 
@@ -437,7 +489,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                         value={displayName}
                                         onChange={handleDisplayNameChange}
                                         autoFocus={true}
-                                        disabled={saving || disabled}
+                                        disabled={saving || disabled || definitionLocked}
                                         maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH}
                                         data-testid='attributeDisplayNameInput'
                                     />
@@ -463,7 +515,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                     onChange={handleNameChange}
                                                     onKeyDown={handleNameKeyDown}
                                                     autoFocus={true}
-                                                    disabled={saving || disabled}
+                                                    disabled={saving || disabled || definitionLocked}
                                                     maxLength={CPA_FIELD_NAME_MAX_RUNES}
                                                     aria-labelledby='attribute-unique-name-prefix'
                                                     aria-describedby={nameDescribedBy}
@@ -483,7 +535,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 type='button'
                                                 className='AttributeDetails__editLink'
                                                 onClick={isEditingName ? handleDoneClick : handleEditClick}
-                                                disabled={saving || disabled}
+                                                disabled={saving || disabled || definitionLocked}
                                                 aria-disabled={isDoneBlocked || undefined}
                                                 aria-describedby={isDoneBlocked ? 'attribute-unique-name-error' : undefined}
                                                 aria-label={formatMessage(isEditingName ? messages.doneLinkAriaLabel : messages.editLinkAriaLabel)}
@@ -530,7 +582,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                         menuButton={{
                                             id: 'attribute-type-menu-button',
                                             class: 'AttributeDetails__typeButton',
-                                            disabled: saving || disabled,
+                                            disabled: saving || disabled || definitionLocked,
                                             'aria-label': formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))}),
                                             children: (
                                                 <>
@@ -582,13 +634,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 <AttributeOptionsRankValues
                                                     options={options}
                                                     onOptionsChange={handleOptionsChange}
-                                                    disabled={saving || disabled}
+                                                    disabled={saving || disabled || definitionLocked}
                                                 />
                                             ) : (
                                                 <AttributeOptionsValues
                                                     options={options}
                                                     onOptionsChange={handleOptionsChange}
-                                                    disabled={saving || disabled}
+                                                    disabled={saving || disabled || definitionLocked}
                                                 />
                                             )}
                                             {optionsIssue && (
@@ -614,12 +666,19 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                         samlAttr={samlAttr}
                                         fieldType={fieldType}
                                         onLink={handleLink}
-                                        disabled={saving || disabled}
+                                        disabled={saving || disabled || definitionLocked}
                                     />
                                 </div>
                             </div>
                         </Card.Body>
                     </Card>
+                    {channelAttributesEnabled && (
+                        <AppliesToCard
+                            channelResource={channelResource}
+                            onChannelResourceChange={handleChannelResourceChange}
+                            disabled={saving || disabled || definitionLocked}
+                        />
+                    )}
                 </div>
             </div>
             <div className='admin-console-save'>
@@ -722,6 +781,10 @@ const errorMessages = defineMessages({
     reserved_word: {
         id: 'admin.global_attributes.attribute_details.save_error.reserved_word',
         defaultMessage: 'This name is a reserved word and cannot be used. Please choose a different name.',
+    },
+    channel_resource: {
+        id: 'admin.global_attributes.attribute_details.save_error.channel_resource',
+        defaultMessage: 'The attribute was created, but it could not be applied to channels. Its definition can no longer be changed here; select Save to try applying it again, or remove the Channels resource to finish without it.',
     },
     limit_reached: {
         id: 'admin.global_attributes.attribute_details.save_error.limit_reached',

@@ -454,6 +454,80 @@ describe('AttributeDetails', () => {
         }));
     });
 
+    describe('applying an attribute to channels', () => {
+        const withChannelAttributes = () => renderWithContext(
+            <div>
+                <AttributeDetails/>
+                <ModalController/>
+            </div>,
+            {entities: {general: {config: {FeatureFlagChannelAttributes: 'true'}}}},
+        );
+
+        const template = {id: 'template_id_1234567890abcdef', name: 'my_attribute', type: 'text', target_type: 'system', target_id: ''} as PropertyField;
+
+        it('is not offered while the feature flag is off', () => {
+            renderComponent();
+
+            expect(screen.queryByTestId('appliesToAddResource')).not.toBeInTheDocument();
+        });
+
+        it('creates only the template when no resource is added', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
+
+            withChannelAttributes();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(createPropertyField).toHaveBeenCalledTimes(1);
+        });
+
+        it('creates the linked channel field after the template, using the template id', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
+
+            withChannelAttributes();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.click(screen.getByTestId('appliesToAddResource'));
+            await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+
+            expect(createPropertyField).toHaveBeenCalledTimes(2);
+            expect(createPropertyField).toHaveBeenNthCalledWith(1, 'access_control', 'template', expect.any(Object));
+            expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'channel', expect.objectContaining({
+                linked_field_id: template.id,
+                permission_values: 'admin',
+                attrs: {required: true},
+            }));
+        });
+
+        it('reports a failed channel write without navigating away, and retries only that write', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce(template).
+                mockRejectedValueOnce(makeClientError('app.property_field.create.name_conflict.app_error')).
+                mockResolvedValueOnce({} as PropertyField);
+
+            withChannelAttributes();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.click(screen.getByTestId('appliesToAddResource'));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            expect(await screen.findByText(/could not be applied to channels/i)).toBeInTheDocument();
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+
+            // Locked, not left editable against a record it no longer matches.
+            expect(screen.getByTestId('attributeDisplayNameInput')).toBeDisabled();
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+
+            // Three calls total, not four: the template was never created twice.
+            expect(createPropertyField).toHaveBeenCalledTimes(3);
+            expect(createPropertyField).toHaveBeenNthCalledWith(3, 'access_control', 'channel', expect.any(Object));
+        });
+    });
+
     it.each([
         ['model.cpa_field.name.invalid_charset.app_error', 'must start with a letter', undefined],
         ['model.cpa_field.name.reserved_word.app_error', 'reserved word', undefined],

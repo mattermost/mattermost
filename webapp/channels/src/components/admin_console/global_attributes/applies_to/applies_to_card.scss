@@ -1,0 +1,57 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.AppliesToCard {
+    margin-top: 16px;
+}
+
+.AppliesToCard__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+// Matches AttributeDetails__blockTitle: a card-level title sitting under the
+// page's own h1, so it is styled as a block title rather than a heading.
+.AppliesToCard__title {
+    color: var(--center-channel-color);
+    font-family: Metropolis, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+}
+
+.AppliesToCard__subtitle {
+    margin: 4px 0 0;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+}
+
+.AppliesToCard__addResource {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    background: rgba(var(--button-bg-rgb), 0.08);
+    color: var(--button-bg);
+    font-size: 12px;
+    font-weight: 600;
+    gap: 4px;
+    line-height: 16px;
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+}
+
+.AppliesToCard__empty {
+    margin: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 14px;
+    line-height: 20px;
+}

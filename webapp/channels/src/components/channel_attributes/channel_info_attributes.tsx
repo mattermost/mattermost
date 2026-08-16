@@ -168,6 +168,7 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                             {locked && (
                                 <LockOutlineIcon
                                     size={12}
+                                    data-testid={`channelInfoAttributeLock-${field.name}`}
                                     aria-label={formatMessage({
                                         id: 'channel_attributes.info.locked',
                                         defaultMessage: 'This attribute cannot be changed after it is set',
@@ -195,7 +196,10 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                                             announceLabel={false}
                                         />
                                     ) : (
-                                        <span className='ChannelInfoAttributes__empty'>
+                                        <span
+                                            className='ChannelInfoAttributes__empty'
+                                            data-testid={`channelInfoAttributeUnset-${field.name}`}
+                                        >
                                             <FormattedMessage
                                                 id='channel_attributes.info.not_set'
                                                 defaultMessage='Not set'
@@ -263,6 +267,7 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                         <Menu.Item
                             key={attribute.field.id}
                             id={`channelInfoAddAttribute-${attribute.field.name}`}
+                            data-testid={`channelInfoAddAttribute-${attribute.field.name}`}
                             onClick={() => handleAdd(attribute.field.id)}
                             labels={<span>{getPropertyFieldLabel(attribute.field)}</span>}
                         />

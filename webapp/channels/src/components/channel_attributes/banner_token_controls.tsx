@@ -78,6 +78,7 @@ const BannerTokenControls = ({template, attributes, onInsertToken, disabled}: Pr
                     <Menu.Item
                         key={suggestion.name}
                         id={`bannerAttributeToken-${suggestion.name}`}
+                        data-testid={`bannerAttributeToken-${suggestion.name}`}
                         onClick={() => onInsertToken(attributeToken(suggestion.name))}
                         labels={<span>{suggestion.label}</span>}
                     />
