@@ -5,7 +5,6 @@ package docextractor
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -13,7 +12,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mattermost/pdf"
+	"github.com/ledongthuc/pdf"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -32,7 +31,7 @@ func (pe *pdfExtractor) Match(filename string) bool {
 	return supportedExtensions[extension]
 }
 
-func (pe *pdfExtractor) Extract(ctx context.Context, filename string, r io.ReadSeeker, maxFileSize int64) (out string, outErr error) {
+func (pe *pdfExtractor) Extract(filename string, r io.ReadSeeker, maxFileSize int64, _ *ExtractionBudget) (out string, outErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			out = ""
@@ -63,7 +62,7 @@ func (pe *pdfExtractor) Extract(ctx context.Context, filename string, r io.ReadS
 	}
 
 	var buf bytes.Buffer
-	b, err := reader.GetPlainText(ctx)
+	b, err := reader.GetPlainText()
 	if err != nil {
 		return "", err
 	}

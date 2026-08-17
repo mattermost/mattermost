@@ -19,6 +19,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
+// maxArchiveEntries caps how many files are walked per archive level to guard
+// against CPU exhaustion from archives containing huge numbers of tiny files.
+const maxArchiveEntries = 1000
+
 type archiveExtractor struct {
 	SubExtractor Extractor
 }
@@ -41,7 +45,14 @@ func getExtAlsoTarGz(name string) string {
 	return filepath.Ext(name)
 }
 
-func (ae *archiveExtractor) Extract(ctx context.Context, name string, r io.ReadSeeker, maxFileSize int64) (string, error) {
+func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker, maxFileSize int64, budget *ExtractionBudget) (string, error) {
+	// Depth check: refuse to descend if the budget says we're too deep.
+	// This prevents stack overflow from pathologically nested archives.
+	if !budget.Descend() {
+		return "", nil
+	}
+	defer budget.Ascend()
+
 	// MM-65701: Skip 7zip files due to OOM vulnerability in bodgit/sevenzip library
 	match, _ := (archives.SevenZip{}).Match(context.Background(), name, r)
 	_, _ = r.Seek(0, io.SeekStart) // Reset reader position after Match reads from stream
@@ -70,6 +81,8 @@ func (ae *archiveExtractor) Extract(ctx context.Context, name string, r io.ReadS
 		return "", fmt.Errorf("error creating file system: %w", err)
 	}
 
+	var entries int
+
 	err = fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -78,8 +91,16 @@ func (ae *archiveExtractor) Extract(ctx context.Context, name string, r io.ReadS
 			return nil
 		}
 
-		text.WriteString(path + " ")
-		if ae.SubExtractor != nil {
+		if entries >= maxArchiveEntries || budget.Exhausted() {
+			return fs.SkipAll
+		}
+		entries++
+
+		pathEntry := path + " "
+		text.WriteString(pathEntry)
+		budget.Deduct(int64(len(pathEntry)))
+
+		if ae.SubExtractor != nil && !budget.Exhausted() {
 			filename := filepath.Base(path)
 			filename = strings.ReplaceAll(filename, "-", " ")
 			filename = strings.ReplaceAll(filename, ".", " ")
@@ -91,23 +112,28 @@ func (ae *archiveExtractor) Extract(ctx context.Context, name string, r io.ReadS
 			}
 			defer file.Close()
 
-			// Limit the size of decompressed archive entries to prevent
-			// memory exhaustion from zip bombs or other malicious archives.
-			var reader io.Reader = file
-			if maxFileSize > 0 {
-				reader = utils.NewLimitedReaderWithError(file, maxFileSize)
+			// Cap each entry at min(budget.Remaining(), maxFileSize) so the
+			// aggregate across all entries and nesting levels shares one pool.
+			limit := budget.Remaining()
+			if maxFileSize > 0 && maxFileSize < limit {
+				limit = maxFileSize
 			}
+			reader := utils.NewLimitedReaderWithError(file, limit)
 
 			data, err := io.ReadAll(reader)
-			if err != nil {
+			if errors.Is(err, utils.ErrSizeLimitExceeded) {
+				// Budget (or per-entry cap) hit; use whatever was read and
+				// exhaust the budget so the walk stops at the next iteration.
+				budget.Exhaust()
+			} else if err != nil {
 				return fmt.Errorf("error reading archive entry %s: %w", path, err)
 			}
 
-			subtext, extractErr := ae.SubExtractor.Extract(ctx, filename, bytes.NewReader(data), maxFileSize)
+			subtext, extractErr := ae.SubExtractor.Extract(filename, bytes.NewReader(data), maxFileSize, budget)
 			if extractErr == nil {
-				text.WriteString(subtext + " ")
-			} else if errors.Is(extractErr, context.Canceled) || errors.Is(extractErr, context.DeadlineExceeded) {
-				return fmt.Errorf("error extracting %q: %w", filename, extractErr)
+				subtextEntry := subtext + " "
+				text.WriteString(subtextEntry)
+				budget.Deduct(int64(len(subtextEntry)))
 			}
 		}
 		return nil
