@@ -25,18 +25,31 @@ describe('RewritePromptInput', () => {
         expect(screen.getByPlaceholderText('Ask AI to edit message...')).toBeInTheDocument();
     });
 
-    test('forwards the input DOM node through the ref', () => {
-        const ref = React.createRef<HTMLInputElement>();
+    test('forwards the input DOM node through both object and function refs', () => {
+        const objectRef = React.createRef<HTMLInputElement>();
+        let functionRefNode: HTMLInputElement | null = null;
+        const {unmount} = renderWithContext(
+            <RewritePromptInput
+                {...baseProps}
+                ref={objectRef}
+            />,
+        );
+        const input = screen.getByPlaceholderText('Ask AI to edit message...');
+        expect(objectRef.current).toBe(input);
+        unmount();
+
         renderWithContext(
             <RewritePromptInput
                 {...baseProps}
-                ref={ref}
+                ref={(node) => {
+                    functionRefNode = node;
+                }}
             />,
         );
-        expect(ref.current).toBe(screen.getByPlaceholderText('Ask AI to edit message...'));
+        expect(functionRefNode).toBe(screen.getByPlaceholderText('Ask AI to edit message...'));
     });
 
-    test('notifies onChange as the user types', () => {
+    test('forwards the typed value to onChange', () => {
         const onChange = jest.fn();
         renderWithContext(
             <RewritePromptInput
@@ -46,7 +59,20 @@ describe('RewritePromptInput', () => {
         );
         const input = screen.getByPlaceholderText('Ask AI to edit message...');
         fireEvent.change(input, {target: {value: 'shorten this'}});
-        expect(onChange).toHaveBeenCalled();
+        expect(onChange.mock.calls[0][0].target.value).toBe('shorten this');
+    });
+
+    test('forwards key presses to onKeyDown (used to submit the prompt on Enter)', () => {
+        const onKeyDown = jest.fn();
+        renderWithContext(
+            <RewritePromptInput
+                {...baseProps}
+                onKeyDown={onKeyDown}
+            />,
+        );
+        const input = screen.getByPlaceholderText('Ask AI to edit message...');
+        fireEvent.keyDown(input, {key: 'Enter'});
+        expect(onKeyDown.mock.calls[0][0].key).toBe('Enter');
     });
 
     test('preserves in-progress IME composition when an unrelated re-render lands mid-composition', () => {
@@ -63,6 +89,23 @@ describe('RewritePromptInput', () => {
         rerender(<RewritePromptInput {...baseProps}/>);
 
         expect(input.value).toBe('그');
+    });
+
+    test('does not clobber the input once the value prop catches up to what was typed', () => {
+        // The normal flow: the user types, onChange updates the parent, and the next render
+        // arrives with a value that already matches the DOM. The imperative sync must be a no-op.
+        const {rerender} = renderWithContext(<RewritePromptInput {...baseProps}/>);
+        const input = screen.getByPlaceholderText('Ask AI to edit message...') as HTMLInputElement;
+
+        fireEvent.input(input, {target: {value: '글'}});
+        rerender(
+            <RewritePromptInput
+                {...baseProps}
+                value='글'
+            />,
+        );
+
+        expect(input.value).toBe('글');
     });
 
     test('syncs an externally changed value into the input (e.g. clearing after submit)', () => {
