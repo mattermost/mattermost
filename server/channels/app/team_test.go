@@ -1669,6 +1669,7 @@ func TestGetThreadsForUserPreservesWebhookIdentity(t *testing.T) {
 	// ordinary channel view.
 	assert.Equal(t, "true", found.Post.GetProp(model.PostPropsFromWebhook))
 	assert.Equal(t, "ThreadBot", found.Post.GetProp(model.PostPropsOverrideUsername))
+	assert.Equal(t, "ThreadHook", found.Post.GetProp(model.PostPropsWebhookDisplayName))
 }
 
 func TestPermanentDeleteChannelRemovesThreadMemberships(t *testing.T) {
