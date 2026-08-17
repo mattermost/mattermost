@@ -37,6 +37,11 @@ const BoolSetting = ({
         onChange(id, e.target.checked);
     };
 
+    const isAfter = labelPosition === 'after';
+    const checkboxLabel = (
+        <span className='inline-choice-setting__text'>{placeholder}</span>
+    );
+
     return (
         <Setting
             label={label}
@@ -47,9 +52,7 @@ const BoolSetting = ({
         >
             <div className='checkbox'>
                 <label>
-                    {labelPosition === 'before' && (
-                        <span className='inline-choice-setting__text'>{placeholder}</span>
-                    )}
+                    {!isAfter && checkboxLabel}
                     <input
                         id={id}
                         disabled={disabled}
@@ -58,9 +61,7 @@ const BoolSetting = ({
                         checked={value}
                         onChange={handleChange}
                     />
-                    {labelPosition === 'after' && (
-                        <span className='inline-choice-setting__text'>{placeholder}</span>
-                    )}
+                    {isAfter && checkboxLabel}
                 </label>
             </div>
         </Setting>

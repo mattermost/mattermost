@@ -1096,6 +1096,12 @@ func validateDialogElementMatrixConfig(e *DialogElement) []error {
 	return errs
 }
 
+// validateMatrixDefaultValue checks that defaultValue is a valid encoded matrix
+// selection. The format is semicolon-separated row entries, each of the form
+// "rowValue:col1,col2". For example:
+//
+//	multiple: "row1:colA,colB;row2:colA"
+//	single:   "row1:colA;row2:colB"
 func validateMatrixDefaultValue(defaultValue string, cfg DialogMatrixConfig) []error {
 	var errs []error
 	rowValues := make(map[string]bool, len(cfg.Rows))
