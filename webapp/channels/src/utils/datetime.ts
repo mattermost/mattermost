@@ -61,12 +61,6 @@ export function isSameDay(a: Date, b: Date = new Date()): boolean {
     return a.getDate() === b.getDate() && isSameMonth(a, b);
 }
 
-export function isWithinLastWeek(a: Date): boolean {
-    return moment(a).isAfter(
-        moment().subtract(6, 'days').startOf('day'),
-    );
-}
-
 export function isSameMonth(a: Date, b: Date = new Date()): boolean {
     return a.getMonth() === b.getMonth() && isSameYear(a, b);
 }
@@ -77,13 +71,6 @@ export function isSameYear(a: Date, b: Date = new Date()): boolean {
 
 export function isToday(date: Date): boolean {
     return isSameDay(date);
-}
-
-export function isYesterday(date: Date): boolean {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    return isSameDay(date, yesterday);
 }
 
 export function toUTCUnixInSeconds(date: Date): number {
