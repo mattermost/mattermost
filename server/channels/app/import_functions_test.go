@@ -1789,7 +1789,7 @@ func TestImportUserScopedMatching(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// The dest user's username should NOT have been overwritten.
-		updated, err := th.App.Srv().Store().User().Get(context.Background(), savedDest.Id)
+		updated, err := th.App.Srv().Store().User().Get(th.Context, savedDest.Id)
 		require.NoError(t, err)
 		assert.Equal(t, savedDest.Username, updated.Username, "username should be preserved on auth_data match")
 
@@ -1952,7 +1952,7 @@ func TestImportUserScopedMatching(t *testing.T) {
 		appErr = th.App.importUser(th.Context, &data, false, true, report)
 		require.Nil(t, appErr)
 
-		updated, err := th.App.Srv().Store().User().Get(context.Background(), destUser.Id)
+		updated, err := th.App.Srv().Store().User().Get(th.Context, destUser.Id)
 		require.NoError(t, err)
 		assert.NotZero(t, updated.DeleteAt, "deactivated users are not automatically reactivated by import")
 	})
