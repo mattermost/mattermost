@@ -205,6 +205,32 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		}
 		require.True(t, foundEdit, "edit history entry should be present in the report archive")
 	})
+
+	t.Run("Should not allow generating a report for a post in a DM channel", func(t *testing.T) {
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := createDmPost(t, th, client)
+
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+		require.Empty(t, report)
+	})
+
+	t.Run("Should not allow generating a report for a post in a GM channel", func(t *testing.T) {
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := createGmPost(t, th, client)
+
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+		require.Empty(t, report)
+	})
 }
 
 // parseExposureCSV skips the "#"-prefixed metadata preamble and returns the remaining records.

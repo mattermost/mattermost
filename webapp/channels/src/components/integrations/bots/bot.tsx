@@ -307,6 +307,8 @@ export default class Bot extends React.PureComponent<Props, State> {
             );
         });
 
+        const isProtectedBot = Boolean(this.props.bot.system_owned);
+
         let options;
         if (ownerUsername !== 'plugin') {
             options = (
@@ -321,23 +323,27 @@ export default class Bot extends React.PureComponent<Props, State> {
                             defaultMessage='Create New Token'
                         />
                     </button>
-                    {' - '}
-                    <Link to={`/${this.props.team.name}/integrations/bots/edit?id=${this.props.bot.user_id}`}>
-                        <FormattedMessage
-                            id='bots.manage.edit'
-                            defaultMessage='Edit'
-                        />
-                    </Link>
-                    {' - '}
-                    <button
-                        className='style--none color--link'
-                        onClick={this.disableBot}
-                    >
-                        <FormattedMessage
-                            id='bot.manage.disable'
-                            defaultMessage='Disable'
-                        />
-                    </button>
+                    {!isProtectedBot && (
+                        <>
+                            {' - '}
+                            <Link to={`/${this.props.team.name}/integrations/bots/edit?id=${this.props.bot.user_id}`}>
+                                <FormattedMessage
+                                    id='bots.manage.edit'
+                                    defaultMessage='Edit'
+                                />
+                            </Link>
+                            {' - '}
+                            <button
+                                className='style--none color--link'
+                                onClick={this.disableBot}
+                            >
+                                <FormattedMessage
+                                    id='bot.manage.disable'
+                                    defaultMessage='Disable'
+                                />
+                            </button>
+                        </>
+                    )}
                 </div>
             );
         }
@@ -482,7 +488,14 @@ export default class Bot extends React.PureComponent<Props, State> {
         }
 
         let managedBy;
-        if (this.props.fromApp) {
+        if (isProtectedBot) {
+            managedBy = (
+                <FormattedMessage
+                    id='bots.managed_by.system'
+                    defaultMessage='Managed by Mattermost'
+                />
+            );
+        } else if (this.props.fromApp) {
             managedBy = (
                 <FormattedMessage
                     id='bots.managed_by.app'

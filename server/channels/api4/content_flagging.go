@@ -209,6 +209,11 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
+		return
+	}
+
 	enabled, appErr := c.App.ContentFlaggingEnabledForTeam(channel.TeamId)
 	if appErr != nil {
 		c.Err = appErr
@@ -296,6 +301,11 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
+		return
+	}
+
 	userId := c.AppContext.Session().UserId
 	requireTeamContentReviewer(c, userId, channel.TeamId)
 	if c.Err != nil {
@@ -346,6 +356,11 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
 		return
 	}
 
@@ -453,6 +468,11 @@ func keepRemoveFlaggedPostChecks(c *Context, r *http.Request) (*model.FlagConten
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return nil, "", nil
+	}
+
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
 		return nil, "", nil
 	}
 
@@ -602,6 +622,11 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	checkChannelFlaggable(c, channel)
+	if c.Err != nil {
+		return
+	}
+
 	assignedBy := c.AppContext.Session().UserId
 	requireTeamContentReviewer(c, assignedBy, channel.TeamId)
 	if c.Err != nil {
@@ -632,5 +657,11 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 func checkPostTypeFlaggable(c *Context, post *model.Post) {
 	if post.Type == model.PostTypeBurnOnRead || strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
 		c.Err = model.NewAppError("checkPostTypeFlaggable", "api.data_spillage.error.invalid_post_type", map[string]any{"PostType": post.Type}, "", http.StatusBadRequest)
+	}
+}
+
+func checkChannelFlaggable(c *Context, channel *model.Channel) {
+	if channel.IsGroupOrDirect() {
+		c.Err = model.NewAppError("checkChannelFlaggable", "api.data_spillage.error.invalid_channel_type", nil, "", http.StatusBadRequest)
 	}
 }

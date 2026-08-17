@@ -368,6 +368,16 @@ describe('GlobalAttributesTable', () => {
             expect(cell.querySelector('svg')).toBeInTheDocument();
         });
 
+        it('shows "AD/LDAP, SAML" when both attrs.ldap and attrs.saml are set', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField({attrs: {ldap: 'employeeID', saml: 'position'}})]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            const cell = await screen.findByTestId('global-attribute-source');
+            expect(cell).toHaveTextContent('AD/LDAP, SAML');
+            expect(cell.querySelector('svg')).toBeInTheDocument();
+        });
+
         it('falls back to "Managed here" (no icon) when no source signal is present', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField({attrs: {}})]).mockResolvedValue([]);
 
@@ -380,6 +390,7 @@ describe('GlobalAttributesTable', () => {
 
         it.each([
             ['plugin', PowerPlugOutlineIcon],
+            ['ldap_and_saml', SyncIcon],
             ['ldap', SyncIcon],
             ['saml', SyncIcon],
         ])('maps the %s source kind to the expected icon component', (kind, icon) => {
@@ -534,8 +545,9 @@ describe('getSourceKind', () => {
         expect(getSourceKind(makeField({attrs: {source_plugin_id: 'p', protected: true, ldap: 'x', saml: 'y'}}))).toBe('plugin');
     });
 
-    it('follows the ticket order: plugin, then ldap, then saml, then managed', () => {
-        expect(getSourceKind(makeField({attrs: {ldap: 'x', saml: 'y'}}))).toBe('ldap');
+    it('follows the ticket order: plugin, then both, then ldap, then saml, then managed', () => {
+        expect(getSourceKind(makeField({attrs: {ldap: 'x', saml: 'y'}}))).toBe('ldap_and_saml');
+        expect(getSourceKind(makeField({attrs: {ldap: 'x'}}))).toBe('ldap');
         expect(getSourceKind(makeField({attrs: {saml: 'y'}}))).toBe('saml');
         expect(getSourceKind(makeField({attrs: {}}))).toBe('managed');
     });
