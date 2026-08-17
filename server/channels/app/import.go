@@ -167,10 +167,11 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, deactiv
 	for line := range lines {
 		switch {
 		case line.LineImportData.Type == "post":
-			postLines = append(postLines, line)
 			if line.Post == nil {
 				errors <- imports.LineImportWorkerError{Error: model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest), LineNumber: line.LineNumber}
+				continue
 			}
+			postLines = append(postLines, line)
 			if len(postLines) >= importMultiplePostsThreshold {
 				if errLine, err := a.importMultiplePostLines(rctx, postLines, dryRun, extractContent, deactivateMissingUsers, report); err != nil {
 					errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}
@@ -178,10 +179,11 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, deactiv
 				postLines = []imports.LineImportWorkerData{}
 			}
 		case line.LineImportData.Type == "direct_post":
-			directPostLines = append(directPostLines, line)
 			if line.DirectPost == nil {
 				errors <- imports.LineImportWorkerError{Error: model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest), LineNumber: line.LineNumber}
+				continue
 			}
+			directPostLines = append(directPostLines, line)
 			if len(directPostLines) >= importMultiplePostsThreshold {
 				if errLine, err := a.importMultipleDirectPostLines(rctx, directPostLines, dryRun, extractContent, deactivateMissingUsers, report); err != nil {
 					errors <- imports.LineImportWorkerError{Error: err, LineNumber: errLine}

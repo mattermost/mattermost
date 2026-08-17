@@ -1658,6 +1658,9 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 
 			for _, username := range *postWithData.replyData.FlaggedBy {
 				user := users[strings.ToLower(username)]
+				if user == nil {
+					continue
+				}
 
 				preferences = append(preferences, model.Preference{
 					UserId:   user.Id,
@@ -2177,6 +2180,9 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 
 			for _, username := range *postWithData.postData.FlaggedBy {
 				user := users[strings.ToLower(username)]
+				if user == nil {
+					continue
+				}
 
 				preferences = append(preferences, model.Preference{
 					UserId:   user.Id,
@@ -2719,6 +2725,9 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 
 			for _, username := range *postWithData.directPostData.FlaggedBy {
 				user := users[strings.ToLower(username)]
+				if user == nil {
+					continue
+				}
 
 				preferences = append(preferences, model.Preference{
 					UserId:   user.Id,
