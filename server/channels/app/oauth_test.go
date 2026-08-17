@@ -2341,7 +2341,7 @@ func TestCompleteOAuthUserCreated(t *testing.T) {
 	}
 
 	t.Run("login JIT-creates then subsequent login does not", func(t *testing.T) {
-		id := int64(model.GetMillis())
+		id := model.GetMillis()
 		username := "o" + model.NewId()
 		email := model.NewId() + "@simulator.amazonses.com"
 		props := map[string]string{"action": model.OAuthActionLogin}
@@ -2358,7 +2358,7 @@ func TestCompleteOAuthUserCreated(t *testing.T) {
 	})
 
 	t.Run("signup reports user created", func(t *testing.T) {
-		id := int64(model.GetMillis())
+		id := model.GetMillis()
 		username := "o" + model.NewId()
 		email := model.NewId() + "@simulator.amazonses.com"
 
@@ -2370,7 +2370,7 @@ func TestCompleteOAuthUserCreated(t *testing.T) {
 
 	t.Run("email-to-sso does not report user created", func(t *testing.T) {
 		existing := th.CreateUser(t)
-		id := int64(model.GetMillis())
+		id := model.GetMillis()
 		username := "o" + model.NewId()
 		email := model.NewId() + "@simulator.amazonses.com"
 		props := map[string]string{
