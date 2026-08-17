@@ -7,6 +7,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 
@@ -58,6 +59,30 @@ func TestArchiveExtractorBudgetLimit(t *testing.T) {
 
 	assert.NotContains(t, result, "shouldnotappear", "second entry should be skipped once budget is exhausted")
 	assert.LessOrEqual(t, len(result), int(maxArchiveExtractedText)+256, "total output should not exceed budget by more than a path-length overhead")
+}
+
+func TestArchiveExtractorDepthLimit(t *testing.T) {
+	const marker = "deepcontent"
+
+	// Build from the inside out: a plain text file wrapped in defaultMaxArchiveDepth+2
+	// levels of ZIP so the content sits well beyond the extraction depth limit.
+	r := makeZip(t, map[string][]byte{"inner.txt": []byte(marker)})
+	for range defaultMaxArchiveDepth + 2 {
+		data, err := io.ReadAll(r)
+		require.NoError(t, err)
+		r = makeZip(t, map[string][]byte{"nested.zip": data})
+	}
+
+	// Self-referential extractor: every nested ZIP entry is handed back to the
+	// same archiveExtractor, giving us arbitrary-depth recursion bounded only by
+	// the budget's maxDepth.
+	ae := &archiveExtractor{}
+	ae.SubExtractor = ae
+
+	budget := newExtractionBudget(maxArchiveExtractedText, defaultMaxArchiveDepth)
+	result, err := ae.Extract("outer.zip", r, 0, budget)
+	require.NoError(t, err)
+	assert.NotContains(t, result, marker, "content beyond max depth should not appear in output")
 }
 
 func TestArchiveExtractorSkips7zip(t *testing.T) {
