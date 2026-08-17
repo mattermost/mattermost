@@ -731,9 +731,13 @@ func (a *App) CompleteOAuth(rctx request.CTX, service string, body io.ReadCloser
 	switch action {
 	case model.OAuthActionSignup:
 		return a.CreateOAuthUser(rctx, service, body, inviteToken, inviteId, tokenUser)
+	case model.OAuthActionLogin:
+		return a.LoginByOAuth(rctx, service, body, inviteToken, inviteId, tokenUser)
 	case model.OAuthActionEmailToSSO:
 		user, err := a.CompleteSwitchWithOAuth(rctx, service, body, props["email"], tokenUser)
 		return user, false, err
+	case model.OAuthActionSSOToEmail:
+		return a.LoginByOAuth(rctx, service, body, inviteToken, inviteId, tokenUser)
 	default:
 		return a.LoginByOAuth(rctx, service, body, inviteToken, inviteId, tokenUser)
 	}
