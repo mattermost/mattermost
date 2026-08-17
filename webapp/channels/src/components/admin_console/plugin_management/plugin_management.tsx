@@ -1064,21 +1064,24 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         const uploadDropzoneDisabled = !enableUploadButton || this.props.isDisabled || this.state.uploading;
 
         if (this.state.serverError) {
-            serverError = <div className='col-sm-12'><div className='form-group has-error half'><label className='control-label'>{this.state.serverError}</label></div></div>;
+            serverError = (
+                <div className='PluginManagement__uploadStatus PluginManagement__uploadStatus--error'>
+                    <i
+                        className='icon icon-alert-outline'
+                        aria-hidden={true}
+                    />
+                    <span>{this.state.serverError}</span>
+                </div>
+            );
         }
         if (this.state.lastMessage) {
-            lastMessage = <div className='col-sm-12'><div className='form-group half'>{this.state.lastMessage}</div></div>;
-        }
-
-        let fileName = null;
-        if (this.state.file) {
-            fileName = (
-                <div className='PluginManagement__fileName'>
-                    <FormattedMessage
-                        id='admin.plugin.upload.selected_file'
-                        defaultMessage='Selected: {fileName}'
-                        values={{fileName: this.state.file.name}}
+            lastMessage = (
+                <div className='PluginManagement__uploadStatus PluginManagement__uploadStatus--success'>
+                    <i
+                        className='icon icon-check-circle'
+                        aria-hidden={true}
                     />
+                    <span>{this.state.lastMessage}</span>
                 </div>
             );
         }
@@ -1292,6 +1295,12 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                                             defaultMessage='Uploading {fileName}'
                                                             values={{fileName: this.state.file?.name || '...'}}
                                                         />
+                                                    ) : this.state.file ? (
+                                                        <FormattedMessage
+                                                            id='admin.plugin.upload.selected_file'
+                                                            defaultMessage='Selected: {fileName}'
+                                                            values={{fileName: this.state.file.name}}
+                                                        />
                                                     ) : (
                                                         <FormattedMessage
                                                             id='admin.plugin.upload.dropzone_title'
@@ -1327,7 +1336,6 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                         onChange={this.handleUpload}
                                         disabled={uploadDropzoneDisabled}
                                     />
-                                    {!this.state.uploading && fileName}
                                     {serverError}
                                     {lastMessage}
                                 </SettingSet>

@@ -59,8 +59,7 @@
         white-space: nowrap;
     }
 
-    &__uploadDropzoneDescription,
-    &__fileName {
+    &__uploadDropzoneDescription {
         color: rgba(var(--center-channel-color-rgb), 0.72);
         font-size: 12px;
         font-weight: 400;
@@ -80,8 +79,27 @@
         white-space: nowrap;
     }
 
-    &__fileName {
-        margin-top: 8px;
+    &__uploadStatus {
+        display: flex;
+        align-items: flex-start;
+        margin-top: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        gap: 4px;
+        line-height: 20px;
+        margin-left: -4px;
+
+        .icon {
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        &--success .icon {
+            color: var(--online-indicator);
+        }
+
+        &--error {
+            color: var(--error-text);
+        }
     }
 
     &__uploadProgress {
