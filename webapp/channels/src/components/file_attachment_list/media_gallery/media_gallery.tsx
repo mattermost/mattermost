@@ -123,7 +123,10 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
     );
 
     const isSingle = tiles.length === 1;
-    const showHeader = !isSingle && Boolean(onToggleCollapse);
+
+    // Collapsed single videos need a header; otherwise the tile is hidden
+    // with no toggle, unlike SingleImageView which keeps a filename bar.
+    const showHeader = Boolean(onToggleCollapse) && (!isSingle || !isEmbedVisible);
 
     let tileIdx = 0;
 
@@ -157,27 +160,35 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
                                 'icon-menu-right': !isEmbedVisible,
                             })}
                         />
-                        <FormattedMessage
-                            id='media_gallery.count_label'
-                            defaultMessage='{count, plural, one {# item} other {# items}}'
-                            values={{count: tiles.length}}
-                        />
-                    </button>
-                    <button
-                        type='button'
-                        className='style--none MediaGallery__download_all'
-                        aria-label={formatMessage(
-                            {id: 'media_gallery.download_all_label', defaultMessage: 'Download all {count, plural, one {# item} other {# items}}'},
-                            {count: tiles.length},
+                        {isSingle ? (
+                            <span className='MediaGallery__filename'>
+                                {tiles[0].file.name}
+                            </span>
+                        ) : (
+                            <FormattedMessage
+                                id='media_gallery.count_label'
+                                defaultMessage='{count, plural, one {# item} other {# items}}'
+                                values={{count: tiles.length}}
+                            />
                         )}
-                        onClick={handleDownloadAll}
-                    >
-                        <DownloadOutlineIcon size={14}/>
-                        <FormattedMessage
-                            id='media_gallery.download_all'
-                            defaultMessage='Download all'
-                        />
                     </button>
+                    {!isSingle && (
+                        <button
+                            type='button'
+                            className='style--none MediaGallery__download_all'
+                            aria-label={formatMessage(
+                                {id: 'media_gallery.download_all_label', defaultMessage: 'Download all {count, plural, one {# item} other {# items}}'},
+                                {count: tiles.length},
+                            )}
+                            onClick={handleDownloadAll}
+                        >
+                            <DownloadOutlineIcon size={14}/>
+                            <FormattedMessage
+                                id='media_gallery.download_all'
+                                defaultMessage='Download all'
+                            />
+                        </button>
+                    )}
                 </div>
             )}
             <div

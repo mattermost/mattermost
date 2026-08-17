@@ -131,4 +131,41 @@ describe('MediaGallery', () => {
         expect(rows).toHaveClass('MediaGallery__rows--collapsed');
         expect(rows).toHaveAttribute('aria-hidden', 'true');
     });
+
+    it('does not render a header for an expanded single video', () => {
+        renderWithContext(
+            <MediaGallery
+                fileInfos={[fileInfo({id: 'v', name: 'clip.mp4', extension: 'mp4', mime_type: 'video/mp4'})]}
+                postId='p1'
+                isEmbedVisible={true}
+                onItemClick={jest.fn()}
+                onToggleCollapse={jest.fn()}
+            />,
+            baseState,
+        );
+
+        expect(screen.queryByRole('button', {name: /toggle media gallery/i})).not.toBeInTheDocument();
+        expect(screen.getByTestId('media-gallery-tile')).toBeInTheDocument();
+    });
+
+    it('renders a filename toggle for a collapsed single video so the attachment stays reachable', async () => {
+        const onToggle = jest.fn();
+        const {container} = renderWithContext(
+            <MediaGallery
+                fileInfos={[fileInfo({id: 'v', name: 'clip.mp4', extension: 'mp4', mime_type: 'video/mp4'})]}
+                postId='p1'
+                isEmbedVisible={false}
+                onItemClick={jest.fn()}
+                onToggleCollapse={onToggle}
+            />,
+            baseState,
+        );
+
+        const toggle = screen.getByRole('button', {name: /toggle media gallery/i});
+        expect(toggle).toHaveTextContent('clip.mp4');
+        expect(container.querySelector('.MediaGallery__rows')).toHaveClass('MediaGallery__rows--collapsed');
+
+        await userEvent.click(toggle);
+        expect(onToggle).toHaveBeenCalledWith('p1');
+    });
 });

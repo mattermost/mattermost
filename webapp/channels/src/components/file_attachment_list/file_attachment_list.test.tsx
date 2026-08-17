@@ -6,7 +6,10 @@ import React from 'react';
 
 import type {PostMetadata} from '@mattermost/types/posts';
 
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+
 import {renderWithContext} from 'tests/react_testing_utils';
+import {Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -80,6 +83,82 @@ describe('FileAttachmentList', () => {
         expect(tiles[0]?.getAttribute('data-file-name')).toBe('image_1.png');
         expect(tiles[1]?.getAttribute('data-file-name')).toBe('image_2.png');
         expect(tiles[2]?.getAttribute('data-file-name')).toBe('image_3.png');
+    });
+
+    test('should render a MediaGallery for a single video', () => {
+        const video = TestHelper.getFileInfoMock({id: 'file_id_1', name: 'clip.mp4', extension: 'mp4', create_at: 1, delete_at: 0, post_id: post.id});
+        const props = {
+            ...baseProps,
+            isEmbedVisible: true,
+            post: {
+                ...baseProps.post,
+                file_ids: ['file_id_1'],
+            },
+        };
+
+        const state = {
+            ...defaultState,
+            entities: {
+                files: {
+                    files: {
+                        file_id_1: video,
+                    },
+                    fileIdsByPostId: {
+                        post_id: ['file_id_1'],
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        renderWithContext(<FileAttachmentList {...props}/>, state);
+
+        expect(screen.getByTestId('fileAttachmentList').querySelectorAll('[data-testid="media-gallery-tile"]').length).toBe(1);
+        expect(screen.queryByRole('button', {name: /toggle media gallery/i})).not.toBeInTheDocument();
+    });
+
+    test('should keep a collapse toggle for a collapsed single video', () => {
+        const video = TestHelper.getFileInfoMock({id: 'file_id_1', name: 'clip.mp4', extension: 'mp4', create_at: 1, delete_at: 0, post_id: post.id});
+        const props = {
+            ...baseProps,
+            post: {
+                ...baseProps.post,
+                file_ids: ['file_id_1'],
+            },
+        };
+
+        const state = {
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                files: {
+                    files: {
+                        file_id_1: video,
+                    },
+                    fileIdsByPostId: {
+                        post_id: ['file_id_1'],
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        [getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY)]: {
+                            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                            name: Preferences.COLLAPSE_DISPLAY,
+                            user_id: 'current_user_id',
+                            value: 'true',
+                        },
+                    },
+                },
+                users: {
+                    currentUserId: 'current_user_id',
+                },
+            },
+        } as unknown as GlobalState;
+
+        renderWithContext(<FileAttachmentList {...props}/>, state);
+
+        const toggle = screen.getByRole('button', {name: /toggle media gallery/i});
+        expect(toggle).toHaveTextContent('clip.mp4');
+        expect(screen.getByTestId('fileAttachmentList')).toHaveClass('MediaGallery--collapsed');
     });
 
     test('should render a SingleImageView for a single image', () => {

@@ -28,6 +28,8 @@
 
     &__toggle {
         display: inline-flex;
+        max-width: 100%;
+        min-width: 0;
         height: 24px;
         align-items: center;
         padding: 0 6px 0 2px;
@@ -46,6 +48,7 @@
             display: inline-flex;
             width: 18px;
             height: 18px;
+            flex-shrink: 0;
             align-items: center;
             justify-content: center;
             font-size: 18px;
@@ -54,6 +57,13 @@
             &::before {
                 margin: 0;
             }
+        }
+
+        .MediaGallery__filename {
+            overflow: hidden;
+            min-width: 0;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         &:hover {
