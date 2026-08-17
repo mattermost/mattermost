@@ -1192,6 +1192,14 @@ func (s *ClusterSettings) SetDefaults() {
 	}
 }
 
+func (s *ClusterSettings) isValid() *AppError {
+	if !isValidPortNumber(*s.GossipPort, false) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_gossip_port.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 type MetricsSettings struct {
 	Enable                    *bool    `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
 	BlockProfileRate          *int     `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
@@ -4437,12 +4445,12 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
-	if appErr := o.CacheSettings.isValid(); appErr != nil {
+	if appErr := o.ClusterSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
-	if *o.ServiceSettings.SiteURL == "" && *o.ServiceSettings.AllowCookiesForSubdomains {
-		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
+	if appErr := o.CacheSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
 	if appErr := o.TeamSettings.isValid(); appErr != nil {
@@ -5068,6 +5076,10 @@ func (s *SamlSettings) isValid() *AppError {
 }
 
 func (s *ServiceSettings) isValid() *AppError {
+	if *s.SiteURL == "" && *s.AllowCookiesForSubdomains {
+		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if !(*s.ConnectionSecurity == ConnSecurityNone || *s.ConnectionSecurity == ConnSecurityTLS) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_security.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -5521,6 +5533,8 @@ func (s *MessageExportSettings) isValid() *AppError {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.customer_type.app_error", nil, "", http.StatusBadRequest)
 			} else if *s.GlobalRelaySettings.CustomerType == GlobalrelayCustomerTypeCustom && ((s.GlobalRelaySettings.CustomSMTPServerName == nil || *s.GlobalRelaySettings.CustomSMTPServerName == "") || (s.GlobalRelaySettings.CustomSMTPPort == nil || *s.GlobalRelaySettings.CustomSMTPPort == "")) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error", nil, "", http.StatusBadRequest)
+			} else if *s.GlobalRelaySettings.CustomerType == GlobalrelayCustomerTypeCustom && !isValidPortString(*s.GlobalRelaySettings.CustomSMTPPort, false) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_smtp_port.app_error", nil, "", http.StatusBadRequest)
 			} else if s.GlobalRelaySettings.EmailAddress == nil || !strings.Contains(*s.GlobalRelaySettings.EmailAddress, "@") {
 				// validating email addresses is hard - just make sure it contains an '@' sign
 				// see https://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address

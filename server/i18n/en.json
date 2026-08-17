@@ -11843,6 +11843,10 @@
     "translation": "Unable to enable email batching when clustering is enabled."
   },
   {
+    "id": "model.config.is_valid.cluster_gossip_port.app_error",
+    "translation": "ClusterSettings.GossipPort must be a valid port number."
+  },
+  {
     "id": "model.config.is_valid.collapsed_threads.app_error",
     "translation": "CollapsedThreads setting must be either disabled,default_on or default_off"
   },
@@ -12257,6 +12261,10 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
     "translation": "If GlobalRelaySettings.CustomerType is 'CUSTOM', then GlobalRelaySettings.CustomSMTPServerName and GlobalRelaySettings.CustomSMTPPort must be set."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_smtp_port.app_error",
+    "translation": "Message export job GlobalRelaySettings.CustomSMTPPort must be a valid port number."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
