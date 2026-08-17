@@ -13,13 +13,13 @@ import {renderWithContext} from 'tests/react_testing_utils';
  * The Timestamp component uses Luxon's DateTime.fromJSDate(value).toLocal().toISO({includeOffset: false}).
  */
 function expectedLocalISO(epochMs: number): string {
-    return DateTime.fromMillis(epochMs).toLocal().toISO({includeOffset: false}) ?? '';
+    return DateTime.fromMillis(epochMs).toLocal().toISO() ?? '';
 }
 
 // When a timeZone is in effect the dateTime attribute tracks the wall time actually
 // rendered, so it agrees with the visible text rather than the machine's local zone.
 function expectedZonedISO(epochMs: number, timeZone: string): string {
-    return DateTime.fromMillis(epochMs, {zone: timeZone}).toISO({includeOffset: false}) ?? '';
+    return DateTime.fromMillis(epochMs, {zone: timeZone}).toISO() ?? '';
 }
 
 import Timestamp from './timestamp';

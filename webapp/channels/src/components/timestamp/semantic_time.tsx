@@ -23,8 +23,12 @@ const SemanticTime: FC<Props> = ({
 
     return (
         <time
+
             {...props}
-            dateTime={dateTime.toISO({includeOffset: false})}
+
+            // The offset is required for this to name a single instant; without it the
+            // attribute is only a wall-clock reading and cannot be parsed unambiguously.
+            dateTime={dateTime.toISO()}
         >
             {children}
         </time>

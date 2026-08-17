@@ -49,7 +49,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
                 >
                   Last online 
                   <time
-                    datetime="2021-09-20T14:02:42.846"
+                    datetime="2021-09-20T14:02:42.846Z"
                   >
                     September 20, 2021
                   </time>
@@ -918,7 +918,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
                 >
                   Last online 
                   <time
-                    datetime="2021-09-20T14:02:42.846"
+                    datetime="2021-09-20T14:02:42.846Z"
                   >
                     September 20, 2021
                   </time>
@@ -1010,7 +1010,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
                 >
                   Last online 
                   <time
-                    datetime="2021-09-20T14:02:42.846"
+                    datetime="2021-09-20T14:02:42.846Z"
                   >
                     September 20, 2021
                   </time>
