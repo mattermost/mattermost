@@ -2701,10 +2701,6 @@
     "translation": "This is a test or development license, but this server is running in a production environment. Test or development licenses can only be used on test or development servers."
   },
   {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
-  },
-  {
     "id": "api.license.load_metric.app_error",
     "translation": "Failed to compute monthly active users."
   },
@@ -5625,6 +5621,10 @@
   {
     "id": "app.bot.update.internal_error",
     "translation": "Unable to update the bot."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "Cannot disable a system-owned bot."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
