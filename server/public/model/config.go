@@ -2488,8 +2488,8 @@ func (s *SupportSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_address.app_error", map[string]any{"Setting": "SupportSettings.SupportEmail"}, "", http.StatusBadRequest)
 	}
 
-	if *s.CustomTermsOfServiceReAcceptancePeriod < 0 {
-		return newNonNegativeNumberAppError("SupportSettings.CustomTermsOfServiceReAcceptancePeriod")
+	if appErr := validateNonNegativeNumber(*s.CustomTermsOfServiceReAcceptancePeriod, "SupportSettings.CustomTermsOfServiceReAcceptancePeriod"); appErr != nil {
+		return appErr
 	}
 
 	if s.ReportAProblemType != nil {
@@ -2568,8 +2568,8 @@ func (s *AnnouncementSettings) SetDefaults() {
 }
 
 func (s *AnnouncementSettings) isValid() *AppError {
-	if *s.NoticesFetchFrequency <= 0 {
-		return newPositiveNumberAppError("AnnouncementSettings.NoticesFetchFrequency")
+	if appErr := validatePositiveNumber(*s.NoticesFetchFrequency, "AnnouncementSettings.NoticesFetchFrequency"); appErr != nil {
+		return appErr
 	}
 
 	return nil
@@ -4710,12 +4710,18 @@ func IsValidAzureStorageAccountName(name string) bool {
 	return azureStorageAccountNameRegex.MatchString(name)
 }
 
-func newPositiveNumberAppError(setting string) *AppError {
-	return NewAppError("Config.IsValid", "model.config.is_valid.positive_number.app_error", map[string]any{"Setting": setting}, "", http.StatusBadRequest)
+func validatePositiveNumber[T ~int | ~int64](value T, setting string) *AppError {
+	if value <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.positive_number.app_error", map[string]any{"Setting": setting}, "", http.StatusBadRequest)
+	}
+	return nil
 }
 
-func newNonNegativeNumberAppError(setting string) *AppError {
-	return NewAppError("Config.IsValid", "model.config.is_valid.non_negative_number.app_error", map[string]any{"Setting": setting}, "", http.StatusBadRequest)
+func validateNonNegativeNumber[T ~int | ~int64](value T, setting string) *AppError {
+	if value < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.non_negative_number.app_error", map[string]any{"Setting": setting}, "", http.StatusBadRequest)
+	}
+	return nil
 }
 
 func isValidPortNumber(port int, allowZero bool) bool {
@@ -4738,8 +4744,8 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.MaxImageResolution <= 0 {
-		return newPositiveNumberAppError("FileSettings.MaxImageResolution")
+	if appErr := validatePositiveNumber(*s.MaxImageResolution, "FileSettings.MaxImageResolution"); appErr != nil {
+		return appErr
 	}
 
 	if *s.ExtractContentTimeout < 0 {
@@ -4931,8 +4937,8 @@ func (s *LdapSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.port.app_error", map[string]any{"Setting": "LdapSettings.LdapPort"}, "", http.StatusBadRequest)
 	}
 
-	if *s.QueryTimeout <= 0 {
-		return newPositiveNumberAppError("LdapSettings.QueryTimeout")
+	if appErr := validatePositiveNumber(*s.QueryTimeout, "LdapSettings.QueryTimeout"); appErr != nil {
+		return appErr
 	}
 
 	if *s.SyncIntervalMinutes <= 0 {
@@ -5114,8 +5120,8 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.tls_min_ver.app_error", map[string]any{"Value": *s.TLSMinVer}, "", http.StatusBadRequest)
 	}
 
-	if *s.TLSStrictTransportMaxAge < 0 {
-		return newNonNegativeNumberAppError("ServiceSettings.TLSStrictTransportMaxAge")
+	if appErr := validateNonNegativeNumber(*s.TLSStrictTransportMaxAge, "ServiceSettings.TLSStrictTransportMaxAge"); appErr != nil {
+		return appErr
 	}
 
 	if !(*s.WebserverMode == "gzip" || *s.WebserverMode == "nogzip" || *s.WebserverMode == "disabled") {
@@ -5138,44 +5144,44 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_url_length.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.IdleTimeout <= 0 {
-		return newPositiveNumberAppError("ServiceSettings.IdleTimeout")
+	if appErr := validatePositiveNumber(*s.IdleTimeout, "ServiceSettings.IdleTimeout"); appErr != nil {
+		return appErr
 	}
 
-	if *s.SessionLengthMobileInDays <= 0 {
-		return newPositiveNumberAppError("ServiceSettings.SessionLengthMobileInDays")
+	if appErr := validatePositiveNumber(*s.SessionLengthMobileInDays, "ServiceSettings.SessionLengthMobileInDays"); appErr != nil {
+		return appErr
 	}
 
-	if *s.SessionLengthMobileInHours <= 0 {
-		return newPositiveNumberAppError("ServiceSettings.SessionLengthMobileInHours")
+	if appErr := validatePositiveNumber(*s.SessionLengthMobileInHours, "ServiceSettings.SessionLengthMobileInHours"); appErr != nil {
+		return appErr
 	}
 
-	if *s.SessionLengthSSOInDays <= 0 {
-		return newPositiveNumberAppError("ServiceSettings.SessionLengthSSOInDays")
+	if appErr := validatePositiveNumber(*s.SessionLengthSSOInDays, "ServiceSettings.SessionLengthSSOInDays"); appErr != nil {
+		return appErr
 	}
 
-	if *s.SessionLengthSSOInHours <= 0 {
-		return newPositiveNumberAppError("ServiceSettings.SessionLengthSSOInHours")
+	if appErr := validatePositiveNumber(*s.SessionLengthSSOInHours, "ServiceSettings.SessionLengthSSOInHours"); appErr != nil {
+		return appErr
 	}
 
-	if *s.SessionCacheInMinutes <= 0 {
-		return newPositiveNumberAppError("ServiceSettings.SessionCacheInMinutes")
+	if appErr := validatePositiveNumber(*s.SessionCacheInMinutes, "ServiceSettings.SessionCacheInMinutes"); appErr != nil {
+		return appErr
 	}
 
-	if *s.SessionIdleTimeoutInMinutes < 0 {
-		return newNonNegativeNumberAppError("ServiceSettings.SessionIdleTimeoutInMinutes")
+	if appErr := validateNonNegativeNumber(*s.SessionIdleTimeoutInMinutes, "ServiceSettings.SessionIdleTimeoutInMinutes"); appErr != nil {
+		return appErr
 	}
 
-	if *s.MinimumHashtagLength <= 0 {
-		return newPositiveNumberAppError("ServiceSettings.MinimumHashtagLength")
+	if appErr := validatePositiveNumber(*s.MinimumHashtagLength, "ServiceSettings.MinimumHashtagLength"); appErr != nil {
+		return appErr
 	}
 
-	if *s.ClusterLogTimeoutMilliseconds <= 0 {
-		return newPositiveNumberAppError("ServiceSettings.ClusterLogTimeoutMilliseconds")
+	if appErr := validatePositiveNumber(*s.ClusterLogTimeoutMilliseconds, "ServiceSettings.ClusterLogTimeoutMilliseconds"); appErr != nil {
+		return appErr
 	}
 
-	if *s.AWSMeteringTimeoutSeconds <= 0 {
-		return newPositiveNumberAppError("ServiceSettings.AWSMeteringTimeoutSeconds")
+	if appErr := validatePositiveNumber(*s.AWSMeteringTimeoutSeconds, "ServiceSettings.AWSMeteringTimeoutSeconds"); appErr != nil {
+		return appErr
 	}
 
 	if *s.FeatureFlagSyncIntervalSeconds <= 0 {
@@ -5441,16 +5447,16 @@ func (s *DataRetentionSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.deletion_job_start_time.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	if *s.BatchSize <= 0 {
-		return newPositiveNumberAppError("DataRetentionSettings.BatchSize")
+	if appErr := validatePositiveNumber(*s.BatchSize, "DataRetentionSettings.BatchSize"); appErr != nil {
+		return appErr
 	}
 
-	if *s.TimeBetweenBatchesMilliseconds < 0 {
-		return newNonNegativeNumberAppError("DataRetentionSettings.TimeBetweenBatchesMilliseconds")
+	if appErr := validateNonNegativeNumber(*s.TimeBetweenBatchesMilliseconds, "DataRetentionSettings.TimeBetweenBatchesMilliseconds"); appErr != nil {
+		return appErr
 	}
 
-	if *s.RetentionIdsBatchSize <= 0 {
-		return newPositiveNumberAppError("DataRetentionSettings.RetentionIdsBatchSize")
+	if appErr := validatePositiveNumber(*s.RetentionIdsBatchSize, "DataRetentionSettings.RetentionIdsBatchSize"); appErr != nil {
+		return appErr
 	}
 
 	return nil
