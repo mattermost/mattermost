@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from './ai_bridge_fixture';
-
 import {koreanTestPhrase, typeHangulWithIme} from '@mattermost/playwright-lib';
+
+import {expect, test} from './ai_bridge_fixture';
 
 // This is a real-browser correctness guard: it proves the AI Rewrite prompt is wired up and
 // composes Hangul end to end. It does NOT reproduce the MM-70289 async race on its own, because
