@@ -23,6 +23,33 @@ export function hasAttributeTokens(text: string): boolean {
     return tokenPattern().test(text);
 }
 
+export type BannerSegment = {type: 'text'; text: string} | {type: 'token'; name: string};
+
+/**
+ * Splits a template into the pieces the chip editor renders. Whitespace inside a
+ * token is dropped here, so editing and re-serializing normalises `{{ a }}` to
+ * `{{a}}` rather than leaving two spellings of the same reference.
+ */
+export function parseBannerTemplate(template: string): BannerSegment[] {
+    const segments: BannerSegment[] = [];
+    let index = 0;
+
+    for (const match of template.matchAll(tokenPattern())) {
+        const start = match.index ?? 0;
+        if (start > index) {
+            segments.push({type: 'text', text: template.slice(index, start)});
+        }
+        segments.push({type: 'token', name: match[1]});
+        index = start + match[0].length;
+    }
+
+    if (index < template.length) {
+        segments.push({type: 'text', text: template.slice(index)});
+    }
+
+    return segments;
+}
+
 export function referencedFieldNames(text: string): string[] {
     const names: string[] = [];
     for (const match of text.matchAll(tokenPattern())) {

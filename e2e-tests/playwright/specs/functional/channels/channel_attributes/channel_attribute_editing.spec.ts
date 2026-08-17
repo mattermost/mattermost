@@ -308,9 +308,9 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             await asAdmin.channelsPage.toBeVisible();
             const adminInfo = await asAdmin.channelsPage.openChannelInfo();
 
-            // * The channel admin clears the admin tier, so the attribute is offered
-            // * for adding and can be set. An unset optional attribute has no row of
-            // * its own until it has a value.
+            // Added rather than edited: an unset optional attribute has no row until
+            // it has a value.
+            // * The channel admin clears the admin tier and can set it
             await adminInfo.attributes.add(adminOnly.name, 'SET');
             await expect(adminInfo.attributes.chip(adminOnly.name)).toHaveText('SET');
 

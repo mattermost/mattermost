@@ -82,8 +82,7 @@ export class AppliesToChannels {
 }
 
 /**
- * The Global Attributes pages in the System Console: the attribute list and the
- * New attribute form.
+ * The Global Attributes pages: the attribute list and the New attribute form.
  */
 export default class GlobalAttributes {
     readonly container: Locator;

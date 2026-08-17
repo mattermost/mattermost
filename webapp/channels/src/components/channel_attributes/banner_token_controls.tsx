@@ -10,14 +10,11 @@ import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities
 
 import * as Menu from 'components/menu';
 
-import {attributeToken, hasAttributeTokens, renderBannerTemplate, tokenSuggestions} from './banner_template';
+import {attributeToken, tokenSuggestions} from './banner_template';
 
 import './banner_token_controls.scss';
 
 type Props = {
-
-    // The banner text as authored, tokens included.
-    template: string;
 
     // Every channel attribute with this channel's value, unset ones included.
     attributes: ResolvedChannelAttribute[];
@@ -28,17 +25,12 @@ type Props = {
 };
 
 /**
- * Token insertion and a resolved preview for the banner text.
- *
- * Tokens are plain text in the existing textbox rather than chips in a rich editor:
- * that keeps the markdown preview, character counter, and length validation the
- * banner already relies on. The divergence from the design is deliberate.
+ * The "+ Attributes" menu inside the banner text field.
  */
-const BannerTokenControls = ({template, attributes, onInsertToken, disabled}: Props) => {
+const BannerTokenControls = ({attributes, onInsertToken, disabled}: Props) => {
     const {formatMessage} = useIntl();
 
     const suggestions = useMemo(() => tokenSuggestions(attributes), [attributes]);
-    const rendered = useMemo(() => renderBannerTemplate(template, attributes), [template, attributes]);
 
     if (suggestions.length === 0) {
         return null;
@@ -84,34 +76,6 @@ const BannerTokenControls = ({template, attributes, onInsertToken, disabled}: Pr
                     />
                 ))}
             </Menu.Container>
-
-            {hasAttributeTokens(template) && (
-                <div
-                    className='BannerTokenControls__preview'
-                    data-testid='bannerAttributePreview'
-                    aria-live='polite'
-                >
-                    <FormattedMessage
-                        id='channel_attributes.banner.renders_as'
-                        defaultMessage='Renders as: {text}'
-                        values={{
-                            text: rendered ? (
-                                <span className='BannerTokenControls__previewText'>{rendered}</span>
-                            ) : (
-
-                                // An all-unset template resolves to nothing; say so rather
-                                // than render a blank line that reads as a bug.
-                                <span className='BannerTokenControls__previewEmpty'>
-                                    <FormattedMessage
-                                        id='channel_attributes.banner.renders_as_empty'
-                                        defaultMessage='nothing yet — no values are set'
-                                    />
-                                </span>
-                            ),
-                        }}
-                    />
-                </div>
-            )}
         </div>
     );
 };

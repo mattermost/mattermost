@@ -195,12 +195,18 @@ export default function useChannelClassificationBanner(channelId: string): Chann
         // banners byte-identical.
         const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, resolvedAttributes) : `**${name}**`;
 
+        // An attribute-designated banner is authored per channel, so a colour chosen
+        // in Channel Settings wins over the option's. Only for the designated path:
+        // a classification banner keeps taking its colour from the level, whatever
+        // stale value banner_info may still carry.
+        const authoredColor = designated ? channelBannerInfo?.background_color : undefined;
+
         return {
             hasClassification: true,
             classificationBanner: {
                 enabled: true,
                 text: bannerText,
-                background_color: color ?? '',
+                background_color: authoredColor || color || '',
             },
             classificationId: optionId,
             bannerText,

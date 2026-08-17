@@ -58,7 +58,6 @@ describe('BannerTokenControls', () => {
     test('renders nothing when the channel has no attributes to offer', () => {
         renderWithContext(
             <BannerTokenControls
-                template=''
                 attributes={[]}
                 onInsertToken={jest.fn()}
             />,
@@ -73,7 +72,6 @@ describe('BannerTokenControls', () => {
 
         renderWithContext(
             <BannerTokenControls
-                template=''
                 attributes={[attribute('caveat', 'NOFORN', 'Caveat / Releasability')]}
                 onInsertToken={onInsertToken}
             />,
@@ -93,46 +91,9 @@ describe('BannerTokenControls', () => {
         await waitFor(() => expect(onInsertToken).toHaveBeenCalledWith('{{caveat}}'));
     });
 
-    test('shows no preview until the template references an attribute', () => {
-        renderWithContext(
-            <BannerTokenControls
-                template='**TOP SECRET**'
-                attributes={[attribute('program', 'AURORA')]}
-                onInsertToken={jest.fn()}
-            />,
-        );
-
-        expect(screen.queryByTestId('bannerAttributePreview')).not.toBeInTheDocument();
-    });
-
-    test('previews what the template resolves to for this channel', async () => {
-        renderWithContext(
-            <BannerTokenControls
-                template='{{classification}} · {{program}}'
-                attributes={[attribute('classification', 'TOP SECRET'), attribute('program', 'AURORA')]}
-                onInsertToken={jest.fn()}
-            />,
-        );
-
-        await waitFor(() => expect(screen.getByTestId('bannerAttributePreview')).toHaveTextContent('Renders as: TOP SECRET · AURORA'));
-    });
-
-    test('says so when every referenced attribute is unset, rather than showing a blank line', async () => {
-        renderWithContext(
-            <BannerTokenControls
-                template='{{program}}'
-                attributes={[attribute('program', '')]}
-                onInsertToken={jest.fn()}
-            />,
-        );
-
-        await waitFor(() => expect(screen.getByTestId('bannerAttributePreview')).toHaveTextContent('nothing yet'));
-    });
-
     test('disables insertion when the banner fields are locked', () => {
         renderWithContext(
             <BannerTokenControls
-                template=''
                 attributes={[attribute('program', 'AURORA')]}
                 onInsertToken={jest.fn()}
                 disabled={true}

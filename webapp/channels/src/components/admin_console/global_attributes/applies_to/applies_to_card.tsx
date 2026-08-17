@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
-import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
+import {buttonClassNames} from '@mattermost/shared/components/button';
 
 import Card from 'components/card/card';
 
@@ -28,8 +30,6 @@ type Props = {
  * Delete this file when it lands; ChannelsResourceRow is the part that survives.
  */
 const AppliesToCard = ({channelResource, onChannelResourceChange, disabled}: Props) => {
-    const {formatMessage} = useIntl();
-
     return (
         <Card
             expanded={true}
@@ -49,11 +49,10 @@ const AppliesToCard = ({channelResource, onChannelResourceChange, disabled}: Pro
                     {!channelResource && (
                         <button
                             type='button'
-                            className='AppliesToCard__addResource'
+                            className={classNames(buttonClassNames({emphasis: 'quaternary'}), 'AppliesToCard__addResource')}
                             onClick={() => onChannelResourceChange({...DEFAULT_CHANNEL_RESOURCE_CONFIG})}
                             disabled={disabled}
                             data-testid='appliesToAddResource'
-                            aria-label={formatMessage(messages.addResource)}
                         >
                             <PlusIcon size={14}/>
                             <FormattedMessage {...messages.addResource}/>

@@ -122,7 +122,6 @@ export async function createChannelForAttributes(
     } as Channel);
 }
 
-// The banner template as an admin would author it, tokens included.
 export async function setBannerTemplate(
     client: Client4,
     channelId: string,

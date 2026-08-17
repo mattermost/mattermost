@@ -43,9 +43,7 @@ export class ChannelAttributeLabels {
 
 /**
  * The Channel Attributes block in the Channel Info panel, including its inline editors.
- *
- * Locators key off the attribute's machine name, which is what the product puts in
- * every test id — display names are not unique and change without breaking anything.
+ * Locators key off the machine name, which is what the product puts in every test id.
  */
 export class ChannelInfoAttributes {
     readonly container: Locator;
@@ -100,11 +98,9 @@ export class ChannelInfoAttributes {
     }
 
     /**
-     * Text values commit on Enter or on blur, and abandon on Escape.
-     *
-     * Only Escape is guaranteed to close the editor: a commit closes it when the
-     * write succeeds and deliberately keeps it open when it fails, so callers
-     * assert the outcome they expect rather than this waiting on either.
+     * Only Escape is guaranteed to close the editor: a commit closes it on a
+     * successful write and deliberately keeps it open on a failed one, so callers
+     * assert the outcome they expect.
      */
     async setText(name: string, text: string, commit: 'enter' | 'blur' | 'escape' = 'enter') {
         await this.startEditing(name);
@@ -129,8 +125,7 @@ export class ChannelInfoAttributes {
     }
 
     /**
-     * Removes one option from a multiselect. Each pick commits and closes the editor,
-     * so this reopens it rather than assuming a previous edit left it open.
+     * Reopens the editor first: each pick commits and closes it.
      */
     async deselect(name: string, option: string) {
         await this.startEditing(name);

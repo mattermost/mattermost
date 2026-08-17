@@ -296,4 +296,75 @@ describe('useChannelClassificationBanner', () => {
         await Promise.resolve();
         expect(result.current.hasClassification).toBe(false);
     });
+
+    describe('attribute-designated banner', () => {
+        const GROUP_ID = 'group_id_1';
+        const DESIGNATED_FIELD_ID = 'designated_field_1';
+        const OPTION_ID = 'option_1';
+
+        function designatedState(bannerInfo?: {enabled?: boolean; text?: string; background_color?: string}): PartialState {
+            const field: PropertyField = {
+                ...makeChannelField(),
+                id: DESIGNATED_FIELD_ID,
+                group_id: GROUP_ID,
+                name: 'marking',
+                attrs: {
+                    actions: ['display_banner_top'],
+                    options: [{id: OPTION_ID, name: 'RESTRICTED', color: '#1E325C'}],
+                },
+            };
+
+            return {
+                entities: {
+                    general: {
+                        config: {FeatureFlagChannelAttributes: 'true'},
+                        license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
+                    },
+                    channels: {
+                        channels: {
+                            [CHANNEL_ID]: {id: CHANNEL_ID, banner_info: bannerInfo},
+                        },
+                    },
+                    properties: {
+                        groups: {byName: {[ACCESS_CONTROL_PROPERTY_GROUP]: {id: GROUP_ID, name: ACCESS_CONTROL_PROPERTY_GROUP}}},
+                        fields: {byObjectType: {channel: {[GROUP_ID]: {[DESIGNATED_FIELD_ID]: field}}}},
+                        values: {
+                            byTargetId: {
+                                [CHANNEL_ID]: {
+                                    [DESIGNATED_FIELD_ID]: {
+                                        ...makePropertyValue(OPTION_ID),
+                                        field_id: DESIGNATED_FIELD_ID,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            } as PartialState;
+        }
+
+        test('takes its colour from the selected option when the channel has authored none', () => {
+            mockClassification({available: false, channelField: null, levels: []});
+
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                designatedState(),
+            );
+
+            expect(result.current.hasClassification).toBe(true);
+            expect(result.current.classificationBanner?.background_color).toBe('#1E325C');
+            expect(result.current.bannerText).toBe('**RESTRICTED**');
+        });
+
+        test('lets a colour authored in Channel Settings win over the option colour', () => {
+            mockClassification({available: false, channelField: null, levels: []});
+
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                designatedState({enabled: false, text: '', background_color: '#ED1010'}),
+            );
+
+            expect(result.current.classificationBanner?.background_color).toBe('#ED1010');
+        });
+    });
 });

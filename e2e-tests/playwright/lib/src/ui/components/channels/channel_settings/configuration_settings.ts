@@ -108,6 +108,13 @@ export default class ConfigurationSettings {
         return this.container.getByTestId('channel_banner_banner_text_textbox');
     }
 
+    /**
+     * The chip editor that replaces the plain textbox once channel attributes are on.
+     */
+    get bannerTextEditor() {
+        return this.container.getByTestId('bannerTextEditor');
+    }
+
     get bannerTokenButton() {
         return this.container.getByTestId('bannerAttributeTokenButton');
     }
@@ -116,13 +123,27 @@ export default class ConfigurationSettings {
         return this.container.getByTestId('bannerAttributePreview');
     }
 
-    /**
-     * Appends an attribute token to the banner text. The product appends rather than
-     * inserting at the caret, so type any surrounding copy first.
-     */
-    async insertBannerToken(name: string) {
-        const before = await this.bannerTextbox.inputValue();
+    bannerTokenChip(name: string) {
+        return this.container.getByTestId(`bannerTextEditorChip-${name}`);
+    }
 
+    /**
+     * Types literal banner text at the end of the chip editor, leaving existing chips.
+     */
+    async typeBannerText(text: string) {
+        await this.bannerTextEditor.click();
+        await this.container.page().keyboard.press('End');
+        await this.container.page().keyboard.type(text);
+    }
+
+    async clearBannerText() {
+        await this.bannerTextEditor.click();
+        await this.container.page().keyboard.press('ControlOrMeta+A');
+        await this.container.page().keyboard.press('Backspace');
+        await expect(this.bannerTextEditor).toHaveText('');
+    }
+
+    async insertBannerToken(name: string) {
         await expect(this.bannerTokenButton).toBeVisible();
         await this.bannerTokenButton.click();
 
@@ -130,10 +151,14 @@ export default class ConfigurationSettings {
         await expect(item).toBeVisible();
         await item.click();
 
-        // One click appends exactly one token. Asserted here so a double-append
-        // fails at its source rather than as a puzzling banner assertion later.
-        const token = `{{${name}}}`;
-        await expect(this.bannerTextbox).toHaveValue(`${before}${before && !before.endsWith(' ') ? ' ' : ''}${token}`);
+        // One click inserts exactly one chip, so a double-insert fails at its source
+        // rather than as a puzzling banner assertion later.
+        await expect(this.bannerTokenChip(name)).toHaveCount(1);
+    }
+
+    async removeBannerToken(name: string) {
+        await this.container.getByTestId(`bannerTextEditorChipRemove-${name}`).click();
+        await expect(this.bannerTokenChip(name)).toHaveCount(0);
     }
 
     get shareWithConnectedWorkspacesSection() {

@@ -673,10 +673,14 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         </Card.Body>
                     </Card>
                     {channelAttributesEnabled && (
+
+                        // Stays editable once the definition locks: after a failed
+                        // channel write this is the only thing left to change, either
+                        // to retry or to drop the resource and finish without it.
                         <AppliesToCard
                             channelResource={channelResource}
                             onChannelResourceChange={handleChannelResourceChange}
-                            disabled={saving || disabled || definitionLocked}
+                            disabled={saving || disabled}
                         />
                     )}
                 </div>

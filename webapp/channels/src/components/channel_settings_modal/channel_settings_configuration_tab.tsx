@@ -21,7 +21,8 @@ import {getRemotesForChannel} from 'mattermost-redux/selectors/entities/shared_c
 import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
 import {CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
 import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
-import BannerTokenControls from 'components/channel_attributes/banner_token_controls';
+import BannerPreview from 'components/channel_attributes/banner_preview';
+import BannerTextEditor from 'components/channel_attributes/banner_text_editor';
 import ColorInput from 'components/color_input';
 import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
 import useChannelClassificationBanner from 'components/common/hooks/useChannelClassificationBanner';
@@ -32,7 +33,6 @@ import ConfirmModal from 'components/confirm_modal';
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
 import SectionNotice from 'components/section_notice';
-import type {TextboxElement} from 'components/textbox';
 import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import type {SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
@@ -117,6 +117,7 @@ function ChannelSettingsConfigurationTab({
     const bannerTextSettingTitle = formatMessage({id: 'channel_banner.banner_text.label', defaultMessage: 'Banner text'});
     const bannerColorSettingTitle = formatMessage({id: 'channel_banner.banner_color.label', defaultMessage: 'Banner color'});
     const bannerTextPlaceholder = formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Channel banner text'});
+    const bannerPreviewSettingTitle = formatMessage({id: 'channel_banner.banner_preview.label', defaultMessage: 'Preview'});
 
     const initialBannerInfo = channel.banner_info || DEFAULT_CHANNEL_BANNER;
     const [showBannerTextPreview, setShowBannerTextPreview] = useState(false);
@@ -144,6 +145,18 @@ function ChannelSettingsConfigurationTab({
     // would put the token composer out of reach on exactly the channels that want
     // it. Flag off keeps the shipped lock.
     const bannerLockedByClassification = !channelAttributesEnabled && classificationEnabled && Boolean(selectedClassificationId);
+
+    // An attribute-designated banner renders off the property value, so banner_info
+    // stays disabled by design. The section still has to read as on, or the toggle
+    // contradicts the banner the channel is visibly showing.
+    const bannerDrivenByAttribute = channelAttributesEnabled && classificationBanner.hasClassification;
+
+    // Shown rather than stored: seeding it into form state would open the tab dirty.
+    const attributeBannerColor = bannerDrivenByAttribute ? classificationBanner.classificationBanner?.background_color : undefined;
+
+    // Follows the colour picker as it changes, falling back to the option's colour
+    // for a banner the channel has not authored one for.
+    const previewBackgroundColor = updatedChannelBanner.background_color || attributeBannerColor || undefined;
 
     const classificationOptions = useMemo(() => {
         return classification.levels.
@@ -221,8 +234,7 @@ function ChannelSettingsConfigurationTab({
         setUpdatedChannelBanner(toUpdate);
     }, [initialBannerInfo, updatedChannelBanner]);
 
-    const handleBannerTextChange = useCallback((e: React.ChangeEvent<TextboxElement>) => {
-        const newValue = e.target.value;
+    const handleBannerTextChange = useCallback((newValue: string) => {
         setUpdatedChannelBanner((prev) => ({
             ...prev,
             text: newValue,
@@ -258,18 +270,6 @@ function ChannelSettingsConfigurationTab({
     }, [resetFormErrors]);
 
     const toggleBannerTextPreview = useCallback(() => setShowBannerTextPreview((show) => !show), []);
-
-    // Appended, not inserted at the caret: selection is not tracked here, and
-    // guessing a position is worse than a predictable append.
-    const handleInsertBannerToken = useCallback((token: string) => {
-        setUpdatedChannelBanner((prev) => {
-            const current = prev.text ?? '';
-            const separator = current && !current.endsWith(' ') ? ' ' : '';
-            return {...prev, text: `${current}${separator}${token}`};
-        });
-        resetFormErrors();
-        setCharacterLimitExceeded(false);
-    }, [resetFormErrors]);
 
     // Auto-translation section
     const autoTranslationHeading = formatMessage({id: 'channel_translation.label.name', defaultMessage: 'Auto-translation'});
@@ -402,7 +402,11 @@ function ChannelSettingsConfigurationTab({
         // off the property value (see channel_banner.tsx); leaving banner_info
         // disabled means deleting the property value makes the banner disappear
         // without dragging stale text/color into the manual banner slot.
-        if (classificationBanner.hasClassification && classificationBanner.classificationBanner) {
+        //
+        // Skipped once channel attributes own the banner: there the mirrored text is
+        // rendered output, not a template, so seeding it would open the form dirty
+        // and turn the next inserted token into a duplicate of the value.
+        if (!channelAttributesEnabled && classificationBanner.hasClassification && classificationBanner.classificationBanner) {
             setUpdatedChannelBanner((prev) => ({
                 ...prev,
                 text: classificationBanner.classificationBanner?.text ?? prev.text,
@@ -410,6 +414,7 @@ function ChannelSettingsConfigurationTab({
             }));
         }
     }, [
+        channelAttributesEnabled,
         classificationBanner.hasClassification,
         classificationBanner.classificationId,
         classificationBanner.classificationBanner,
@@ -801,7 +806,7 @@ function ChannelSettingsConfigurationTab({
                                 size='btn-md'
                                 disabled={bannerLockedByClassification}
                                 onToggle={handleBannerToggle}
-                                toggled={bannerLockedByClassification || updatedChannelBanner.enabled}
+                                toggled={bannerLockedByClassification || bannerDrivenByAttribute || updatedChannelBanner.enabled}
                                 tabIndex={0}
                                 toggleClassName='btn-toggle-primary'
                             />
@@ -809,7 +814,7 @@ function ChannelSettingsConfigurationTab({
                     </div>
 
                     {
-                        (bannerLockedByClassification || updatedChannelBanner.enabled) &&
+                        (bannerLockedByClassification || bannerDrivenByAttribute || updatedChannelBanner.enabled) &&
                         <div className='channel_banner_section_body'>
                             {/*Banner text section*/}
                             <div className='setting_section'>
@@ -821,28 +826,30 @@ function ChannelSettingsConfigurationTab({
                                 </span>
 
                                 <div className='setting_body'>
-                                    <AdvancedTextbox
-                                        id='channel_banner_banner_text_textbox'
-                                        value={updatedChannelBanner.text!}
-                                        channelId={channel.id}
-                                        onKeyPress={() => {}}
-                                        showCharacterCount={true}
-                                        useChannelMentions={false}
-                                        onChange={handleBannerTextChange}
-                                        preview={showBannerTextPreview}
-                                        togglePreview={toggleBannerTextPreview}
-                                        hasError={characterLimitExceeded}
-                                        createMessage={bannerTextPlaceholder}
-                                        maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
-                                        minLength={CHANNEL_BANNER_MIN_CHARACTER_LIMIT}
-                                    />
-
-                                    {channelAttributesEnabled && (
-                                        <BannerTokenControls
-                                            template={updatedChannelBanner.text ?? ''}
+                                    {channelAttributesEnabled ? (
+                                        <BannerTextEditor
+                                            value={updatedChannelBanner.text ?? ''}
                                             attributes={resolvedAttributes}
-                                            onInsertToken={handleInsertBannerToken}
+                                            onChange={handleBannerTextChange}
                                             disabled={bannerLockedByClassification}
+                                            hasError={characterLimitExceeded}
+                                            maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
+                                        />
+                                    ) : (
+                                        <AdvancedTextbox
+                                            id='channel_banner_banner_text_textbox'
+                                            value={updatedChannelBanner.text!}
+                                            channelId={channel.id}
+                                            onKeyPress={() => {}}
+                                            showCharacterCount={true}
+                                            useChannelMentions={false}
+                                            onChange={(e) => handleBannerTextChange(e.target.value)}
+                                            preview={showBannerTextPreview}
+                                            togglePreview={toggleBannerTextPreview}
+                                            hasError={characterLimitExceeded}
+                                            createMessage={bannerTextPlaceholder}
+                                            maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
+                                            minLength={CHANNEL_BANNER_MIN_CHARACTER_LIMIT}
                                         />
                                     )}
                                 </div>
@@ -861,11 +868,30 @@ function ChannelSettingsConfigurationTab({
                                     <ColorInput
                                         id='channel_banner_banner_background_color_picker'
                                         onChange={handleBannerColorChange}
-                                        value={bannerLockedByClassification ? selectedClassificationColor : (updatedChannelBanner.background_color || '')}
+                                        value={bannerLockedByClassification ? selectedClassificationColor : (updatedChannelBanner.background_color || attributeBannerColor || '')}
                                         isDisabled={bannerLockedByClassification}
                                     />
                                 </div>
                             </div>
+
+                            {channelAttributesEnabled && (
+                                <div className='setting_section'>
+                                    <span
+                                        className='setting_title'
+                                        aria-label={bannerPreviewSettingTitle}
+                                    >
+                                        {bannerPreviewSettingTitle}
+                                    </span>
+
+                                    <div className='setting_body'>
+                                        <BannerPreview
+                                            template={updatedChannelBanner.text || classificationBanner.bannerText || ''}
+                                            attributes={resolvedAttributes}
+                                            backgroundColor={previewBackgroundColor}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     }
                 </>

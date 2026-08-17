@@ -52,19 +52,76 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             await channelsPage.goto(team.name, channel.name);
             await channelsPage.toBeVisible();
 
-            // # Open the banner composer and insert the attribute. The composer seeds
-            // # itself with the banner already on screen, so start from a clean template.
+            // The composer seeds itself with the banner already on screen, so clear it
+            // to author from a known template.
+            // # Insert the attribute
             const settings = await channelsPage.openChannelSettings();
             const configuration = await settings.openConfigurationTab();
             await configuration.enableChannelBanner();
-            await configuration.setChannelBannerText('');
+            await configuration.clearBannerText();
             await configuration.insertBannerToken(marking.name);
 
-            // * The token lands in the text as authored, and the preview resolves it
-            await expect(configuration.bannerTextbox).toHaveValue(
-                new RegExp(attributeToken(marking.name).replace(/[{}]/g, '\\$&')),
-            );
+            // * The token reads as the attribute's label, not its machine name, and
+            // * the preview resolves it to this channel's value
+            await expect(configuration.bannerTokenChip(marking.name)).toBeVisible();
+            await expect(configuration.bannerTextEditor).not.toContainText(attributeToken(marking.name));
             await expect(configuration.bannerTokenPreview).toContainText('RESTRICTED');
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+
+    /**
+     * @objective Verify the banner section reads as enabled when an attribute drives the
+     * banner, even though banner_info stays disabled for that channel.
+     */
+    test('shows the banner section as on when an attribute drives the banner', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, adminUser, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+
+            const marking = await createAttribute(adminClient, attributeName('driven', suffix), {
+                options: ['SECRET'],
+                actions: [DISPLAY_BANNER_TOP],
+                optionColors: {SECRET: BANNER_COLOR},
+            });
+            created.push(marking);
+
+            const channel = await createChannelForAttributes(adminClient, team, `banner-driven-${suffix}`);
+            await adminClient.addToChannel(adminUser.id, channel.id);
+            await setChannelValue(adminClient, channel.id, marking, optionId(marking, 'SECRET'));
+
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            // * The channel shows a banner, so its settings must not claim it is off
+            await expect(channelsPage.page.getByTestId('channel_banner_text')).toContainText('SECRET');
+
+            const settings = await channelsPage.openChannelSettings();
+            const configuration = await settings.openConfigurationTab();
+
+            await expect(configuration.container.getByTestId('channelBannerToggle-button')).toHaveAttribute(
+                'aria-pressed',
+                'true',
+            );
+            await expect(configuration.bannerTextEditor).toBeVisible();
+
+            // * Opening the tab changes nothing, so it must not offer to save
+            await expect(configuration.container.getByTestId('SaveChangesPanel__save-btn')).toHaveCount(0);
+
+            // * The preview still shows what members see, from the value alone
+            await expect(configuration.bannerTokenPreview).toContainText('SECRET');
+
+            // * banner_info itself stays disabled: the value is what renders the banner
+            const stored = await adminClient.getChannel(channel.id);
+            expect(stored.banner_info?.enabled ?? false).toBe(false);
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -103,8 +160,8 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             const configuration = await settings.openConfigurationTab();
             await configuration.enableChannelBanner();
 
-            // # Author the literal part first: the menu appends, it does not insert at the caret
-            await configuration.setChannelBannerText('Handling:');
+            await configuration.clearBannerText();
+            await configuration.typeBannerText('Handling: ');
             await configuration.insertBannerToken(marking.name);
             await configuration.setChannelBannerBackgroundColor(BANNER_COLOR.replace('#', ''));
             await configuration.save();
@@ -157,9 +214,10 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             const settings = await channelsPage.openChannelSettings();
             const configuration = await settings.openConfigurationTab();
             await configuration.enableChannelBanner();
-            await configuration.setChannelBannerText(
-                `${attributeToken(marking.name)} · ${attributeToken(program.name)}`,
-            );
+            await configuration.clearBannerText();
+            await configuration.insertBannerToken(marking.name);
+            await configuration.typeBannerText(' · ');
+            await configuration.insertBannerToken(program.name);
 
             // * The stranded separator is collapsed, not rendered next to nothing
             await expect(configuration.bannerTokenPreview).toContainText('SECRET');
@@ -253,7 +311,7 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             const settings = await channelsPage.openChannelSettings();
             const configuration = await settings.openConfigurationTab();
             await configuration.enableChannelBanner();
-            await configuration.setChannelBannerText('');
+            await configuration.clearBannerText();
             await configuration.insertBannerToken(marking.name);
             await configuration.setChannelBannerBackgroundColor(BANNER_COLOR.replace('#', ''));
             await configuration.save();

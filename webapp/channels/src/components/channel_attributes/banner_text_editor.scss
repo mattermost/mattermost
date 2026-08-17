@@ -1,0 +1,111 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Fixed width, like every other control in this tab (.AdvancedTextbox is 390px,
+// .color-input is 160px). A fluid field cannot be bounded here: its flex ancestors
+// size from content, so it would widen the modal instead of wrapping.
+.BannerTextEditor {
+    width: 460px;
+    max-width: 100%;
+}
+
+// One border, on this element only: the field is the input as far as the reader is
+// concerned. Focus recolours that same border — a second inset ring reads as two
+// nested inputs.
+// One row: text on the left, actions pinned right. Safe to be flex here because the
+// editable area is flex-basis 0 rather than content-sized, and the wrapper's width is
+// fixed — neither can be widened by what is typed.
+.BannerTextEditor__field {
+    display: flex;
+    width: 100%;
+    min-height: 40px;
+    box-sizing: border-box;
+    align-items: center;
+    padding: 4px 8px 4px 12px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    gap: 8px;
+
+    &:hover {
+        border-color: rgba(var(--center-channel-color-rgb), 0.48);
+    }
+
+    &:focus-within {
+        border-color: var(--button-bg);
+    }
+
+    &--error {
+        border-color: var(--error-text);
+
+        &:focus-within {
+            border-color: var(--error-text);
+        }
+    }
+
+    &--disabled {
+        border-color: rgba(var(--center-channel-color-rgb), 0.16);
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+    }
+}
+
+// A scroll container with min-width: 0 contributes nothing to its ancestors' minimum
+// width, so long text wraps and scrolls here instead of stretching the modal.
+.BannerTextEditor__input {
+    min-width: 0;
+    max-height: 96px;
+    flex: 1 1 0;
+    padding: 2px 0;
+    color: var(--center-channel-color);
+    font-size: 14px;
+    line-height: 24px;
+    outline: none;
+    overflow-wrap: anywhere;
+    overflow-x: hidden;
+    overflow-y: auto;
+    white-space: pre-wrap;
+
+    &:empty::before {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        content: attr(data-placeholder);
+    }
+}
+
+// Pinned to the right of the same row, behind a divider, as in the design.
+.BannerTextEditor__actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    align-self: stretch;
+    padding-left: 8px;
+    border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+}
+
+.BannerTextEditor__chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 4px 0 8px;
+    border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
+    font-size: 12px;
+    font-weight: 600;
+    gap: 2px;
+    line-height: 20px;
+    vertical-align: baseline;
+    white-space: nowrap;
+}
+
+.BannerTextEditor__chipRemove {
+    display: flex;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    cursor: pointer;
+    opacity: 0.72;
+
+    &:hover {
+        opacity: 1;
+    }
+}
