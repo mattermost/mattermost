@@ -434,6 +434,7 @@ class Timestamp extends PureComponent<Props, State> {
             formatted = (
                 <SemanticTime
                     value={value}
+                    timeZone={timeZone}
                     aria-label={label}
                     className={className}
                 >

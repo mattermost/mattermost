@@ -16,6 +16,12 @@ function expectedLocalISO(epochMs: number): string {
     return DateTime.fromMillis(epochMs).toLocal().toISO({includeOffset: false}) ?? '';
 }
 
+// When a timeZone is in effect the dateTime attribute tracks the wall time actually
+// rendered, so it agrees with the visible text rather than the machine's local zone.
+function expectedZonedISO(epochMs: number, timeZone: string): string {
+    return DateTime.fromMillis(epochMs, {zone: timeZone}).toISO({includeOffset: false}) ?? '';
+}
+
 import Timestamp from './timestamp';
 
 import {RelativeRanges} from './index';
@@ -266,7 +272,7 @@ describe('components/timestamp/Timestamp', () => {
             />,
         );
         const timeEl = container.querySelector('time');
-        expect(timeEl?.getAttribute('dateTime')).toBe(expectedLocalISO(value));
+        expect(timeEl?.getAttribute('dateTime')).toBe(expectedZonedISO(value, 'Australia/Sydney'));
         expect(container.textContent).toBe('7:15 AM');
     });
 
@@ -280,7 +286,7 @@ describe('components/timestamp/Timestamp', () => {
             />,
         );
         const timeEl = container.querySelector('time');
-        expect(timeEl?.getAttribute('dateTime')).toBe(expectedLocalISO(value));
+        expect(timeEl?.getAttribute('dateTime')).toBe(expectedZonedISO(value, 'US/Hawaii'));
         expect(container.textContent).toBe('10:15 AM');
     });
 
@@ -294,7 +300,7 @@ describe('components/timestamp/Timestamp', () => {
             />,
         );
         const timeEl = container.querySelector('time');
-        expect(timeEl?.getAttribute('dateTime')).toBe(expectedLocalISO(value));
+        expect(timeEl?.getAttribute('dateTime')).toBe(expectedZonedISO(value, 'US/Hawaii'));
         expect(container.textContent).toBe('January 12, 2018');
     });
 
@@ -308,7 +314,7 @@ describe('components/timestamp/Timestamp', () => {
             />,
         );
         const timeEl = container.querySelector('time');
-        expect(timeEl?.getAttribute('dateTime')).toBe(expectedLocalISO(value));
+        expect(timeEl?.getAttribute('dateTime')).toBe(expectedZonedISO(value, 'Australia/Sydney'));
         expect(container.textContent).toBe('January 13, 2018 at 15:15');
     });
 
