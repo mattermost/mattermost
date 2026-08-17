@@ -4710,35 +4710,6 @@ func IsValidAzureStorageAccountName(name string) bool {
 	return azureStorageAccountNameRegex.MatchString(name)
 }
 
-func validatePositiveNumber[T ~int | ~int64](value T, setting string) *AppError {
-	if value <= 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.positive_number.app_error", map[string]any{"Setting": setting}, "", http.StatusBadRequest)
-	}
-	return nil
-}
-
-func validateNonNegativeNumber[T ~int | ~int64](value T, setting string) *AppError {
-	if value < 0 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.non_negative_number.app_error", map[string]any{"Setting": setting}, "", http.StatusBadRequest)
-	}
-	return nil
-}
-
-func isValidPortNumber(port int, allowZero bool) bool {
-	if allowZero {
-		return port >= 0 && port <= math.MaxUint16
-	}
-	return port > 0 && port <= math.MaxUint16
-}
-
-func isValidPortString(port string, allowZero bool) bool {
-	portInt, err := strconv.Atoi(port)
-	if err != nil {
-		return false
-	}
-	return isValidPortNumber(portInt, allowZero)
-}
-
 func (s *FileSettings) isValid() *AppError {
 	if *s.MaxFileSize <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
@@ -4889,8 +4860,8 @@ func (s *EmailSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_address.app_error", map[string]any{"Setting": "EmailSettings.ReplyToAddress"}, "", http.StatusBadRequest)
 	}
 
-	if !isValidPortString(*s.SMTPPort, false) {
-		return NewAppError("Config.IsValid", "model.config.is_valid.port.app_error", map[string]any{"Setting": "EmailSettings.SMTPPort"}, "", http.StatusBadRequest)
+	if appErr := validatePortString(*s.SMTPPort, false, "EmailSettings.SMTPPort"); appErr != nil {
+		return appErr
 	}
 
 	if *s.EmailBatchingBufferSize <= 0 {
@@ -4933,8 +4904,8 @@ func (s *LdapSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.ldap_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !isValidPortNumber(*s.LdapPort, false) {
-		return NewAppError("Config.IsValid", "model.config.is_valid.port.app_error", map[string]any{"Setting": "LdapSettings.LdapPort"}, "", http.StatusBadRequest)
+	if appErr := validatePort(*s.LdapPort, false, "LdapSettings.LdapPort"); appErr != nil {
+		return appErr
 	}
 
 	if appErr := validatePositiveNumber(*s.QueryTimeout, "LdapSettings.QueryTimeout"); appErr != nil {
@@ -5128,12 +5099,12 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_mode.app_error", map[string]any{"Value": *s.WebserverMode}, "", http.StatusBadRequest)
 	}
 
-	if !isValidPortNumber(*s.WebsocketPort, true) {
-		return NewAppError("Config.IsValid", "model.config.is_valid.port.app_error", map[string]any{"Setting": "ServiceSettings.WebsocketPort"}, "", http.StatusBadRequest)
+	if appErr := validatePort(*s.WebsocketPort, true, "ServiceSettings.WebsocketPort"); appErr != nil {
+		return appErr
 	}
 
-	if !isValidPortNumber(*s.WebsocketSecurePort, true) {
-		return NewAppError("Config.IsValid", "model.config.is_valid.port.app_error", map[string]any{"Setting": "ServiceSettings.WebsocketSecurePort"}, "", http.StatusBadRequest)
+	if appErr := validatePort(*s.WebsocketSecurePort, true, "ServiceSettings.WebsocketSecurePort"); appErr != nil {
+		return appErr
 	}
 
 	if *s.MaximumPayloadSizeBytes <= 0 {
@@ -5996,6 +5967,49 @@ func isTagPresent(tag string, tags []string) bool {
 	}
 
 	return false
+}
+
+func validatePositiveNumber[T ~int | ~int64](value T, setting string) *AppError {
+	if value <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.positive_number.app_error", map[string]any{"Setting": setting}, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
+func validateNonNegativeNumber[T ~int | ~int64](value T, setting string) *AppError {
+	if value < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.non_negative_number.app_error", map[string]any{"Setting": setting}, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
+func isValidPortNumber(port int, allowZero bool) bool {
+	if allowZero {
+		return port >= 0 && port <= math.MaxUint16
+	}
+	return port > 0 && port <= math.MaxUint16
+}
+
+func isValidPortString(port string, allowZero bool) bool {
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		return false
+	}
+	return isValidPortNumber(portInt, allowZero)
+}
+
+func validatePort(port int, allowZero bool, setting string) *AppError {
+	if !isValidPortNumber(port, allowZero) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.port.app_error", map[string]any{"Setting": setting}, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
+func validatePortString(port string, allowZero bool, setting string) *AppError {
+	if !isValidPortString(port, allowZero) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.port.app_error", map[string]any{"Setting": setting}, "", http.StatusBadRequest)
+	}
+	return nil
 }
 
 // Copied from https://golang.org/src/net/dnsclient.go#L119
