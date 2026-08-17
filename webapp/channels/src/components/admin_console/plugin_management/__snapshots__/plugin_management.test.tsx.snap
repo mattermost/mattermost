@@ -195,13 +195,21 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                   class="col-sm-8"
                 >
                   <button
-                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    class="PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Click or drop plugin bundle to upload
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
                     </span>
                   </button>
                   <input
@@ -600,13 +608,21 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                   class="col-sm-8"
                 >
                   <button
-                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    class="PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Click or drop plugin bundle to upload
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
                     </span>
                   </button>
                   <input
@@ -1081,13 +1097,21 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                   class="col-sm-8"
                 >
                   <button
-                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    class="PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Click or drop plugin bundle to upload
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
                     </span>
                   </button>
                   <input
@@ -1488,14 +1512,22 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                 >
                   <button
                     aria-describedby="plugin-upload-description"
-                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    class="PluginManagement__uploadDropzone"
                     disabled=""
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Click or drop plugin bundle to upload
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
                     </span>
                     <span
                       class="PluginManagement__uploadDropzoneDescription"
@@ -1901,13 +1933,21 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
                   class="col-sm-8"
                 >
                   <button
-                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    class="PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Click or drop plugin bundle to upload
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
                     </span>
                   </button>
                   <input
@@ -2307,13 +2347,21 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                   class="col-sm-8"
                 >
                   <button
-                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    class="PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Click or drop plugin bundle to upload
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
                     </span>
                   </button>
                   <input
@@ -2717,14 +2765,22 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                 >
                   <button
                     aria-describedby="plugin-upload-description"
-                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    class="PluginManagement__uploadDropzone"
                     disabled=""
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Click or drop plugin bundle to upload
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
                     </span>
                     <span
                       class="PluginManagement__uploadDropzoneDescription"
@@ -3120,13 +3176,21 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                   class="col-sm-8"
                 >
                   <button
-                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    class="PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Click or drop plugin bundle to upload
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
                     </span>
                   </button>
                   <input
@@ -3526,14 +3590,22 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                 >
                   <button
                     aria-describedby="plugin-upload-description"
-                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    class="PluginManagement__uploadDropzone"
                     disabled=""
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Click or drop plugin bundle to upload
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
                     </span>
                     <span
                       class="PluginManagement__uploadDropzoneDescription"
@@ -3951,13 +4023,21 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <button
-                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    class="PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Click or drop plugin bundle to upload
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
                     </span>
                   </button>
                   <input
@@ -4639,13 +4719,21 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <button
-                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    class="PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Click or drop plugin bundle to upload
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
                     </span>
                   </button>
                   <input
@@ -5125,13 +5213,21 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <button
-                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    class="PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Click or drop plugin bundle to upload
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
                     </span>
                   </button>
                   <input
@@ -5611,13 +5707,21 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <button
-                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    class="PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Click or drop plugin bundle to upload
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
                     </span>
                   </button>
                   <input
@@ -6097,13 +6201,21 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   class="col-sm-8"
                 >
                   <button
-                    class="btn btn-tertiary PluginManagement__uploadDropzone"
+                    class="PluginManagement__uploadDropzone"
                     type="button"
                   >
                     <span
                       class="PluginManagement__uploadDropzoneTitle"
                     >
-                      Click or drop plugin bundle to upload
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
                     </span>
                   </button>
                   <input

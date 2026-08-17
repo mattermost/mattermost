@@ -2784,6 +2784,7 @@
   "admin.plugin.uploadDesc": "Upload a plugin for your Mattermost server. See <link>documentation</link> to learn more.",
   "admin.plugin.uploadDisabledDesc": "Enable plugin uploads in config.json. See <link>documentation</link> to learn more.",
   "admin.plugin.uploading": "Uploading...",
+  "admin.plugin.uploading_file": "Uploading {fileName}",
   "admin.plugin.uploadTitle": "Upload Plugin: ",
   "admin.plugin.version_title": "Version",
   "admin.plugins.pluginManagement": "Plugin Management",

@@ -8,7 +8,6 @@ import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 import semver from 'semver';
 
-import {Button} from '@mattermost/shared/components/button';
 import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -1267,9 +1266,8 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                     helpText={uploadHelpText}
                                     label={<FormattedMessage {...messages.uploadTitle}/>}
                                 >
-                                    <Button
+                                    <button
                                         type='button'
-                                        emphasis='tertiary'
                                         className={classNames('PluginManagement__uploadDropzone', {
                                             'PluginManagement__uploadDropzone--active': this.state.draggingUpload,
                                         })}
@@ -1282,19 +1280,26 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                         aria-describedby={uploadDisabledReason ? 'plugin-upload-description' : undefined}
                                     >
                                         <span className='PluginManagement__uploadDropzoneTitle'>
-                                            {
-                                                this.state.uploading ? (
-                                                    <FormattedMessage
-                                                        id='admin.plugin.uploading'
-                                                        defaultMessage='Uploading...'
-                                                    />
-                                                ) : (
-                                                    <FormattedMessage
-                                                        id='admin.plugin.upload.dropzone_title'
-                                                        defaultMessage='Click or drop plugin bundle to upload'
-                                                    />
-                                                )
-                                            }
+                                            <i
+                                                className='icon icon-upload-outline'
+                                                aria-hidden={true}
+                                            />
+                                            <span className='PluginManagement__uploadDropzoneTitleText'>
+                                                {
+                                                    this.state.uploading ? (
+                                                        <FormattedMessage
+                                                            id='admin.plugin.uploading_file'
+                                                            defaultMessage='Uploading {fileName}'
+                                                            values={{fileName: this.state.file?.name || '...'}}
+                                                        />
+                                                    ) : (
+                                                        <FormattedMessage
+                                                            id='admin.plugin.upload.dropzone_title'
+                                                            defaultMessage='Click or drop plugin bundle to upload'
+                                                        />
+                                                    )
+                                                }
+                                            </span>
                                         </span>
                                         {uploadDisabledReason && (
                                             <span
@@ -1304,7 +1309,16 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                                 {uploadDisabledReason}
                                             </span>
                                         )}
-                                    </Button>
+                                        {this.state.uploading && (
+                                            <div
+                                                className='PluginManagement__uploadProgress'
+                                                role='progressbar'
+                                                aria-label={this.props.intl.formatMessage({id: 'admin.plugin.upload.progress', defaultMessage: 'Plugin upload progress'})}
+                                            >
+                                                <div className='PluginManagement__uploadProgressBar'/>
+                                            </div>
+                                        )}
+                                    </button>
                                     <input
                                         ref={this.fileInput}
                                         className='PluginManagement__fileInput'
@@ -1313,16 +1327,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                         onChange={this.handleUpload}
                                         disabled={uploadDropzoneDisabled}
                                     />
-                                    {fileName}
-                                    {this.state.uploading && (
-                                        <div
-                                            className='PluginManagement__uploadProgress'
-                                            role='progressbar'
-                                            aria-label={this.props.intl.formatMessage({id: 'admin.plugin.upload.progress', defaultMessage: 'Plugin upload progress'})}
-                                        >
-                                            <div className='PluginManagement__uploadProgressBar'/>
-                                        </div>
-                                    )}
+                                    {!this.state.uploading && fileName}
                                     {serverError}
                                     {lastMessage}
                                 </SettingSet>
