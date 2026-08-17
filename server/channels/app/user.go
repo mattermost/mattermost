@@ -3105,14 +3105,6 @@ func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadM
 }
 
 // sanitizeThreadResponse removes server-only data from a thread response before it is sent to clients.
-func (a *App) sanitizeThreadResponse(thread *model.ThreadResponse) {
-	a.sanitizeProfiles(thread.Participants, false)
-	if thread.Post != nil {
-		thread.Post.SanitizeProps()
-		thread.Post.StripActionIntegrations()
-	}
-}
-
 func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 	nErr := a.Srv().Store().Thread().MarkAllAsReadByTeam(userID, teamID)
 	if nErr != nil {
