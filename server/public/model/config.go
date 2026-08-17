@@ -2484,7 +2484,7 @@ func (s *SupportSettings) SetDefaults() {
 }
 
 func (s *SupportSettings) isValid() *AppError {
-	if *s.SupportEmail != "" && !IsValidEmail(*s.SupportEmail) {
+	if *s.SupportEmail != "" && !IsValidEmail(strings.ToLower(*s.SupportEmail)) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_address.app_error", map[string]any{"Setting": "SupportSettings.SupportEmail"}, "", http.StatusBadRequest)
 	}
 
@@ -2497,7 +2497,7 @@ func (s *SupportSettings) isValid() *AppError {
 			if s.ReportAProblemMail == nil {
 				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_mail.missing.app_error", nil, "", http.StatusBadRequest)
 			}
-			if !IsValidEmail(*s.ReportAProblemMail) {
+			if !IsValidEmail(strings.ToLower(*s.ReportAProblemMail)) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_mail.invalid.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
@@ -4875,11 +4875,11 @@ func (s *EmailSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.FeedbackEmail != "" && !IsValidEmail(*s.FeedbackEmail) {
+	if *s.FeedbackEmail != "" && !IsValidEmail(strings.ToLower(*s.FeedbackEmail)) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_address.app_error", map[string]any{"Setting": "EmailSettings.FeedbackEmail"}, "", http.StatusBadRequest)
 	}
 
-	if *s.ReplyToAddress != "" && !IsValidEmail(*s.ReplyToAddress) {
+	if *s.ReplyToAddress != "" && !IsValidEmail(strings.ToLower(*s.ReplyToAddress)) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_address.app_error", map[string]any{"Setting": "EmailSettings.ReplyToAddress"}, "", http.StatusBadRequest)
 	}
 
@@ -5535,9 +5535,7 @@ func (s *MessageExportSettings) isValid() *AppError {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error", nil, "", http.StatusBadRequest)
 			} else if *s.GlobalRelaySettings.CustomerType == GlobalrelayCustomerTypeCustom && !isValidPortString(*s.GlobalRelaySettings.CustomSMTPPort, false) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_smtp_port.app_error", nil, "", http.StatusBadRequest)
-			} else if s.GlobalRelaySettings.EmailAddress == nil || !strings.Contains(*s.GlobalRelaySettings.EmailAddress, "@") {
-				// validating email addresses is hard - just make sure it contains an '@' sign
-				// see https://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address
+			} else if s.GlobalRelaySettings.EmailAddress == nil || !IsValidEmail(strings.ToLower(*s.GlobalRelaySettings.EmailAddress)) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.email_address.app_error", nil, "", http.StatusBadRequest)
 			} else if s.GlobalRelaySettings.SMTPUsername == nil || *s.GlobalRelaySettings.SMTPUsername == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.smtp_username.app_error", nil, "", http.StatusBadRequest)
