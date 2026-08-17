@@ -5142,14 +5142,6 @@ func (s *ServiceSettings) isValid() *AppError {
 		return newPositiveNumberAppError("ServiceSettings.IdleTimeout")
 	}
 
-	if *s.SessionLengthWebInDays <= 0 {
-		return newPositiveNumberAppError("ServiceSettings.SessionLengthWebInDays")
-	}
-
-	if *s.SessionLengthWebInHours <= 0 {
-		return newPositiveNumberAppError("ServiceSettings.SessionLengthWebInHours")
-	}
-
 	if *s.SessionLengthMobileInDays <= 0 {
 		return newPositiveNumberAppError("ServiceSettings.SessionLengthMobileInDays")
 	}

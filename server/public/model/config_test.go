@@ -323,18 +323,6 @@ func TestServiceSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: true,
 		},
-		"SessionLengthWebInDays is zero": {
-			ServiceSettings: ServiceSettings{
-				SessionLengthWebInDays: new(0),
-			},
-			ExpectError: true,
-		},
-		"SessionLengthWebInHours is zero": {
-			ServiceSettings: ServiceSettings{
-				SessionLengthWebInHours: new(0),
-			},
-			ExpectError: true,
-		},
 		"SessionLengthMobileInDays is zero": {
 			ServiceSettings: ServiceSettings{
 				SessionLengthMobileInDays: new(0),
