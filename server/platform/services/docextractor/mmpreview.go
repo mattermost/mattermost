@@ -9,7 +9,6 @@ package docextractor
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -46,12 +45,12 @@ func (mpe *mmPreviewExtractor) Match(filename string) bool {
 	return mmpreviewSupportedExtensions[extension]
 }
 
-func (mpe *mmPreviewExtractor) Extract(ctx context.Context, filename string, file io.ReadSeeker, maxFileSize int64) (string, error) {
+func (mpe *mmPreviewExtractor) Extract(filename string, file io.ReadSeeker, maxFileSize int64, budget *ExtractionBudget) (string, error) {
 	b, w, err := createMultipartFormData("file", filename, file)
 	if err != nil {
 		return "", errors.Wrap(err, "Unable to generate file preview using mmpreview.")
 	}
-	req, err := http.NewRequestWithContext(ctx, "POST", mpe.url+"/toPDF", &b)
+	req, err := http.NewRequest("POST", mpe.url+"/toPDF", &b)
 	if err != nil {
 		return "", errors.Wrap(err, "Unable to generate file preview using mmpreview.")
 	}
@@ -71,7 +70,7 @@ func (mpe *mmPreviewExtractor) Extract(ctx context.Context, filename string, fil
 	if err != nil {
 		return "", errors.Wrap(err, "unable to read the response from mmpreview")
 	}
-	return mpe.pdfExtractor.Extract(ctx, filename, bytes.NewReader(data), maxFileSize)
+	return mpe.pdfExtractor.Extract(filename, bytes.NewReader(data), maxFileSize, budget)
 }
 
 func createMultipartFormData(fieldName, fileName string, fileData io.ReadSeeker) (bytes.Buffer, *multipart.Writer, error) {

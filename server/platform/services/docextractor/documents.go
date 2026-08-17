@@ -4,7 +4,6 @@
 package docextractor
 
 import (
-	"context"
 	"errors"
 	"io"
 	"path"
@@ -39,7 +38,7 @@ func (de *documentExtractor) Match(filename string) bool {
 	return ok
 }
 
-func (de *documentExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, maxFileSize int64) (out string, outErr error) {
+func (de *documentExtractor) Extract(filename string, r io.ReadSeeker, maxFileSize int64, _ *ExtractionBudget) (out string, outErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			out = ""

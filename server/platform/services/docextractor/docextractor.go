@@ -4,8 +4,6 @@
 package docextractor
 
 import (
-	"context"
-	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -13,23 +11,33 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+const (
+	// defaultMaxArchiveDepth is the nesting depth applied when MaxArchiveDepth
+	// is not set. Limits recursive archive-in-archive extraction to prevent
+	// stack overflow from pathologically deep nesting.
+	defaultMaxArchiveDepth = 5
+	// maxArchiveExtractedText is the aggregate byte budget for all text
+	// accumulated across every entry of an archive (and its nested archives).
+	// Aligned with the post-extraction truncation applied by the caller.
+	maxArchiveExtractedText int64 = 1024 * 1024 // 1MB
+)
+
 // ExtractSettings defines the features enabled/disable during the document text extraction.
 type ExtractSettings struct {
-	// Ctx is the parent context for the extraction. Cancellation propagates
-	// to context-aware extractors (e.g. the Go-native PDF extractor stops at
-	// the next page boundary). If nil, context.Background() is used.
-	Ctx              context.Context
 	ArchiveRecursion bool
 	MaxFileSize      int64
-	MMPreviewURL     string
-	MMPreviewSecret  string
-	// Timeout bounds how long a caller waits for a single extraction. When
-	// set, a child context with this deadline is derived from Ctx and passed
-	// to the extractor. Context-aware extractors (pdfExtractor) honour it
-	// and stop at the next page boundary; others run to completion on a
-	// detached goroutine but no longer hold the caller's worker slot. A
-	// global cap on concurrent extractions (including those detached
-	// goroutines) prevents sustained uploads from accumulating unbounded work.
+	// MaxArchiveDepth limits how many levels deep recursive archive extraction
+	// will descend. 0 uses defaultMaxArchiveDepth.
+	MaxArchiveDepth int
+	MMPreviewURL    string
+	MMPreviewSecret string
+	// Timeout bounds how long a caller waits for a single extraction. A value
+	// <= 0 disables it. NOTE: this bounds wall-clock wait time, not CPU work.
+	// The docconv converters are not context-aware, so on timeout the
+	// converter keeps running to completion on a detached goroutine. A global
+	// cap on concurrent extractions (including those detached goroutines)
+	// prevents sustained uploads from accumulating unbounded docconv work.
+	// The per-extraction input bound is MaxFileSize.
 	Timeout time.Duration
 	// ReaderCloser, when set, transfers ownership of closing the input reader
 	// to this package. It is closed only after extraction has actually
@@ -79,13 +87,13 @@ func ExtractWithExtraExtractors(logger mlog.LoggerIFace, filename string, r io.R
 	return "", nil
 }
 
-// extractWithTimeout runs the extraction under a context derived from
-// settings.Ctx. When settings.Timeout > 0 a deadline is added; on expiry the
-// caller is released and the extraction runs on a detached goroutine.
-// Context-aware extractors (pdfExtractor) honour cancellation at page
-// boundaries and stop promptly; others run to completion in the background.
-// A global concurrency cap applies to every in-flight extraction, including
-// detached goroutines, so timed-out work cannot accumulate beyond the limit.
+// extractWithTimeout runs the extraction and stops waiting for it once
+// settings.Timeout elapses. Because the underlying docconv converters are not
+// context-aware, the extraction runs on a detached goroutine: on timeout we
+// stop waiting and return an error, releasing the caller (and its worker slot)
+// even though the converter keeps running. A global concurrency cap applies to
+// every in-flight extraction, including detached goroutines, so timed-out work
+// cannot accumulate beyond the limit.
 func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings ExtractSettings) (string, error) {
 	if !tryAcquireExtractionSlot() {
 		if settings.ReaderCloser != nil {
@@ -94,21 +102,19 @@ func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings 
 		return "", fmt.Errorf("document text extraction capacity exhausted (%d concurrent extractions)", maxConcurrentExtractions)
 	}
 
-	ctx := settings.Ctx
-	if ctx == nil {
-		ctx = context.Background()
+	maxDepth := settings.MaxArchiveDepth
+	if maxDepth <= 0 {
+		maxDepth = defaultMaxArchiveDepth
 	}
+	budget := newExtractionBudget(maxArchiveExtractedText, maxDepth)
 
 	if settings.Timeout <= 0 {
 		defer releaseExtractionSlot()
 		if settings.ReaderCloser != nil {
 			defer settings.ReaderCloser.Close()
 		}
-		return e.Extract(ctx, filename, r, settings.MaxFileSize)
+		return e.Extract(filename, r, settings.MaxFileSize, budget)
 	}
-
-	ctx, cancel := context.WithTimeout(ctx, settings.Timeout)
-	defer cancel()
 
 	type extractResult struct {
 		text string
@@ -133,17 +139,17 @@ func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings 
 				resultCh <- extractResult{err: fmt.Errorf("panic during document text extraction: %v", rec)}
 			}
 		}()
-		text, err := e.Extract(ctx, filename, r, settings.MaxFileSize)
+		text, err := e.Extract(filename, r, settings.MaxFileSize, budget)
 		resultCh <- extractResult{text: text, err: err}
 	}()
+
+	timer := time.NewTimer(settings.Timeout)
+	defer timer.Stop()
 
 	select {
 	case res := <-resultCh:
 		return res.text, res.err
-	case <-ctx.Done():
-		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			return "", fmt.Errorf("document text extraction timed out after %s", settings.Timeout)
-		}
-		return "", fmt.Errorf("document text extraction cancelled: %w", ctx.Err())
+	case <-timer.C:
+		return "", fmt.Errorf("document text extraction timed out after %s", settings.Timeout)
 	}
 }
