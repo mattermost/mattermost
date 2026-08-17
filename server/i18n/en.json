@@ -2701,10 +2701,6 @@
     "translation": "This is a test or development license, but this server is running in a production environment. Test or development licenses can only be used on test or development servers."
   },
   {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
-  },
-  {
     "id": "api.license.load_metric.app_error",
     "translation": "Failed to compute monthly active users."
   },
