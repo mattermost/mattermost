@@ -3064,6 +3064,7 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 	for _, thread := range result.Threads {
 		a.sanitizeProfiles(thread.Participants, false)
 		thread.Post.SanitizeNonIdentityProps()
+		thread.Post.StripActionIntegrations()
 		list.AddPost(thread.Post)
 	}
 
@@ -3100,6 +3101,7 @@ func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadM
 
 	a.sanitizeProfiles(thread.Participants, false)
 	thread.Post.SanitizeNonIdentityProps()
+	thread.Post.StripActionIntegrations()
 	a.populatePostListTranslations(rctx, &model.PostList{Posts: map[string]*model.Post{thread.Post.Id: thread.Post}})
 	return thread, nil
 }
