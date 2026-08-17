@@ -3337,6 +3337,7 @@
   "admin.session_attributes.table.name": "Name",
   "admin.session_attributes.table.platform": "Platform",
   "admin.session_attributes.table.server_label": "Server",
+  "admin.session_attributes.table.server_label.tooltip": "This attribute is captured by the server for every request a user makes. It is not delivered by the client.",
   "admin.session_attributes.table.status": "Status",
   "admin.session_attributes.table.ttl": "TTL",
   "admin.session_attributes.table.type": "Type",
