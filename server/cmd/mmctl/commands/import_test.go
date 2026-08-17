@@ -373,8 +373,124 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 		cmd.Flags().Bool("bypass-upload", false, "")
 		cmd.Flags().Bool("extract-content", false, "")
 		cmd.Flags().Int("workers", 0, "")
-		cmd.Flags().String("destination-team-name","", "")
+		cmd.Flags().String("destination-team-name", "", "")
 		cmd.Flags().String("destination-team-id", "nosuchid", "")
+		cmd.Flags().Bool("skip-preflight", false, "")
+
+		err := importProcessCmdF(s.client, cmd, []string{"import.zip"})
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "nosuchid")
+		s.Empty(printer.GetLines())
+	})
+
+	s.Run("destination channel by name", func() {
+		printer.Clean()
+		importFile := "import.zip"
+		mockJob := &model.Job{
+			Type: model.JobTypeImportProcess,
+			Data: map[string]string{
+				"import_file":              importFile,
+				"local_mode":               "false",
+				"extract_content":          "false",
+				"destination_channel_name": "mychannel",
+			},
+		}
+
+		noCheckpoint()
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		cmd.Flags().String("destination-channel-name", "mychannel", "")
+		cmd.Flags().String("destination-channel-id", "", "")
+		cmd.Flags().Bool("skip-preflight", false, "")
+
+		err := importProcessCmdF(s.client, cmd, []string{importFile})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("destination channel by ID", func() {
+		printer.Clean()
+		importFile := "import.zip"
+		mockChannel := &model.Channel{Id: "chanid1", Name: "mychannel"}
+		mockJob := &model.Job{
+			Type: model.JobTypeImportProcess,
+			Data: map[string]string{
+				"import_file":              importFile,
+				"local_mode":               "false",
+				"extract_content":          "false",
+				"destination_channel_name": "mychannel",
+			},
+		}
+
+		noCheckpoint()
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), "chanid1").
+			Return(mockChannel, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		cmd.Flags().String("destination-channel-name", "", "")
+		cmd.Flags().String("destination-channel-id", "chanid1", "")
+		cmd.Flags().Bool("skip-preflight", false, "")
+
+		err := importProcessCmdF(s.client, cmd, []string{importFile})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("--destination-channel-name and --destination-channel-id are mutually exclusive", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		cmd.Flags().String("destination-channel-name", "mychannel", "")
+		cmd.Flags().String("destination-channel-id", "chanid1", "")
+		cmd.Flags().Bool("skip-preflight", false, "")
+
+		err := importProcessCmdF(s.client, cmd, []string{"import.zip"})
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "mutually exclusive")
+		s.Empty(printer.GetLines())
+	})
+
+	s.Run("non-existent destination channel ID fails immediately", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), "nosuchid").
+			Return(nil, &model.Response{}, fmt.Errorf("not found")).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		cmd.Flags().String("destination-channel-name", "", "")
+		cmd.Flags().String("destination-channel-id", "nosuchid", "")
 		cmd.Flags().Bool("skip-preflight", false, "")
 
 		err := importProcessCmdF(s.client, cmd, []string{"import.zip"})

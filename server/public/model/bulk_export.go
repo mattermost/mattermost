@@ -22,6 +22,10 @@ type BulkImportOpts struct {
 	// the destination server.
 	DestinationTeamName string
 
+	// DestinationChannelName remaps the source channel name to a different channel
+	// name on the destination server. Only valid for channel-scoped exports.
+	DestinationChannelName string
+
 	// SkipPreflight bypasses SSO provider configuration checks. By default the
 	// import fails if the export contains users from an auth provider that is
 	// not enabled on the destination, to prevent silent deactivated shells.

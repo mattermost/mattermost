@@ -215,18 +215,18 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, deactiv
 }
 
 func (a *App) BulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (int, *model.AppError) {
-	_, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, true, workers, "", "", false, 0, nil, &imports.ImportReport{})
+	_, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, true, workers, "", "", "", false, 0, nil, &imports.ImportReport{})
 	return 0, err
 }
 
 func (a *App) BulkImportWithPath(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError) {
-	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, "", false, 0, nil, &imports.ImportReport{})
+	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, "", "", false, 0, nil, &imports.ImportReport{})
 	return lineNumber, err
 }
 
 func (a *App) BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, opts model.BulkImportOpts) (int, *model.AppError) {
 	report := &imports.ImportReport{}
-	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeamName, opts.SkipPreflight, opts.ResumeFromLine, opts.OnCheckpoint, report)
+	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeamName, opts.DestinationChannelName, opts.SkipPreflight, opts.ResumeFromLine, opts.OnCheckpoint, report)
 	return lineNumber, err
 }
 
@@ -234,7 +234,7 @@ func (a *App) BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader,
 // not nil. If it is nil, it will look for attachments on the
 // filesystem in the locations specified by the JSONL file according
 // to the older behavior
-func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, destinationTeam string, skipPreflight bool, resumeFromLine int, onCheckpoint func(int), report *imports.ImportReport) (int, *model.AppError) {
+func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, destinationTeam string, destinationChannel string, skipPreflight bool, resumeFromLine int, onCheckpoint func(int), report *imports.ImportReport) (int, *model.AppError) {
 	scanner := bufio.NewScanner(jsonlReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
@@ -242,6 +242,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 	lineNumber := 0
 	deactivateMissingUsers := false
 	sourceTeamName := ""
+	sourceChannelName := ""
 
 	a.Srv().Store().LockToMaster()
 	defer a.Srv().Store().UnlockFromMaster()
@@ -290,6 +291,10 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 					rctx.Logger().Warn("Failed to decode export scope metadata; proceeding as unscoped import", mlog.Err(err))
 				} else {
 					sourceTeamName = scope.TeamName
+					sourceChannelName = scope.ChannelName
+					if destinationChannel != "" && sourceChannelName == "" {
+						return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.destination_channel_requires_channel_scope.error", nil, "--destination-channel-name requires a channel-scoped export", http.StatusBadRequest)
+					}
 					if scope.ChannelName != "" || scope.TeamName != "" {
 						deactivateMissingUsers = true
 						if attachmentsReader != nil {
@@ -340,7 +345,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 				}
 
 				// Check no errors occurred while waiting for the queue to empty.
-				if len(errorsChan) != 0 {
+				for len(errorsChan) != 0 {
 					err := <-errorsChan
 					if stopOnError(rctx, err) {
 						return err.LineNumber, err.Error
@@ -373,6 +378,9 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 		if destinationTeam != "" && sourceTeamName != "" {
 			rewriteTeamName(&line, sourceTeamName, destinationTeam)
 		}
+		if destinationChannel != "" && sourceChannelName != "" {
+			rewriteChannelName(&line, sourceChannelName, destinationChannel)
+		}
 
 		select {
 		case linesChan <- imports.LineImportWorkerData{LineImportData: line, LineNumber: lineNumber}:
@@ -397,7 +405,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 	}
 
 	// Check no errors occurred while waiting for the queue to empty.
-	if len(errorsChan) != 0 {
+	for len(errorsChan) != 0 {
 		err := <-errorsChan
 		if stopOnError(rctx, err) {
 			return err.LineNumber, err.Error
@@ -434,6 +442,37 @@ func rewriteTeamName(line *imports.LineImportData, sourceTeam, destTeam string) 
 	case "post":
 		if line.Post != nil && line.Post.Team != nil && *line.Post.Team == sourceTeam {
 			*line.Post.Team = destTeam
+		}
+	}
+}
+
+// rewriteChannelName replaces all references to sourceChannel with destChannel
+// in a parsed import line, enabling --destination-channel-name remapping on import.
+func rewriteChannelName(line *imports.LineImportData, sourceChannel, destChannel string) {
+	switch line.Type {
+	case "channel":
+		if line.Channel != nil && line.Channel.Name != nil && *line.Channel.Name == sourceChannel {
+			*line.Channel.Name = destChannel
+		}
+	case "user":
+		if line.User == nil || line.User.Teams == nil {
+			return
+		}
+		for i := range *line.User.Teams {
+			team := &(*line.User.Teams)[i]
+			if team.Channels == nil {
+				continue
+			}
+			for j := range *team.Channels {
+				ch := &(*team.Channels)[j]
+				if ch.Name != nil && *ch.Name == sourceChannel {
+					*ch.Name = destChannel
+				}
+			}
+		}
+	case "post":
+		if line.Post != nil && line.Post.Channel != nil && *line.Post.Channel == sourceChannel {
+			*line.Post.Channel = destChannel
 		}
 	}
 }
@@ -692,8 +731,14 @@ func (a *App) preCreateSSOUser(rctx request.CTX, data *imports.UserImportData) *
 		return nil
 	}
 
-	// Exists by username — attach auth_data to the existing account.
+	// Exists by username — attach auth_data only if the account has no existing
+	// SSO provider, to avoid overwriting a different auth_service on the destination.
 	if existing, nErr := a.Srv().Store().User().GetByUsername(*data.Username); nErr == nil {
+		if existing.AuthService != "" && existing.AuthService != *data.AuthService {
+			// Account already belongs to a different SSO provider; leave it alone and
+			// let the main import pass handle the conflict.
+			return nil
+		}
 		if _, uErr := a.Srv().Store().User().UpdateAuthData(existing.Id, *data.AuthService, data.AuthData, existing.Email, false); uErr != nil {
 			return model.NewAppError("preCreateSSOUser", "app.user.update_auth_data.app_error", nil, "", http.StatusInternalServerError).Wrap(uErr)
 		}

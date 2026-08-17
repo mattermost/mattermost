@@ -128,6 +128,8 @@ func init() {
 	ImportProcessCmd.Flags().Int("workers", 0, "The number of concurrent import worker goroutines. Controls database load during import. When set to 0 (default), uses the number of CPUs available. Maximum allowed is 4x the CPU count.")
 	ImportProcessCmd.Flags().String("destination-team-name", "", "Map the source team in the export to an existing team on the destination server (by name/slug). Works with both channel-scoped and full-team exports. Mutually exclusive with --destination-team-id.")
 	ImportProcessCmd.Flags().String("destination-team-id", "", "Map the source team in the export to an existing team on the destination server (by ID). Mutually exclusive with --destination-team-name.")
+	ImportProcessCmd.Flags().String("destination-channel-name", "", "Map the source channel in the export to a different channel name on the destination server (by name). Only valid for channel-scoped exports. Mutually exclusive with --destination-channel-id.")
+	ImportProcessCmd.Flags().String("destination-channel-id", "", "Map the source channel in the export to a different channel on the destination server (by ID). Only valid for channel-scoped exports. Mutually exclusive with --destination-channel-name.")
 	ImportProcessCmd.Flags().Bool("skip-preflight", false, "Skip SSO provider configuration checks. By default the import fails if an auth provider present in the export is not enabled on the destination. Use this flag only after reviewing the preflight error and accepting the risk.")
 
 	ImportListCmd.AddCommand(
@@ -341,6 +343,23 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 		destinationTeamName = team.Name
 	}
 
+	destinationChannelName, _ := command.Flags().GetString("destination-channel-name")
+	destinationChannelID, _ := command.Flags().GetString("destination-channel-id")
+
+	if destinationChannelName != "" && destinationChannelID != "" {
+		return fmt.Errorf("--destination-channel-name and --destination-channel-id are mutually exclusive")
+	}
+	if destinationChannelID != "" {
+		channel, _, err := c.GetChannel(context.TODO(), destinationChannelID)
+		if err != nil {
+			return fmt.Errorf("failed to lookup destination channel by ID %q: %w", destinationChannelID, err)
+		}
+		if channel == nil {
+			return fmt.Errorf("destination channel with ID %q not found", destinationChannelID)
+		}
+		destinationChannelName = channel.Name
+	}
+
 	jobData := map[string]string{
 		"import_file":     importFile,
 		"local_mode":      strconv.FormatBool(isLocal && bypassUpload),
@@ -351,6 +370,9 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	}
 	if destinationTeamName != "" {
 		jobData["destination_team_name"] = destinationTeamName
+	}
+	if destinationChannelName != "" {
+		jobData["destination_channel_name"] = destinationChannelName
 	}
 	if skipPreflight {
 		jobData["skip_preflight"] = "true"

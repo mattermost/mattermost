@@ -155,7 +155,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		// Enable checkpointing for large imports so a failure can be resumed
 		// without restarting from line 1. Use the uncompressed JSONL size since
 		// zip compression can reduce a large import to a fraction of its actual size.
-		const checkpointThresholdBytes = 1 * 1024 * 1024 // 1 MB uncompressed (lowered for testing; restore to 100 MB for production)
+		const checkpointThresholdBytes = 100 * 1024 * 1024 // 100 MB uncompressed
 		jsonlUncompressedSize := int64(jsonZipFile.UncompressedSize64)
 		var onCheckpoint func(int)
 		if jsonlUncompressedSize >= checkpointThresholdBytes {
@@ -176,10 +176,11 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 
 		// do the actual import.
 		importOpts := model.BulkImportOpts{
-			DestinationTeamName: job.Data["destination_team_name"],
-			SkipPreflight:   job.Data["skip_preflight"] == "true",
-			ResumeFromLine:  resumeFromLine,
-			OnCheckpoint:    onCheckpoint,
+			DestinationTeamName:    job.Data["destination_team_name"],
+			DestinationChannelName: job.Data["destination_channel_name"],
+			SkipPreflight:          job.Data["skip_preflight"] == "true",
+			ResumeFromLine:         resumeFromLine,
+			OnCheckpoint:           onCheckpoint,
 		}
 		lineNumber, appErr := app.BulkImportWithPathAndOpts(appContext, jsonFile, importZipReader, false, extractContent, numWorkers, model.ExportDataDir, importOpts)
 		if appErr != nil {
