@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import type {AccessControlPolicy} from '@mattermost/types/access_control';
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
@@ -246,6 +247,49 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         const passedNames = lastCall.userAttributes.map((attr) => attr.name);
         expect(passedNames).toContain('department');
         expect(passedNames).not.toContain('network_name');
+    });
+
+    test('never hands the editor the stored marker form of a rank rule', async () => {
+        // Regression guard. The `policy` prop is the copy the policies list left
+        // in the store, and the list is filled by the search endpoint, which
+        // returns rules in their stored form: a rank comparison is stored
+        // desugared as `_rank_ge(...)`. /cel/visual_ast rejects that marker call,
+        // so seeding the editor with it fired a doomed parse whose failure flipped
+        // the editor into Advanced mode. Only fetchPolicy's rehydrated expression
+        // may reach the editor.
+        const storedForm = '_rank_ge(user.attributes.clearance, "Secret", "sxrgeknhajds3qdt5hhrm4fy3h")';
+        const rehydratedForm = 'user.attributes.clearance >= "Secret"';
+
+        MockedTableEditor.mockClear();
+        const props = {
+            ...defaultProps,
+            policy: {
+                id: 'policy1',
+                name: 'Policy 1',
+                type: 'parent',
+                rules: [{actions: ['membership'], expression: storedForm}],
+            } as unknown as AccessControlPolicy,
+            actions: {
+                ...defaultProps.actions,
+                fetchPolicy: jest.fn().mockResolvedValue({
+                    data: {
+                        id: 'policy1',
+                        name: 'Policy 1',
+                        rules: [{actions: ['membership'], expression: rehydratedForm}],
+                    },
+                }),
+            },
+        };
+
+        renderWithContext(<PolicyDetails {...props}/>);
+
+        await waitFor(() => {
+            const values = MockedTableEditor.mock.calls.map((call) => call[0].value);
+            expect(values).toContain(rehydratedForm);
+        });
+
+        const values = MockedTableEditor.mock.calls.map((call) => call[0].value);
+        expect(values).not.toContain(storedForm);
     });
 
     test('hasMaskedRows derivation survives Simple → Advanced → Simple mode toggles', async () => {

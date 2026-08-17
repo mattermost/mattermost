@@ -83,7 +83,17 @@ function PolicyDetails({
     accessControlSettings,
 }: PolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
-    const [expression, setExpression] = useState(getMembershipRule(policy?.rules)?.expression || '');
+
+    // Deliberately not seeded from `policy`: that copy comes from the policies
+    // list, which is filled by the search endpoint, and search returns a rule in
+    // its *stored* form. A rank comparison is stored desugared into the marker
+    // call `_rank_ge(user.attributes.x, "Secret", "<fieldID>")`, which
+    // /cel/visual_ast rejects — so seeding it makes TableEditor fire a doomed
+    // parse on mount, and whether that 400 or fetchPolicy below resolves first
+    // decides whether the editor flips to Advanced mode. fetchPolicy (the single
+    // GET, which rehydrates markers back to operators) is the only source, and it
+    // sets every other field seeded here too.
+    const [expression, setExpression] = useState('');
     const [existingRules, setExistingRules] = useState<AccessControlPolicyRule[]>(policy?.rules || []);
     const [autoSyncMembership, setAutoSyncMembership] = useState(policy?.active || false);
     const [serverError, setServerError] = useState<string | undefined>(undefined);
