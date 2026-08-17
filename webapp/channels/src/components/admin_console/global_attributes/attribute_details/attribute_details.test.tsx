@@ -8,6 +8,8 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
+import ModalController from 'components/modal_controller';
+
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import AttributeDetails from './attribute_details';
@@ -42,7 +44,12 @@ describe('AttributeDetails', () => {
         jest.restoreAllMocks();
     });
 
-    const renderComponent = () => renderWithContext(<AttributeDetails/>);
+    const renderComponent = () => renderWithContext(
+        <div>
+            <AttributeDetails/>
+            <ModalController/>
+        </div>,
+    );
 
     it('renders the empty auto-slug caption as a dash, not the _copy sentinel', () => {
         renderComponent();
@@ -636,5 +643,88 @@ describe('AttributeDetails', () => {
     it('exposes the unique name caption as a live region so the auto-slug is announced as it changes', () => {
         renderComponent();
         expect(screen.getByTestId('attributeUniqueNameCaption')).toHaveAttribute('aria-live', 'polite');
+    });
+
+    describe('external source linking', () => {
+        // Opens the "add" trigger's menu item for `sourceNameRegex`, types
+        // `value` into the modal, saves, and waits for the modal to fully
+        // close (its onSave is async, and GenericModal's exit transition
+        // needs a tick) before returning -- without this wait, a second
+        // link/edit action in the same test can open a new modal while the
+        // first is still mid-exit, racing react-overlays' focus trap.
+        const linkViaMenu = async (sourceNameRegex: RegExp, value: string) => {
+            await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+            await userEvent.click(screen.getByRole('menuitem', {name: sourceNameRegex}));
+            await userEvent.type(await screen.findByPlaceholderText('department'), value);
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            await waitFor(() => expect(screen.queryByPlaceholderText('department')).not.toBeInTheDocument());
+        };
+
+        it('linking a source forces Type to Text and marks the page dirty', async () => {
+            renderComponent();
+
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+            mockSetNavigationBlocked.mockClear();
+
+            await linkViaMenu(/AD\/LDAP/, 'employeeID');
+
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Text');
+            expect(mockSetNavigationBlocked).toHaveBeenCalledWith(true);
+        });
+
+        it('linking one source never affects the other -- both may be linked simultaneously', async () => {
+            renderComponent();
+
+            await linkViaMenu(/AD\/LDAP/, 'employeeID');
+            await linkViaMenu(/^SAML/, 'position');
+
+            expect(screen.getByTestId('attributeExternalSourceChip-ldap')).toBeInTheDocument();
+            expect(screen.getByTestId('attributeExternalSourceChip-saml')).toBeInTheDocument();
+        });
+
+        it('manually switching Type away from Text clears any linked sources', async () => {
+            renderComponent();
+
+            await linkViaMenu(/AD\/LDAP/, 'employeeID');
+            expect(screen.getByTestId('attributeExternalSourceChip-ldap')).toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+
+            expect(screen.queryByTestId('attributeExternalSourceChip-ldap')).not.toBeInTheDocument();
+        });
+
+        it('re-saving a linked chip with the unchanged value is a no-op -- no extra dirty-marking dispatch', async () => {
+            renderComponent();
+
+            await linkViaMenu(/AD\/LDAP/, 'employeeID');
+            mockSetNavigationBlocked.mockClear();
+
+            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-edit'));
+            await screen.findByPlaceholderText('department');
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            await waitFor(() => expect(screen.queryByPlaceholderText('department')).not.toBeInTheDocument());
+
+            expect(mockSetNavigationBlocked).not.toHaveBeenCalled();
+        });
+
+        it('sends attrs.ldap and attrs.saml in the create payload when linked, omitting both when not', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+
+            await linkViaMenu(/AD\/LDAP/, 'employeeID');
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                attrs: expect.objectContaining({ldap: 'employeeID'}),
+            }));
+            const attrs = createPropertyField.mock.calls[0][2].attrs as Record<string, unknown>;
+            expect(attrs).not.toHaveProperty('saml');
+        });
     });
 });
