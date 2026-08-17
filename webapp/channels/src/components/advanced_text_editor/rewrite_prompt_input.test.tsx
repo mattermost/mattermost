@@ -91,6 +91,32 @@ describe('RewritePromptInput', () => {
         expect(input.value).toBe('그');
     });
 
+    test('does not clobber composing text when the parent value changes mid-composition', () => {
+        const {rerender} = renderWithContext(<RewritePromptInput {...baseProps}/>);
+        const input = screen.getByPlaceholderText('Ask AI to edit message...') as HTMLInputElement;
+
+        fireEvent.compositionStart(input);
+        fireEvent.input(input, {target: {value: '그'}});
+        rerender(
+            <RewritePromptInput
+                {...baseProps}
+                value='stale parent value'
+            />,
+        );
+
+        expect(input.value).toBe('그');
+    });
+
+    test('does not clobber typed text when the input re-renders from focus (legend/label)', () => {
+        renderWithContext(<RewritePromptInput {...baseProps}/>);
+        const input = screen.getByPlaceholderText('Ask AI to edit message...') as HTMLInputElement;
+
+        fireEvent.focus(input);
+        fireEvent.input(input, {target: {value: '한글'}});
+
+        expect(input.value).toBe('한글');
+    });
+
     test('does not clobber the input once the value prop catches up to what was typed', () => {
         // The normal flow: the user types, onChange updates the parent, and the next render
         // arrives with a value that already matches the DOM. The imperative sync must be a no-op.

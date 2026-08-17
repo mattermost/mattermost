@@ -46,6 +46,7 @@ test('AI Rewrite custom prompt handles Korean IME input correctly', {tag: '@ai_r
     const promptInput = page.getByRole('textbox', {name: 'Ask AI to edit message...'});
     await expect(promptInput).toBeVisible();
     await promptInput.focus();
+    await expect(promptInput).toBeFocused();
 
     // # Type a phrase containing Korean Hangul using an IME that composes characters from multiple keypresses.
     await typeHangulWithIme(page, koreanTestPhrase);

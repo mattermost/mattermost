@@ -21,8 +21,12 @@ type Props = {
 // the message box — so ongoing composition is never overwritten (MM-70289).
 const RewritePromptInput = forwardRef<HTMLInputElement, Props>(({value, placeholder, onChange, onKeyDown}, ref) => {
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const isComposingRef = useRef(false);
 
     useEffect(() => {
+        if (isComposingRef.current) {
+            return;
+        }
         if (inputRef.current && inputRef.current.value !== value) {
             inputRef.current.value = value;
         }
@@ -38,6 +42,14 @@ const RewritePromptInput = forwardRef<HTMLInputElement, Props>(({value, placehol
         }
     }, [ref]);
 
+    const handleCompositionStart = useCallback(() => {
+        isComposingRef.current = true;
+    }, []);
+
+    const handleCompositionEnd = useCallback(() => {
+        isComposingRef.current = false;
+    }, []);
+
     return (
         <Input
             ref={setInputRef}
@@ -47,6 +59,8 @@ const RewritePromptInput = forwardRef<HTMLInputElement, Props>(({value, placehol
             defaultValue={value}
             onChange={onChange}
             onKeyDown={onKeyDown}
+            onCompositionStart={handleCompositionStart}
+            onCompositionEnd={handleCompositionEnd}
         />
     );
 });
