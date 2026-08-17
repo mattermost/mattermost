@@ -1147,6 +1147,8 @@ func (s *Server) Start() error {
 				tlsConfig.MinVersion = tls.VersionTLS10
 			case "1.1":
 				tlsConfig.MinVersion = tls.VersionTLS11
+			case "1.3":
+				tlsConfig.MinVersion = tls.VersionTLS13
 			default:
 				tlsConfig.MinVersion = tls.VersionTLS12
 			}

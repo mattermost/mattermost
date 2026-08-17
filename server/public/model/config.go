@@ -5235,8 +5235,7 @@ func (s *ServiceSettings) isValid() *AppError {
 	} else {
 		isValidHost = (net.ParseIP(host) != nil) || isDomainName(host)
 	}
-	portInt, err := strconv.Atoi(port)
-	if err != nil || !isValidHost || portInt < 0 || portInt > math.MaxUint16 {
+	if !isValidHost || !isValidPortString(port, true) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "", http.StatusBadRequest)
 	}
 
