@@ -233,7 +233,7 @@ func TestCompleteSamlUserCreatedAudit(t *testing.T) {
 		require.NoError(t, readErr)
 
 		var last map[string]any
-		for _, line := range strings.Split(strings.TrimSpace(string(data)), "\n") {
+		for line := range strings.SplitSeq(strings.TrimSpace(string(data)), "\n") {
 			var rec map[string]any
 			require.NoError(t, json.Unmarshal([]byte(line), &rec))
 			if rec[model.AuditKeyEventName] == model.AuditEventCompleteSaml {
