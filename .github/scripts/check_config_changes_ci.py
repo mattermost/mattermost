@@ -20,8 +20,6 @@ All inputs come from environment variables set by the GitHub Actions workflow:
   REPO          — owner/repo  (e.g. mattermost/mattermost)
 """
 
-import base64
-import json
 import os
 import re
 import sys
@@ -157,77 +155,6 @@ _STRUCT_DECL_RE  = re.compile(r"^type\s+(\w+)\s+struct\s*\{")
 _FIELD_LINE_RE   = re.compile(r"^\t([A-Z][A-Za-z0-9_]*)\s+\S")
 
 
-def _strip_go_noise(lines):
-    """Yield each line with comments and string/rune literals blanked out.
-
-    Brace counting must ignore braces that appear inside comments or string
-    literals. config.go contains doc comments such as
-
-        //	type HairSettings struct {
-
-    whose braces would otherwise be counted as real, skewing the depth for the
-    remainder of the comment. A skew that begins inside a struct body makes the
-    enclosing-struct stack unwind early and silently drops every remaining
-    field of that struct from the release-note output.
-
-    Block comments and raw string literals can span lines, so that state is
-    carried across iterations. Layout characters (tabs, spaces) are preserved
-    so the caller's line-anchored regexes still apply.
-    """
-    in_block_comment = False
-    in_raw_string    = False
-
-    for line in lines:
-        out: list[str] = []
-        i, n = 0, len(line)
-
-        while i < n:
-            if in_block_comment:
-                if line.startswith("*/", i):
-                    in_block_comment = False
-                    i += 2
-                else:
-                    i += 1
-                continue
-
-            if in_raw_string:
-                if line[i] == "`":
-                    in_raw_string = False
-                i += 1
-                continue
-
-            if line.startswith("//", i):
-                break                       # rest of the line is a comment
-
-            if line.startswith("/*", i):
-                in_block_comment = True
-                i += 2
-                continue
-
-            if line[i] == "`":              # raw string literal (struct tags)
-                in_raw_string = True
-                i += 1
-                continue
-
-            if line[i] in ('"', "'"):       # interpreted string / rune literal
-                quote = line[i]
-                i += 1
-                while i < n:
-                    if line[i] == "\\":
-                        i += 2
-                        continue
-                    if line[i] == quote:
-                        i += 1
-                        break
-                    i += 1
-                continue
-
-            out.append(line[i])
-            i += 1
-
-        yield "".join(out)
-
-
 def _scan_struct_fields(src: str) -> set[tuple[str, str]]:
     """
     Walk Go source and return {(StructName, FieldName)} for every exported
@@ -237,16 +164,13 @@ def _scan_struct_fields(src: str) -> set[tuple[str, str]]:
     and function literals don't corrupt the enclosing struct context.
     Named type declarations cannot be nested in Go, so the struct_stack
     never grows beyond one entry for named structs.
-
-    Lines are pre-filtered through _strip_go_noise so that braces inside
-    comments, struct tags, and string literals never affect the depth.
     """
     fields: set[tuple[str, str]] = set()
     # Each entry: (struct_name, brace_depth_when_opened)
     struct_stack: list[tuple[str, int]] = []
     depth = 0
 
-    for line in _strip_go_noise(src.splitlines()):
+    for line in src.splitlines():
         sm = _STRUCT_DECL_RE.match(line)
         if sm:
             # Record depth *before* counting this line's braces
@@ -338,91 +262,6 @@ def _format_endpoint(path: str, handler: str, method: str) -> str:
     return f"`{method.upper()} {path or '/'}` (`{handler}`)"
 
 
-def _strip_go_comments(src: str) -> str:
-    """Remove // and /* */ comments from Go source, keeping everything else
-    — including string, rune, and raw string literals — byte-for-byte intact.
-
-    _parse_endpoints collapses all whitespace before scanning, which erases
-    line boundaries. Without this filter, a commented-out registration such as
-
-        // r.Handle("/old", api.APIHandler(oldHandler)).Methods("GET")
-
-    reads exactly like live code once collapsed and would be picked up as a
-    phantom added/removed endpoint; a comment landing mid-registration could
-    also splice two unrelated lines together. _strip_go_noise cannot be reused
-    here because it blanks string contents too, destroying the quoted path
-    and method literals _HANDLE_START_RE and _parse_methods depend on.
-    """
-    out: list[str] = []
-    in_line_comment  = False
-    in_block_comment = False
-    in_raw_string    = False
-
-    i, n = 0, len(src)
-    while i < n:
-        ch = src[i]
-
-        if in_line_comment:
-            if ch == "\n":
-                in_line_comment = False
-                out.append(ch)
-            i += 1
-            continue
-
-        if in_block_comment:
-            if src.startswith("*/", i):
-                in_block_comment = False
-                i += 2
-            else:
-                i += 1
-            continue
-
-        if in_raw_string:
-            out.append(ch)
-            if ch == "`":
-                in_raw_string = False
-            i += 1
-            continue
-
-        if src.startswith("//", i):
-            in_line_comment = True
-            i += 2
-            continue
-
-        if src.startswith("/*", i):
-            in_block_comment = True
-            i += 2
-            continue
-
-        if ch == "`":
-            in_raw_string = True
-            out.append(ch)
-            i += 1
-            continue
-
-        if ch in ('"', "'"):
-            quote = ch
-            out.append(ch)
-            i += 1
-            while i < n:
-                out.append(src[i])
-                if src[i] == "\\" and i + 1 < n:
-                    i += 1
-                    out.append(src[i])
-                    i += 1
-                    continue
-                if src[i] == quote:
-                    i += 1
-                    break
-                i += 1
-            continue
-
-        out.append(ch)
-        i += 1
-
-    return "".join(out)
-
-
 def _matching_paren(text: str, open_idx: int) -> int:
     """Index of the ')' closing the '(' at open_idx, or -1 if unbalanced."""
     depth = 0
@@ -493,14 +332,13 @@ def _parse_endpoints(src: str) -> set[tuple[str, str, str]]:
     """
     Parse Handle() registrations from a Go source file.
 
-    Strips comments first so a commented-out registration isn't mistaken for
-    a live one, then whitespace-collapses the file so multi-line declarations
+    Whitespace-collapses the entire file first so multi-line declarations
     (e.g. the 18 in group.go) are matched as a single token sequence, then
     walks each registration with a paren-balanced scan so that wrappers with
     extra arguments, nested wrappers, and package-qualified handler names are
     all recognised. Returns {(path, handler, method)} tuples.
     """
-    blob = " ".join(_strip_go_comments(src).split())
+    blob = " ".join(src.split())
     endpoints: set[tuple[str, str, str]] = set()
 
     for m in _HANDLE_START_RE.finditer(blob):
@@ -646,66 +484,6 @@ _AUTO_LINE_RE = re.compile(
     r"|^🗑️  Removed API file:"
 )
 
-# ── Injected-note bookkeeping ─────────────────────────────────────────────────
-#
-# The exact set of lines injected on the previous run is recorded in a hidden
-# marker appended to the end of the description.
-#
-# The marker lives OUTSIDE the ```release-note fence deliberately. An HTML
-# comment is invisible in rendered Markdown, but inside a fenced code block it
-# would be displayed literally and would pollute the release-note text that
-# downstream changelog tooling reads.
-#
-# Exact recall is what makes stale-note removal safe. The generated phrasing is
-# also the house style for hand-written notes — "Added ``Foo.Bar`` configuration
-# setting." is what a contributor types too — so a pattern match cannot tell the
-# two apart, and stripping by pattern with nothing to re-inject silently deletes
-# somebody's hand-written note.
-_MARKER_RE = re.compile(
-    r"\r?\n\r?\n<!-- config-change-checker:v1 ([A-Za-z0-9+/=]*) -->[ \t]*\r?\n?"
-)
-
-
-def _read_marker(body: str) -> Optional[list[str]]:
-    """Return the lines injected by the previous run, or None if unmarked."""
-    m = _MARKER_RE.search(body or "")
-    if not m:
-        return None
-    try:
-        decoded = base64.b64decode(m.group(1).encode("ascii"))
-        recorded = json.loads(decoded.decode("utf-8"))
-    except (ValueError, UnicodeDecodeError):
-        # A corrupted marker is treated as absent: fall back to the legacy path
-        # rather than risk removing the wrong lines.
-        return None
-    # The marker lives in the description, which any contributor can edit. A
-    # payload decoding to anything other than a list of strings is treated as
-    # absent rather than allowed to raise part-way through a run.
-    if not isinstance(recorded, list):
-        return None
-    if not all(isinstance(entry, str) for entry in recorded):
-        return None
-    return recorded
-
-
-def _drop_marker(body: str) -> str:
-    return _MARKER_RE.sub("", body or "")
-
-
-def _write_marker(body: str, lines: list[str]) -> str:
-    """Append the hidden record of the lines just injected.
-
-    The body is not trimmed first. Appending a fixed suffix and removing that
-    exact suffix in _drop_marker makes the round trip lossless, so a run with
-    nothing new to say reproduces the stored description byte-for-byte and the
-    no-op guard in main() actually fires.
-    """
-    payload = base64.b64encode(
-        json.dumps(lines, separators=(",", ":")).encode("utf-8")
-    ).decode("ascii")
-    return f"{body}\n\n<!-- config-change-checker:v1 {payload} -->\n"
-
-
 # Matches placeholder content inside a release-note fence that means "nothing
 # to report yet" (e.g. NONE, N/A, ---).  When detected, we replace the
 # placeholder rather than appending alongside it.
@@ -759,124 +537,42 @@ def build_pr_note(results: list[CheckResult]) -> str:
     return "\n".join(lines)
 
 
-def _strip_by_pattern(body: str, note_lines: set[str]) -> str:
-    """Legacy removal for descriptions written before the marker existed.
+def strip_old_note(body: str) -> str:
+    """
+    Remove previously auto-generated lines from the PR description.
 
-    Only lines that are about to be re-emitted verbatim are removed. The
-    generated phrasing is also the house style for hand-written notes, so a
-    pattern match cannot prove a line came from this script — but if the line is
-    one we are re-adding anyway, removing it can only ever dedupe.
+    Primary path  — lines inside the ```release-note ... ``` fence.
+    Fallback path — auto-generated lines that were appended outside any fence
+                    (e.g. via the ## Release Notes section on earlier runs).
 
-    The cost is that a generated line from an older run which is no longer
-    valid (the field it described has since been dropped from the PR) is left
-    in place instead of being cleaned up. Leaving a stale line behind is the
-    better failure: the alternative deletes a contributor's note. This only
-    affects descriptions written before the marker existed.
+    Lines are identified by pattern rather than visible markers, so the PR
+    description stays clean for human readers.
     """
     def _clean_fence(m: re.Match) -> str:
         open_tag, content, close_tag = m.group(1), m.group(2), m.group(3)
         cleaned_lines = [
             line for line in content.split("\n")
-            if not (_AUTO_LINE_RE.match(line.strip()) and line.strip() in note_lines)
+            if not _AUTO_LINE_RE.match(line.strip())
         ]
         return open_tag + "\n".join(cleaned_lines) + close_tag
 
     cleaned = re.sub(
         r"(```release-note)(.*?)(```)",
         _clean_fence,
-        body,
+        body or "",
         flags=re.DOTALL | re.IGNORECASE,
     )
 
-    # Also dedupe generated lines that landed outside any fence (written by an
-    # older version of this script via the header-inject path).
-    return "\n".join(
-        line for line in cleaned.split("\n")
-        if not (_AUTO_LINE_RE.match(line.strip()) and line.strip() in note_lines)
-    )
-
-
-def strip_old_note(body: str, note: str = "") -> str:
-    """
-    Remove the lines this script injected on a previous run.
-
-    When the description carries a marker, exactly those recorded lines are
-    removed and nothing else can be mistaken for generated content. Removal is
-    count-limited, so a line a contributor happens to duplicate elsewhere in the
-    description survives.
-
-    When there is no marker — a PR whose description predates it — fall back to
-    _strip_by_pattern, which only dedupes lines being re-emitted.
-
-    Surrounding whitespace is left alone; only whole lines are dropped. Trimming
-    it here would make every run differ from the stored description and defeat
-    the no-op guard in main().
-    """
-    body = body or ""
-    previous = _read_marker(body)
-    body = _drop_marker(body)
-
-    if previous is None:
-        if not note:
-            return body
-        return _strip_by_pattern(body, {line.strip() for line in note.split("\n")})
-
-    remaining: dict[str, int] = {}
-    for line in previous:
-        key = line.strip()
-        remaining[key] = remaining.get(key, 0) + 1
-
-    kept: list[str] = []
-    for line in body.split("\n"):
-        key = line.strip()
-        if remaining.get(key):
-            remaining[key] -= 1
-            continue
-        kept.append(line)
-    return "\n".join(kept)
-
-
-def _restore_placeholder(body: str) -> str:
-    """Put NONE back if removing generated lines emptied the release-note fence.
-
-    An empty fence is not a valid release note, and the placeholder is what the
-    description held before this script ever wrote to it.
-    """
-    def _fill(m: re.Match) -> str:
-        open_tag, content, close_tag = m.group(1), m.group(2), m.group(3)
-        if content.strip():
-            return m.group(0)
-        return f"{open_tag}\nNONE\n{close_tag}"
-
-    return re.sub(
-        r"(```release-note)(.*?)(```)",
-        _fill,
-        body,
-        count=1,
-        flags=re.DOTALL | re.IGNORECASE,
-    )
+    # Fallback: strip any auto-generated lines that appear outside a fence
+    # (written by an older version of this script or via the header-inject path).
+    cleaned_lines = [
+        line for line in cleaned.splitlines()
+        if not _AUTO_LINE_RE.match(line.strip())
+    ]
+    return "\n".join(cleaned_lines).rstrip()
 
 
 def inject_note(body: str, note: str) -> str:
-    """
-    Replace the previous run's generated lines with `note`, and record exactly
-    what was written so the next run can remove it precisely.
-
-    An empty `note` removes any previously generated lines and the marker with
-    them, restoring the NONE placeholder if that empties the fence. A
-    description this script has never written to is returned byte-for-byte
-    unchanged.
-    """
-    original = body or ""
-    stripped = strip_old_note(original, note)
-
-    if not note:
-        return _restore_placeholder(stripped) if stripped != original else original
-
-    return _write_marker(_insert_note(stripped, note), note.split("\n"))
-
-
-def _insert_note(body: str, note: str) -> str:
     """
     Insert `note` using this priority order:
 
@@ -885,6 +581,10 @@ def _insert_note(body: str, note: str) -> str:
     2. After a recognised release-notes section header (## Release Notes, etc.)
     3. Fallback: append a new ## Release Notes section at the end
     """
+    body = strip_old_note(body)
+    if not note:
+        return body
+
     # 1. Mattermost-style ```release-note ... ``` block — inject INSIDE the fence.
     #    If the fence currently contains only a placeholder (NONE / N/A / ---),
     #    replace the placeholder rather than appending alongside it.
@@ -930,12 +630,7 @@ def get_pr_body() -> str:
         timeout=_TIMEOUT,
     )
     r.raise_for_status()
-    # Normalise to LF. GitHub returns CRLF for any description that has been
-    # edited in the web UI, because the textarea round-trips the whole body.
-    # With `edited` as a trigger that is a routine path, and CRLF would
-    # otherwise orphan the marker written by the previous run, leaving the old
-    # one in place and appending a second on every edit.
-    return (r.json().get("body") or "").replace("\r\n", "\n")
+    return r.json().get("body") or ""
 
 
 def update_pr_body(new_body: str) -> None:
@@ -986,6 +681,7 @@ def main():
     note = build_pr_note(results)
     if not note:
         print("\nℹ️  No notable changes found across all checkers.")
+        return
 
     print("\n🔄 Fetching PR description …")
     body = get_pr_body()
