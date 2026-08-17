@@ -28,7 +28,7 @@ export type TimestampFormatPropsOptions = {
 
 export type TimestampFormatProps = Pick<
     TimestampProps,
-    'useRelative' | 'useDate' | 'useTime' | 'units' | 'ranges' | 'style' | 'numeric'
+    'useRelative' | 'useDate' | 'useTime' | 'units' | 'ranges' | 'style' | 'numeric' | 'dateTimeSeparator'
 >;
 
 const TIME_WITH_SECONDS: DateTimeOptions = {hour: 'numeric', minute: '2-digit', second: '2-digit'};
@@ -79,7 +79,9 @@ function build({format, showSeconds, variant}: TimestampFormatPropsOptions): Tim
         return {useRelative: false, useDate: false, useTime};
     }
 
-    return {ranges: CALENDAR_RANGES, useDate: useCalendarDate, useTime};
+    // "Jun 1, 4:32 PM" for a bare date, but "Today at 4:32 PM" when the date half
+    // resolved to a relative label instead.
+    return {ranges: CALENDAR_RANGES, useDate: useCalendarDate, useTime, dateTimeSeparator: 'comma'};
 }
 
 const cache = new Map<string, TimestampFormatProps>();

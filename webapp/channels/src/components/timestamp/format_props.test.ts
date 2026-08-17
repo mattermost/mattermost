@@ -51,6 +51,19 @@ describe('getTimestampFormatProps', () => {
             expect(result.ranges).toHaveLength(2);
             expect(result.useTime).toMatchObject({hour: 'numeric', minute: '2-digit'});
         });
+
+        test('joins a bare date with a comma', () => {
+            // Timestamp still falls back to "at" when the date half resolves to a
+            // relative label, so "Today at 4:32 PM" but "Jun 1, 4:32 PM".
+            expect(props(TimestampFormat.DATE_AND_TIME, 'post').dateTimeSeparator).toBe('comma');
+            expect(props(TimestampFormat.STANDARD, 'metadata').dateTimeSeparator).toBe('comma');
+        });
+
+        test('leaves the separator unset where there is no date half', () => {
+            expect(props(TimestampFormat.DATE_AND_TIME, 'compact').dateTimeSeparator).toBeUndefined();
+            expect(props(TimestampFormat.STANDARD, 'post').dateTimeSeparator).toBeUndefined();
+            expect(props(TimestampFormat.RELATIVE, 'metadata').dateTimeSeparator).toBeUndefined();
+        });
     });
 
     describe('RELATIVE', () => {

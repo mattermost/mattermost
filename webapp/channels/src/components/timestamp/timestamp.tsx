@@ -124,6 +124,13 @@ export type Props = FormatOptions & {
     label?: string;
     useSemanticOutput?: boolean;
 
+    /**
+     * How to join the date and time halves. `at` reads naturally after a relative label
+     * ("Today at 4:32 PM"); `comma` suits a bare date ("Jun 1, 4:32 PM") and falls back to
+     * `at` whenever the date half resolved to a relative label anyway.
+     */
+    dateTimeSeparator?: 'at' | 'comma';
+
     intl: IntlShape;
 };
 
@@ -392,8 +399,22 @@ class Timestamp extends PureComponent<Props, State> {
         }, relative.updateIntervalInSeconds * 1000);
     }
 
-    static format({relative, date, time}: FormattedParts): ReactNode {
-        return (relative || date) && time ? (
+    static format({relative, date, time}: FormattedParts, dateTimeSeparator: NonNullable<Props['dateTimeSeparator']> = 'at'): ReactNode {
+        if (!((relative || date) && time)) {
+            return relative || date || time;
+        }
+
+        if (dateTimeSeparator === 'comma' && !relative) {
+            return (
+                <FormattedMessage
+                    id='timestamp.dateAndTime'
+                    defaultMessage='{date}, {time}'
+                    values={{date, time}}
+                />
+            );
+        }
+
+        return (
             <FormattedMessage
                 id='timestamp.datetime'
                 defaultMessage='{relativeOrDate} at {time}'
@@ -402,7 +423,7 @@ class Timestamp extends PureComponent<Props, State> {
                     time,
                 }}
             />
-        ) : relative || date || time;
+        );
     }
 
     static formatLabel(value: Date, timeZone?: string) {
@@ -423,12 +444,13 @@ class Timestamp extends PureComponent<Props, State> {
             timeZone,
             label,
             className,
+            dateTimeSeparator,
         } = this.props;
 
         const value = unparsed instanceof Date ? unparsed : new Date(unparsed);
         const formats = this.getFormats(value);
         const parts = this.formatParts(value, formats);
-        let formatted = Timestamp.format(parts);
+        let formatted = Timestamp.format(parts, dateTimeSeparator);
 
         if (useSemanticOutput) {
             formatted = (

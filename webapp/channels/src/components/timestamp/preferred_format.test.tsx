@@ -87,8 +87,8 @@ describe('Timestamp usePreferredFormat', () => {
         test.each([
             ['2020-06-15T16:32:00.000Z', 'Today at 4:32 PM'],
             ['2020-06-14T16:32:00.000Z', 'Yesterday at 4:32 PM'],
-            ['2020-06-01T16:32:00.000Z', 'Jun 1 at 4:32 PM'],
-            ['2019-06-01T16:32:00.000Z', 'Jun 1, 2019 at 4:32 PM'],
+            ['2020-06-01T16:32:00.000Z', 'Jun 1, 4:32 PM'],
+            ['2019-06-01T16:32:00.000Z', 'Jun 1, 2019, 4:32 PM'],
         ])('renders %s as "%s"', (value, expected) => {
             renderWithContext(
                 <Timestamp
