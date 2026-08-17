@@ -262,13 +262,57 @@ def _format_endpoint(path: str, handler: str, method: str) -> str:
     return f"`{method.upper()} {path or '/'}` (`{handler}`)"
  
  
+def _iter_code(text: str, start: int = 0):
+    """Yield (index, char) for characters that are Go code, skipping the contents
+    of string, raw string and rune literals.
+ 
+    Route paths are string literals and may legitimately contain parentheses and
+    commas — websocket.go registers "/{websocket:websocket(?:\\/)?}" — so a
+    scanner that treats them as syntax mis-locates the end of the call or shifts
+    the argument positions.
+ 
+    Comments are deliberately NOT skipped here. The caller works on a
+    whitespace-collapsed blob in which a // comment has no terminating newline,
+    so skipping to end-of-line would swallow the rest of the file.
+    """
+    i, n = start, len(text)
+    while i < n:
+        ch = text[i]
+ 
+        if ch in ('"', "'"):            # interpreted string / rune literal
+            quote = ch
+            i += 1
+            while i < n:
+                if text[i] == "\\":     # escape: skip the escaped character too
+                    i += 2
+                    continue
+                if text[i] == quote:
+                    i += 1
+                    break
+                i += 1
+            continue
+ 
+        if ch == "`":                   # raw string literal — no escapes
+            i += 1
+            while i < n and text[i] != "`":
+                i += 1
+            i += 1
+            continue
+ 
+        yield i, ch
+        i += 1
+ 
+ 
 def _matching_paren(text: str, open_idx: int) -> int:
-    """Index of the ')' closing the '(' at open_idx, or -1 if unbalanced."""
+    """Index of the ')' closing the '(' at open_idx, or -1 if unbalanced.
+ 
+    Parentheses inside literals are ignored.
+    """
     depth = 0
-    for i in range(open_idx, len(text)):
-        if text[i] == "(":
+    for i, ch in _iter_code(text, open_idx):
+        if ch == "(":
             depth += 1
-        elif text[i] == ")":
+        elif ch == ")":
             depth -= 1
             if depth == 0:
                 return i
@@ -276,22 +320,25 @@ def _matching_paren(text: str, open_idx: int) -> int:
  
  
 def _split_top_level(text: str) -> list[str]:
-    """Split an argument list on commas that are not nested inside brackets."""
+    """Split an argument list on commas that are not nested inside brackets.
+ 
+    Commas inside literals are ignored, so a route path such as "/a,b" does not
+    shift the positions of the arguments that follow it.
+    """
     parts: list[str] = []
-    current: list[str] = []
     depth = 0
-    for ch in text:
+    last = 0
+    for i, ch in _iter_code(text):
         if ch in "([{":
             depth += 1
         elif ch in ")]}":
             depth -= 1
-        if ch == "," and depth == 0:
-            parts.append("".join(current))
-            current = []
-        else:
-            current.append(ch)
-    if "".join(current).strip():
-        parts.append("".join(current))
+        elif ch == "," and depth == 0:
+            parts.append(text[last:i])
+            last = i + 1
+    tail = text[last:]
+    if tail.strip():
+        parts.append(tail)
     return parts
  
  
