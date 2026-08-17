@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ComponentProps} from 'react';
 import {Link} from 'react-router-dom';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -9,11 +10,13 @@ import {isMobile} from '@mattermost/shared/utils/user_agent';
 
 import * as GlobalActions from 'actions/global_actions';
 
-import EventTimestamp from 'components/event_timestamp';
-import EventTimestampTooltip from 'components/event_timestamp/event_timestamp_tooltip';
+import Timestamp from 'components/timestamp';
+import type {TimestampVariant} from 'components/timestamp';
 
 import {Locations} from 'utils/constants';
-import type {TimestampDisplayContext, TimestampDisplayTier} from 'utils/datetime_display_format';
+
+const getTimeFormat: ComponentProps<typeof Timestamp>['useTime'] = (_, {hour, minute, second}) => ({hour, minute, second});
+const getDateFormat: ComponentProps<typeof Timestamp>['useDate'] = {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'};
 
 type Props = {
 
@@ -35,17 +38,19 @@ type Props = {
      */
     postId: string;
     teamUrl: string;
-    context?: TimestampDisplayContext;
-    tier?: TimestampDisplayTier;
-    isConsecutivePost?: boolean;
-    forceTimeOnly?: boolean;
+
+    /*
+     * Which presentation of the viewer's preferred timestamp format to use.
+     * `compact` collapses to the shortest form for compact display and consecutive posts.
+     */
+    variant?: TimestampVariant;
 };
 
 export default class PostTime extends React.PureComponent<Props> {
     static defaultProps: Partial<Props> = {
         eventTime: 0,
         location: Locations.CENTER,
-        context: 'post',
+        variant: 'post',
     };
 
     handleClick = () => {
@@ -61,21 +66,15 @@ export default class PostTime extends React.PureComponent<Props> {
             location,
             postId,
             teamUrl,
-            context = 'post',
-            tier,
-            isConsecutivePost = false,
-            forceTimeOnly = false,
+            variant = 'post',
         } = this.props;
 
         const postTime = (
-            <EventTimestamp
+            <Timestamp
                 value={eventTime}
                 className='post__time'
-                showTooltip={false}
-                displayContext={context}
-                tier={tier}
-                isConsecutivePost={isConsecutivePost}
-                forceTimeOnly={forceTimeOnly}
+                usePreferredFormat={true}
+                variant={variant}
             />
         );
 
@@ -101,7 +100,15 @@ export default class PostTime extends React.PureComponent<Props> {
         return (
             <WithTooltip
                 title={
-                    <EventTimestampTooltip value={eventTime}/>
+
+                    // The tooltip is always the full, unambiguous date and time regardless
+                    // of the viewer's preferred format.
+                    <Timestamp
+                        value={eventTime}
+                        useSemanticOutput={false}
+                        useDate={getDateFormat}
+                        useTime={getTimeFormat}
+                    />
                 }
             >
                 {content}

@@ -6448,6 +6448,7 @@
   "post_info.unread": "Mark as Unread",
   "post_message_preview.channel": "Only visible to users in ~{channel}",
   "post_message_view.edited": "Edited",
+  "post_message_view.edited_at": "Edited {timestamp}",
   "post_message_view.view_post_edit_history": "Click to view history",
   "post_pre_header.flagged": "Saved",
   "post_pre_header.pinned": "Pinned",

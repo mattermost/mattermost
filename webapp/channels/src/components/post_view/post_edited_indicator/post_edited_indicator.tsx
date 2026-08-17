@@ -2,34 +2,34 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {MouseEvent, KeyboardEvent} from 'react';
-import {useIntl} from 'react-intl';
+import type {ComponentProps, MouseEvent, KeyboardEvent} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {PencilOutlineIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
+import Timestamp, {RelativeRanges} from 'components/timestamp';
+
 import Constants from 'utils/constants';
-import {formatFullDateTimeForTooltip} from 'utils/datetime_display_format';
 
 import type {Props} from './index';
 
-const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, postOwner, post, canEdit, actions}: Props): JSX.Element | null => {
-    const intl = useIntl();
+const EDITED_AT_RANGES = [RelativeRanges.TODAY_YESTERDAY];
+const EDITED_AT_TIME_FORMAT: ComponentProps<typeof Timestamp>['useTime'] = {hour: 'numeric', minute: '2-digit'};
+
+const PostEditedIndicator = ({postId, editedAt = 0, postOwner, post, canEdit, actions}: Props): JSX.Element | null => {
+    const {formatMessage} = useIntl();
 
     if (!postId || editedAt === 0) {
         return null;
     }
 
-    const editedText = intl.formatMessage({
+    const editedText = formatMessage({
         id: 'post_message_view.edited',
         defaultMessage: 'Edited',
     });
 
-    const formattedTime = formatFullDateTimeForTooltip(new Date(editedAt), intl, {
-        timeZone,
-        useMilitaryTime: isMilitaryTime,
-    });
-    const viewHistoryText = intl.formatMessage({
+    const viewHistoryText = formatMessage({
         id: 'post_message_view.view_post_edit_history',
         defaultMessage: 'Click to view history',
     });
@@ -79,7 +79,21 @@ const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, po
         <WithTooltip
             title={
                 <>
-                    {`${editedText} ${formattedTime}`}
+                    <FormattedMessage
+                        id='post_message_view.edited_at'
+                        defaultMessage='Edited {timestamp}'
+                        values={{
+                            timestamp: (
+                                <Timestamp
+                                    value={editedAt}
+                                    useSemanticOutput={false}
+                                    ranges={EDITED_AT_RANGES}
+                                    day='numeric'
+                                    useTime={EDITED_AT_TIME_FORMAT}
+                                />
+                            ),
+                        }}
+                    />
                     {postOwnerTooltipInfo}
                 </>
             }

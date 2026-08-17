@@ -8,9 +8,9 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
-import EventTimestamp from 'components/event_timestamp';
 import FileThumbnail from 'components/file_attachment/file_thumbnail';
 import FilePreviewModal from 'components/file_preview_modal';
+import Timestamp from 'components/timestamp';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Tag from 'components/widgets/tag/tag';
@@ -135,10 +135,9 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                             )}
                             <span>{fileSizeToString(fileInfo.size)}</span>
                             <span>{' • '}</span>
-                            <EventTimestamp
+                            <Timestamp
                                 value={fileInfo.create_at}
-                                displayContext='metadata'
-                                showTooltip={false}
+                                usePreferredFormat={true}
                             />
                         </div>
                     </div>

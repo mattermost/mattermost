@@ -16,11 +16,11 @@ import {ensureString} from 'mattermost-redux/utils/post_utils';
 import {removeDraft} from 'actions/views/drafts';
 import {getConnectionId} from 'selectors/general';
 
-import EventTimestamp from 'components/event_timestamp';
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import InfoToast from 'components/info_toast/info_toast';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
 import PostMessageContainer from 'components/post_view/post_message_view';
+import Timestamp from 'components/timestamp';
 import UserProfileComponent from 'components/user_profile';
 import Avatar from 'components/widgets/users/avatar';
 
@@ -235,10 +235,9 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, i
                             <i className={`icon ${open ? 'icon-chevron-down' : 'icon-chevron-right'}`}/>
                         </button>
                         <span className='edit-post-history__date'>
-                            <EventTimestamp
+                            <Timestamp
                                 value={timeStampValue}
-                                displayContext='metadata'
-                                showTooltip={false}
+                                usePreferredFormat={true}
                             />
                         </span>
                         {currentVersionIndicator}

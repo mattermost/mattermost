@@ -559,13 +559,13 @@ function PostComponent(props: Props) {
         },
     );
 
-    const isCenterConsecutivePost = props.isConsecutivePost && props.location === Locations.CENTER;
     const isRHSCompactConsecutivePost = isRHS && props.compactDisplay && Boolean(props.isConsecutivePost);
     const timestampFormat = useSelector(getTimestampFormat);
-    const forceTimeOnly =
+    const isCompactTimestamp =
         (props.compactDisplay && props.location === Locations.CENTER) ||
         (Boolean(props.isConsecutivePost) && !isRHSCompactConsecutivePost);
-    const wrapTimestamp = shouldWrapPostTimestamp(timestampFormat, forceTimeOnly);
+    const timestampVariant = isCompactTimestamp ? 'compact' : 'post';
+    const wrapTimestamp = shouldWrapPostTimestamp(timestampFormat, isCompactTimestamp);
 
     let comment;
     if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
@@ -852,8 +852,7 @@ function PostComponent(props: Props) {
                                         eventTime={post.create_at}
                                         postId={post.id}
                                         location={props.location}
-                                        isConsecutivePost={isCenterConsecutivePost}
-                                        forceTimeOnly={forceTimeOnly}
+                                        variant={timestampVariant}
                                     />
                                 </div>
                             }
@@ -865,8 +864,7 @@ function PostComponent(props: Props) {
                                         eventTime={post.create_at}
                                         postId={post.id}
                                         location={props.location}
-                                        isConsecutivePost={isCenterConsecutivePost}
-                                        forceTimeOnly={forceTimeOnly}
+                                        variant={timestampVariant}
                                     />
                                 }
                                 {showPostHeaderBadge && (

@@ -12,7 +12,6 @@ import {General} from 'mattermost-redux/constants';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import {hasInteractiveMessageProps} from 'components/block_renderer/translation';
-import EventTimestamp from 'components/event_timestamp';
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import PostHeaderTranslateIcon from 'components/post/post_header_translate_icon';
 import PriorityLabel from 'components/post_priority/post_priority_label';
@@ -21,6 +20,7 @@ import InteractiveMessages from 'components/post_view/interactive_messages';
 import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
 import PostMessageView from 'components/post_view/post_message_view';
 import RedactedFilesPlaceholder from 'components/post_view/redacted_files_placeholder';
+import Timestamp from 'components/timestamp';
 import UserProfileComponent from 'components/user_profile';
 
 import * as PostUtils from 'utils/post_utils';
@@ -173,11 +173,10 @@ const PostMessagePreview = (props: Props) => {
                         />
                     </div>
                     <div className='col d-flex align-items-center'>
-                        <EventTimestamp
+                        <Timestamp
                             value={previewPost.create_at}
                             className='post-preview__time'
-                            displayContext='metadata'
-                            showTooltip={false}
+                            usePreferredFormat={true}
                         />
                         {previewPost.metadata?.priority && isPostPriorityEnabled && (
                             <span className='d-flex mr-2 ml-1'>

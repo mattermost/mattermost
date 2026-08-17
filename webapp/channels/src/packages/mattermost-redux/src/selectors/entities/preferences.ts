@@ -174,19 +174,7 @@ export function getShowTimestampSeconds(state: GlobalState): boolean {
 }
 
 export function getUseMilitaryTime(state: GlobalState): boolean {
-    const userPreference = getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME);
-    if (userPreference?.value === 'true') {
-        return true;
-    }
-    if (userPreference?.value === 'false') {
-        return false;
-    }
-
-    return false;
-}
-
-export function getTimestampFormatUserPreference(state: GlobalState): string | undefined {
-    return getPreferenceObject(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.DATETIME_DISPLAY_FORMAT)?.value;
+    return getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false);
 }
 
 export const getThemePreferences = makeGetCategory('getThemePreferences', Preferences.CATEGORY_THEME);

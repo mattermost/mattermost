@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {TimestampFormat} from '@mattermost/types/config';
+
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 
 import type {GlobalState} from 'types/store';
@@ -183,6 +185,55 @@ describe('mapStateToProps', () => {
 
             const props = mapStateToProps(testState, {hour12: false});
             expect(props.hour12).toBe(false);
+        });
+    });
+
+    describe('usePreferredFormat', () => {
+        const configState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        DateTimeDisplayFormat: TimestampFormat.DATE_AND_TIME,
+                    },
+                },
+            },
+        });
+
+        test('derives no format props unless opted in', () => {
+            const props = mapStateToProps(configState, {});
+
+            expect(props).not.toHaveProperty('useDate');
+            expect(props).not.toHaveProperty('useTime');
+            expect(props).not.toHaveProperty('ranges');
+        });
+
+        test('derives format props when opted in', () => {
+            const props = mapStateToProps(configState, {usePreferredFormat: true});
+
+            expect(props).toHaveProperty('useDate');
+            expect(props).toHaveProperty('useTime');
+            expect(props).toHaveProperty('ranges');
+        });
+
+        test('yields shallow-equal props across calls', () => {
+            // Timestamp is a PureComponent and connect compares stateProps shallowly.
+            // If any derived value got a fresh identity here, every timestamp in the app
+            // would re-render on every store change.
+            const first = mapStateToProps(configState, {usePreferredFormat: true}) as Record<string, unknown>;
+            const second = mapStateToProps(configState, {usePreferredFormat: true}) as Record<string, unknown>;
+
+            expect(Object.keys(first)).toEqual(Object.keys(second));
+            for (const key of Object.keys(first)) {
+                expect(second[key]).toBe(first[key]);
+            }
+        });
+
+        test('omits derived props the caller set explicitly', () => {
+            const useTime = {hour: '2-digit'} as const;
+            const props = mapStateToProps(configState, {usePreferredFormat: true, useTime}) as Record<string, unknown>;
+
+            expect(props).not.toHaveProperty('useTime');
+            expect(props).toHaveProperty('useDate');
         });
     });
 });

@@ -19,9 +19,9 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {selectPost} from 'actions/views/rhs';
 
-import EventTimestamp from 'components/event_timestamp';
 import Button from 'components/threading/common/button';
 import FollowButton from 'components/threading/common/follow_button';
+import Timestamp from 'components/timestamp';
 import Avatars from 'components/widgets/users/avatars';
 
 import type {GlobalState} from 'types/store';
@@ -146,10 +146,9 @@ function ThreadFooter({
                         defaultMessage='Last reply {formatted}'
                         values={{
                             formatted: (
-                                <EventTimestamp
+                                <Timestamp
                                     value={lastReplyAt}
-                                    displayContext='thread_footer'
-                                    showTooltip={false}
+                                    usePreferredFormat={true}
                                 />
                             ),
                         }}

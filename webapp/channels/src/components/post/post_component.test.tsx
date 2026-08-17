@@ -811,7 +811,7 @@ describe('PostComponent', () => {
 
             const {container} = renderWithContext(<PostComponent {...props}/>, dateAndTimeState);
 
-            expect(screen.getByText('Jun 1, 4:32 PM')).toBeInTheDocument();
+            expect(screen.getByText('Jun 1 at 4:32 PM')).toBeInTheDocument();
             expect(container.querySelector('.post__header--wrap-time')).toBeInTheDocument();
             expect(container.querySelector('.post__header-timestamp')).toBeInTheDocument();
         });
@@ -834,7 +834,7 @@ describe('PostComponent', () => {
 
             const {container} = renderWithContext(<PostComponent {...props}/>, dateAndTimeState);
 
-            expect(screen.getByText('Jun 1, 4:32 PM')).toBeInTheDocument();
+            expect(screen.getByText('Jun 1 at 4:32 PM')).toBeInTheDocument();
             expect(container.querySelector('.post__header--wrap-time')).toBeInTheDocument();
         });
 
