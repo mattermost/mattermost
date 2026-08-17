@@ -2236,6 +2236,11 @@ func TestRedactOAuthTokenResponse(t *testing.T) {
 			`{"error":"access_token=[REDACTED]"}`,
 		},
 		{
+			"form encoded token in json error field preceded by field with = in its value",
+			`{"error_uri":"https://provider.com/help?code=42","error_description":"access_token=SECRET"}`,
+			`{"error_uri":"https://provider.com/help?code=42","error_description":"access_token=[REDACTED]"}`,
+		},
+		{
 			"json member name that merely ends with a token name",
 			`{"my_access_token_hint":"abcd1234"}`,
 			`{"my_access_token_hint":"abcd1234"}`,
