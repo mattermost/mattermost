@@ -224,7 +224,7 @@ func (a *App) BulkImportWithPath(rctx request.CTX, jsonlReader io.Reader, attach
 
 func (a *App) BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, opts model.BulkImportOpts) (int, *model.AppError) {
 	report := &imports.ImportReport{}
-	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeam, opts.SkipPreflight, opts.ResumeFromLine, opts.OnCheckpoint, report)
+	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeamName, opts.SkipPreflight, opts.ResumeFromLine, opts.OnCheckpoint, report)
 	return lineNumber, err
 }
 
@@ -240,7 +240,6 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 	lineNumber := 0
 	deactivateMissingUsers := false
 	sourceTeamName := ""
-
 
 	a.Srv().Store().LockToMaster()
 	defer a.Srv().Store().UnlockFromMaster()

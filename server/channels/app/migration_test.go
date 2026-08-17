@@ -426,7 +426,7 @@ func TestChannelImportDestinationTeamRemap(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationTeam: destTeamName},
+		model.BulkImportOpts{DestinationTeamName: destTeamName},
 	)
 	require.Nil(t, appErr)
 
@@ -491,7 +491,7 @@ func TestTeamOnlyImportDestinationTeamRemap(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationTeam: destTeamName},
+		model.BulkImportOpts{DestinationTeamName: destTeamName},
 	)
 	require.Nil(t, appErr)
 
@@ -1346,7 +1346,7 @@ func TestDestinationTeamNewTeamUsesSlugAsDisplayName(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationTeam: destTeamName},
+		model.BulkImportOpts{DestinationTeamName: destTeamName},
 	)
 	require.Nil(t, appErr)
 
@@ -1398,7 +1398,7 @@ func TestDestinationTeamHyphenatedSlugDisplayName(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationTeam: destTeamName},
+		model.BulkImportOpts{DestinationTeamName: destTeamName},
 	)
 	require.Nil(t, appErr)
 
@@ -1462,7 +1462,7 @@ func TestDestinationTeamExistingTeamDisplayNamePreserved(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationTeam: destTeamName},
+		model.BulkImportOpts{DestinationTeamName: destTeamName},
 	)
 	require.Nil(t, appErr)
 
@@ -1562,7 +1562,7 @@ func TestDestinationTeamDisplayNameIdempotentAfterRename(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationTeam: destTeamName},
+		model.BulkImportOpts{DestinationTeamName: destTeamName},
 	)
 	require.Nil(t, appErr)
 
@@ -1583,7 +1583,7 @@ func TestDestinationTeamDisplayNameIdempotentAfterRename(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationTeam: destTeamName},
+		model.BulkImportOpts{DestinationTeamName: destTeamName},
 	)
 	require.Nil(t, appErr)
 
@@ -1649,7 +1649,7 @@ func TestDestinationTeamInferredWhenAdditionalFieldAbsent(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationTeam: destTeamName},
+		model.BulkImportOpts{DestinationTeamName: destTeamName},
 	)
 	require.Nil(t, appErr)
 

@@ -112,8 +112,8 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team", "myteam", "")
-		cmd.Flags().String("channel", "", "")
+		cmd.Flags().String("team-name","myteam", "")
+		cmd.Flags().String("channel-name","", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
@@ -153,8 +153,8 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team", "myteam", "")
-		cmd.Flags().String("channel", "mychannel", "")
+		cmd.Flags().String("team-name","myteam", "")
+		cmd.Flags().String("channel-name","mychannel", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
@@ -173,8 +173,8 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team", "nosuchteam", "")
-		cmd.Flags().String("channel", "", "")
+		cmd.Flags().String("team-name","nosuchteam", "")
+		cmd.Flags().String("channel-name","", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
 		s.Require().NotNil(err)
@@ -198,12 +198,332 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team", "myteam", "")
-		cmd.Flags().String("channel", "nosuchannel", "")
+		cmd.Flags().String("team-name","myteam", "")
+		cmd.Flags().String("channel-name","nosuchannel", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
 		s.Require().NotNil(err)
 		s.Contains(err.Error(), "nosuchannel")
+		s.Empty(printer.GetLines())
+	})
+
+	s.Run("create export with team ID filter", func() {
+		printer.Clean()
+		mockTeam := &model.Team{Id: "teamid1", Name: "myteam"}
+		mockJob := &model.Job{
+			Type: model.JobTypeExportProcess,
+			Data: map[string]string{
+				"include_attachments":       "true",
+				"include_roles_and_schemes": "true",
+				"team_name":                 "myteam",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), "teamid1", "").
+			Return(mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team-name","", "")
+		cmd.Flags().String("team-id", "teamid1", "")
+		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-id", "", "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("create export with channel ID filter infers team", func() {
+		printer.Clean()
+		mockTeam := &model.Team{Id: "teamid1", Name: "myteam"}
+		mockChannel := &model.Channel{Id: "chanid1", Name: "mychannel", TeamId: "teamid1"}
+		mockJob := &model.Job{
+			Type: model.JobTypeExportProcess,
+			Data: map[string]string{
+				"include_attachments":       "true",
+				"include_roles_and_schemes": "true",
+				"team_name":                 "myteam",
+				"channel_name":              "mychannel",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), "chanid1").
+			Return(mockChannel, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), "teamid1", "").
+			Return(mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team-name","", "")
+		cmd.Flags().String("team-id", "", "")
+		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-id", "chanid1", "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("create export with team ID and channel ID filter", func() {
+		printer.Clean()
+		mockTeam := &model.Team{Id: "teamid1", Name: "myteam"}
+		mockChannel := &model.Channel{Id: "chanid1", Name: "mychannel", TeamId: "teamid1"}
+		mockJob := &model.Job{
+			Type: model.JobTypeExportProcess,
+			Data: map[string]string{
+				"include_attachments":       "true",
+				"include_roles_and_schemes": "true",
+				"team_name":                 "myteam",
+				"channel_name":              "mychannel",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), "teamid1", "").
+			Return(mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), "chanid1").
+			Return(mockChannel, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team-name","", "")
+		cmd.Flags().String("team-id", "teamid1", "")
+		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-id", "chanid1", "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("create export with channel ID and team name", func() {
+		printer.Clean()
+		mockTeam := &model.Team{Id: "teamid1", Name: "myteam"}
+		mockChannel := &model.Channel{Id: "chanid1", Name: "mychannel", TeamId: "teamid1"}
+		mockJob := &model.Job{
+			Type: model.JobTypeExportProcess,
+			Data: map[string]string{
+				"include_attachments":       "true",
+				"include_roles_and_schemes": "true",
+				"team_name":                 "myteam",
+				"channel_name":              "mychannel",
+			},
+		}
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), "chanid1").
+			Return(mockChannel, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetTeamByName(context.TODO(), "myteam", "").
+			Return(mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team-name","myteam", "")
+		cmd.Flags().String("team-id", "", "")
+		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-id", "chanid1", "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("channel ID belonging to different team than --team fails", func() {
+		printer.Clean()
+		mockTeam := &model.Team{Id: "teamid2", Name: "otherteam"}
+		mockChannel := &model.Channel{Id: "chanid1", Name: "mychannel", TeamId: "teamid1"}
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), "chanid1").
+			Return(mockChannel, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetTeamByName(context.TODO(), "otherteam", "").
+			Return(mockTeam, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team-name","otherteam", "")
+		cmd.Flags().String("team-id", "", "")
+		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-id", "chanid1", "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "does not belong to team")
+		s.Empty(printer.GetLines())
+	})
+
+	s.Run("channel ID belonging to different team than --team-id fails", func() {
+		printer.Clean()
+		mockTeam := &model.Team{Id: "teamid2", Name: "otherteam"}
+		mockChannel := &model.Channel{Id: "chanid1", Name: "mychannel", TeamId: "teamid1"}
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), "teamid2", "").
+			Return(mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), "chanid1").
+			Return(mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team-name","", "")
+		cmd.Flags().String("team-id", "teamid2", "")
+		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-id", "chanid1", "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "does not belong to team")
+		s.Empty(printer.GetLines())
+	})
+
+	s.Run("channel ID with team inference failure fails", func() {
+		printer.Clean()
+		mockChannel := &model.Channel{Id: "chanid1", Name: "mychannel", TeamId: "teamid1"}
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), "chanid1").
+			Return(mockChannel, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), "teamid1", "").
+			Return(nil, &model.Response{}, fmt.Errorf("not found")).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team-name","", "")
+		cmd.Flags().String("team-id", "", "")
+		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-id", "chanid1", "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "failed to lookup team for channel")
+		s.Empty(printer.GetLines())
+	})
+
+	s.Run("--team and --team-id are mutually exclusive", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team-name","myteam", "")
+		cmd.Flags().String("team-id", "teamid1", "")
+		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-id", "", "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "mutually exclusive")
+		s.Empty(printer.GetLines())
+	})
+
+	s.Run("--channel and --channel-id are mutually exclusive", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team-name","myteam", "")
+		cmd.Flags().String("team-id", "", "")
+		cmd.Flags().String("channel-name","mychannel", "")
+		cmd.Flags().String("channel-id", "chanid1", "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "mutually exclusive")
+		s.Empty(printer.GetLines())
+	})
+
+	s.Run("non-existent team ID fails immediately", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), "nosuchid", "").
+			Return(nil, &model.Response{}, fmt.Errorf("not found")).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team-name","", "")
+		cmd.Flags().String("team-id", "nosuchid", "")
+		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-id", "", "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "nosuchid")
+		s.Empty(printer.GetLines())
+	})
+
+	s.Run("non-existent channel ID fails immediately", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), "nosuchid").
+			Return(nil, &model.Response{}, fmt.Errorf("not found")).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team-name","", "")
+		cmd.Flags().String("team-id", "", "")
+		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-id", "nosuchid", "")
+
+		err := exportCreateCmdF(s.client, cmd, nil)
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "nosuchid")
 		s.Empty(printer.GetLines())
 	})
 
@@ -224,8 +544,8 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team", "", "")
-		cmd.Flags().String("channel", "", "")
+		cmd.Flags().String("team-name","", "")
+		cmd.Flags().String("channel-name","", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)

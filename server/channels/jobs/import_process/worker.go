@@ -176,7 +176,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 
 		// do the actual import.
 		importOpts := model.BulkImportOpts{
-			DestinationTeam: job.Data["destination_team"],
+			DestinationTeamName: job.Data["destination_team_name"],
 			SkipPreflight:   job.Data["skip_preflight"] == "true",
 			ResumeFromLine:  resumeFromLine,
 			OnCheckpoint:    onCheckpoint,

@@ -126,7 +126,8 @@ func init() {
 	ImportProcessCmd.Flags().Bool("bypass-upload", false, "If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.")
 	ImportProcessCmd.Flags().Bool("extract-content", true, "If this is set, document attachments will be extracted and indexed during the import process. It is advised to disable it to improve performance.")
 	ImportProcessCmd.Flags().Int("workers", 0, "The number of concurrent import worker goroutines. Controls database load during import. When set to 0 (default), uses the number of CPUs available. Maximum allowed is 4x the CPU count.")
-	ImportProcessCmd.Flags().String("destination-team", "", "Map the source team in the export to a differently-named team on the destination server. Works with both channel-scoped and full-team exports.")
+	ImportProcessCmd.Flags().String("destination-team-name", "", "Map the source team in the export to an existing team on the destination server (by name/slug). Works with both channel-scoped and full-team exports. Mutually exclusive with --destination-team-id.")
+	ImportProcessCmd.Flags().String("destination-team-id", "", "Map the source team in the export to an existing team on the destination server (by ID). Mutually exclusive with --destination-team-name.")
 	ImportProcessCmd.Flags().Bool("skip-preflight", false, "Skip SSO provider configuration checks. By default the import fails if an auth provider present in the export is not enabled on the destination. Use this flag only after reviewing the preflight error and accepting the risk.")
 
 	ImportListCmd.AddCommand(
@@ -322,8 +323,23 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 		return fmt.Errorf("workers value %d exceeds maximum allowed (%d = 4 * CPU count)", workers, maxWorkers)
 	}
 
-	destinationTeam, _ := command.Flags().GetString("destination-team")
+	destinationTeamName, _ := command.Flags().GetString("destination-team-name")
+	destinationTeamNameID, _ := command.Flags().GetString("destination-team-id")
 	skipPreflight, _ := command.Flags().GetBool("skip-preflight")
+
+	if destinationTeamName != "" && destinationTeamNameID != "" {
+		return fmt.Errorf("--destination-team-name and --destination-team-id are mutually exclusive")
+	}
+	if destinationTeamNameID != "" {
+		team, _, err := c.GetTeam(context.TODO(), destinationTeamNameID, "")
+		if err != nil {
+			return fmt.Errorf("failed to lookup destination team by ID %q: %w", destinationTeamNameID, err)
+		}
+		if team == nil {
+			return fmt.Errorf("destination team with ID %q not found", destinationTeamNameID)
+		}
+		destinationTeamName = team.Name
+	}
 
 	jobData := map[string]string{
 		"import_file":     importFile,
@@ -333,8 +349,8 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	if workers > 0 {
 		jobData["workers"] = strconv.Itoa(workers)
 	}
-	if destinationTeam != "" {
-		jobData["destination_team"] = destinationTeam
+	if destinationTeamName != "" {
+		jobData["destination_team_name"] = destinationTeamName
 	}
 	if skipPreflight {
 		jobData["skip_preflight"] = "true"

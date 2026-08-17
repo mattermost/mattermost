@@ -810,7 +810,7 @@ func TestRewriteTeamNameEndToEnd(t *testing.T) {
 {"type":"channel","channel":{"type":"O","display_name":"Test Channel","team":"` + srcTeamName + `","name":"` + channelName + `"}}
 {"type":"user","user":{"username":"` + username + `","email":"` + username + `@example.com","teams":[{"name":"` + srcTeamName + `","channels":[{"name":"` + channelName + `"}]}]}}`
 
-	opts := model.BulkImportOpts{DestinationTeam: destTeam.Name}
+	opts := model.BulkImportOpts{DestinationTeamName: destTeam.Name}
 	_, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", opts)
 	require.Nil(t, appErr)
 
