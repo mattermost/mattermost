@@ -129,7 +129,11 @@ export async function createLinkedDependentField(
  * Deletes a linked property field, ignoring failures -- mirrors deleteGlobalAttributeFieldIfExists'
  * best-effort cleanup style, since a test's own save/rollback assertions may have already deleted it.
  */
-export async function deleteLinkedDependentField(adminClient: Client4, fieldId: string, objectType: ResourceObjectType = 'user') {
+export async function deleteLinkedDependentField(
+    adminClient: Client4,
+    fieldId: string,
+    objectType: ResourceObjectType = 'user',
+) {
     try {
         await adminClient.deletePropertyField(PROPERTY_GROUP, objectType, fieldId);
     } catch {
@@ -145,14 +149,17 @@ export async function deleteLinkedDependentField(adminClient: Client4, fieldId: 
  * own MAX_PROPERTY_FIELDS_PER_PAGE comment) and a freshly-created linked field is exactly the kind
  * of newest-row a default ascending-CreateAt page can drop.
  */
-export async function fetchLinkedFieldsForTemplate(adminClient: Client4, templateFieldId: string): Promise<PropertyField[]> {
-    const results = await Promise.all(ALL_RESOURCE_OBJECT_TYPES.map((objectType) =>
-        adminClient.getPropertyFields(PROPERTY_GROUP, objectType, TARGET_TYPE, undefined, {
-            perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
-        }),
-    ));
+export async function fetchLinkedFieldsForTemplate(
+    adminClient: Client4,
+    templateFieldId: string,
+): Promise<PropertyField[]> {
+    const results = await Promise.all(
+        ALL_RESOURCE_OBJECT_TYPES.map((objectType) =>
+            adminClient.getPropertyFields(PROPERTY_GROUP, objectType, TARGET_TYPE, undefined, {
+                perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
+            }),
+        ),
+    );
 
-    return results.
-        flat().
-        filter((field) => field.linked_field_id === templateFieldId && field.delete_at === 0);
+    return results.flat().filter((field) => field.linked_field_id === templateFieldId && field.delete_at === 0);
 }

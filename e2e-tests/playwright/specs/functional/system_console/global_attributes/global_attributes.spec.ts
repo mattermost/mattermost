@@ -1047,7 +1047,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
          * removes it from the picker and renders its row, and once all three are added both
          * triggers disappear entirely.
          */
-        test('offers only unselected types, renders a row per addition, and hides both triggers once all three are added', async ({pw}) => {
+        test('offers only unselected types, renders a row per addition, and hides both triggers once all three are added', async ({
+            pw,
+        }) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -1081,8 +1083,12 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             await expect(systemConsolePage.page.getByTestId('attributeAppliesToRow-post')).toBeVisible();
 
             // * Both triggers are gone now that all three types are selected
-            await expect(systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonHeader')).not.toBeVisible();
-            await expect(systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonInline')).not.toBeVisible();
+            await expect(
+                systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonHeader'),
+            ).not.toBeVisible();
+            await expect(
+                systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonInline'),
+            ).not.toBeVisible();
         });
 
         /**
@@ -1099,12 +1105,15 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
 
             // Regression guard: no property-field delete request fires for a pre-save removal.
             let deleteRequestFired = false;
-            await systemConsolePage.page.route('**/api/v4/properties/groups/access_control/*/fields/*', async (route) => {
-                if (route.request().method() === 'DELETE') {
-                    deleteRequestFired = true;
-                }
-                await route.continue();
-            });
+            await systemConsolePage.page.route(
+                '**/api/v4/properties/groups/access_control/*/fields/*',
+                async (route) => {
+                    if (route.request().method() === 'DELETE') {
+                        deleteRequestFired = true;
+                    }
+                    await route.continue();
+                },
+            );
 
             // # Add Channels
             await systemConsolePage.page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
@@ -1213,13 +1222,20 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 }
 
                 // # Force the "post" linked-field creation request to fail; let user/channel/template through
-                await systemConsolePage.page.route('**/api/v4/properties/groups/access_control/post/fields', async (route) => {
-                    if (route.request().method() === 'POST') {
-                        await route.fulfill({status: 500, contentType: 'application/json', body: JSON.stringify({message: 'forced failure'})});
-                    } else {
-                        await route.continue();
-                    }
-                });
+                await systemConsolePage.page.route(
+                    '**/api/v4/properties/groups/access_control/post/fields',
+                    async (route) => {
+                        if (route.request().method() === 'POST') {
+                            await route.fulfill({
+                                status: 500,
+                                contentType: 'application/json',
+                                body: JSON.stringify({message: 'forced failure'}),
+                            });
+                        } else {
+                            await route.continue();
+                        }
+                    },
+                );
 
                 // # Click Save
                 await systemConsolePage.page.getByTestId('saveSetting').click();
@@ -1236,10 +1252,20 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                     undefined,
                     {perPage: 200},
                 );
-                expect(templateFieldsAfterFailure.find((f) => f.name === expectedName && f.delete_at === 0)).toBeUndefined();
+                expect(
+                    templateFieldsAfterFailure.find((f) => f.name === expectedName && f.delete_at === 0),
+                ).toBeUndefined();
 
-                const userFields = await adminClient.getPropertyFields('access_control', 'user', 'system', undefined, {perPage: 200});
-                const channelFields = await adminClient.getPropertyFields('access_control', 'channel', 'system', undefined, {perPage: 200});
+                const userFields = await adminClient.getPropertyFields('access_control', 'user', 'system', undefined, {
+                    perPage: 200,
+                });
+                const channelFields = await adminClient.getPropertyFields(
+                    'access_control',
+                    'channel',
+                    'system',
+                    undefined,
+                    {perPage: 200},
+                );
                 expect(userFields.find((f) => f.name === expectedName && f.delete_at === 0)).toBeUndefined();
                 expect(channelFields.find((f) => f.name === expectedName && f.delete_at === 0)).toBeUndefined();
 
@@ -1257,7 +1283,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                     undefined,
                     {perPage: 200},
                 );
-                const templateField = templateFieldsAfterRetry.find((f) => f.name === expectedName && f.delete_at === 0);
+                const templateField = templateFieldsAfterRetry.find(
+                    (f) => f.name === expectedName && f.delete_at === 0,
+                );
                 expect(templateField).toBeDefined();
 
                 linkedFields = await fetchLinkedFieldsForTemplate(adminClient, templateField!.id);
