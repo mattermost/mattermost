@@ -308,7 +308,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Check to see if this provided token matches our CWS Token
 		session, err := c.App.GetCloudSession(token)
 		if err != nil {
-			c.Logger.Warn("Invalid CWS token", mlog.Err(err))
+			c.Logger.Warn("Invalid CWS token", mlog.String("error", strings.ReplaceAll(err.Error(), token, tokenDigest(token))))
 			c.Err = err
 		} else {
 			c.AppContext = c.AppContext.WithSession(session)
@@ -322,7 +322,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			// Check the token is correct for the remote cluster id.
 			session, err := c.App.GetRemoteClusterSession(token, remoteId)
 			if err != nil {
-				c.Logger.Warn("Invalid remote cluster token", mlog.Err(err))
+				c.Logger.Warn("Invalid remote cluster token", mlog.String("error", strings.ReplaceAll(err.Error(), token, tokenDigest(token))))
 				c.Err = err
 			} else {
 				c.AppContext = c.AppContext.WithSession(session)
