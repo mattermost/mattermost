@@ -13,61 +13,16 @@ Review and manage the following [experimental](/administration-guide/manage/feat
 
 <Tip>
 
-System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, one `LoginButtonColor` value is under `LdapSettings`.
+System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, one `LoginButtonColor` value is under `EmailSettings`.
 
-- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.LdapSettings.LoginButtonColor'`
-- When working with the `config.json` file manually, look for an object such as `LdapSettings`, then within that object, find the key `LoginButtonColor`.
+- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.EmailSettings.LoginButtonColor'`
+- When working with the `config.json` file manually, look for an object such as `EmailSettings`, then within that object, find the key `LoginButtonColor`.
 
 </Tip>
 
 ------------------------------------------------------------------------------------------------------------------------
 
 ## Experimental System Console configuration settings
-
-### AD/LDAP login button color
-
-Specify the color of the AD/LDAP login button for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### AD/LDAP login button border color
-
-Specify the color of the AD/LDAP login button border for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonBorderColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### AD/LDAP login button text color
-
-Specify the color of the AD/LDAP login button text for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonTextColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
 
 ### Change authentication method
 
@@ -481,51 +436,6 @@ If the team URL of the primary team is `https://example.mattermost.com/myteam/`,
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>"ExperimentalPrimaryTeam": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### SAML login button color
-
-Specify the color of the SAML login button for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### SAML login button border color
-
-Specify the color of the SAML login button border for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonBorderColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### SAML login button text color
-
-Specify the color of the SAML login button text for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonTextColor": ""</code> with string input.</td>
 </tr>
 </tbody>
 </table>

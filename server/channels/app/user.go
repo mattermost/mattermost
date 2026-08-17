@@ -387,7 +387,7 @@ func (a *App) createUserOrGuest(rctx request.CTX, user *model.User, guest bool) 
 	a.InvalidateCacheForUser(ruser.Id)
 
 	if user.EmailVerified {
-		nUser, err := a.ch.srv.userService.GetUser(ruser.Id)
+		nUser, err := a.ch.srv.userService.GetUser(rctx, ruser.Id)
 		if err != nil {
 			var nfErr *store.ErrNotFound
 			switch {
@@ -539,8 +539,9 @@ func (a *App) AddUserToTeamByInviteIfNeeded(rctx request.CTX, user *model.User, 
 	return nil
 }
 
+// TODO: Migrate this compatibility wrapper to accept request.CTX.
 func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
-	user, err := a.ch.srv.userService.GetUser(userID)
+	user, err := a.ch.srv.userService.GetUser(request.EmptyContext(a.Log()), userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1552,7 +1553,7 @@ func (a *App) isUniqueToGroupNames(val string) *model.AppError {
 }
 
 func (a *App) UpdateUser(rctx request.CTX, user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
-	prev, err := a.ch.srv.userService.GetUser(user.Id)
+	prev, err := a.ch.srv.userService.GetUser(rctx, user.Id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2785,7 +2786,7 @@ func (a *App) GetViewUsersRestrictions(rctx request.CTX, userID string) (*model.
 // PromoteGuestToUser Convert user's roles and all his membership's roles from
 // guest roles to regular user roles.
 func (a *App) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId string) *model.AppError {
-	nErr := a.ch.srv.userService.PromoteGuestToUser(user)
+	nErr := a.ch.srv.userService.PromoteGuestToUser(rctx, user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
 		return model.NewAppError("PromoteGuestToUser", "app.user.promote_guest.user_update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -2851,7 +2852,7 @@ func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppEr
 		return model.NewAppError("DemoteUserToGuest", "api.user.demote_user_to_guest.bot_not_allowed.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	demotedUser, nErr := a.ch.srv.userService.DemoteUserToGuest(user)
+	demotedUser, nErr := a.ch.srv.userService.DemoteUserToGuest(rctx, user)
 	a.InvalidateCacheForUser(user.Id)
 	if nErr != nil {
 		return model.NewAppError("DemoteUserToGuest", "app.user.demote_user_to_guest.user_update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
@@ -2939,7 +2940,7 @@ func (a *App) GetKnownUsers(userID string) ([]string, *model.AppError) {
 
 // ConvertBotToUser converts a bot to user.
 func (a *App) ConvertBotToUser(rctx request.CTX, bot *model.Bot, userPatch *model.UserPatch, sysadmin bool) (*model.User, *model.AppError) {
-	user, nErr := a.Srv().Store().User().Get(rctx.Context(), bot.UserId)
+	user, nErr := a.Srv().Store().User().Get(rctx, bot.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -3101,6 +3102,15 @@ func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadM
 	thread.Post.SanitizeNonIdentityProps()
 	a.populatePostListTranslations(rctx, &model.PostList{Posts: map[string]*model.Post{thread.Post.Id: thread.Post}})
 	return thread, nil
+}
+
+// sanitizeThreadResponse removes server-only data from a thread response before it is sent to clients.
+func (a *App) sanitizeThreadResponse(thread *model.ThreadResponse) {
+	a.sanitizeProfiles(thread.Participants, false)
+	if thread.Post != nil {
+		thread.Post.SanitizeProps()
+		thread.Post.StripActionIntegrations()
+	}
 }
 
 func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {

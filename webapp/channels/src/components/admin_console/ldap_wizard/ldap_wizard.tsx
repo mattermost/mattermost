@@ -186,6 +186,9 @@ const LDAPWizard = (props: Props) => {
                 disabled={isDisabled(setting)}
                 setByEnv={isSetByEnv(setting.key!, props.environmentConfig)}
                 setting={setting}
+                config={props.config}
+                state={state}
+                license={props.license}
             />
         );
     };

@@ -457,7 +457,7 @@ func (a *App) tryExecuteCustomCommand(rctx request.CTX, args *model.CommandArgs,
 
 	userChan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), args.UserId)
+		user, err := a.Srv().Store().User().Get(rctx, args.UserId)
 		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()

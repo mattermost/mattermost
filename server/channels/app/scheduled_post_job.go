@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -25,6 +26,8 @@ const (
 func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 	rctx = rctx.WithLogFields(mlog.String("component", "scheduled_post_job"))
 
+	// Intentionally not gated on FeatureFlags.RecurringScheduledPosts: existing recurring rows
+	// keep sending and advancing even after the flag is turned off.
 	if !*a.Config().ServiceSettings.ScheduledPosts {
 		return
 	}
@@ -92,32 +95,82 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 
 	// once all scheduled posts are processed, we need to update and close the old ones
 	// as we don't process pending scheduled posts more than 24 hours old.
-	if err := a.Srv().Store().ScheduledPost().UpdateOldScheduledPosts(beforeTime); err != nil {
+	if err := a.Srv().Store().ScheduledPost().UpdateOldScheduledPosts(afterTime); err != nil {
 		rctx.Logger().Error(
 			"App.ProcessScheduledPosts: failed to update old scheduled posts",
-			mlog.Int("before_time", beforeTime),
+			mlog.Int("cutoff_time", afterTime),
 			mlog.Err(err),
 		)
 	}
 }
 
+// scheduledPostDisposition is the explicit outcome of attempting to send one scheduled post,
+// so the batch loop never has to infer it from error/error-code combinations.
+type scheduledPostDisposition int
+
+const (
+	// scheduledPostPosted: the message was created; one-shots are done and series advance.
+	scheduledPostPosted scheduledPostDisposition = iota
+
+	// scheduledPostFailed: the attempt failed; the post keeps its error code so the user can
+	// see and fix it, and any series stops until rescheduled.
+	scheduledPostFailed
+
+	// scheduledPostUnsendable: the destination channel no longer exists, so the post — and any
+	// series — can never send and is permanently deleted.
+	scheduledPostUnsendable
+)
+
 // processScheduledPostBatch processes one batch
 func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*model.ScheduledPost) error {
 	var failedScheduledPosts []*model.ScheduledPost
-	var successfulScheduledPostIDs []string
+	var completedScheduledPosts []*model.ScheduledPost
+	var recurringScheduledPosts []*model.ScheduledPost
+	now := model.GetMillis()
 
 	for i := range scheduledPosts {
-		scheduledPost, err := a.postScheduledPost(rctx, scheduledPosts[i])
-		if err != nil {
-			rctx.Logger().Error("processScheduledPostBatch scheduled post processing failed", mlog.String("scheduled_post_id", scheduledPosts[i].Id), mlog.Err(err))
+		scheduledPost := scheduledPosts[i]
+
+		switch disposition, err := a.postScheduledPost(rctx, scheduledPost); disposition {
+		case scheduledPostFailed:
+			rctx.Logger().Error("processScheduledPostBatch scheduled post processing failed", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.Err(err))
+			failedScheduledPosts = append(failedScheduledPosts, scheduledPost)
+			continue
+		case scheduledPostUnsendable:
+			completedScheduledPosts = append(completedScheduledPosts, scheduledPost)
+			continue
+		case scheduledPostPosted:
+		default:
+			// An unhandled disposition is a bug; never delete on a guess. Fail the post so the
+			// user is told and the row survives.
+			rctx.Logger().Error("processScheduledPostBatch unhandled scheduled post disposition", mlog.Int("disposition", int(disposition)), mlog.String("scheduled_post_id", scheduledPost.Id))
+			scheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
 			failedScheduledPosts = append(failedScheduledPosts, scheduledPost)
 			continue
 		}
 
-		successfulScheduledPostIDs = append(successfulScheduledPostIDs, scheduledPost.Id)
+		if !scheduledPost.IsRecurring() {
+			completedScheduledPosts = append(completedScheduledPosts, scheduledPost)
+			continue
+		}
+
+		nextScheduledAt, err := scheduledPost.ComputeNextScheduledAt(now)
+		if err != nil {
+			// Fail the series loudly rather than leaving it due, which would repost it on every job run.
+			rctx.Logger().Error("processScheduledPostBatch failed to compute next occurrence of recurring scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.Err(err))
+			scheduledPost.ErrorCode = model.ScheduledPostErrorUnableToSend
+			failedScheduledPosts = append(failedScheduledPosts, scheduledPost)
+			continue
+		}
+
+		// The store resets these columns too; mirroring it here keeps the WS payload consistent.
+		scheduledPost.ScheduledAt = nextScheduledAt
+		scheduledPost.ErrorCode = ""
+		scheduledPost.ProcessedAt = 0
+		recurringScheduledPosts = append(recurringScheduledPosts, scheduledPost)
 	}
 
-	if err := a.handleSuccessfulScheduledPosts(rctx, successfulScheduledPostIDs); err != nil {
+	if err := a.handleSuccessfulScheduledPosts(rctx, completedScheduledPosts, recurringScheduledPosts); err != nil {
 		return errors.Wrap(err, "App.processScheduledPostBatch: failed to handle successfully posted scheduled posts")
 	}
 
@@ -125,8 +178,9 @@ func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*mode
 	return nil
 }
 
-// postScheduledPost processes an individual scheduled post
-func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
+// postScheduledPost attempts to send an individual scheduled post and returns an explicit
+// disposition. Failed dispositions set the post's ErrorCode for persistence and notification.
+func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (scheduledPostDisposition, error) {
 	// we'll process scheduled posts one by one.
 	// If an error occurs, we'll log it and move onto the next scheduled post
 
@@ -136,7 +190,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 			rctx.Logger().Warn("channel for scheduled post not found, setting error code", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.String("channel_id", scheduledPost.ChannelId), mlog.String("error_code", model.ScheduledPostErrorCodeChannelNotFound), mlog.Err(appErr))
 
 			scheduledPost.ErrorCode = model.ScheduledPostErrorCodeChannelNotFound
-			return scheduledPost, nil
+			return scheduledPostUnsendable, nil
 		}
 
 		rctx.Logger().Error(
@@ -148,7 +202,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		)
 
 		scheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
-		return scheduledPost, appErr
+		return scheduledPostFailed, appErr
 	}
 
 	errorCode, err := a.canPostScheduledPost(rctx, scheduledPost, channel)
@@ -162,7 +216,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 			mlog.Err(err),
 		)
 
-		return scheduledPost, err
+		return scheduledPostFailed, err
 	}
 
 	if scheduledPost.ErrorCode != "" {
@@ -174,7 +228,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 			mlog.String("error_code", scheduledPost.ErrorCode),
 		)
 
-		return scheduledPost, fmt.Errorf("App.processScheduledPostBatch: skipping posting a scheduled post as `can post` check failed, error_code: %s", scheduledPost.ErrorCode)
+		return scheduledPostFailed, fmt.Errorf("App.processScheduledPostBatch: skipping posting a scheduled post as `can post` check failed, error_code: %s", scheduledPost.ErrorCode)
 	}
 
 	post, err := scheduledPost.ToPost()
@@ -187,7 +241,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		)
 
 		scheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
-		return scheduledPost, err
+		return scheduledPostFailed, err
 	}
 
 	_, _, appErr = a.CreatePost(rctx.WithContext(context.WithValue(rctx.Context(), model.PostContextKeyIsScheduledPost, true)), post, channel, model.CreatePostFlags{
@@ -204,13 +258,10 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		)
 
 		scheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
-		return scheduledPost, appErr
+		return scheduledPostFailed, appErr
 	}
 
-	// send the WS event to delete the just posted scheduledPost from list
-	a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostDeleted, scheduledPost, "")
-
-	return scheduledPost, nil
+	return scheduledPostPosted, nil
 }
 
 // canPostScheduledPost checks whether the scheduled post be created based on permissions and other checks.
@@ -330,26 +381,55 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 	return "", nil
 }
 
-func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, successfulScheduledPostIDs []string) error {
-	if len(successfulScheduledPostIDs) > 0 {
-		// Successfully posted scheduled posts can be safely permanently deleted as no data is lost.
-		// The data is moved into the posts table.
-		err := a.Srv().Store().ScheduledPost().PermanentlyDeleteScheduledPosts(successfulScheduledPostIDs)
-		if err != nil {
+// handleSuccessfulScheduledPosts advances recurring scheduled posts to their next occurrence and
+// permanently deletes completed ones. The two operations touch disjoint rows and run
+// independently, so a store failure in one can't cause reposts in the other.
+func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, completedScheduledPosts, recurringScheduledPosts []*model.ScheduledPost) error {
+	var errs []error
+
+	if len(recurringScheduledPosts) > 0 {
+		if err := a.Srv().Store().ScheduledPost().UpdateRecurringScheduledPosts(recurringScheduledPosts); err != nil {
 			rctx.Logger().Error(
-				"App.handleSuccessfulScheduledPosts: failed to delete successfully posted scheduled posts",
-				mlog.Int("successfully_posted_count", len(successfulScheduledPostIDs)),
+				"App.handleSuccessfulScheduledPosts: failed to advance recurring scheduled posts",
+				mlog.Int("recurring_scheduled_post_count", len(recurringScheduledPosts)),
 				mlog.Err(err),
 			)
-			return errors.Wrap(err, "App.handleSuccessfulScheduledPosts: failed to delete successfully posted scheduled posts")
+			errs = append(errs, errors.Wrap(err, "App.handleSuccessfulScheduledPosts: failed to advance recurring scheduled posts"))
+		} else {
+			for _, sp := range recurringScheduledPosts {
+				a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostUpdated, sp, "")
+			}
 		}
 	}
 
-	return nil
+	if len(completedScheduledPosts) > 0 {
+		// Completed scheduled posts can be safely permanently deleted: posted ones have their
+		// data moved into the posts table, and ones whose channel is gone can never send.
+		toDelete := make([]string, len(completedScheduledPosts))
+		for i, sp := range completedScheduledPosts {
+			toDelete[i] = sp.Id
+		}
+
+		if err := a.Srv().Store().ScheduledPost().PermanentlyDeleteScheduledPosts(toDelete); err != nil {
+			rctx.Logger().Error(
+				"App.handleSuccessfulScheduledPosts: failed to delete completed scheduled posts",
+				mlog.Int("completed_count", len(toDelete)),
+				mlog.Err(err),
+			)
+			errs = append(errs, errors.Wrap(err, "App.handleSuccessfulScheduledPosts: failed to delete completed scheduled posts"))
+		} else {
+			for _, sp := range completedScheduledPosts {
+				a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostDeleted, sp, "")
+			}
+		}
+	}
+
+	return stderrors.Join(errs...)
 }
 
 func (a *App) handleFailedScheduledPosts(rctx request.CTX, failedScheduledPosts []*model.ScheduledPost) {
 	for _, failedScheduledPost := range failedScheduledPosts {
+		failedScheduledPost.ProcessedAt = model.GetMillis()
 		err := a.Srv().Store().ScheduledPost().UpdatedScheduledPost(failedScheduledPost)
 		if err != nil {
 			// we intentionally don't stop on error as its possible to continue updating other scheduled posts
