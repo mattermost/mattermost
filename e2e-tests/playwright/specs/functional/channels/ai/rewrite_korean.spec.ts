@@ -10,6 +10,9 @@ import {expect, test} from './ai_bridge_fixture';
 // the CDP IME helper drives composition synchronously so React never re-renders mid-composition
 // (the spec therefore passes on both the buggy and fixed code). The deterministic regression guard
 // for the fix is the "preserves in-progress IME composition" case in rewrite_prompt_input.test.tsx.
+/**
+ * @objective Verify the AI Rewrite custom prompt composes Korean Hangul via IME without dropping, doubling, or splitting characters
+ */
 test('AI Rewrite custom prompt handles Korean IME input correctly', {tag: '@ai_rewrite'}, async ({pw, browserName}) => {
     test.skip(browserName !== 'chromium', 'The API used to test this is only available in Chrome');
 
