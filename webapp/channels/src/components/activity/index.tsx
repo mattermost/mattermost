@@ -55,7 +55,7 @@ type ReactionGroup = {
 
 const TIMESTAMP_OPTS = {
     units: ['now' as const, 'minute' as const, 'hour' as const, 'day' as const, 'week' as const],
-    useTime: false,
+    useTime: false as const,
     day: 'numeric' as const,
 };
 

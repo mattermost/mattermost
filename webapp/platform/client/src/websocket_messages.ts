@@ -108,6 +108,11 @@ export type PostReaction =
         reaction: JsonEncodedValue<Reaction>;
     }>;
 
+export type ActivityReactionReceived =
+    BaseWebSocketMessage<WebSocketEvents.ActivityReactionReceived, {
+        activity: string;
+    }>;
+
 export type PostAcknowledgement =
     BaseWebSocketMessage<WebSocketEvents.PostAcknowledgementAdded | WebSocketEvents.PostAcknowledgementRemoved, {
         acknowledgement: JsonEncodedValue<PostAcknowledgementType>;
