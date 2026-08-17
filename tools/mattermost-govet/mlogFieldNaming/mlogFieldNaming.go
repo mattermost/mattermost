@@ -53,7 +53,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 
-			fun, ok := call.Fun.(*ast.SelectorExpr)
+			fun, ok := calleeSelector(call.Fun)
 			if !ok || !keyedFieldConstructors[fun.Sel.Name] {
 				return true
 			}
@@ -170,6 +170,23 @@ func startsNewWord(runes []rune, i int) bool {
 	}
 
 	return true
+}
+
+// calleeSelector returns the pkg.Name selector a call expression resolves to.
+// Most of the keyed constructors are generic, so an explicitly instantiated
+// call such as mlog.Int[int64](...) reaches here as an index expression
+// wrapping the selector rather than as the selector itself.
+func calleeSelector(fun ast.Expr) (*ast.SelectorExpr, bool) {
+	switch expr := ast.Unparen(fun).(type) {
+	case *ast.IndexExpr:
+		fun = expr.X
+	case *ast.IndexListExpr:
+		fun = expr.X
+	}
+
+	sel, ok := ast.Unparen(fun).(*ast.SelectorExpr)
+
+	return sel, ok
 }
 
 func isMlogPackage(pass *analysis.Pass, expr ast.Expr) bool {

@@ -20,12 +20,12 @@ func valid() {
 	mlog.Debug("message",
 		mlog.String("user_id", "abc"),
 		mlog.Int("count", 1),
-		mlog.Uint("size", 1),
+		mlog.Uint("size", uint(1)),
 		mlog.Float("ratio", 1.0),
 		mlog.Bool("is_leader", true),
 		mlog.Any("data", nil),
-		mlog.Array("ids", nil),
-		mlog.Map("props", nil),
+		mlog.Array("ids", []string(nil)),
+		mlog.Map("props", map[string]string(nil)),
 		mlog.Duration("elapsed", nil),
 		mlog.Millis("started_at", 0),
 		mlog.Time("created_at", time.Time{}),
@@ -55,7 +55,23 @@ func fixable() {
 		mlog.String("_user_id", ""),           // want `mlog field key "_user_id" is not snake_case, use "user_id"`
 		mlog.String("user__id", ""),           // want `mlog field key "user__id" is not snake_case, use "user_id"`
 		mlog.String("channelId2", ""),         // want `mlog field key "channelId2" is not snake_case, use "channel_id2"`
-		mlog.Array("userIDs", nil),            // want `mlog field key "userIDs" is not snake_case, use "user_ids"`
+		mlog.Array("userIDs", []string(nil)),  // want `mlog field key "userIDs" is not snake_case, use "user_ids"`
+	)
+}
+
+// instantiated covers the generic constructors called with explicit type
+// arguments, where the call expression wraps the selector in an index rather
+// than being the selector itself.
+func instantiated() {
+	mlog.Debug("message",
+		mlog.Int[int64]("count", 1),
+		mlog.Array[[]string, string]("ids", nil),
+		mlog.Map[map[string]string, string, string]("props", nil),
+
+		mlog.Int[int64]("perPage", 1),                                // want `mlog field key "perPage" is not snake_case, use "per_page"`
+		mlog.Array[[]string, string]("userIDs", nil),                 // want `mlog field key "userIDs" is not snake_case, use "user_ids"`
+		mlog.Map[map[string]string, string, string]("mapProps", nil), // want `mlog field key "mapProps" is not snake_case, use "map_props"`
+		mlog.String[string](camelKey, ""),                            // want `mlog field key "batchStartTime" is not snake_case$`
 	)
 }
 
@@ -84,18 +100,18 @@ func ignored(key string) {
 // dropping one from keyedFieldConstructors fails a test.
 func everyConstructor() {
 	mlog.Debug("message",
-		mlog.Any("anyValue", nil),               // want `mlog field key "anyValue" is not snake_case, use "any_value"`
-		mlog.Array("arrayIds", nil),             // want `mlog field key "arrayIds" is not snake_case, use "array_ids"`
-		mlog.Bool("boolFlag", true),             // want `mlog field key "boolFlag" is not snake_case, use "bool_flag"`
-		mlog.Duration("durationElapsed", nil),   // want `mlog field key "durationElapsed" is not snake_case, use "duration_elapsed"`
-		mlog.Float("floatRatio", 1.0),           // want `mlog field key "floatRatio" is not snake_case, use "float_ratio"`
-		mlog.Int("intCount", 1),                 // want `mlog field key "intCount" is not snake_case, use "int_count"`
-		mlog.Map("mapProps", nil),               // want `mlog field key "mapProps" is not snake_case, use "map_props"`
-		mlog.Millis("millisStartedAt", 0),       // want `mlog field key "millisStartedAt" is not snake_case, use "millis_started_at"`
-		mlog.NamedErr("namedErr", nil),          // want `mlog field key "namedErr" is not snake_case, use "named_err"`
-		mlog.String("stringName", ""),           // want `mlog field key "stringName" is not snake_case, use "string_name"`
-		mlog.Stringer("stringerType", nil),      // want `mlog field key "stringerType" is not snake_case, use "stringer_type"`
-		mlog.Time("timeCreatedAt", time.Time{}), // want `mlog field key "timeCreatedAt" is not snake_case, use "time_created_at"`
-		mlog.Uint("uintSize", 1),                // want `mlog field key "uintSize" is not snake_case, use "uint_size"`
+		mlog.Any("anyValue", nil),                    // want `mlog field key "anyValue" is not snake_case, use "any_value"`
+		mlog.Array("arrayIds", []string(nil)),        // want `mlog field key "arrayIds" is not snake_case, use "array_ids"`
+		mlog.Bool("boolFlag", true),                  // want `mlog field key "boolFlag" is not snake_case, use "bool_flag"`
+		mlog.Duration("durationElapsed", nil),        // want `mlog field key "durationElapsed" is not snake_case, use "duration_elapsed"`
+		mlog.Float("floatRatio", 1.0),                // want `mlog field key "floatRatio" is not snake_case, use "float_ratio"`
+		mlog.Int("intCount", 1),                      // want `mlog field key "intCount" is not snake_case, use "int_count"`
+		mlog.Map("mapProps", map[string]string(nil)), // want `mlog field key "mapProps" is not snake_case, use "map_props"`
+		mlog.Millis("millisStartedAt", 0),            // want `mlog field key "millisStartedAt" is not snake_case, use "millis_started_at"`
+		mlog.NamedErr("namedErr", nil),               // want `mlog field key "namedErr" is not snake_case, use "named_err"`
+		mlog.String("stringName", ""),                // want `mlog field key "stringName" is not snake_case, use "string_name"`
+		mlog.Stringer("stringerType", nil),           // want `mlog field key "stringerType" is not snake_case, use "stringer_type"`
+		mlog.Time("timeCreatedAt", time.Time{}),      // want `mlog field key "timeCreatedAt" is not snake_case, use "time_created_at"`
+		mlog.Uint("uintSize", uint(1)),               // want `mlog field key "uintSize" is not snake_case, use "uint_size"`
 	)
 }
