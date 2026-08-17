@@ -1158,6 +1158,30 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"Custom header name with a space",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:      new(GlobalrelayCustomerTypeA9),
+				EmailAddress:      new("valid@mattermost.com"),
+				SMTPUsername:      new("SomeUsername"),
+				SMTPPassword:      new("SomePassword"),
+				CustomHeaderName:  new("X Custom"),
+				CustomHeaderValue: new("Message"),
+			},
+			false,
+		},
+		{
+			"Custom header value may contain spaces and colons",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:      new(GlobalrelayCustomerTypeA9),
+				EmailAddress:      new("valid@mattermost.com"),
+				SMTPUsername:      new("SomeUsername"),
+				SMTPPassword:      new("SomePassword"),
+				CustomHeaderName:  new("X-Custom"),
+				CustomHeaderValue: new("some value: with punctuation"),
+			},
+			true,
+		},
 	}
 
 	for _, tt := range tests {

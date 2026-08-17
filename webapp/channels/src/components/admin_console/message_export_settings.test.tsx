@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
+import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
 
+import type {AdminConfig} from '@mattermost/types/config';
 import type {Job} from '@mattermost/types/jobs';
 
 import MessageExportSettingsDefault, {MessageExportSettings} from 'components/admin_console/message_export_settings';
@@ -195,6 +196,44 @@ describe('components/MessageExportSettings', () => {
 
         expect(screen.queryByTestId('globalRelayCustomHeaderNameinput')).not.toBeInTheDocument();
         expect(screen.queryByTestId('globalRelayCustomHeaderValueinput')).not.toBeInTheDocument();
+    });
+
+    test('should carry edited custom header values into the saved config', () => {
+        const config = {
+            MessageExportSettings: {
+                EnableExport: true,
+                ExportFormat: 'globalrelay',
+                DailyRunTime: '01:00',
+                ExportFromTimestamp: 12345678,
+                BatchSize: 10000,
+                GlobalRelaySettings: {
+                    CustomerType: 'CUSTOM',
+                    SMTPUsername: 'globalRelayUser',
+                    SMTPPassword: 'globalRelayPassword',
+                    EmailAddress: 'globalRelay@mattermost.com',
+                    CustomSMTPServerName: 'feeds.globalrelay.com',
+                    CustomSMTPPort: '25',
+                    CustomHeaderName: '',
+                    CustomHeaderValue: '',
+                },
+            },
+        } as unknown as AdminConfig;
+
+        const ref = React.createRef<MessageExportSettings>();
+        renderWithContext(
+            <MessageExportSettings
+                intl={defaultIntl}
+                config={config}
+                ref={ref}
+            />,
+        );
+
+        fireEvent.change(screen.getByTestId('globalRelayCustomHeaderNameinput'), {target: {value: 'X-ProofpointArchiveMediaType'}});
+        fireEvent.change(screen.getByTestId('globalRelayCustomHeaderValueinput'), {target: {value: 'Message'}});
+
+        const savedConfig = ref.current!.getConfigFromState(config);
+        expect(savedConfig.MessageExportSettings.GlobalRelaySettings.CustomHeaderName).toBe('X-ProofpointArchiveMediaType');
+        expect(savedConfig.MessageExportSettings.GlobalRelaySettings.CustomHeaderValue).toBe('Message');
     });
 });
 
