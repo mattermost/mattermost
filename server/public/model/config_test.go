@@ -1110,6 +1110,54 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 			},
 			true,
 		},
+		{
+			"Valid custom header",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:      new(GlobalrelayCustomerTypeA9),
+				EmailAddress:      new("valid@mattermost.com"),
+				SMTPUsername:      new("SomeUsername"),
+				SMTPPassword:      new("SomePassword"),
+				CustomHeaderName:  new("X-ProofpointArchiveMediaType"),
+				CustomHeaderValue: new("Message"),
+			},
+			true,
+		},
+		{
+			"Custom header name with CRLF",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:      new(GlobalrelayCustomerTypeA9),
+				EmailAddress:      new("valid@mattermost.com"),
+				SMTPUsername:      new("SomeUsername"),
+				SMTPPassword:      new("SomePassword"),
+				CustomHeaderName:  new("X-Custom\r\nInjected"),
+				CustomHeaderValue: new("Message"),
+			},
+			false,
+		},
+		{
+			"Custom header value with CRLF",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:      new(GlobalrelayCustomerTypeA9),
+				EmailAddress:      new("valid@mattermost.com"),
+				SMTPUsername:      new("SomeUsername"),
+				SMTPPassword:      new("SomePassword"),
+				CustomHeaderName:  new("X-Custom"),
+				CustomHeaderValue: new("Message\r\nInjected: evil"),
+			},
+			false,
+		},
+		{
+			"Custom header name with invalid character",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:      new(GlobalrelayCustomerTypeA9),
+				EmailAddress:      new("valid@mattermost.com"),
+				SMTPUsername:      new("SomeUsername"),
+				SMTPPassword:      new("SomePassword"),
+				CustomHeaderName:  new("X-Custom:Header"),
+				CustomHeaderValue: new("Message"),
+			},
+			false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -1141,6 +1189,14 @@ func TestMessageExportSetDefaults(t *testing.T) {
 	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
 	require.Equal(t, ComplianceExportTypeActiance, *mes.ExportFormat)
+}
+
+func TestGlobalRelayMessageExportSetDefaultsCustomHeader(t *testing.T) {
+	grs := &GlobalRelayMessageExportSettings{}
+	grs.SetDefaults()
+
+	require.Equal(t, "", *grs.CustomHeaderName)
+	require.Equal(t, "", *grs.CustomHeaderValue)
 }
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.T) {

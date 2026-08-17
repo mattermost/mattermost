@@ -12291,6 +12291,10 @@
     "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing."
   },
   {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderName must be a valid header name and neither the custom header name nor value may contain carriage return or line feed characters."
+  },
+  {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
     "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9', 'A10' or 'CUSTOM'."
   },
