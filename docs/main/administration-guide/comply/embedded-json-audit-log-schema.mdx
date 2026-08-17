@@ -604,7 +604,7 @@ From Mattermost v11.5.0, audit log entries for posts and content access events i
 </tr>
 <tr>
 <td><code>completeSaml</code></td>
-<td>Completing SAML authentication</td>
+<td>Completing SAML authentication. <code>meta.user_created</code> is true when the login provisioned a new account via JIT.</td>
 </tr>
 <tr>
 <td><code>extendSessionExpiry</code></td>
@@ -823,7 +823,7 @@ From Mattermost v11.5.0, audit log entries for posts and content access events i
 </tr>
 <tr>
 <td><code>completeOAuth</code></td>
-<td>Completing OAuth flow</td>
+<td>Completing OAuth/OIDC authentication. <code>meta.user_created</code> is true when the login provisioned a new account via JIT.</td>
 </tr>
 <tr>
 <td><code>createOAuthApp</code></td>
