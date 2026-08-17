@@ -81,49 +81,49 @@ export default function SessionAttributesDotMenu({field, onStageChange, disabled
                 'aria-label': formatMessage({id: 'admin.session_attributes.dotmenu.menu.aria_label', defaultMessage: 'Select an action'}),
             }}
         >
-            {!isServerAttribute && (
-                <>
-                    <Menu.SubMenu
-                        id={`${menuId}-ttl`}
-                        menuId={`${menuId}-ttl-menu`}
-                        leadingElement={<UpdateIcon size={18}/>}
-                        labels={(
-                            <FormattedMessage
-                                id='admin.session_attributes.dotmenu.ttl.label'
-                                defaultMessage='Time-to-live (TTL)'
-                            />
-                        )}
-                        trailingElements={(
-                            <>
-                                {formatDuration(attrs.ttl_seconds)}
-                                <ChevronRightIcon size={16}/>
-                            </>
-                        )}
-                    >
-                        {renderPresets(attrs.ttl_seconds, `session-attribute-ttl-option-${field.id}`, handleTtlChange)}
-                    </Menu.SubMenu>
-                    <Menu.SubMenu
-                        id={`${menuId}-grace`}
-                        menuId={`${menuId}-grace-menu`}
-                        leadingElement={<AlertCircleOutlineIcon size={18}/>}
-                        labels={(
-                            <FormattedMessage
-                                id='admin.session_attributes.dotmenu.grace.label'
-                                defaultMessage='Grace Period'
-                            />
-                        )}
-                        trailingElements={(
-                            <>
-                                {formatDuration(attrs.grace_period_seconds)}
-                                <ChevronRightIcon size={16}/>
-                            </>
-                        )}
-                    >
-                        {renderPresets(attrs.grace_period_seconds, `session-attribute-grace-option-${field.id}`, (seconds) => onStageChange(field.id, {grace_period_seconds: seconds}))}
-                    </Menu.SubMenu>
-                    <Menu.Separator/>
-                </>
-            )}
+            {!isServerAttribute && ([
+                <Menu.SubMenu
+                    key={`${menuId}-ttl`}
+                    id={`${menuId}-ttl`}
+                    menuId={`${menuId}-ttl-menu`}
+                    leadingElement={<UpdateIcon size={18}/>}
+                    labels={(
+                        <FormattedMessage
+                            id='admin.session_attributes.dotmenu.ttl.label'
+                            defaultMessage='Time-to-live (TTL)'
+                        />
+                    )}
+                    trailingElements={(
+                        <>
+                            {formatDuration(attrs.ttl_seconds)}
+                            <ChevronRightIcon size={16}/>
+                        </>
+                    )}
+                >
+                    {renderPresets(attrs.ttl_seconds, `session-attribute-ttl-option-${field.id}`, handleTtlChange)}
+                </Menu.SubMenu>,
+                <Menu.SubMenu
+                    key={`${menuId}-grace`}
+                    id={`${menuId}-grace`}
+                    menuId={`${menuId}-grace-menu`}
+                    leadingElement={<AlertCircleOutlineIcon size={18}/>}
+                    labels={(
+                        <FormattedMessage
+                            id='admin.session_attributes.dotmenu.grace.label'
+                            defaultMessage='Grace Period'
+                        />
+                    )}
+                    trailingElements={(
+                        <>
+                            {formatDuration(attrs.grace_period_seconds)}
+                            <ChevronRightIcon size={16}/>
+                        </>
+                    )}
+                >
+                    {renderPresets(attrs.grace_period_seconds, `session-attribute-grace-option-${field.id}`, (seconds) => onStageChange(field.id, {grace_period_seconds: seconds}))}
+                </Menu.SubMenu>,
+                <Menu.Separator key={`${menuId}-separator`}/>,
+            ])}
             {attrs.enabled ? (
                 <Menu.Item
                     id={`session-attribute-disable-${field.id}`}
