@@ -311,6 +311,8 @@
   "admin.access_control.policy.channels_affected": "Are you sure you want to save and apply the membership policy?",
   "admin.access_control.policy.edit_policy.access_rules.subtitle": "Select user attributes and values that qualifying users must have",
   "admin.access_control.policy.edit_policy.access_rules.title": "Attribute-based membership rules",
+  "admin.access_control.policy.edit_policy.channel_attribute_notice.text": "If any assigned channel is missing the referenced channel attribute, all members will be denied access. This notice is shown whenever a channel attribute is referenced in a policy.",
+  "admin.access_control.policy.edit_policy.channel_attribute_notice.title": "Potential for denied access",
   "admin.access_control.policy.edit_policy.channel_selector.addChannels": "Add channels",
   "admin.access_control.policy.edit_policy.channel_selector.remove": "Remove",
   "admin.access_control.policy.edit_policy.channel_selector.subtitle": "Add channels that this membership policy will apply to.",

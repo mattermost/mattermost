@@ -34,7 +34,7 @@ import Constants from 'utils/constants';
 import ChannelList from './channel_list';
 
 import CELEditor from '../editors/cel_editor/editor';
-import {excludeSessionAttributes, hasUsableAttributes, isSimpleExpression, toCELEditorAttributes, MASKED_VALUE_TOKEN_LITERAL} from '../editors/shared';
+import {excludeSessionAttributes, hasUsableAttributes, isSimpleExpression, referencesResourceAttributes, toCELEditorAttributes, MASKED_VALUE_TOKEN_LITERAL} from '../editors/shared';
 import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
@@ -455,6 +455,15 @@ function PolicyDetails({
         );
     };
 
+    // A channel that has no value for a referenced channel attribute cannot be
+    // evaluated, and the server fails closed by denying the whole rule — so every
+    // member of that channel loses access. Warn as soon as the rule references any
+    // channel attribute and the policy governs any channel, without checking which
+    // channels actually carry a value: reading that would cost one property-values
+    // request per assigned channel (the endpoint takes a single target id), and the
+    // broad warning is what the reviewer asked for.
+    const showChannelAttributeWarning = referencesResourceAttributes(expression) && hasChannels();
+
     // Deletion is blocked while the policy still has ANY assigned resource —
     // channels or teams. Teams aren't editable from this editor (MVF), so a
     // linked team must be removed from the per-team System Console page first.
@@ -550,6 +559,21 @@ function PolicyDetails({
                                     getHistory().push('/admin_console/system_attributes/user_attributes');
                                 },
                             }}
+                        />
+                    </div>)}
+                    {showChannelAttributeWarning && (<div className='admin-console__warning-notice'>
+                        <SectionNotice
+                            type='warning'
+                            title={
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.channel_attribute_notice.title'
+                                    defaultMessage='Potential for denied access'
+                                />
+                            }
+                            text={formatMessage({
+                                id: 'admin.access_control.policy.edit_policy.channel_attribute_notice.text',
+                                defaultMessage: 'If any assigned channel is missing the referenced channel attribute, all members will be denied access. This notice is shown whenever a channel attribute is referenced in a policy.',
+                            })}
                         />
                     </div>)}
                     <Card
