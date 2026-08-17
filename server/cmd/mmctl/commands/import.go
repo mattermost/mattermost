@@ -394,7 +394,7 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 		answer, _ := reader.ReadString('\n')
 		answer = strings.TrimSpace(strings.ToLower(answer))
 		if answer == "" || answer == "y" || answer == "yes" {
-			jobData["resume_from_line"] = strconv.Itoa(checkpoint)
+			jobData["checkpoint"] = strconv.Itoa(checkpoint)
 			jobData["checkpoint_file"] = checkpointFile
 			fmt.Printf("Resuming from line %d.\n", checkpoint)
 		} else {
