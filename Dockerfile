@@ -17,7 +17,7 @@ ENV GOOS=linux \
 RUN go build -trimpath -tags 'production' -o /out/mattermost ./cmd/mattermost
 
 # === Stage 2: final image ===
-FROM --platform=linux/amd64 mattermost/mattermost-team-edition:11.6
+FROM --platform=linux/amd64 mattermost/mattermost-team-edition:11.7.9
 
 # Replace server binary with patched build
 COPY --from=server-builder /out/mattermost /mattermost/bin/mattermost
