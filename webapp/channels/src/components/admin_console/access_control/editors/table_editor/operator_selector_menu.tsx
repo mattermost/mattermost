@@ -7,8 +7,9 @@ import React, {useMemo, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
-import {CheckAllIcon, CheckIcon, ElementOfIcon, EqualIcon, FunctionIcon, NotEqualVariantIcon} from '@mattermost/compass-icons/components';
+import {CheckAllIcon, CheckIcon, ClockOutlineIcon, ElementOfIcon, EqualIcon, FunctionIcon, NotEqualVariantIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import * as Menu from 'components/menu';
@@ -51,9 +52,13 @@ interface OperatorSelectorProps {
     disabled: boolean;
     onChange: (operator: string) => void;
     attributeType?: string;
+
+    // When provided (native attributes), the menu is restricted to exactly these
+    // operator labels and the multiselect heuristic is bypassed.
+    allowedOperators?: string[];
 }
 
-const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeType}: OperatorSelectorProps) => {
+const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeType, allowedOperators}: OperatorSelectorProps) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
 
@@ -65,6 +70,10 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
     const currentOperatorDescriptor = useMemo(() => {
         return getOperatorDescriptor(currentOperator);
     }, [currentOperator]);
+
+    const currentOperatorLabel = useMemo(() => {
+        return formatMessage(currentOperatorDescriptor.label);
+    }, [currentOperatorDescriptor, formatMessage]);
 
     const CurrentOperatorIcon = currentOperatorDescriptor.icon;
 
@@ -87,10 +96,24 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
     }, [attributeType]);
 
     const filteredOperators = useMemo(() => {
+        const matchesFilter = (desc: OperatorDescriptor) =>
+            formatMessage(desc.label).toLowerCase().includes(filter.toLowerCase());
+
+        // Native attributes advertise an explicit, ordered operator set; unknown
+        // labels are filtered out defensively.
+        if (allowedOperators) {
+            return allowedOperators.
+                map((label) => OPERATOR_DESCRIPTORS[label as OperatorLabel] as OperatorDescriptor | undefined).
+                filter((desc): desc is OperatorDescriptor => Boolean(desc)).
+                filter(matchesFilter);
+        }
+
+        // Otherwise fall back to the per-attribute-type ordering (which already
+        // excludes native-only operators such as "younger than").
         return operatorIds.
             map((id) => OPERATOR_DESCRIPTORS[id]).
-            filter((desc) => formatMessage(desc.label).toLowerCase().includes(filter.toLowerCase()));
-    }, [operatorIds, filter, formatMessage]);
+            filter(matchesFilter);
+    }, [operatorIds, allowedOperators, filter, formatMessage]);
 
     return (
         <Menu.Container
@@ -105,7 +128,9 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
                             size={18}
                             color='rgba(var(--center-channel-color-rgb), 0.64)'
                         />
-                        <FormattedMessage {...currentOperatorDescriptor.label}/>
+                        <WithTooltip title={currentOperatorLabel}>
+                            <span className='field-selector-menu-button__label'>{currentOperatorLabel}</span>
+                        </WithTooltip>
                     </>
                 ),
                 dataTestId: 'operatorSelectorMenuButton',
@@ -270,6 +295,62 @@ const OPERATOR_DESCRIPTORS: IDMappedObjects<OperatorDescriptor> = {
         label: defineMessage({
             id: 'admin.access_control.table_editor.operator.is_less_than',
             defaultMessage: 'is less than',
+        }),
+    },
+    [OperatorLabel.YOUNGER_THAN]: {
+        id: OperatorLabel.YOUNGER_THAN,
+        icon: ClockOutlineIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.younger_than',
+            defaultMessage: 'younger than (days)',
+        }),
+    },
+    [OperatorLabel.IN_CIDR]: {
+        id: OperatorLabel.IN_CIDR,
+        icon: FunctionIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.in_cidr',
+            defaultMessage: 'in IP range',
+        }),
+    },
+    [OperatorLabel.VERSION_IS]: {
+        id: OperatorLabel.VERSION_IS,
+        icon: EqualIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.version_is',
+            defaultMessage: 'version is',
+        }),
+    },
+    [OperatorLabel.VERSION_GREATER_THAN]: {
+        id: OperatorLabel.VERSION_GREATER_THAN,
+        icon: GreaterThanIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.version_greater_than',
+            defaultMessage: 'version is greater than',
+        }),
+    },
+    [OperatorLabel.VERSION_AT_LEAST]: {
+        id: OperatorLabel.VERSION_AT_LEAST,
+        icon: GreaterThanOrEqualIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.version_at_least',
+            defaultMessage: 'version is at least',
+        }),
+    },
+    [OperatorLabel.VERSION_LESS_THAN]: {
+        id: OperatorLabel.VERSION_LESS_THAN,
+        icon: LessThanIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.version_less_than',
+            defaultMessage: 'version is less than',
+        }),
+    },
+    [OperatorLabel.VERSION_AT_MOST]: {
+        id: OperatorLabel.VERSION_AT_MOST,
+        icon: LessThanOrEqualIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.version_at_most',
+            defaultMessage: 'version is at most',
         }),
     },
 };

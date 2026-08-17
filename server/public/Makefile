@@ -1,7 +1,9 @@
+.PHONY: test-public
 test-public: gotestsum
 	$(GOBIN)/gotestsum ./public/... -- $(GOFLAGS)
 
 ## Generates mock golang interfaces for testing
+.PHONY: mocks-public
 mocks-public:
 	$(GO) install github.com/golang/mock/mockgen@v1.6.0
 	$(GOBIN)/mockgen -destination public/pluginapi/experimental/panel/mocks/mock_panel.go -package mock_panel github.com/mattermost/mattermost/server/public/pluginapi/experimental/panel Panel

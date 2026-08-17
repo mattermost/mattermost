@@ -56,6 +56,7 @@ import BillingHistory, {searchableStrings as billingHistorySearchableStrings} fr
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
+import BoardAttributes, {searchableStrings as boardAttributesSearchableStrings} from './board_attributes';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
 import ClassificationMarkings, {searchableStrings as classificationMarkingsSearchableStrings} from './classification_markings';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
@@ -92,8 +93,11 @@ import AttributeBasedAccessControlFeatureDiscovery from './feature_discovery/fea
 import AutoTranslationFeatureDiscovery from './feature_discovery/features/auto_translation';
 import BurnOnReadSVG from './feature_discovery/features/images/burn_on_read_svg';
 import IntuneMAMSvg from './feature_discovery/features/images/intune_mam_svg';
+import SessionAttributesFeatureDiscovery from './feature_discovery/features/session_attributes';
 import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
+import GlobalAttributes, {searchableStrings as globalAttributesSearchableStrings} from './global_attributes';
+import AttributeDetails from './global_attributes/attribute_details';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import IPFiltering from './ip_filtering';
@@ -114,10 +118,12 @@ import PermissionSystemSchemeSettings from './permission_schemes_settings/permis
 import PermissionTeamSchemeSettings from './permission_schemes_settings/permission_team_scheme_settings';
 import {searchableStrings as pluginManagementSearchableStrings} from './plugin_management/plugin_management';
 import PushNotificationsSettings, {searchableStrings as pushSearchableStrings} from './push_settings';
+import RevokeNonCompliantTokensButton from './revoke_non_compliant_tokens_button';
 import SecureConnections, {searchableStrings as secureConnectionsSearchableStrings} from './secure_connections';
 import SecureConnectionDetail from './secure_connections/secure_connection_detail';
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
+import SessionAttributesPage, {searchableStrings as sessionAttributesSearchableStrings} from './session_attributes';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
 import SystemProperties, {searchableStrings as systemPropertiesSearchableStrings} from './system_properties';
 import SystemRoles from './system_roles';
@@ -130,6 +136,7 @@ import ChannelDetails from './team_channel_settings/channel/details';
 import TeamSettings from './team_channel_settings/team';
 import TeamDetails from './team_channel_settings/team/details';
 import type {AdminDefinition as AdminDefinitionType} from './types';
+import UnlimitedNumberSetting from './unlimited_number_setting';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
 
@@ -633,10 +640,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/user_attributes',
                 title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
                 searchableStrings: systemPropertiesSearchableStrings,
-                isHidden: it.not(it.all(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
-                )),
+                isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                 schema: {
                     id: 'SystemProperties',
                     component: SystemProperties,
@@ -646,10 +650,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/user_attributes',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
-                isHidden: it.any(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.configIsFalse('FeatureFlags', 'CustomProfileAttributes'),
-                ),
+                isHidden: it.minLicenseTier(LicenseSkus.Enterprise),
                 schema: {
                     id: 'SystemProperties',
                     name: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
@@ -664,13 +665,89 @@ const AdminDefinition: AdminDefinitionType = {
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
             },
+            session_attributes: {
+                url: 'system_attributes/session_attributes',
+                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
+                searchableStrings: sessionAttributesSearchableStrings,
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'SessionAttributes',
+                    component: SessionAttributesPage,
+                },
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+            },
+            session_attributes_feature_discovery: {
+                url: 'system_attributes/session_attributes',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
+                isHidden: it.any(
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
+                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                ),
+                schema: {
+                    id: 'SessionAttributes',
+                    name: defineMessage({id: 'admin.session_attributes.title', defaultMessage: 'Session Attributes'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: SessionAttributesFeatureDiscovery,
+                            key: 'SessionAttributesFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
+            },
+            board_attributes: {
+                url: 'system_attributes/board_attributes',
+                title: defineMessage({id: 'admin.sidebar.board_attributes', defaultMessage: 'Board Attributes'}),
+                searchableStrings: boardAttributesSearchableStrings,
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'IntegratedBoards'),
+                )),
+                schema: {
+                    id: 'BoardAttributes',
+                    component: BoardAttributes,
+                },
+            },
+            global_attribute_details: {
+                url: 'system_attributes/manage_attributes/attribute_details',
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
+                )),
+                isDisabled: it.not(it.isSystemAdmin),
+                schema: {
+                    id: 'GlobalAttributeDetails',
+                    component: AttributeDetails,
+                },
+            },
+            global_attributes: {
+                url: 'system_attributes/manage_attributes',
+                title: defineMessage({id: 'admin.sidebar.global_attributes', defaultMessage: 'Manage Attributes'}),
+                searchableStrings: globalAttributesSearchableStrings,
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
+                )),
+                isDisabled: it.not(it.isSystemAdmin),
+                schema: {
+                    id: 'GlobalAttributes',
+                    component: GlobalAttributes,
+                },
+            },
             attribute_based_access_control: {
                 url: 'system_attributes/attribute_based_access_control',
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
                 isHidden: it.any(
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
@@ -696,6 +773,58 @@ const AdminDefinition: AdminDefinitionType = {
                                         ),
                                     },
                                 },
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.EnableAccessControlAuditLogging',
+                                    label: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.title', defaultMessage: 'Enable audit logging for access control decisions'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.desc', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. Requires server audit logging to be active.'}),
+                                    disabled_help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.disabled', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).'}),
+                                    isDisabled: it.any(
+                                        it.stateIsFalse('AccessControlSettings.EnableAttributeBasedAccessControl'),
+                                        it.clientConfigIsFalse('AuditLoggingActive'),
+                                    ),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.EnableChannelPolicyIndicators',
+                                    label: defineMessage({id: 'admin.accesscontrol.enableChannelPolicyIndicatorsTitle', defaultMessage: 'Show channel access indicators to end users'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableChannelPolicyIndicatorsDesc', defaultMessage: 'When enabled, channels restricted by a membership access policy display the matching user attributes as tags in the channel members list and the invite dialog. Disable this to avoid revealing policy details to end users.'}),
+                                    isDisabled: it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'admin.accesscontrol.session_attributes',
+                            title: defineMessage({id: 'admin.accesscontrol.session_attributes', defaultMessage: 'Session Attributes'}),
+                            isHidden: it.any(
+                                it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                                it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                            ),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.TrustProxyDeviceIdentityHeader',
+                                    label: defineMessage({id: 'admin.accesscontrol.trustProxyDeviceIdentityHeader.title', defaultMessage: 'Trust proxy device identity header'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.trustProxyDeviceIdentityHeader.desc', defaultMessage: 'When enabled, the **TLS device ID** attribute is populated from the `X-Mattermost-Session-Attribute-Device-Id` request header, letting a reverse proxy that performs mutual TLS assert a device identity that the client cannot forge. **Note:** The device identity is accepted from the request header, so all clients must connect to Mattermost through a proxy that sets it and strips it from inbound requests.'}),
+                                    help_text_markdown: true,
+                                    isHidden: it.any(
+                                        it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                                        it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                                    ),
+                                    isDisabled: it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.EnforceDeviceIDConsistency',
+                                    label: defineMessage({id: 'admin.accesscontrol.enforceDeviceIdConsistency.title', defaultMessage: 'Enforce device ID consistency'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enforceDeviceIdConsistency.desc', defaultMessage: 'When enabled, the **TLS device ID**, **Device ID**, and **Hardware ID** attributes are compared against the values cached for a session. If one of them changes mid-session, the session is revoked, the user must log in again, and the revocation is recorded in the audit log. This mitigates token theft, since a stolen token replayed from another device reports a different identifier. When disabled, a changed device identity overwrites the cached value and the session continues. **Note:** Confirm that these attributes report stable values across your fleet before enabling, since an identifier that legitimately changes will log users out.'}),
+                                    help_text_markdown: true,
+                                    isHidden: it.any(
+                                        it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                                        it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                                    ),
+                                    isDisabled: it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                                },
                             ],
                         },
                     ],
@@ -706,10 +835,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/attribute_based_access_control',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
-                isHidden: it.any(
-                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
-                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
-                ),
+                isHidden: it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
                 schema: {
                     id: 'AttributeBasedAccessControl',
                     name: defineMessage({id: 'admin.accesscontrol.title', defaultMessage: 'Attribute-Based Access'}),
@@ -724,52 +850,14 @@ const AdminDefinition: AdminDefinitionType = {
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
             },
-            session_attributes: {
-                url: 'system_attributes/session_attributes',
-                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
-                isHidden: it.any(
-                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
-                ),
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                schema: {
-                    id: 'SessionAttributes',
-                    name: defineMessage({id: 'admin.session_attributes.title', defaultMessage: 'Session Attributes'}),
-                    sections: [
-                        {
-                            key: 'admin.session_attributes.settings',
-                            settings: [
-                                {
-                                    type: 'bool',
-                                    key: 'AccessControlSettings.TrustProxyDeviceIdentityHeader',
-                                    label: defineMessage({id: 'admin.session_attributes.trustProxyDeviceIdentityHeaderTitle', defaultMessage: 'Trust proxy device identity header'}),
-                                    help_text: defineMessage({id: 'admin.session_attributes.trustProxyDeviceIdentityHeaderDesc', defaultMessage: 'When enabled, the server trusts the device identity provided by a reverse proxy in the request header. Only enable this when a trusted proxy sets the device identity header.'}),
-                                },
-                                {
-                                    type: 'bool',
-                                    key: 'AccessControlSettings.EnforceDeviceIDConsistency',
-                                    label: defineMessage({id: 'admin.session_attributes.enforceDeviceIDConsistencyTitle', defaultMessage: 'Enforce device ID consistency'}),
-                                    help_text: defineMessage({id: 'admin.session_attributes.enforceDeviceIDConsistencyDesc', defaultMessage: 'When enabled, the session is revoked if the device identity changes from the value previously recorded for that session.'}),
-                                },
-                            ],
-                        },
-                    ],
-                },
-                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
-            },
             membership_policy_details_edit: {
                 url: `system_attributes/membership_policies/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
-                isDisabled: it.any(
-                    it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
-                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
                     id: 'AccessControlPolicy',
                     component: PolicyDetails,
@@ -781,7 +869,6 @@ const AdminDefinition: AdminDefinitionType = {
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
@@ -795,7 +882,6 @@ const AdminDefinition: AdminDefinitionType = {
                 isHidden: it.any(
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -833,12 +919,10 @@ const AdminDefinition: AdminDefinitionType = {
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                     it.configIsFalse('FeatureFlags', 'PermissionPolicies'),
                 ),
                 isDisabled: it.any(
                     it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                     it.configIsFalse('FeatureFlags', 'PermissionPolicies'),
                 ),
                 schema: {
@@ -852,7 +936,6 @@ const AdminDefinition: AdminDefinitionType = {
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                     it.configIsFalse('FeatureFlags', 'PermissionPolicies'),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -867,7 +950,6 @@ const AdminDefinition: AdminDefinitionType = {
                 isHidden: it.any(
                     it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                     it.configIsFalse('FeatureFlags', 'PermissionPolicies'),
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                 ),
@@ -1064,6 +1146,11 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.EnableInsecureOutgoingConnections',
                             label: defineMessage({id: 'admin.service.insecureTlsTitle', defaultMessage: 'Enable Insecure Outgoing Connections: '}),
                             help_text: defineMessage({id: 'admin.service.insecureTlsDesc', defaultMessage: 'When true, any outgoing HTTPS requests will accept unverified, self-signed certificates. For example, outgoing webhooks to a server with a self-signed TLS certificate, using any domain, will be allowed. Note that this makes these connections susceptible to man-in-the-middle attacks.'}),
+                            production_warning: {
+                                isEnabled: it.stateIsTrue('ServiceSettings.EnableInsecureOutgoingConnections'),
+                                title: defineMessage({id: 'admin.service.insecureTlsProductionWarning.title', defaultMessage: 'Insecure outgoing connections are not recommended for production environments'}),
+                                text: defineMessage({id: 'admin.service.insecureTlsProductionWarning.text', defaultMessage: 'Mattermost will not verify TLS certificates for outbound connections, exposing them to man-in-the-middle attacks. Enable only for testing.'}),
+                            },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
                         {
@@ -1551,352 +1638,6 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
             },
-            export_storage: {
-                url: 'environment/export_storage',
-                title: defineMessage({id: 'admin.sidebar.exportStorage', defaultMessage: 'Export Storage'}),
-                isHidden: it.any(
-                    it.not(it.licensedForFeature('Cloud')),
-                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
-                    it.configIsFalse('FeatureFlags', 'CloudDedicatedExportUI'),
-                ),
-                schema: {
-                    id: 'ExportFileSettings',
-                    name: defineMessage({id: 'admin.sidebar.exportStorage', defaultMessage: 'Export Storage'}),
-                    settings: [
-                        {
-                            type: 'bool',
-                            key: 'FileSettings.DedicatedExportStore',
-                            label: defineMessage({id: 'admin.exportStorage.dedicatedExportStore', defaultMessage: 'Enable Dedicated Export Store:'}),
-                            help_text: defineMessage({id: 'admin.exportStorage.dedicatedExportStoreDescription', defaultMessage: 'When enabled, Mattermost will use a dedicated export storage bucket for all export operations. This is required for Mattermost Cloud deployments.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                        },
-                        {
-                            type: 'dropdown',
-                            key: 'FileSettings.ExportDriverName',
-                            label: defineMessage({id: 'admin.exportStorage.exportDriverName', defaultMessage: 'Export Storage Driver:'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                            isHidden: it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            options: [
-                                {
-                                    value: FILE_STORAGE_DRIVER_S3,
-                                    display_name: defineMessage({id: 'admin.image.storeAmazonS3', defaultMessage: 'Amazon S3'}),
-                                },
-                                {
-                                    value: FILE_STORAGE_DRIVER_AZURE,
-                                    display_name: defineMessage({id: 'admin.image.storeAzureBlob', defaultMessage: 'Azure Blob Storage'}),
-                                },
-                            ],
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportDirectory',
-                            label: defineMessage({id: 'admin.exportStorage.exportDirectory', defaultMessage: 'Export Directory'}),
-                            help_text: defineMessage({id: 'admin.image.exportDirectoryDescription', defaultMessage: 'Directory to which files are written. If blank, defaults to ./data/.'}),
-                            placeholder: defineMessage({id: 'admin.image.localExample', defaultMessage: 'E.g.: "./data/"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.stateEquals('FileSettings.DedicatedExportStore', false),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAmazonS3AccessKeyId',
-                            label: defineMessage({id: 'admin.image.amazonS3IdTitle', defaultMessage: 'Amazon S3 Access Key ID:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3IdDescription', defaultMessage: '(Optional) Only required if you do not want to authenticate to S3 using an <link>IAM role</link>. Enter the Access Key ID provided by your Amazon EC2 administrator.'}), // eslint-disable-line formatjs/enforce-placeholders -- link provided via help_text_values
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            placeholder: defineMessage({id: 'admin.image.amazonS3IdExample', defaultMessage: 'E.g.: "AKIADTOVBGERKLCBV"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAmazonS3SecretAccessKey',
-                            label: defineMessage({id: 'admin.image.amazonS3SecretTitle', defaultMessage: 'Amazon S3 Secret Access Key:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3SecretDescription', defaultMessage: '(Optional) The secret access key associated with your Amazon S3 Access Key ID.'}),
-                            placeholder: defineMessage({id: 'admin.image.amazonS3SecretExample', defaultMessage: 'E.g.: "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAmazonS3Bucket',
-                            label: defineMessage({id: 'admin.image.amazonS3BucketTitle', defaultMessage: 'Amazon S3 Bucket:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3BucketDescription', defaultMessage: 'Name you selected for your S3 bucket in AWS.'}),
-                            placeholder: defineMessage({id: 'admin.image.amazonS3BucketExampleExport', defaultMessage: 'E.g.: "mattermost-export"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAmazonS3PathPrefix',
-                            label: defineMessage({id: 'admin.image.amazonS3PathPrefixTitle', defaultMessage: 'Amazon S3 Path Prefix:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3PathPrefixDescription', defaultMessage: 'Prefix you selected for your S3 bucket in AWS.'}),
-                            placeholder: defineMessage({id: 'admin.image.amazonS3PathPrefixExample', defaultMessage: 'E.g.: "subdir1" or you can leave it empty.'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAmazonS3Region',
-                            label: defineMessage({id: 'admin.image.amazonS3RegionTitle', defaultMessage: 'Amazon S3 Region:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3RegionDescription', defaultMessage: 'AWS region you selected when creating your S3 bucket. If no region is set, Mattermost attempts to get the appropriate region from AWS, or sets it to "us-east-1" if none found.'}),
-                            placeholder: defineMessage({id: 'admin.image.amazonS3RegionExample', defaultMessage: 'E.g.: "us-east-1"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAmazonS3Endpoint',
-                            label: defineMessage({id: 'admin.image.amazonS3EndpointTitle', defaultMessage: 'Amazon S3 Endpoint:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3EndpointDescription', defaultMessage: 'Hostname of your S3 Compatible Storage provider. Defaults to "s3.amazonaws.com".'}),
-                            placeholder: defineMessage({id: 'admin.image.amazonS3EndpointExample', defaultMessage: 'E.g.: "s3.amazonaws.com"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'FileSettings.ExportAmazonS3SSL',
-                            label: defineMessage({id: 'admin.image.amazonS3SSLTitle', defaultMessage: 'Enable Secure Amazon S3 Connections:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3SSLDescription', defaultMessage: 'When false, allow insecure connections to Amazon S3. Defaults to secure connections only.'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'FileSettings.ExportAmazonSignV2',
-                            label: defineMessage({id: 'admin.image.amazonS3SignV2', defaultMessage: 'Enable Sign V2'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3SignV2Description', defaultMessage: 'When true, use Sign V2 for Amazon S3 connections'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'FileSettings.ExportAmazonS3SSE',
-                            label: defineMessage({id: 'admin.image.amazonS3SSETitle', defaultMessage: 'Enable Server-Side Encryption for Amazon S3:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3SSEDescription', defaultMessage: 'When true, encrypt files in Amazon S3 using server-side encryption with Amazon S3-managed keys. See <link>documentation</link> to learn more.'}), // eslint-disable-line formatjs/enforce-placeholders -- link provided via help_text_values
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href={DocLinks.SESSION_LENGTHS}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAmazonS3StorageClass',
-                            label: defineMessage({id: 'admin.image.amazonS3StorageClassTitle', defaultMessage: 'Amazon S3 Storage Class:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3StorageClassDescription', defaultMessage: 'Storage class for your S3 Compatible Storage provider. Defaults to empty.'}),
-                            placeholder: defineMessage({id: 'admin.image.amazonS3StorageClassExample', defaultMessage: 'E.g.: "STANDARD" or "STANDARD_IA"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_S3)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'dropdown',
-                            key: 'FileSettings.ExportAzureCloud',
-                            label: defineMessage({id: 'admin.image.azureCloudTitle', defaultMessage: 'Azure Cloud:'}),
-                            help_text: defineMessage({id: 'admin.image.azureCloudDescription', defaultMessage: 'The Azure cloud to connect to. Choose "Azure Commercial" or "Azure Government" to use the well-known endpoint for that cloud; only the storage account name is required. Choose "Custom Endpoint" to point at an arbitrary host such as Azurite, a reverse proxy, or any other Azure cloud (for example Azure China).'}),
-                            options: [
-                                {
-                                    value: AZURE_CLOUD_COMMERCIAL,
-                                    display_name: defineMessage({id: 'admin.image.azureCloudCommercial', defaultMessage: 'Azure Commercial'}),
-                                },
-                                {
-                                    value: AZURE_CLOUD_GOVERNMENT,
-                                    display_name: defineMessage({id: 'admin.image.azureCloudGovernment', defaultMessage: 'Azure Government'}),
-                                },
-                                {
-                                    value: AZURE_CLOUD_CUSTOM,
-                                    display_name: defineMessage({id: 'admin.image.azureCloudCustom', defaultMessage: 'Custom Endpoint'}),
-                                },
-                            ],
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAzureStorageAccount',
-                            label: defineMessage({id: 'admin.image.azureStorageAccountTitle', defaultMessage: 'Azure Storage Account:'}),
-                            help_text: defineMessage({id: 'admin.image.azureStorageAccountDescription', defaultMessage: 'The name of your Azure Storage account.'}),
-                            placeholder: defineMessage({id: 'admin.image.azureStorageAccountExample', defaultMessage: 'E.g.: "mattermoststorage"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAzureContainer',
-                            label: defineMessage({id: 'admin.image.azureContainerTitle', defaultMessage: 'Azure Container:'}),
-                            help_text: defineMessage({id: 'admin.image.azureContainerExportDescription', defaultMessage: 'Name of the container in your Azure Storage account.'}),
-                            placeholder: defineMessage({id: 'admin.image.azureContainerExportExample', defaultMessage: 'E.g.: "mattermost-export"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAzurePathPrefix',
-                            label: defineMessage({id: 'admin.image.azurePathPrefixTitle', defaultMessage: 'Azure Path Prefix:'}),
-                            help_text: defineMessage({id: 'admin.image.azurePathPrefixDescription', defaultMessage: 'Optional path prefix to use for blobs in your Azure container.'}),
-                            placeholder: defineMessage({id: 'admin.image.azurePathPrefixExample', defaultMessage: 'E.g.: "files/" or leave empty'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'dropdown',
-                            key: 'FileSettings.ExportAzureAuthMode',
-                            label: defineMessage({id: 'admin.image.azureAuthModeTitle', defaultMessage: 'Azure Authentication:'}),
-                            help_text: defineMessage({id: 'admin.image.azureAuthModeDescription', defaultMessage: '"Shared key" signs requests with the Storage Account access key.\n \n"Default credential (Microsoft Entra ID)" reads the identity from the host environment - managed identity on Azure-hosted deployments, workload identity, service principal env vars, or "az login" for local development. No access key required.'}), // eslint-disable-line formatjs/no-multiple-whitespaces
-                            help_text_markdown: true,
-                            options: [
-                                {
-                                    value: AZURE_AUTH_MODE_SHARED_KEY,
-                                    display_name: defineMessage({id: 'admin.image.azureAuthModeSharedKey', defaultMessage: 'Shared key'}),
-                                },
-                                {
-                                    value: AZURE_AUTH_MODE_DEFAULT_CREDENTIAL,
-                                    display_name: defineMessage({id: 'admin.image.azureAuthModeDefaultCredential', defaultMessage: 'Default credential (Microsoft Entra ID)'}),
-                                },
-                            ],
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAzureAccessKey',
-                            label: defineMessage({id: 'admin.image.azureAccessKeyTitle', defaultMessage: 'Azure Storage Account Key:'}),
-                            help_text: defineMessage({id: 'admin.image.azureAccessKeyDescription', defaultMessage: 'The shared key for your Azure Storage account.'}),
-                            placeholder: defineMessage({id: 'admin.image.azureAccessKeyExample', defaultMessage: 'E.g.: "9MZbtYgfq18PJ8PbRaJ5u91IH8izHvReTbcuQzMl+So="'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                                it.not(it.stateEquals('FileSettings.ExportAzureAuthMode', AZURE_AUTH_MODE_SHARED_KEY)),
-                            ),
-                            isHidden: it.any(
-                                it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                                it.not(it.stateEquals('FileSettings.ExportAzureAuthMode', AZURE_AUTH_MODE_SHARED_KEY)),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'FileSettings.ExportAzureEndpoint',
-                            label: defineMessage({id: 'admin.image.azureEndpointTitle', defaultMessage: 'Custom Azure Endpoint:'}),
-                            help_text: defineMessage({id: 'admin.image.azureEndpointDescription', defaultMessage: 'Full Blob service URL, including scheme and storage account. Mattermost does not modify this URL, so the storage account must already be embedded in the hostname (vhost-style, e.g. "https://acmemattermost.blob.core.chinacloudapi.cn/") or in the path (path-style, e.g. "http://localhost:10000/devstoreaccount1/"). Shared-key auth signs against the host this URL points at, so make sure it actually serves the storage account named above.'}),
-                            placeholder: defineMessage({id: 'admin.image.azureEndpointExample', defaultMessage: 'E.g.: "http://localhost:10000/devstoreaccount1/"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                                it.not(it.stateEquals('FileSettings.ExportAzureCloud', AZURE_CLOUD_CUSTOM)),
-                            ),
-                            isHidden: it.any(
-                                it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                                it.not(it.stateEquals('FileSettings.ExportAzureCloud', AZURE_CLOUD_CUSTOM)),
-                            ),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'FileSettings.ExportAzureSSL',
-                            label: defineMessage({id: 'admin.image.azureSSLTitle', defaultMessage: 'Enable Secure Azure Blob Storage Connections:'}),
-                            help_text: defineMessage({id: 'admin.image.azureSSLDescription', defaultMessage: 'When false, allow insecure connections to Azure Blob Storage. Defaults to secure connections only. Ignored for the Custom Endpoint cloud (the scheme is part of the endpoint URL).'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                                it.stateEquals('FileSettings.ExportAzureCloud', AZURE_CLOUD_CUSTOM),
-                            ),
-                            isHidden: it.any(
-                                it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                                it.stateEquals('FileSettings.ExportAzureCloud', AZURE_CLOUD_CUSTOM),
-                            ),
-                        },
-                        {
-                            type: 'number',
-                            key: 'FileSettings.ExportAzureRequestTimeoutMilliseconds',
-                            label: defineMessage({id: 'admin.image.azureRequestTimeoutTitle', defaultMessage: 'Azure Request Timeout (Milliseconds):'}),
-                            help_text: defineMessage({id: 'admin.image.azureRequestTimeoutDescription', defaultMessage: 'Number of milliseconds to wait for a response from Azure Blob Storage before timing out.'}),
-                            placeholder: defineMessage({id: 'admin.image.azureRequestTimeoutExample', defaultMessage: 'E.g.: "30000"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                                it.stateEquals('FileSettings.DedicatedExportStore', false),
-                            ),
-                            isHidden: it.any(it.not(it.stateEquals('FileSettings.ExportDriverName', FILE_STORAGE_DRIVER_AZURE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
-                        },
-                        {
-                            type: 'button',
-                            action: testFileStoreConnection,
-                            key: 'TestFileStoreConnection',
-                            label: defineMessage({id: 'admin.filestore.connectionTest', defaultMessage: 'Test Connection'}),
-                            loading: defineMessage({id: 'admin.filestore.testing', defaultMessage: 'Testing...'}),
-                            error_message: defineMessage({id: 'admin.filestore.testFail', defaultMessage: 'Connection unsuccessful: {error}'}), // eslint-disable-line formatjs/enforce-placeholders -- error provided at runtime
-                            success_message: defineMessage({id: 'admin.filestore.testSuccess', defaultMessage: 'Connection was successful'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
-                            isHidden: it.stateEquals('FileSettings.DedicatedExportStore', false),
-                        },
-                    ],
-                },
-            },
             image_proxy: {
                 url: 'environment/image_proxy',
                 title: defineMessage({id: 'admin.sidebar.imageProxy', defaultMessage: 'Image Proxy'}),
@@ -2063,6 +1804,11 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'EmailSettings.SkipServerCertificateVerification',
                             label: defineMessage({id: 'admin.environment.smtp.skipServerCertificateVerification.title', defaultMessage: 'Skip Server Certificate Verification:'}),
                             help_text: defineMessage({id: 'admin.environment.smtp.skipServerCertificateVerification.description', defaultMessage: 'When true, Mattermost will not verify the email server certificate.'}),
+                            production_warning: {
+                                isEnabled: it.stateIsTrue('EmailSettings.SkipServerCertificateVerification'),
+                                title: defineMessage({id: 'admin.environment.smtp.skipServerCertificateVerificationProductionWarning.title', defaultMessage: 'Skipping certificate verification is not recommended for production environments'}),
+                                text: defineMessage({id: 'admin.environment.smtp.skipServerCertificateVerificationProductionWarning.text', defaultMessage: "Mattermost will not validate the SMTP server's TLS certificate, exposing email delivery to man-in-the-middle attacks. Enable only while troubleshooting."}),
+                            },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
                         },
                         {
@@ -2546,15 +2292,15 @@ const AdminDefinition: AdminDefinitionType = {
                     name: defineMessage({id: 'admin.developer.title', defaultMessage: 'Developer Settings'}),
                     settings: [
                         {
-                            type: 'banner',
-                            label: defineMessage({id: 'admin.service.testingWarning', defaultMessage: 'Warning: Testing commands are intended only for isolated non-production environments with test users and sample data. Never enable this setting in production.'}),
-                            banner_type: 'warning',
-                        },
-                        {
                             type: 'bool',
                             key: 'ServiceSettings.EnableTesting',
                             label: defineMessage({id: 'admin.service.testingTitle', defaultMessage: 'Enable Testing Commands:'}),
                             help_text: defineMessage({id: 'admin.service.testingDescription', defaultMessage: 'When true, the /test slash command is enabled to load test accounts, data, and text formatting. Use this setting only in isolated non-production environments and never in production. Changing this requires a server restart before taking effect.'}),
+                            production_warning: {
+                                isEnabled: it.stateIsTrue('ServiceSettings.EnableTesting'),
+                                title: defineMessage({id: 'admin.service.testingProductionWarning.title', defaultMessage: 'Testing commands are not recommended for production environments'}),
+                                text: defineMessage({id: 'admin.service.testingProductionWarning.text', defaultMessage: 'The /test command exposes load-testing and data-generation tools that can modify your data. Enable only in non-production environments.'}),
+                            },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.DEVELOPER)),
                         },
                         {
@@ -2562,6 +2308,11 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.EnableDeveloper',
                             label: defineMessage({id: 'admin.service.developerTitle', defaultMessage: 'Enable Developer Mode: '}),
                             help_text: defineMessage({id: 'admin.service.developerDesc', defaultMessage: 'When true, JavaScript errors are shown in a purple bar at the top of the user interface. Not recommended for use in production. Changing this requires a server restart before taking effect.'}),
+                            production_warning: {
+                                isEnabled: it.stateIsTrue('ServiceSettings.EnableDeveloper'),
+                                title: defineMessage({id: 'admin.service.developerProductionWarning.title', defaultMessage: 'Developer mode is not recommended for production environments'}),
+                                text: defineMessage({id: 'admin.service.developerProductionWarning.text', defaultMessage: 'Developer mode surfaces JavaScript errors in the UI and relaxes web app restrictions. Enable only in development environments.'}),
+                            },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.DEVELOPER)),
                         },
                         {
@@ -2750,7 +2501,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     featureName: 'mobile_ephemeral_mode',
                                     title: defineMessage({id: 'admin.mobileSecurity.ephemeralMode_feature_discovery.title', defaultMessage: 'Control mobile data persistence with Mobile Ephemeral Mode'}),
                                     description: defineMessage({id: 'admin.mobileSecurity.ephemeralMode_feature_discovery.description', defaultMessage: 'With Mattermost Enterprise Advanced, you can enable Mobile Ephemeral Mode to enforce data persistence policies on mobile devices. Configure disconnection timeouts, offline data retention, and automatic cache cleanup.'}),
-                                    learnMoreURL: 'https://docs.mattermost.com',
+                                    learnMoreURL: 'https://docs.mattermost.com/configure/environment-configuration-settings.html#mobile-security',
                                 },
                             },
                             isHidden: it.configIsFalse('FeatureFlags', 'MobileEphemeralMode'),
@@ -2764,7 +2515,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'bool',
                                     key: 'MobileEphemeralModeSettings.Enable',
                                     label: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.enableTitle', defaultMessage: 'Enable Mobile Ephemeral Mode:'}),
-                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.enableDescription', defaultMessage: 'When enabled, mobile clients will follow the server-configured ephemeral data policies. Disconnected devices will clean up cached data based on the configured timers.'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.enableDescription', defaultMessage: 'When enabled, mobile clients will follow the server-configured ephemeral data policies. Devices automatically clean up cached data on schedule. Admins can trigger an immediate wipe by revoking a user\'s session.'}),
                                 },
                                 {
                                     type: 'number',
@@ -3123,7 +2874,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'number',
                             key: 'TeamSettings.MaxUsersPerTeam',
                             label: defineMessage({id: 'admin.team.maxUsersTitle', defaultMessage: 'Max Users Per Team:'}),
-                            help_text: defineMessage({id: 'admin.team.maxUsersDescription', defaultMessage: 'Maximum total number of users per team, including both active and inactive users.'}),
+                            help_text: defineMessage({id: 'admin.team.maxUsersDescription', defaultMessage: 'Maximum number of active users per team. Deactivated users are not counted toward this limit.'}),
                             placeholder: defineMessage({id: 'admin.team.maxUsersExample', defaultMessage: 'E.g.: "25"'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
@@ -3205,6 +2956,28 @@ const AdminDefinition: AdminDefinitionType = {
                                 strong: (msg: string) => <strong>{msg}</strong>,
                             },
                             isHidden: it.not(it.licensedForFeature('LockTeammateNameDisplay')),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
+                        },
+                        {
+                            type: 'dropdown',
+                            key: 'TeamSettings.LockProfileFieldsForEmailUsers',
+                            label: defineMessage({id: 'admin.team.lockProfileFieldsForEmailUsers', defaultMessage: 'Lock Profile Fields for Email Users:'}),
+                            help_text: defineMessage({id: 'admin.team.lockProfileFieldsForEmailUsersDesc', defaultMessage: 'Applies only to accounts that sign in with email and password; System Admins are always exempt. When enabled, users cannot change the locked fields themselves, empty first and last names can be filled in once by the user, and anyone with the "Invite Users" permission can pre-set names and usernames when sending email invites. Consider restricting that permission via permission schemes to people trusted to enter this information correctly.'}),
+                            options: [
+                                {
+                                    value: Constants.LOCK_PROFILE_FIELDS.NONE,
+                                    display_name: defineMessage({id: 'admin.team.lockProfileFields.none', defaultMessage: "Don't lock profile fields (default)"}),
+                                },
+                                {
+                                    value: Constants.LOCK_PROFILE_FIELDS.NAME_AND_USERNAME,
+                                    display_name: defineMessage({id: 'admin.team.lockProfileFields.nameAndUsername', defaultMessage: 'Lock name and username'}),
+                                },
+                                {
+                                    value: Constants.LOCK_PROFILE_FIELDS.ALL,
+                                    display_name: defineMessage({id: 'admin.team.lockProfileFields.all', defaultMessage: 'Lock entire profile'}),
+                                },
+                            ],
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
                         {
@@ -3444,7 +3217,6 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.any(
                                 it.configIsFalse('MetricsSettings', 'Enable'),
                             ),
-                            isHidden: it.configIsFalse('FeatureFlags', 'NotificationMonitoring'),
                         },
                     ],
                 },
@@ -3454,7 +3226,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'}),
                 searchableStrings: classificationMarkingsSearchableStrings,
                 isHidden: it.any(
-                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.configIsTrue('FeatureFlags', 'ClassificationMarkings')),
                 ),
                 isDisabled: it.not(it.isSystemAdmin),
@@ -3468,7 +3240,7 @@ const AdminDefinition: AdminDefinitionType = {
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'}),
                 isHidden: it.any(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
                     it.not(it.configIsTrue('FeatureFlags', 'ClassificationMarkings')),
                 ),
                 schema: {
@@ -4073,6 +3845,129 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
             },
+            recaps: {
+                url: 'site_config/recaps',
+                title: defineMessage({id: 'admin.sidebar.recaps', defaultMessage: 'Recaps'}),
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                schema: {
+                    id: 'RecapSettings',
+                    name: defineMessage({id: 'admin.site.recaps', defaultMessage: 'Recaps'}),
+                    sections: [
+                        {
+                            key: 'AIRecapSettings.Global',
+                            title: '',
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'AIRecapSettings.Enable',
+                                    label: defineMessage({id: 'admin.recaps.enable.title', defaultMessage: 'Enable AI Recaps:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.enable.desc', defaultMessage: 'When enabled, users can create and schedule AI recaps subject to the configured limits.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'AIRecapSettings.QuotaLimits',
+                            title: defineMessage({id: 'admin.recaps.sections.quota.title', defaultMessage: 'Quota Limits'}),
+                            description: defineMessage({id: 'admin.recaps.sections.quota.description', defaultMessage: 'Control how many recaps users can create.'}),
+                            settings: [
+                                {
+                                    type: 'custom',
+                                    key: 'AIRecapSettings.DefaultLimits.MaxScheduledRecaps',
+                                    component: UnlimitedNumberSetting,
+                                    label: defineMessage({id: 'admin.recaps.maxScheduledRecaps.title', defaultMessage: 'Maximum Scheduled Recaps:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxScheduledRecaps.desc', defaultMessage: 'Maximum number of scheduled recaps a user can have active at once.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                },
+                                {
+                                    type: 'custom',
+                                    key: 'AIRecapSettings.DefaultLimits.MaxRecapsPerDay',
+                                    component: UnlimitedNumberSetting,
+                                    label: defineMessage({id: 'admin.recaps.maxRecapsPerDay.title', defaultMessage: 'Maximum Recaps Per Day:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxRecapsPerDay.desc', defaultMessage: 'Maximum number of recaps a user can generate per day. Resets at midnight in the user\'s timezone.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                },
+                                {
+                                    type: 'custom',
+                                    key: 'AIRecapSettings.DefaultLimits.MaxPostsPerDay',
+                                    component: UnlimitedNumberSetting,
+                                    label: defineMessage({id: 'admin.recaps.maxPostsPerDay.title', defaultMessage: 'Maximum Posts Per Day:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxPostsPerDay.desc', defaultMessage: 'Maximum total posts that can be processed for recaps per user per day.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'AIRecapSettings.ContentLimits',
+                            title: defineMessage({id: 'admin.recaps.sections.content.title', defaultMessage: 'Content Limits'}),
+                            description: defineMessage({id: 'admin.recaps.sections.content.description', defaultMessage: 'Control how much content can be included in each recap.'}),
+                            settings: [
+                                {
+                                    type: 'custom',
+                                    key: 'AIRecapSettings.DefaultLimits.MaxChannelsPerRecap',
+                                    component: UnlimitedNumberSetting,
+                                    label: defineMessage({id: 'admin.recaps.maxChannelsPerRecap.title', defaultMessage: 'Maximum Channels Per Recap:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxChannelsPerRecap.desc', defaultMessage: 'Maximum number of channels that can be included in a single recap.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                },
+                                {
+                                    type: 'custom',
+                                    key: 'AIRecapSettings.DefaultLimits.MaxPostsPerRecap',
+                                    component: UnlimitedNumberSetting,
+                                    label: defineMessage({id: 'admin.recaps.maxPostsPerRecap.title', defaultMessage: 'Maximum Posts Per Recap:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxPostsPerRecap.desc', defaultMessage: 'Maximum number of posts to include when generating a recap.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                },
+                                {
+                                    type: 'custom',
+                                    key: 'AIRecapSettings.DefaultLimits.MaxTokensPerRecap',
+                                    component: UnlimitedNumberSetting,
+                                    label: defineMessage({id: 'admin.recaps.maxTokensPerRecap.title', defaultMessage: 'Maximum Tokens Per Recap:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxTokensPerRecap.desc', defaultMessage: 'Maximum estimated token count for LLM context when generating a recap.'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'AIRecapSettings.TimeLimits',
+                            title: defineMessage({id: 'admin.recaps.sections.time.title', defaultMessage: 'Time Limits'}),
+                            description: defineMessage({id: 'admin.recaps.sections.time.description', defaultMessage: 'Control timing between recap requests.'}),
+                            settings: [
+                                {
+                                    type: 'number',
+                                    key: 'AIRecapSettings.DefaultLimits.CooldownMinutes',
+                                    label: defineMessage({id: 'admin.recaps.cooldownMinutes.title', defaultMessage: 'Cooldown Between Recaps (minutes):'}),
+                                    help_text: defineMessage({id: 'admin.recaps.cooldownMinutes.desc', defaultMessage: 'Minimum time in minutes between recap generations for each user. Set to 0 to disable cooldown.'}),
+                                    placeholder: defineMessage({id: 'admin.recaps.cooldownMinutes.placeholder', defaultMessage: 'E.g.: "60"'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                    validate: validators.minValue(0, defineMessage({id: 'admin.recaps.cooldownMinutes.minValue', defaultMessage: 'Cooldown must be 0 or greater'})),
+                                },
+                            ],
+                        },
+                    ],
+                },
+            },
             content_flagging: {
                 url: 'site_config/data_spillage',
                 title: defineMessage({id: 'admin.sidebar.dataSpillage', defaultMessage: 'Data Spillage Handling'}),
@@ -4294,7 +4189,7 @@ const AdminDefinition: AdminDefinitionType = {
             ip_filtering: {
                 url: 'site_config/ip_filtering',
                 title: adminDefinitionMessages.ip_filtering_title,
-                isHidden: it.not(it.all(it.configIsTrue('FeatureFlags', 'CloudIPFiltering'), it.minLicenseTier(LicenseSkus.Enterprise))),
+                isHidden: it.not(it.all(it.licensedForFeature('Cloud'), it.minLicenseTier(LicenseSkus.Enterprise))),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.IP_FILTERING)),
                 searchableStrings: [adminDefinitionMessages.ip_filtering_title],
                 schema: {
@@ -4695,6 +4590,11 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'SamlSettings.Verify',
                             label: defineMessage({id: 'admin.saml.verifyTitle', defaultMessage: 'Verify Signature:'}),
                             help_text: defineMessage({id: 'admin.saml.verifyDescription', defaultMessage: 'When false, Mattermost will not verify that the signature sent from a SAML Response matches the Service Provider Login URL. Disabling verification is not recommended for production environments.'}),
+                            production_warning: {
+                                isEnabled: it.stateIsFalse('SamlSettings.Verify'),
+                                title: defineMessage({id: 'admin.saml.verifyProductionWarning.title', defaultMessage: 'Disabling verification is not recommended for production environments'}),
+                                text: defineMessage({id: 'admin.saml.verifyProductionWarning.text', defaultMessage: 'Without verification, forged SAML responses can authenticate as any user. Disable only while troubleshooting your SAML setup in non-production environments.'}),
+                            },
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
                                 it.stateIsFalse('SamlSettings.Enable'),
@@ -4741,6 +4641,11 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'SamlSettings.Encrypt',
                             label: defineMessage({id: 'admin.saml.encryptTitle', defaultMessage: 'Enable Encryption:'}),
                             help_text: defineMessage({id: 'admin.saml.encryptDescription', defaultMessage: 'When false, Mattermost will not decrypt SAML Assertions encrypted with your Service Provider Public Certificate. Disabling encryption is not recommended for production environments.'}),
+                            production_warning: {
+                                isEnabled: it.stateIsFalse('SamlSettings.Encrypt'),
+                                title: defineMessage({id: 'admin.saml.encryptProductionWarning.title', defaultMessage: 'Disabling encryption is not recommended for production environments'}),
+                                text: defineMessage({id: 'admin.saml.encryptProductionWarning.text', defaultMessage: 'Without encryption, SAML assertions are sent in plain text and may expose user attributes. Disable only while troubleshooting your SAML setup in non-production environments.'}),
+                            },
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
                                 it.stateIsFalse('SamlSettings.Enable'),
@@ -4807,17 +4712,20 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     value: SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA1,
                                     display_name: defineMessage({id: 'admin.saml.signatureAlgorithmDisplay.sha1', defaultMessage: 'RSAwithSHA1'}),
-                                    help_text: defineMessage({id: 'admin.saml.signatureAlgorithmDescription.sha1', defaultMessage: 'Specify the Signature algorithm used to sign the request (RSAwithSHA1). Please see more information provided at http://www.w3.org/2000/09/xmldsig#rsa-sha1'}),
+                                    help_text: defineMessage({id: 'admin.saml.signatureAlgorithmDescription.sha1', defaultMessage: 'Specify the Signature algorithm used to sign the request (RSAwithSHA1). Please see more information provided at [http://www.w3.org/2000/09/xmldsig#rsa-sha1](http://www.w3.org/2000/09/xmldsig#rsa-sha1)'}),
+                                    help_text_markdown: true,
                                 },
                                 {
                                     value: SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA256,
                                     display_name: defineMessage({id: 'admin.saml.signatureAlgorithmDisplay.sha256', defaultMessage: 'RSAwithSHA256'}),
-                                    help_text: defineMessage({id: 'admin.saml.signatureAlgorithmDescription.sha256', defaultMessage: 'Specify the Signature algorithm used to sign the request (RSAwithSHA256). Please see more information provided at http://www.w3.org/2001/04/xmldsig-more#rsa-sha256 [section 6.4.2 RSA (PKCS#1 v1.5)]'}),
+                                    help_text: defineMessage({id: 'admin.saml.signatureAlgorithmDescription.sha256', defaultMessage: 'Specify the Signature algorithm used to sign the request (RSAwithSHA256). Please see more information provided at [http://www.w3.org/2001/04/xmldsig-more#rsa-sha256](http://www.w3.org/2001/04/xmldsig-more#rsa-sha256) [section 6.4.2 RSA (PKCS#1 v1.5)]'}),
+                                    help_text_markdown: true,
                                 },
                                 {
                                     value: SAML_SETTINGS_SIGNATURE_ALGORITHM_SHA512,
                                     display_name: defineMessage({id: 'admin.saml.signatureAlgorithmDisplay.sha512', defaultMessage: 'RSAwithSHA512'}),
-                                    help_text: defineMessage({id: 'admin.saml.signatureAlgorithmDescription.sha512', defaultMessage: 'Specify the Signature algorithm used to sign the request (RSAwithSHA512). Please see more information provided at http://www.w3.org/2001/04/xmldsig-more#rsa-sha512'}),
+                                    help_text: defineMessage({id: 'admin.saml.signatureAlgorithmDescription.sha512', defaultMessage: 'Specify the Signature algorithm used to sign the request (RSAwithSHA512). Please see more information provided at [http://www.w3.org/2001/04/xmldsig-more#rsa-sha512](http://www.w3.org/2001/04/xmldsig-more#rsa-sha512)'}),
+                                    help_text_markdown: true,
                                 },
                             ],
                         },
@@ -4829,12 +4737,14 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     value: SAML_SETTINGS_CANONICAL_ALGORITHM_C14N,
                                     display_name: defineMessage({id: 'admin.saml.canonicalAlgorithmDisplay.n10', defaultMessage: 'Exclusive XML Canonicalization 1.0 (omit comments)'}),
-                                    help_text: defineMessage({id: 'admin.saml.canonicalAlgorithmDescription.exc', defaultMessage: 'Specify the Canonicalization algorithm (Exclusive XML Canonicalization 1.0). Please see more information provided at http://www.w3.org/2001/10/xml-exc-c14n#'}),
+                                    help_text: defineMessage({id: 'admin.saml.canonicalAlgorithmDescription.exc', defaultMessage: 'Specify the Canonicalization algorithm (Exclusive XML Canonicalization 1.0). Please see more information provided at [http://www.w3.org/2001/10/xml-exc-c14n#](http://www.w3.org/2001/10/xml-exc-c14n#)'}),
+                                    help_text_markdown: true,
                                 },
                                 {
                                     value: SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11,
                                     display_name: defineMessage({id: 'admin.saml.canonicalAlgorithmDisplay.n11', defaultMessage: 'Canonical XML 1.1 (omit comments)'}),
-                                    help_text: defineMessage({id: 'admin.saml.canonicalAlgorithmDescription.c14', defaultMessage: 'Specify the Canonicalization algorithm (Canonical XML 1.1). Please see more information provided at http://www.w3.org/2006/12/xml-c14n11'}),
+                                    help_text: defineMessage({id: 'admin.saml.canonicalAlgorithmDescription.c14', defaultMessage: 'Specify the Canonicalization algorithm (Canonical XML 1.1). Please see more information provided at [http://www.w3.org/2006/12/xml-c14n11](http://www.w3.org/2006/12/xml-c14n11)'}),
+                                    help_text_markdown: true,
                                 },
                             ],
                             isDisabled: it.any(
@@ -4959,10 +4869,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'custom',
                             key: 'SamlSettings.CustomProfileAttributes',
                             component: CustomProfileAttributes,
-                            isHidden: it.not(it.all(
-                                it.minLicenseTier(LicenseSkus.Enterprise),
-                                it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
-                            )),
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                         },
                         {
                             type: 'text',
@@ -6018,7 +5925,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.DCRRedirectURIAllowlist',
                             multiple: true,
                             label: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistTitle', defaultMessage: 'DCR Redirect URI Allowlist:'}),
-                            help_text: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistDesc', defaultMessage: 'When Dynamic Client Registration is enabled, optionally restrict which redirect URIs can be registered. Enter comma-separated glob patterns (e.g. https://*.example.com/**). If empty, all valid redirect URIs are allowed. Patterns support * (single path segment) and ** (multi-segment path).'}),
+                            help_text: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistDesc', defaultMessage: 'When Dynamic Client Registration is enabled, optionally restrict which redirect URIs can be registered. Enter comma-separated URL glob patterns (e.g. https://*.example.com/**). If empty, all valid redirect URIs are allowed. Wildcards are matched within URL components only: host wildcards apply to the host, path wildcards apply to the path, and query strings must be explicitly included if allowed.'}),
                             help_text_markdown: false,
                             placeholder: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistPlaceholder', defaultMessage: 'E.g.: https://*.example.com/**, https://app.example.com/callback'}),
                             isDisabled: it.any(
@@ -6113,6 +6020,18 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.stateIsFalse('ServiceSettings.EnableUserAccessTokens'),
                             ),
                         },
+                        {
+                            type: 'custom',
+                            key: 'RevokeNonCompliantTokensButton',
+                            component: RevokeNonCompliantTokensButton,
+                            showTitle: true,
+                            label: defineMessage({id: 'admin.service.revokeNonCompliantTokensTitle', defaultMessage: 'Revoke non-compliant tokens:'}),
+                            help_text: defineMessage({id: 'admin.service.revokeNonCompliantTokensDescription', defaultMessage: 'Permanently revokes all existing personal access tokens that do not comply with the maximum lifetime above (tokens that never expire or expire beyond the cap). The maximum lifetime only applies to newly created tokens, so use this to bring already-issued tokens into compliance. Bot account tokens are exempt. You will be shown how many tokens are affected before confirming.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                                it.stateIsFalse('ServiceSettings.EnableUserAccessTokens'),
+                            ),
+                        },
                     ],
                 },
             },
@@ -6202,6 +6121,11 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.service.corsTitle', defaultMessage: 'Enable cross-origin requests from:'}),
                             placeholder: defineMessage({id: 'admin.service.corsEx', defaultMessage: 'http://example.com'}),
                             help_text: defineMessage({id: 'admin.service.corsDescription', defaultMessage: 'Enable HTTP Cross origin request from a specific domain. Use "*" if you want to allow CORS from any domain or leave it blank to disable it. Should not be set to "*" in production.'}),
+                            production_warning: {
+                                isEnabled: it.stateEquals('ServiceSettings.AllowCorsFrom', '*'),
+                                title: defineMessage({id: 'admin.service.corsProductionWarning.title', defaultMessage: 'Allowing all origins is not recommended for production environments'}),
+                                text: defineMessage({id: 'admin.service.corsProductionWarning.text', defaultMessage: 'Setting allowed origins to a wildcard lets any website make cross-origin requests to your server. Specify explicit trusted origins instead.'}),
+                            },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.CORS)),
                         },
                         {
@@ -6452,7 +6376,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.audit_logging_experimental', defaultMessage: 'Audit Logging'}),
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                    it.configIsFalse('FeatureFlags', 'ExperimentalAuditSettingsSystemConsoleUI'),
                     it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                 ),
                 schema: {
@@ -6592,33 +6515,6 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'ExperimentalSettings',
                     name: defineMessage({id: 'admin.experimental.experimentalFeatures', defaultMessage: 'Experimental Features'}),
                     settings: [
-                        {
-                            type: 'color',
-                            key: 'LdapSettings.LoginButtonColor',
-                            label: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonColor.title', defaultMessage: 'AD/LDAP Login Button Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonColor.desc', defaultMessage: 'Specify the color of the AD/LDAP login button for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.licensedForFeature('LDAP')),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'LdapSettings.LoginButtonBorderColor',
-                            label: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonBorderColor.title', defaultMessage: 'AD/LDAP Login Button Border Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonBorderColor.desc', defaultMessage: 'Specify the color of the AD/LDAP login button border for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.licensedForFeature('LDAP')),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'LdapSettings.LoginButtonTextColor',
-                            label: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonTextColor.title', defaultMessage: 'AD/LDAP Login Button Text Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonTextColor.desc', defaultMessage: 'Specify the color of the AD/LDAP login button text for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.licensedForFeature('LDAP')),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
                         {
                             type: 'bool',
                             key: 'ServiceSettings.ExperimentalEnableAuthenticationTransfer',
@@ -6845,33 +6741,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.experimental.experimentalPrimaryTeam.desc', defaultMessage: 'The primary team of which users on the server are members. When a primary team is set, the options to join other teams or leave the primary team are disabled.'}),
                             help_text_markdown: true,
                             placeholder: defineMessage({id: 'admin.experimental.experimentalPrimaryTeam.example', defaultMessage: 'E.g.: "teamname"'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'SamlSettings.LoginButtonColor',
-                            label: defineMessage({id: 'admin.experimental.samlSettingsLoginButtonColor.title', defaultMessage: 'SAML Login Button Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.samlSettingsLoginButtonColor.desc', defaultMessage: 'Specify the color of the SAML login button for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.licensedForFeature('SAML')),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'SamlSettings.LoginButtonBorderColor',
-                            label: defineMessage({id: 'admin.experimental.samlSettingsLoginButtonBorderColor.title', defaultMessage: 'SAML Login Button Border Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.samlSettingsLoginButtonBorderColor.desc', defaultMessage: 'Specify the color of the SAML login button border for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.licensedForFeature('SAML')),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'SamlSettings.LoginButtonTextColor',
-                            label: defineMessage({id: 'admin.experimental.samlSettingsLoginButtonTextColor.title', defaultMessage: 'SAML Login Button Text Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.samlSettingsLoginButtonTextColor.desc', defaultMessage: 'Specify the color of the SAML login button text for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.licensedForFeature('SAML')),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {

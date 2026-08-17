@@ -11,7 +11,8 @@
 
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
-import type {UserPropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {expect, getRandomId, test} from '@mattermost/playwright-lib';
 
@@ -34,7 +35,6 @@ test.describe('System Console - Ranked value picker', () => {
     test.beforeEach(async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
 
         const clientInfo = await pw.getAdminClient();
         adminClient = clientInfo.adminClient;

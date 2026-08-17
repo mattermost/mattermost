@@ -1,0 +1,84 @@
+---
+id: examples
+title: Quick-start with curl
+description: Copy-pasteable curl quick-start for the most common Mattermost API operations.
+sidebar_position: 2
+sidebar_label: Examples
+---
+
+<Eyebrow>Examples</Eyebrow>
+
+Copy-pasteable requests for the most common operations. Replace `your-mattermost-server.com` with your server URL and `<TOKEN>` with a valid personal access token.
+
+## Log in and get a session token
+
+```bash
+curl -i -X POST https://your-mattermost-server.com/api/v4/users/login \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "login_id": "user@example.com",
+    "password": "yourpassword"
+  }'
+```
+
+The session token is returned in the `Token` response header.
+
+## Post a message to a channel
+
+```bash
+curl -X POST https://your-mattermost-server.com/api/v4/posts \
+  -H 'Authorization: Bearer <TOKEN>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "channel_id": "<CHANNEL_ID>",
+    "message": "Status update from API"
+  }'
+```
+
+## Create a channel
+
+```bash
+curl -X POST https://your-mattermost-server.com/api/v4/channels \
+  -H 'Authorization: Bearer <TOKEN>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "team_id": "<TEAM_ID>",
+    "name": "ops-incident-2026-05",
+    "display_name": "Ops Incident — 2026-05",
+    "type": "O"
+  }'
+```
+
+## Add a user to a channel
+
+```bash
+curl -X POST https://your-mattermost-server.com/api/v4/channels/<CHANNEL_ID>/members \
+  -H 'Authorization: Bearer <TOKEN>' \
+  -H 'Content-Type: application/json' \
+  -d '{ "user_id": "<USER_ID>" }'
+```
+
+## Upload a file
+
+```bash
+curl -X POST https://your-mattermost-server.com/api/v4/files \
+  -H 'Authorization: Bearer <TOKEN>' \
+  -F 'channel_id=<CHANNEL_ID>' \
+  -F 'files=@./report.pdf'
+```
+
+## Trigger a slash command
+
+```bash
+curl -X POST https://your-mattermost-server.com/api/v4/commands/execute \
+  -H 'Authorization: Bearer <TOKEN>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "channel_id": "<CHANNEL_ID>",
+    "command": "/echo Hello from the API"
+  }'
+```
+
+<Tip>
+Every endpoint page in the **[Reference](/api/reference/login)** sidebar includes the equivalent samples in **curl, PowerShell, Python, Node, and Go** — selectable via the language tab strip on the right side of the page.
+</Tip>

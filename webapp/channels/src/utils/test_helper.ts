@@ -114,6 +114,7 @@ export class TestHelper {
             username: '',
             description: '',
             display_name: '',
+            system_owned: false,
         };
         return Object.assign({}, defaultBot, override);
     }
@@ -454,6 +455,7 @@ export class TestHelper {
             showAppBar: false,
             wrapped: true,
             publicComponent: () => null,
+            isTeamScoped: false,
         };
     }
 

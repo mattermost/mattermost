@@ -9,7 +9,8 @@ import {components} from 'react-select';
 import {css} from 'styled-components';
 
 import {CheckIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
-import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
+import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import * as Menu from 'components/menu';
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
@@ -140,7 +141,10 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
     }, []);
 
     return (
-        <div className='user-property-rank-values'>
+        <div
+            className='user-property-rank-values'
+            data-testid='user-property-rank-values'
+        >
             {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- mousedown only forwards focus to the keyboard-accessible add input, mirroring react-select's control */}
             <div
                 className='user-property-rank-values__chips'
@@ -168,6 +172,7 @@ const UserPropertyRankValues = ({field, updateField, autoFocus}: Props) => {
                             ref={addInputRef}
                             type='text'
                             className='user-property-rank-values__add-input'
+                            data-testid='user-property-rank-values__add-input'
                             value={query}
                             maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                             placeholder={showPlaceholder ? placeholderText : undefined}
@@ -260,6 +265,7 @@ const RankChip = ({option, ascIndex, sortedRanks, disabled, nameCollidesWith, on
             className={classNames('user-property-rank-values__chip', {
                 'user-property-rank-values__chip--disabled': disabled,
             })}
+            data-testid='user-property-rank-values__chip'
         >
             <RankBadge rank={option.rank}/>
             <Menu.Container
@@ -267,7 +273,10 @@ const RankChip = ({option, ascIndex, sortedRanks, disabled, nameCollidesWith, on
                     id: chipId,
                     class: 'user-property-rank-values__chip-name',
                     children: (
-                        <span className='user-property-rank-values__chip-label'>{option.name}</span>
+                        <span
+                            className='user-property-rank-values__chip-label'
+                            data-testid='user-property-rank-values__chip-label'
+                        >{option.name}</span>
                     ),
                     dataTestId: chipId,
                     disabled,

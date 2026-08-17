@@ -1,0 +1,47 @@
+---
+title: "Downgrade Mattermost Server"
+---
+<PlanAvailability slug="all-commercial" />
+
+In most cases you can downgrade Mattermost Server using the same steps as [upgrading mattermost server](/administration-guide/upgrade/upgrading-mattermost-server). Server binaries can be found in the [Mattermost server version archive](/product-overview/version-archive) documentation.
+
+<Important>
+
+- We don't recommend downgrading more than one major version back from your current installation.
+- We strongly recommend testing the downgrade in a staging environment first to identify any potential issues.
+- Ensure that your plugins and integrations are compatible with the downgraded version you're moving to.
+
+</Important>
+
+## Prepare for downgrade
+
+Before downgrading the Mattermost server, we strongly recommend the following preparation steps.
+
+1.  Back up your data: Ensure you have a full backup of your database and Mattermost application files. This is crucial in case you need to revert any changes.
+
+> 1.  Back up your database using your organization’s standard procedures for backing up the database.
+> 2.  Back up your application by copying into an archive folder (e.g. `mattermost-back-YYYY-MM-DD-HH-mm`). Ensure to copy your Mattermost configuration files and any other necessary application files.
+
+2.  Carefully review the Mattermost changelog for the version you are downgrading to in order to understand any potential issues or incompatibilities.
+3.  Verify the current schema version of your database using the [mattermost db version --all](/administration-guide/manage/command-line-tools#mattermost-db-version) command. Also, if you aren't sure about the target schema, you can verify the target schema version (i.e., applied migrations) by checking the public [GitHub repository](https://github.com/mattermost/mattermost/blob/master/server/channels/db/migrations/migrations.list) (Select the tag for desired version).
+
+## Perform the downgrade
+
+1.  Stop the Mattermost service to ensure that no data is being written to the database during the downgrade process.
+2.  If the database schema has changed between versions, you must downgrade the schema. Use the newer mattermost binary to perform the downgrade using the [mattermost db downgrade](/administration-guide/manage/command-line-tools#mattermost-db-downgrade) command. For example: `mattermost db downgrade 128,127,126`
+
+<Tip>
+
+You can review downgrade changes before committing them if you have used the `--save-plan` option while upgrading Mattermost. It has both forwards and backwards SQL scripts. This option allows you to avoid specifying migrations to be downgraded, and allows you to use older versions of Mattermost to perform the downgrade. For example: `mattermost db downgrade migration_plan_128_127.json`.
+
+</Tip>
+
+3.  There may be changes in configuration settings between versions. Revert any necessary configuration changes in the `config.json` file to match the downgraded version's expectations and support.
+
+## After the downgrade
+
+Replace the current Mattermost application binary with the version you want to downgrade to. Make sure to use the binary of the target version. The newer Mattermost binary contains the downgrade SQL for the migrations to be rolled back. The newer binary version is used to perform the downgrade; then you start using the application binary of the version you want to downgrade to.
+
+1.  Restart the Mattermost Server after completing the downgrade.
+2.  Check the logs and test the application to ensure that everything is functioning correctly.
+3.  Inform your users about the downgrade and any potential changes they might experience.

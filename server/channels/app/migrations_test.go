@@ -5,6 +5,8 @@ package app
 
 import (
 	"context"
+	"encoding/json"
+	"maps"
 	"sync"
 	"testing"
 
@@ -360,6 +362,53 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 	require.Equal(t, "true", data.Value)
 }
 
+var expectedOSPlatformOptions = []string{"macos", "windows", "linux", "ios", "android"}
+
+func sessionAttributeFieldByName(t *testing.T, th *TestHelper, groupID, name string) *model.PropertyField {
+	t.Helper()
+
+	fields, appErr := th.App.SearchPropertyFields(th.Context, groupID, model.PropertyFieldSearchOpts{PerPage: 100})
+	require.Nil(t, appErr)
+	for _, field := range fields {
+		if field.Name == name {
+			return field
+		}
+	}
+
+	require.FailNowf(t, "session attribute field not found", "field %q was not seeded", name)
+	return nil
+}
+
+func sessionAttributeOptions(t *testing.T, field *model.PropertyField) model.PropertyOptions[*model.PluginPropertyOption] {
+	t.Helper()
+
+	options, err := model.NewPropertyOptionsFromFieldAttrs[*model.PluginPropertyOption](field.Attrs[model.PropertyFieldAttributeOptions])
+	require.NoError(t, err)
+	return options
+}
+
+func sessionAttributeOptionNames(t *testing.T, field *model.PropertyField) []string {
+	t.Helper()
+
+	options := sessionAttributeOptions(t, field)
+	names := make([]string, 0, len(options))
+	for _, option := range options {
+		names = append(names, option.GetName())
+	}
+	return names
+}
+
+func sessionAttributeOptionIDsByName(t *testing.T, field *model.PropertyField) map[string]string {
+	t.Helper()
+
+	options := sessionAttributeOptions(t, field)
+	idsByName := make(map[string]string, len(options))
+	for _, option := range options {
+		idsByName[option.GetName()] = option.GetID()
+	}
+	return idsByName
+}
+
 func TestDoSetupSessionAttributesProperties(t *testing.T) {
 	expectedFieldCount := len(model.SessionAttributeSystemFields("group-id"))
 
@@ -411,6 +460,58 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		)
 	})
 
+	t.Run("os_platform seeds as a select with the known platform values", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
+		require.Equal(t, model.PropertyFieldTypeSelect, field.Type)
+		require.Equal(t, expectedOSPlatformOptions, sessionAttributeOptionNames(t, field))
+		require.True(t, model.IsValidSessionAttributeValue(field, "windows"))
+		require.False(t, model.IsValidSessionAttributeValue(field, "darwin"))
+	})
+
+	t.Run("converts a legacy text os_platform field into a select", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		// Restore the pre-conversion shape a server upgrade would find: free
+		// text with no options. Written with a nil request context so
+		// SessionAttributesHook treats it as a system caller, the same way the
+		// seed itself does.
+		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
+		field.Type = model.PropertyFieldTypeText
+		delete(field.Attrs, model.PropertyFieldAttributeOptions)
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{field})
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		converted := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
+		require.Equal(t, model.PropertyFieldTypeSelect, converted.Type)
+		require.Equal(t, expectedOSPlatformOptions, sessionAttributeOptionNames(t, converted))
+		require.True(t, model.IsValidSessionAttributeValue(converted, "windows"))
+	})
+
+	t.Run("re-seeding preserves select option IDs", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		before := sessionAttributeOptionIDsByName(t, sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform))
+		require.Len(t, before, len(expectedOSPlatformOptions))
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		after := sessionAttributeOptionIDsByName(t, sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform))
+		require.Equal(t, before, after, "re-seeding must not regenerate option IDs")
+	})
+
 	t.Run("re-running is idempotent", func(t *testing.T) {
 		th := Setup(t)
 
@@ -427,6 +528,23 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.Nil(t, appErr)
 		require.Len(t, after, expectedFieldCount, "re-running must not create duplicate fields")
+	})
+
+	t.Run("backfills operators on legacy fields missing attrs.operators", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
+		delete(field.Attrs, model.NativeAttributeAttrOperators)
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{field})
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		updated := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
+		require.NotNil(t, updated.Attrs[model.NativeAttributeAttrOperators])
 	})
 
 	t.Run("concurrent runs tolerate update conflicts", func(t *testing.T) {
@@ -488,6 +606,15 @@ func TestDoSetupBoardsProperties(t *testing.T) {
 		require.True(t, status.Protected)
 		require.NotNil(t, status.Attrs["options"])
 
+		// v2 seeds a default colour per status option. Verify the three seeded
+		// options carry the expected colours so kanban columns render with
+		// their intended palette out of the box.
+		assertStatusColors(t, status.Attrs, map[string]string{
+			model.BoardsStatusOptionTodo:       model.BoardsStatusColorTodo,
+			model.BoardsStatusOptionInProgress: model.BoardsStatusColorInProgress,
+			model.BoardsStatusOptionComplete:   model.BoardsStatusColorComplete,
+		})
+
 		data, sysErr := th.Store.System().GetByName(boardsPropertySetupDoneKey)
 		require.NoError(t, sysErr)
 		require.Equal(t, boardsPropertyMigrationVersion, data.Value)
@@ -514,4 +641,116 @@ func TestDoSetupBoardsProperties(t *testing.T) {
 		require.NoError(t, sysErr)
 		require.Equal(t, boardsPropertyMigrationVersion, data.Value)
 	})
+
+	t.Run("upgrading v1 → v2 layers colours onto existing options without rewriting their IDs", func(t *testing.T) {
+		// Setup() already runs v2 cleanly. Simulate a workspace that was
+		// previously seeded with v1 (no colours) by stripping every colour
+		// from the Status options and rolling the system flag back to v1.
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.BoardsPropertyGroupName)
+		require.Nil(t, appErr)
+
+		fields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+
+		var statusBefore *model.PropertyField
+		for _, f := range fields {
+			if f.Name == model.BoardsPropertyFieldStatus {
+				statusBefore = f
+				break
+			}
+		}
+		require.NotNil(t, statusBefore)
+
+		// Snapshot the option IDs assigned by the v1 seed run so we can verify
+		// they survive the v2 upgrade.
+		idsBefore := optionIDsByName(t, statusBefore.Attrs)
+		require.Len(t, idsBefore, 3)
+		for _, id := range idsBefore {
+			require.NotEmpty(t, id)
+		}
+
+		// Strip colours to simulate the v1 shape, then rewind the version flag.
+		stripped := stripStatusColors(t, statusBefore.Attrs)
+		statusBefore.Attrs = stripped
+		_, _, _, updateErr := th.Server.propertyService.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{statusBefore})
+		require.NoError(t, updateErr)
+
+		sysErr := th.Store.System().SaveOrUpdate(&model.System{Name: boardsPropertySetupDoneKey, Value: "v1"})
+		require.NoError(t, sysErr)
+
+		// Run the migration again — should layer colours back on without
+		// changing option IDs.
+		require.NoError(t, th.Server.doSetupBoardsProperties())
+
+		fields, appErr = th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		var statusAfter *model.PropertyField
+		for _, f := range fields {
+			if f.Name == model.BoardsPropertyFieldStatus {
+				statusAfter = f
+				break
+			}
+		}
+		require.NotNil(t, statusAfter)
+
+		assertStatusColors(t, statusAfter.Attrs, map[string]string{
+			model.BoardsStatusOptionTodo:       model.BoardsStatusColorTodo,
+			model.BoardsStatusOptionInProgress: model.BoardsStatusColorInProgress,
+			model.BoardsStatusOptionComplete:   model.BoardsStatusColorComplete,
+		})
+
+		idsAfter := optionIDsByName(t, statusAfter.Attrs)
+		require.Equal(t, idsBefore, idsAfter, "v2 upgrade must preserve every existing option ID")
+	})
+}
+
+func assertStatusColors(t *testing.T, attrs model.StringInterface, want map[string]string) {
+	t.Helper()
+	got := map[string]string{}
+	encoded, err := json.Marshal(attrs["options"])
+	require.NoError(t, err)
+	var options []map[string]any
+	require.NoError(t, json.Unmarshal(encoded, &options))
+	for _, opt := range options {
+		name, _ := opt["name"].(string)
+		color, _ := opt["color"].(string)
+		if name != "" {
+			got[name] = color
+		}
+	}
+	require.Equal(t, want, got)
+}
+
+func optionIDsByName(t *testing.T, attrs model.StringInterface) map[string]string {
+	t.Helper()
+	out := map[string]string{}
+	encoded, err := json.Marshal(attrs["options"])
+	require.NoError(t, err)
+	var options []map[string]any
+	require.NoError(t, json.Unmarshal(encoded, &options))
+	for _, opt := range options {
+		name, _ := opt["name"].(string)
+		id, _ := opt["id"].(string)
+		if name != "" {
+			out[name] = id
+		}
+	}
+	return out
+}
+
+func stripStatusColors(t *testing.T, attrs model.StringInterface) model.StringInterface {
+	t.Helper()
+	encoded, err := json.Marshal(attrs["options"])
+	require.NoError(t, err)
+	var options []map[string]any
+	require.NoError(t, json.Unmarshal(encoded, &options))
+	for _, opt := range options {
+		delete(opt, "color")
+	}
+	out := make(model.StringInterface, len(attrs))
+	maps.Copy(out, attrs)
+	out["options"] = options
+	return out
 }

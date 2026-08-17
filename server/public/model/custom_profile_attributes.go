@@ -135,13 +135,6 @@ func (c CustomProfileAttributesSelectOption) IsValid() error {
 	if c.Color != "" && len(c.Color) > CPAOptionColorMaxLength {
 		return fmt.Errorf("color is too long, max length is %d", CPAOptionColorMaxLength)
 	}
-
-	// Rank is optional (select/multiselect options carry none), but when present
-	// it must be a positive integer, matching the field-level option validation.
-	if c.Rank != nil && *c.Rank <= 0 {
-		return fmt.Errorf("rank must be a positive integer, got %d", *c.Rank)
-	}
-
 	return nil
 }
 
@@ -175,6 +168,11 @@ type CPAAttrs struct {
 	SourcePluginID string                                                `json:"source_plugin_id"`
 	AccessMode     string                                                `json:"access_mode"`
 	DisplayName    string                                                `json:"display_name,omitempty"` // omitempty applies only to direct JSON marshal of CPAAttrs; ToPropertyField always writes the key into the underlying StringInterface map.
+	// Owners, when set, declares the identities that own this field. A non-empty
+	// Owners list governs the field's write-access decision, superseding the
+	// legacy protected / SourcePluginID gating and the sync-lock. The list is
+	// managed only by an administrator via the REST API; see PropertyOwner.
+	Owners []PropertyOwner `json:"owners,omitempty"`
 }
 
 func (c *CPAField) IsSynced() bool {
@@ -226,6 +224,13 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 		PropertyAttrsSourcePluginID:                     c.Attrs.SourcePluginID,
 		PropertyAttrsAccessMode:                         c.Attrs.AccessMode,
 		CustomProfileAttributesPropertyAttrsDisplayName: c.Attrs.DisplayName,
+	}
+
+	// Only write the owners key when the field declares owners, so existing
+	// fields keep their attrs blob unchanged and HasPropertyFieldOwners stays
+	// false for legacy-managed fields.
+	if len(c.Attrs.Owners) > 0 {
+		pf.Attrs[PropertyAttrsOwners] = c.Attrs.Owners
 	}
 
 	return &pf

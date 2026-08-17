@@ -1,0 +1,50 @@
+extends: substitution
+message: "Use '%s' instead of '%s'."
+level: warning
+ignorecase: true
+# Mattermost product terminology. Codifies handbook style guide.
+# See: https://handbook.mattermost.com/operations/research-and-development/product/technical-writing-team-handbook/documentation-style-guide
+swap:
+  # Product names
+  matter most: Mattermost
+  matter-most: Mattermost
+  mattermost cloud: Mattermost Cloud
+  mattermost server: Mattermost Server
+  mattermost team edition: Mattermost Team Edition
+  mattermost enterprise edition: Mattermost Enterprise Edition
+
+  # Feature names — proper-cased per brand
+  channels: Channels
+  playbooks: Playbooks
+  boards: Boards
+  copilot: Copilot
+  calls: Calls
+
+  # Audience naming
+  e-mail: email
+  e mail: email
+  log-in: log in
+  login (verb): log in
+  log-out: log out
+  logout (verb): log out
+  sign-in: sign in
+  sign-out: sign out
+
+  # Common technical terminology
+  github: GitHub
+  gitlab: GitLab
+  kubernetes: Kubernetes
+  postgres: PostgreSQL
+  mysql: MySQL
+  ldap: LDAP
+  saml: SAML
+  oauth: OAuth
+  api: API
+  apis: APIs
+  url: URL
+  urls: URLs
+  json: JSON
+  yaml: YAML
+  ssh: SSH
+  tls: TLS
+  ssl: TLS                            # Mattermost docs prefer TLS over SSL
