@@ -132,9 +132,9 @@ func toSnakeCase(key string) (string, bool) {
 		}
 
 		// Break before an uppercase rune that starts a new word, either
-		// following a lowercase rune or a digit ("userId" -> "user_Id"), or
+		// following a lowercase rune or a digit ("userId" -> "user_id"), or
 		// ending a run of uppercase runes ("requestURLPath" ->
-		// "request_URL_Path").
+		// "request_url_path").
 		if i > 0 && unicode.IsUpper(r) {
 			prev := runes[i-1]
 			startsWord := unicode.IsLower(prev) || unicode.IsDigit(prev)
