@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {screen} from '@testing-library/react';
 import React from 'react';
 
 import type {Job} from '@mattermost/types/jobs';
@@ -103,6 +104,97 @@ describe('components/MessageExportSettings', () => {
             />,
         );
         expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot, enabled, globalrelay, custom customer type', () => {
+        const config = {
+            MessageExportSettings: {
+                EnableExport: true,
+                ExportFormat: 'globalrelay',
+                DailyRunTime: '01:00',
+                ExportFromTimestamp: 12345678,
+                BatchSize: 10000,
+                GlobalRelaySettings: {
+                    CustomerType: 'CUSTOM',
+                    SMTPUsername: 'globalRelayUser',
+                    SMTPPassword: 'globalRelayPassword',
+                    EmailAddress: 'globalRelay@mattermost.com',
+                    CustomSMTPServerName: 'feeds.globalrelay.com',
+                    CustomSMTPPort: '25',
+                    CustomHeaderName: 'X-ProofpointArchiveMediaType',
+                    CustomHeaderValue: 'Message',
+                },
+            },
+        };
+
+        const {container} = renderWithContext(
+            <MessageExportSettingsDefault
+                config={config}
+            />,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should render the custom header fields with their configured values for the CUSTOM customer type', () => {
+        const config = {
+            MessageExportSettings: {
+                EnableExport: true,
+                ExportFormat: 'globalrelay',
+                DailyRunTime: '01:00',
+                ExportFromTimestamp: 12345678,
+                BatchSize: 10000,
+                GlobalRelaySettings: {
+                    CustomerType: 'CUSTOM',
+                    SMTPUsername: 'globalRelayUser',
+                    SMTPPassword: 'globalRelayPassword',
+                    EmailAddress: 'globalRelay@mattermost.com',
+                    CustomSMTPServerName: 'feeds.globalrelay.com',
+                    CustomSMTPPort: '25',
+                    CustomHeaderName: 'X-ProofpointArchiveMediaType',
+                    CustomHeaderValue: 'Message',
+                },
+            },
+        };
+
+        renderWithContext(
+            <MessageExportSettingsDefault
+                config={config}
+            />,
+        );
+
+        expect(screen.getByTestId('globalRelayCustomHeaderNameinput')).toHaveValue('X-ProofpointArchiveMediaType');
+        expect(screen.getByTestId('globalRelayCustomHeaderValueinput')).toHaveValue('Message');
+    });
+
+    test('should not render the custom header fields for non-CUSTOM customer types', () => {
+        const config = {
+            MessageExportSettings: {
+                EnableExport: true,
+                ExportFormat: 'globalrelay',
+                DailyRunTime: '01:00',
+                ExportFromTimestamp: 12345678,
+                BatchSize: 10000,
+                GlobalRelaySettings: {
+                    CustomerType: 'A10',
+                    SMTPUsername: 'globalRelayUser',
+                    SMTPPassword: 'globalRelayPassword',
+                    EmailAddress: 'globalRelay@mattermost.com',
+                    CustomSMTPServerName: '',
+                    CustomSMTPPort: '25',
+                    CustomHeaderName: 'X-ProofpointArchiveMediaType',
+                    CustomHeaderValue: 'Message',
+                },
+            },
+        };
+
+        renderWithContext(
+            <MessageExportSettingsDefault
+                config={config}
+            />,
+        );
+
+        expect(screen.queryByTestId('globalRelayCustomHeaderNameinput')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('globalRelayCustomHeaderValueinput')).not.toBeInTheDocument();
     });
 });
 
