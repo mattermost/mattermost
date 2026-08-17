@@ -839,8 +839,6 @@
   "admin.classification_markings.enforcement.clearance.checkbox": "Enable clearance attribute",
   "admin.classification_markings.enforcement.clearance.help": "Creates a ranked \"Clearance\" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.",
   "admin.classification_markings.enforcement.clearance.title": "Clearance attribute",
-  "admin.classification_markings.enforcement.section_description": "Enable the clearance attribute, then create a membership policy using it to restrict access to classified resources based on a user's clearance.",
-  "admin.classification_markings.enforcement.section_title": "Classification Enforcement",
   "admin.classification_markings.error.delete_has_dependents": "Cannot disable classification markings while channel classifications exist. Remove all channel classification markings first.",
   "admin.classification_markings.error.duplicate_name": "Classification level names must be unique. Duplicate: {name}",
   "admin.classification_markings.error.empty_name": "All classification levels must have a name.",
