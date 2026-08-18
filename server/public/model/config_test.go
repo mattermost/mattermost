@@ -1182,6 +1182,66 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 			},
 			true,
 		},
+		{
+			"Custom header name set without a value",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:      new(GlobalrelayCustomerTypeA9),
+				EmailAddress:      new("valid@mattermost.com"),
+				SMTPUsername:      new("SomeUsername"),
+				SMTPPassword:      new("SomePassword"),
+				CustomHeaderName:  new("X-Custom"),
+				CustomHeaderValue: new(""),
+			},
+			false,
+		},
+		{
+			"Custom header value set without a name",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:      new(GlobalrelayCustomerTypeA9),
+				EmailAddress:      new("valid@mattermost.com"),
+				SMTPUsername:      new("SomeUsername"),
+				SMTPPassword:      new("SomePassword"),
+				CustomHeaderName:  new(""),
+				CustomHeaderValue: new("Message"),
+			},
+			false,
+		},
+		{
+			"Custom header both empty",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:      new(GlobalrelayCustomerTypeA9),
+				EmailAddress:      new("valid@mattermost.com"),
+				SMTPUsername:      new("SomeUsername"),
+				SMTPPassword:      new("SomePassword"),
+				CustomHeaderName:  new(""),
+				CustomHeaderValue: new(""),
+			},
+			true,
+		},
+		{
+			"Custom header value may contain non-ASCII",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:      new(GlobalrelayCustomerTypeA9),
+				EmailAddress:      new("valid@mattermost.com"),
+				SMTPUsername:      new("SomeUsername"),
+				SMTPPassword:      new("SomePassword"),
+				CustomHeaderName:  new("X-Custom"),
+				CustomHeaderValue: new("Café Meeting"),
+			},
+			true,
+		},
+		{
+			"Custom header name with a non-token character",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:      new(GlobalrelayCustomerTypeA9),
+				EmailAddress:      new("valid@mattermost.com"),
+				SMTPUsername:      new("SomeUsername"),
+				SMTPPassword:      new("SomePassword"),
+				CustomHeaderName:  new("X-Custom(Foo)"),
+				CustomHeaderValue: new("Message"),
+			},
+			false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -1221,6 +1281,23 @@ func TestGlobalRelayMessageExportSetDefaultsCustomHeader(t *testing.T) {
 
 	require.Equal(t, "", *grs.CustomHeaderName)
 	require.Equal(t, "", *grs.CustomHeaderValue)
+}
+
+func TestMessageExportSettingsGlobalRelayZipCustomHeader(t *testing.T) {
+	mes := &MessageExportSettings{
+		EnableExport:        new(true),
+		ExportFormat:        new(ComplianceExportTypeGlobalrelayZip),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
+		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
+			CustomerType:      new(GlobalrelayCustomerTypeCustom),
+			CustomHeaderName:  new("X-Custom\r\nInjected"),
+			CustomHeaderValue: new("Message"),
+		},
+	}
+
+	require.NotNil(t, mes.isValid())
 }
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.T) {

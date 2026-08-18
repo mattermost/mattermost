@@ -23,6 +23,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/ldap"
 	"github.com/pkg/errors"
+	"golang.org/x/net/http/httpguts"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
@@ -3879,6 +3880,29 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 	}
 }
 
+// The custom header name is written verbatim into the exported EML, so it must be a
+// valid header field name; the value must be free of control characters that could
+// inject additional headers.
+func (s *GlobalRelayMessageExportSettings) isValidCustomHeader() *AppError {
+	name := SafeDereference(s.CustomHeaderName)
+	value := SafeDereference(s.CustomHeaderValue)
+
+	// No custom header configured.
+	if name == "" && value == "" {
+		return nil
+	}
+	if name == "" || value == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !httpguts.ValidHeaderFieldName(name) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_header_name.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !httpguts.ValidHeaderFieldValue(value) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_header_value.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
 type MessageExportSettings struct {
 	EnableExport            *bool   `access:"compliance_compliance_export"`
 	ExportFormat            *string `access:"compliance_compliance_export"`
@@ -5244,10 +5268,6 @@ func (s *LocalizationSettings) isValid() *AppError {
 	return nil
 }
 
-// globalRelayCustomHeaderNameRegex matches a valid RFC 5322 header field name:
-// one or more printable ASCII characters (33-126) excluding ':' (58).
-var globalRelayCustomHeaderNameRegex = regexp.MustCompile("^[!-9;-~]+$")
-
 func (s *MessageExportSettings) isValid() *AppError {
 	if s.EnableExport == nil {
 		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.enable.app_error", nil, "", http.StatusBadRequest)
@@ -5281,15 +5301,11 @@ func (s *MessageExportSettings) isValid() *AppError {
 			} else if s.GlobalRelaySettings.SMTPPassword == nil || *s.GlobalRelaySettings.SMTPPassword == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.smtp_password.app_error", nil, "", http.StatusBadRequest)
 			}
+		}
 
-			// The custom header is written verbatim into the exported EML, so a CR or LF
-			// in the name or value could inject arbitrary headers. Reject those, and require
-			// the name to be a valid RFC 5322 field name when set.
-			customHeaderName := SafeDereference(s.GlobalRelaySettings.CustomHeaderName)
-			customHeaderValue := SafeDereference(s.GlobalRelaySettings.CustomHeaderValue)
-			if strings.ContainsAny(customHeaderName, "\r\n") || strings.ContainsAny(customHeaderValue, "\r\n") ||
-				(customHeaderName != "" && !globalRelayCustomHeaderNameRegex.MatchString(customHeaderName)) {
-				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_header.app_error", nil, "", http.StatusBadRequest)
+		if (*s.ExportFormat == ComplianceExportTypeGlobalrelay || *s.ExportFormat == ComplianceExportTypeGlobalrelayZip) && s.GlobalRelaySettings != nil {
+			if appErr := s.GlobalRelaySettings.isValidCustomHeader(); appErr != nil {
+				return appErr
 			}
 		}
 	}
