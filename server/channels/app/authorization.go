@@ -693,6 +693,22 @@ func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field 
 func (a *App) hasPropertyFieldValueScopeAccess(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
 	switch field.ObjectType {
 	case model.PropertyFieldObjectTypeChannel:
+		channel, err := a.GetChannel(rctx, valueTargetID)
+		if err != nil {
+			rctx.Logger().Warn("Failed to look up channel for property value scope check",
+				mlog.String("channel_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(err),
+			)
+			return false
+		}
+		// DM/GM values are meant to be derived from the participants' own
+		// attributes rather than typed in, so participation alone doesn't earn
+		// the write. Only the system-level path may set them.
+		if channel.IsGroupOrDirect() {
+			return a.HasPermissionTo(userID, model.PermissionManageSystem)
+		}
 		ok, _ := a.HasPermissionToChannel(rctx, userID, valueTargetID, model.PermissionReadChannel)
 		return ok
 	case model.PropertyFieldObjectTypePost:

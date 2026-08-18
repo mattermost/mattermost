@@ -3910,7 +3910,9 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("DM channel - participant can write", func(t *testing.T) {
+	// DM/GM values are destined to be derived from the participants' attributes,
+	// so a participant may not hand-write one even at the member tier.
+	t.Run("DM channel - participant cannot write member-tier value", func(t *testing.T) {
 		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 		f := createField(t)
 		th.LoginBasic(t)
@@ -3918,10 +3920,62 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		items := []model.PropertyValuePatchItem{
 			{FieldID: f.ID, Value: json.RawMessage(`"dm-val"`)},
 		}
-		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("DM channel - participant cannot write admin-tier value", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		f := createAdminField(t)
+		th.LoginBasic(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"dm-admin-val"`)},
+		}
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("DM channel - system admin can write member-tier value", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		f := createField(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"dm-sysadmin-val"`)},
+		}
+		values, resp, err := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Len(t, values, 1)
+	})
+
+	t.Run("DM channel - participant can still read values", func(t *testing.T) {
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+		f := createField(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: f.ID, Value: json.RawMessage(`"dm-readable"`)},
+		}
+		_, resp, err := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		th.LoginBasic(t)
+		read, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, model.PropertyValueSearch{})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// The DM is shared across the subtests here, so assert on this field only.
+		var found *model.PropertyValue
+		for _, v := range read {
+			if v.FieldID == f.ID {
+				found = v
+			}
+		}
+		require.NotNil(t, found)
+		require.Equal(t, json.RawMessage(`"dm-readable"`), found.Value)
 	})
 
 	t.Run("DM channel - non-participant cannot write", func(t *testing.T) {
@@ -3949,7 +4003,7 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		require.Len(t, values, 1)
 	})
 
-	t.Run("GM channel - participant can write", func(t *testing.T) {
+	t.Run("GM channel - participant cannot write member-tier value", func(t *testing.T) {
 		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		f := createField(t)
@@ -3958,10 +4012,9 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		items := []model.PropertyValuePatchItem{
 			{FieldID: f.ID, Value: json.RawMessage(`"gm-val"`)},
 		}
-		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", gmChannel.Id, items)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		require.Len(t, values, 1)
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", gmChannel.Id, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("GM channel - non-participant cannot write", func(t *testing.T) {
