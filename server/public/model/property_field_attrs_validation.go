@@ -125,6 +125,18 @@ func GetPropertyFieldChangePolicy(field *PropertyField) string {
 	return PropertyFieldChangePolicyAny
 }
 
+// IsPropertyFieldRequired reports whether a value must be supplied when the
+// target resource is created. Only an explicit boolean true counts: a field
+// carrying a stringly "true" is a misconfiguration and must not read as
+// required, or a typo silently blocks channel creation.
+func IsPropertyFieldRequired(field *PropertyField) bool {
+	if field == nil || field.Attrs == nil {
+		return false
+	}
+	required, _ := field.Attrs[PropertyFieldAttrRequired].(bool)
+	return required
+}
+
 // Valid action values for PropertyFieldAttrActions.
 const (
 	PropertyFieldActionDisplayBannerTop    = "display_banner_top"

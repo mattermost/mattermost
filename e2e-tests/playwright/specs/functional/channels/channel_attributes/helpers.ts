@@ -113,12 +113,17 @@ export async function createChannelForAttributes(
     team: Team,
     suffix: string,
     displayName = `Attr ${suffix}`,
+    propertyValues?: Array<{field_id: string; value: unknown}>,
 ): Promise<Channel> {
     return adminClient.createChannel({
         team_id: team.id,
         name: `attr-${suffix}`.toLowerCase(),
         display_name: displayName,
         type: 'O',
+
+        // Required attributes are refused server-side, so a channel seeded for a
+        // spec has to carry them in the create call.
+        ...(propertyValues?.length ? {property_values: propertyValues} : {}),
     } as Channel);
 }
 
@@ -184,12 +189,14 @@ export async function purgeAttributes(adminClient: Client4): Promise<void> {
  * Throws when the server carries a required channel attribute these specs did not
  * create.
  *
- * The create dialog asks for every required channel attribute, and Create channel
- * stays disabled until all of them have a value. A required attribute left behind
- * by hand (or by another suite) therefore breaks every create-modal test, and does
- * it as a 30s timeout on a disabled button that says nothing about the cause.
- * purgeAttributes cannot clear these: it is deliberately scoped to FIELD_PREFIX so
- * it never deletes a field someone meant to keep.
+ * The server refuses any channel create that omits a required attribute, and the
+ * dialog keeps Create channel disabled until each one has a value. A required
+ * attribute left behind by hand (or by another suite) therefore breaks not only
+ * every create-modal test but every fixture that creates a channel through the
+ * API — as a 400 there, and as a 30s timeout on a disabled button here, neither of
+ * which says anything about the cause. purgeAttributes cannot clear these: it is
+ * deliberately scoped to FIELD_PREFIX so it never deletes a field someone meant to
+ * keep.
  */
 export async function assertNoForeignRequiredAttributes(adminClient: Client4): Promise<void> {
     const fields = await adminClient.getPropertyFields(GROUP, 'channel', TARGET_TYPE, undefined, {perPage: 200});

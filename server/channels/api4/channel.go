@@ -123,12 +123,13 @@ func (api *API) InitChannel() {
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	var channel *model.Channel
-	err := json.NewDecoder(r.Body).Decode(&channel)
-	if err != nil || channel == nil {
+	var req *model.ChannelCreateRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil || req == nil {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
+	channel := &req.Channel
 
 	if channel.IsBoard() {
 		c.SetInvalidParamWithDetails("type", "cannot create board channels via /channels endpoint")
@@ -158,6 +159,9 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateChannel, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channel", channel)
+	// Count only. The values themselves are markings, and this sink is shared with
+	// user attribute values.
+	model.AddEventParameterToAuditRec(auditRec, "property_value_count", len(req.PropertyValues))
 
 	if channel.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePublicChannel) {
 		c.SetPermissionError(model.PermissionCreatePublicChannel)
@@ -187,7 +191,13 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	sc, appErr := c.App.CreateChannelWithUser(c.AppContext, channel, c.AppContext.Session().UserId)
+	propertyValues, appErr := channelAttributeValuesForCreate(c, channel, license, req.PropertyValues)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	sc, appErr := c.App.CreateChannelWithUserAndPropertyValues(c.AppContext, channel, c.AppContext.Session().UserId, propertyValues)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -201,6 +211,119 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(sc); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// channelAttributeValuesForCreate turns the submitted attribute values into
+// PropertyValues to write with the channel, and refuses the creation when a
+// required attribute has no value. Returning early when the feature is off keeps
+// creation byte-identical to its pre-feature behaviour, which is what makes this
+// safe to add to an endpoint every integration uses.
+//
+// Errors never name an attribute: which markings a server defines is itself
+// sensitive, and the caller may not be allowed to see them.
+func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license *model.License, items []model.PropertyValuePatchItem) ([]*model.PropertyValue, *model.AppError) {
+	if !c.App.Config().FeatureFlags.ChannelAttributes || !model.MinimumEnterpriseLicense(license) {
+		if len(items) > 0 {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
+		}
+		return nil, nil
+	}
+
+	// DMs and GMs are not created through this endpoint, and attributes are not
+	// assigned to them by hand.
+	if channel.IsGroupOrDirect() {
+		if len(items) > 0 {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
+		}
+		return nil, nil
+	}
+
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.AccessControlPropertyGroupName)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// The group's field budget is capped, so every caller reads one oversized page
+	// rather than paginating.
+	fields, appErr := c.App.SearchPropertyFields(c.AppContext, group.ID, model.PropertyFieldSearchOpts{
+		GroupID:    group.ID,
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		TargetType: model.PropertyValueTargetTypeSystem,
+		PerPage:    model.AccessControlGroupFieldLimit + 5,
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	fieldByID := make(map[string]*model.PropertyField, len(fields))
+	for _, field := range fields {
+		fieldByID[field.ID] = field
+	}
+
+	supplied := make(map[string]json.RawMessage, len(items))
+	values := make([]*model.PropertyValue, 0, len(items))
+	for _, item := range items {
+		if !model.IsValidId(item.FieldID) {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.invalid_attribute.app_error", nil, "", http.StatusBadRequest)
+		}
+		if _, ok := supplied[item.FieldID]; ok {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.invalid_attribute.app_error", nil, "duplicate field", http.StatusBadRequest)
+		}
+		field, ok := fieldByID[item.FieldID]
+		if !ok {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.invalid_attribute.app_error", nil, "unknown field", http.StatusBadRequest)
+		}
+		if !canSetChannelAttributeOnCreate(c, field) {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.attribute_no_permission.app_error", nil, "", http.StatusForbidden)
+		}
+
+		// Sanitize before the emptiness test, so "  " counts as unset here exactly
+		// as it will when the value is written.
+		value := model.SanitizePropertyValue(item.Value)
+		supplied[item.FieldID] = value
+		values = append(values, &model.PropertyValue{
+			GroupID: group.ID,
+			FieldID: field.ID,
+			Value:   value,
+		})
+	}
+
+	for _, field := range fields {
+		if !model.IsPropertyFieldRequired(field) || !canSetChannelAttributeOnCreate(c, field) {
+			continue
+		}
+		if value, ok := supplied[field.ID]; !ok || model.IsEmptyPropertyValue(value) {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.missing_required_attributes.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	if len(values) == 0 {
+		return nil, nil
+	}
+	return values, nil
+}
+
+// canSetChannelAttributeOnCreate reports whether the caller may set this
+// attribute on a channel they are about to create. The channel does not exist
+// yet, so the channel-scoped tiers are answered from what creation itself
+// guarantees: the creator is saved as a channel admin, which satisfies both
+// "admin" and "member". A tier the caller cannot satisfy is skipped rather than
+// enforced — one sysadmin-only required attribute must not make channel creation
+// impossible for everyone else.
+func canSetChannelAttributeOnCreate(c *Context, field *model.PropertyField) bool {
+	level := ""
+	if field.PermissionValues != nil {
+		level = string(*field.PermissionValues)
+	}
+
+	switch level {
+	case string(model.PermissionLevelNone):
+		return false
+	case string(model.PermissionLevelSysadmin):
+		return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	default:
+		return true
 	}
 }
 

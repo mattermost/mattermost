@@ -60,7 +60,8 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             const displayName = `Attr Required ${suffix}`;
             await modal.fillDisplayName(displayName);
 
-            // Enforced by the dialog: POST /channels cannot carry values.
+            // The dialog blocks submission so the user finds out here; the server
+            // refuses the same create independently.
             await expect(modal.createButton).toBeDisabled();
 
             await page.getByTestId(`channelAttribute-${required.name}`).click();

@@ -2884,6 +2884,18 @@ func (c *Client4) CreateChannel(ctx context.Context, channel *Channel) (*Channel
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
+// CreateChannelWithPropertyValues creates a channel and its attribute values in
+// one request, which is what lets the server refuse a channel that would not
+// satisfy its own required attributes.
+func (c *Client4) CreateChannelWithPropertyValues(ctx context.Context, req *ChannelCreateRequest) (*Channel, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.channelsRoute(), req)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Channel](r)
+}
+
 // CreateBoard creates a board channel. The channel.Type must be ChannelTypeOpenBoard
 // or ChannelTypePrivateBoard. Requires the IntegratedBoards feature flag to be enabled
 // on the server; otherwise the route is not registered and returns 404.

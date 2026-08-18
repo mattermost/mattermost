@@ -85,10 +85,9 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
 
             await modal.create();
 
-            // The values are written after the channel exists and the modal only
-            // closes once that resolves, so this is the signal the write finished.
-            // The channel header is already visible from before, so waiting on it
-            // races the write.
+            // The values ride the create request, so the modal closing means the
+            // channel and its values both landed. The channel header is already
+            // visible from before, so waiting on it proves nothing.
             await expect(modal.container).not.toBeVisible();
 
             const channel = await adminClient.getChannelByName(team.id, displayName.toLowerCase().replace(/\s+/g, '-'));
@@ -150,13 +149,13 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
     });
 
     /**
-     * @objective Verify a failed value write is surfaced rather than swallowed.
+     * @objective Verify the server refuses a channel that is missing a required value.
      */
-    test('surfaces a value write failure and keeps the channel', async ({pw}) => {
+    test('rejects a create that omits a required attribute', async ({pw}) => {
         await pw.skipIfNoLicense();
         await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
-        const {adminClient, user, team} = await pw.initSetup();
+        const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
         const created: PropertyField[] = [];
 
@@ -164,39 +163,25 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
             await purgeAttributes(adminClient);
             await assertNoForeignRequiredAttributes(adminClient);
 
-            const program = await createAttribute(adminClient, attributeName('failing', suffix), {
+            const program = await createAttribute(adminClient, attributeName('required-api', suffix), {
                 options: ['AURORA'],
                 required: true,
             });
             created.push(program);
 
-            const {page, channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name);
-            await channelsPage.toBeVisible();
+            // Straight at the API, which is the point: the requirement holds for
+            // callers that never see the create dialog.
+            const name = `attr-api-${suffix}`;
+            await expect(
+                adminClient.createChannel({
+                    team_id: team.id,
+                    name,
+                    display_name: `Attr API ${suffix}`,
+                    type: 'O',
+                }),
+            ).rejects.toThrow();
 
-            // Fail only the value write. Channel creation must still succeed, so
-            // this proves the error is reported rather than the channel rolled back.
-            await page.route('**/api/v4/properties/groups/access_control/channel/values/**', async (route) => {
-                if (route.request().method() === 'PATCH') {
-                    await route.fulfill({status: 500, body: '{"message":"forced failure"}'});
-                    return;
-                }
-                await route.continue();
-            });
-
-            const modal = await channelsPage.openNewChannelModal();
-
-            const displayName = `Attr Fail ${suffix}`;
-            await modal.fillDisplayName(displayName);
-            await page.getByTestId(`channelAttribute-${program.name}`).click();
-            await page.getByText('AURORA', {exact: true}).click();
-            await modal.create();
-
-            // Assert the save-failure banner, not the attribute label already visible in the form.
-            await expect(page.getByText(/these attributes were not saved/i)).toBeVisible();
-
-            const channel = await adminClient.getChannelByName(team.id, displayName.toLowerCase().replace(/\s+/g, '-'));
-            expect(channel.delete_at).toBe(0);
+            await expect(adminClient.getChannelByName(team.id, name)).rejects.toThrow();
         } finally {
             await deleteAttributes(adminClient, created);
         }

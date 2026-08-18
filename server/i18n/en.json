@@ -380,6 +380,14 @@
     "translation": "Your license does not support groups"
   },
   {
+    "id": "api.channel.create_channel.attribute_no_permission.app_error",
+    "translation": "You do not have permission to set one of the submitted channel attributes."
+  },
+  {
+    "id": "api.channel.create_channel.attributes_feature_disabled.app_error",
+    "translation": "Channel attributes are not enabled on this server."
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Must use createDirectChannel API service for direct message channel creation."
   },
@@ -392,12 +400,20 @@
     "translation": "A direct channel cannot be created between these users because they do not share a team in common."
   },
   {
+    "id": "api.channel.create_channel.invalid_attribute.app_error",
+    "translation": "One of the submitted channel attributes is not valid for this channel."
+  },
+  {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
     "translation": "Unable to create more than {{.MaxChannelsPerTeam}} channels for current team."
   },
   {
     "id": "api.channel.create_channel.missing_display_name.error",
     "translation": "Missing display_name in request body"
+  },
+  {
+    "id": "api.channel.create_channel.missing_required_attributes.app_error",
+    "translation": "This channel is missing required attributes."
   },
   {
     "id": "api.channel.create_channel.missing_team_id.error",

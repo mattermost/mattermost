@@ -156,6 +156,14 @@ func (a *App) postJoinMessageForDefaultChannel(rctx request.CTX, user *model.Use
 }
 
 func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
+	return a.CreateChannelWithUserAndPropertyValues(rctx, channel, userID, nil)
+}
+
+// CreateChannelWithUserAndPropertyValues creates a channel and its attribute
+// values together. propertyValues are already validated and group-stamped by the
+// caller, and are written before this returns so nothing reacting to channel
+// creation observes a channel whose attributes are missing.
+func (a *App) CreateChannelWithUserAndPropertyValues(rctx request.CTX, channel *model.Channel, userID string, propertyValues []*model.PropertyValue) (*model.Channel, *model.AppError) {
 	if channel.IsGroupOrDirect() {
 		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -184,7 +192,7 @@ func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, us
 
 	channel.CreatorId = userID
 
-	rchannel, err := a.CreateChannel(rctx, channel, true)
+	rchannel, err := a.CreateChannel(rctx, channel, true, propertyValues...)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +243,7 @@ func (a *App) RenameChannel(rctx request.CTX, channel *model.Channel, newChannel
 	return newChannel, nil
 }
 
-func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
+func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember bool, propertyValues ...*model.PropertyValue) (*model.Channel, *model.AppError) {
 	if channel.IsBoard() {
 		return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.board_type.app_error", nil, "use CreateBoardChannel instead", http.StatusBadRequest)
 	}
@@ -333,6 +341,12 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		}
 	}
 
+	if len(propertyValues) > 0 {
+		if appErr := a.setChannelPropertyValuesOnCreate(rctx, sc, propertyValues); appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	if sc.IsSpace() {
 		return sc, nil
 	}
@@ -346,6 +360,37 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 	})
 
 	return sc, nil
+}
+
+// setChannelPropertyValuesOnCreate writes a new channel's attribute values, and
+// removes the channel again if that write fails. Compensating is safe only here:
+// the values go in before the join message, the channel_created event and the
+// plugin hook, so nobody has been told the channel exists and nobody but the
+// creator is in it. There is no transaction spanning the channel and property
+// stores, so this is the only way a caller gets all-or-nothing.
+func (a *App) setChannelPropertyValuesOnCreate(rctx request.CTX, channel *model.Channel, values []*model.PropertyValue) *model.AppError {
+	for _, value := range values {
+		value.TargetID = channel.Id
+		value.TargetType = model.PropertyValueTargetTypeChannel
+		value.CreatedBy = channel.CreatorId
+		value.UpdatedBy = channel.CreatorId
+	}
+
+	_, appErr := a.UpsertPropertyValues(rctx, values, model.PropertyFieldObjectTypeChannel, channel.Id, "")
+	if appErr == nil {
+		return nil
+	}
+
+	if deleteErr := a.PermanentDeleteChannel(rctx, channel); deleteErr != nil {
+		// The channel now exists without its required values, which is the state
+		// this whole path exists to prevent — so it is logged loudly rather than
+		// folded into the error the caller sees.
+		rctx.Logger().Error("Failed to remove channel after its attribute values could not be written",
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(deleteErr))
+	}
+
+	return appErr
 }
 
 func (a *App) GetOrCreateDirectChannel(rctx request.CTX, userID, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {

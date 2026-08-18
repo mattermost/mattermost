@@ -4,7 +4,6 @@
 package properties
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -809,7 +808,7 @@ func (h *AccessControlAttributeValidationHook) validateChangePolicy(groupID stri
 
 			// A user-initiated clear leaves a null-valued row behind rather than
 			// deleting it, so the presence of a row is not proof of a set value.
-			if !ok || isEmptyPropertyValue(old.Value) {
+			if !ok || model.IsEmptyPropertyValue(old.Value) {
 				continue
 			}
 			if err := checkValueMove(fieldMap[value.FieldID], old.Value, value.Value); err != nil {
@@ -833,7 +832,7 @@ func checkValueMove(field *model.PropertyField, old, next json.RawMessage) error
 
 	// Clearing is the largest downgrade there is, and re-setting afterwards
 	// would launder a value straight past a directional policy.
-	if isEmptyPropertyValue(next) {
+	if model.IsEmptyPropertyValue(next) {
 		return newChangePolicyError(field, policy)
 	}
 
@@ -898,22 +897,6 @@ func newChangePolicyError(field *model.PropertyField, policy string) error {
 		fmt.Sprintf("field %s: change policy %q does not permit this change", field.ID, policy),
 		http.StatusForbidden,
 	)
-}
-
-// isEmptyPropertyValue reports whether a stored value counts as unset. Mirrors
-// the webapp, which renders null, "" and [] alike as "Not set". Callers must
-// sanitize first: that is what turns ["  "] into [].
-func isEmptyPropertyValue(raw json.RawMessage) bool {
-	trimmed := bytes.TrimSpace(raw)
-	if len(trimmed) == 0 {
-		return true
-	}
-
-	switch string(trimmed) {
-	case "null", `""`, "[]":
-		return true
-	}
-	return false
 }
 
 // getValuesForTarget loads every value stored against one target, paging with

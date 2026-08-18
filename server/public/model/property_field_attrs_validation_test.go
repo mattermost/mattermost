@@ -130,6 +130,40 @@ func TestSanitizeAndValidatePropertyFieldBoolAttrLeavesOtherKeys(t *testing.T) {
 	require.Equal(t, PropertyFieldVisibilityAlways, field.Attrs[PropertyFieldAttrVisibility])
 }
 
+func TestIsPropertyFieldRequired(t *testing.T) {
+	tests := []struct {
+		name  string
+		field *PropertyField
+		want  bool
+	}{
+		{name: "nil field", field: nil, want: false},
+		{name: "nil attrs", field: &PropertyField{}, want: false},
+		{name: "absent key", field: &PropertyField{Attrs: StringInterface{}}, want: false},
+		{name: "true", field: &PropertyField{Attrs: StringInterface{PropertyFieldAttrRequired: true}}, want: true},
+		{name: "false", field: &PropertyField{Attrs: StringInterface{PropertyFieldAttrRequired: false}}, want: false},
+		// A typo must not silently block channel creation.
+		{name: "stringly true", field: &PropertyField{Attrs: StringInterface{PropertyFieldAttrRequired: "true"}}, want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, IsPropertyFieldRequired(tt.field))
+		})
+	}
+}
+
+func TestIsEmptyPropertyValue(t *testing.T) {
+	empty := []string{"", " ", "null", `""`, "[]", " [] "}
+	for _, raw := range empty {
+		require.True(t, IsEmptyPropertyValue(json.RawMessage(raw)), raw)
+	}
+
+	set := []string{`"x"`, `["a"]`, "0", "false", `{"a":1}`}
+	for _, raw := range set {
+		require.False(t, IsEmptyPropertyValue(json.RawMessage(raw)), raw)
+	}
+}
+
 func TestSanitizeAndValidatePropertyFieldChangePolicy(t *testing.T) {
 	tests := []struct {
 		name      string

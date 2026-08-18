@@ -15,10 +15,8 @@ import type {NewChannelFormResult, NewChannelFormState} from '@mattermost/types/
 
 import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
 import {createChannel} from 'mattermost-redux/actions/channels';
-import {Client4} from 'mattermost-redux/client';
 import Permissions from 'mattermost-redux/constants/permissions';
 import Preferences from 'mattermost-redux/constants/preferences';
-import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
 import {areManagedCategoriesEnabled, isChannelCategorySortingEnabled, makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
 import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
@@ -136,8 +134,6 @@ const NewChannelModal = () => {
     // one control here rather than two.
     const canManageClassification = classification.available && isSystemAdmin && !channelAttributes.enabled;
     const [attributeValues, setAttributeValues] = useState<ChannelAttributeSelection>({});
-    const [attributeError, setAttributeError] = useState('');
-    const [createdChannel, setCreatedChannel] = useState<Channel | null>(null);
 
     // Required only; optional ones are added later from Channel Info. Classification
     // is one of these once the flag is on, and its dedicated section is suppressed
@@ -146,7 +142,8 @@ const NewChannelModal = () => {
     // The setter tier cannot be evaluated without a channel, so this renders
     // optimistically and the server stays authoritative. sysadmin is the exception:
     // a required sysadmin-only attribute would disable Create for everyone else,
-    // which is a worse failure than an unset marking.
+    // which is a worse failure than an unset marking — the server skips the same
+    // tier for the same reason.
     const assignableAttributeFields = useMemo(() => {
         return channelAttributes.fields.filter((field) => {
             if (!isPropertyFieldRequired(field)) {
@@ -171,18 +168,6 @@ const NewChannelModal = () => {
             return !value;
         });
     }, [assignableAttributeFields, attributeValues]);
-
-    const attributeDisplayName = useCallback((fieldId: string): string => {
-        if (fieldId === classification.channelField?.id) {
-            return formatMessage({id: 'channel_modal.classification.toggle_label', defaultMessage: 'Channel classification'});
-        }
-        const field = channelAttributes.fields.find((candidate) => candidate.id === fieldId);
-        if (!field) {
-            return '';
-        }
-        const displayName = field.attrs?.display_name;
-        return typeof displayName === 'string' && displayName ? displayName : field.name;
-    }, [channelAttributes.fields, classification.channelField, formatMessage]);
 
     const handleAttributeChange = useCallback((fieldId: string, value: string | string[] | undefined) => {
         setAttributeValues((current) => {
@@ -262,17 +247,21 @@ const NewChannelModal = () => {
     }, []);
 
     const handleOnModalConfirm = async () => {
-        if (createdChannel) {
-            handleOnModalCancel();
-            dispatch(switchToChannel(createdChannel));
-            return;
-        }
-
         if (!canCreate || !currentTeamId) {
             return;
         }
 
         if (isBuiltInType(type)) {
+            // Sent with the channel rather than written afterwards, so the server
+            // can refuse a channel that would not meet its own requirements.
+            const propertyValues = [
+                ...(classificationEnabled && selectedClassificationId && classification.channelField && bannerText ? [{
+                    field_id: classification.channelField.id,
+                    value: selectedClassificationId,
+                }] : []),
+                ...Object.entries(attributeValues).map(([fieldId, value]) => ({field_id: fieldId, value})),
+            ];
+
             const channel: Channel = {
                 team_id: currentTeamId,
                 name: url,
@@ -307,6 +296,7 @@ const NewChannelModal = () => {
                         background_color: selectedClassificationLevel?.color || '',
                     },
                 } : {}),
+                ...(propertyValues.length > 0 ? {property_values: propertyValues} : {}),
             };
 
             try {
@@ -314,41 +304,6 @@ const NewChannelModal = () => {
                 if (error) {
                     onCreateChannelError(error);
                     return;
-                }
-
-                // Values are written after the channel exists, so a failure here
-                // leaves a real channel with missing markings. The channel is
-                // deliberately kept — deleting it would lose the user's other
-                // input — but the failure has to be visible and name what was
-                // not saved, so nobody walks away believing it was.
-                const items = [
-                    ...(classificationEnabled && selectedClassificationId && classification.channelField && bannerText ? [{
-                        field_id: classification.channelField.id,
-                        value: selectedClassificationId,
-                    }] : []),
-                    ...Object.entries(attributeValues).map(([fieldId, value]) => ({field_id: fieldId, value})),
-                ];
-
-                if (items.length > 0) {
-                    try {
-                        await Client4.patchPropertyValues(
-                            ACCESS_CONTROL_PROPERTY_GROUP,
-                            CHANNEL_OBJECT_TYPE,
-                            newChannel!.id,
-                            items,
-                        );
-                    } catch {
-                        const names = items.
-                            map(({field_id: fieldId}) => attributeDisplayName(fieldId)).
-                            filter(Boolean).
-                            join(', ');
-                        setAttributeError(formatMessage({
-                            id: 'channel_modal.attributes.save_failed',
-                            defaultMessage: 'The channel was created, but these attributes were not saved: {names}. An administrator can set them later.',
-                        }, {names}));
-                        setCreatedChannel(newChannel!);
-                        return;
-                    }
                 }
 
                 handleOnModalCancel();
@@ -518,9 +473,7 @@ const NewChannelModal = () => {
     // controls the user may still need to fill in.
     const canSubmit = pluginCreateGate && !isSubmitting && !channelAttributes.loading;
 
-    // Once the channel exists but its attributes failed to save, the only action
-    // left is to acknowledge and go to it — creating again would collide on the URL.
-    const canCreate = Boolean(createdChannel) || (hasCompleteForm && hasNoErrors && canSubmit);
+    const canCreate = hasCompleteForm && hasNoErrors && canSubmit;
 
     const pluginOptions = useMemo<PluginOptionButtonProps[]>(() => availableOptions.map((o) => ({
         id: o.id,
@@ -571,8 +524,6 @@ const NewChannelModal = () => {
                 text={formatMessage({id: 'channel_modal.creating', defaultMessage: 'Creating...'})}
             />
         );
-    } else if (createdChannel) {
-        confirmButtonText = formatMessage({id: 'channel_modal.goToChannel', defaultMessage: 'Go to channel'});
     }
 
     return (
@@ -582,7 +533,7 @@ const NewChannelModal = () => {
             modalHeaderText={formatMessage({id: 'channel_modal.modalTitle', defaultMessage: 'Create a new channel'})}
             confirmButtonText={confirmButtonText}
             cancelButtonText={formatMessage({id: 'channel_modal.cancel', defaultMessage: 'Cancel'})}
-            errorText={serverError || attributeError}
+            errorText={serverError}
             isConfirmDisabled={!canCreate}
             autoCloseOnConfirmButton={false}
             compassDesign={true}
@@ -795,7 +746,7 @@ const NewChannelModal = () => {
                         fields={assignableAttributeFields}
                         values={attributeValues}
                         onChange={handleAttributeChange}
-                        disabled={Boolean(createdChannel)}
+                        disabled={isSubmitting}
                     />
                 )}
                 {activePluginOption?.extraContent && (

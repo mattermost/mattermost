@@ -1358,18 +1358,12 @@ describe('components/new_channel_modal - channel attributes', () => {
         },
     };
 
-    let patchPropertyValues: jest.SpyInstance;
-
     beforeEach(() => {
         jest.clearAllMocks();
         mockedUseClassificationMarkings.mockReturnValue({available: false, loading: false, channelField: null, levels: []});
         mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [program]});
         (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({data: createdChannel, error: null}));
-        patchPropertyValues = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
-    });
-
-    afterEach(() => {
-        patchPropertyValues.mockRestore();
+        jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
     });
 
     async function fillAndSelect() {
@@ -1378,19 +1372,19 @@ describe('components/new_channel_modal - channel attributes', () => {
         await userEvent.click(screen.getByText('AURORA'));
     }
 
-    test('writes the selected attribute values against the channel that was just created', async () => {
+    test('sends the selected attribute values with the channel it creates', async () => {
         renderWithContext(<NewChannelModal/>, state);
 
         await fillAndSelect();
         await userEvent.click(screen.getByText('Create channel'));
 
-        await waitFor(() => expect(patchPropertyValues).toHaveBeenCalledTimes(1));
-        expect(patchPropertyValues).toHaveBeenCalledWith(
-            'access_control',
-            'channel',
-            createdChannel.id,
-            [{field_id: program.id, value: 'opt_a'}],
-        );
+        // One call, not two: the server needs the values in hand to refuse a
+        // channel that would not meet its own requirements.
+        await waitFor(() => expect(createChannel).toHaveBeenCalledTimes(1));
+        expect((createChannel as jest.Mock).mock.calls[0][0]).toMatchObject({
+            property_values: [{field_id: program.id, value: 'opt_a'}],
+        });
+        expect(Client4.patchPropertyValues).not.toHaveBeenCalled();
     });
 
     test('blocks creation while a required attribute is empty', async () => {
@@ -1398,9 +1392,8 @@ describe('components/new_channel_modal - channel attributes', () => {
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
 
-        // Enforced by the dialog, not the server: POST /channels cannot carry
-        // values, so this is the only place the requirement can be applied before
-        // the channel exists.
+        // The server enforces this too; the dialog does it as well so the user
+        // finds out while typing rather than on submit.
         expect(screen.getByText('Create channel').closest('button')).toBeDisabled();
 
         await userEvent.click(screen.getByText('Create channel'));
@@ -1430,20 +1423,20 @@ describe('components/new_channel_modal - channel attributes', () => {
         await userEvent.click(screen.getByText('Create channel'));
 
         await waitFor(() => expect(createChannel).toHaveBeenCalled());
-        expect(patchPropertyValues).not.toHaveBeenCalled();
+        expect((createChannel as jest.Mock).mock.calls[0][0]).not.toHaveProperty('property_values');
     });
 
-    test('keeps the channel and names the unsaved attribute when the write fails', async () => {
-        patchPropertyValues.mockRejectedValue(new Error('nope'));
+    test('surfaces a server refusal instead of closing', async () => {
+        (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({
+            data: null,
+            error: {message: 'This channel is missing required attributes.'},
+        }));
 
         renderWithContext(<NewChannelModal/>, state);
 
         await fillAndSelect();
         await userEvent.click(screen.getByText('Create channel'));
 
-        // The error has to name what was not saved, and the modal has to stop
-        // offering to create a second channel.
-        await waitFor(() => expect(screen.getByText(/these attributes were not saved: Program/)).toBeInTheDocument());
-        expect(screen.getByText('Go to channel')).toBeEnabled();
+        await waitFor(() => expect(screen.getByText('This channel is missing required attributes.')).toBeInTheDocument());
     });
 });
