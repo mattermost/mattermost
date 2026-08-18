@@ -13,8 +13,13 @@
   box-shadow: 0 1px 2px rgba(30, 50, 92, 0.04);
 }
 
+/* The base rule's --mm-border-subtle resolves to denim-700 in dark mode —
+ * ~1:1 contrast from the page background (#0E1525), so the box had no
+ * visible edge. --mm-border-strong (denim-500) is a real step up. Fill
+ * needs no override: --mm-bg-surface above already resolves to a
+ * theme-appropriate value per mode. */
 [data-theme='dark'] .callout {
-  background: var(--mm-denim-800);
+  border-color: var(--mm-border-strong);
 }
 
 .bar {
@@ -61,6 +66,11 @@
 /* Kind variants */
 .note    .bar { background: var(--mm-color-denim); }
 .note    .label { color: var(--mm-denim-600); }
+/* Every other kind below pairs its light-mode label color with a
+ * dark-mode override — "note" was missing one, so it fell back to this
+ * light-mode-only denim-600 in dark mode too: dark navy text on a dark
+ * navy background. */
+[data-theme='dark'] .note .label { color: var(--mm-denim-200); }
 
 .tip     .bar { background: #2C7A4F; }            /* operational green */
 .tip     .label { color: #1F5A39; }

@@ -1,34 +1,26 @@
 ---
 title: Air-Gapped Operations
 sidebar_position: 5
-description: Deploy and operate Mattermost in network-isolated enclaves — air-gapped, sovereign-cloud, and tactical-edge environments.
+description: Deploy and operate Mattermost in a self-hosted air-gapped environment with no direct internet access.
 ---
 
-<EditionAvailability tiers="enterprise,enterprise-advanced" />
-<DeploymentAvailability modes="self-hosted,air-gapped,tactical-edge,cloud-government" />
+<EditionAvailability tiers="free,professional,enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted,air-gapped" />
 
 # Air-Gapped Operations
 
-This section is for operators deploying Mattermost in **network-isolated enclaves** — environments with no egress to public networks, no DNS to public resolvers, no upstream package mirrors, and no telemetry. Typical contexts: DoD SIPRNet / JWICS, IL4 / IL5 enclaves, sovereign-cloud (AWS GovCloud, Azure Government), and forward-deployed tactical edges with DDIL (Disconnected, Intermittent, Limited bandwidth) connectivity.
+An air-gapped environment is one that's isolated from the public internet, requiring all necessary components to be available locally. This section outlines what you'll need to deploy and operate Mattermost in a self-hosted air-gapped environment — preparation, deployment guidance, and the configuration changes required for a successful deployment.
 
-Mattermost runs fully in air-gapped mode. The procedure differs from a connected install in five ways: package mirroring, offline license activation, disabling phone-home features, push-notification mediation, and audit-log export topology. Each is documented below.
+Deploying Mattermost in an air-gapped environment requires preparing all necessary software, container images, and configuration resources in advance, since the target system has no direct internet access; transferring these artifacts to the isolated network using secure media; and then installing, configuring, and validating the deployment within the air-gapped environment.
 
-:::note Persona scope
-This sub-tree is the canonical home for the **Air-Gapped Operator** persona (see `docs/_redesign/personas.md` §4 in the repo). Companion pages for **Security Architects** live under Security & Compliance; compliance machinery for **Compliance Officers** lives under Administration Guide → Comply.
-:::
+<Tip>
+
+Consider [talking to a Mattermost expert](https://mattermost.com/contact-sales/) if your organization needs support deploying Mattermost and supporting services in an air-gapped environment.
+
+</Tip>
 
 ## In this section
 
-- [Quick-Start Runbook](./quick-start-runbook) — 12-step procedure to stand up a working air-gapped Mattermost cluster from scratch.
-- [Mirror Package Repositories](./mirror-package-repositories) — internal Linux package + container registry topology and trust setup.
-- [Offline License Activation](./offline-license-activation) — activate Enterprise / Enterprise Advanced licenses without phoning home to `mattermost.com`.
-- [Disable Phone-Home Features](./disable-phone-home-features) — inventory of every outbound network call Mattermost makes and how to disable it in air-gapped mode.
-
-## Roadmap (Phase 2)
-
-Phase 2 of the IA redesign (see `docs/_redesign/proposed-ia.md` §6 in the repo) adds four more pages:
-
-- Push Notifications without Direct APNs / FCM Egress
-- Air-Gapped Upgrade Procedure
-- Audit Log Export to Air-Gapped SIEM
-- Tactical Edge / DDIL Operations
+- [Deployment Overview](/deployment-guide/air-gapped-operations/quick-start-runbook) — the high-level steps to prepare for and complete an air-gapped install.
+- [Bill of Materials and Registry Mirroring](/deployment-guide/air-gapped-operations/mirror-package-repositories) — what to gather before you cross the air gap, and how to set up a private package mirror or container registry.
+- [Configure for Air-Gapped Operation](/deployment-guide/air-gapped-operations/disable-phone-home-features) — server settings that depend on internet access and should be disabled or adjusted.

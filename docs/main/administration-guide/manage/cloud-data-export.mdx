@@ -1,6 +1,5 @@
 ---
 title: "Mattermost workspace migration"
-draft: true
 ---
 This document outlines the process for migrating an existing Mattermost instance [from self-hosted to Cloud](#migrate-from-self-hosted-to-cloud), and [from Cloud to self-hosted](#migrate-from-cloud-to-self-hosted).
 
@@ -200,14 +199,14 @@ Finally, it's time to take our export from the source server and use it as an im
 <td></td>
 </tr>
 <tr>
-<td colspan="3"><a href="mm-ref:administration-guide%2Fconfigure%2Fsite-configuration-settings%3Amax%20users%20per%20team">Maximum Users Per Team | Increase this value to a number that **exceeds** the maximum number of users, per team, in the import file. |</a> |</td>
+<td colspan="3"><a href="/administration-guide/configure/site-configuration-settings#max-users-per-team">Maximum Users Per Team | Increase this value to a number that **exceeds** the maximum number of users, per team, in the import file. |</a> |</td>
 </tr>
 <tr>
-<td colspan="3"><a href="mm-ref:administration-guide%2Fconfigure%2Fenvironment-configuration-settings%3Amaximum%20file%20size">Maximum File Size | Temporarily increase this value to be **larger** than the size of the import file. |</a> | Following a successful import, we strongly recommend reverting this value to a reasonable limit for daily expected usage. |</td>
+<td colspan="3"><a href="/administration-guide/configure/environment-configuration-settings#maximum-file-size">Maximum File Size | Temporarily increase this value to be **larger** than the size of the import file. |</a> | Following a successful import, we strongly recommend reverting this value to a reasonable limit for daily expected usage. |</td>
 </tr>
 <tr>
 <td colspan="3"><dl>
-<dt><a href="mm-ref:administration-guide%2Fconfigure%2Fenvironment-configuration-settings%3Awrite%20timeout">Write Timeout | Temporarily adjust this value based on import file speed and network path to enable the file to upload without timeouts. |</a> | Start with a value of <strong>3600</strong> and adjust if needed. |</dt>
+<dt><a href="/administration-guide/configure/environment-configuration-settings#write-timeout">Write Timeout | Temporarily adjust this value based on import file speed and network path to enable the file to upload without timeouts. |</a> | Start with a value of <strong>3600</strong> and adjust if needed. |</dt>
 <dd>
 <div class="line-block">Following a successful import, we strongly recommend reverting this setting to its initial or previous value. |</div>
 </dd>
@@ -215,14 +214,14 @@ Finally, it's time to take our export from the source server and use it as an im
 </tr>
 <tr>
 <td colspan="3"><dl>
-<dt><a href="mm-ref:administration-guide%2Fconfigure%2Fenvironment-configuration-settings%3Aread%20timeout">Read Timeout | Temporarily adjust this value based on import file speed and network path to enable the file to upload without timeouts. |</a> | Start with a value of <strong>3600</strong> and adjust if needed. |</dt>
+<dt><a href="/administration-guide/configure/environment-configuration-settings#read-timeout">Read Timeout | Temporarily adjust this value based on import file speed and network path to enable the file to upload without timeouts. |</a> | Start with a value of <strong>3600</strong> and adjust if needed. |</dt>
 <dd>
 <div class="line-block">Following a successful import, we strongly recommend reverting this setting to its initial or previous value. |</div>
 </dd>
 </dl></td>
 </tr>
 <tr>
-<td colspan="3"><a href="mm-ref:administration-guide%2Fconfigure%2Fenvironment-configuration-settings%3Aamazon%20s3%20request%20timeout">Amazon S3 Request Timeout | If using cloud-based file storage, adjust this value to ensure your storage requests don't time out too soon. |</a> |</td>
+<td colspan="3"><a href="/administration-guide/configure/environment-configuration-settings#amazon-s3-request-timeout">Amazon S3 Request Timeout | If using cloud-based file storage, adjust this value to ensure your storage requests don't time out too soon. |</a> |</td>
 </tr>
 </tbody>
 </table>

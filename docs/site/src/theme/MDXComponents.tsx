@@ -17,6 +17,7 @@ import Eyebrow from '@site/src/components/Eyebrow';
 import StatStrip from '@site/src/components/StatStrip';
 import MethodLegend from '@site/src/components/MethodLegend';
 import CardGrid from '@site/src/components/CardGrid';
+import UpgradeNotesFilter from '@site/src/components/UpgradeNotesFilter';
 // Globally available so migrated developer docs (Hugo `tabs` shortcode)
 // can use them without imports.
 import Tabs from '@theme/Tabs';
@@ -43,6 +44,7 @@ export default {
   StatStrip,
   MethodLegend,
   CardGrid,
+  UpgradeNotesFilter,
   Tabs,
   TabItem,
 };

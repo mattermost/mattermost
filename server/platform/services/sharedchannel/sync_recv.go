@@ -4,7 +4,6 @@
 package sharedchannel
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -302,7 +301,7 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 	var err error
 
 	// Check if user already exists
-	euser, err := scs.server.GetStore().User().Get(context.Background(), user.Id)
+	euser, err := scs.server.GetStore().User().Get(rctx, user.Id)
 	if err != nil {
 		if _, ok := err.(errNotFound); !ok {
 			return nil, fmt.Errorf("error checking sync user: %w", err)
@@ -362,7 +361,7 @@ func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *
 	// added and exit quickly.  Not needed for DMs where teamId is empty.
 	if channel != nil && channel.TeamId != "" {
 		// add user to team
-		if err := scs.app.AddUserToTeamByTeamId(request.EmptyContext(scs.server.Log()), channel.TeamId, userSaved); err != nil {
+		if err := scs.app.AddUserToTeamByTeamId(rctx, channel.TeamId, userSaved); err != nil {
 			return nil, fmt.Errorf("error adding sync user to Team: %w", err)
 		}
 		// add user to channel
@@ -497,7 +496,7 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 	if rpost == nil {
 		// post doesn't exist; check that user belongs to remote and create post.
 		// user is not checked for edit/delete because admins can perform those actions
-		user, err := scs.server.GetStore().User().Get(context.TODO(), post.UserId)
+		user, err := scs.server.GetStore().User().Get(rctx, post.UserId)
 		if err != nil {
 			return nil, fmt.Errorf("error fetching user for post sync: %w", err)
 		}
@@ -507,7 +506,16 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 
 		scs.transformMentionsOnReceive(rctx, post, targetChannel, rc, mentionTransforms)
 
-		rpost, _, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: true})
+		// The post is federated (RemoteId set) and its author is verified above
+		// to belong to the remote, which already enforced mm_blocks_actions
+		// authority. Preserve the prop through the create-time strip, mirroring
+		// how SanitizeProps preserves integration/notification props for
+		// federated posts.
+		rpost, _, appErr = scs.app.CreatePost(rctx, post, targetChannel, model.CreatePostFlags{
+			TriggerWebhooks:      true,
+			SetOnline:            true,
+			AllowMmBlocksActions: post.GetProp(model.PostPropsMmBlocksActions) != nil,
+		})
 		if appErr == nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Created sync post",
 				mlog.String("post_id", post.Id),
@@ -548,8 +556,11 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 			}
 		}
 
-		// First update the basic post
-		rpost, _, appErr = scs.app.UpdatePost(rctx, post, nil)
+		// First update the basic post. The post is federated and remote-owned
+		// (verified above); the origin cluster already enforced mm_blocks_actions
+		// authority, so allow the synced value through the UpdatePost freeze so
+		// button edits (or removals) made upstream propagate to this cluster.
+		rpost, _, appErr = scs.app.UpdatePost(rctx, post, &model.UpdatePostOptions{AllowMmBlocksActionsUpdate: true})
 		if appErr != nil {
 			rerr := errors.New(appErr.Error())
 			return nil, rerr
@@ -701,7 +712,7 @@ func (scs *Service) upsertSyncReaction(reaction *model.Reaction, targetChannel *
 	if existingReaction == nil {
 		// reaction does not exist; check that user belongs to remote and create reaction
 		// this is not done for delete since deletion can be done by admins on the remote
-		user, err := scs.server.GetStore().User().Get(context.TODO(), reaction.UserId)
+		user, err := scs.server.GetStore().User().Get(rctx, reaction.UserId)
 		if err != nil {
 			return nil, fmt.Errorf("error fetching user for reaction sync: %w", err)
 		}
@@ -748,7 +759,7 @@ func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowl
 	if existingAcknowledgement == nil {
 		// acknowledgement does not exist; check that user belongs to remote and create acknowledgement
 		// this is not done for delete since deletion can be done by admins on the remote
-		user, err := scs.server.GetStore().User().Get(context.TODO(), acknowledgement.UserId)
+		user, err := scs.server.GetStore().User().Get(rctx, acknowledgement.UserId)
 		if err != nil {
 			return nil, fmt.Errorf("error fetching user for acknowledgement sync: %w", err)
 		}
@@ -777,7 +788,7 @@ func (scs *Service) upsertSyncAcknowledgement(acknowledgement *model.PostAcknowl
 }
 
 func (scs *Service) upsertSyncUserStatus(rctx request.CTX, status *model.Status, rc *model.RemoteCluster) error {
-	user, err := scs.server.GetStore().User().Get(rctx.Context(), status.UserId)
+	user, err := scs.server.GetStore().User().Get(rctx, status.UserId)
 	if err != nil {
 		return fmt.Errorf("error getting user when syncing status: %w", err)
 	}
@@ -808,7 +819,7 @@ func (scs *Service) transformMentionsOnReceive(rctx request.CTX, post *model.Pos
 		var newMention string
 
 		// Get the user to determine transformation type
-		if user, err := scs.server.GetStore().User().Get(context.Background(), userID); err == nil && user != nil {
+		if user, err := scs.server.GetStore().User().Get(rctx, userID); err == nil && user != nil {
 			// User exists in receiver's database
 			if strings.Contains(mention, ":") {
 				// Colon mention (e.g., "@admin:remote1") - always use the user's actual username

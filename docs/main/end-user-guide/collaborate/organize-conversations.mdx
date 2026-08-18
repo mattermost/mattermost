@@ -1,6 +1,10 @@
 ---
 title: "Organize conversations using threaded discussions"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 <PlanAvailability slug="all-commercial" />
 
 Threads are a key part of the messaging experience in Mattermost. They're used to organize conversations and enable users to discuss topics without adding noise to channels or direct messages.
@@ -20,7 +24,7 @@ Threaded discussions offers an enhanced experience for users communicating in th
 
 [Replies to messages](/end-user-guide/collaborate/reply-to-messages) are collapsed under the first message of a thread. Open a thread by selecting the message or reply count.
 
-From Mattermost v11.2, when using Mattermost in a web browser, you can open threads in separate browser windows by selecting the **New Window** <img src="/img/ui/dock-window_F10AC.svg" alt="Open thread in a new browser window icon." /> icon in the thread header. This allows you to view and participate in multiple threads simultaneously without losing context.
+From Mattermost v11.2, when using Mattermost in a web browser, you can open threads in separate browser windows by selecting the **New Window** <img src={useBaseUrl('/img/ui/dock-window_F10AC.svg')} alt="Open thread in a new browser window icon." /> icon in the thread header. This allows you to view and participate in multiple threads simultaneously without losing context.
 
 ## Follow threads and messages
 
@@ -28,25 +32,22 @@ You'll automatically follow every thread you participate or are mentioned in. Yo
 
 ![Follow threads to stay updated on replies to messages.](/images/crt-following-thread.png)
 
-<div class="tab">
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
-Web/Desktop
-
-Toggle the thread’s **Follow** option, or select **Follow thread** from the **More Actions** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon.
+Toggle the thread’s **Follow** option, or select **Follow thread** from the **More Actions** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> icon.
 
 ![Unfollow threads from the More Actions icon.](/images/crt-following-thread.jpg)
 
 <Tip>
 
-\- Follow messages with no replies from the **More Actions** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon to be notified if someone replies to the message later based on your notification preferences. - You can also use keyboard arrow keys to navigate threads in the **Threads** view.
+- Follow messages with no replies from the **More Actions** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> icon to be notified if someone replies to the message later based on your notification preferences.
+- You can also use keyboard arrow keys to navigate threads in the **Threads** view.
 
 </Tip>
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Long-press on a message to access message options, then tap **Follow Thread**.
 
@@ -58,31 +59,29 @@ Alternatively, you can also tap on the **Follow** indicator below a message thre
 
 <Tip>
 
-Follow messages with no replies from the **More Actions** <img src="/img/ui/dots-vertical_F01D9.svg" alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon to be notified if someone replies to the message later based on your notification preferences.
+Follow messages with no replies from the **More Actions** <img src={useBaseUrl('/img/ui/dots-vertical_F01D9.svg')} alt="Use the More icon in the top left corner to access Mattermost desktop apps customization settings." className="theme-icon" /> icon to be notified if someone replies to the message later based on your notification preferences.
 
 ![Tap and hold on a message with no replies to select Follow Message.](/images/mobile-follow-a-message-with-no-replies.gif)
 
 </Tip>
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## Unfollow threads
 
 If you’re no longer interested in a or message thread, unfollow it to stop receiving notifications. Viewing a thread without responding to it doesn’t automatically follow that thread.
 
-<div class="tab">
+<Tabs>
+<TabItem value="web-desktop" label="Web/Desktop">
 
-Web/Desktop
-
-Toggle the thread’s **Following** indicator, or select **Unfollow thread** from the **More Actions** <img src="/img/ui/dots-horizontal_F01D8.svg" alt="Use the More icon to access additional message options." className="theme-icon" /> icon to unfollow it.
+Toggle the thread’s **Following** indicator, or select **Unfollow thread** from the **More Actions** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" /> icon to unfollow it.
 
 ![Unfollow threads from the More Actions icon.](/images/desktop-unfollow-message-thread.jpg)
 
-</div>
-
-<div class="tab">
-
-Mobile
+</TabItem>
+<TabItem value="mobile" label="Mobile">
 
 Long-press on a message to access message options, then tap **Unfollow Thread**.
 
@@ -92,7 +91,9 @@ Alternatively, you can tap on the **Following** indicator below the message thre
 
 ![Toggle the Following indicator to stop following a thread.](/images/mobile-unfollow-a-message-thread-by-tapping-following.gif)
 
-</div>
+</TabItem>
+</Tabs>
+
 
 ## View all threads
 

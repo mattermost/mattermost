@@ -673,4 +673,58 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
+
+	s.RunForSystemAdminAndLocal("Move channel auto-adding users missing from the destination team", func(c client.Client) {
+		printer.Clean()
+
+		testTeamName := api4.GenerateTestTeamName()
+		team, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
+			Name:        testTeamName,
+			DisplayName: "dName_" + testTeamName,
+			Type:        model.TeamOpen,
+		})
+		s.Require().Nil(appErr)
+
+		srcChannelName := api4.GenerateTestChannelName()
+		srcChannel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{
+			TeamId:      s.th.BasicTeam.Id,
+			Name:        srcChannelName,
+			DisplayName: "dName_" + srcChannelName,
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		s.Require().Nil(appErr)
+
+		// A channel member that belongs to the source team but not the destination team.
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
+		s.Require().Nil(appErr)
+		_, _, appErr = s.th.App.AddUserToTeam(s.th.Context, s.th.BasicTeam.Id, user.Id, "")
+		s.Require().Nil(appErr)
+		_, appErr = s.th.App.AddUserToChannel(s.th.Context, user, srcChannel, false)
+		s.Require().Nil(appErr)
+
+		// Without the flag the move is rejected and the missing user is reported.
+		err := moveChannelCmdF(c, &cobra.Command{}, []string{team.Id, srcChannel.Id})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), user.Username)
+		s.Require().Contains(err.Error(), "--auto-add-users")
+
+		_, appErr = s.th.App.GetTeamMember(s.th.Context, team.Id, user.Id)
+		s.Require().NotNil(appErr)
+
+		// With the flag the user is added to the destination team and the move succeeds.
+		printer.Clean()
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("auto-add-users", true, "")
+		err = moveChannelCmdF(c, cmd, []string{team.Id, srcChannel.Id})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		movedChannel, appErr := s.th.App.GetChannel(s.th.Context, srcChannel.Id)
+		s.Require().Nil(appErr)
+		s.Require().Equal(team.Id, movedChannel.TeamId)
+
+		teamMember, appErr := s.th.App.GetTeamMember(s.th.Context, team.Id, user.Id)
+		s.Require().Nil(appErr)
+		s.Require().Equal(user.Id, teamMember.UserId)
+	})
 }

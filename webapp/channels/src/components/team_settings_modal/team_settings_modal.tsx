@@ -11,7 +11,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import {isChannelAccessControlEnabled} from 'selectors/general';
+import {isChannelAccessControlEnabled, isTeamMembershipAccessControlEnabled} from 'selectors/general';
 
 import TeamSettings from 'components/team_settings';
 
@@ -45,6 +45,7 @@ const TeamSettingsModal = ({isOpen, onExited, focusOriginElement}: Props) => {
         haveITeamPermission(state, teamId, Permissions.INVITE_USER),
     );
     const abacEnabled = useSelector(isChannelAccessControlEnabled);
+    const teamMembershipAbacEnabled = useSelector(isTeamMembershipAccessControlEnabled);
     const isSystemAdmin = useSelector((state: GlobalState) =>
         haveISystemPermission(state, {permission: Permissions.MANAGE_SYSTEM}),
     );
@@ -120,9 +121,16 @@ const TeamSettingsModal = ({isOpen, onExited, focusOriginElement}: Props) => {
             display: canInviteUsers,
         },
         {
+            name: 'team_membership',
+            uiName: formatMessage({id: 'team_settings_modal.teamMembershipTab', defaultMessage: 'Team Membership'}),
+            icon: 'icon icon-iframe-list-outline',
+            iconTitle: formatMessage({id: 'generic_icons.team_membership', defaultMessage: 'Team Membership Icon'}),
+            display: teamMembershipAbacEnabled && canManageTeamAccessRules,
+        },
+        {
             name: 'access_policies',
-            uiName: formatMessage({id: 'team_settings_modal.accessPoliciesTab', defaultMessage: 'Membership Policies'}),
-            icon: 'icon icon-shield-outline',
+            uiName: formatMessage({id: 'team_settings_modal.accessPoliciesTab', defaultMessage: 'Channel Membership'}),
+            icon: 'icon icon-message-check-outline',
             iconTitle: formatMessage({id: 'generic_icons.access_rules', defaultMessage: 'Membership Policy Icon'}),
             display: abacEnabled && canManageTeamAccessRules,
         },

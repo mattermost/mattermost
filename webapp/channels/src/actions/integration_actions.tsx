@@ -3,9 +3,14 @@
 
 import type {IncomingWebhook, IncomingWebhooksWithCount, OutgoingWebhook, Command, OAuthApp, OutgoingOAuthConnection, DialogSubmission, SubmitDialogResponse} from '@mattermost/types/integrations';
 
+import {IntegrationTypes} from 'mattermost-redux/action_types';
+import {logError} from 'mattermost-redux/actions/errors';
+import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getDialogArguments} from 'mattermost-redux/selectors/entities/integrations';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
@@ -225,6 +230,32 @@ export function lookupInteractiveDialog(submission: DialogSubmission): ActionFun
         const {data, error} = await dispatch(IntegrationActions.lookupInteractiveDialog(submission));
         if (error) {
             return {error};
+        }
+        return {data};
+    };
+}
+
+export function executeDialogAction(url: string, context?: Record<string, string>): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const state = getState();
+
+        // Prefer the dialog's own channel_id over the current channel, so a child
+        // dialog action targets the dialog's context even if the user has navigated away.
+        const dialogArguments = getDialogArguments(state);
+        const channelId = dialogArguments?.channel_id || getCurrentChannelId(state);
+        const teamId = getCurrentTeamId(state);
+
+        let data;
+        try {
+            data = await Client4.executeDialogAction(url, context, channelId, teamId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        if (data?.trigger_id) {
+            dispatch({type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID, data: data.trigger_id});
         }
         return {data};
     };

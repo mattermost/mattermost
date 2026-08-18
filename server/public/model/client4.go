@@ -269,10 +269,6 @@ func (c *Client4) teamStatsRoute(teamId string) clientRoute {
 	return c.teamRoute(teamId).Join("stats")
 }
 
-func (c *Client4) teamImportRoute(teamId string) clientRoute {
-	return c.teamRoute(teamId).Join("import")
-}
-
 func (c *Client4) channelsRoute() clientRoute {
 	return newClientRoute("channels")
 }
@@ -2007,6 +2003,24 @@ func (c *Client4) RevokeUserAccessToken(ctx context.Context, tokenId string) (*R
 	return BuildResponse(r), nil
 }
 
+// RotateUserAccessToken generates a new secret for the token identified by tokenId,
+// sets a new expiry, and immediately invalidates the old secret and its sessions.
+// The returned token carries the new secret (shown once, like CreateUserAccessToken).
+// Must have the 'create_user_access_token' permission and if rotating for another
+// user, must have the 'edit_other_users' permission.
+func (c *Client4) RotateUserAccessToken(ctx context.Context, tokenId string, expiresAt int64) (*UserAccessToken, *Response, error) {
+	requestBody := struct {
+		TokenId   string `json:"token_id"`
+		ExpiresAt int64  `json:"expires_at"`
+	}{TokenId: tokenId, ExpiresAt: expiresAt}
+	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("tokens", "rotate"), requestBody)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*UserAccessToken](r)
+}
+
 // SearchUserAccessTokens returns user access tokens matching the provided search term.
 func (c *Client4) SearchUserAccessTokens(ctx context.Context, search *UserAccessTokenSearch) ([]*UserAccessToken, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.usersRoute().Join("tokens", "search"), search)
@@ -2611,50 +2625,6 @@ func (c *Client4) GetTeamUnread(ctx context.Context, teamId, userId string) (*Te
 	return DecodeJSONFromResponse[*TeamUnread](r)
 }
 
-// ImportTeam will import an exported team from other app into a existing team.
-func (c *Client4) ImportTeam(ctx context.Context, data []byte, filesize int, importFrom, filename, teamId string) (map[string]string, *Response, error) {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	part, err := writer.CreateFormFile("file", filename)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
-		return nil, nil, err
-	}
-
-	part, err = writer.CreateFormField("filesize")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if _, err = io.Copy(part, strings.NewReader(strconv.Itoa(filesize))); err != nil {
-		return nil, nil, err
-	}
-
-	part, err = writer.CreateFormField("importFrom")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if _, err = io.Copy(part, strings.NewReader(importFrom)); err != nil {
-		return nil, nil, err
-	}
-
-	if err = writer.Close(); err != nil {
-		return nil, nil, err
-	}
-
-	r, err := c.doAPIRequestReaderRoute(ctx, http.MethodPost, c.teamImportRoute(teamId), writer.FormDataContentType(), body, nil)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[map[string]string](r)
-}
-
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeam(ctx context.Context, teamId string, userEmails []string) (*Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.teamRoute(teamId).Join("invite", "email"), userEmails)
@@ -2699,6 +2669,19 @@ func (c *Client4) InviteUsersToTeamAndChannelsGracefully(ctx context.Context, te
 		ChannelIds: channelIds,
 		Message:    message,
 	}
+	values := url.Values{}
+	values.Set("graceful", c.boolString(true))
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.teamRoute(teamId).Join("invite", "email"), values, memberInvite)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*EmailInviteWithError](r)
+}
+
+// InviteMembersToTeamGracefully invite users by email to the team, optionally carrying
+// per-email profile fields to pre-set on the accounts created from the invitations.
+func (c *Client4) InviteMembersToTeamGracefully(ctx context.Context, teamId string, memberInvite *MemberInvite) ([]*EmailInviteWithError, *Response, error) {
 	values := url.Values{}
 	values.Set("graceful", c.boolString(true))
 	r, err := c.doAPIPostJSONWithQuery(ctx, c.teamRoute(teamId).Join("invite", "email"), values, memberInvite)
