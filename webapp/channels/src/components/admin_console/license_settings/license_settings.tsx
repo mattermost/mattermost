@@ -286,6 +286,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
 
     render() {
         const {license, upgradedFromTE, isDisabled} = this.props;
+        const isLicenseSetByEnvVar = Boolean(this.props.environmentConfig?.License);
 
         let leftPanel = null;
         let rightPanel = null;
@@ -325,7 +326,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                     fileInputRef={this.fileInputRef}
                     handleChange={this.handleChange}
                     statsActiveUsers={this.props.totalUsers || 0}
-                    isLicenseSetByEnvVar={Boolean(this.props.environmentConfig?.License)}
+                    isLicenseSetByEnvVar={isLicenseSetByEnvVar}
                 />
             );
 
@@ -345,6 +346,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                     upgradedFromTE={this.props.upgradedFromTE}
                     fileInputRef={this.fileInputRef}
                     handleChange={this.handleChange}
+                    isLicenseSetByEnvVar={isLicenseSetByEnvVar}
                 />
             );
 
