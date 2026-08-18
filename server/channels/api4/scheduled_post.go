@@ -35,11 +35,6 @@ func scheduledPostChecks(where string, c *Context, scheduledPost *model.Schedule
 		return
 	}
 
-	postHardenedModeCheckWithContext(where, c, scheduledPost.GetProps())
-	if c.Err != nil {
-		return
-	}
-
 	postPriorityCheckWithContext(where, c, scheduledPost.GetPriority(), scheduledPost.RootId)
 	if c.Err != nil {
 		return

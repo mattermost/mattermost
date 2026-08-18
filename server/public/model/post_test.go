@@ -202,13 +202,17 @@ func TestPostSanitizeProps(t *testing.T) {
 	post3 := &Post{
 		Message: "test",
 		Props: StringInterface{
-			PropsAddChannelMember:      "no good",
-			PostPropsForceNotification: "no good",
-			PostPropsAttachments:       "good",
-			PostPropsFromWebhook:       "user-settable in v11",
-			PostPropsFromBot:           "user-settable in v11",
-			PostPropsFromOAuthApp:      "user-settable in v11",
-			PostPropsFromPlugin:        "user-settable in v11",
+			PropsAddChannelMember:       "no good",
+			PostPropsForceNotification:  "no good",
+			PostPropsAttachments:        "good",
+			PostPropsFromWebhook:        "forged",
+			PostPropsFromBot:            "forged",
+			PostPropsFromOAuthApp:       "forged",
+			PostPropsFromPlugin:         "forged",
+			PostPropsOverrideUsername:   "Imposter",
+			PostPropsOverrideIconURL:    "https://attacker.example/icon.png",
+			PostPropsOverrideIconEmoji:  ":imposter:",
+			PostPropsWebhookDisplayName: "forged-hook",
 		},
 	}
 
@@ -219,26 +223,27 @@ func TestPostSanitizeProps(t *testing.T) {
 
 	require.NotNil(t, post3.GetProp(PostPropsAttachments))
 
-	// The from_* identity markers are NOT stripped by default in v11 — they
-	// remain user-settable for backward compatibility with the user-PAT-
-	// impersonation idiom. Hardened mode rejects from_webhook and from_plugin
-	// via ContainsIntegrationsReservedProps; from_bot and from_oauth_app are
-	// not currently in that reserved set. v12 will move all four into the
-	// default strip list along with override_username/override_icon_url.
-	require.Equal(t, "user-settable in v11", post3.GetProp(PostPropsFromWebhook))
-	require.Equal(t, "user-settable in v11", post3.GetProp(PostPropsFromBot))
-	require.Equal(t, "user-settable in v11", post3.GetProp(PostPropsFromOAuthApp))
-	require.Equal(t, "user-settable in v11", post3.GetProp(PostPropsFromPlugin))
+	// v12: from_* identity markers and the display-identity overrides are
+	// stripped by default so a regular client cannot forge them. Trusted
+	// integration entry points (webhook.go, command.go, plugin_api.go) re-set
+	// the values via CreatePostFlags in app.CreatePost under verified authority.
+	require.Nil(t, post3.GetProp(PostPropsFromWebhook))
+	require.Nil(t, post3.GetProp(PostPropsFromBot))
+	require.Nil(t, post3.GetProp(PostPropsFromOAuthApp))
+	require.Nil(t, post3.GetProp(PostPropsFromPlugin))
+	require.Nil(t, post3.GetProp(PostPropsOverrideUsername))
+	require.Nil(t, post3.GetProp(PostPropsOverrideIconURL))
+	require.Nil(t, post3.GetProp(PostPropsOverrideIconEmoji))
+	require.Nil(t, post3.GetProp(PostPropsWebhookDisplayName))
 
-	// Federated post: notification-policy markers (silent/force) were verified
-	// by the origin cluster and must survive sanitization on the receiving side.
+	// Federated post: notification-policy markers (silent/force), the from_*
+	// identity markers, and the display-identity overrides were all verified by
+	// the origin cluster and must survive sanitization on the receiving side.
 	// The non-integration system prop (PropsAddChannelMember) is still stripped
 	// — it's a synthesis marker for local "user added to channel" system posts
 	// and doesn't belong on federated posts regardless. RemoteId is server-set
 	// (SanitizeInput on the API4 path wipes any client-supplied value), so this
-	// branch can't be reached by forgery. The from_* identity markers also
-	// survive but that's not federation-specific — they aren't in the default
-	// strip list under hardened-OFF in v11 either way.
+	// branch can't be reached by forgery.
 	remoteId := "remote-cluster-1"
 	post4 := &Post{
 		Message:  "test",
@@ -251,6 +256,10 @@ func TestPostSanitizeProps(t *testing.T) {
 			PostPropsFromBot:            "true",
 			PostPropsFromOAuthApp:       "true",
 			PostPropsFromPlugin:         "true",
+			PostPropsOverrideUsername:   "RemoteBot",
+			PostPropsOverrideIconURL:    "https://remote.example/icon.png",
+			PostPropsOverrideIconEmoji:  ":remote:",
+			PostPropsWebhookDisplayName: "RemoteHook",
 		},
 	}
 
@@ -263,6 +272,10 @@ func TestPostSanitizeProps(t *testing.T) {
 	require.Equal(t, "true", post4.GetProp(PostPropsFromBot))
 	require.Equal(t, "true", post4.GetProp(PostPropsFromOAuthApp))
 	require.Equal(t, "true", post4.GetProp(PostPropsFromPlugin))
+	require.Equal(t, "RemoteBot", post4.GetProp(PostPropsOverrideUsername))
+	require.Equal(t, "https://remote.example/icon.png", post4.GetProp(PostPropsOverrideIconURL))
+	require.Equal(t, ":remote:", post4.GetProp(PostPropsOverrideIconEmoji))
+	require.Equal(t, "RemoteHook", post4.GetProp(PostPropsWebhookDisplayName))
 
 	// Empty-string RemoteId must NOT be treated as federated — it's the zero
 	// value SanitizeInput sets when wiping a client-forged value. silent_notification
@@ -279,6 +292,45 @@ func TestPostSanitizeProps(t *testing.T) {
 	post5.SanitizeProps()
 
 	require.Nil(t, post5.GetProp(PostPropsSilentNotification), "empty RemoteId must not be treated as federated")
+}
+
+func TestPostSanitizeNonIdentityProps(t *testing.T) {
+	post := &Post{
+		Message: "test",
+		Props: StringInterface{
+			PropsAddChannelMember:       "no good",
+			PostPropsForceNotification:  "no good",
+			PostPropsAttachments:        "good",
+			PostPropsFromWebhook:        "true",
+			PostPropsFromBot:            "true",
+			PostPropsFromOAuthApp:       "true",
+			PostPropsFromPlugin:         "true",
+			PostPropsOverrideUsername:   "MyBot",
+			PostPropsOverrideIconURL:    "https://example.com/icon.png",
+			PostPropsOverrideIconEmoji:  ":robot:",
+			PostPropsWebhookDisplayName: "MyHook",
+		},
+	}
+
+	post.SanitizeNonIdentityProps()
+
+	require.Nil(t, post.GetProp(PropsAddChannelMember))
+	require.Nil(t, post.GetProp(PostPropsForceNotification))
+
+	require.NotNil(t, post.GetProp(PostPropsAttachments))
+
+	// Unlike SanitizeProps, the already-persisted, already-verified display
+	// identity must survive on a read path — this is what CreatePost/UpdatePost
+	// settled via SanitizeProps + re-injection at write time, and a read-only
+	// call must not wipe it a second time.
+	require.Equal(t, "true", post.GetProp(PostPropsFromWebhook))
+	require.Equal(t, "true", post.GetProp(PostPropsFromBot))
+	require.Equal(t, "true", post.GetProp(PostPropsFromOAuthApp))
+	require.Equal(t, "true", post.GetProp(PostPropsFromPlugin))
+	require.Equal(t, "MyBot", post.GetProp(PostPropsOverrideUsername))
+	require.Equal(t, "https://example.com/icon.png", post.GetProp(PostPropsOverrideIconURL))
+	require.Equal(t, ":robot:", post.GetProp(PostPropsOverrideIconEmoji))
+	require.Equal(t, "MyHook", post.GetProp(PostPropsWebhookDisplayName))
 }
 
 func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {

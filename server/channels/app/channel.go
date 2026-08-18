@@ -3342,7 +3342,8 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(rctx request.CTX, postID
 		if mErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
-		a.sanitizeThreadResponse(thread)
+		a.sanitizeProfiles(thread.Participants, false)
+		thread.Post.SanitizeNonIdentityProps()
 
 		if a.IsCRTEnabledForUser(rctx, userID) {
 			payload, jsonErr := json.Marshal(thread)
