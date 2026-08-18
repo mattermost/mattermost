@@ -1777,6 +1777,52 @@ While drafts can be very useful for maintaining work continuity, especially in c
 </tbody>
 </table>
 
+### Enable user typing messages
+
+<table>
+<colgroup>
+<col style={{width: '43%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting determines whether "user is typing..." messages are displayed below the message box.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> "User is typing..." messages are displayed below the message box.</li><li><strong>false</strong>: "User is typing..." messages are not displayed.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableUserTypingMessages</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEUSERTYPINGMESSAGES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Disabling this configuration setting in larger deployments may improve server performance in the following areas:
+
+- Reduced Server Load: Typing events generate additional websocket traffic. Disabling them can reduce the amount of data that needs to be handled by the server, improving the overall response time and decreasing server load.
+- Lower Network Traffic: When typing events are enabled, every keystroke generates a network event. This can lead to a significant amount of network traffic, particularly in busy channels. Disabling these events reduces the amount of information transmitted over the network.
+- Client Performance: On the client side, processing typing events requires resources. By not having to handle these events, the client can be more responsive and use less memory and CPU.
+
+</Note>
+
+### User typing timeout
+
+<table>
+<colgroup>
+<col style={{width: '43%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The number of milliseconds to wait between emitting user typing websocket events, which determines how frequently "user is typing..." messages are updated.</p><p>Numerical input in milliseconds. Default is <strong>5000</strong>. Minimum is 1000.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>TimeBetweenUserTypingUpdatesMilliseconds</code> &gt; <code>5000</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_TIMEBETWEENUSERTYPINGUPDATESMILLISECONDS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting only applies when **Enable user typing messages** is set to **true**.
+
+</Note>
+
 ------------------------------------------------------------------------------------------------------------------------
 
 ## Content flagging

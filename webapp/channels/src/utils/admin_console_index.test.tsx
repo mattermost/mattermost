@@ -47,6 +47,10 @@ describe('AdminConsoleIndex.generateIndex', () => {
         expect(idx.search('subject lines')).toEqual([
             'environment/notifications',
         ]);
+        expect(idx.search('typing')).toEqual([
+            'experimental/features',
+            'site_config/posts',
+        ]);
         expect(idx.search('caracteres')).toEqual([]);
         expect(idx.search('notexistingword')).toEqual([]);
     });
