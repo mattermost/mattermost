@@ -10,7 +10,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {isPropertyFieldEditable} from 'mattermost-redux/utils/property_utils';
+import {getPropertyFieldChangePolicy} from 'mattermost-redux/utils/property_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -19,10 +19,10 @@ import type {GlobalState} from 'types/store';
  * server's permission_values tier rather than replacing it — the server stays
  * authoritative; this only decides whether to offer an affordance that would fail.
  *
- * attrs.editable means "may not be *changed* once set", so it is checked only
- * against an existing value: a locked attribute whose creation-time write failed
- * must stay fillable, or it is stranded as "Not set" forever. The server does not
- * consult the key at all, so that lock is advisory until it does.
+ * attrs.change_policy governs *changes*, so it is checked only against an existing
+ * value: an attribute whose creation-time write failed must stay fillable, or it
+ * is stranded as "Not set" forever. A directional policy still counts as settable
+ * here — the row stays editable and the option list is what narrows.
  */
 export default function useCanSetChannelAttributes(channelId: string) {
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
@@ -41,8 +41,8 @@ export default function useCanSetChannelAttributes(channelId: string) {
             return false;
         }
 
-        // Locked only bites once there is a value to protect.
-        if (hasValue && !isPropertyFieldEditable(field)) {
+        // The lock only bites once there is a value to protect.
+        if (hasValue && getPropertyFieldChangePolicy(field) === 'never') {
             return false;
         }
 

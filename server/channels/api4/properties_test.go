@@ -6,6 +6,7 @@ package api4
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -5316,5 +5317,97 @@ func TestSystemObjectType(t *testing.T) {
 		_, resp, patchErr := th.SystemAdminClient.PatchSystemPropertyValues(context.Background(), group.Name, items)
 		require.Error(t, patchErr)
 		CheckNotFoundStatus(t, resp)
+	})
+}
+
+func TestPatchPropertyValuesChangePolicy(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+	}).InitBasic(t)
+
+	// The change policy is enforced by the attribute validation hook, which is
+	// registered against the access_control group only, and that group is
+	// licence-gated.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	memberLevel := model.PermissionLevelMember
+
+	createField := func(t *testing.T, fieldType model.PropertyFieldType, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		field, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              fieldType,
+			GroupID:           group.ID,
+			ObjectType:        "channel",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+			Attrs:             attrs,
+		}, false, "")
+		require.Nil(t, fieldErr)
+		return field
+	}
+
+	patch := func(t *testing.T, field *model.PropertyField, raw string) (*model.Response, error) {
+		t.Helper()
+		items := []model.PropertyValuePatchItem{{FieldID: field.ID, Value: json.RawMessage(raw)}}
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, items)
+		return resp, err
+	}
+
+	th.LoginBasic(t)
+
+	t.Run("never: a second write is forbidden", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldTypeText, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+		})
+
+		resp, err := patch(t, field, `"SECRET"`)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		resp, err = patch(t, field, `"OTHER"`)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "app.property_value.change_policy.never.app_error")
+	})
+
+	t.Run("raise_only: down is forbidden and up is allowed", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldTypeRank, model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"name": "LOW", "rank": 1},
+				map[string]any{"name": "MID", "rank": 2},
+				map[string]any{"name": "HIGH", "rank": 3},
+			},
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyRaiseOnly,
+		})
+
+		options, ok := field.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.True(t, ok)
+		optionID := func(idx int) string {
+			m, isMap := options[idx].(map[string]any)
+			require.True(t, isMap)
+			id, isString := m["id"].(string)
+			require.True(t, isString)
+			return id
+		}
+
+		resp, err := patch(t, field, fmt.Sprintf("%q", optionID(1)))
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		resp, err = patch(t, field, fmt.Sprintf("%q", optionID(0)))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "app.property_value.change_policy.raise_only.app_error")
+
+		resp, err = patch(t, field, fmt.Sprintf("%q", optionID(2)))
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 	})
 }

@@ -97,6 +97,19 @@ export const supportsOptions = (field: PropertyField) => {
     return field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
 };
 
+// How a value may move once it is set, mirroring attrs.change_policy in
+// model/property_field_attrs_validation.go. raise_only and lower_only compare
+// option ranks, so the server strips them from any field that is not a rank.
+export const PROPERTY_CHANGE_POLICIES = ['any', 'raise_only', 'lower_only', 'never'] as const;
+
+export type PropertyChangePolicy = typeof PROPERTY_CHANGE_POLICIES[number];
+
+export const ORDERED_PROPERTY_CHANGE_POLICIES: PropertyChangePolicy[] = ['raise_only', 'lower_only'];
+
+export function isOrderedChangePolicy(policy: PropertyChangePolicy): boolean {
+    return ORDERED_PROPERTY_CHANGE_POLICIES.includes(policy);
+}
+
 // PSA v2 state types
 
 export type PropertiesState = {

@@ -4,10 +4,12 @@
 package properties
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
+	"net/http"
 	"slices"
 	"sort"
 	"strings"
@@ -759,7 +761,200 @@ func (h *AccessControlAttributeValidationHook) validateValues(values []*model.Pr
 		}
 	}
 
+	return h.validateChangePolicy(groupID, values, fieldMap)
+}
+
+// validateChangePolicy enforces attrs.change_policy: a value may be set once,
+// and after that may only move in the direction its policy allows. It runs on
+// every write path into the group, so a direct API call is refused the same way
+// the UI refuses to offer the edit.
+//
+// Only channel targets are covered. The same group holds user attributes, which
+// LDAP/SAML sync rewrites on login; locking those would break the sync. Other
+// object types are a separate decision.
+//
+// This is a read-then-write with no transaction around it, so two concurrent
+// first writes can both pass. That is the window the rest of the property system
+// already lives with, and the loser overwrites a value set milliseconds earlier.
+func (h *AccessControlAttributeValidationHook) validateChangePolicy(groupID string, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
+	// Grouped by target so one search covers every governed field on a channel:
+	// PropertyValueSearchOpts carries a single FieldID, so a per-field lookup
+	// would cost a round trip each. "any" is the default and the common case,
+	// so an ordinary write does no query at all.
+	governed := map[string][]*model.PropertyValue{}
+	for _, value := range values {
+		if value.TargetType != model.PropertyValueTargetTypeChannel {
+			continue
+		}
+		field, ok := fieldMap[value.FieldID]
+		if !ok || model.GetPropertyFieldChangePolicy(field) == model.PropertyFieldChangePolicyAny {
+			continue
+		}
+		governed[value.TargetID] = append(governed[value.TargetID], value)
+	}
+
+	for targetID, pending := range governed {
+		existing, err := h.getValuesForTarget(groupID, model.PropertyValueTargetTypeChannel, targetID)
+		if err != nil {
+			return err
+		}
+
+		existingByFieldID := make(map[string]*model.PropertyValue, len(existing))
+		for _, value := range existing {
+			existingByFieldID[value.FieldID] = value
+		}
+
+		for _, value := range pending {
+			old, ok := existingByFieldID[value.FieldID]
+
+			// A user-initiated clear leaves a null-valued row behind rather than
+			// deleting it, so the presence of a row is not proof of a set value.
+			if !ok || isEmptyPropertyValue(old.Value) {
+				continue
+			}
+			if err := checkValueMove(fieldMap[value.FieldID], old.Value, value.Value); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
+}
+
+// checkValueMove decides whether a field's policy permits replacing old with
+// next. Both are known non-empty on the old side; next may be empty, which is a
+// clear.
+func checkValueMove(field *model.PropertyField, old, next json.RawMessage) error {
+	policy := model.GetPropertyFieldChangePolicy(field)
+
+	if policy == model.PropertyFieldChangePolicyNever {
+		return newChangePolicyError(field, policy)
+	}
+
+	// Clearing is the largest downgrade there is, and re-setting afterwards
+	// would launder a value straight past a directional policy.
+	if isEmptyPropertyValue(next) {
+		return newChangePolicyError(field, policy)
+	}
+
+	ranks := buildOptionRankMap(field)
+	oldRank, oldOK := singleOptionRank(field.Type, old, ranks)
+	newRank, newOK := singleOptionRank(field.Type, next, ranks)
+
+	// Fail closed: an option deleted from the field leaves a comparison that
+	// cannot be made, and an unresolvable comparison on a marking must not
+	// default to permitted.
+	if !oldOK || !newOK {
+		return newChangePolicyError(field, policy)
+	}
+
+	// Higher rank is higher, matching filterSharedOnlyRankFieldOptions, which
+	// exposes every option at or below the caller's own rank.
+	switch policy {
+	case model.PropertyFieldChangePolicyRaiseOnly:
+		if newRank > oldRank {
+			return nil
+		}
+	case model.PropertyFieldChangePolicyLowerOnly:
+		if newRank < oldRank {
+			return nil
+		}
+	}
+
+	return newChangePolicyError(field, policy)
+}
+
+// singleOptionRank resolves the rank of the one option a rank value carries. A
+// rank field is select-shaped, so anything other than exactly one known option
+// is unresolvable.
+func singleOptionRank(fieldType model.PropertyFieldType, raw json.RawMessage, ranks map[string]int) (int, bool) {
+	optionIDs, err := extractOptionIDsFromValue(fieldType, raw)
+	if err != nil || len(optionIDs) != 1 {
+		return 0, false
+	}
+	for optionID := range optionIDs {
+		rank, ok := ranks[optionID]
+		return rank, ok
+	}
+	return 0, false
+}
+
+// newChangePolicyError returns the refusal for a policy. The AppError is
+// returned rather than a sentinel so its specific i18n key survives the HTTP
+// layer's mapPropertyServiceError fallback, the same way the CEL name errors do.
+func newChangePolicyError(field *model.PropertyField, policy string) error {
+	id := "app.property_value.change_policy.never.app_error"
+	switch policy {
+	case model.PropertyFieldChangePolicyRaiseOnly:
+		id = "app.property_value.change_policy.raise_only.app_error"
+	case model.PropertyFieldChangePolicyLowerOnly:
+		id = "app.property_value.change_policy.lower_only.app_error"
+	}
+
+	return model.NewAppError(
+		"UpsertPropertyValues",
+		id,
+		nil,
+		fmt.Sprintf("field %s: change policy %q does not permit this change", field.ID, policy),
+		http.StatusForbidden,
+	)
+}
+
+// isEmptyPropertyValue reports whether a stored value counts as unset. Mirrors
+// the webapp, which renders null, "" and [] alike as "Not set". Callers must
+// sanitize first: that is what turns ["  "] into [].
+func isEmptyPropertyValue(raw json.RawMessage) bool {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return true
+	}
+
+	switch string(trimmed) {
+	case "null", `""`, "[]":
+		return true
+	}
+	return false
+}
+
+// getValuesForTarget loads every value stored against one target, paging with
+// the same bounds as the access-control lookups.
+func (h *AccessControlAttributeValidationHook) getValuesForTarget(groupID, targetType, targetID string) ([]*model.PropertyValue, error) {
+	allValues := []*model.PropertyValue{}
+	var cursor model.PropertyValueSearchCursor
+
+	for iterations := 0; ; iterations++ {
+		if iterations >= propertyAccessMaxPaginationIterations {
+			return nil, fmt.Errorf("exceeded maximum pagination iterations (%d)", propertyAccessMaxPaginationIterations)
+		}
+
+		opts := model.PropertyValueSearchOpts{
+			TargetType: targetType,
+			TargetIDs:  []string{targetID},
+			PerPage:    propertyAccessPaginationPageSize,
+		}
+		if !cursor.IsEmpty() {
+			opts.Cursor = cursor
+		}
+
+		values, err := h.propertyService.searchPropertyValues(groupID, opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load existing values for target %s: %w", targetID, err)
+		}
+
+		allValues = append(allValues, values...)
+
+		if len(values) < propertyAccessPaginationPageSize {
+			break
+		}
+
+		lastValue := values[len(values)-1]
+		cursor = model.PropertyValueSearchCursor{
+			PropertyValueID: lastValue.ID,
+			CreateAt:        lastValue.CreateAt,
+		}
+	}
+
+	return allValues, nil
 }
 
 func (h *AccessControlAttributeValidationHook) PreUpsertPropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {

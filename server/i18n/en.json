@@ -8717,6 +8717,18 @@
     "translation": "Unable to register property group."
   },
   {
+    "id": "app.property_value.change_policy.lower_only.app_error",
+    "translation": "This attribute can only be lowered, never raised."
+  },
+  {
+    "id": "app.property_value.change_policy.never.app_error",
+    "translation": "This attribute cannot be changed after it is set."
+  },
+  {
+    "id": "app.property_value.change_policy.raise_only.app_error",
+    "translation": "This attribute can only be raised, never lowered."
+  },
+  {
     "id": "app.property_value.create.app_error",
     "translation": "Unable to create property value."
   },

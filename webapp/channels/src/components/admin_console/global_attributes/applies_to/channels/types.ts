@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyPermissionLevel} from '@mattermost/types/properties';
+import type {PropertyChangePolicy, PropertyPermissionLevel} from '@mattermost/types/properties';
+import {ORDERED_PROPERTY_CHANGE_POLICIES, PROPERTY_CHANGE_POLICIES, isOrderedChangePolicy} from '@mattermost/types/properties';
 
 import {DISPLAY_BANNER_TOP, DISPLAY_LABEL_HEADER, DISPLAY_LABEL_INFO} from 'mattermost-redux/constants/properties';
 
@@ -20,18 +21,16 @@ export type ChannelDisplayLocation = typeof CHANNEL_DISPLAY_LOCATIONS[number];
 // unsettable, and 'sysadmin' is already implied by 'admin'.
 export const CHANNEL_VALUE_SETTERS: PropertyPermissionLevel[] = ['member', 'admin'];
 
-// How a value may move once it is set. raise_only and lower_only compare the old
-// and new option ranks, so they only mean anything on a rank-typed attribute;
-// ORDERED_CHANNEL_CHANGE_POLICIES is the subset to hide elsewhere.
-export const CHANNEL_CHANGE_POLICIES = ['any', 'raise_only', 'lower_only', 'never'] as const;
+// How a value may move once it is set. Channel Info enforces the same policy on
+// the same attrs key, so the union lives in @mattermost/types; these aliases keep
+// the local import paths intact.
+export const CHANNEL_CHANGE_POLICIES = PROPERTY_CHANGE_POLICIES;
 
-export type ChannelChangePolicy = typeof CHANNEL_CHANGE_POLICIES[number];
+export type ChannelChangePolicy = PropertyChangePolicy;
 
-export const ORDERED_CHANNEL_CHANGE_POLICIES: ChannelChangePolicy[] = ['raise_only', 'lower_only'];
+export const ORDERED_CHANNEL_CHANGE_POLICIES = ORDERED_PROPERTY_CHANGE_POLICIES;
 
-export function isOrderedChangePolicy(policy: ChannelChangePolicy): boolean {
-    return ORDERED_CHANNEL_CHANGE_POLICIES.includes(policy);
-}
+export {isOrderedChangePolicy};
 
 export type ChannelResourceConfig = {
     required: boolean;

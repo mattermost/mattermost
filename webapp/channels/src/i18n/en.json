@@ -4416,6 +4416,8 @@
   "channel_attributes.info.edit": "Edit {label}",
   "channel_attributes.info.heading": "Channel Attributes",
   "channel_attributes.info.locked": "This attribute cannot be changed after it is set",
+  "channel_attributes.info.locked_lower_only": "This attribute can only be lowered, never raised",
+  "channel_attributes.info.locked_raise_only": "This attribute can only be raised, never lowered",
   "channel_attributes.info.not_set": "Not set",
   "channel_attributes.info.save_failed": "Couldn't save {label}. Try again.",
   "channel_attributes.labels.overflow": "+{count}",

@@ -11,6 +11,7 @@ import {
     DISPLAY_LABEL_INFO,
 } from 'mattermost-redux/constants/properties';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 // Field selectors
 
@@ -185,7 +186,7 @@ export type ResolvedChannelAttribute = {
 const EMPTY_RESOLVED: ResolvedChannelAttribute[] = [];
 
 function resolveDisplayValue(field: PropertyField, raw: unknown): {option?: PropertyFieldOption; displayValue: string} {
-    if (raw === null || raw === undefined || raw === '') {
+    if (!isPropertyValueSet(raw)) {
         return {displayValue: ''};
     }
 

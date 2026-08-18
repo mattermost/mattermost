@@ -35,12 +35,14 @@ const TEAM_ID = 'team1';
 type FieldOptions = {
     required?: boolean;
     editable?: boolean;
+    changePolicy?: string;
+    options?: Array<{id: string; name: string; color?: string; rank?: number}>;
     actions?: string[];
     permissionValues?: PropertyField['permission_values'];
     type?: PropertyField['type'];
 };
 
-function field(id: string, {required, editable, actions = ['display_label_info'], permissionValues = 'member', type = 'select'}: FieldOptions = {}): PropertyField {
+function field(id: string, {required, editable, changePolicy, options, actions = ['display_label_info'], permissionValues = 'member', type = 'select'}: FieldOptions = {}): PropertyField {
     return {
         id,
         group_id: GROUP_ID,
@@ -55,10 +57,11 @@ function field(id: string, {required, editable, actions = ['display_label_info']
 
             // Option name deliberately unlike the attribute's label, so a query for
             // one cannot accidentally match the other.
-            options: [{id: `opt_${id}`, name: `VALUE_${id.toUpperCase()}`, color: '#1e325c'}],
+            options: options ?? [{id: `opt_${id}`, name: `VALUE_${id.toUpperCase()}`, color: '#1e325c'}],
             display_name: id.charAt(0).toUpperCase() + id.slice(1),
             ...(required === undefined ? {} : {required}),
             ...(editable === undefined ? {} : {editable}),
+            ...(changePolicy === undefined ? {} : {change_policy: changePolicy}),
         },
         create_at: 1,
         update_at: 1,
@@ -355,6 +358,78 @@ describe('ChannelInfoAttributes', () => {
                 makeState([field('shown', {required: true}), field('optional', {permissionValues: 'admin'})], [value('shown', 'opt_shown')]),
             );
 
+            expect(screen.queryByTestId('channelInfoAddAttributeButton')).not.toBeInTheDocument();
+        });
+    });
+    describe('change policy', () => {
+        const RANKS = [
+            {id: 'opt_low', name: 'LOW', rank: 1},
+            {id: 'opt_mid', name: 'MID', rank: 2},
+            {id: 'opt_high', name: 'HIGH', rank: 3},
+        ];
+
+        const rankField = (changePolicy: string) => field('level', {changePolicy, options: RANKS, type: 'rank'});
+
+        test('raise_only offers only the rungs above the current one', async () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([rankField('raise_only')], [value('level', 'opt_mid')]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-level'));
+
+            const control = await screen.findByTestId('channelAttributeEdit-level');
+            await userEvent.click(control.querySelector('input')!);
+
+            expect(await screen.findByText('HIGH')).toBeInTheDocument();
+            expect(screen.queryByText('LOW')).not.toBeInTheDocument();
+        });
+
+        test('lower_only is the mirror', async () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([rankField('lower_only')], [value('level', 'opt_mid')]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-level'));
+
+            const control = await screen.findByTestId('channelAttributeEdit-level');
+            await userEvent.click(control.querySelector('input')!);
+
+            expect(await screen.findByText('LOW')).toBeInTheDocument();
+            expect(screen.queryByText('HIGH')).not.toBeInTheDocument();
+        });
+
+        // Offering the editor here would open a dropdown with nothing in it.
+        test('reads as locked at the top rung under raise_only', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([rankField('raise_only')], [value('level', 'opt_high')]),
+            );
+
+            expect(screen.queryByTestId('channelInfoAttributeEdit-level')).not.toBeInTheDocument();
+            expect(screen.getByLabelText('This attribute can only be raised, never lowered')).toBeInTheDocument();
+        });
+
+        test('names the rule that applies rather than a generic lock', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([rankField('lower_only')], [value('level', 'opt_low')]),
+            );
+
+            expect(screen.getByLabelText('This attribute can only be lowered, never raised')).toBeInTheDocument();
+        });
+
+        // The stored option is gone from the field, so the chip renders nothing.
+        // The value is still there, and the server will refuse to replace it.
+        test('a value that fails to render still counts as set', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {editable: false})], [value('program', 'opt_deleted')]),
+            );
+
+            expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
+            expect(screen.getByLabelText('This attribute cannot be changed after it is set')).toBeInTheDocument();
             expect(screen.queryByTestId('channelInfoAddAttributeButton')).not.toBeInTheDocument();
         });
     });

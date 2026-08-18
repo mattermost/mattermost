@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {LockOutlineIcon, PencilOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
-import type {PropertyField} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import {supportsOptions} from '@mattermost/types/properties';
 
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
-import {getPropertyFieldLabel, isPropertyFieldEditable, isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
+import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyFieldRequired, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 import useCanSetChannelAttributes from 'components/common/hooks/useCanSetChannelAttributes';
 import {selectChannelInfoAttributes} from 'components/common/hooks/useChannelInfoAttributes';
@@ -33,6 +34,32 @@ function optionColor(attribute: ResolvedChannelAttribute): string | undefined {
 function hasEditor(field: PropertyField): boolean {
     return field.type === 'text' || field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
 }
+
+// A directional policy can leave nothing to move to — already at the top rung
+// under raise_only, or the bottom under lower_only. Offering the editor there
+// would open a dropdown with no options in it.
+function hasReachableOption(field: PropertyField, rawValue: unknown): boolean {
+    if (!supportsOptions(field)) {
+        return true;
+    }
+    const options = (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
+    return options.some((option) => canMoveToOption(field, rawValue, option.id));
+}
+
+const lockReasons = defineMessages({
+    never: {
+        id: 'channel_attributes.info.locked',
+        defaultMessage: 'This attribute cannot be changed after it is set',
+    },
+    raise_only: {
+        id: 'channel_attributes.info.locked_raise_only',
+        defaultMessage: 'This attribute can only be raised, never lowered',
+    },
+    lower_only: {
+        id: 'channel_attributes.info.locked_lower_only',
+        defaultMessage: 'This attribute can only be lowered, never raised',
+    },
+});
 
 type Props = {
     channelId: string;
@@ -75,7 +102,9 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
     }, [listed, revealedFieldIds, allAttributes]);
 
     const addableAttributes = useMemo(() => allAttributes.filter((attribute) => {
-        if (attribute.displayValue || isPropertyFieldRequired(attribute.field)) {
+        // Stored, not rendered: an attribute holding a value that fails to render
+        // would otherwise reappear here as something still to fill in.
+        if (isPropertyValueSet(attribute.value?.value) || isPropertyFieldRequired(attribute.field)) {
             return false;
         }
         if (revealedFieldIds.includes(attribute.field.id)) {
@@ -152,9 +181,15 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
             {rows.map((attribute) => {
                 const {field} = attribute;
                 const label = getPropertyFieldLabel(field);
-                const hasValue = Boolean(attribute.displayValue);
-                const locked = hasValue && !isPropertyFieldEditable(field);
-                const editable = hasEditor(field) && canSet(field, hasValue);
+
+                // Read off the stored value, not the rendered one: a value that
+                // fails to render (a deleted option, a type with no display path)
+                // is still a value, and the server will refuse to replace it.
+                const hasValue = isPropertyValueSet(attribute.value?.value);
+                const policy = getPropertyFieldChangePolicy(field);
+                const stuck = hasValue && !hasReachableOption(field, attribute.value?.value);
+                const locked = hasValue && (policy === 'never' || stuck);
+                const editable = hasEditor(field) && !stuck && canSet(field, hasValue);
                 const isEditing = editingFieldId === field.id;
 
                 return (
@@ -169,10 +204,7 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                                 <LockOutlineIcon
                                     size={12}
                                     data-testid={`channelInfoAttributeLock-${field.name}`}
-                                    aria-label={formatMessage({
-                                        id: 'channel_attributes.info.locked',
-                                        defaultMessage: 'This attribute cannot be changed after it is set',
-                                    })}
+                                    aria-label={formatMessage(lockReasons[policy as keyof typeof lockReasons] ?? lockReasons.never)}
                                 />
                             )}
                         </span>

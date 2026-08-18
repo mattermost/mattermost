@@ -8,6 +8,8 @@ import type {OnChangeValue} from 'react-select';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
+import {canMoveToOption, getPropertyFieldChangePolicy, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
+
 import DropdownInput from 'components/dropdown_input';
 import Input from 'components/widgets/inputs/input/input';
 
@@ -61,6 +63,17 @@ const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}
 
     const selected = useMemo(() => currentSelection(field, rawValue), [field, rawValue]);
 
+    // A policy narrows the ladder rather than disabling the row: an option the
+    // server would refuse is left out instead of being offered and rejected.
+    const options = useMemo(
+        () => toOptions(field).filter((option) => canMoveToOption(field, rawValue, option.value)),
+        [field, rawValue],
+    );
+
+    // Clearing is a change like any other, so every policy but "any" forbids it
+    // once a value exists.
+    const clearable = getPropertyFieldChangePolicy(field) === 'any' || !isPropertyValueSet(rawValue);
+
     const handleSelect = useCallback((next: OnChangeValue<Option, boolean>) => {
         if (Array.isArray(next)) {
             const ids = next.map((option) => option.value);
@@ -112,11 +125,11 @@ const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}
         <DropdownInput
             name={`channelAttributeEdit-${field.id}`}
             testId={`channelAttributeEdit-${field.name}`}
-            options={toOptions(field)}
+            options={options}
             value={selected}
             onChange={handleSelect}
             isMulti={isMultiselect}
-            isClearable={true}
+            isClearable={clearable}
             isDisabled={saving}
             autoFocus={true}
             placeholder={formatMessage({id: 'channel_attributes.select_value', defaultMessage: 'Select a value'})}

@@ -6,6 +6,7 @@ package properties
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 	"testing"
 
@@ -2125,5 +2126,235 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 		_, createErr := th.service.CreatePropertyField(th.Context, field)
 		require.Error(t, createErr)
 		assert.Contains(t, createErr.Error(), "owner id exceeds max length")
+	})
+}
+
+func TestAccessControlAttributeValidationHookChangePolicy(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_change_policy", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(th.service, nil, group.ID)
+	th.service.AddHook(hook)
+
+	// optionIDs returns the persisted option IDs in rank order, so a test can
+	// name a rung ("the middle one") without hardcoding a generated ID.
+	optionIDs := func(t *testing.T, field *model.PropertyField) []string {
+		t.Helper()
+		opts, ok := field.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.True(t, ok, "options should be []any, got %T", field.Attrs[model.PropertyFieldAttributeOptions])
+		ids := make([]string, 0, len(opts))
+		for _, opt := range opts {
+			m, isMap := opt.(map[string]any)
+			require.True(t, isMap, "option should be map[string]any, got %T", opt)
+			id, isString := m["id"].(string)
+			require.True(t, isString, "option should carry a string id")
+			ids = append(ids, id)
+		}
+		return ids
+	}
+
+	newRankField := func(t *testing.T, policy string) (*model.PropertyField, []string) {
+		t.Helper()
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "rank_" + model.NewId(),
+			Type:       model.PropertyFieldTypeRank,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "LOW", "rank": 1},
+					map[string]any{"name": "MID", "rank": 2},
+					map[string]any{"name": "HIGH", "rank": 3},
+				},
+				model.PropertyFieldAttrChangePolicy: policy,
+			},
+		})
+		require.NoError(t, createErr)
+		return field, optionIDs(t, field)
+	}
+
+	newTextField := func(t *testing.T, objectType string, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: objectType,
+			Attrs:      attrs,
+		})
+		require.NoError(t, createErr)
+		return field
+	}
+
+	write := func(field *model.PropertyField, targetID, targetType, raw string) error {
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   targetID,
+			TargetType: targetType,
+			Value:      json.RawMessage(raw),
+		})
+		return upsertErr
+	}
+
+	writeChannel := func(field *model.PropertyField, channelID, raw string) error {
+		return write(field, channelID, model.PropertyValueTargetTypeChannel, raw)
+	}
+
+	requireRefused := func(t *testing.T, err error, wantID string) {
+		t.Helper()
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, wantID, appErr.Id)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+	}
+
+	const (
+		neverErrorID     = "app.property_value.change_policy.never.app_error"
+		raiseOnlyErrorID = "app.property_value.change_policy.raise_only.app_error"
+		lowerOnlyErrorID = "app.property_value.change_policy.lower_only.app_error"
+	)
+
+	t.Run("never: the first write is allowed and every later one is refused", func(t *testing.T) {
+		field := newTextField(t, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+		})
+		channelID := model.NewId()
+
+		require.NoError(t, writeChannel(field, channelID, `"SECRET"`))
+
+		for name, raw := range map[string]string{
+			"a different value": `"OTHER"`,
+			"the same value":    `"SECRET"`,
+			"an explicit null":  `null`,
+			"an empty string":   `""`,
+		} {
+			t.Run(name+" is refused", func(t *testing.T) {
+				requireRefused(t, writeChannel(field, channelID, raw), neverErrorID)
+			})
+		}
+	})
+
+	t.Run("never: a legacy editable=false field locks without change_policy", func(t *testing.T) {
+		field := newTextField(t, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+			model.PropertyFieldAttrEditable: false,
+		})
+		channelID := model.NewId()
+
+		require.NoError(t, writeChannel(field, channelID, `"SECRET"`))
+		requireRefused(t, writeChannel(field, channelID, `"OTHER"`), neverErrorID)
+	})
+
+	t.Run("raise_only: only a higher rank is allowed", func(t *testing.T) {
+		field, options := newRankField(t, model.PropertyFieldChangePolicyRaiseOnly)
+		low, mid, high := options[0], options[1], options[2]
+		channelID := model.NewId()
+
+		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", mid)), "any rung may be picked first")
+		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", low)), raiseOnlyErrorID)
+		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", mid)), raiseOnlyErrorID)
+		requireRefused(t, writeChannel(field, channelID, `null`), raiseOnlyErrorID)
+		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", high)))
+	})
+
+	t.Run("lower_only: only a lower rank is allowed", func(t *testing.T) {
+		field, options := newRankField(t, model.PropertyFieldChangePolicyLowerOnly)
+		low, mid, high := options[0], options[1], options[2]
+		channelID := model.NewId()
+
+		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", mid)))
+		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", high)), lowerOnlyErrorID)
+		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", mid)), lowerOnlyErrorID)
+		requireRefused(t, writeChannel(field, channelID, `null`), lowerOnlyErrorID)
+		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", low)))
+	})
+
+	t.Run("any: the value moves freely", func(t *testing.T) {
+		field, options := newRankField(t, model.PropertyFieldChangePolicyAny)
+		channelID := model.NewId()
+
+		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", options[1])))
+		require.NoError(t, writeChannel(field, channelID, fmt.Sprintf("%q", options[0])))
+		require.NoError(t, writeChannel(field, channelID, `null`))
+	})
+
+	t.Run("a cleared value reads as unset, so it can be set again", func(t *testing.T) {
+		field := newTextField(t, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+		})
+		channelID := model.NewId()
+
+		// A user-initiated clear leaves a null-valued row rather than deleting
+		// it; written through the store so the policy does not refuse the clear.
+		_, createErr := th.dbStore.PropertyValue().Create(&model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   channelID,
+			TargetType: model.PropertyValueTargetTypeChannel,
+			Value:      json.RawMessage(`null`),
+		})
+		require.NoError(t, createErr)
+
+		require.NoError(t, writeChannel(field, channelID, `"SECRET"`))
+	})
+
+	t.Run("a directional policy refuses when the stored option is gone", func(t *testing.T) {
+		field, options := newRankField(t, model.PropertyFieldChangePolicyRaiseOnly)
+		channelID := model.NewId()
+
+		// The rank the channel holds no longer exists on the field, so there is
+		// nothing to compare against and the move must fail closed.
+		_, createErr := th.dbStore.PropertyValue().Create(&model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   channelID,
+			TargetType: model.PropertyValueTargetTypeChannel,
+			Value:      json.RawMessage(fmt.Sprintf("%q", model.NewId())),
+		})
+		require.NoError(t, createErr)
+
+		requireRefused(t, writeChannel(field, channelID, fmt.Sprintf("%q", options[2])), raiseOnlyErrorID)
+	})
+
+	t.Run("user targets are untouched, so directory sync keeps working", func(t *testing.T) {
+		field := newTextField(t, model.PropertyFieldObjectTypeUser, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+		})
+		userID := model.NewId()
+
+		require.NoError(t, write(field, userID, model.PropertyValueTargetTypeUser, `"first"`))
+		require.NoError(t, write(field, userID, model.PropertyValueTargetTypeUser, `"second"`))
+	})
+
+	t.Run("one refused value rejects the whole batch", func(t *testing.T) {
+		locked := newTextField(t, model.PropertyFieldObjectTypeChannel, model.StringInterface{
+			model.PropertyFieldAttrChangePolicy: model.PropertyFieldChangePolicyNever,
+		})
+		open := newTextField(t, model.PropertyFieldObjectTypeChannel, nil)
+		channelID := model.NewId()
+
+		require.NoError(t, writeChannel(locked, channelID, `"SECRET"`))
+
+		batch := []*model.PropertyValue{
+			{GroupID: group.ID, FieldID: open.ID, TargetID: channelID, TargetType: model.PropertyValueTargetTypeChannel, Value: json.RawMessage(`"fine"`)},
+			{GroupID: group.ID, FieldID: locked.ID, TargetID: channelID, TargetType: model.PropertyValueTargetTypeChannel, Value: json.RawMessage(`"OTHER"`)},
+		}
+		_, upsertErr := th.service.UpsertPropertyValues(th.Context, batch)
+		requireRefused(t, upsertErr, neverErrorID)
+
+		// The clean value in the same batch must not have landed either.
+		stored, searchErr := th.service.SearchPropertyValues(th.Context, group.ID, model.PropertyValueSearchOpts{
+			TargetType: model.PropertyValueTargetTypeChannel,
+			TargetIDs:  []string{channelID},
+			FieldID:    open.ID,
+			PerPage:    10,
+		})
+		require.NoError(t, searchErr)
+		assert.Empty(t, stored)
 	})
 }
