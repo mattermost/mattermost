@@ -253,6 +253,25 @@ func TestGetLicenseFileLocation(t *testing.T) {
 	require.Equal(t, fileName, "mattermost.mattermost-license", "invalid file name")
 }
 
+func TestGetClientLicense(t *testing.T) {
+	license := &model.License{
+		Customer: &model.Customer{},
+		Features: &model.Features{},
+	}
+	license.Features.SetDefaults()
+
+	props := GetClientLicense(license)
+	require.Equal(t, "false", props["IsNonProduction"])
+
+	license.IsNonProduction = true
+	props = GetClientLicense(license)
+	require.Equal(t, "true", props["IsNonProduction"])
+
+	// The flag must survive sanitization so all users can see the non-production banner.
+	sanitized := GetSanitizedClientLicense(props)
+	require.Equal(t, "true", sanitized["IsNonProduction"])
+}
+
 func TestGetLicenseFileFromDisk(t *testing.T) {
 	t.Run("missing file", func(t *testing.T) {
 		fileBytes := GetLicenseFileFromDisk("thisfileshouldnotexist.mattermost-license")

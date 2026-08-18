@@ -16,6 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 type SendProfileImageResultFunc func(userId string, rc *model.RemoteCluster, resp *Response, err error)
@@ -91,7 +92,7 @@ func (rcs *Service) sendProfileImageToRemote(timeout time.Duration, task sendPro
 		mlog.String("UserId", task.userID),
 	)
 
-	user, err := rcs.server.GetStore().User().Get(context.Background(), task.userID)
+	user, err := rcs.server.GetStore().User().Get(request.EmptyContext(rcs.server.Log()), task.userID)
 	if err != nil {
 		return fmt.Errorf("error fetching user while sending profile image to remote %s: %w", task.rc.RemoteId, err)
 	}
