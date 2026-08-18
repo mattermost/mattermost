@@ -67,7 +67,7 @@ import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import {isPostDraftEmpty} from 'types/store/draft';
+import {draftHasAttachments, isPostDraftEmpty} from 'types/store/draft';
 
 import AIActionsMenu from './ai_actions_menu';
 import DoNotDisturbWarning from './do_not_disturb_warning';
@@ -715,6 +715,7 @@ const AdvancedTextEditor = ({
             disabled={disableSendButton}
             handleSubmit={handleSubmitPostAndScheduledMessage}
             channelId={channelId}
+            allowRecurring={!draftHasAttachments(draft)}
         />
     );
 
