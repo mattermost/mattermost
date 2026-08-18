@@ -12,20 +12,11 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 var ImportCmd = &cobra.Command{
 	Use:   "import",
 	Short: "Import data.",
-}
-
-var SlackImportCmd = &cobra.Command{
-	Use:     "slack [team] [file]",
-	Short:   "Import a team from Slack.",
-	Long:    "Import a team from a Slack export zip file.",
-	Example: "  import slack myteam slack_export.zip",
-	RunE:    slackImportCmdF,
 }
 
 var BulkImportCmd = &cobra.Command{
@@ -44,61 +35,8 @@ func init() {
 
 	ImportCmd.AddCommand(
 		BulkImportCmd,
-		SlackImportCmd,
 	)
 	RootCmd.AddCommand(ImportCmd)
-}
-
-func slackImportCmdF(command *cobra.Command, args []string) error {
-	a, err := InitDBCommandContextCobra(command)
-	if err != nil {
-		return err
-	}
-	defer a.Srv().Shutdown()
-
-	rctx := request.EmptyContext(a.Log())
-
-	if len(args) != 2 {
-		return errors.New("Incorrect number of arguments.")
-	}
-
-	team := getTeamFromTeamArg(a, args[0])
-	if team == nil {
-		return errors.New("Unable to find team '" + args[0] + "'")
-	}
-
-	fileReader, err := os.Open(args[1])
-	if err != nil {
-		return err
-	}
-	defer fileReader.Close()
-
-	fileInfo, err := fileReader.Stat()
-	if err != nil {
-		return err
-	}
-
-	CommandPrettyPrintln("Running Slack Import. This may take a long time for large teams or teams with many messages.")
-
-	importErr, log := a.SlackImport(rctx, fileReader, fileInfo.Size(), team.Id)
-
-	if importErr != nil {
-		return err
-	}
-
-	CommandPrettyPrintln("")
-	CommandPrintln(log.String())
-	CommandPrettyPrintln("")
-
-	CommandPrettyPrintln("Finished Slack Import.")
-	CommandPrettyPrintln("")
-
-	auditRec := a.MakeAuditRecord(rctx, model.AuditEventSlackImport, model.AuditStatusSuccess)
-	auditRec.AddMeta("team", team)
-	auditRec.AddMeta("file", args[1])
-	a.LogAuditRec(rctx, auditRec, nil)
-
-	return nil
 }
 
 func bulkImportCmdF(command *cobra.Command, args []string) error {
@@ -173,17 +111,4 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 	}
 
 	return nil
-}
-
-func getTeamFromTeamArg(a *app.App, teamArg string) *model.Team {
-	var team *model.Team
-	team, err := a.Srv().Store().Team().GetByName(teamArg)
-
-	if err != nil {
-		var t *model.Team
-		if t, err = a.Srv().Store().Team().Get(teamArg); err == nil {
-			team = t
-		}
-	}
-	return team
 }
