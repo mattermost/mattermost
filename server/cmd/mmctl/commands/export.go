@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
@@ -15,6 +16,21 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
 )
+
+// splitTrimComma splits a comma-separated flag value into trimmed, non-empty parts.
+func splitTrimComma(s string) []string {
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if t := strings.TrimSpace(p); t != "" {
+			out = append(out, t)
+		}
+	}
+	return out
+}
 
 var ExportCmd = &cobra.Command{
 	Use:   "export",
@@ -99,10 +115,10 @@ func init() {
 	ExportCreateCmd.Flags().Bool("include-archived-channels", false, "Include archived channels in the export file.")
 	ExportCreateCmd.Flags().Bool("include-profile-pictures", false, "Include profile pictures in the export file.")
 	ExportCreateCmd.Flags().Bool("no-roles-and-schemes", false, "Exclude roles and custom permission schemes from the export file.")
-	ExportCreateCmd.Flags().String("team-name", "", "Export only the specified team (by name/slug). Mutually exclusive with --team-id.")
-	ExportCreateCmd.Flags().String("team-id", "", "Export only the specified team (by ID). Mutually exclusive with --team-name.")
-	ExportCreateCmd.Flags().String("channel-name", "", "Export only the specified channel (by name). Requires --team-name or --team-id. Mutually exclusive with --channel-id.")
-	ExportCreateCmd.Flags().String("channel-id", "", "Export only the specified channel (by ID). The team is inferred from the channel when --team-name/--team-id is omitted; if provided, the channel must belong to that team. Mutually exclusive with --channel-name.")
+	ExportCreateCmd.Flags().String("team-name", "", "Export only the specified team(s) by name/slug. Accepts a comma-separated list. Mutually exclusive with --team-id.")
+	ExportCreateCmd.Flags().String("team-id", "", "Export only the specified team(s) by ID. Accepts a comma-separated list. Mutually exclusive with --team-name.")
+	ExportCreateCmd.Flags().String("channel-name", "", "Export only the specified channel(s) by name. Accepts a comma-separated list. Requires --team-name or --team-id. Mutually exclusive with --channel-id.")
+	ExportCreateCmd.Flags().String("channel-id", "", "Export only the specified channel(s) by ID. Accepts a comma-separated list. The team is inferred from each channel when --team-name/--team-id is omitted; if teams are provided, each channel must belong to one of them. Mutually exclusive with --channel-name.")
 
 	ExportDownloadCmd.Flags().Int("num-retries", 5, "Number of retries to do to resume a download.")
 
@@ -149,97 +165,111 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 		data["include_profile_pictures"] = "true"
 	}
 
-	teamName, _ := command.Flags().GetString("team-name")
+	teamNameFlag, _ := command.Flags().GetString("team-name")
 	teamIDFlag, _ := command.Flags().GetString("team-id")
-	channelName, _ := command.Flags().GetString("channel-name")
+	channelNameFlag, _ := command.Flags().GetString("channel-name")
 	channelIDFlag, _ := command.Flags().GetString("channel-id")
 
-	if teamName != "" && teamIDFlag != "" {
+	if teamNameFlag != "" && teamIDFlag != "" {
 		return fmt.Errorf("--team-name and --team-id are mutually exclusive")
 	}
-	if channelName != "" && channelIDFlag != "" {
+	if channelNameFlag != "" && channelIDFlag != "" {
 		return fmt.Errorf("--channel-name and --channel-id are mutually exclusive")
 	}
 
-	var teamID string
-	var resolvedChannelTeamID string // TeamId from the channel resolved via --channel-id
+	// resolvedTeams accumulates (name, id) pairs for all teams in the export scope.
+	type teamEntry struct{ name, id string }
+	var resolvedTeams []teamEntry
+	resolvedTeamIDSet := make(map[string]bool)
 
-	// --team-id: resolve once; no subsequent GetTeamByName needed.
-	if teamIDFlag != "" {
-		team, _, err := c.GetTeam(context.TODO(), teamIDFlag, "")
+	addTeam := func(t teamEntry) {
+		if !resolvedTeamIDSet[t.id] {
+			resolvedTeams = append(resolvedTeams, t)
+			resolvedTeamIDSet[t.id] = true
+		}
+	}
+
+	// Resolve --team-id (comma-separated IDs → names).
+	for _, id := range splitTrimComma(teamIDFlag) {
+		team, _, err := c.GetTeam(context.TODO(), id, "")
 		if err != nil {
-			return fmt.Errorf("failed to lookup team by ID %q: %w", teamIDFlag, err)
+			return fmt.Errorf("failed to lookup team by ID %q: %w", id, err)
 		}
 		if team == nil {
-			return fmt.Errorf("team with ID %q not found", teamIDFlag)
+			return fmt.Errorf("team with ID %q not found", id)
 		}
-		teamName = team.Name
-		teamID = team.Id
+		addTeam(teamEntry{name: team.Name, id: team.Id})
 	}
 
-	// --channel-id: resolve channel name; defer team membership check until teamID is known.
-	if channelIDFlag != "" {
-		channel, _, err := c.GetChannel(context.TODO(), channelIDFlag)
+	// Resolve --team-name (comma-separated names → IDs for cross-validation).
+	for _, name := range splitTrimComma(teamNameFlag) {
+		team, _, err := c.GetTeamByName(context.TODO(), name, "")
 		if err != nil {
-			return fmt.Errorf("failed to lookup channel by ID %q: %w", channelIDFlag, err)
+			return fmt.Errorf("failed to lookup team %q: %w", name, err)
+		}
+		if team == nil {
+			return fmt.Errorf("team %q not found", name)
+		}
+		addTeam(teamEntry{name: team.Name, id: team.Id})
+	}
+
+	// Resolve --channel-id (comma-separated IDs → names).
+	// When no teams are specified, the team is inferred from each channel's TeamId.
+	// When teams are specified, each channel must belong to one of them.
+	var resolvedChannelNames []string
+	for _, id := range splitTrimComma(channelIDFlag) {
+		channel, _, err := c.GetChannel(context.TODO(), id)
+		if err != nil {
+			return fmt.Errorf("failed to lookup channel by ID %q: %w", id, err)
 		}
 		if channel == nil {
-			return fmt.Errorf("channel with ID %q not found", channelIDFlag)
+			return fmt.Errorf("channel with ID %q not found", id)
 		}
-		if teamName == "" {
-			// No team specified — infer from the channel's own TeamId.
+		if len(resolvedTeams) == 0 {
+			// Infer team from the channel.
 			team, _, err := c.GetTeam(context.TODO(), channel.TeamId, "")
 			if err != nil {
-				return fmt.Errorf("failed to lookup team for channel %q: %w", channelIDFlag, err)
+				return fmt.Errorf("failed to lookup team for channel %q: %w", id, err)
 			}
 			if team == nil {
-				return fmt.Errorf("team for channel %q not found", channelIDFlag)
+				return fmt.Errorf("team for channel %q not found", id)
 			}
-			teamName = team.Name
-			teamID = team.Id
+			addTeam(teamEntry{name: team.Name, id: team.Id})
+		} else if !resolvedTeamIDSet[channel.TeamId] {
+			return fmt.Errorf("channel %q does not belong to any of the specified teams", id)
 		}
-		channelName = channel.Name
-		resolvedChannelTeamID = channel.TeamId
+		resolvedChannelNames = append(resolvedChannelNames, channel.Name)
 	}
 
-	if teamName == "" && channelName != "" {
+	// Pass-through --channel-name. When exactly one team is in scope, validate
+	// each channel exists in that team. For multi-team exports the backend
+	// handles missing channels gracefully.
+	for _, name := range splitTrimComma(channelNameFlag) {
+		if len(resolvedTeams) == 1 {
+			ch, _, err := c.GetChannelByName(context.TODO(), name, resolvedTeams[0].id, "")
+			if err != nil {
+				return fmt.Errorf("failed to lookup channel %q in team %q: %w", name, resolvedTeams[0].name, err)
+			}
+			if ch == nil {
+				return fmt.Errorf("channel %q not found in team %q", name, resolvedTeams[0].name)
+			}
+		}
+		resolvedChannelNames = append(resolvedChannelNames, name)
+	}
+
+	if len(resolvedChannelNames) > 0 && len(resolvedTeams) == 0 {
 		return fmt.Errorf("please specify a team (--team-name or --team-id) to export a channel from")
 	}
 
-	// --team (name): look up team ID only when not already resolved from an ID flag.
-	if teamName != "" && teamID == "" {
-		team, _, err := c.GetTeamByName(context.TODO(), teamName, "")
-		if err != nil {
-			return fmt.Errorf("failed to lookup team %q: %w", teamName, err)
+	if len(resolvedTeams) > 0 {
+		names := make([]string, len(resolvedTeams))
+		for i, t := range resolvedTeams {
+			names[i] = t.name
 		}
-		if team == nil {
-			return fmt.Errorf("team %q not found", teamName)
-		}
-		teamID = team.Id
+		data["team_name"] = strings.Join(names, ",")
 	}
-	if teamName != "" {
-		data["team_name"] = teamName
-	}
-
-	// Cross-validate: when --channel-id was used alongside an explicit team flag,
-	// confirm the channel actually belongs to that team.
-	if resolvedChannelTeamID != "" && resolvedChannelTeamID != teamID {
-		return fmt.Errorf("channel %q does not belong to team %q", channelIDFlag, teamName)
-	}
-
-	// --channel (name): validate channel exists within the team. Skipped when
-	// channel was already resolved from --channel-id (already validated by GetChannel).
-	if channelName != "" && channelIDFlag == "" {
-		channel, _, err := c.GetChannelByName(context.TODO(), channelName, teamID, "")
-		if err != nil {
-			return fmt.Errorf("failed to lookup channel %q in team %q: %w", channelName, teamName, err)
-		}
-		if channel == nil {
-			return fmt.Errorf("channel %q not found in team %q", channelName, teamName)
-		}
-	}
-	if channelName != "" {
-		data["channel_name"] = channelName
+	if len(resolvedChannelNames) > 0 {
+		data["channel_name"] = strings.Join(resolvedChannelNames, ",")
 	}
 
 	job, _, err := c.CreateJob(context.TODO(), &model.Job{

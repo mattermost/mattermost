@@ -292,6 +292,9 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 				} else {
 					sourceTeamName = scope.TeamName
 					sourceChannelName = scope.ChannelName
+					if destinationTeam != "" && strings.Contains(sourceTeamName, ",") {
+						return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.destination_team_requires_single_team_scope.error", nil, "--destination-team-name requires a single-team export; this export contains multiple teams", http.StatusBadRequest)
+					}
 					if destinationChannel != "" && sourceChannelName == "" {
 						return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.destination_channel_requires_channel_scope.error", nil, "--destination-channel-name requires a channel-scoped export", http.StatusBadRequest)
 					}

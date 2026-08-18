@@ -118,7 +118,7 @@ func TestExportUserChannels(t *testing.T) {
 
 	_, appErr = th.App.UpdateChannelMemberNotifyProps(th.Context, notifyProps, channel.Id, user.Id)
 	require.Nil(t, appErr)
-	exportData, appErr := th.App.buildUserChannelMemberships(th.Context, user.Id, team.Id, false, "")
+	exportData, appErr := th.App.buildUserChannelMemberships(th.Context, user.Id, team.Id, false, nil)
 	require.Nil(t, appErr)
 	assert.Equal(t, len(*exportData), 3)
 	for _, data := range *exportData {
