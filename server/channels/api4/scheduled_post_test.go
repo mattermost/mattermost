@@ -5,6 +5,9 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -13,7 +16,9 @@ import (
 
 func TestUpdateScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.RecurringScheduledPosts = true
+	}).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
@@ -52,6 +57,119 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.NotNil(t, fetchedPost)
 		require.Equal(t, originalMessage, fetchedPost.Message)
 		require.Equal(t, originalScheduledAt, fetchedPost.ScheduledAt)
+	})
+
+	t.Run("should clear error state when rescheduling an existing scheduled post", func(t *testing.T) {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "weekly recurring scheduled post",
+			},
+			ScheduledAt:    model.GetMillis() + 100000,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "UTC",
+		}
+		createdScheduledPost, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, createdScheduledPost)
+
+		createdScheduledPost.ErrorCode = model.ScheduledPostErrorUnableToSend
+		createdScheduledPost.ProcessedAt = model.GetMillis()
+		require.NoError(t, th.App.Srv().Store().ScheduledPost().UpdatedScheduledPost(createdScheduledPost))
+
+		createdScheduledPost.ScheduledAt = model.GetMillis() + 300000
+		createdScheduledPost.RepeatTimezone = "America/New_York"
+
+		updatedScheduledPost, _, err := th.Client.UpdateScheduledPost(context.Background(), createdScheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, updatedScheduledPost)
+		require.Empty(t, updatedScheduledPost.ErrorCode)
+		require.Zero(t, updatedScheduledPost.ProcessedAt)
+		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, updatedScheduledPost.RepeatType)
+		require.Equal(t, "America/New_York", updatedScheduledPost.RepeatTimezone)
+
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		require.NoError(t, err)
+		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, fetchedPost.RepeatType)
+		require.Equal(t, "America/New_York", fetchedPost.RepeatTimezone)
+	})
+
+	t.Run("should preserve recurrence when the update omits the repeat fields", func(t *testing.T) {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "weekly recurring scheduled post",
+			},
+			ScheduledAt:    model.GetMillis() + 100000,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "America/New_York",
+		}
+		createdScheduledPost, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, createdScheduledPost)
+
+		// Clients that predate recurring scheduled posts leave the repeat fields out of their
+		// update payloads. Marshalling a model.ScheduledPost always emits them, so the payload
+		// has to be built by hand to reproduce what those clients send.
+		payload := fmt.Sprintf(
+			`{"id":"%s","create_at":%d,"user_id":"%s","channel_id":"%s","message":"rescheduled by an old client","scheduled_at":%d}`,
+			createdScheduledPost.Id,
+			createdScheduledPost.CreateAt,
+			th.BasicUser.Id,
+			th.BasicChannel.Id,
+			model.GetMillis()+300000,
+		)
+
+		httpResp, err := th.Client.DoAPIPut(context.Background(), "/posts/schedule/"+createdScheduledPost.Id, payload)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusCreated, httpResp.StatusCode)
+
+		var updatedScheduledPost model.ScheduledPost
+		require.NoError(t, json.NewDecoder(httpResp.Body).Decode(&updatedScheduledPost))
+		require.NoError(t, httpResp.Body.Close())
+		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, updatedScheduledPost.RepeatType)
+		require.Equal(t, "America/New_York", updatedScheduledPost.RepeatTimezone)
+
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		require.NoError(t, err)
+		require.Equal(t, "rescheduled by an old client", fetchedPost.Message)
+		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, fetchedPost.RepeatType)
+		require.Equal(t, "America/New_York", fetchedPost.RepeatTimezone)
+	})
+
+	t.Run("should stop recurrence when the update sends empty repeat fields", func(t *testing.T) {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "weekly recurring scheduled post",
+			},
+			ScheduledAt:    model.GetMillis() + 100000,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "America/New_York",
+		}
+		createdScheduledPost, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, createdScheduledPost)
+
+		createdScheduledPost.RepeatType = model.ScheduledPostRepeatTypeNone
+		createdScheduledPost.RepeatTimezone = ""
+
+		updatedScheduledPost, _, err := th.Client.UpdateScheduledPost(context.Background(), createdScheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, updatedScheduledPost)
+		require.Empty(t, updatedScheduledPost.RepeatType)
+		require.Empty(t, updatedScheduledPost.RepeatTimezone)
+
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		require.NoError(t, err)
+		require.Empty(t, fetchedPost.RepeatType)
+		require.Empty(t, fetchedPost.RepeatTimezone)
 	})
 }
 
@@ -95,7 +213,9 @@ func TestDeleteScheduledPost(t *testing.T) {
 
 func TestCreateScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.RecurringScheduledPosts = true
+	}).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
@@ -151,5 +271,150 @@ func TestCreateScheduledPost(t *testing.T) {
 		require.Error(t, httpErr)
 		require.Contains(t, httpErr.Error(), "You do not have the appropriate permissions.")
 		require.Nil(t, createdScheduledPost)
+	})
+
+	t.Run("weekly recurring persists repeat fields", func(t *testing.T) {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "weekly message",
+			},
+			ScheduledAt:    model.GetMillis() + 100000,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "America/New_York",
+		}
+		created, _, err := client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, created)
+		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, created.RepeatType)
+		require.Equal(t, "America/New_York", created.RepeatTimezone)
+	})
+
+	t.Run("weekly recurring rejects file attachments", func(t *testing.T) {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "weekly message with a file",
+				FileIds:   model.StringArray{model.NewId()},
+			},
+			ScheduledAt:    model.GetMillis() + 100000,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "America/New_York",
+		}
+		created, resp, err := client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Nil(t, created)
+	})
+}
+
+func TestScheduledPostRecurringFeatureFlag(t *testing.T) {
+	mainHelper.Parallel(t)
+	// SetupConfig also makes feature flags writable, so the subtests below can toggle the flag.
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.RecurringScheduledPosts = false
+	}).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	setFlag := func(t *testing.T, enabled bool) {
+		t.Helper()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.RecurringScheduledPosts = enabled
+		})
+	}
+
+	newScheduledPost := func(repeatType string) *model.ScheduledPost {
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "recurring feature flag scheduled post",
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+			RepeatType:  repeatType,
+		}
+		if repeatType == model.ScheduledPostRepeatTypeWeekly {
+			scheduledPost.RepeatTimezone = "UTC"
+		}
+		return scheduledPost
+	}
+
+	t.Run("creating a recurring scheduled post is rejected when the flag is off", func(t *testing.T) {
+		setFlag(t, false)
+
+		created, resp, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(model.ScheduledPostRepeatTypeWeekly))
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.scheduled_post.recurring_disabled.app_error")
+		require.Nil(t, created)
+	})
+
+	t.Run("creating a one-shot scheduled post is still allowed when the flag is off", func(t *testing.T) {
+		setFlag(t, false)
+
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(model.ScheduledPostRepeatTypeNone))
+		require.NoError(t, err)
+		require.NotNil(t, created)
+	})
+
+	t.Run("creating a recurring scheduled post succeeds when the flag is on", func(t *testing.T) {
+		setFlag(t, true)
+
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(model.ScheduledPostRepeatTypeWeekly))
+		require.NoError(t, err)
+		require.NotNil(t, created)
+		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, created.RepeatType)
+	})
+
+	t.Run("converting a recurring scheduled post to one-shot is allowed when the flag is off", func(t *testing.T) {
+		setFlag(t, true)
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(model.ScheduledPostRepeatTypeWeekly))
+		require.NoError(t, err)
+
+		setFlag(t, false)
+		created.RepeatType = model.ScheduledPostRepeatTypeNone
+		created.RepeatTimezone = ""
+
+		updated, _, err := th.Client.UpdateScheduledPost(context.Background(), created)
+		require.NoError(t, err)
+		require.Equal(t, model.ScheduledPostRepeatTypeNone, updated.RepeatType)
+	})
+
+	t.Run("editing an existing recurring scheduled post keeps repeating when the flag is off", func(t *testing.T) {
+		setFlag(t, true)
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(model.ScheduledPostRepeatTypeWeekly))
+		require.NoError(t, err)
+
+		setFlag(t, false)
+		created.Message = "updated message for an existing weekly series"
+
+		updated, _, err := th.Client.UpdateScheduledPost(context.Background(), created)
+		require.NoError(t, err)
+		require.Equal(t, "updated message for an existing weekly series", updated.Message)
+		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, updated.RepeatType)
+	})
+
+	t.Run("converting a one-shot scheduled post to recurring is rejected when the flag is off", func(t *testing.T) {
+		setFlag(t, false)
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(model.ScheduledPostRepeatTypeNone))
+		require.NoError(t, err)
+
+		created.RepeatType = model.ScheduledPostRepeatTypeWeekly
+		created.RepeatTimezone = "UTC"
+
+		_, resp, err := th.Client.UpdateScheduledPost(context.Background(), created)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.scheduled_post.recurring_disabled.app_error")
+
+		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(created.Id)
+		require.NoError(t, storeErr)
+		require.Equal(t, model.ScheduledPostRepeatTypeNone, fetched.RepeatType)
 	})
 }

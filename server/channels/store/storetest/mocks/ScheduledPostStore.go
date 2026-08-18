@@ -207,6 +207,24 @@ func (_m *ScheduledPostStore) UpdateOldScheduledPosts(rctx request.CTX, beforeTi
 	return r0
 }
 
+// UpdateRecurringScheduledPosts provides a mock function with given fields: rctx, scheduledPosts
+func (_m *ScheduledPostStore) UpdateRecurringScheduledPosts(rctx request.CTX, scheduledPosts []*model.ScheduledPost) error {
+	ret := _m.Called(rctx, scheduledPosts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateRecurringScheduledPosts")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, []*model.ScheduledPost) error); ok {
+		r0 = rf(rctx, scheduledPosts)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdatedScheduledPost provides a mock function with given fields: rctx, scheduledPost
 func (_m *ScheduledPostStore) UpdatedScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) error {
 	ret := _m.Called(rctx, scheduledPost)

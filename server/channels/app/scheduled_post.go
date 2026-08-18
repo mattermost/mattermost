@@ -12,11 +12,26 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
+// recurringScheduledPostsEnabled gates turning recurrence on. The api4 routes already enforce
+// the ScheduledPosts setting and license for every scheduled post request, and the job keeps
+// sending existing recurring series regardless of the flag.
+func (a *App) recurringScheduledPostsEnabled() bool {
+	return a.Config().FeatureFlags.RecurringScheduledPosts
+}
+
+func recurringScheduledPostsDisabledError(where string) *model.AppError {
+	return model.NewAppError(where, "app.scheduled_post.recurring_disabled.app_error", nil, "", http.StatusBadRequest)
+}
+
 func (a *App) SaveScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost, connectionId string) (*model.ScheduledPost, *model.AppError) {
 	maxMessageLength := a.Srv().Store().ScheduledPost().GetMaxMessageSize()
 	scheduledPost.PreSave()
 	if validationErr := scheduledPost.IsValid(maxMessageLength); validationErr != nil {
 		return nil, validationErr
+	}
+
+	if scheduledPost.RepeatType != model.ScheduledPostRepeatTypeNone && !a.recurringScheduledPostsEnabled() {
+		return nil, recurringScheduledPostsDisabledError("App.SaveScheduledPost")
 	}
 
 	// validate the channel is not archived
@@ -89,9 +104,20 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 		return nil, model.NewAppError("app.UpdateScheduledPost", "app.update_scheduled_post.existing_scheduled_post.not_exist", map[string]any{"user_id": userId, "scheduled_post_id": scheduledPost.Id}, "", http.StatusNotFound)
 	}
 
+	// Only turning recurrence ON is blocked while the flag is off; editing or rescheduling an
+	// already-recurring post and turning recurrence off must stay possible so users can manage
+	// series created while the flag was on.
+	if scheduledPost.RepeatType != model.ScheduledPostRepeatTypeNone &&
+		existingScheduledPost.RepeatType == model.ScheduledPostRepeatTypeNone &&
+		!a.recurringScheduledPostsEnabled() {
+		return nil, recurringScheduledPostsDisabledError("App.UpdateScheduledPost")
+	}
+
 	// This step is not required for update but is useful as we want to return the
 	// updated scheduled post. It's better to do this before calling update than after.
 	scheduledPost.RestoreNonUpdatableFields(existingScheduledPost)
+	scheduledPost.ErrorCode = ""
+	scheduledPost.ProcessedAt = 0
 
 	var appErr *model.AppError
 	scheduledPost, appErr = a.runGuardedScheduledPostWillBeCreated(rctx, scheduledPost, "UpdateScheduledPost", func(reason string) *model.AppError {

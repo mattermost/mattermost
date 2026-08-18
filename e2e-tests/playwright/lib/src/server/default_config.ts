@@ -796,7 +796,6 @@ const defaultServerConfig: AdminConfig = {
         AppsEnabled: false,
         NormalizeLdapDNs: false,
         WysiwygEditor: false,
-        EnableExportDirectDownload: false,
         MoveThreadsEnabled: false,
         NotificationMonitoring: true,
         AttributeValueMasking: false,

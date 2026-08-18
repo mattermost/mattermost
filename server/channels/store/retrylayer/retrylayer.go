@@ -12562,11 +12562,11 @@ func (s *RetryLayerRoleStore) GetAll() ([]*model.Role, error) {
 
 }
 
-func (s *RetryLayerRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
+func (s *RetryLayerRoleStore) GetByName(rctx request.CTX, name string) (*model.Role, error) {
 
 	tries := 0
 	for {
-		result, err := s.RoleStore.GetByName(ctx, name)
+		result, err := s.RoleStore.GetByName(rctx, name)
 		if err == nil {
 			return result, nil
 		}
@@ -12804,6 +12804,27 @@ func (s *RetryLayerScheduledPostStore) UpdateOldScheduledPosts(rctx request.CTX,
 	tries := 0
 	for {
 		err := s.ScheduledPostStore.UpdateOldScheduledPosts(rctx, beforeTime)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledPostStore) UpdateRecurringScheduledPosts(rctx request.CTX, scheduledPosts []*model.ScheduledPost) error {
+
+	tries := 0
+	for {
+		err := s.ScheduledPostStore.UpdateRecurringScheduledPosts(rctx, scheduledPosts)
 		if err == nil {
 			return nil
 		}

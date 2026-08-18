@@ -9955,10 +9955,10 @@ func (s *TimerLayerRoleStore) GetAll() ([]*model.Role, error) {
 	return result, err
 }
 
-func (s *TimerLayerRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
+func (s *TimerLayerRoleStore) GetByName(rctx request.CTX, name string) (*model.Role, error) {
 	start := time.Now()
 
-	result, err := s.RoleStore.GetByName(ctx, name)
+	result, err := s.RoleStore.GetByName(rctx, name)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -10159,6 +10159,22 @@ func (s *TimerLayerScheduledPostStore) UpdateOldScheduledPosts(rctx request.CTX,
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.UpdateOldScheduledPosts", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerScheduledPostStore) UpdateRecurringScheduledPosts(rctx request.CTX, scheduledPosts []*model.ScheduledPost) error {
+	start := time.Now()
+
+	err := s.ScheduledPostStore.UpdateRecurringScheduledPosts(rctx, scheduledPosts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.UpdateRecurringScheduledPosts", success, elapsed)
 	}
 	return err
 }
