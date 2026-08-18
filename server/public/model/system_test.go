@@ -19,24 +19,29 @@ func TestLogFilterIsValid(t *testing.T) {
 		expectedID string
 	}{
 		{
-			name:   "nil filter is valid",
-			filter: nil,
+			name:       "nil filter is valid",
+			filter:     nil,
+			expectedID: "",
 		},
 		{
-			name:   "empty bounds mean unbounded",
-			filter: &LogFilter{DateFrom: "", DateTo: ""},
+			name:       "empty bounds mean unbounded",
+			filter:     &LogFilter{DateFrom: "", DateTo: ""},
+			expectedID: "",
 		},
 		{
-			name:   "valid bounds",
-			filter: &LogFilter{DateFrom: validDate, DateTo: validDate},
+			name:       "valid bounds",
+			filter:     &LogFilter{DateFrom: validDate, DateTo: validDate},
+			expectedID: "",
 		},
 		{
-			name:   "valid from with empty to",
-			filter: &LogFilter{DateFrom: validDate, DateTo: ""},
+			name:       "valid from with empty to",
+			filter:     &LogFilter{DateFrom: validDate, DateTo: ""},
+			expectedID: "",
 		},
 		{
-			name:   "valid to with empty from",
-			filter: &LogFilter{DateFrom: "", DateTo: validDate},
+			name:       "valid to with empty from",
+			filter:     &LogFilter{DateFrom: "", DateTo: validDate},
+			expectedID: "",
 		},
 		{
 			name:       "malformed from is rejected",
