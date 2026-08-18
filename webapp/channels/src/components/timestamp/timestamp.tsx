@@ -3,8 +3,6 @@
 
 import caps from 'lodash/capitalize';
 import isArray from 'lodash/isArray';
-import type {Moment} from 'moment-timezone';
-import moment from 'moment-timezone';
 import React, {PureComponent} from 'react';
 import type {ReactNode} from 'react';
 import {
@@ -125,11 +123,17 @@ export type Props = FormatOptions & {
     useSemanticOutput?: boolean;
 
     /**
-     * How to join the date and time halves. `at` reads naturally after a relative label
-     * ("Today at 4:32 PM"); `comma` suits a bare date ("Jun 1, 4:32 PM") and falls back to
-     * `at` whenever the date half resolved to a relative label anyway.
+     * How to join the date and time halves.
+     *
+     * `at` (the default) joins them with the `timestamp.datetime` message.
+     *
+     * `locale` hands both halves to Intl in a single pass so the locale decides the
+     * separator -- en-US yields "Jun 1, 4:32 PM", ja-JP a space -- which reads better
+     * after a bare date than any separator we could pick and translate.
+     * A date half that resolved to a relative label is still joined with `at`, since
+     * "Today at 4:32 PM" is right where "Today, 4:32 PM" is not.
      */
-    dateTimeSeparator?: 'at' | 'comma';
+    dateTimeSeparator?: 'at' | 'locale';
 
     intl: IntlShape;
 };
@@ -142,25 +146,10 @@ type State = {
 /**
  * A feature-rich, react-intl oriented wrapper around Intl.DateTimeFormat and Intl.RelativeTimeFormat.
  *
- * If (for some odd reason) Intl.DateTimeFormat does not support the specified timezone, Moment will be used as a fallback formatter.
- * This fallback implementation only supports the following non-localized formats:
- *
- * TIME:
- * - `h:mm A`
- * - `HH:mm`
- *
- * DATE:
- * - `dddd`
- * - `MMMM DD`
- * - `MMMM DD, YYYY`
- * - `dddd, MMMM DD, YYYY`
- *
  * `DateTimeOptions.hourCycle` is preferred over `DateTimeOptions.hour12`.
  *
  * `hour12` will override the specified `hourCycle` and will defer to the default locale `hourCycle`.
  * This might result in `H24` behavior. (See https://github.com/formatjs/formatjs/issues/1577)
- *
- * @remarks Fallback-formatting should be rare, as `Intl.DateTimeFormat` (in Chrome, Safari, FF, and Edge) supports all timezones that are supported by `moment-timezone`.
  */
 class Timestamp extends PureComponent<Props, State> {
     constructor(props: Props) {
@@ -197,50 +186,42 @@ class Timestamp extends PureComponent<Props, State> {
     }
 
     formatParts(value: Date, {relative: relFormat, date: dateFormat, time: timeFormat}: ResolvedFormats): FormattedParts {
-        try {
-            let relative: FormattedParts['relative'];
-            let date: FormattedParts['date'];
-            let time: FormattedParts['time'];
+        let relative: FormattedParts['relative'];
+        let date: FormattedParts['date'];
+        let time: FormattedParts['time'];
 
-            if (isSimpleRelative(relFormat)) {
-                relative = relFormat.message;
-            } else if (isRelative(relFormat)) {
-                relative = this.formatRelative(value, relFormat);
+        if (isSimpleRelative(relFormat)) {
+            relative = relFormat.message;
+        } else if (isRelative(relFormat)) {
+            relative = this.formatRelative(value, relFormat);
 
-                if (relFormat.unit !== 'day' || !timeFormat) {
-                    return {relative};
-                }
+            if (relFormat.unit !== 'day' || !timeFormat) {
+                return {relative};
             }
-
-            if (relative == null && dateFormat) {
-                date = this.formatDateTime(value, dateFormat);
-            }
-
-            if (timeFormat) {
-                const {
-                    hourCycle,
-                    hour12 = supportsHourCycle ? undefined : is12HourTime(hourCycle),
-                } = this.props;
-
-                time = this.formatDateTime(value, {hourCycle, hour12, ...timeFormat});
-            }
-
-            return {relative, date, time};
-        } catch {
-            // fallback to moment for unsupported timezones
-            const {timeZone, hourCycle, hour12} = this.props;
-
-            const momentValue = moment.utc(value.getTime());
-
-            if (timeZone) {
-                momentValue.tz(timeZone);
-            }
-
-            return {
-                date: dateFormat && Timestamp.momentDate(momentValue, {...dateFormat}),
-                time: timeFormat && Timestamp.momentTime(momentValue, {hourCycle, hour12, ...timeFormat}),
-            };
         }
+
+        const {
+            hourCycle,
+            hour12 = supportsHourCycle ? undefined : is12HourTime(hourCycle),
+        } = this.props;
+
+        if (relative == null && dateFormat) {
+            // Formatting both halves in one pass lets Intl apply the locale's own
+            // date/time separator -- CLDR picks ", " or " at " from the width of the
+            // date fields -- instead of one we choose and have to translate. Returning
+            // it as the date part with no time part leaves nothing for format() to join.
+            if (timeFormat && this.props.dateTimeSeparator === 'locale') {
+                return {date: this.formatDateTime(value, {hourCycle, hour12, ...dateFormat, ...timeFormat})};
+            }
+
+            date = this.formatDateTime(value, dateFormat);
+        }
+
+        if (timeFormat) {
+            time = this.formatDateTime(value, {hourCycle, hour12, ...timeFormat});
+        }
+
+        return {relative, date, time};
     }
 
     formatRelative(value: Date, {unit, relNearest, truncateEndpoints, ...format}: RelativeOptions): string {
@@ -264,29 +245,9 @@ class Timestamp extends PureComponent<Props, State> {
     }
 
     formatDateTime(value: Date, format: DateTimeOptions): string {
-        const {timeZone, intl: {locale}} = this.props;
+        const {timeZone, intl} = this.props;
 
-        return (new Intl.DateTimeFormat(locale, {timeZone, ...format} as any)).format(value); // TODO remove any when React-Intl is next updated
-    }
-
-    static momentTime(value: Moment, {hour, minute, hourCycle, hour12}: DateTimeOptions): string | undefined {
-        if (hour && minute) {
-            return value.format(is12HourTime(hourCycle, hour12) ? 'h:mm A' : 'HH:mm');
-        }
-        return undefined;
-    }
-
-    static momentDate(value: Moment, {weekday, day, month, year}: DateTimeOptions): string | undefined {
-        if (weekday && day && month && year) {
-            return value.format('dddd, MMMM DD, YYYY');
-        } else if (day && month && year) {
-            return value.format('MMMM DD, YYYY');
-        } else if (day && month) {
-            return value.format('MMMM DD');
-        } else if (weekday) {
-            return value.format('dddd');
-        }
-        return undefined;
+        return intl.formatDate(value, {timeZone, ...format});
     }
 
     autoRange(value: Date, units: Props['units'] = (this.props.units || this.props.ranges)): DisplayAs {
@@ -399,22 +360,8 @@ class Timestamp extends PureComponent<Props, State> {
         }, relative.updateIntervalInSeconds * 1000);
     }
 
-    static format({relative, date, time}: FormattedParts, dateTimeSeparator: NonNullable<Props['dateTimeSeparator']> = 'at'): ReactNode {
-        if (!((relative || date) && time)) {
-            return relative || date || time;
-        }
-
-        if (dateTimeSeparator === 'comma' && !relative) {
-            return (
-                <FormattedMessage
-                    id='timestamp.dateAndTime'
-                    defaultMessage='{date}, {time}'
-                    values={{date, time}}
-                />
-            );
-        }
-
-        return (
+    static format({relative, date, time}: FormattedParts): ReactNode {
+        return (relative || date) && time ? (
             <FormattedMessage
                 id='timestamp.datetime'
                 defaultMessage='{relativeOrDate} at {time}'
@@ -423,17 +370,7 @@ class Timestamp extends PureComponent<Props, State> {
                     time,
                 }}
             />
-        );
-    }
-
-    static formatLabel(value: Date, timeZone?: string) {
-        const momentValue = moment(value);
-
-        if (timeZone) {
-            momentValue.tz(timeZone);
-        }
-
-        return momentValue.toString() + (timeZone ? ` (${momentValue.tz()})` : '');
+        ) : relative || date || time;
     }
 
     render() {
@@ -444,13 +381,12 @@ class Timestamp extends PureComponent<Props, State> {
             timeZone,
             label,
             className,
-            dateTimeSeparator,
         } = this.props;
 
         const value = unparsed instanceof Date ? unparsed : new Date(unparsed);
         const formats = this.getFormats(value);
         const parts = this.formatParts(value, formats);
-        let formatted = Timestamp.format(parts, dateTimeSeparator);
+        let formatted = Timestamp.format(parts);
 
         if (useSemanticOutput) {
             formatted = (

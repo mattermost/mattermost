@@ -102,6 +102,26 @@ describe('Timestamp usePreferredFormat', () => {
             expect(screen.getByText(expected)).toBeInTheDocument();
         });
 
+        test.each([
+            ['ja', '2019年6月1日 午後4:32'],
+            ['de', '1. Juni 2019, 4:32 PM'],
+        ])('takes the date/time separator from the %s locale', (locale, expected) => {
+            // The separator is locale data, not a string we pick: ja-JP uses a space where
+            // en-US uses a comma, so joining with a translated "{date}, {time}" would be
+            // wrong in Japanese no matter how it was translated.
+            renderWithContext(
+                <Timestamp
+                    value={new Date('2019-06-01T16:32:00.000Z')}
+                    timeZone='UTC'
+                    usePreferredFormat={true}
+                />,
+                stateFor(TimestampFormat.DATE_AND_TIME),
+                {locale},
+            );
+
+            expect(screen.getByText(expected)).toBeInTheDocument();
+        });
+
         test('compact variant collapses to a bare clock time', () => {
             renderWithContext(
                 <Timestamp

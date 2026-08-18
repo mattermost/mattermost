@@ -52,11 +52,11 @@ describe('getTimestampFormatProps', () => {
             expect(result.useTime).toMatchObject({hour: 'numeric', minute: '2-digit'});
         });
 
-        test('joins a bare date with a comma', () => {
+        test('lets the locale join a bare date to the time', () => {
             // Timestamp still falls back to "at" when the date half resolves to a
             // relative label, so "Today at 4:32 PM" but "Jun 1, 4:32 PM".
-            expect(props(TimestampFormat.DATE_AND_TIME, 'post').dateTimeSeparator).toBe('comma');
-            expect(props(TimestampFormat.STANDARD, 'metadata').dateTimeSeparator).toBe('comma');
+            expect(props(TimestampFormat.DATE_AND_TIME, 'post').dateTimeSeparator).toBe('locale');
+            expect(props(TimestampFormat.STANDARD, 'metadata').dateTimeSeparator).toBe('locale');
         });
 
         test('leaves the separator unset where there is no date half', () => {

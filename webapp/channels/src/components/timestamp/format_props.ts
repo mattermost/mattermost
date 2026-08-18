@@ -79,9 +79,9 @@ function build({format, showSeconds, variant}: TimestampFormatPropsOptions): Tim
         return {useRelative: false, useDate: false, useTime};
     }
 
-    // "Jun 1, 4:32 PM" for a bare date, but "Today at 4:32 PM" when the date half
-    // resolved to a relative label instead.
-    return {ranges: CALENDAR_RANGES, useDate: useCalendarDate, useTime, dateTimeSeparator: 'comma'};
+    // Let the locale join a bare date to the time ("Jun 1, 4:32 PM"), but keep "at"
+    // when the date half resolved to a relative label ("Today at 4:32 PM").
+    return {ranges: CALENDAR_RANGES, useDate: useCalendarDate, useTime, dateTimeSeparator: 'locale'};
 }
 
 const cache = new Map<string, TimestampFormatProps>();
