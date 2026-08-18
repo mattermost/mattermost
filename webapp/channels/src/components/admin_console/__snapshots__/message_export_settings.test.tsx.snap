@@ -1742,7 +1742,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
                     class="help-text"
                     data-testid="globalRelayCustomHeaderValuehelp-text"
                   >
-                    The value sent with the custom header. Both the name and value must be set for the header to be included.
+                    The value sent with the custom header. Both the name and value must be set, or both left blank to omit.
                   </div>
                 </div>
               </div>

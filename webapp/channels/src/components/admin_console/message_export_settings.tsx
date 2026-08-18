@@ -345,7 +345,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     helpText={
                         <FormattedMessage
                             id='admin.complianceExport.globalRelayCustomHeaderValue.description'
-                            defaultMessage='The value sent with the custom header. Both the name and value must be set for the header to be included.'
+                            defaultMessage='The value sent with the custom header. Both the name and value must be set, or both left blank to omit.'
                         />
                     }
                     value={this.state.globalRelayCustomHeaderValue ? this.state.globalRelayCustomHeaderValue : ''}

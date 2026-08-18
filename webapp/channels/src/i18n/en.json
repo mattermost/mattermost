@@ -949,7 +949,7 @@
   "admin.complianceExport.globalRelayCustomHeaderName.description": "An optional custom header added to each exported EML. Both the name and value must be set, or both left blank to omit.",
   "admin.complianceExport.globalRelayCustomHeaderName.example": "E.g.: \"X-ProofpointArchiveMediaType\"",
   "admin.complianceExport.globalRelayCustomHeaderName.title": "Custom Header Name:",
-  "admin.complianceExport.globalRelayCustomHeaderValue.description": "The value sent with the custom header. Both the name and value must be set for the header to be included.",
+  "admin.complianceExport.globalRelayCustomHeaderValue.description": "The value sent with the custom header. Both the name and value must be set, or both left blank to omit.",
   "admin.complianceExport.globalRelayCustomHeaderValue.example": "E.g.: \"Message\"",
   "admin.complianceExport.globalRelayCustomHeaderValue.title": "Custom Header Value:",
   "admin.complianceExport.globalRelayCustomSMTPPort.description": "The SMTP server port that will receive your Global Relay EML.",
