@@ -83,10 +83,10 @@
         display: flex;
         align-items: flex-start;
         margin-top: 12px;
+        margin-left: -4px;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         gap: 4px;
         line-height: 20px;
-        margin-left: -4px;
 
         .icon {
             flex-shrink: 0;
@@ -104,10 +104,10 @@
 
     &__uploadProgress {
         position: absolute;
-        overflow: hidden;
         right: 0;
         bottom: 0;
         left: 0;
+        overflow: hidden;
         height: 4px;
         border-radius: 0 0 3px 3px;
         background: rgba(var(--center-channel-color-rgb), 0.12);
