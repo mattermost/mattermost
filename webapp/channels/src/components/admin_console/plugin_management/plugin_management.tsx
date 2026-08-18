@@ -579,6 +579,35 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         this.fileInput.current?.click();
     };
 
+    renderUploadDropzoneTitleText = () => {
+        if (this.state.uploading) {
+            return (
+                <FormattedMessage
+                    id='admin.plugin.uploading_file'
+                    defaultMessage='Uploading {fileName}'
+                    values={{fileName: this.state.file?.name || '...'}}
+                />
+            );
+        }
+
+        if (this.state.file) {
+            return (
+                <FormattedMessage
+                    id='admin.plugin.upload.selected_file'
+                    defaultMessage='Selected: {fileName}'
+                    values={{fileName: this.state.file.name}}
+                />
+            );
+        }
+
+        return (
+            <FormattedMessage
+                id='admin.plugin.upload.dropzone_title'
+                defaultMessage='Click or drop plugin bundle to upload'
+            />
+        );
+    };
+
     canUploadPlugin = () => {
         const enable = this.props.config?.PluginSettings?.Enable;
         const requirePluginSignature = this.props.config.PluginSettings?.RequirePluginSignature;
@@ -1288,26 +1317,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                                 aria-hidden={true}
                                             />
                                             <span className='PluginManagement__uploadDropzoneTitleText'>
-                                                {
-                                                    this.state.uploading ? (
-                                                        <FormattedMessage
-                                                            id='admin.plugin.uploading_file'
-                                                            defaultMessage='Uploading {fileName}'
-                                                            values={{fileName: this.state.file?.name || '...'}}
-                                                        />
-                                                    ) : this.state.file ? (
-                                                        <FormattedMessage
-                                                            id='admin.plugin.upload.selected_file'
-                                                            defaultMessage='Selected: {fileName}'
-                                                            values={{fileName: this.state.file.name}}
-                                                        />
-                                                    ) : (
-                                                        <FormattedMessage
-                                                            id='admin.plugin.upload.dropzone_title'
-                                                            defaultMessage='Click or drop plugin bundle to upload'
-                                                        />
-                                                    )
-                                                }
+                                                {this.renderUploadDropzoneTitleText()}
                                             </span>
                                         </span>
                                         {uploadDisabledReason && (
