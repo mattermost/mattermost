@@ -155,6 +155,40 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await teamSettings.close();
     });
 
+    test('MM-70056_1 System policy InfoBanner visible to a TEAM ADMIN when the team is assigned to a parent policy', async ({
+        pw,
+    }) => {
+        await pw.skipIfNoLicense();
+        const {adminClient, team} = await pw.initSetup();
+        await enableTeamMembershipABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        // # Create a parent policy and assign the team to it
+        const policyName = `Global Team Policy ${pw.random.id()}`;
+        const policy = await createParentPolicy(adminClient, policyName);
+        createdPolicyIds.push(policy.id);
+        await assignTeamToParentPolicy(adminClient, policy.id, team.id);
+
+        // # Log in as a TEAM ADMIN (only ManageTeamAccessRules, not ManageSystem)
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        const {teamSettings, tab} = await openTeamMembershipTab(page, channelsPage);
+
+        // * Banner is visible to the team admin, not just the system admin (MM-70056),
+        // and names the resolved parent policy.
+        const banner = tab.locator('.TeamMembershipTab__systemPolicies');
+        await expect(banner).toBeVisible({timeout: 10000});
+        await expect(banner.getByText(policyName)).toBeVisible();
+
+        await teamSettings.close();
+    });
+
     test('MM-69100_12 Auto-add disabled with no expression, enabled after adding a rule', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();

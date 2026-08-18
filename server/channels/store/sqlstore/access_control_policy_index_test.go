@@ -65,12 +65,12 @@ func TestAccessControlPolicyContainmentIndexes(t *testing.T) {
 	// rollback, so no setting leaks back into the pool.
 	explain := func(t *testing.T, query string, args ...any) string {
 		t.Helper()
-		tx, err := master.Begin()
-		require.NoError(t, err)
+		tx, txErr := master.Begin()
+		require.NoError(t, txErr)
 		defer tx.Rollback() //nolint:errcheck
 
-		_, err = tx.Exec("SET LOCAL enable_seqscan = off")
-		require.NoError(t, err)
+		_, txErr = tx.Exec("SET LOCAL enable_seqscan = off")
+		require.NoError(t, txErr)
 
 		var lines []string
 		require.NoError(t, tx.Select(&lines, "EXPLAIN "+query, args...))

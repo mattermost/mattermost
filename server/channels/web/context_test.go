@@ -4,7 +4,6 @@
 package web
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
@@ -15,6 +14,99 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
+
+func TestMakeAuditRecord(t *testing.T) {
+	t.Run("PAT session includes token ID in meta", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		tokenID := model.NewId()
+		th.Context = th.Context.WithSession(&model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+			Props: model.StringMap{
+				model.SessionPropType:              model.SessionTypeUserAccessToken,
+				model.SessionPropUserAccessTokenId: tokenID,
+			},
+		})
+
+		c := &Context{App: th.App, AppContext: th.Context}
+		rec := c.MakeAuditRecord("test_event", model.AuditStatusAttempt)
+
+		require.NotNil(t, rec)
+		assert.Equal(t, tokenID, rec.Meta[model.SessionPropUserAccessTokenId])
+	})
+
+	t.Run("non-PAT session omits token ID from meta", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		th.Context = th.Context.WithSession(&model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+		})
+
+		c := &Context{App: th.App, AppContext: th.Context}
+		rec := c.MakeAuditRecord("test_event", model.AuditStatusAttempt)
+
+		require.NotNil(t, rec)
+		_, exists := rec.Meta[model.SessionPropUserAccessTokenId]
+		assert.False(t, exists, "token ID key should be absent from Meta for non-PAT sessions")
+	})
+}
+
+func TestLogAuditRec(t *testing.T) {
+	t.Run("late-fills token ID for PAT session", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		tokenID := model.NewId()
+		th.Context = th.Context.WithSession(&model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+			Props: model.StringMap{
+				model.SessionPropType:              model.SessionTypeUserAccessToken,
+				model.SessionPropUserAccessTokenId: tokenID,
+			},
+		})
+
+		c := &Context{App: th.App, AppContext: th.Context}
+
+		// Simulate a record created before the session was established (e.g., login flow)
+		rec := &model.AuditRecord{
+			EventName: "test_event",
+			Status:    model.AuditStatusAttempt,
+			Actor:     model.AuditEventActor{},
+			Meta:      map[string]any{},
+			EventData: model.AuditEventData{},
+		}
+
+		c.LogAuditRec(rec)
+
+		assert.Equal(t, tokenID, rec.Meta[model.SessionPropUserAccessTokenId])
+	})
+
+	t.Run("does not add token ID for non-PAT session", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		th.Context = th.Context.WithSession(&model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+		})
+
+		c := &Context{App: th.App, AppContext: th.Context}
+
+		rec := &model.AuditRecord{
+			EventName: "test_event",
+			Status:    model.AuditStatusAttempt,
+			Actor:     model.AuditEventActor{},
+			Meta:      map[string]any{},
+			EventData: model.AuditEventData{},
+		}
+
+		c.LogAuditRec(rec)
+
+		_, exists := rec.Meta[model.SessionPropUserAccessTokenId]
+		assert.False(t, exists, "token ID key should be absent from Meta for non-PAT sessions")
+	})
+}
 
 func TestRequireHookId(t *testing.T) {
 	c := &Context{}
@@ -55,7 +147,7 @@ func TestMfaRequired(t *testing.T) {
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-	mockUserStore.On("Get", context.Background(), "userid").Return(nil, model.NewAppError("Userstore.Get", "storeerror", nil, "store error", http.StatusInternalServerError))
+	mockUserStore.On("Get", mock.Anything, "userid").Return(nil, model.NewAppError("Userstore.Get", "storeerror", nil, "store error", http.StatusInternalServerError))
 	mockPostStore := mocks.PostStore{}
 	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
 	mockSystemStore := mocks.SystemStore{}

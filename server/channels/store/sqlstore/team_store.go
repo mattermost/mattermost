@@ -545,7 +545,7 @@ func (s SqlTeamStore) teamSearchQuery(opts *model.TeamSearch, countQuery bool) s
 		if teamFilters == nil {
 			teamFilters = groupConstrainedFilter
 		} else {
-			teamFilters = sq.Or{teamFilters, groupConstrainedFilter}
+			teamFilters = sq.And{teamFilters, groupConstrainedFilter}
 		}
 	}
 
@@ -619,6 +619,10 @@ func (s SqlTeamStore) SearchAllPaged(opts *model.TeamSearch) ([]*model.Team, int
 func (s SqlTeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Team, error) {
 	opts.TeamType = new("O")
 	opts.AllowOpenInvite = new(true)
+	// GroupConstrained is caller-controlled and must never be allowed to
+	// widen this mandatory public-only restriction, so reset it here
+	// regardless of what the caller passed in.
+	opts.GroupConstrained = nil
 	return s.SearchAll(opts)
 }
 
@@ -626,6 +630,10 @@ func (s SqlTeamStore) SearchOpen(opts *model.TeamSearch) ([]*model.Team, error) 
 // passed as the term search parameter. Privacy is keyed on AllowOpenInvite, not Type, so invite-only teams are included too.
 func (s SqlTeamStore) SearchPrivate(opts *model.TeamSearch) ([]*model.Team, error) {
 	opts.AllowOpenInvite = new(false)
+	// GroupConstrained is caller-controlled and must never be allowed to
+	// widen this mandatory private-only restriction, so reset it here
+	// regardless of what the caller passed in.
+	opts.GroupConstrained = nil
 	return s.SearchAll(opts)
 }
 

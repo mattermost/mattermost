@@ -494,6 +494,35 @@ function ChannelSettingsPermissionsPolicyTab({
         const rulesWithMembership = buildRulesWithMembership(originalAllRules, originalMembershipExpression);
         const finalRules = buildRulesWithPermissionRules(rulesWithMembership, persistedPermissionRules);
 
+        // Deleting the last permission rule can leave the channel policy with no
+        // rules and no imports (a channel that only ever had permission rules and
+        // no membership rule). The server rejects an empty policy with
+        // "Unable to save access control policy." (AccessControlPolicy.IsValid:
+        // "Policy must either import or define rules"), so mirror the Membership
+        // Policy tab and delete the channel policy instead — returning the
+        // channel to standard access.
+        if (finalRules.length === 0 && originalImports.length === 0) {
+            const deleteResult = await actions.deleteChannelPolicy(channel.id);
+
+            // A 404 means the policy was never persisted (rules added and removed
+            // before any save), which is an effective success for this flow.
+            if (deleteResult.error && deleteResult.error.status_code !== 404) {
+                setFormError(deleteResult.error.message || formatMessage({
+                    id: 'channel_settings.permissions_policy.save_error',
+                    defaultMessage: 'Failed to save permission rules',
+                }));
+                return SAVE_RESULT_ERROR;
+            }
+
+            // Mirror the Membership Policy tab's empty-delete path: once the
+            // channel policy is gone, the next save in this tab session must not
+            // re-POST anything from it. Clearing the rules covers auto-add too,
+            // since the mode rides on the membership rule.
+            setOriginalAllRules([]);
+            setOriginalRulesJSON(JSON.stringify(persistedPermissionRules));
+            return SAVE_RESULT_SAVED;
+        }
+
         const policy = {
             id: channel.id,
             name: channel.display_name,
@@ -1041,6 +1070,7 @@ function PermissionRuleEditor({
                         }}
                         menu={{
                             id: 'cpp-role-selector-menu',
+                            className: 'ChannelSettingsModal__permissionsPolicyOptionMenu',
                             'aria-label': formatMessage({
                                 id: 'channel_settings.permissions_policy.field.role_menu_aria',
                                 defaultMessage: 'Role selection menu',
@@ -1190,6 +1220,7 @@ function PermissionRuleEditor({
                             }}
                             menu={{
                                 id: 'cpp-add-permission-menu',
+                                className: 'ChannelSettingsModal__permissionsPolicyOptionMenu',
                                 'aria-label': formatMessage({
                                     id: 'channel_settings.permissions_policy.field.actions_add_menu_aria',
                                     defaultMessage: 'Add permission menu',

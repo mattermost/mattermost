@@ -5,7 +5,7 @@ x-logging: &default-logging
 
 services:
   postgres:
-    image: "postgres:14"
+    image: "postgres:15"
     logging: *default-logging
     restart: always
     networks:
