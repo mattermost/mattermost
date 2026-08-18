@@ -2279,3 +2279,542 @@ func TestBulkExportSingleTeam(t *testing.T) {
 		assert.True(t, exportedTeams[otherTeam.Name], "other team should appear in full export")
 	})
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// Multi-team export tests
+// ────────────────────────────────────────────────────────────────────────────
+
+func TestBulkExportMultipleTeams(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("exports posts from all specified teams", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		teamB := th.CreateTeam(t)
+		userB := th.CreateUser(t)
+		th.LinkUserToTeam(t, userB, teamB)
+		chB := th.CreateChannel(t, teamB)
+		_, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: chB.Id, Message: "team-b-post", UserId: userB.Id,
+		}, chB, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		teamC := th.CreateTeam(t)
+		userC := th.CreateUser(t)
+		th.LinkUserToTeam(t, userC, teamC)
+		chC := th.CreateChannel(t, teamC)
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: chC.Id, Message: "team-c-post", UserId: userC.Id,
+		}, chC, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// Export team-b and team-c; NOT the basic team.
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName: teamB.Name + "," + teamC.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		exportedTeams := make(map[string]bool)
+		for _, tl := range lines["team"] {
+			exportedTeams[tl["team"].(map[string]any)["name"].(string)] = true
+		}
+		assert.True(t, exportedTeams[teamB.Name], "team-b should be in export")
+		assert.True(t, exportedTeams[teamC.Name], "team-c should be in export")
+		assert.False(t, exportedTeams[th.BasicTeam.Name], "basic team should NOT be in export")
+
+		postTeams := make(map[string]bool)
+		for _, pl := range lines["post"] {
+			postTeams[pl["post"].(map[string]any)["team"].(string)] = true
+		}
+		assert.True(t, postTeams[teamB.Name], "posts from team-b should be present")
+		assert.True(t, postTeams[teamC.Name], "posts from team-c should be present")
+		assert.False(t, postTeams[th.BasicTeam.Name], "posts from basic team must not leak into export")
+	})
+
+	t.Run("exports users from all specified teams and excludes outsiders", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		teamB := th.CreateTeam(t)
+		userB := th.CreateUser(t)
+		th.LinkUserToTeam(t, userB, teamB)
+
+		teamC := th.CreateTeam(t)
+		userC := th.CreateUser(t)
+		th.LinkUserToTeam(t, userC, teamC)
+
+		outsider := th.CreateUser(t) // not in teamB or teamC
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName: teamB.Name + "," + teamC.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		exported := make(map[string]bool)
+		for _, ul := range lines["user"] {
+			exported[ul["user"].(map[string]any)["username"].(string)] = true
+		}
+		assert.True(t, exported[userB.Username], "user from team-b should be exported")
+		assert.True(t, exported[userC.Username], "user from team-c should be exported")
+		assert.False(t, exported[outsider.Username], "user in neither team should not be exported")
+		assert.False(t, exported[th.BasicUser.Username], "user only in basic team should not be exported")
+	})
+
+	t.Run("user in multiple target teams has both memberships in export", func(t *testing.T) {
+		th := Setup(t)
+
+		teamA := th.CreateTeam(t)
+		teamB := th.CreateTeam(t)
+		sharedUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, sharedUser, teamA)
+		th.LinkUserToTeam(t, sharedUser, teamB)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName: teamA.Name + "," + teamB.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		var userLine map[string]any
+		for _, ul := range lines["user"] {
+			u := ul["user"].(map[string]any)
+			if u["username"].(string) == sharedUser.Username {
+				userLine = u
+				break
+			}
+		}
+		require.NotNil(t, userLine, "shared user should be in export")
+
+		teams, ok := userLine["teams"].([]any)
+		require.True(t, ok, "user should have teams field")
+		exportedTeamNames := make(map[string]bool)
+		for _, ti := range teams {
+			exportedTeamNames[ti.(map[string]any)["name"].(string)] = true
+		}
+		assert.True(t, exportedTeamNames[teamA.Name], "user should have team-a membership in export")
+		assert.True(t, exportedTeamNames[teamB.Name], "user should have team-b membership in export")
+	})
+
+	t.Run("version line contains comma-separated team names", func(t *testing.T) {
+		th := Setup(t)
+
+		teamA := th.CreateTeam(t)
+		teamB := th.CreateTeam(t)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName: teamA.Name + "," + teamB.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		require.Len(t, lines["version"], 1)
+		info := lines["version"][0]["info"].(map[string]any)
+		additionalBytes, err := json.Marshal(info["additional"])
+		require.NoError(t, err)
+		var scope imports.ExportScopeAdditional
+		require.NoError(t, json.Unmarshal(additionalBytes, &scope))
+
+		assert.Contains(t, scope.TeamName, teamA.Name, "team-a should be in scope additional")
+		assert.Contains(t, scope.TeamName, teamB.Name, "team-b should be in scope additional")
+	})
+
+	t.Run("DMs are excluded from multi-team export", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		teamB := th.CreateTeam(t)
+		userB := th.CreateUser(t)
+		th.LinkUserToTeam(t, userB, teamB)
+
+		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, userB.Id)
+		require.Nil(t, appErr)
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: dm.Id, Message: "dm-post", UserId: th.BasicUser.Id,
+		}, dm, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName: th.BasicTeam.Name + "," + teamB.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+		assert.Empty(t, lines["direct_channel"], "DMs should not appear in multi-team export")
+		assert.Empty(t, lines["direct_post"], "DM posts should not appear in multi-team export")
+	})
+
+	t.Run("returns error for any nonexistent team in the list", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName: th.BasicTeam.Name + ",this-team-does-not-exist",
+		})
+		require.NotNil(t, appErr, "should error when any team in the list does not exist")
+	})
+
+	t.Run("whitespace around commas is trimmed", func(t *testing.T) {
+		th := Setup(t)
+
+		teamA := th.CreateTeam(t)
+		teamB := th.CreateTeam(t)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName: "  " + teamA.Name + " ,  " + teamB.Name + "  ",
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+		exportedTeams := make(map[string]bool)
+		for _, tl := range lines["team"] {
+			exportedTeams[tl["team"].(map[string]any)["name"].(string)] = true
+		}
+		assert.True(t, exportedTeams[teamA.Name], "team-a should be exported despite extra whitespace")
+		assert.True(t, exportedTeams[teamB.Name], "team-b should be exported despite extra whitespace")
+	})
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Multi-channel export tests
+// ────────────────────────────────────────────────────────────────────────────
+
+func TestBulkExportMultipleChannels(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("exports posts from all specified channels only", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		chA := th.CreateChannel(t, th.BasicTeam)
+		chB := th.CreateChannel(t, th.BasicTeam)
+		chOther := th.CreateChannel(t, th.BasicTeam)
+
+		for _, args := range []struct {
+			ch  *model.Channel
+			msg string
+		}{
+			{chA, "post-in-a"},
+			{chB, "post-in-b"},
+			{chOther, "post-in-other"},
+		} {
+			_, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+				ChannelId: args.ch.Id, Message: args.msg, UserId: th.BasicUser.Id,
+			}, args.ch, model.CreatePostFlags{SetOnline: true})
+			require.Nil(t, appErr)
+		}
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    th.BasicTeam.Name,
+			ChannelName: chA.Name + "," + chB.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+		for _, pl := range lines["post"] {
+			ch := pl["post"].(map[string]any)["channel"].(string)
+			assert.NotEqual(t, chOther.Name, ch, "post from non-target channel must not appear")
+			assert.True(t, ch == chA.Name || ch == chB.Name, "post channel should be one of the target channels")
+		}
+		require.NotEmpty(t, lines["post"], "expected posts in export")
+	})
+
+	t.Run("exports only users who are members or post-authors of target channels", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		chA := th.CreateChannel(t, th.BasicTeam)
+		chB := th.CreateChannel(t, th.BasicTeam)
+
+		userA := th.CreateUser(t)
+		th.LinkUserToTeam(t, userA, th.BasicTeam)
+		_, appErr := th.App.AddUserToChannel(th.Context, userA, chA, false)
+		require.Nil(t, appErr)
+
+		userB := th.CreateUser(t)
+		th.LinkUserToTeam(t, userB, th.BasicTeam)
+		_, appErr = th.App.AddUserToChannel(th.Context, userB, chB, false)
+		require.Nil(t, appErr)
+
+		outsider := th.CreateUser(t)
+		th.LinkUserToTeam(t, outsider, th.BasicTeam)
+		// outsider is in the team but in neither chA nor chB
+
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    th.BasicTeam.Name,
+			ChannelName: chA.Name + "," + chB.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+		exported := make(map[string]bool)
+		for _, ul := range lines["user"] {
+			exported[ul["user"].(map[string]any)["username"].(string)] = true
+		}
+		assert.True(t, exported[userA.Username], "member of chA should be exported")
+		assert.True(t, exported[userB.Username], "member of chB should be exported")
+		assert.False(t, exported[outsider.Username], "user in neither target channel should not be exported")
+	})
+
+	t.Run("user in both target channels has both channel memberships in export", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		chA := th.CreateChannel(t, th.BasicTeam)
+		chB := th.CreateChannel(t, th.BasicTeam)
+
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, chA, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, chB, false)
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    th.BasicTeam.Name,
+			ChannelName: chA.Name + "," + chB.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		var userLine map[string]any
+		for _, ul := range lines["user"] {
+			u := ul["user"].(map[string]any)
+			if u["username"].(string) == th.BasicUser.Username {
+				userLine = u
+				break
+			}
+		}
+		require.NotNil(t, userLine, "basic user should be in export")
+
+		exportedChannelNames := make(map[string]bool)
+		for _, ti := range userLine["teams"].([]any) {
+			team := ti.(map[string]any)
+			chList, ok := team["channels"].([]any)
+			if !ok {
+				continue
+			}
+			for _, ci := range chList {
+				exportedChannelNames[ci.(map[string]any)["name"].(string)] = true
+			}
+		}
+		assert.True(t, exportedChannelNames[chA.Name], "chA should appear in user memberships")
+		assert.True(t, exportedChannelNames[chB.Name], "chB should appear in user memberships")
+	})
+
+	t.Run("version line contains comma-separated channel names", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		chA := th.CreateChannel(t, th.BasicTeam)
+		chB := th.CreateChannel(t, th.BasicTeam)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    th.BasicTeam.Name,
+			ChannelName: chA.Name + "," + chB.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		require.Len(t, lines["version"], 1)
+		info := lines["version"][0]["info"].(map[string]any)
+		additionalBytes, err := json.Marshal(info["additional"])
+		require.NoError(t, err)
+		var scope imports.ExportScopeAdditional
+		require.NoError(t, json.Unmarshal(additionalBytes, &scope))
+
+		assert.Equal(t, th.BasicTeam.Name, scope.TeamName)
+		assert.Contains(t, scope.ChannelName, chA.Name, "chA should be in scope additional")
+		assert.Contains(t, scope.ChannelName, chB.Name, "chB should be in scope additional")
+	})
+
+	t.Run("returns error if any channel does not exist in the team", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		chA := th.CreateChannel(t, th.BasicTeam)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    th.BasicTeam.Name,
+			ChannelName: chA.Name + ",channel-that-does-not-exist-" + model.NewId(),
+		})
+		require.NotNil(t, appErr, "should error when any channel in the list does not exist")
+	})
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Multi-team + multi-channel export tests
+// ────────────────────────────────────────────────────────────────────────────
+
+func TestBulkExportMultipleTeamsAndChannels(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("exports same-named channel from multiple teams", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		teamA := th.CreateTeam(t)
+		teamB := th.CreateTeam(t)
+
+		userA := th.CreateUser(t)
+		th.LinkUserToTeam(t, userA, teamA)
+		userB := th.CreateUser(t)
+		th.LinkUserToTeam(t, userB, teamB)
+
+		// Create a channel with the same name in each team.
+		chA := th.CreateChannel(t, teamA)
+		chB, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      teamB.Id,
+			Name:        chA.Name,
+			DisplayName: chA.DisplayName,
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.AddUserToChannel(th.Context, userA, chA, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddUserToChannel(th.Context, userB, chB, false)
+		require.Nil(t, appErr)
+
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: chA.Id, Message: "post-in-team-a", UserId: userA.Id,
+		}, chA, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: chB.Id, Message: "post-in-team-b", UserId: userB.Id,
+		}, chB, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    teamA.Name + "," + teamB.Name,
+			ChannelName: chA.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		// Both teams should be in the export.
+		exportedTeams := make(map[string]bool)
+		for _, tl := range lines["team"] {
+			exportedTeams[tl["team"].(map[string]any)["name"].(string)] = true
+		}
+		assert.True(t, exportedTeams[teamA.Name], "team-a should be in export")
+		assert.True(t, exportedTeams[teamB.Name], "team-b should be in export")
+
+		// Posts from both instances of the channel should be present.
+		postMessages := make(map[string]bool)
+		for _, pl := range lines["post"] {
+			postMessages[pl["post"].(map[string]any)["message"].(string)] = true
+		}
+		assert.True(t, postMessages["post-in-team-a"], "post from team-a channel should be exported")
+		assert.True(t, postMessages["post-in-team-b"], "post from team-b channel should be exported")
+
+		// Users from both teams should be present.
+		exported := make(map[string]bool)
+		for _, ul := range lines["user"] {
+			exported[ul["user"].(map[string]any)["username"].(string)] = true
+		}
+		assert.True(t, exported[userA.Username], "userA should be in export")
+		assert.True(t, exported[userB.Username], "userB should be in export")
+	})
+
+	t.Run("exports distinct channels from different teams", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		teamA := th.CreateTeam(t)
+		teamB := th.CreateTeam(t)
+
+		userA := th.CreateUser(t)
+		th.LinkUserToTeam(t, userA, teamA)
+		userB := th.CreateUser(t)
+		th.LinkUserToTeam(t, userB, teamB)
+
+		chA := th.CreateChannel(t, teamA)
+		chB := th.CreateChannel(t, teamB)
+		chOtherA := th.CreateChannel(t, teamA) // not in the filter
+
+		_, appErr := th.App.AddUserToChannel(th.Context, userA, chA, false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.AddUserToChannel(th.Context, userB, chB, false)
+		require.Nil(t, appErr)
+
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: chA.Id, Message: "post-chA", UserId: userA.Id,
+		}, chA, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: chB.Id, Message: "post-chB", UserId: userB.Id,
+		}, chB, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: chOtherA.Id, Message: "post-other", UserId: userA.Id,
+		}, chOtherA, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    teamA.Name + "," + teamB.Name,
+			ChannelName: chA.Name + "," + chB.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		postMessages := make(map[string]bool)
+		for _, pl := range lines["post"] {
+			postMessages[pl["post"].(map[string]any)["message"].(string)] = true
+		}
+		assert.True(t, postMessages["post-chA"], "post from chA should be exported")
+		assert.True(t, postMessages["post-chB"], "post from chB should be exported")
+		assert.False(t, postMessages["post-other"], "post from non-target channel must not be exported")
+	})
+
+	t.Run("error when channel does not exist in any of the specified teams", func(t *testing.T) {
+		th := Setup(t)
+
+		teamA := th.CreateTeam(t)
+		teamB := th.CreateTeam(t)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    teamA.Name + "," + teamB.Name,
+			ChannelName: "channel-that-exists-in-neither-" + model.NewId(),
+		})
+		require.NotNil(t, appErr, "should error when channel does not exist in any specified team")
+	})
+
+	t.Run("channel missing from one team but present in another succeeds", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		teamA := th.CreateTeam(t)
+		teamB := th.CreateTeam(t)
+
+		// Create the channel only in teamA.
+		ch := th.CreateChannel(t, teamA)
+
+		var b bytes.Buffer
+		appErr := th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    teamA.Name + "," + teamB.Name,
+			ChannelName: ch.Name,
+		})
+		// Should succeed: channel exists in at least one of the specified teams.
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+		exportedChannels := make(map[string]bool)
+		for _, cl := range lines["channel"] {
+			exportedChannels[cl["channel"].(map[string]any)["name"].(string)] = true
+		}
+		assert.True(t, exportedChannels[ch.Name], "channel should be exported from team-a")
+	})
+}
