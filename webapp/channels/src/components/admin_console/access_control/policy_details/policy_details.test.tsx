@@ -446,4 +446,60 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             expect(mockSetNavigationBlocked).toHaveBeenCalledWith(false);
         });
     });
+
+    // MM-64357: a value containing a quote character (e.g. the apostrophe in
+    // "Matt's Department") must still classify as a simple expression. These
+    // tests exercise the rendered component state Matty flagged as uncovered:
+    // whether the "Switch to Simple Mode" toggle is actually enabled/disabled,
+    // rather than calling isSimpleExpression directly.
+    describe('MM-64357 apostrophe values keep the mode toggle switchable', () => {
+        const renderWithLoadedExpression = (expression: string, attributeName: string) => {
+            // A single usable (LDAP-synced) attribute clears the no-usable-attributes
+            // gate so the toggle reflects the expression, not the attributes state.
+            mockGetAccessControlFields.mockResolvedValue({data: [{name: attributeName, attrs: {ldap: true}}]});
+            const props = {
+                ...defaultProps,
+                actions: {
+                    ...defaultProps.actions,
+                    fetchPolicy: jest.fn().mockResolvedValue({
+                        data: {
+                            id: 'policy1',
+                            name: 'Policy 1',
+                            rules: [{actions: ['*'], expression}],
+                        },
+                    }),
+                },
+            };
+            return renderWithContext(<PolicyDetails {...props}/>);
+        };
+
+        test('a double-quoted apostrophe value stays switchable back to Simple Mode', async () => {
+            renderWithLoadedExpression('user.attributes.department == "Matt\'s Department"', 'department');
+
+            // The editor opens in Simple mode; switch to Advanced to reach the
+            // "Switch to Simple Mode" toggle whose disabled state is the bug.
+            await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
+
+            expect(screen.getByText('Switch to Simple Mode').closest('button')).toBeEnabled();
+        });
+
+        test('an apostrophe multiselect "has any of" group stays switchable back to Simple Mode', async () => {
+            renderWithLoadedExpression(
+                '("Matt\'s" in user.attributes.program || "Phoenix" in user.attributes.program)',
+                'program',
+            );
+
+            await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
+
+            expect(screen.getByText('Switch to Simple Mode').closest('button')).toBeEnabled();
+        });
+
+        test('a genuinely complex expression still disables the toggle (negative control)', async () => {
+            renderWithLoadedExpression('size(user.attributes.roles) > 0', 'roles');
+
+            await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
+
+            expect(screen.getByText('Switch to Simple Mode').closest('button')).toBeDisabled();
+        });
+    });
 });
