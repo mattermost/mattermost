@@ -2444,6 +2444,8 @@ func TestDemoteUserToGuestSpaceRevocationFailure(t *testing.T) {
 
 		appErr := th.App.DemoteUserToGuest(th.Context, &model.User{Id: "userID"})
 		require.Nil(t, appErr, "demotion must succeed even when space cleanup lookups fail")
+		mockTeamStore.AssertCalled(t, "GetTeamsForUser", mock.Anything, "userID", "", true)
+		mockChannelStore.AssertCalled(t, "GetTeamSpaceChannelsForUser", "teamID", "userID")
 	})
 
 	t.Run("team listing failure does not fail the demotion", func(t *testing.T) {
@@ -2453,6 +2455,7 @@ func TestDemoteUserToGuestSpaceRevocationFailure(t *testing.T) {
 
 		appErr := th.App.DemoteUserToGuest(th.Context, &model.User{Id: "userID"})
 		require.Nil(t, appErr, "demotion must succeed even when team listing fails")
+		mockTeamStore.AssertCalled(t, "GetTeamsForUser", mock.Anything, "userID", "", true)
 	})
 }
 

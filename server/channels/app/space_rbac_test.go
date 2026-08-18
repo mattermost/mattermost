@@ -61,6 +61,8 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		role := &model.Role{Name: model.TeamUserRoleId, Permissions: []string{guarded}}
 		appErr := th.App.checkSpacePermissionScope(role, nil)
 		require.NotNil(t, appErr)
+		assert.Equal(t, "app.role.save.space_permission_scope.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 
 	t.Run("system-scoped role rejected (the live fallback surface)", func(t *testing.T) {
@@ -68,7 +70,10 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		th := setupSpaceRBACMock(t)
 
 		role := &model.Role{Name: model.SystemUserRoleId, Permissions: []string{guarded}}
-		require.NotNil(t, th.App.checkSpacePermissionScope(role, nil))
+		appErr := th.App.checkSpacePermissionScope(role, nil)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.role.save.space_permission_scope.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 
 	t.Run("system_admin excepted", func(t *testing.T) {
@@ -85,7 +90,10 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 
 		for _, name := range []string{model.ChannelGuestRoleId, model.ChannelUserRoleId, model.ChannelAdminRoleId} {
 			role := &model.Role{Name: name, Permissions: []string{guarded}}
-			assert.NotNil(t, th.App.checkSpacePermissionScope(role, nil), "role %q", name)
+			appErr := th.App.checkSpacePermissionScope(role, nil)
+			assert.NotNil(t, appErr, "role %q", name)
+			assert.Equal(t, "app.role.save.space_permission_scope.app_error", appErr.Id, "role %q", name)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode, "role %q", name)
 		}
 	})
 
@@ -95,7 +103,10 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 
 		role := &model.Role{Name: model.SpacePageCommenterRoleId, Permissions: append(
 			model.PermissionIDs(model.SpacePageCommenterRolePermissions), model.PermissionAdminSpace.Id)}
-		require.NotNil(t, th.App.checkSpacePermissionScope(role, model.PermissionIDs(model.SpacePageCommenterRolePermissions)))
+		appErr := th.App.checkSpacePermissionScope(role, model.PermissionIDs(model.SpacePageCommenterRolePermissions))
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.role.save.space_capability_role.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 
 	// The name-based rejects above all run with a nil SchemeId, where the final
@@ -106,12 +117,15 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 	t.Run("guarded role names rejected even when their scheme proves space scope", func(t *testing.T) {
 		mainHelper.Parallel(t)
 
-		for _, name := range []string{
-			model.SpacePageCommenterRoleId,
-			model.TeamUserRoleId,
-			model.ChannelUserRoleId,
+		for _, tc := range []struct {
+			name  string
+			errID string
+		}{
+			{model.SpacePageCommenterRoleId, "app.role.save.space_capability_role.app_error"},
+			{model.TeamUserRoleId, "app.role.save.space_permission_scope.app_error"},
+			{model.ChannelUserRoleId, "app.role.save.space_permission_scope.app_error"},
 		} {
-			t.Run(name, func(t *testing.T) {
+			t.Run(tc.name, func(t *testing.T) {
 				th := setupSpaceRBACMock(t)
 
 				schemeID := model.NewId()
@@ -126,9 +140,11 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 				mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
 				mockStore.On("Channel").Return(&mockChannelStore)
 
-				role := &model.Role{Name: name, SchemeId: &schemeID, Permissions: []string{guarded}}
-				require.NotNil(t, th.App.checkSpacePermissionScope(role, nil),
-					"role %q must be rejected by name, not by the nil-SchemeId fallthrough", name)
+				role := &model.Role{Name: tc.name, SchemeId: &schemeID, Permissions: []string{guarded}}
+				appErr := th.App.checkSpacePermissionScope(role, nil)
+				require.NotNil(t, appErr, "role %q must be rejected by name, not by the nil-SchemeId fallthrough", tc.name)
+				assert.Equal(t, tc.errID, appErr.Id, "role %q", tc.name)
+				assert.Equal(t, http.StatusBadRequest, appErr.StatusCode, "role %q", tc.name)
 			})
 		}
 	})
@@ -321,6 +337,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
 		appErr := th.App.checkSpacePermissionScope(role, nil)
 		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.count_space_channels_by_scheme.app_error", appErr.Id)
 		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 	})
 
