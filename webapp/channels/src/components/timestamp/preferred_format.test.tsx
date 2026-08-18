@@ -122,6 +122,32 @@ describe('Timestamp usePreferredFormat', () => {
             expect(screen.getByText(expected)).toBeInTheDocument();
         });
 
+        test('exposes the combined value as one datetime part', () => {
+            // Intl rendered both halves together, so there is no separate date or time to
+            // hand back -- reporting the whole string as `date` would misdescribe it.
+            const parts: Record<string, unknown> = {};
+
+            renderWithContext(
+                <Timestamp
+                    value={new Date('2020-06-01T16:32:00.000Z')}
+                    timeZone='UTC'
+                    usePreferredFormat={true}
+                >
+                    {({date, time, datetime}) => {
+                        Object.assign(parts, {date, time, datetime});
+                        return <span>{datetime}</span>;
+                    }}
+                </Timestamp>,
+                stateFor(TimestampFormat.DATE_AND_TIME),
+            );
+
+            expect(parts).toEqual({
+                date: undefined,
+                time: undefined,
+                datetime: 'Jun 1, 4:32 PM',
+            });
+        });
+
         test('compact variant collapses to a bare clock time', () => {
             renderWithContext(
                 <Timestamp

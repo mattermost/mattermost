@@ -104,6 +104,12 @@ type FormattedParts = {
     relative?: ReactNode;
     date?: ReactNode;
     time?: ReactNode;
+
+    /**
+     * Both halves already rendered together by Intl, so there is nothing left to join.
+     * Mutually exclusive with `date`/`time`.
+     */
+    datetime?: ReactNode;
 };
 
 type FormatOptions = DateTimeOptions & Partial<RelativeOptions>;
@@ -208,10 +214,9 @@ class Timestamp extends PureComponent<Props, State> {
         if (relative == null && dateFormat) {
             // Formatting both halves in one pass lets Intl apply the locale's own
             // date/time separator -- CLDR picks ", " or " at " from the width of the
-            // date fields -- instead of one we choose and have to translate. Returning
-            // it as the date part with no time part leaves nothing for format() to join.
+            // date fields -- instead of one we choose and have to translate.
             if (timeFormat && this.props.dateTimeSeparator === 'locale') {
-                return {date: this.formatDateTime(value, {hourCycle, hour12, ...dateFormat, ...timeFormat})};
+                return {datetime: this.formatDateTime(value, {hourCycle, hour12, ...dateFormat, ...timeFormat})};
             }
 
             date = this.formatDateTime(value, dateFormat);
@@ -360,7 +365,11 @@ class Timestamp extends PureComponent<Props, State> {
         }, relative.updateIntervalInSeconds * 1000);
     }
 
-    static format({relative, date, time}: FormattedParts): ReactNode {
+    static format({relative, date, time, datetime}: FormattedParts): ReactNode {
+        if (datetime) {
+            return datetime;
+        }
+
         return (relative || date) && time ? (
             <FormattedMessage
                 id='timestamp.datetime'
