@@ -736,6 +736,10 @@
     "translation": "Invalid channel member update: A guest cannot be made team member or team admin, please promote as a user first."
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Invalid channel member update: A user must be a guest or an admin but not both."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "Invalid channel member update: A user must be a guest or a user but not both."
   },
@@ -9665,10 +9669,6 @@
   {
     "id": "app.user.convert_bot_to_user.app_error",
     "translation": "Unable to convert bot to user."
-  },
-  {
-    "id": "app.user.demote_user_to_guest.strip_space_roles.app_error",
-    "translation": "The user was demoted to guest, but one or more space capability roles could not be revoked. Retry the demotion to remove the remaining page access."
   },
   {
     "id": "app.user.demote_user_to_guest.user_update.app_error",

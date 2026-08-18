@@ -2500,9 +2500,7 @@ func TestUpdateChannelMemberRolesRefusesCapabilityRoleForGuest(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
 
-	t.Run("an ordinary channel still allows a guest channel admin", func(t *testing.T) {
-		// Long-standing behaviour off the space: the guard is gated on the
-		// backing channel, not on guests generally.
+	t.Run("an ordinary channel also refuses a guest channel admin", func(t *testing.T) {
 		_, err := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
 			ChannelId:   th.BasicChannel.Id,
 			UserId:      th.BasicUser2.Id,
@@ -2512,11 +2510,10 @@ func TestUpdateChannelMemberRolesRefusesCapabilityRoleForGuest(t *testing.T) {
 		require.NoError(t, err)
 		th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(th.BasicUser2.Id)
 
-		member, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser2.Id,
+		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser2.Id,
 			model.ChannelGuestRoleId+" "+model.ChannelAdminRoleId)
-		require.Nil(t, appErr)
-		assert.True(t, member.SchemeGuest)
-		assert.True(t, member.SchemeAdmin)
+		require.NotNil(t, appErr, "guest+admin must be rejected on regular channels too")
+		assert.Equal(t, "api.channel.update_channel_member_roles.guest_and_admin.app_error", appErr.Id)
 	})
 }
 

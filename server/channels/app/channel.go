@@ -1556,12 +1556,10 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 	}
 
 	if member.SchemeGuest && member.SchemeAdmin {
-		// Space channels have a stricter error so admins know which policy applies.
 		if !spaceLookupDone {
 			if channelIsSpace, err = a.IsSpaceChannelByID(rctx, channelID); err != nil {
 				return nil, err
 			}
-			spaceLookupDone = true
 		}
 		if channelIsSpace {
 			return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_guest_admin.app_error", nil, "", http.StatusBadRequest)
