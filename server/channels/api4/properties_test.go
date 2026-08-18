@@ -724,6 +724,26 @@ func TestCreatePropertyField(t *testing.T) {
 		})
 	})
 
+	t.Run("permission level=creator on a user-object field should fail", func(t *testing.T) {
+		// User-object fields have no entity creator, so the level is rejected
+		// rather than silently resolving to admin.
+		creatorLevel := model.PermissionLevelCreator
+		memberLevel := model.PermissionLevelMember
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			PermissionField:   &memberLevel,
+			PermissionValues:  &creatorLevel,
+			PermissionOptions: &memberLevel,
+		}
+
+		_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "user", field)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("invalid group name should fail", func(t *testing.T) {
 		th.LoginBasic(t)
 

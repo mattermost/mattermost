@@ -831,6 +831,118 @@ func TestPropertyField_IsValid(t *testing.T) {
 			require.Error(t, pf.IsValid())
 		})
 	})
+
+	t.Run("creator permission level", func(t *testing.T) {
+		baseField := func(objectType string) *PropertyField {
+			return &PropertyField{
+				ID:         NewId(),
+				GroupID:    NewId(),
+				Name:       "test field",
+				Type:       PropertyFieldTypeText,
+				ObjectType: objectType,
+				TargetType: string(PropertyFieldTargetLevelChannel),
+				TargetID:   NewId(),
+				CreateAt:   GetMillis(),
+				UpdateAt:   GetMillis(),
+			}
+		}
+
+		// requireRejectedForSlot asserts IsValid rejected the field over the
+		// creator level and named the offending slot. Checking the name matters:
+		// a rule that always reported permission_field would pass a bare
+		// require.Error.
+		requireRejectedForSlot := func(t *testing.T, pf *PropertyField, slotName string) {
+			t.Helper()
+
+			err := pf.IsValid()
+			require.Error(t, err)
+
+			appErr, ok := err.(*AppError)
+			require.True(t, ok)
+			require.Equal(t, slotName, appErr.params["FieldName"])
+			require.Contains(t, appErr.params["Reason"].(string), "creator")
+		}
+
+		for _, objectType := range []string{PropertyFieldObjectTypePost, PropertyFieldObjectTypeChannel} {
+			t.Run("valid on "+objectType+" object type", func(t *testing.T) {
+				t.Run("permission_field", func(t *testing.T) {
+					pf := baseField(objectType)
+					pf.PermissionField = new(PermissionLevelCreator)
+					require.NoError(t, pf.IsValid())
+				})
+
+				t.Run("permission_values", func(t *testing.T) {
+					pf := baseField(objectType)
+					pf.PermissionValues = new(PermissionLevelCreator)
+					require.NoError(t, pf.IsValid())
+				})
+
+				t.Run("permission_options", func(t *testing.T) {
+					pf := baseField(objectType)
+					pf.PermissionOptions = new(PermissionLevelCreator)
+					require.NoError(t, pf.IsValid())
+				})
+			})
+		}
+
+		// user/session/template have no entity creator, so creator is rejected
+		// rather than silently aliased to admin. (system is canonicalized to
+		// sysadmin before validation — see TestCanonicalizeSystemObjectField.)
+		for _, objectType := range []string{
+			PropertyFieldObjectTypeUser,
+			PropertyFieldObjectTypeSession,
+			PropertyFieldObjectTypeTemplate,
+		} {
+			t.Run("rejected on "+objectType+" object type", func(t *testing.T) {
+				t.Run("permission_field", func(t *testing.T) {
+					pf := baseField(objectType)
+					pf.PermissionField = new(PermissionLevelCreator)
+					requireRejectedForSlot(t, pf, "permission_field")
+				})
+
+				t.Run("permission_values", func(t *testing.T) {
+					pf := baseField(objectType)
+					pf.PermissionValues = new(PermissionLevelCreator)
+					requireRejectedForSlot(t, pf, "permission_values")
+				})
+
+				t.Run("permission_options", func(t *testing.T) {
+					pf := baseField(objectType)
+					pf.PermissionOptions = new(PermissionLevelCreator)
+					requireRejectedForSlot(t, pf, "permission_options")
+				})
+			})
+		}
+
+		t.Run("protected field rejects creator on the protected rule, not the creator rule", func(t *testing.T) {
+			// Protected fields must have permission_field=none, and that check
+			// must win: otherwise the operator gets a confusing message about
+			// object types when the real problem is the protected flag.
+			pf := baseField(PropertyFieldObjectTypePost)
+			pf.Protected = true
+			pf.PermissionField = new(PermissionLevelCreator)
+
+			err := pf.IsValid()
+			require.Error(t, err)
+			appErr, ok := err.(*AppError)
+			require.True(t, ok)
+			require.Equal(t, "permission_field", appErr.params["FieldName"])
+			require.Contains(t, appErr.params["Reason"].(string), "none")
+		})
+
+		t.Run("unknown level is reported as an invalid level, not a creator problem", func(t *testing.T) {
+			// The membership check must run before the creator object-type
+			// check, so a typo'd level gets the generic message.
+			pf := baseField(PropertyFieldObjectTypeUser)
+			pf.PermissionValues = new(PermissionLevel("owner"))
+
+			err := pf.IsValid()
+			require.Error(t, err)
+			appErr, ok := err.(*AppError)
+			require.True(t, ok)
+			require.Equal(t, "invalid permission level", appErr.params["Reason"])
+		})
+	})
 }
 
 func TestPropertyFieldPatch_IsValid(t *testing.T) {
