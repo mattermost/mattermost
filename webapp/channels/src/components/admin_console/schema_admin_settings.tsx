@@ -6,6 +6,7 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {AlertOutlineIcon, CheckIcon, CloseCircleIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
@@ -34,6 +35,7 @@ import UserAutocompleteSetting from 'components/admin_console/user_autocomplete_
 import FormError from 'components/form_error';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
+import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminSectionPanel from 'components/widgets/admin_console/admin_section_panel';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
@@ -322,22 +324,6 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             name = this.props.schema.name;
         }
 
-        if (this.props.plugin) {
-            const title = typeof name === 'string' ? (
-                name
-            ) : (
-                <FormattedMessage
-                    {...name}
-                />
-            );
-
-            return (
-                <h1 className='sr-only'>
-                    {title}
-                </h1>
-            );
-        }
-
         const betaBadge = this.props.schema.isBeta && (
             <BetaTag
                 variant='default'
@@ -346,21 +332,31 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             />
         );
 
+        const pluginStateBadge = this.props.plugin && this.renderPluginStateBadge(
+            this.props.pluginStatus?.state ?? (this.props.plugin.active ? PluginState.PLUGIN_STATE_RUNNING : PluginState.PLUGIN_STATE_NOT_RUNNING),
+        );
+
         if (typeof name === 'string') {
             return (
                 <AdminHeader>
-                    {name}
-                    {betaBadge}
+                    <div className='admin-console__header-left'>
+                        {name}
+                        {pluginStateBadge}
+                        {betaBadge}
+                    </div>
                 </AdminHeader>
             );
         }
 
         return (
             <AdminHeader>
-                <FormattedMessage
-                    {...name}
-                />
-                {betaBadge}
+                <div className='admin-console__header-left'>
+                    <FormattedMessage
+                        {...name}
+                    />
+                    {pluginStateBadge}
+                    {betaBadge}
+                </div>
             </AdminHeader>
         );
     };
@@ -371,106 +367,157 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         }
 
         const pluginState = this.props.pluginStatus?.state ?? (this.props.plugin.active ? PluginState.PLUGIN_STATE_RUNNING : PluginState.PLUGIN_STATE_NOT_RUNNING);
+        const description = (this.props.plugin.description || this.props.pluginStatus?.description || '').trim();
 
         return (
             <div className='PluginMetadataPanel__settingsWrapper'>
                 <div className='PluginMetadataPanel__actionsPanel'>
-                    <PluginMetadataPanel
-                        name={this.props.plugin.name}
-                        id={this.props.plugin.id}
-                        version={this.props.pluginVersion || this.props.plugin.version}
-                        homepageUrl={this.props.plugin.homepage_url}
-                        releaseNotesUrl={this.props.plugin.release_notes_url}
-                        className='PluginMetadataPanel__header'
-                    />
-                    {this.renderPluginStateDescription(pluginState, this.props.pluginStatus?.error)}
-                    <PluginEnableButton
-                        id={getPluginEnabledConfigKey(this.props.plugin.id)}
-                        disabled={this.props.isDisabled}
-                        saveNeeded={this.state.saveNeeded}
-                        value={this.props.plugin.active}
-                    />
+                    <div className='PluginMetadataPanel__actionsRow'>
+                        <div className='PluginMetadataPanel__identity'>
+                            <div className='PluginMetadataPanel__details'>
+                                <PluginMetadataPanel
+                                    name={this.props.plugin.name}
+                                    id={this.props.plugin.id}
+                                    version={this.props.pluginVersion || this.props.plugin.version}
+                                    homepageUrl={this.props.plugin.homepage_url}
+                                    releaseNotesUrl={this.props.plugin.release_notes_url}
+                                    showName={false}
+                                />
+                                {description && (
+                                    <p className='PluginMetadataPanel__description'>
+                                        {description}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                        <PluginEnableButton
+                            id={getPluginEnabledConfigKey(this.props.plugin.id)}
+                            disabled={this.props.isDisabled}
+                            saveNeeded={this.state.saveNeeded}
+                            value={this.props.plugin.active}
+                        />
+                    </div>
+                    {this.renderPluginStateError(pluginState, this.props.pluginStatus?.error)}
                 </div>
             </div>
         );
     };
 
-    renderPluginStateDescription = (state: number, error?: string) => {
+    renderPluginStateBadge = (state: number) => {
+        const badge = (modifier: string, icon: React.ReactNode, message: React.ReactNode) => (
+            <span
+                className={`PluginMetadataPanel__statusBadge PluginMetadataPanel__statusBadge--${modifier}`}
+                data-testid='plugin-metadata-status'
+            >
+                {icon}
+                {message}
+            </span>
+        );
+
         switch (state) {
         case PluginState.PLUGIN_STATE_NOT_RUNNING:
-            return (
-                <div className='alert alert-info PluginMetadataPanel__status'>
-                    <i className='fa fa-ban'/>
-                    <FormattedMessage
-                        id='admin.plugin.state.not_running.description'
-                        defaultMessage='This plugin is not enabled.'
-                    />
-                </div>
+            return badge(
+                'not-running',
+                <CloseCircleIcon size={12}/>,
+                <FormattedMessage
+                    id='admin.plugin.state.not_running'
+                    defaultMessage='Not running'
+                />,
             );
         case PluginState.PLUGIN_STATE_STARTING:
-            return (
-                <div className='alert alert-success PluginMetadataPanel__status'>
-                    <i className='fa fa-info'/>
-                    <FormattedMessage
-                        id='admin.plugin.state.starting.description'
-                        defaultMessage='This plugin is starting.'
-                    />
-                </div>
+            return badge(
+                'starting',
+                <InformationOutlineIcon size={12}/>,
+                <FormattedMessage
+                    id='admin.plugin.state.starting'
+                    defaultMessage='Starting'
+                />,
             );
         case PluginState.PLUGIN_STATE_RUNNING:
-            return (
-                <div className='alert alert-success PluginMetadataPanel__status'>
-                    <i className='fa fa-check'/>
-                    <FormattedMessage
-                        id='admin.plugin.state.running.description'
-                        defaultMessage='This plugin is running.'
-                    />
-                </div>
-            );
-        case PluginState.PLUGIN_STATE_FAILED_TO_START: {
-            const errorMessage = error || (
+            return badge(
+                'running',
+                <CheckIcon size={12}/>,
                 <FormattedMessage
-                    id='admin.plugin.state.failed_to_start.check_logs'
-                    defaultMessage='Check your system logs for errors.'
-                />
+                    id='admin.plugin.state.running'
+                    defaultMessage='Running'
+                />,
             );
-
-            return (
-                <div className='alert alert-warning PluginMetadataPanel__status'>
-                    <i className='fa fa-warning'/>
-                    <FormattedMessage
-                        id='admin.plugin.state.failed_to_start.description'
-                        defaultMessage='This plugin failed to start. {error}'
-                        values={{
-                            error: errorMessage,
-                        }}
-                    />
-                </div>
+        case PluginState.PLUGIN_STATE_FAILED_TO_START:
+            return badge(
+                'warning',
+                <AlertOutlineIcon size={12}/>,
+                <FormattedMessage
+                    id='admin.plugin.state.failed_to_start'
+                    defaultMessage='Failed to start'
+                />,
             );
-        }
         case PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING:
-            return (
-                <div className='alert alert-warning PluginMetadataPanel__status'>
-                    <i className='fa fa-warning'/>
-                    <FormattedMessage
-                        id='admin.plugin.state.failed_to_stay_running.description'
-                        defaultMessage='This plugin crashed multiple times and is no longer running. Check your system logs for errors.'
-                    />
-                </div>
+            return badge(
+                'warning',
+                <AlertOutlineIcon size={12}/>,
+                <FormattedMessage
+                    id='admin.plugin.state.failed_to_stay_running'
+                    defaultMessage='Crashing'
+                />,
             );
         case PluginState.PLUGIN_STATE_STOPPING:
-            return (
-                <div className='alert alert-info PluginMetadataPanel__status'>
-                    <i className='fa fa-info'/>
-                    <FormattedMessage
-                        id='admin.plugin.state.stopping.description'
-                        defaultMessage='This plugin is stopping.'
-                    />
-                </div>
+            return badge(
+                'stopping',
+                <InformationOutlineIcon size={12}/>,
+                <FormattedMessage
+                    id='admin.plugin.state.stopping'
+                    defaultMessage='Stopping'
+                />,
             );
         default:
             return null;
         }
+    };
+
+    renderPluginStateError = (state: number, error?: string) => {
+        let title: React.ReactNode = null;
+        let text: string | undefined;
+
+        if (state === PluginState.PLUGIN_STATE_FAILED_TO_START) {
+            title = (
+                <FormattedMessage
+                    id='admin.plugin.state.failed_to_start'
+                    defaultMessage='Failed to start'
+                />
+            );
+            text = error || this.props.intl.formatMessage({
+                id: 'admin.plugin.state.failed_to_start.check_logs',
+                defaultMessage: 'Check your system logs for errors.',
+            });
+        } else if (state === PluginState.PLUGIN_STATE_FAILED_TO_STAY_RUNNING) {
+            title = (
+                <FormattedMessage
+                    id='admin.plugin.state.failed_to_stay_running'
+                    defaultMessage='Crashing'
+                />
+            );
+            text = this.props.intl.formatMessage({
+                id: 'admin.plugin.state.failed_to_stay_running.description',
+                defaultMessage: 'This plugin crashed multiple times and is no longer running. Check your system logs for errors.',
+            });
+        }
+
+        if (!title) {
+            return null;
+        }
+
+        return (
+            <div
+                className='PluginMetadataPanel__statusError'
+                data-testid='plugin-metadata-status-error'
+            >
+                <SectionNotice
+                    type='warning'
+                    title={title}
+                    text={text}
+                />
+            </div>
+        );
     };
 
     renderBanner = (setting: AdminDefinitionSettingBanner) => {
@@ -1181,7 +1228,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             }
 
             let header;
-            if (schema.header) {
+            if (schema.header && !this.props.plugin) {
                 header = (
                     <div className='banner'>
                         <SchemaText
@@ -1270,19 +1317,21 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                     );
                 }
 
-                // This is a bit of special case since designs for plugin config expect the Enable/Disable setting
-                // to be on top and out of the sections.
+                // Plugin enable/disable is handled in the metadata panel. This leftover
+                // section only exists to hold schema footer (or a disabled-plugin warning).
                 if (section.key.startsWith('PluginSettings.PluginStates') && section.key.endsWith('Enable.Section')) {
-                    sections.push(
-                        <SettingsGroup
-                            container={false}
-                            key={section.key}
-                        >
-                            {header}
-                            {settingsList}
-                            {footer}
-                        </SettingsGroup>,
-                    );
+                    if (header || footer || settingsList.length > 0) {
+                        sections.push(
+                            <SettingsGroup
+                                container={false}
+                                key={section.key}
+                            >
+                                {header}
+                                {settingsList}
+                                {footer}
+                            </SettingsGroup>,
+                        );
+                    }
 
                     return;
                 }

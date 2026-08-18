@@ -83,7 +83,7 @@ describe('Plugins Management', () => {
 
         // * Verify status is also shown on the plugin settings page
         cy.findByTestId('plugin-metadata-panel', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
-        cy.findByText('This plugin is running.').should('be.visible');
+        cy.findByText('Running').should('be.visible');
 
         // # Return to Plugin Management
         cy.visit('/admin_console/plugins/plugin_management');

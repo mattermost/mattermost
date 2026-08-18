@@ -3,36 +3,139 @@
     line-height: inherit;
 
     &__settingsWrapper {
-        margin-bottom: 16px;
+        margin-bottom: 20px;
     }
 
     &__actionsPanel {
-        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 24px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: var(--radius-m);
-        margin-top: 12px;
+        border-radius: 4px;
         background: var(--center-channel-bg);
+        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.08);
+        gap: 16px;
     }
 
-    &__header {
-        display: block;
-        margin-bottom: 16px;
+    &__actionsRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 32px;
+    }
+
+    &__identity {
+        display: flex;
+        min-width: 0;
+        flex: 1;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    &__details {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        .PluginMetadataPanel__metadata {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-size: 12px;
+            line-height: 16px;
+        }
+
+        .PluginMetadataPanel__id {
+            color: var(--center-channel-color);
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+        }
+    }
+
+    &__statusBadge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3px 10px;
+        border-radius: 40px;
+        font-family: 'Open Sans', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        gap: 4px;
+        letter-spacing: normal;
+        line-height: 16px;
+        white-space: nowrap;
+
+        .admin-console__header & {
+            flex-shrink: 0;
+        }
+
+        &--running,
+        &--starting {
+            background: rgba(var(--semantic-color-success), 0.12);
+            color: rgb(var(--semantic-color-success));
+        }
+
+        &--info,
+        &--stopping,
+        &--not-running {
+            background: rgba(var(--semantic-color-info), 0.12);
+            color: rgb(var(--semantic-color-info));
+        }
+
+        &--warning {
+            background: rgba(var(--semantic-color-warning), 0.12);
+            color: rgb(var(--semantic-color-warning));
+        }
+    }
+
+    &__statusError {
+        min-width: 0;
+
+        p {
+            overflow-wrap: anywhere;
+        }
+    }
+
+    &__description {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    &__controls {
+        display: flex;
+        flex-shrink: 0;
+        flex-direction: column;
+        align-items: flex-end;
     }
 
     &__actions {
-        // negative side margins offset __actionsPanel's padding so the divider spans the full box width
-        padding: 16px 16px 0;
-        border-top: 1px solid rgba(61, 60, 64, 0.08);
-        margin: 16px -16px 0;
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        padding: 0;
+        border: none;
+        margin: 0;
+        gap: 8px;
+
+        .btn-toggle,
+        .btn-toggle-primary {
+            float: none;
+        }
     }
 
-    &__status {
+    &__enable {
         display: flex;
-        width: fit-content;
         align-items: center;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        gap: 12px;
+        line-height: 20px;
 
-        .fa {
-            margin-right: 5px;
+        .LoadingSpinner .spinner {
+            color: rgba(var(--center-channel-color-rgb), 0.64);
         }
     }
 
@@ -46,17 +149,20 @@
     }
 
     &__metadata {
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 0.9em;
 
         a {
-            color: var(--link-color);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+
+            &:hover {
+                color: var(--link-color);
+            }
         }
     }
 
     &__id {
         cursor: pointer;
-        font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
 
         &:hover {
             color: var(--link-color);

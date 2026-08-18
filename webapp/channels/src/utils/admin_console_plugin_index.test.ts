@@ -60,6 +60,8 @@ describe('AdminConsolePluginsIndex.getPluginEntries', () => {
         expect(entries['plugin_plugin-with-markdown']).toContain('Enable plugin');
         expect(entries['plugin_plugin-with-markdown']).toContain('Disable plugin');
         expect(entries['plugin_plugin-with-markdown']).toContain('Uninstall plugin');
+        expect(entries['plugin_plugin-with-markdown']).toContain('Enabled');
+        expect(entries['plugin_plugin-with-markdown']).toContain('Disabled');
         expect(entries['plugin_plugin-with-markdown']).toContain('PluginSettings.PluginStates.plugin-with-markdown.Enable');
     });
 
@@ -69,6 +71,8 @@ describe('AdminConsolePluginsIndex.getPluginEntries', () => {
         expect(entries['plugin_plugin-without-settings']).toContain('Enable plugin');
         expect(entries['plugin_plugin-without-settings']).toContain('Disable plugin');
         expect(entries['plugin_plugin-without-settings']).toContain('Uninstall plugin');
+        expect(entries['plugin_plugin-without-settings']).toContain('Enabled');
+        expect(entries['plugin_plugin-without-settings']).toContain('Disabled');
         expect(entries['plugin_plugin-without-settings']).toContain('PluginSettings.PluginStates.plugin-without-settings.Enable');
     });
 });

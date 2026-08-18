@@ -2,17 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {Button} from '@mattermost/shared/components/button';
+import {DotsHorizontalIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {disablePlugin, enablePlugin, removePlugin} from 'mattermost-redux/actions/admin';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
+import * as Menu from 'components/menu';
+import Toggle from 'components/toggle';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {getHistory} from 'utils/browser_history';
 
@@ -40,11 +43,14 @@ export function getPluginIdFromEnableSettingId(settingId: string) {
 }
 
 export function PluginEnableButton({actions, disabled, id, saveNeeded = false, value}: Props) {
+    const {formatMessage} = useIntl();
     const [submittingAction, setSubmittingAction] = useState<'toggle' | 'remove' | ''>('');
     const [showRemoveModal, setShowRemoveModal] = useState(false);
     const [serverError, setServerError] = useState<React.ReactNode>('');
     const pluginId = useMemo(() => getPluginIdFromEnableSettingId(id), [id]);
     const pluginEnabled = Boolean(value);
+    const toggling = submittingAction === 'toggle';
+    const actionsDisabled = disabled || Boolean(submittingAction) || !pluginId;
 
     const guardUnsavedChanges = useCallback(() => {
         if (saveNeeded === false) {
@@ -61,7 +67,7 @@ export function PluginEnableButton({actions, disabled, id, saveNeeded = false, v
     }, [saveNeeded]);
 
     const handleTogglePlugin = useCallback(async () => {
-        if (!pluginId || submittingAction || disabled) {
+        if (actionsDisabled) {
             return;
         }
 
@@ -78,10 +84,10 @@ export function PluginEnableButton({actions, disabled, id, saveNeeded = false, v
         }
 
         setSubmittingAction('');
-    }, [actions, disabled, guardUnsavedChanges, pluginEnabled, pluginId, submittingAction]);
+    }, [actions, actionsDisabled, guardUnsavedChanges, pluginEnabled, pluginId]);
 
     const handleShowRemoveModal = useCallback(() => {
-        if (!pluginId || submittingAction || disabled) {
+        if (actionsDisabled) {
             return;
         }
 
@@ -91,14 +97,14 @@ export function PluginEnableButton({actions, disabled, id, saveNeeded = false, v
 
         setServerError('');
         setShowRemoveModal(true);
-    }, [disabled, guardUnsavedChanges, pluginId, submittingAction]);
+    }, [actionsDisabled, guardUnsavedChanges]);
 
     const handleRemovePluginCancel = useCallback(() => {
         setShowRemoveModal(false);
     }, []);
 
     const handleRemovePlugin = useCallback(async () => {
-        if (!pluginId || submittingAction || disabled) {
+        if (actionsDisabled) {
             return;
         }
 
@@ -119,42 +125,25 @@ export function PluginEnableButton({actions, disabled, id, saveNeeded = false, v
         }
 
         getHistory().push('/admin_console/plugins/plugin_management');
-    }, [actions, disabled, guardUnsavedChanges, pluginId, submittingAction]);
+    }, [actions, actionsDisabled, guardUnsavedChanges, pluginId]);
 
-    let buttonMessage = pluginEnabled ? (
+    const toggleAriaLabel = pluginEnabled ? formatMessage({
+        id: 'admin.plugin.disable_plugin.button',
+        defaultMessage: 'Disable plugin',
+    }) : formatMessage({
+        id: 'admin.plugin.enable_plugin.button',
+        defaultMessage: 'Enable plugin',
+    });
+
+    const loadingLabel = pluginEnabled ? (
         <FormattedMessage
-            id='admin.plugin.disable_plugin.button'
-            defaultMessage='Disable plugin'
+            id='admin.plugin.disabling.toggle'
+            defaultMessage='Disabling'
         />
     ) : (
         <FormattedMessage
-            id='admin.plugin.enable_plugin.button'
-            defaultMessage='Enable plugin'
-        />
-    );
-    if (submittingAction === 'toggle') {
-        buttonMessage = pluginEnabled ? (
-            <FormattedMessage
-                id='admin.plugin.disabling'
-                defaultMessage='Disabling...'
-            />
-        ) : (
-            <FormattedMessage
-                id='admin.plugin.enabling'
-                defaultMessage='Enabling...'
-            />
-        );
-    }
-
-    const removeButtonMessage = submittingAction === 'remove' ? (
-        <FormattedMessage
-            id='admin.plugin.removing'
-            defaultMessage='Removing...'
-        />
-    ) : (
-        <FormattedMessage
-            id='admin.plugin.uninstall_plugin.button'
-            defaultMessage='Uninstall plugin'
+            id='admin.plugin.enabling.toggle'
+            defaultMessage='Enabling'
         />
     );
 
@@ -186,25 +175,54 @@ export function PluginEnableButton({actions, disabled, id, saveNeeded = false, v
     );
 
     return (
-        <div className='PluginMetadataPanel__actions'>
-            <Button
-                type='button'
-                emphasis={pluginEnabled ? 'secondary' : 'primary'}
-                onClick={handleTogglePlugin}
-                disabled={disabled || Boolean(submittingAction) || !pluginId}
-            >
-                {buttonMessage}
-            </Button>
-            <Button
-                type='button'
-                className='ml-2'
-                emphasis='secondary'
-                variant='destructive'
-                onClick={handleShowRemoveModal}
-                disabled={disabled || Boolean(submittingAction) || !pluginId}
-            >
-                {removeButtonMessage}
-            </Button>
+        <div className='PluginMetadataPanel__controls'>
+            <div className='PluginMetadataPanel__actions'>
+                <div className='PluginMetadataPanel__enable'>
+                    {toggling ? (
+                        <LoadingSpinner text={loadingLabel}/>
+                    ) : (
+                        <FormattedMessage
+                            id={pluginEnabled ? 'admin.plugin.enabled.toggle' : 'admin.plugin.disabled.toggle'}
+                            defaultMessage={pluginEnabled ? 'Enabled' : 'Disabled'}
+                        />
+                    )}
+                    <Toggle
+                        size='btn-sm'
+                        disabled={actionsDisabled}
+                        toggled={pluginEnabled}
+                        id={id}
+                        ariaLabel={toggleAriaLabel}
+                        toggleClassName='btn-toggle-primary'
+                        onToggle={handleTogglePlugin}
+                    />
+                </div>
+                <Menu.Container
+                    menuButton={{
+                        id: `plugin-actions-menu-button-${pluginId}`,
+                        class: `btn btn-icon btn-sm PluginMetadataPanel__menuButton${actionsDisabled ? ' disabled' : ''}`,
+                        disabled: actionsDisabled,
+                        'aria-label': formatMessage({id: 'admin.plugin.actions.menu.aria_label', defaultMessage: 'Plugin actions'}),
+                        children: <DotsHorizontalIcon size={16}/>,
+                    }}
+                    menu={{
+                        id: `plugin-actions-menu-${pluginId}`,
+                        'aria-label': formatMessage({id: 'admin.plugin.actions.menu.aria_label', defaultMessage: 'Plugin actions'}),
+                    }}
+                >
+                    <Menu.Item
+                        id={`plugin-actions-uninstall-${pluginId}`}
+                        isDestructive={true}
+                        leadingElement={<TrashCanOutlineIcon size={18}/>}
+                        labels={
+                            <FormattedMessage
+                                id='admin.plugin.uninstall_plugin.button'
+                                defaultMessage='Uninstall plugin'
+                            />
+                        }
+                        onClick={handleShowRemoveModal}
+                    />
+                </Menu.Container>
+            </div>
             {serverError && (
                 <div className='PluginMetadataPanel__actionError'>
                     <i className='fa fa-exclamation-circle'/>

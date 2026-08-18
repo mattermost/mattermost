@@ -27,6 +27,7 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
             />,
         );
 
+        expect(screen.getByText('Disabled')).toBeInTheDocument();
         await userEvent.click(screen.getByRole('button', {name: 'Enable plugin'}));
 
         expect(enablePlugin).toHaveBeenCalledWith('com.mattermost.calls');
@@ -48,12 +49,49 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
             />,
         );
 
+        expect(screen.getByText('Enabled')).toBeInTheDocument();
         await userEvent.click(screen.getByRole('button', {name: 'Disable plugin'}));
 
         expect(disablePlugin).toHaveBeenCalledWith('com.mattermost.calls');
         expect(enablePlugin).not.toHaveBeenCalled();
-        expect(screen.getByRole('button', {name: 'Disable plugin'})).not.toHaveClass('btn-danger');
-        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toHaveClass('btn-danger');
+        expect(screen.getByRole('button', {name: 'Disable plugin'})).toHaveAttribute('aria-pressed', 'true');
+
+        await userEvent.click(screen.getByRole('button', {name: 'Plugin actions'}));
+        expect(screen.getByRole('menuitem', {name: 'Uninstall plugin'})).toBeInTheDocument();
+    });
+
+    it('shows a loading state while enabling', async () => {
+        let resolveEnable: (value: {data: true}) => void = () => {};
+        const disablePlugin = jest.fn();
+        const enablePlugin = jest.fn(() => new Promise<{data: true}>((resolve) => {
+            resolveEnable = resolve;
+        }));
+        const removePlugin = jest.fn();
+
+        renderWithContext(
+            <PluginEnableButton
+                id='PluginSettings.PluginStates.com+mattermost+calls.Enable'
+                disabled={false}
+                value={false}
+                actions={{disablePlugin, enablePlugin, removePlugin}}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Enable plugin'}));
+
+        expect(screen.getByText('Enabling')).toBeInTheDocument();
+        expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeDisabled();
+        expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeDisabled();
+        expect(screen.queryByText('Enabled')).not.toBeInTheDocument();
+
+        resolveEnable({data: true});
+
+        await waitFor(() => {
+            expect(screen.queryByText('Enabling')).not.toBeInTheDocument();
+        });
+        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeEnabled();
+        expect(screen.getByText('Disabled')).toBeInTheDocument();
     });
 
     it('shows an error when enabling fails', async () => {
@@ -97,8 +135,10 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
         expect(screen.getByText('Please save unsaved changes first')).toBeInTheDocument();
         expect(enablePlugin).not.toHaveBeenCalled();
 
-        await userEvent.click(screen.getByRole('button', {name: 'Uninstall plugin'}));
+        await userEvent.click(screen.getByRole('button', {name: 'Plugin actions'}));
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Uninstall plugin'}));
 
+        expect(screen.getByText('Please save unsaved changes first')).toBeInTheDocument();
         expect(screen.queryByText('Remove plugin?')).not.toBeInTheDocument();
         expect(removePlugin).not.toHaveBeenCalled();
     });
@@ -117,9 +157,10 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
             />,
         );
 
-        await userEvent.click(screen.getByRole('button', {name: 'Uninstall plugin'}));
+        await userEvent.click(screen.getByRole('button', {name: 'Plugin actions'}));
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Uninstall plugin'}));
 
-        expect(screen.getByText('Remove plugin?')).toBeInTheDocument();
+        expect(await screen.findByText('Remove plugin?')).toBeInTheDocument();
         expect(screen.getByText('Are you sure you would like to remove the plugin?')).toBeInTheDocument();
         expect(removePlugin).not.toHaveBeenCalled();
 

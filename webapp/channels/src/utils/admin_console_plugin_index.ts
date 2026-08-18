@@ -16,6 +16,8 @@ function extractTextsFromPlugin(plugin: PluginRedux, intl: IntlShape) {
         intl.formatMessage({id: 'admin.plugin.enable_plugin.button', defaultMessage: 'Enable plugin'}),
         intl.formatMessage({id: 'admin.plugin.disable_plugin.button', defaultMessage: 'Disable plugin'}),
         intl.formatMessage({id: 'admin.plugin.uninstall_plugin.button', defaultMessage: 'Uninstall plugin'}),
+        intl.formatMessage({id: 'admin.plugin.enabled.toggle', defaultMessage: 'Enabled'}),
+        intl.formatMessage({id: 'admin.plugin.disabled.toggle', defaultMessage: 'Disabled'}),
     );
     if (plugin.name) {
         texts.push(plugin.name);

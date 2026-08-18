@@ -153,18 +153,19 @@ function makeGetPluginSchema() {
 
                     sections = [{
                         key: pluginEnabledConfigKey + '.Section',
-                        header: plugin.settings_schema?.header,
                         footer: plugin.settings_schema?.footer,
                         settings: [pluginEnableSetting, warningBanner],
                     }];
                 } else if (sections.length > 0) {
-                    // Have a separate section on top with the plugin enable/disable setting.
-                    sections.unshift({
-                        key: pluginEnabledConfigKey + '.Section',
-                        header: plugin.settings_schema?.header,
-                        footer: plugin.settings_schema?.footer,
-                        settings: [pluginEnableSetting],
-                    });
+                    // Keep a lightweight top section only when the schema still has a footer to show.
+                    // Plugin description/header now lives in the metadata panel.
+                    if (plugin.settings_schema?.footer) {
+                        sections.unshift({
+                            key: pluginEnabledConfigKey + '.Section',
+                            footer: plugin.settings_schema.footer,
+                            settings: [pluginEnableSetting],
+                        });
+                    }
                 } else {
                     // Otherwise we retain existing behaviour and add the setting in front.
                     settings.unshift(pluginEnableSetting);
@@ -190,6 +191,7 @@ function makeGetPluginSchema() {
                 id: plugin.id,
                 stateKey: plugin.id,
                 name: plugin.name,
+                header: undefined,
                 settings: sections.length > 0 ? undefined : settings,
                 sections: sections.length > 0 ? sections : undefined,
                 translate: Boolean(plugin.translate),

@@ -7,6 +7,8 @@ import type {match} from 'react-router-dom';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {PluginSettings} from '@mattermost/types/config';
 
+import PluginState from 'mattermost-redux/constants/plugins';
+
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 
 import {screen, renderWithContext} from 'tests/react_testing_utils';
@@ -88,17 +90,17 @@ describe('custom plugin sections and settings', () => {
     };
 
     const expectPluginPageTitle = (pluginName: string, pluginId: string) => {
-        const panel = screen.getByTestId('plugin-metadata-panel');
-        expect(panel).toHaveTextContent(`${pluginName} (${pluginId}`);
-        expect(document.querySelector('.PluginMetadataPanel__actionsPanel')).toContainElement(panel);
-        expect(screen.getByRole('heading', {level: 1, hidden: true})).toHaveTextContent(pluginName);
+        expect(screen.getByTestId('admin-console-header')).toHaveTextContent(pluginName);
+        expect(screen.getByTestId('plugin-metadata-id')).toHaveTextContent(pluginId);
+        expect(document.querySelector('.PluginMetadataPanel__actionsPanel')).toContainElement(screen.getByTestId('plugin-metadata-id'));
+        expect(screen.queryByTestId('plugin-metadata-name')).not.toBeInTheDocument();
     };
 
     const expectPluginActionsInMetadataPanel = () => {
-        const wrapper = document.querySelector('.PluginMetadataPanel__settingsWrapper');
+        const wrapper = document.querySelector('.PluginMetadataPanel__actionsPanel');
         const toggleButton = screen.queryByRole('button', {name: 'Enable plugin'}) || screen.getByRole('button', {name: 'Disable plugin'});
         expect(wrapper).toContainElement(toggleButton);
-        expect(wrapper).toContainElement(screen.getByRole('button', {name: 'Uninstall plugin'}));
+        expect(wrapper).toContainElement(screen.getByRole('button', {name: 'Plugin actions'}));
     };
 
     it('empty sections and settings', () => {
@@ -111,12 +113,52 @@ describe('custom plugin sections and settings', () => {
 
         expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expectPluginActionsInMetadataPanel();
-        expect(screen.getByText('This plugin is running.')).toBeInTheDocument();
-        expect(screen.getByText('This plugin is running.').closest('.alert-success')).toBeInTheDocument();
-        expect(screen.getByText('This is the header')).toBeInTheDocument();
+        const runningBadge = screen.getByText('Running').closest('.PluginMetadataPanel__statusBadge--running');
+        expect(runningBadge).toBeInTheDocument();
+        expect(screen.getByTestId('admin-console-header')).toContainElement(runningBadge);
+        expect(screen.queryByText('This is the header')).not.toBeInTheDocument();
         expect(screen.getByText('This is the footer')).toBeInTheDocument();
+    });
+
+    it('keeps failed-to-start details out of the status badge', () => {
+        const error = 'unable to generate plugin checksum: no such file or directory';
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                patchConfig={jest.fn()}
+            />,
+            {
+                entities: {
+                    admin: {
+                        plugins: {
+                            testplugin: plugin,
+                        },
+                        pluginStatuses: {
+                            testplugin: {
+                                id: 'testplugin',
+                                name: 'testplugin',
+                                description: '',
+                                version: '',
+                                active: false,
+                                state: PluginState.PLUGIN_STATE_FAILED_TO_START,
+                                error,
+                                instances: [],
+                            },
+                        },
+                    },
+                },
+            },
+        );
+
+        const badge = screen.getByTestId('plugin-metadata-status');
+        expect(badge).toHaveTextContent('Failed to start');
+        expect(badge).not.toHaveTextContent(error);
+        expect(screen.getByTestId('admin-console-header')).toContainElement(badge);
+        expect(screen.getByTestId('plugin-metadata-status-error')).toHaveTextContent(error);
+        expect(document.querySelector('.sectionNoticeContainer.warning')).toBeInTheDocument();
     });
 
     it('renders plugin metadata with distinct display name and id', () => {
@@ -153,6 +195,33 @@ describe('custom plugin sections and settings', () => {
         );
 
         expectPluginPageTitle(pluginName, pluginId);
+    });
+
+    it('renders plugin description in the metadata panel when present', () => {
+        const describedPlugin = {
+            ...plugin,
+            description: 'Sticky notes for channels',
+        };
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                patchConfig={jest.fn()}
+            />,
+            {
+                entities: {
+                    admin: {
+                        plugins: {
+                            testplugin: describedPlugin,
+                        },
+                    },
+                },
+            },
+        );
+
+        const description = screen.getByText('Sticky notes for channels');
+        expect(document.querySelector('.PluginMetadataPanel__actionsPanel')).toContainElement(description);
+        expect(description).toHaveClass('PluginMetadataPanel__description');
     });
 
     it('all custom sections with plugin disabled should show single warning', () => {
@@ -226,7 +295,7 @@ describe('custom plugin sections and settings', () => {
 
         expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
         expect(screen.queryByText('Enable Plugin:')).not.toBeInTheDocument();
@@ -315,7 +384,7 @@ describe('custom plugin sections and settings', () => {
 
         expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
         expect(screen.queryByText('Enable Plugin:')).not.toBeInTheDocument();
@@ -405,7 +474,7 @@ describe('custom plugin sections and settings', () => {
 
         expect(screen.queryByRole('button', {name: 'Enable plugin'})).not.toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
     });
 
@@ -476,10 +545,10 @@ describe('custom plugin sections and settings', () => {
             {...state});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();
+        expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable-button')).toBeInTheDocument();
 
         // The single collapse warning must not replace the whole page when at least one section allows a fallback.
-        expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin and click Save.')).not.toBeInTheDocument();
+        expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin.')).not.toBeInTheDocument();
 
         // The fallback-enabled section stays configurable.
         expect(screen.getByText('Fallback Section')).toBeInTheDocument();
@@ -487,7 +556,7 @@ describe('custom plugin sections and settings', () => {
 
         // The non-fallback section is hidden behind its own per-section warning.
         expect(screen.getByText('No Fallback Section')).toBeInTheDocument();
-        expect(screen.getByText('In order to view this section, enable the plugin and click Save.')).toBeInTheDocument();
+        expect(screen.getByText('In order to view this section, enable the plugin.')).toBeInTheDocument();
         expect(screen.queryByText('No Fallback Number Setting Help Text')).not.toBeInTheDocument();
     });
 
@@ -557,11 +626,11 @@ describe('custom plugin sections and settings', () => {
             />,
             {...state});
 
-        expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin and click Save.')).not.toBeInTheDocument();
+        expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin.')).not.toBeInTheDocument();
         expect(screen.getByText('Fallback Section')).toBeInTheDocument();
         expect(screen.getByText('Fallback Number Setting Help Text')).toBeInTheDocument();
         expect(screen.getByText('No Fallback Section')).toBeInTheDocument();
-        expect(screen.getByText('In order to view this section, enable the plugin and click Save.')).toBeInTheDocument();
+        expect(screen.getByText('In order to view this section, enable the plugin.')).toBeInTheDocument();
         expect(screen.queryByText('No Fallback Number Setting Help Text')).not.toBeInTheDocument();
     });
 
@@ -663,7 +732,7 @@ describe('custom plugin sections and settings', () => {
 
         expectPluginPageTitle('testplugin', 'testplugin');
         expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
         expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
         expect(screen.queryByRole('button', {name: 'Enable plugin'})).not.toBeInTheDocument();

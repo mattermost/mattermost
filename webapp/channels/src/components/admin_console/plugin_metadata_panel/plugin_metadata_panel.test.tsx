@@ -88,4 +88,19 @@ describe('PluginMetadataPanel', () => {
 
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
+
+    test('should omit the display name when showName is false', () => {
+        renderWithContext(
+            <PluginMetadataPanel
+                name='FL3XX'
+                id='com.mattermost.fl3xx'
+                version='0.7.4'
+                showName={false}
+            />,
+        );
+
+        expect(screen.getByTestId('plugin-metadata-panel')).toHaveTextContent('com.mattermost.fl3xx · v0.7.4');
+        expect(screen.getByTestId('plugin-metadata-panel')).not.toHaveTextContent('FL3XX (');
+        expect(screen.queryByText('FL3XX')).not.toBeInTheDocument();
+    });
 });
