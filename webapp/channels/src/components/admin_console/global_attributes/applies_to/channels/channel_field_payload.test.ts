@@ -59,9 +59,20 @@ describe('buildChannelFieldPayload', () => {
         expect(buildChannelFieldPayload(template, {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: true}).attrs).toEqual({required: true});
     });
 
-    it('writes editable only when it is off, so an absent key keeps meaning editable', () => {
-        expect(buildChannelFieldPayload(template, {...DEFAULT_CHANNEL_RESOURCE_CONFIG, editable: true})).not.toHaveProperty('attrs.editable');
-        expect(buildChannelFieldPayload(template, {...DEFAULT_CHANNEL_RESOURCE_CONFIG, editable: false}).attrs).toEqual({editable: false});
+    it('writes no change keys for the freely-changeable default', () => {
+        expect(buildChannelFieldPayload(template, {...DEFAULT_CHANNEL_RESOURCE_CONFIG, changePolicy: 'any'})).not.toHaveProperty('attrs');
+    });
+
+    it('writes editable alongside never, so readers that predate change_policy still lock', () => {
+        expect(buildChannelFieldPayload(template, {...DEFAULT_CHANNEL_RESOURCE_CONFIG, changePolicy: 'never'}).attrs).toEqual({
+            change_policy: 'never',
+            editable: false,
+        });
+    });
+
+    it('writes a directional policy without touching editable, which cannot express it', () => {
+        expect(buildChannelFieldPayload(template, {...DEFAULT_CHANNEL_RESOURCE_CONFIG, changePolicy: 'raise_only'}).attrs).toEqual({change_policy: 'raise_only'});
+        expect(buildChannelFieldPayload(template, {...DEFAULT_CHANNEL_RESOURCE_CONFIG, changePolicy: 'lower_only'}).attrs).toEqual({change_policy: 'lower_only'});
     });
 
     it('writes actions only when at least one display location is chosen', () => {

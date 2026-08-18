@@ -38,7 +38,7 @@ import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
 
 import AppliesToCard from '../applies_to/applies_to_card';
-import {buildChannelFieldPayload} from '../applies_to/channels';
+import {buildChannelFieldPayload, isOrderedChangePolicy} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
 import {getTypeIcon, getTypeLabel, typeLabels} from '../global_attributes_table';
 import type {AttributeFieldType} from '../utils';
@@ -252,6 +252,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         if (newType !== 'text') {
             setLdapAttr('');
             setSamlAttr('');
+        }
+
+        // Raise-only and lower-only compare ranks, so they cannot survive a move off
+        // Rank: left in place they would save a policy the server can never evaluate.
+        if (newType !== 'rank') {
+            setChannelResource((prev) => (prev && isOrderedChangePolicy(prev.changePolicy) ? {...prev, changePolicy: 'any'} : prev));
         }
         setFieldType(newType);
     }, [fieldType, markDirty]);
@@ -678,6 +684,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         // channel write this is the only thing left to change, either
                         // to retry or to drop the resource and finish without it.
                         <AppliesToCard
+                            ordered={fieldType === 'rank'}
                             channelResource={channelResource}
                             onChannelResourceChange={handleChannelResourceChange}
                             disabled={saving || disabled}

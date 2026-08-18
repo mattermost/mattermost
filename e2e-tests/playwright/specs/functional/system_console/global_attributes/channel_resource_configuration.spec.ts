@@ -267,9 +267,9 @@ test.describe('System Console - applying an attribute to channels', {tag: ['@sys
     });
 
     /**
-     * @objective Ensure turning off "Allow changes" locks the value in Channel Info.
+     * @objective Ensure "Cannot be changed once set" locks the value in Channel Info.
      */
-    test('locks the value in Channel Info when Allow changes is off', async ({pw}) => {
+    test('locks the value in Channel Info when the change policy forbids changes', async ({pw}) => {
         const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
         await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
@@ -284,12 +284,14 @@ test.describe('System Console - applying an attribute to channels', {tag: ['@sys
                 type: 'Select',
                 options: ['FINAL'],
                 required: true,
-                allowChanges: false,
+                changePolicy: 'Cannot be changed once set',
                 displayLocations: ['display_label_info'],
             });
 
-            // * The console wrote the lock key, not just a label
+            // * The console wrote both keys: change_policy, and the editable key the
+            // * channel UI still reads
             const channelField = await findChannelField(adminClient, name);
+            expect(channelField?.attrs?.change_policy).toBe('never');
             expect(channelField?.attrs?.editable).toBe(false);
 
             const {team} = await pw.initSetup();

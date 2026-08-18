@@ -8,7 +8,7 @@ import type {PropertyPermissionLevel} from '@mattermost/types/properties';
 
 import {DISPLAY_BANNER_TOP, DISPLAY_LABEL_HEADER, DISPLAY_LABEL_INFO} from 'mattermost-redux/constants/properties';
 
-import type {ChannelDisplayLocation, ChannelResourceConfig} from './types';
+import type {ChannelChangePolicy, ChannelDisplayLocation, ChannelResourceConfig} from './types';
 
 export const locationMessages = defineMessages({
     [DISPLAY_LABEL_HEADER]: {id: 'admin.global_attributes.applies_to.channels.location.header', defaultMessage: 'Header'},
@@ -29,13 +29,29 @@ export function setterLabelFor(permissionValues: PropertyPermissionLevel): Messa
     return setterMessages[permissionValues as keyof typeof setterMessages] ?? setterMessages.admin;
 }
 
+export const changePolicyMessages = defineMessages({
+    any: {id: 'admin.global_attributes.applies_to.channels.change_policy.any', defaultMessage: 'Can be changed at any time'},
+    raise_only: {id: 'admin.global_attributes.applies_to.channels.change_policy.raise_only', defaultMessage: 'Can only be raised, never lowered'},
+    lower_only: {id: 'admin.global_attributes.applies_to.channels.change_policy.lower_only', defaultMessage: 'Can only be lowered, never raised'},
+    never: {id: 'admin.global_attributes.applies_to.channels.change_policy.never', defaultMessage: 'Cannot be changed once set'},
+});
+
+export function changePolicyLabelFor(policy: ChannelChangePolicy): MessageDescriptor {
+    return changePolicyMessages[policy] ?? changePolicyMessages.any;
+}
+
+const summaryChangePolicyMessages = defineMessages({
+    raise_only: {id: 'admin.global_attributes.applies_to.channels.summary.raise_only', defaultMessage: 'Raise only'},
+    lower_only: {id: 'admin.global_attributes.applies_to.channels.summary.lower_only', defaultMessage: 'Lower only'},
+    never: {id: 'admin.global_attributes.applies_to.channels.summary.never', defaultMessage: 'Locked once set'},
+});
+
 const messages = defineMessages({
     required: {id: 'admin.global_attributes.applies_to.channels.summary.required', defaultMessage: 'Required'},
     optional: {id: 'admin.global_attributes.applies_to.channels.summary.optional', defaultMessage: 'Optional'},
     display: {id: 'admin.global_attributes.applies_to.channels.summary.display', defaultMessage: 'Display: {locations}'},
     hidden: {id: 'admin.global_attributes.applies_to.channels.summary.hidden', defaultMessage: 'Not displayed'},
     setBy: {id: 'admin.global_attributes.applies_to.channels.summary.set_by', defaultMessage: 'Set by {setter}'},
-    locked: {id: 'admin.global_attributes.applies_to.channels.summary.locked', defaultMessage: 'Locked once set'},
 });
 
 export function displayLocationLabel(location: ChannelDisplayLocation, intl: IntlShape): string {
@@ -65,8 +81,9 @@ export function summarizeChannelResource(config: ChannelResourceConfig, intl: In
         setter: intl.formatMessage(setterLabelFor(config.permissionValues)),
     }));
 
-    if (!config.editable) {
-        segments.push(intl.formatMessage(messages.locked));
+    const policySegment = summaryChangePolicyMessages[config.changePolicy as keyof typeof summaryChangePolicyMessages];
+    if (policySegment) {
+        segments.push(intl.formatMessage(policySegment));
     }
 
     return segments.join(' · ');

@@ -23,7 +23,13 @@ export function buildChannelFieldPayload(
     if (config.required) {
         attrs.required = true;
     }
-    if (!config.editable) {
+    if (config.changePolicy !== 'any') {
+        attrs.change_policy = config.changePolicy;
+    }
+
+    // editable predates change_policy and is what every current reader consults, so
+    // "never" writes both. The two cannot disagree: only this builder sets them.
+    if (config.changePolicy === 'never') {
         attrs.editable = false;
     }
     if (config.displayLocations.length > 0) {

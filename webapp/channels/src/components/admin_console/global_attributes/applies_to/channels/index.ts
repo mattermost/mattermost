@@ -6,5 +6,5 @@
 // to keep stable across the hand-off.
 export {default} from './channels_resource_row';
 export {buildChannelFieldPayload} from './channel_field_payload';
-export {DEFAULT_CHANNEL_RESOURCE_CONFIG} from './types';
-export type {ChannelResourceConfig} from './types';
+export {DEFAULT_CHANNEL_RESOURCE_CONFIG, isOrderedChangePolicy} from './types';
+export type {ChannelChangePolicy, ChannelResourceConfig} from './types';

@@ -148,6 +148,9 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 			return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
 		}
 	}
+	if err := model.SanitizeAndValidatePropertyFieldChangePolicy(field); err != nil {
+		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+	}
 	// Lenient grandfather, same rationale as Name: a PATCH merges attrs, so a
 	// field carrying an actions value that predates (or has since fallen out of)
 	// the allow-list would otherwise be unpatchable on every other attr, with

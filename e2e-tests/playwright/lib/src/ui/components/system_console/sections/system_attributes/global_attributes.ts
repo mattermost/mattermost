@@ -41,8 +41,8 @@ export class AppliesToChannels {
         return this.container.getByTestId('channelsResourceRequired-button');
     }
 
-    get allowChangesToggle() {
-        return this.container.getByTestId('channelsResourceEditable-button');
+    get changePolicyButton() {
+        return this.container.getByTestId('channelsResourceChangePolicyButton');
     }
 
     location(location: ChannelDisplayLocation) {
@@ -62,8 +62,12 @@ export class AppliesToChannels {
         await setToggle(this.requiredToggle, required);
     }
 
-    async setAllowChanges(allowed: boolean) {
-        await setToggle(this.allowChangesToggle, allowed);
+    /**
+     * @param policy the menu label, e.g. 'Cannot be changed once set'
+     */
+    async setChangePolicy(policy: string) {
+        await this.changePolicyButton.click();
+        await this.container.page().getByRole('menuitemradio', {name: policy, exact: true}).click();
     }
 
     async setDisplayLocations(locations: ChannelDisplayLocation[]) {

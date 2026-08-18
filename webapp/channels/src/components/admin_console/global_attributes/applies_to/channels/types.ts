@@ -20,11 +20,23 @@ export type ChannelDisplayLocation = typeof CHANNEL_DISPLAY_LOCATIONS[number];
 // unsettable, and 'sysadmin' is already implied by 'admin'.
 export const CHANNEL_VALUE_SETTERS: PropertyPermissionLevel[] = ['member', 'admin'];
 
+// How a value may move once it is set. raise_only and lower_only compare the old
+// and new option ranks, so they only mean anything on a rank-typed attribute;
+// ORDERED_CHANNEL_CHANGE_POLICIES is the subset to hide elsewhere.
+export const CHANNEL_CHANGE_POLICIES = ['any', 'raise_only', 'lower_only', 'never'] as const;
+
+export type ChannelChangePolicy = typeof CHANNEL_CHANGE_POLICIES[number];
+
+export const ORDERED_CHANNEL_CHANGE_POLICIES: ChannelChangePolicy[] = ['raise_only', 'lower_only'];
+
+export function isOrderedChangePolicy(policy: ChannelChangePolicy): boolean {
+    return ORDERED_CHANNEL_CHANGE_POLICIES.includes(policy);
+}
+
 export type ChannelResourceConfig = {
     required: boolean;
 
-    // Defaults true, because an absent attrs.editable reads as editable server-side.
-    editable: boolean;
+    changePolicy: ChannelChangePolicy;
 
     displayLocations: ChannelDisplayLocation[];
 
@@ -34,7 +46,7 @@ export type ChannelResourceConfig = {
 // The server's own defaults for a linked field with no channel keys set.
 export const DEFAULT_CHANNEL_RESOURCE_CONFIG: ChannelResourceConfig = {
     required: false,
-    editable: true,
+    changePolicy: 'any',
     displayLocations: [],
     permissionValues: 'admin',
 };

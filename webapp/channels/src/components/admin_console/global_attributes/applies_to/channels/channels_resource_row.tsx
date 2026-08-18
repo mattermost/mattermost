@@ -10,9 +10,9 @@ import type {PropertyPermissionLevel} from '@mattermost/types/properties';
 import * as Menu from 'components/menu';
 import Toggle from 'components/toggle';
 
-import {displayLocationLabel, setterLabelFor, summarizeChannelResource} from './summary';
-import type {ChannelDisplayLocation, ChannelResourceConfig} from './types';
-import {CHANNEL_DISPLAY_LOCATIONS, CHANNEL_VALUE_SETTERS} from './types';
+import {changePolicyLabelFor, displayLocationLabel, setterLabelFor, summarizeChannelResource} from './summary';
+import type {ChannelChangePolicy, ChannelDisplayLocation, ChannelResourceConfig} from './types';
+import {CHANNEL_CHANGE_POLICIES, CHANNEL_DISPLAY_LOCATIONS, CHANNEL_VALUE_SETTERS, isOrderedChangePolicy} from './types';
 
 import './channels_resource_row.scss';
 
@@ -25,6 +25,11 @@ type Props = {
     value: ChannelResourceConfig;
     onChange: (next: ChannelResourceConfig) => void;
     onRemove: () => void;
+
+    // Whether the attribute's values have a defined order, i.e. it is rank-typed.
+    // Raise-only and lower-only are meaningless without one, so they are not offered.
+    ordered?: boolean;
+
     disabled?: boolean;
 };
 
@@ -35,7 +40,7 @@ type Props = {
  * so this drops into a card owned by another team without either side owning
  * half a save.
  */
-const ChannelsResourceRow = ({value, onChange, onRemove, disabled}: Props) => {
+const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled}: Props) => {
     const intl = useIntl();
     const {formatMessage} = intl;
     const [expanded, setExpanded] = useState(true);
@@ -46,8 +51,8 @@ const ChannelsResourceRow = ({value, onChange, onRemove, disabled}: Props) => {
         onChange({...value, required: !value.required});
     }, [onChange, value]);
 
-    const handleEditableToggle = useCallback(() => {
-        onChange({...value, editable: !value.editable});
+    const handleChangePolicySelect = useCallback((changePolicy: ChannelChangePolicy) => {
+        onChange({...value, changePolicy});
     }, [onChange, value]);
 
     const handleLocationChange = useCallback((location: ChannelDisplayLocation, checked: boolean) => {
@@ -64,6 +69,13 @@ const ChannelsResourceRow = ({value, onChange, onRemove, disabled}: Props) => {
     }, [onChange, value]);
 
     const setterLabel = setterLabelFor(value.permissionValues);
+    const changePolicyLabel = changePolicyLabelFor(value.changePolicy);
+
+    // A policy already set to raise/lower stays listed even on an unordered
+    // attribute, so the menu can describe what is currently selected.
+    const changePolicies = CHANNEL_CHANGE_POLICIES.filter((policy) => (
+        ordered || !isOrderedChangePolicy(policy) || policy === value.changePolicy
+    ));
 
     return (
         <div
@@ -115,39 +127,25 @@ const ChannelsResourceRow = ({value, onChange, onRemove, disabled}: Props) => {
                             <FormattedMessage {...messages.requiredLabel}/>
                         </span>
                         <div className='ChannelsResourceRow__control'>
-                            <Toggle
-                                id='channelsResourceRequired'
-                                size='btn-md'
-                                toggled={value.required}
-                                disabled={disabled}
-                                onToggle={handleRequiredToggle}
-                                ariaLabel={formatMessage(messages.requiredLabel)}
-                                onText={<FormattedMessage {...messages.on}/>}
-                                offText={<FormattedMessage {...messages.off}/>}
-                            />
+                            <div className='ChannelsResourceRow__switch'>
+                                <span
+                                    className='ChannelsResourceRow__switchState'
+                                    aria-hidden='true'
+                                >
+                                    <FormattedMessage {...(value.required ? messages.on : messages.off)}/>
+                                </span>
+                                <Toggle
+                                    id='channelsResourceRequired'
+                                    size='btn-md'
+                                    toggleClassName='btn-toggle-primary'
+                                    toggled={value.required}
+                                    disabled={disabled}
+                                    onToggle={handleRequiredToggle}
+                                    ariaLabel={formatMessage(messages.requiredLabel)}
+                                />
+                            </div>
                             <p className='ChannelsResourceRow__help'>
-                                <FormattedMessage {...messages.requiredHelp}/>
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className='ChannelsResourceRow__field'>
-                        <span className='ChannelsResourceRow__label'>
-                            <FormattedMessage {...messages.editableLabel}/>
-                        </span>
-                        <div className='ChannelsResourceRow__control'>
-                            <Toggle
-                                id='channelsResourceEditable'
-                                size='btn-md'
-                                toggled={value.editable}
-                                disabled={disabled}
-                                onToggle={handleEditableToggle}
-                                ariaLabel={formatMessage(messages.editableLabel)}
-                                onText={<FormattedMessage {...messages.on}/>}
-                                offText={<FormattedMessage {...messages.off}/>}
-                            />
-                            <p className='ChannelsResourceRow__help'>
-                                <FormattedMessage {...messages.editableHelp}/>
+                                <FormattedMessage {...(value.required ? messages.requiredOnHelp : messages.requiredOffHelp)}/>
                             </p>
                         </div>
                     </div>
@@ -195,7 +193,7 @@ const ChannelsResourceRow = ({value, onChange, onRemove, disabled}: Props) => {
                             <Menu.Container
                                 menuButton={{
                                     id: 'channelsResourceSetterButton',
-                                    class: 'ChannelsResourceRow__setterButton',
+                                    class: 'ChannelsResourceRow__selectButton',
                                     disabled,
                                     'aria-label': formatMessage(messages.setterAriaLabel, {value: formatMessage(setterLabel)}),
                                     children: (
@@ -225,6 +223,50 @@ const ChannelsResourceRow = ({value, onChange, onRemove, disabled}: Props) => {
                             </Menu.Container>
                         </div>
                     </div>
+
+                    <div className='ChannelsResourceRow__field'>
+                        <span className='ChannelsResourceRow__label'>
+                            <FormattedMessage {...messages.changePolicyLabel}/>
+                        </span>
+                        <div className='ChannelsResourceRow__control'>
+                            <Menu.Container
+                                menuButton={{
+                                    id: 'channelsResourceChangePolicyButton',
+                                    class: 'ChannelsResourceRow__selectButton',
+                                    disabled,
+                                    'aria-label': formatMessage(messages.changePolicyAriaLabel, {value: formatMessage(changePolicyLabel)}),
+                                    children: (
+                                        <>
+                                            <FormattedMessage {...changePolicyLabel}/>
+                                            <i className='icon icon-chevron-down'/>
+                                        </>
+                                    ),
+                                    dataTestId: 'channelsResourceChangePolicyButton',
+                                }}
+                                menu={{
+                                    id: 'channelsResourceChangePolicyMenu',
+                                    'aria-label': formatMessage(messages.changePolicyLabel),
+                                }}
+                            >
+                                {changePolicies.map((policy) => (
+                                    <Menu.Item
+                                        id={`channelsResourceChangePolicy-${policy}`}
+                                        key={policy}
+                                        role='menuitemradio'
+                                        aria-checked={policy === value.changePolicy}
+                                        forceCloseOnSelect={true}
+                                        onClick={() => handleChangePolicySelect(policy)}
+                                        labels={<FormattedMessage {...changePolicyLabelFor(policy)}/>}
+                                    />
+                                ))}
+                            </Menu.Container>
+                            {!ordered && (
+                                <p className='ChannelsResourceRow__help'>
+                                    <FormattedMessage {...messages.changePolicyUnorderedHelp}/>
+                                </p>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
@@ -239,9 +281,11 @@ const messages = defineMessages({
     off: {id: 'admin.global_attributes.applies_to.channels.toggle.off', defaultMessage: 'Off'},
     remove: {id: 'admin.global_attributes.applies_to.channels.remove', defaultMessage: 'Remove resource'},
     requiredLabel: {id: 'admin.global_attributes.applies_to.channels.required.label', defaultMessage: 'Required'},
-    requiredHelp: {id: 'admin.global_attributes.applies_to.channels.required.help', defaultMessage: 'The channel must have a value for this attribute before it can be created.'},
-    editableLabel: {id: 'admin.global_attributes.applies_to.channels.editable.label', defaultMessage: 'Allow changes'},
-    editableHelp: {id: 'admin.global_attributes.applies_to.channels.editable.help', defaultMessage: 'When off, the value cannot be changed after it is first set.'},
+    requiredOnHelp: {id: 'admin.global_attributes.applies_to.channels.required.help_on', defaultMessage: 'Required — the channel must have a value for this attribute before it can be created.'},
+    requiredOffHelp: {id: 'admin.global_attributes.applies_to.channels.required.help_off', defaultMessage: 'Optional — this attribute can still be added to a channel after it is created.'},
+    changePolicyLabel: {id: 'admin.global_attributes.applies_to.channels.change_policy.label', defaultMessage: 'Changing the value'},
+    changePolicyAriaLabel: {id: 'admin.global_attributes.applies_to.channels.change_policy.aria_label', defaultMessage: 'Changing the value, currently {value}'},
+    changePolicyUnorderedHelp: {id: 'admin.global_attributes.applies_to.channels.change_policy.unordered_help', defaultMessage: 'Raising and lowering need ranked values, so they are only offered on a Rank attribute.'},
     displayLabel: {id: 'admin.global_attributes.applies_to.channels.display.label', defaultMessage: 'Display location'},
     displayHelp: {id: 'admin.global_attributes.applies_to.channels.display.help', defaultMessage: 'Multiple locations can be selected. Uncheck all to hide.'},
     setterLabel: {id: 'admin.global_attributes.applies_to.channels.setter.label', defaultMessage: 'Who can set the value'},

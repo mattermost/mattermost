@@ -130,6 +130,93 @@ func TestSanitizeAndValidatePropertyFieldBoolAttrLeavesOtherKeys(t *testing.T) {
 	require.Equal(t, PropertyFieldVisibilityAlways, field.Attrs[PropertyFieldAttrVisibility])
 }
 
+func TestSanitizeAndValidatePropertyFieldChangePolicy(t *testing.T) {
+	tests := []struct {
+		name      string
+		fieldType PropertyFieldType
+		attrs     StringInterface
+		want      string
+		wantKey   bool
+		wantError string
+	}{
+		{name: "nil attrs", fieldType: PropertyFieldTypeSelect, attrs: nil},
+		{name: "no key", fieldType: PropertyFieldTypeSelect, attrs: StringInterface{"other": "value"}},
+		{name: "explicit nil clears the key", fieldType: PropertyFieldTypeSelect, attrs: StringInterface{PropertyFieldAttrChangePolicy: nil}},
+		{name: "empty clears the key", fieldType: PropertyFieldTypeSelect, attrs: StringInterface{PropertyFieldAttrChangePolicy: "  "}},
+		{name: "any is the default and is not stored", fieldType: PropertyFieldTypeSelect, attrs: StringInterface{PropertyFieldAttrChangePolicy: PropertyFieldChangePolicyAny}},
+		{
+			name:      "never is kept on any type",
+			fieldType: PropertyFieldTypeText,
+			attrs:     StringInterface{PropertyFieldAttrChangePolicy: PropertyFieldChangePolicyNever},
+			want:      PropertyFieldChangePolicyNever,
+			wantKey:   true,
+		},
+		{
+			name:      "raise_only is kept on a rank field",
+			fieldType: PropertyFieldTypeRank,
+			attrs:     StringInterface{PropertyFieldAttrChangePolicy: " raise_only "},
+			want:      PropertyFieldChangePolicyRaiseOnly,
+			wantKey:   true,
+		},
+		{
+			name:      "raise_only is stripped off a select field, which has no ranks to compare",
+			fieldType: PropertyFieldTypeSelect,
+			attrs:     StringInterface{PropertyFieldAttrChangePolicy: PropertyFieldChangePolicyRaiseOnly},
+		},
+		{
+			name:      "unknown policy is rejected",
+			fieldType: PropertyFieldTypeRank,
+			attrs:     StringInterface{PropertyFieldAttrChangePolicy: "frozen"},
+			wantError: `invalid change_policy "frozen"`,
+		},
+		{
+			name:      "non-string is rejected",
+			fieldType: PropertyFieldTypeRank,
+			attrs:     StringInterface{PropertyFieldAttrChangePolicy: true},
+			wantError: "change_policy must be a string",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			field := &PropertyField{Type: tt.fieldType, Attrs: tt.attrs}
+			err := SanitizeAndValidatePropertyFieldChangePolicy(field)
+			if tt.wantError != "" {
+				require.ErrorContains(t, err, tt.wantError)
+				return
+			}
+
+			require.NoError(t, err)
+			if field.Attrs == nil {
+				return
+			}
+			actual, ok := field.Attrs[PropertyFieldAttrChangePolicy]
+			require.Equal(t, tt.wantKey, ok)
+			if tt.wantKey {
+				require.Equal(t, tt.want, actual)
+			}
+		})
+	}
+}
+
+// editable predates change_policy, so a field carrying only editable=false must
+// still read as locked.
+func TestGetPropertyFieldChangePolicy(t *testing.T) {
+	require.Equal(t, PropertyFieldChangePolicyAny, GetPropertyFieldChangePolicy(&PropertyField{}))
+	require.Equal(t, PropertyFieldChangePolicyAny, GetPropertyFieldChangePolicy(&PropertyField{Attrs: StringInterface{PropertyFieldAttrEditable: true}}))
+	require.Equal(t, PropertyFieldChangePolicyNever, GetPropertyFieldChangePolicy(&PropertyField{Attrs: StringInterface{PropertyFieldAttrEditable: false}}))
+	require.Equal(t, PropertyFieldChangePolicyRaiseOnly, GetPropertyFieldChangePolicy(&PropertyField{Attrs: StringInterface{
+		PropertyFieldAttrChangePolicy: PropertyFieldChangePolicyRaiseOnly,
+	}}))
+
+	// change_policy wins: it is the more expressive key, and the pair is only ever
+	// written together for "never".
+	require.Equal(t, PropertyFieldChangePolicyNever, GetPropertyFieldChangePolicy(&PropertyField{Attrs: StringInterface{
+		PropertyFieldAttrChangePolicy: PropertyFieldChangePolicyNever,
+		PropertyFieldAttrEditable:     false,
+	}}))
+}
+
 func TestSanitizeAndValidatePropertyFieldActions(t *testing.T) {
 	tests := []struct {
 		name      string

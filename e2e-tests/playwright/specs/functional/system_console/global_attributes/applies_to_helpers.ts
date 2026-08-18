@@ -15,7 +15,11 @@ export type ChannelAttributeConfig = {
     type?: 'Select' | 'Multiselect' | 'Text';
     options?: string[];
     required?: boolean;
-    allowChanges?: boolean;
+
+    // The menu label, e.g. 'Cannot be changed once set'. Left alone the row keeps
+    // its default, 'Can be changed at any time'.
+    changePolicy?: string;
+
     displayLocations?: ChannelDisplayLocation[];
 
     // The menu label, e.g. 'Any member' or 'Channel admin'.
@@ -49,7 +53,7 @@ export async function configureChannelAttribute(
         type,
         options = [],
         required = false,
-        allowChanges = true,
+        changePolicy,
         displayLocations = [],
         setter,
     }: ChannelAttributeConfig,
@@ -69,7 +73,9 @@ export async function configureChannelAttribute(
 
     await appliesToChannels.addResource();
     await appliesToChannels.setRequired(required);
-    await appliesToChannels.setAllowChanges(allowChanges);
+    if (changePolicy) {
+        await appliesToChannels.setChangePolicy(changePolicy);
+    }
     await appliesToChannels.setDisplayLocations(displayLocations);
     if (setter) {
         await appliesToChannels.setSetter(setter);

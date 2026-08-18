@@ -12,7 +12,7 @@ import type {ChannelResourceConfig} from './types';
 import {DEFAULT_CHANNEL_RESOURCE_CONFIG} from './types';
 
 describe('ChannelsResourceRow', () => {
-    const renderRow = (overrides: Partial<ChannelResourceConfig> = {}, props: {disabled?: boolean} = {}) => {
+    const renderRow = (overrides: Partial<ChannelResourceConfig> = {}, props: {disabled?: boolean; ordered?: boolean} = {}) => {
         const onChange = jest.fn();
         const onRemove = jest.fn();
 
@@ -21,6 +21,7 @@ describe('ChannelsResourceRow', () => {
                 value={{...DEFAULT_CHANNEL_RESOURCE_CONFIG, ...config}}
                 onChange={onChange}
                 onRemove={onRemove}
+                ordered={props.ordered}
                 disabled={props.disabled}
             />
         );
@@ -53,12 +54,43 @@ describe('ChannelsResourceRow', () => {
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({required: true}));
     });
 
-    it('toggles editable', async () => {
-        const {onChange} = renderRow({editable: true});
+    it('states the required toggle in words as well as position', () => {
+        const {rerender} = renderRow({required: false});
+        expect(screen.getByText('Off')).toBeInTheDocument();
+        expect(screen.getByText(/^Optional —/)).toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('channelsResourceEditable-button'));
+        rerender({required: true});
+        expect(screen.getByText('On')).toBeInTheDocument();
+        expect(screen.getByText(/^Required —/)).toBeInTheDocument();
+    });
 
-        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({editable: false}));
+    // The menu itself is covered in Playwright: MUI's Popover rejects a jsdom anchor
+    // as having no layout.
+    it('shows which change policy is selected', () => {
+        const {rerender} = renderRow({changePolicy: 'any'});
+        expect(screen.getByTestId('channelsResourceChangePolicyButton')).toHaveTextContent('Can be changed at any time');
+
+        rerender({changePolicy: 'never'});
+        expect(screen.getByTestId('channelsResourceChangePolicyButton')).toHaveTextContent('Cannot be changed once set');
+    });
+
+    it('explains why raising and lowering are unavailable on an unranked attribute', () => {
+        renderRow({}, {ordered: false});
+
+        expect(screen.getByText(/only offered on a Rank attribute/)).toBeInTheDocument();
+    });
+
+    it('drops that explanation once the values are ranked', () => {
+        renderRow({}, {ordered: true});
+
+        expect(screen.queryByText(/only offered on a Rank attribute/)).not.toBeInTheDocument();
+    });
+
+    it('describes a directional policy the attribute can no longer take', () => {
+        // Set while the attribute was ranked, then the type changed underneath it.
+        renderRow({changePolicy: 'raise_only'}, {ordered: false});
+
+        expect(screen.getByTestId('channelsResourceChangePolicyButton')).toHaveTextContent('Can only be raised, never lowered');
     });
 
     it('adds a display location', async () => {
@@ -133,9 +165,15 @@ describe('ChannelsResourceRow', () => {
     });
 
     it('says so in the summary when the attribute is displayed nowhere or locked', () => {
-        renderRow({displayLocations: [], editable: false, permissionValues: 'member'});
+        renderRow({displayLocations: [], changePolicy: 'never', permissionValues: 'member'});
 
         expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Optional · Not displayed · Set by Any member · Locked once set');
+    });
+
+    it('summarises a directional policy too', () => {
+        renderRow({changePolicy: 'raise_only', displayLocations: [DISPLAY_LABEL_HEADER]}, {ordered: true});
+
+        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Optional · Display: Header · Set by Channel admin · Raise only');
     });
 
     it('collapses and expands its body', async () => {

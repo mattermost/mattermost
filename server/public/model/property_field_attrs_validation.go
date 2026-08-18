@@ -30,7 +30,100 @@ const (
 	// Absent means editable, and must stay indistinguishable from an explicit true
 	// so fields predating the key keep their behaviour without a migration.
 	PropertyFieldAttrEditable = "editable"
+	// PropertyFieldAttrChangePolicy constrains how a value may move once set. It
+	// supersedes editable, which can only express change/never-change; the two are
+	// written together for "never" so readers predating this key still lock.
+	PropertyFieldAttrChangePolicy = "change_policy"
 )
+
+// Valid values for PropertyFieldAttrChangePolicy. Raise and lower compare option
+// ranks, so they are only meaningful on a rank-typed field.
+const (
+	PropertyFieldChangePolicyAny       = "any"
+	PropertyFieldChangePolicyRaiseOnly = "raise_only"
+	PropertyFieldChangePolicyLowerOnly = "lower_only"
+	PropertyFieldChangePolicyNever     = "never"
+)
+
+var validPropertyFieldChangePolicies = []string{
+	PropertyFieldChangePolicyAny,
+	PropertyFieldChangePolicyRaiseOnly,
+	PropertyFieldChangePolicyLowerOnly,
+	PropertyFieldChangePolicyNever,
+}
+
+// IsValidPropertyFieldChangePolicy reports whether the given string is a known
+// change policy.
+func IsValidPropertyFieldChangePolicy(p string) bool {
+	return slices.Contains(validPropertyFieldChangePolicies, p)
+}
+
+// IsOrderedPropertyFieldChangePolicy reports whether the policy compares option
+// ranks, and so requires a rank-typed field.
+func IsOrderedPropertyFieldChangePolicy(p string) bool {
+	return p == PropertyFieldChangePolicyRaiseOnly || p == PropertyFieldChangePolicyLowerOnly
+}
+
+// SanitizeAndValidatePropertyFieldChangePolicy validates the change_policy attr and
+// removes it when unset, empty, or "any", so the permissive default has one
+// representation rather than two.
+func SanitizeAndValidatePropertyFieldChangePolicy(field *PropertyField) error {
+	if field.Attrs == nil {
+		return nil
+	}
+
+	raw, ok := field.Attrs[PropertyFieldAttrChangePolicy]
+	if !ok {
+		return nil
+	}
+	if raw == nil {
+		delete(field.Attrs, PropertyFieldAttrChangePolicy)
+		return nil
+	}
+
+	p, ok := raw.(string)
+	if !ok {
+		return fmt.Errorf("change_policy must be a string, got %T", raw)
+	}
+
+	p = strings.TrimSpace(p)
+	if p == "" || p == PropertyFieldChangePolicyAny {
+		delete(field.Attrs, PropertyFieldAttrChangePolicy)
+		return nil
+	}
+
+	if !IsValidPropertyFieldChangePolicy(p) {
+		return fmt.Errorf("invalid change_policy %q: must be one of %s", p, strings.Join(validPropertyFieldChangePolicies, ", "))
+	}
+
+	// A directional policy compares ranks, so it is stripped off any other type
+	// rather than kept — same treatment as ldap/saml on a non-text field, and it
+	// keeps a rank->select type change patchable instead of permanently invalid.
+	if IsOrderedPropertyFieldChangePolicy(p) && field.Type != PropertyFieldTypeRank {
+		delete(field.Attrs, PropertyFieldAttrChangePolicy)
+		return nil
+	}
+
+	field.Attrs[PropertyFieldAttrChangePolicy] = p
+
+	return nil
+}
+
+// GetPropertyFieldChangePolicy returns the field's change policy, defaulting to
+// "any". An explicit editable=false with no change_policy reads as "never", so
+// fields written before the key keep their behaviour.
+func GetPropertyFieldChangePolicy(field *PropertyField) string {
+	if field.Attrs == nil {
+		return PropertyFieldChangePolicyAny
+	}
+	if p, _ := field.Attrs[PropertyFieldAttrChangePolicy].(string); p != "" {
+		return p
+	}
+	if editable, ok := field.Attrs[PropertyFieldAttrEditable].(bool); ok && !editable {
+		return PropertyFieldChangePolicyNever
+	}
+	return PropertyFieldChangePolicyAny
+}
 
 // Valid action values for PropertyFieldAttrActions.
 const (

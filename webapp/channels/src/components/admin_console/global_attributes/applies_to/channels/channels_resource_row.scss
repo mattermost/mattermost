@@ -123,7 +123,21 @@
     line-height: 16px;
 }
 
-.ChannelsResourceRow__setterButton {
+// The state word sits outside the switch, so the switch stays a compact control
+// rather than a full-width labelled bar.
+.ChannelsResourceRow__switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ChannelsResourceRow__switchState {
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.ChannelsResourceRow__selectButton {
     display: flex;
     width: 280px;
     align-items: center;

@@ -20,6 +20,10 @@ type Props = {
     // null means the attribute does not apply to channels.
     channelResource: ChannelResourceConfig | null;
     onChannelResourceChange: (next: ChannelResourceConfig | null) => void;
+
+    // Whether the attribute's values are ranked; gates the raise/lower policies.
+    ordered?: boolean;
+
     disabled?: boolean;
 };
 
@@ -29,7 +33,7 @@ type Props = {
  * Global Attributes owns the real "Applies to" card, which does not exist yet.
  * Delete this file when it lands; ChannelsResourceRow is the part that survives.
  */
-const AppliesToCard = ({channelResource, onChannelResourceChange, disabled}: Props) => {
+const AppliesToCard = ({channelResource, onChannelResourceChange, ordered, disabled}: Props) => {
     return (
         <Card
             expanded={true}
@@ -66,6 +70,7 @@ const AppliesToCard = ({channelResource, onChannelResourceChange, disabled}: Pro
                         value={channelResource}
                         onChange={onChannelResourceChange}
                         onRemove={() => onChannelResourceChange(null)}
+                        ordered={ordered}
                         disabled={disabled}
                     />
                 ) : (
