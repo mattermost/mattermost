@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {
     LogFilter,
@@ -108,8 +108,6 @@ function getInitialFormat(configIsPlainLogs: boolean): boolean {
 }
 
 export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
-    const intl = useIntl();
-
     const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs));
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
