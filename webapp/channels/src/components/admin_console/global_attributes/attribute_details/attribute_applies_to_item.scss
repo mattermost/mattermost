@@ -47,18 +47,18 @@
 }
 
 .AttributeAppliesToItem__remove {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px;
+    flex-shrink: 0;
+    padding: 6px 10px;
     border: none;
+    border-radius: 4px;
     background: transparent;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: var(--error-text);
     cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
 
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: var(--center-channel-color);
+    &:hover:not(:disabled) {
+        background: rgba(var(--error-text-color-rgb), 0.08);
     }
 
     &:disabled {

@@ -76,12 +76,14 @@ describe('AttributeAppliesTo', () => {
         expect(screen.queryByTestId('attributeAppliesToAddResourceButtonInline')).not.toBeInTheDocument();
     });
 
-    it('calls onRemove with each row\'s own type', async () => {
+    it('calls onRemove with each row\'s own type, once expanded', async () => {
         renderComponent({appliesTo: ['user', 'channel']});
 
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-remove'));
         expect(onRemove).toHaveBeenCalledWith('channel');
 
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
         expect(onRemove).toHaveBeenCalledWith('user');
     });

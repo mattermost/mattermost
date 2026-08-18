@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
-import {ChevronDownIcon, CloseIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
 
 import {resourceTypeLabels} from './attribute_applies_to_constants';
 import type {AttributeAppliesToItemProps} from './attribute_applies_to_constants';
@@ -19,13 +19,13 @@ const BODY_ID = 'attribute-applies-to-channel-panel';
 // Decisions table: AccordionCard renders the row itself from plain data with
 // no slot for a child component to own it, and its open-row tracking is by
 // array index, which misattributes state when a row is removed from the
-// middle of the list).
+// middle of the list). Remove is only reachable once expanded -- there is no
+// collapsed-row remove affordance.
 function AttributeAppliesToChannelItem({disabled = false, onRemove}: AttributeAppliesToItemProps): JSX.Element {
     const {formatMessage} = useIntl();
     const [isOpen, setIsOpen] = useState(false);
 
     const label = formatMessage(resourceTypeLabels.channel);
-    const removeLabel = formatMessage(messages.removeLabel, {label});
     const toggleLabel = formatMessage(isOpen ? messages.collapseLabel : messages.expandLabel, {label});
 
     return (
@@ -51,16 +51,17 @@ function AttributeAppliesToChannelItem({disabled = false, onRemove}: AttributeAp
                     <ProductChannelsIcon size={18}/>
                     <span className='AttributeAppliesToItem__label'>{label}</span>
                 </button>
-                <button
-                    type='button'
-                    className='AttributeAppliesToItem__remove'
-                    onClick={onRemove}
-                    disabled={disabled}
-                    aria-label={removeLabel}
-                    data-testid='attributeAppliesToRow-channel-remove'
-                >
-                    <CloseIcon size={16}/>
-                </button>
+                {isOpen && (
+                    <button
+                        type='button'
+                        className='AttributeAppliesToItem__remove'
+                        onClick={onRemove}
+                        disabled={disabled}
+                        data-testid='attributeAppliesToRow-channel-remove'
+                    >
+                        <FormattedMessage {...messages.removeLabel}/>
+                    </button>
+                )}
             </div>
             {isOpen && (
                 <div
@@ -82,7 +83,7 @@ export default AttributeAppliesToChannelItem;
 const messages = defineMessages({
     expandLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.expand', defaultMessage: 'Expand {label}'},
     collapseLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.collapse', defaultMessage: 'Collapse {label}'},
-    removeLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.remove', defaultMessage: 'Remove {label}'},
+    removeLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.remove', defaultMessage: 'Remove resource'},
     bodyPlaceholder: {
         id: 'admin.global_attributes.attribute_details.applies_to.item.body_placeholder',
         defaultMessage: 'No additional settings for this resource yet.',

@@ -30,38 +30,37 @@ describe('AttributeAppliesToPostItem', () => {
         expect(screen.getByTestId('attributeAppliesToRow-post')).toHaveTextContent('Posts');
     });
 
-    it('starts collapsed, and clicking the toggle reveals then hides the placeholder body', async () => {
+    it('starts collapsed, with no Remove button, and clicking the toggle reveals the placeholder body and Remove', async () => {
         renderComponent();
 
         expect(screen.queryByTestId('attributeAppliesToRow-post-body')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('attributeAppliesToRow-post-remove')).not.toBeInTheDocument();
 
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-post-toggle'));
         expect(screen.getByTestId('attributeAppliesToRow-post-body')).toHaveTextContent('No additional settings for this resource yet.');
+        expect(screen.getByTestId('attributeAppliesToRow-post-remove')).toBeVisible();
 
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-post-toggle'));
         expect(screen.queryByTestId('attributeAppliesToRow-post-body')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('attributeAppliesToRow-post-remove')).not.toBeInTheDocument();
     });
 
-    it('calls onRemove exactly once when Remove is clicked, regardless of expand state', async () => {
+    it('calls onRemove exactly once when Remove is clicked, once expanded', async () => {
         renderComponent();
 
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-post-toggle'));
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-post-remove'));
         expect(onRemove).toHaveBeenCalledTimes(1);
+    });
 
+    it('disables the toggle, and the Remove button once expanded', async () => {
+        const {rerender} = renderComponent();
+
+        // Expand while enabled, then disable -- isOpen is local state, so it survives
+        // the prop change, letting Remove's own disabled state be asserted directly.
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-post-toggle'));
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-post-remove'));
-        expect(onRemove).toHaveBeenCalledTimes(2);
-    });
-
-    it('does not bubble a Remove click into the toggle -- clicking Remove alone never opens the body', async () => {
-        renderComponent();
-
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-post-remove'));
-        expect(screen.queryByTestId('attributeAppliesToRow-post-body')).not.toBeInTheDocument();
-    });
-
-    it('disables both the toggle and remove button when disabled', () => {
-        renderComponent({disabled: true});
+        const disabledProps = {onRemove, disabled: true};
+        rerender(<AttributeAppliesToPostItem {...disabledProps}/>);
 
         expect(screen.getByTestId('attributeAppliesToRow-post-toggle')).toBeDisabled();
         expect(screen.getByTestId('attributeAppliesToRow-post-remove')).toBeDisabled();

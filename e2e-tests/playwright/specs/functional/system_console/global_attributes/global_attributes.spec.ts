@@ -1131,7 +1131,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             await systemConsolePage.page.getByRole('menuitem', {name: 'Channels'}).click();
             await expect(systemConsolePage.page.getByTestId('attributeAppliesToRow-channel')).toBeVisible();
 
-            // # Remove it
+            // # Remove is only reachable once the row is expanded
+            await expect(systemConsolePage.page.getByTestId('attributeAppliesToRow-channel-remove')).not.toBeVisible();
+            await systemConsolePage.page.getByTestId('attributeAppliesToRow-channel-toggle').click();
             await systemConsolePage.page.getByTestId('attributeAppliesToRow-channel-remove').click();
 
             // * The row disappears immediately, no modal/dialog ever rendered

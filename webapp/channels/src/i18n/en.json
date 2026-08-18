@@ -1444,7 +1444,7 @@
   "admin.global_attributes.attribute_details.applies_to.item.body_placeholder": "No additional settings for this resource yet.",
   "admin.global_attributes.attribute_details.applies_to.item.collapse": "Collapse {label}",
   "admin.global_attributes.attribute_details.applies_to.item.expand": "Expand {label}",
-  "admin.global_attributes.attribute_details.applies_to.item.remove": "Remove {label}",
+  "admin.global_attributes.attribute_details.applies_to.item.remove": "Remove resource",
   "admin.global_attributes.attribute_details.applies_to.resource_type.channel": "Channels",
   "admin.global_attributes.attribute_details.applies_to.resource_type.post": "Posts",
   "admin.global_attributes.attribute_details.applies_to.resource_type.user": "Users",

@@ -904,6 +904,7 @@ describe('AttributeDetails', () => {
             expect(await screen.findByText(/already exists/i)).toBeInTheDocument();
 
             mockSetNavigationBlocked.mockClear();
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
             await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
 
             expect(mockSetNavigationBlocked).toHaveBeenCalledWith(true);
@@ -914,6 +915,7 @@ describe('AttributeDetails', () => {
             renderComponent();
             await addResource('Users', 'user');
 
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
             await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
 
             await waitFor(() => expect(screen.getByTestId('attributeAppliesToAddResourceButtonHeader')).toHaveFocus());
