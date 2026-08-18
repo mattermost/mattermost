@@ -426,8 +426,11 @@ function minDisplaySettings() {
     cy.get('#themeTitle').should('be.visible', 'contain', 'Theme');
     cy.get('#themeEdit').should('be.visible', 'contain', 'Edit');
 
-    cy.get('#clockTitle').should('be.visible', 'contain', 'Clock Display');
-    cy.get('#clockEdit').should('be.visible', 'contain', 'Edit');
+    cy.get('#date_and_timeTitle').should('be.visible', 'contain', 'Date and Time');
+    cy.get('#date_and_timeEdit').should('be.visible', 'contain', 'Edit');
+
+    cy.get('#timezoneTitle').scrollIntoView().should('be.visible', 'contain', 'Timezone');
+    cy.get('#timezoneEdit').should('be.visible', 'contain', 'Edit');
 
     cy.get('#name_formatTitle').should('be.visible', 'contain', 'Teammate Name Display');
     cy.get('#name_formatEdit').should('be.visible', 'contain', 'Edit');

@@ -58,6 +58,12 @@ jest.mock('components/timestamp', () => {
     };
 });
 
+jest.mock('components/event_timestamp', () => {
+    return function MockEventTimestamp() {
+        return <span>{'timestamp'}</span>;
+    };
+});
+
 jest.mock('components/widgets/users/avatars', () => {
     return function MockAvatars() {
         return <div className='avatars'>{'avatars'}</div>;

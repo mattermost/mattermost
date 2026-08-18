@@ -25,11 +25,10 @@ jest.mock('components/threading/global_threads/thread_pane', () => ({
 
 jest.mock('components/threading/thread_viewer', () => ({
     __esModule: true,
-    default: ({rootPostId, useRelativeTimestamp, isThreadView}: {rootPostId: string; useRelativeTimestamp: boolean; isThreadView: boolean}) => (
+    default: ({rootPostId, isThreadView}: {rootPostId: string; isThreadView: boolean}) => (
         <div
             data-testid='thread-viewer'
             data-root-post-id={rootPostId}
-            data-use-relative-timestamp={useRelativeTimestamp?.toString()}
             data-is-thread-view={isThreadView?.toString()}
         >
             {'Thread Viewer'}
@@ -188,7 +187,6 @@ describe('ThreadPopout', () => {
 
         const threadViewer = screen.getByTestId('thread-viewer');
         expect(threadViewer).toHaveAttribute('data-root-post-id', 'post-123');
-        expect(threadViewer).toHaveAttribute('data-use-relative-timestamp', 'true');
         expect(threadViewer).toHaveAttribute('data-is-thread-view', 'true');
     });
 
