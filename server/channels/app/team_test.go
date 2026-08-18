@@ -1325,7 +1325,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
-	mockUserStore.On("Get", context.Background(), "userID").Return(&model.User{Id: "userID"}, nil)
+	mockUserStore.On("Get", mock.Anything, "userID").Return(&model.User{Id: "userID"}, nil)
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 
 	mockChannelStore := mocks.ChannelStore{}

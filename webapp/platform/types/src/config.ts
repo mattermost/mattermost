@@ -140,6 +140,7 @@ export type ClientConfig = {
     FeatureFlagSessionAttributes: string;
     FeatureFlagPostAttributes: string;
     FeatureFlagDiscoverableChannels: string;
+    FeatureFlagRecurringScheduledPosts: string;
 
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -1026,8 +1027,6 @@ export type GuestAccountsSettings = {
 export type ImageProxySettings = {
     Enable: boolean;
     ImageProxyType: string;
-    RemoteImageProxyURL: string;
-    RemoteImageProxyOptions: string;
 };
 
 export type CloudSettings = {

@@ -464,6 +464,7 @@ func NewServer(options ...Option) (*Server, error) {
 		TemplatesContainer: s.TemplatesContainer(),
 		UserService:        s.userService,
 		Store:              s.GetStore(),
+		Logger:             s.Log(),
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to initialize email service")
@@ -597,9 +598,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// Dump the image cache if the proxy settings have changed. (need switch URLs to the correct proxy)
 	s.platform.AddConfigListener(func(oldCfg, newCfg *model.Config) {
 		if (oldCfg.ImageProxySettings.Enable != newCfg.ImageProxySettings.Enable) ||
-			(oldCfg.ImageProxySettings.ImageProxyType != newCfg.ImageProxySettings.ImageProxyType) ||
-			(oldCfg.ImageProxySettings.RemoteImageProxyURL != newCfg.ImageProxySettings.RemoteImageProxyURL) ||
-			(oldCfg.ImageProxySettings.RemoteImageProxyOptions != newCfg.ImageProxySettings.RemoteImageProxyOptions) {
+			(oldCfg.ImageProxySettings.ImageProxyType != newCfg.ImageProxySettings.ImageProxyType) {
 			if err = s.openGraphDataCache.Purge(); err != nil {
 				mlog.Error("Failed to purge Open Graph data cache after config change", mlog.Err(err))
 			}
