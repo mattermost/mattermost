@@ -5,6 +5,7 @@ package docextractor
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"runtime"
@@ -280,6 +281,61 @@ func TestExtractTimeout(t *testing.T) {
 		require.Error(t, err)
 		require.Empty(t, text)
 		require.Contains(t, err.Error(), "panic")
+	})
+}
+
+func TestExtractContextCancellation(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+	data := []byte("hello world")
+
+	t.Run("already-cancelled context returns immediately", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel() // cancel before extraction starts
+
+		start := time.Now()
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Ctx: ctx}, []Extractor{&slowExtractor{delay: 500 * time.Millisecond}})
+		elapsed := time.Since(start)
+
+		require.Error(t, err)
+		require.Empty(t, text)
+		assert.Contains(t, err.Error(), "cancelled")
+		assert.Less(t, elapsed, 200*time.Millisecond, "should return without waiting for the extraction")
+	})
+
+	t.Run("context cancelled mid-extraction unblocks caller", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+
+		extractDone := make(chan struct{})
+		start := time.Now()
+		go func() { time.Sleep(50 * time.Millisecond); cancel() }()
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Ctx: ctx}, []Extractor{&slowExtractor{delay: 500 * time.Millisecond, done: extractDone}})
+		elapsed := time.Since(start)
+
+		require.Error(t, err)
+		require.Empty(t, text)
+		assert.Contains(t, err.Error(), "cancelled")
+		assert.Less(t, elapsed, 200*time.Millisecond, "should return shortly after context is cancelled")
+
+		select {
+		case <-extractDone:
+		case <-time.After(2 * time.Second):
+			require.FailNow(t, "detached extraction did not finish within the deadline")
+		}
+	})
+
+	t.Run("ctx and timeout: whichever fires first wins", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		// Timeout of 5s, but ctx cancelled after 50ms — ctx should win.
+		go func() { time.Sleep(50 * time.Millisecond); cancel() }()
+		start := time.Now()
+		text, err := ExtractWithExtraExtractors(logger, "file.txt", bytes.NewReader(data), ExtractSettings{Ctx: ctx, Timeout: 5 * time.Second}, []Extractor{&slowExtractor{delay: 500 * time.Millisecond}})
+		elapsed := time.Since(start)
+
+		require.Error(t, err)
+		require.Empty(t, text)
+		assert.Less(t, elapsed, 200*time.Millisecond, "ctx cancellation should preempt the longer timeout")
 	})
 }
 
