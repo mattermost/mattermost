@@ -2649,6 +2649,23 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                         },
                         {
+                            type: 'text',
+                            key: 'ThemeSettings.AllowedThemes',
+                            multiple: true,
+                            label: defineMessage({id: 'admin.customization.allowedThemesTitle', defaultMessage: 'Allowed Themes:'}),
+                            help_text: defineMessage({id: 'admin.customization.allowedThemesDesc', defaultMessage: 'Restrict the themes users can select in **Display > Theme** to a comma-separated list of theme names. Valid names are `denim`, `sapphire`, `quartz`, `indigo`, and `onyx`. Leave this field blank to allow all themes.'}),
+                            help_text_markdown: true,
+                            placeholder: defineMessage({id: 'admin.customization.allowedThemesPlaceholder', defaultMessage: 'E.g.: "denim,onyx"'}),
+                            isHidden: it.any(
+                                it.not(it.licensed),
+                                it.licensedForSku('starter'),
+                            ),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('ThemeSettings.EnableThemeSelection'),
+                            ),
+                        },
+                        {
                             type: 'dropdown',
                             key: 'ThemeSettings.DefaultTheme',
                             label: defineMessage({id: 'admin.customization.defaultThemeTitle', defaultMessage: 'Default Theme:'}),

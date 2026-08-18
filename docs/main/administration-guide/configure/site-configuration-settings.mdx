@@ -143,6 +143,23 @@ Access the following configuration settings in the System Console by going to **
 </tbody>
 </table>
 
+### Allowed themes
+
+<PlanAvailability slug="pro-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Restrict the themes users can select in <strong>Display &gt; Theme</strong> to a comma-separated list of theme names. Requires <a href="#enable-theme-selection">Enable theme selection</a> to be set to <strong>true</strong>.</p><p>String array input consisting of the options <code>denim</code>, <code>sapphire</code>, <code>quartz</code>, <code>indigo</code>, and <code>onyx</code>. Default is an empty array, which allows all themes.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ThemeSettings</code> &gt; <code>AllowedThemes</code> &gt; <code>[]</code></li><li>Environment variable: <code>MM_THEMESETTINGS_ALLOWEDTHEMES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ### Default theme
 
 <PlanAvailability slug="pro-plus" />

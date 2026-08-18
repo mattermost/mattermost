@@ -2514,10 +2514,10 @@ func (s *AnnouncementSettings) SetDefaults() {
 }
 
 type ThemeSettings struct {
-	EnableThemeSelection *bool   `access:"site_customization"`
-	DefaultTheme         *string `access:"site_customization"`
-	AllowCustomThemes    *bool   `access:"site_customization"`
-	AllowedThemes        []string
+	EnableThemeSelection *bool    `access:"site_customization"`
+	DefaultTheme         *string  `access:"site_customization"`
+	AllowCustomThemes    *bool    `access:"site_customization"`
+	AllowedThemes        []string `access:"site_customization"`
 }
 
 func (s *ThemeSettings) SetDefaults() {
