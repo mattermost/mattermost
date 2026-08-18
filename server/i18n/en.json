@@ -11963,6 +11963,10 @@
     "translation": "Invalid content extraction timeout for file settings. Must be a whole number of seconds greater than or equal to zero."
   },
   {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "The MoveThreadsEnabled feature flag is no longer supported and must be disabled."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Invalid driver name for file settings. Must be 'local', 'amazons3', or 'azureblob'."
   },
