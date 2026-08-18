@@ -21,6 +21,8 @@ import {
     waitForAttributeViewToExclude,
     addAttributeRule,
     getTeamAccessControlPolicy,
+    createParentMembershipPolicy,
+    assignTeamToParentPolicy,
 } from './helpers';
 
 async function openTeamMembershipTab(page: Page, channelsPage: ChannelsPage) {
@@ -34,9 +36,15 @@ async function openTeamMembershipTab(page: Page, channelsPage: ChannelsPage) {
 test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@abac', '@team_membership']}, () => {
     const createdTeamIds: string[] = [];
     const createdUserIds: string[] = [];
+    const createdPolicyIds: string[] = [];
 
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
+        const base = adminClient.getBaseRoute();
+        const headers = {Authorization: `Bearer ${adminClient.getToken()}`};
+        for (const id of createdPolicyIds.splice(0)) {
+            await fetch(`${base}/access_control_policies/${id}`, {method: 'DELETE', headers}).catch(() => {});
+        }
         for (const id of createdTeamIds.splice(0)) {
             await adminClient.deleteTeam(id).catch(() => {});
         }
@@ -314,6 +322,124 @@ test.describe('Team Settings Modal - Team Membership as Team Admin', {tag: ['@ab
         );
         const recentJobs = jobs.filter((j: any) => j.create_at >= testStartTime);
         expect(recentJobs.length).toBeGreaterThan(0);
+
+        await teamSettings.close();
+    });
+
+    test('MM-70055_1 team admin mode-flip modal resolves the member count on a parent-governed team', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminClient} = await pw.getAdminClient();
+        const suffix = pw.random.id();
+        await enableTeamMembershipABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const team = await createPublicTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
+
+        // # The team admin must match the rule, otherwise self-exclusion blocks the flip
+        await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
+
+        // # A non-qualifying member so the count is non-zero
+        const outsider = await adminClient.createUser(
+            {
+                email: `outsider${suffix}@sample.mattermost.com`,
+                username: `outsider${suffix}`,
+                password: newTestPassword(),
+            } as any,
+            '',
+            '',
+        );
+        createdUserIds.push(outsider.id);
+        await adminClient.addToTeam(team.id, outsider.id);
+        await setUserAttribute(adminClient, outsider.id, 'Department', 'Marketing');
+
+        // # Govern the team by a parent policy only — no custom rules in Team Settings
+        const parent = await createParentMembershipPolicy(
+            adminClient,
+            `Parent Policy ${suffix}`,
+            'user.attributes.Department == "Engineering"',
+        );
+        createdPolicyIds.push(parent.id);
+        await assignTeamToParentPolicy(adminClient, parent.id, team.id);
+
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [teamAdmin.id]);
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        const teamSettings = await channelsPage.openTeamSettings();
+        await teamSettings.openAccessTab();
+
+        // # Click the Private card
+        await teamSettings.container.locator('#public-private-selector-button-P').click();
+
+        const modeFlipModal = page.locator('.ConfirmModal').filter({hasText: 'Switch to Private Team?'});
+        await expect(modeFlipModal).toBeVisible({timeout: 30000});
+
+        // * The count resolves from the parent policy instead of falling back to the
+        // generic copy, which is all a team admin used to get (MM-70055).
+        await expect(modeFlipModal.getByText(/not meet criteria and will be removed/i)).toBeVisible({timeout: 15000});
+        await expect(modeFlipModal.getByText(/Some members may not meet/i)).toHaveCount(0);
+
+        await teamSettings.close();
+    });
+
+    test('MM-70057_1 team admin sees the last-synced timestamp in the sync footer', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        const {adminClient} = await pw.getAdminClient();
+        const suffix = pw.random.id();
+        await enableTeamMembershipABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
+
+        const team = await createPublicTeam(adminClient, suffix);
+        createdTeamIds.push(team.id);
+        const teamAdmin = await createTeamAdmin(adminClient, team.id);
+        createdUserIds.push(teamAdmin.id);
+        await setUserAttribute(adminClient, teamAdmin.id, 'Department', 'Engineering');
+
+        // # A policy must exist for the sync footer to render at all
+        await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [teamAdmin.id]);
+
+        // # Run a sync and wait for it to complete, so there is a timestamp to show
+        await (adminClient as any).doFetch(`${adminClient.getBaseRoute()}/jobs`, {
+            method: 'POST',
+            body: JSON.stringify({type: 'access_control_team_sync', data: {policy_id: team.id}}),
+        });
+
+        await expect
+            .poll(
+                async () => {
+                    const jobs: any[] = await (adminClient as any).doFetch(
+                        `${adminClient.getBaseRoute()}/jobs/type/access_control_team_sync`,
+                        {method: 'GET'},
+                    );
+                    return jobs.some((j: any) => j.data?.policy_id === team.id && j.status === 'success');
+                },
+                {
+                    timeout: 30000,
+                    intervals: [500, 1000, 2000, 3000],
+                    message: 'the team sync job should complete before checking the footer',
+                },
+            )
+            .toBe(true);
+
+        const {page} = await pw.testBrowser.login(teamAdmin);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
+
+        const {teamSettings, tab} = await openTeamMembershipTab(page, channelsPage);
+
+        // * The footer reports the completed sync. Reading the job list used to be
+        // system-admin only, so a team admin always saw "Never synced" (MM-70057).
+        const syncFooterText = tab.locator('.SyncStatusFooter .SyncStatusFooter__text');
+        await expect(syncFooterText).toContainText(/Last synced/i, {timeout: 15000});
+        await expect(syncFooterText).not.toContainText(/Never synced/i);
 
         await teamSettings.close();
     });

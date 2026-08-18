@@ -5694,6 +5694,35 @@ func TestSwitchAccount(t *testing.T) {
 			require.Equal(t, "/login?extra=signin_change", link)
 		})
 
+		t.Run("OAuth app session cannot switch to email", func(t *testing.T) {
+			setupUserAuth(t, model.UserAuthServiceGitlab, true)
+
+			session, appErr := th.App.GetSession(th.Client.AuthToken)
+			require.Nil(t, appErr)
+			session.IsOAuth = true
+			th.App.AddSessionToCache(session)
+			t.Cleanup(func() {
+				th.Server.Platform().ClearUserSessionCacheLocal(th.BasicUser.Id)
+			})
+
+			sr := &model.SwitchRequest{
+				CurrentService: model.UserAuthServiceGitlab,
+				NewService:     model.UserAuthServiceEmail,
+				Email:          th.BasicUser.Email,
+				NewPassword:    model.NewTestPassword(),
+			}
+
+			_, resp, err := th.Client.SwitchAccountType(context.Background(), sr)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+
+			// The account must remain attached to its login provider
+			th.App.InvalidateCacheForUser(th.BasicUser.Id)
+			user, appErr := th.App.GetUser(th.BasicUser.Id)
+			require.Nil(t, appErr)
+			require.Equal(t, model.UserAuthServiceGitlab, user.AuthService)
+		})
+
 		t.Run("Disabled if EnableSignUpWithEmail is false", func(t *testing.T) {
 			setupUserAuth(t, model.UserAuthServiceGitlab, true)
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignUpWithEmail = false })

@@ -13,12 +13,13 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const pgDiagnosticsQueryTimeout = 10 * time.Second
 
-func (ss *SqlStore) GetDiagnostics(ctx context.Context) (*store.DatabaseDiagnostics, error) {
+func (ss *SqlStore) GetDiagnostics(rctx request.CTX) (*store.DatabaseDiagnostics, error) {
 	diagnostics := &store.DatabaseDiagnostics{}
 	applyDBPoolStats(diagnostics, ss.MasterDBStats(), ss.ReplicaDBStats())
 
@@ -26,7 +27,7 @@ func (ss *SqlStore) GetDiagnostics(ctx context.Context) (*store.DatabaseDiagnost
 		return diagnostics, nil
 	}
 
-	if err := collectPostgresDatabaseDiagnostics(ctx, ss.GetMaster().DB(), diagnostics); err != nil {
+	if err := collectPostgresDatabaseDiagnostics(rctx.Context(), ss.GetMaster().DB(), diagnostics); err != nil {
 		return diagnostics, err
 	}
 

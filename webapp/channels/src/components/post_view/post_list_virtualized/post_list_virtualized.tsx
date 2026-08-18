@@ -682,6 +682,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                         <div
                             id='postListContent'
                             className='post-list__content'
+                            data-channel-id={this.props.channelId}
                         >
                             <LatestPostReader
                                 postIds={this.props.postListIds}
