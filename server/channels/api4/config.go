@@ -276,6 +276,9 @@ func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// the license is managed externally. Gate it on the same read permission as the license
 	// console section, mirroring how readFilter restricts the reflected overrides.
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadAboutEditionAndLicense) && c.App.Srv().Platform().IsLicenseSetFromEnvironment() {
+		if envConfig == nil {
+			envConfig = make(map[string]any)
+		}
 		envConfig["License"] = true
 	}
 
