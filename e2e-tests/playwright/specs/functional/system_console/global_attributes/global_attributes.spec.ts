@@ -23,6 +23,7 @@ import {
 import {
     GLOBAL_ATTRIBUTES_ADMIN_PATH,
     createGlobalAttributeField,
+    createLinkedDependentField,
     deleteGlobalAttributeFieldIfExists,
     deleteLinkedDependentField,
     fetchLinkedFieldsForTemplate,
@@ -441,9 +442,13 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             // one, so "E2E ..." would actually slugify to "e2_e_..." (verified against
             // slugifyForCEL directly), not the naively-expected "e2e_...". "Playwright"
             // has no internal case/digit boundary, so its derived slug is unambiguous.
+            // The prefix is kept short on purpose: the Unique name input is capped at
+            // Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH (40), and a 13-digit Date.now()
+            // leaves only 27 characters for everything before it. A longer prefix derives
+            // a silently truncated slug that no longer matches the expectation below.
             const timestamp = Date.now();
-            const displayName = `Playwright Created Attribute ${timestamp}`;
-            const expectedName = `playwright_created_attribute_${timestamp}`;
+            const displayName = `Playwright Attr ${timestamp}`;
+            const expectedName = `playwright_attr_${timestamp}`;
 
             try {
                 // # Log in and open the Manage Attributes page
@@ -686,8 +691,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
-            const displayName = `Playwright Select Attribute ${timestamp}`;
-            const expectedName = `playwright_select_attribute_${timestamp}`;
+            // Short prefix: see the 40-char Unique name cap noted in the bare-Text test above
+            const displayName = `Playwright Select ${timestamp}`;
+            const expectedName = `playwright_select_${timestamp}`;
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -741,8 +747,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
-            const displayName = `Playwright Ranked Attribute ${timestamp}`;
-            const expectedName = `playwright_ranked_attribute_${timestamp}`;
+            // Short prefix: see the 40-char Unique name cap noted in the bare-Text test above
+            const displayName = `Playwright Ranked ${timestamp}`;
+            const expectedName = `playwright_ranked_${timestamp}`;
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -827,8 +834,11 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
-            const displayName = `Playwright LDAP Linked Attribute ${timestamp}`;
-            const expectedName = `playwright_ldap_linked_attribute_${timestamp}`;
+            // Short prefix: see the 40-char Unique name cap noted in the bare-Text test above.
+            // This one only uses expectedName for cleanup, so an over-long prefix leaked the
+            // created field onto the shared server instead of failing loudly.
+            const displayName = `Playwright Ldap ${timestamp}`;
+            const expectedName = `playwright_ldap_${timestamp}`;
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -872,8 +882,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
-            const displayName = `Playwright Dual Linked Attribute ${timestamp}`;
-            const expectedName = `playwright_dual_linked_attribute_${timestamp}`;
+            // Short prefix: see the 40-char Unique name cap noted in the bare-Text test above
+            const displayName = `Playwright Dual ${timestamp}`;
+            const expectedName = `playwright_dual_${timestamp}`;
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -1295,6 +1306,164 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                     await deleteLinkedDependentField(adminClient, field.id, field.object_type as ResourceObjectType);
                 }
                 await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
+        });
+    });
+
+    test.describe('delete attribute', () => {
+        /**
+         * @objective Ensure the row kebab's Delete action removes the attribute end-to-end:
+         * the confirmation names the attribute, and confirming drops the row from the table.
+         */
+        test('deletes an attribute from the row menu after confirming, and the row disappears', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_delete_${timestamp}`;
+            const displayName = `E2E Delete Attribute ${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                const row = page.locator('tr', {
+                    has: page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row).toBeVisible();
+
+                // # Open the row kebab and click Delete
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-delete`).click();
+
+                // * The confirmation names the specific attribute rather than prompting generically
+                await expect(page.getByRole('heading', {name: `Delete ${displayName} attribute`})).toBeVisible();
+
+                // # Confirm
+                await page.getByRole('button', {name: 'Delete', exact: true}).click();
+
+                // * The row is gone and no error banner appeared
+                await expect(row).toHaveCount(0);
+                await expect(page.getByTestId('global-attributes-delete-error')).toHaveCount(0);
+
+                // * The delete really hit the server, not just the client store — a fresh
+                // page load still doesn't show it
+                await page.reload();
+                await expect(page.getByTestId('global-attribute-name').filter({hasText: displayName})).toHaveCount(0);
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Ensure cancelling the confirmation is a true no-op — no delete call fires
+         * and the attribute survives a reload.
+         */
+        test('leaves the attribute in place when the confirmation is cancelled', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_cancel_${timestamp}`;
+            const displayName = `E2E Cancel Attribute ${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                const row = page.locator('tr', {
+                    has: page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row).toBeVisible();
+
+                // # Open the row kebab, click Delete, then back out
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-delete`).click();
+                await expect(page.getByRole('heading', {name: `Delete ${displayName} attribute`})).toBeVisible();
+                await page.getByRole('button', {name: 'Cancel'}).click();
+
+                // * The modal closed and the row survived
+                await expect(page.getByRole('heading', {name: `Delete ${displayName} attribute`})).toHaveCount(0);
+                await expect(row).toBeVisible();
+
+                // * Nothing was deleted server-side either
+                await page.reload();
+                await expect(page.getByTestId('global-attribute-name').filter({hasText: displayName})).toBeVisible();
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Ensure a server-side 409 (the attribute still has live linked dependents)
+         * surfaces as the specific "still linked" banner above the table, not the generic error,
+         * and leaves the row intact. Exercised against a real 409 from the server rather than a
+         * stubbed rejection.
+         */
+        test('shows the linked-dependents banner and keeps the row when the server refuses the delete', async ({
+            pw,
+        }) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_linked_${timestamp}`;
+            const displayName = `E2E Linked Attribute ${timestamp}`;
+            const dependentName = `e2e_global_attribute_dependent_${timestamp}`;
+
+            let dependentFieldId: string | undefined;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+
+                // # Point a dependent field at it, which is what makes the server refuse the delete
+                const dependent = await createLinkedDependentField(adminClient, dependentName, field.id, 'text');
+                dependentFieldId = dependent.id;
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                const row = page.locator('tr', {
+                    has: page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row).toBeVisible();
+
+                // # Try to delete it
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-delete`).click();
+                await page.getByRole('button', {name: 'Delete', exact: true}).click();
+
+                // * The banner explains the blocking dependency instead of the generic failure
+                const banner = page.getByTestId('global-attributes-delete-error');
+                await expect(banner).toBeVisible();
+                await expect(banner).toContainText('other attributes are still linked to it');
+                await expect(banner).not.toContainText('An error occurred while deleting this attribute');
+
+                // * The row survived the rejected delete
+                await expect(row).toBeVisible();
+
+                // # The banner is dismissible
+                await banner.getByRole('button', {name: 'Close'}).click();
+                await expect(banner).toHaveCount(0);
+            } finally {
+                // Dependent first: the source delete stays blocked while it exists
+                if (dependentFieldId) {
+                    await deleteLinkedDependentField(adminClient, dependentFieldId);
+                }
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
             }
         });
     });

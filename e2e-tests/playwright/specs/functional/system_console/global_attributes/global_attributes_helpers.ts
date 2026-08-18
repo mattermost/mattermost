@@ -15,7 +15,10 @@ const PROPERTY_GROUP = 'access_control';
 const OBJECT_TYPE = 'template';
 const TARGET_TYPE = 'system';
 
-// The three resource object types an Applies-to linked field can use.
+// The three resource object types an Applies-to linked field can use. Also the
+// only object types (besides 'template') PropertyField.IsValid allows a linked
+// field to carry -- a template field itself is rejected for having a
+// linked_field_id ("template fields cannot have a linked field").
 // Canonical values: webapp/channels/.../attribute_details/attribute_applies_to_constants.tsx
 export type ResourceObjectType = 'user' | 'channel' | 'post';
 const ALL_RESOURCE_OBJECT_TYPES: ResourceObjectType[] = ['user', 'channel', 'post'];
@@ -104,10 +107,15 @@ export async function createGlobalAttributeField(
 }
 
 /**
- * Creates a linked property field for one Applies-to resource, pointing back at `sourceFieldId`
- * (the template). Used for E2E seeding of an already-saved Applies-to resource (e.g. verifying
- * a delete is blocked, or that a pre-existing linked field surfaces correctly) -- the create
- * flow itself is exercised through the UI, not this helper.
+ * Creates a field that links to `sourceFieldId` (e.g. the template). Two uses:
+ * seeding an already-saved Applies-to resource for a given `objectType`
+ * (defaulting to 'user', the one pre-existing call site's shape), and making
+ * the server refuse to delete the source field -- deletePropertyField counts
+ * live linked dependents and returns 409 `has_linked_dependents` when any
+ * exist (server/channels/app/properties/property_field.go), which this is
+ * the only way to exercise against a real server response. The create flow
+ * for a fresh Applies-to resource itself is exercised through the UI, not
+ * this helper.
  */
 export async function createLinkedDependentField(
     adminClient: Client4,
@@ -128,6 +136,8 @@ export async function createLinkedDependentField(
 /**
  * Deletes a linked property field, ignoring failures -- mirrors deleteGlobalAttributeFieldIfExists'
  * best-effort cleanup style, since a test's own save/rollback assertions may have already deleted it.
+ * Must run BEFORE deleting the field it points at -- the source delete stays blocked with a 409
+ * for as long as a live dependent exists.
  */
 export async function deleteLinkedDependentField(
     adminClient: Client4,
