@@ -834,6 +834,40 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                         >
                           <li
                             class="sidebar-section"
+                            data-testid="system_attributes.user_attributes_feature_discovery"
+                          >
+                            <a
+                              class="sidebar-section-title"
+                              href="/admin_console/system_attributes/user_attributes"
+                              id="system_attributes/user_attributes"
+                            >
+                              <span
+                                class="sidebar-section-title__text"
+                              >
+                                User Attributes
+                              </span>
+                              <span
+                                class="sidebar-section-indicator"
+                              >
+                                <span
+                                  class="RestrictedIndicator__icon-tooltip-container"
+                                >
+                                  <div
+                                    class="RestrictedIndicator__content"
+                                  >
+                                    <i
+                                      class="RestrictedIndicator__icon-tooltip icon icon-key-variant"
+                                    />
+                                  </div>
+                                </span>
+                              </span>
+                            </a>
+                            <ul
+                              class="nav nav__sub-menu subsections"
+                            />
+                          </li>
+                          <li
+                            class="sidebar-section"
                             data-testid="system_attributes.attribute_based_access_control_feature_discovery"
                           >
                             <a
@@ -2816,25 +2850,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="environment.export_storage"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/environment/export_storage"
-                              id="environment/export_storage"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Export Storage
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="environment.image_proxy"
                           >
                             <a
@@ -4700,25 +4715,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="environment.export_storage"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/environment/export_storage"
-                              id="environment/export_storage"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Export Storage
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="environment.image_proxy"
                           >
                             <a
@@ -6394,6 +6390,40 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                           class="sections"
                           data-testid="sidebar-category-sections"
                         >
+                          <li
+                            class="sidebar-section"
+                            data-testid="system_attributes.user_attributes_feature_discovery"
+                          >
+                            <a
+                              class="sidebar-section-title"
+                              href="/admin_console/system_attributes/user_attributes"
+                              id="system_attributes/user_attributes"
+                            >
+                              <span
+                                class="sidebar-section-title__text"
+                              >
+                                User Attributes
+                              </span>
+                              <span
+                                class="sidebar-section-indicator"
+                              >
+                                <span
+                                  class="RestrictedIndicator__icon-tooltip-container"
+                                >
+                                  <div
+                                    class="RestrictedIndicator__content"
+                                  >
+                                    <i
+                                      class="RestrictedIndicator__icon-tooltip icon icon-key-variant"
+                                    />
+                                  </div>
+                                </span>
+                              </span>
+                            </a>
+                            <ul
+                              class="nav nav__sub-menu subsections"
+                            />
+                          </li>
                           <li
                             class="sidebar-section"
                             data-testid="system_attributes.attribute_based_access_control_feature_discovery"
@@ -8192,6 +8222,40 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                           class="sections"
                           data-testid="sidebar-category-sections"
                         >
+                          <li
+                            class="sidebar-section"
+                            data-testid="system_attributes.user_attributes_feature_discovery"
+                          >
+                            <a
+                              class="sidebar-section-title"
+                              href="/admin_console/system_attributes/user_attributes"
+                              id="system_attributes/user_attributes"
+                            >
+                              <span
+                                class="sidebar-section-title__text"
+                              >
+                                User Attributes
+                              </span>
+                              <span
+                                class="sidebar-section-indicator"
+                              >
+                                <span
+                                  class="RestrictedIndicator__icon-tooltip-container"
+                                >
+                                  <div
+                                    class="RestrictedIndicator__content"
+                                  >
+                                    <i
+                                      class="RestrictedIndicator__icon-tooltip icon icon-key-variant"
+                                    />
+                                  </div>
+                                </span>
+                              </span>
+                            </a>
+                            <ul
+                              class="nav nav__sub-menu subsections"
+                            />
+                          </li>
                           <li
                             class="sidebar-section"
                             data-testid="system_attributes.attribute_based_access_control_feature_discovery"
@@ -10082,6 +10146,40 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                         >
                           <li
                             class="sidebar-section"
+                            data-testid="system_attributes.user_attributes_feature_discovery"
+                          >
+                            <a
+                              class="sidebar-section-title"
+                              href="/admin_console/system_attributes/user_attributes"
+                              id="system_attributes/user_attributes"
+                            >
+                              <span
+                                class="sidebar-section-title__text"
+                              >
+                                User Attributes
+                              </span>
+                              <span
+                                class="sidebar-section-indicator"
+                              >
+                                <span
+                                  class="RestrictedIndicator__icon-tooltip-container"
+                                >
+                                  <div
+                                    class="RestrictedIndicator__content"
+                                  >
+                                    <i
+                                      class="RestrictedIndicator__icon-tooltip icon icon-key-variant"
+                                    />
+                                  </div>
+                                </span>
+                              </span>
+                            </a>
+                            <ul
+                              class="nav nav__sub-menu subsections"
+                            />
+                          </li>
+                          <li
+                            class="sidebar-section"
                             data-testid="system_attributes.attribute_based_access_control_feature_discovery"
                           >
                             <a
@@ -11861,6 +11959,40 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                         >
                           <li
                             class="sidebar-section"
+                            data-testid="system_attributes.user_attributes_feature_discovery"
+                          >
+                            <a
+                              class="sidebar-section-title"
+                              href="/admin_console/system_attributes/user_attributes"
+                              id="system_attributes/user_attributes"
+                            >
+                              <span
+                                class="sidebar-section-title__text"
+                              >
+                                User Attributes
+                              </span>
+                              <span
+                                class="sidebar-section-indicator"
+                              >
+                                <span
+                                  class="RestrictedIndicator__icon-tooltip-container"
+                                >
+                                  <div
+                                    class="RestrictedIndicator__content"
+                                  >
+                                    <i
+                                      class="RestrictedIndicator__icon-tooltip icon icon-key-variant"
+                                    />
+                                  </div>
+                                </span>
+                              </span>
+                            </a>
+                            <ul
+                              class="nav nav__sub-menu subsections"
+                            />
+                          </li>
+                          <li
+                            class="sidebar-section"
                             data-testid="system_attributes.attribute_based_access_control_feature_discovery"
                           >
                             <a
@@ -13610,6 +13742,40 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                         >
                           <li
                             class="sidebar-section"
+                            data-testid="system_attributes.user_attributes_feature_discovery"
+                          >
+                            <a
+                              class="sidebar-section-title"
+                              href="/admin_console/system_attributes/user_attributes"
+                              id="system_attributes/user_attributes"
+                            >
+                              <span
+                                class="sidebar-section-title__text"
+                              >
+                                User Attributes
+                              </span>
+                              <span
+                                class="sidebar-section-indicator"
+                              >
+                                <span
+                                  class="RestrictedIndicator__icon-tooltip-container"
+                                >
+                                  <div
+                                    class="RestrictedIndicator__content"
+                                  >
+                                    <i
+                                      class="RestrictedIndicator__icon-tooltip icon icon-key-variant"
+                                    />
+                                  </div>
+                                </span>
+                              </span>
+                            </a>
+                            <ul
+                              class="nav nav__sub-menu subsections"
+                            />
+                          </li>
+                          <li
+                            class="sidebar-section"
                             data-testid="system_attributes.attribute_based_access_control_feature_discovery"
                           >
                             <a
@@ -15328,6 +15494,40 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                           class="sections"
                           data-testid="sidebar-category-sections"
                         >
+                          <li
+                            class="sidebar-section"
+                            data-testid="system_attributes.user_attributes_feature_discovery"
+                          >
+                            <a
+                              class="sidebar-section-title"
+                              href="/admin_console/system_attributes/user_attributes"
+                              id="system_attributes/user_attributes"
+                            >
+                              <span
+                                class="sidebar-section-title__text"
+                              >
+                                User Attributes
+                              </span>
+                              <span
+                                class="sidebar-section-indicator"
+                              >
+                                <span
+                                  class="RestrictedIndicator__icon-tooltip-container"
+                                >
+                                  <div
+                                    class="RestrictedIndicator__content"
+                                  >
+                                    <i
+                                      class="RestrictedIndicator__icon-tooltip icon icon-key-variant"
+                                    />
+                                  </div>
+                                </span>
+                              </span>
+                            </a>
+                            <ul
+                              class="nav nav__sub-menu subsections"
+                            />
+                          </li>
                           <li
                             class="sidebar-section"
                             data-testid="system_attributes.attribute_based_access_control_feature_discovery"

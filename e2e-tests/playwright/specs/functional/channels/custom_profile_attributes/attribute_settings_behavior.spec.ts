@@ -18,7 +18,6 @@ test(
     async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
         const {adminClient, user, userClient} = await pw.initSetup();
         const displayName = '40_characters_allowed_000000000000000000';
         const value = '64-characters-allowed-000000000000000000123456789012345678901234';
@@ -56,7 +55,6 @@ test(
     async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
         const {adminClient, user, userClient} = await pw.initSetup();
         const suffix = pw.random.id();
         const displayName = `Cancel Test ${suffix}`;
@@ -97,7 +95,6 @@ test(
     async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
         const {adminClient, user, userClient} = await pw.initSetup();
         const displayName = `Favorite Color ${pw.random.id()}`;
         const attributes: CustomProfileAttribute[] = [

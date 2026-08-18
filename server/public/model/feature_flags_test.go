@@ -64,6 +64,25 @@ func TestFeatureFlagsSetDefaults_AttributeValueMasking(t *testing.T) {
 	require.Equal(t, "true", flags.ToMap()["AttributeValueMasking"])
 }
 
+func TestFeatureFlagsSetDefaults_RecurringScheduledPosts(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.False(t, flags.RecurringScheduledPosts, "RecurringScheduledPosts should default to false")
+	require.Equal(t, "false", flags.ToMap()["RecurringScheduledPosts"])
+
+	flags.RecurringScheduledPosts = true
+	require.Equal(t, "true", flags.ToMap()["RecurringScheduledPosts"])
+}
+
+func TestFeatureFlagsSetDefaults_PostAttributes(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.False(t, flags.PostAttributes, "PostAttributes should default to false")
+	require.Equal(t, "false", flags.ToMap()["PostAttributes"])
+}
+
 func TestFeatureFlagsSetDefaults_PropertyFieldRank(t *testing.T) {
 	var flags FeatureFlags
 	flags.SetDefaults()
