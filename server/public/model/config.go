@@ -286,8 +286,8 @@ const (
 	GlobalrelayCustomerTypeA10    = "A10"
 	GlobalrelayCustomerTypeCustom = "CUSTOM"
 
-	ImageProxyTypeLocal     = "local"
-	ImageProxyTypeAtmosCamo = "atmos/camo"
+	ImageProxyTypeLocal           = "local"
+	ImageProxyTypeLegacyAtmosCamo = "atmos/camo"
 
 	GoogleSettingsDefaultScope           = "profile email"
 	GoogleSettingsDefaultAuthEndpoint    = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -435,12 +435,12 @@ type ServiceSettings struct {
 	EnableCustomEmoji                                 *bool   `access:"site_emoji"`
 	EnableEmojiPicker                                 *bool   `access:"site_emoji"`
 	PostEditTimeLimit                                 *int    `access:"user_management_permissions"`
-	TimeBetweenUserTypingUpdatesMilliseconds          *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	TimeBetweenUserTypingUpdatesMilliseconds          *int64  `access:"site_posts,write_restrictable,cloud_restrictable"`
 	EnableCrossTeamSearch                             *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnableFileSearch                                  *bool   `access:"write_restrictable"`
 	MinimumHashtagLength                              *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
-	EnableUserTypingMessages                          *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	EnableUserTypingMessages                          *bool   `access:"site_posts,write_restrictable,cloud_restrictable"`
 	EnableChannelViewedMessages                       *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableUserStatuses                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	ExperimentalEnableAuthenticationTransfer          *bool   `access:"experimental_features"`
@@ -3986,10 +3986,8 @@ func (s *GuestAccountsSettings) IsValid() *AppError {
 }
 
 type ImageProxySettings struct {
-	Enable                  *bool   `access:"environment_image_proxy"`
-	ImageProxyType          *string `access:"environment_image_proxy"`
-	RemoteImageProxyURL     *string `access:"environment_image_proxy"`
-	RemoteImageProxyOptions *string `access:"environment_image_proxy"`
+	Enable         *bool   `access:"environment_image_proxy"`
+	ImageProxyType *string `access:"environment_image_proxy"`
 }
 
 func (s *ImageProxySettings) SetDefaults() {
@@ -3999,14 +3997,6 @@ func (s *ImageProxySettings) SetDefaults() {
 
 	if s.ImageProxyType == nil {
 		s.ImageProxyType = new(ImageProxyTypeLocal)
-	}
-
-	if s.RemoteImageProxyURL == nil {
-		s.RemoteImageProxyURL = new("")
-	}
-
-	if s.RemoteImageProxyOptions == nil {
-		s.RemoteImageProxyOptions = new("")
 	}
 }
 
@@ -4527,6 +4517,12 @@ func (o *Config) IsValid() *AppError {
 
 	if appErr := o.AccessControlSettings.isValid(); appErr != nil {
 		return appErr
+	}
+
+	if o.FeatureFlags != nil {
+		if appErr := o.FeatureFlags.isValid(); appErr != nil {
+			return appErr
+		}
 	}
 
 	return nil
@@ -5295,24 +5291,14 @@ func (s *DisplaySettings) isValid() *AppError {
 }
 
 func (s *ImageProxySettings) isValid() *AppError {
+	if *s.ImageProxyType == ImageProxyTypeLegacyAtmosCamo {
+		return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_removed.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.Enable {
 		switch *s.ImageProxyType {
 		case ImageProxyTypeLocal:
 			// No other settings to validate
-		case ImageProxyTypeAtmosCamo:
-			if *s.RemoteImageProxyURL == "" {
-				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_url.app_error", nil, "", http.StatusBadRequest)
-			}
-
-			if *s.RemoteImageProxyOptions == "" {
-				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options.app_error", nil, "", http.StatusBadRequest)
-			}
-
-			// RemoteImageProxyOptions is used as the HMAC key for URL signing,
-			// so it is subject to the same FIPS minimum key length as passwords.
-			if FIPSEnabled && len(*s.RemoteImageProxyOptions) < PasswordFIPSMinimumLength {
-				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error", map[string]any{"MinLength": PasswordFIPSMinimumLength}, "", http.StatusBadRequest)
-			}
 		default:
 			return NewAppError("Config.IsValid", "model.config.is_valid.image_proxy_type.app_error", nil, "", http.StatusBadRequest)
 		}
