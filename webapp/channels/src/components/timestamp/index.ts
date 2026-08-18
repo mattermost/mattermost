@@ -16,7 +16,7 @@ import type {GlobalState} from 'types/store';
 import {getTimestampFormatProps} from './format_props';
 import type {TimestampFormatProps, TimestampVariant} from './format_props';
 import * as RelativeRanges from './relative_ranges';
-import Timestamp, {supportsHourCycle} from './timestamp';
+import Timestamp from './timestamp';
 import type {Props as TimestampProps} from './timestamp';
 
 type Props = Partial<TimestampFormatProps> & {
@@ -50,18 +50,10 @@ function withoutExplicitOverrides(formatProps: TimestampFormatProps, ownProps: P
 
 export function mapStateToProps(state: GlobalState, ownProps: Props) {
     const timeZone: TimestampProps['timeZone'] = getUserCurrentTimezone(ownProps.userTimezone ?? getCurrentTimezoneFull(state)) || undefined;
-    let hourCycle: TimestampProps['hourCycle'];
-    let hour12: TimestampProps['hour12'];
-
     const useMilitaryTime = getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false);
+    const hourCycle: TimestampProps['hourCycle'] = ownProps.hourCycle || (useMilitaryTime ? 'h23' : 'h12');
 
-    if (supportsHourCycle) {
-        hourCycle = ownProps.hourCycle || (useMilitaryTime ? 'h23' : 'h12');
-    } else {
-        hour12 = ownProps.hour12 ?? (!useMilitaryTime);
-    }
-
-    const props = {timeZone: ownProps.timeZone || timeZone, hourCycle, hour12};
+    const props = {timeZone: ownProps.timeZone || timeZone, hourCycle};
 
     if (!ownProps.usePreferredFormat) {
         return props;
@@ -80,6 +72,5 @@ export default connect(mapStateToProps)(Timestamp);
 
 export {default as SemanticTime} from './semantic_time';
 export {RelativeRanges};
-export {supportsHourCycle};
 export {getTimestampFormatProps};
 export type {TimestampVariant};

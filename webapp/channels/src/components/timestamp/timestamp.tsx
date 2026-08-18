@@ -24,18 +24,9 @@ import type {Resolvable} from 'utils/resolvable';
 import {STANDARD_UNITS} from './relative_ranges';
 import SemanticTime from './semantic_time';
 
-// Feature test the browser for support of hourCycle.
-// Note that Intl.DateTimeFormatOptions typings are stale and do not have definitions of hourCycle, dateStyle, etc..
-// See https://github.com/microsoft/TypeScript/issues/34399
-export const supportsHourCycle = Boolean(((new Intl.DateTimeFormat('en-US', {hour: 'numeric'})).resolvedOptions() as DateTimeOptions).hourCycle);
-
 export type DateTimeOptions = FormatDateOptions & {
     hourCycle?: string;
 };
-
-function is12HourTime(hourCycle: DateTimeOptions['hourCycle'], hour12?: DateTimeOptions['hour12']) {
-    return hour12 ?? !(hourCycle === 'h23' || hourCycle === 'h24');
-}
 
 export type RelativeOptions = FormatRelativeTimeOptions & {
     unit: Intl.RelativeTimeFormatUnit;
@@ -200,10 +191,7 @@ class Timestamp extends PureComponent<Props, State> {
             }
         }
 
-        const {
-            hourCycle,
-            hour12 = supportsHourCycle ? undefined : is12HourTime(hourCycle),
-        } = this.props;
+        const {hourCycle, hour12} = this.props;
 
         if (relative == null && dateFormat) {
             // Formatting both halves in one pass lets Intl apply the locale's own
