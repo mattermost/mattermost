@@ -905,6 +905,21 @@ Access the following configuration settings in the System Console by going to **
 </tbody>
 </table>
 
+### Enable account deactivation
+
+<table>
+<colgroup>
+<col style={{width: '53%'}} />
+<col style={{width: '46%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Users can deactivate their own account from <strong>Settings &gt; Advanced &gt; Deactivate Account</strong>. When a user deactivates their own account, they receive an email notification confirming the deactivation.</li><li><strong>false</strong>: <strong>(Default)</strong> Users can't deactivate their own account.</li></ul><p>Available only when authentication is set to use email and password. Not available when authentication uses SAML or AD/LDAP.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>EnableUserDeactivation</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_ENABLEUSERDEACTIVATION</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ### Channel category sorting
 
 From Mattermost v11.8, channel category sorting is enabled by default. When enabled, channel admins can choose a default sidebar category when creating or editing a channel. Channel admins can select an existing category, type a new category name, or clear the default category from channel settings. Members who join the channel see it under that category in their sidebar. When disabled, the default category selector is hidden.
