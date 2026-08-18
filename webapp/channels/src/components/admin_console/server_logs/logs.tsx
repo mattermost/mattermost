@@ -184,7 +184,7 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
     }, [plainPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Live tail polling
-    const {lastUpdated} = useLogPolling({
+    useLogPolling({
         fetchLogs: pollLogs,
         enabled: liveTailEnabled && !isPlainLogs,
         intervalMs: pollInterval,
@@ -265,31 +265,6 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
         }).then(() => setLoading(false));
     }, [actions]);
 
-    // `lastUpdated` only moves once per poll, so the elapsed label needs its own
-    // clock to advance in between
-    const [now, setNow] = useState(() => Date.now());
-    const showLastUpdated = liveTailEnabled && lastUpdated !== null;
-    useEffect(() => {
-        if (!showLastUpdated) {
-            return undefined;
-        }
-        setNow(Date.now());
-        const intervalId = setInterval(() => setNow(Date.now()), 1000);
-        return () => clearInterval(intervalId);
-    }, [showLastUpdated, lastUpdated]);
-
-    // Format "last updated" for live tail
-    const lastUpdatedText = useMemo(() => {
-        if (!lastUpdated) {
-            return null;
-        }
-        const seconds = Math.max(0, Math.round((now - lastUpdated) / 1000));
-        if (seconds < 5) {
-            return intl.formatMessage({id: 'admin.logs.justNow', defaultMessage: 'just now'});
-        }
-        return intl.formatMessage({id: 'admin.logs.secondsAgo', defaultMessage: '{n}s ago'}, {n: seconds});
-    }, [lastUpdated, now, intl]);
-
     const displayLogs = searchFilteredLogs;
 
     const logFormatMenu = configIsPlainLogs ? null : (
@@ -326,7 +301,6 @@ export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, a
             onPollIntervalChange={setPollInterval}
             pollIntervals={POLL_INTERVALS}
             pollIntervalLabels={POLL_INTERVAL_LABELS}
-            lastUpdatedText={lastUpdatedText}
             timePresets={TIME_PRESETS}
             activeTimePreset={activeTimePreset}
             onTimePreset={handleTimePreset}

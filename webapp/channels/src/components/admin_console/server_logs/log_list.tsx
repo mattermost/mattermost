@@ -40,7 +40,6 @@ type Props = {
     onPollIntervalChange: (interval: number) => void;
     pollIntervals: readonly number[];
     pollIntervalLabels: Record<number, MessageDescriptor>;
-    lastUpdatedText: string | null;
 
     // Time presets
     timePresets: readonly TimePreset[];
@@ -152,7 +151,7 @@ export default function LogList({
     loading, logs, onSearchChange, search,
     onReload, downloadUrl,
     liveTailEnabled, onToggleLiveTail, pollInterval, onPollIntervalChange,
-    pollIntervals, pollIntervalLabels, lastUpdatedText,
+    pollIntervals, pollIntervalLabels,
     timePresets, activeTimePreset, onTimePreset, onClearTimePreset,
     logFormatMenu,
 }: Props) {
@@ -413,67 +412,6 @@ export default function LogList({
 
     const filters = (
         <div className='LogViewer__filters admin-console__filters-rows'>
-            <Menu.Container
-                menuButton={{
-                    id: 'serverLogsLiveTailMenuButton',
-                    class: 'inputWithMenu',
-                    'aria-label': intl.formatMessage({id: 'admin.logs.liveTail.menuButtonAriaLabel', defaultMessage: 'Open menu to turn live tail on or off'}),
-                    as: 'div',
-                    children: (
-                        <Input
-                            label={intl.formatMessage(messages.liveTail)}
-                            name='serverLogsLiveTail'
-                            value={liveTailEnabled ? intl.formatMessage(pollIntervalLabels[pollInterval]) : intl.formatMessage(messages.liveTailOff)}
-                            readOnly={true}
-                            inputPrefix={liveTailEnabled ? (
-                                <span
-                                    className='LogViewer__live-dot'
-                                    aria-hidden='true'
-                                />
-                            ) : undefined}
-                            inputSuffix={<i className='icon icon-chevron-down'/>}
-                        />
-                    ),
-                }}
-                menu={{
-                    id: 'serverLogsLiveTailMenu',
-                    'aria-label': intl.formatMessage({id: 'admin.logs.liveTail.dropdownAriaLabel', defaultMessage: 'Live tail menu'}),
-                    width: '220px',
-                }}
-            >
-                <Menu.Item
-                    id='serverLogsLiveTail-off'
-                    role='menuitemradio'
-                    aria-checked={!liveTailEnabled}
-                    forceCloseOnSelect={true}
-                    labels={<FormattedMessage {...messages.liveTailOff}/>}
-                    trailingElements={!liveTailEnabled && <i className='icon icon-check'/>}
-                    onClick={() => setLiveTail(null)}
-                />
-                {pollIntervals.map((interval) => (
-                    <Menu.Item
-                        key={interval}
-                        id={`serverLogsLiveTail-${interval}`}
-                        role='menuitemradio'
-                        aria-checked={liveTailEnabled && interval === pollInterval}
-                        forceCloseOnSelect={true}
-                        labels={<FormattedMessage {...pollIntervalLabels[interval]}/>}
-                        trailingElements={liveTailEnabled && interval === pollInterval && <i className='icon icon-check'/>}
-                        onClick={() => setLiveTail(interval)}
-                    />
-                ))}
-            </Menu.Container>
-
-            {liveTailEnabled && lastUpdatedText && (
-                <span className='LogViewer__last-updated'>
-                    <FormattedMessage
-                        id='admin.logs.lastUpdated'
-                        defaultMessage='Updated {elapsed}'
-                        values={{elapsed: lastUpdatedText}}
-                    />
-                </span>
-            )}
-
             <Input
                 ref={searchInputRef}
                 type='text'
@@ -559,6 +497,57 @@ export default function LogList({
                     }
                     onClick={enableAllLevels}
                 />
+            </Menu.Container>
+
+            <Menu.Container
+                menuButton={{
+                    id: 'serverLogsLiveTailMenuButton',
+                    class: 'inputWithMenu',
+                    'aria-label': intl.formatMessage({id: 'admin.logs.liveTail.menuButtonAriaLabel', defaultMessage: 'Open menu to turn live tail on or off'}),
+                    as: 'div',
+                    children: (
+                        <Input
+                            label={intl.formatMessage(messages.liveTail)}
+                            name='serverLogsLiveTail'
+                            value={liveTailEnabled ? intl.formatMessage(pollIntervalLabels[pollInterval]) : intl.formatMessage(messages.liveTailOff)}
+                            readOnly={true}
+                            inputPrefix={liveTailEnabled ? (
+                                <span
+                                    className='LogViewer__live-dot'
+                                    aria-hidden='true'
+                                />
+                            ) : undefined}
+                            inputSuffix={<i className='icon icon-chevron-down'/>}
+                        />
+                    ),
+                }}
+                menu={{
+                    id: 'serverLogsLiveTailMenu',
+                    'aria-label': intl.formatMessage({id: 'admin.logs.liveTail.dropdownAriaLabel', defaultMessage: 'Live tail menu'}),
+                    width: '220px',
+                }}
+            >
+                <Menu.Item
+                    id='serverLogsLiveTail-off'
+                    role='menuitemradio'
+                    aria-checked={!liveTailEnabled}
+                    forceCloseOnSelect={true}
+                    labels={<FormattedMessage {...messages.liveTailOff}/>}
+                    trailingElements={!liveTailEnabled && <i className='icon icon-check'/>}
+                    onClick={() => setLiveTail(null)}
+                />
+                {pollIntervals.map((interval) => (
+                    <Menu.Item
+                        key={interval}
+                        id={`serverLogsLiveTail-${interval}`}
+                        role='menuitemradio'
+                        aria-checked={liveTailEnabled && interval === pollInterval}
+                        forceCloseOnSelect={true}
+                        labels={<FormattedMessage {...pollIntervalLabels[interval]}/>}
+                        trailingElements={liveTailEnabled && interval === pollInterval && <i className='icon icon-check'/>}
+                        onClick={() => setLiveTail(interval)}
+                    />
+                ))}
             </Menu.Container>
 
             <Menu.Container

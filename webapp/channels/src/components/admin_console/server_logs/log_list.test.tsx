@@ -44,7 +44,6 @@ const baseProps = {
     onPollIntervalChange: jest.fn(),
     pollIntervals: [5000],
     pollIntervalLabels: {5000: {id: 'test.pollInterval.5s', defaultMessage: 'Every 5 seconds'}},
-    lastUpdatedText: null,
     timePresets: [],
     activeTimePreset: null,
     onTimePreset: jest.fn(),
