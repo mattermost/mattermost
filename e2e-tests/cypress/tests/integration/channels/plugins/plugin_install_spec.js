@@ -77,6 +77,18 @@ describe('Plugins Management', () => {
         verifyStatus(demoPlugin.id, 'This plugin is running.');
 
         cy.findByTestId(demoPlugin.id).scrollIntoView().should('be.visible').within(() => {
+            // # Open the plugin settings page
+            cy.findByText('Settings').should('be.visible').click();
+        });
+
+        // * Verify status is also shown on the plugin settings page
+        cy.findByTestId('plugin-metadata-panel', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
+        cy.findByText('This plugin is running.').should('be.visible');
+
+        // # Return to Plugin Management
+        cy.visit('/admin_console/plugins/plugin_management');
+
+        cy.findByTestId(demoPlugin.id).scrollIntoView().should('be.visible').within(() => {
             // # Disable plugin
             cy.findByText('Disable').should('be.visible').click();
             cy.findByText('This plugin is stopping.').should('be.visible');

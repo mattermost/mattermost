@@ -46,6 +46,11 @@ describe('custom plugin sections and settings', () => {
                     testplugin: {
                     },
                 },
+                PluginStates: {
+                    testplugin: {
+                        Enable: true,
+                    },
+                },
             } as unknown as PluginSettings,
         },
         consoleAccess: {
@@ -85,8 +90,15 @@ describe('custom plugin sections and settings', () => {
     const expectPluginPageTitle = (pluginName: string, pluginId: string) => {
         const panel = screen.getByTestId('plugin-metadata-panel');
         expect(panel).toHaveTextContent(`${pluginName} (${pluginId}`);
-        expect(document.querySelector('.PluginMetadataPanel__settingsWrapper')).toContainElement(panel);
+        expect(document.querySelector('.PluginMetadataPanel__actionsPanel')).toContainElement(panel);
         expect(screen.getByRole('heading', {level: 1, hidden: true})).toHaveTextContent(pluginName);
+    };
+
+    const expectPluginActionsInMetadataPanel = () => {
+        const wrapper = document.querySelector('.PluginMetadataPanel__settingsWrapper');
+        const toggleButton = screen.queryByRole('button', {name: 'Enable plugin'}) || screen.getByRole('button', {name: 'Disable plugin'});
+        expect(wrapper).toContainElement(toggleButton);
+        expect(wrapper).toContainElement(screen.getByRole('button', {name: 'Uninstall plugin'}));
     };
 
     it('empty sections and settings', () => {
@@ -98,7 +110,11 @@ describe('custom plugin sections and settings', () => {
             {...baseState});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
+        expectPluginActionsInMetadataPanel();
+        expect(screen.getByText('This plugin is running.')).toBeInTheDocument();
+        expect(screen.getByText('This plugin is running.').closest('.alert-success')).toBeInTheDocument();
         expect(screen.getByText('This is the header')).toBeInTheDocument();
         expect(screen.getByText('This is the footer')).toBeInTheDocument();
     });
@@ -147,6 +163,7 @@ describe('custom plugin sections and settings', () => {
                     plugins: {
                         testplugin: {
                             ...plugin,
+                            active: false,
                             settings_schema: {
                                 ...plugin.settings_schema,
                                 sections: [
@@ -187,12 +204,16 @@ describe('custom plugin sections and settings', () => {
         const props = {
             ...baseProps,
             config: {
-                ...baseProps.config,
-                PluginStates: {
-                    testplugin: {
-                        Enabled: false,
+                PluginSettings: {
+                    Plugins: {
+                        testplugin: {},
                     },
-                },
+                    PluginStates: {
+                        testplugin: {
+                            Enable: false,
+                        },
+                    },
+                } as unknown as PluginSettings,
             },
         };
 
@@ -204,8 +225,13 @@ describe('custom plugin sections and settings', () => {
             {...state});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();
-        expect(screen.getByText('In order to view and configure plugin settings, enable the plugin and click Save.')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
+        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
+        expect(screen.queryByText('Enable Plugin:')).not.toBeInTheDocument();
+        expect(screen.queryByText('When true, this plugin is enabled.')).not.toBeInTheDocument();
+        expect(screen.getByText('In order to view and configure plugin settings, enable the plugin.')).toBeInTheDocument();
         expect(screen.queryByText('Custom Section 1')).not.toBeInTheDocument();
         expect(screen.queryByText('Custom Section 2')).not.toBeInTheDocument();
     });
@@ -218,6 +244,7 @@ describe('custom plugin sections and settings', () => {
                     plugins: {
                         testplugin: {
                             ...plugin,
+                            active: false,
                             settings_schema: {
                                 ...plugin.settings_schema,
                                 sections: [
@@ -266,12 +293,16 @@ describe('custom plugin sections and settings', () => {
         const props = {
             ...baseProps,
             config: {
-                ...baseProps.config,
-                PluginStates: {
-                    testplugin: {
-                        Enabled: false,
+                PluginSettings: {
+                    Plugins: {
+                        testplugin: {},
                     },
-                },
+                    PluginStates: {
+                        testplugin: {
+                            Enable: false,
+                        },
+                    },
+                } as unknown as PluginSettings,
             },
         };
 
@@ -283,14 +314,99 @@ describe('custom plugin sections and settings', () => {
             {...state});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();
-        expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin and click Save.')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
+        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
+        expect(screen.queryByText('Enable Plugin:')).not.toBeInTheDocument();
+        expect(screen.queryByText('When true, this plugin is enabled.')).not.toBeInTheDocument();
+        expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin.')).not.toBeInTheDocument();
         expect(screen.queryByText('Custom Section 1')).toBeInTheDocument();
         expect(screen.queryByText('Custom Section 2')).toBeInTheDocument();
         expect(screen.getByText('Custom Section Number Setting Help Text')).toBeInTheDocument();
         expect(screen.getByText('Custom Section Bool Setting Help Text')).toBeInTheDocument();
         expect(screen.queryByText('Custom Section Custom Setting Help Text')).not.toBeInTheDocument();
-        expect(screen.getByText('In order to view this setting, enable the plugin and click Save.')).toBeInTheDocument();
+        expect(screen.getByText('In order to view this setting, enable the plugin.')).toBeInTheDocument();
+    });
+
+    it('reloads plugin enable setting state when the plugin becomes active', () => {
+        const disabledPlugin = {
+            ...plugin,
+            active: false,
+        };
+        const state = {
+            ...baseState,
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: disabledPlugin,
+                    },
+                },
+            },
+        };
+
+        const disabledProps = {
+            ...baseProps,
+            config: {
+                PluginSettings: {
+                    Plugins: {
+                        testplugin: {},
+                    },
+                    PluginStates: {
+                        testplugin: {
+                            Enable: false,
+                        },
+                    },
+                } as unknown as PluginSettings,
+            },
+        };
+
+        const {rerender, updateStoreState} = renderWithContext(
+            <CustomPluginSettings
+                {...disabledProps}
+                patchConfig={jest.fn()}
+            />,
+            state,
+        );
+
+        expect(screen.getByRole('button', {name: 'Enable plugin'})).toBeInTheDocument();
+
+        updateStoreState({
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: {
+                            ...disabledPlugin,
+                            active: true,
+                        },
+                    },
+                },
+            },
+        });
+
+        rerender(
+            <CustomPluginSettings
+                {...disabledProps}
+                config={{
+                    PluginSettings: {
+                        Plugins: {
+                            testplugin: {},
+                        },
+                        PluginStates: {
+                            testplugin: {
+                                Enable: true,
+                            },
+                        },
+                    } as unknown as PluginSettings,
+                }}
+                patchConfig={jest.fn()}
+            />,
+        );
+
+        expect(screen.queryByRole('button', {name: 'Enable plugin'})).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
+        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
     });
 
     it('mixed custom section fallback with plugin disabled keeps fallback sections visible', () => {
@@ -525,12 +641,16 @@ describe('custom plugin sections and settings', () => {
         const props = {
             ...baseProps,
             config: {
-                ...baseProps.config,
-                PluginStates: {
-                    testplugin: {
-                        Enabled: true,
+                PluginSettings: {
+                    Plugins: {
+                        testplugin: {},
                     },
-                },
+                    PluginStates: {
+                        testplugin: {
+                            Enable: true,
+                        },
+                    },
+                } as unknown as PluginSettings,
             },
         };
 
@@ -542,8 +662,12 @@ describe('custom plugin sections and settings', () => {
             {...state});
 
         expectPluginPageTitle('testplugin', 'testplugin');
-        expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable')).toBeInTheDocument();
-        expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin and click Save.')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Disable plugin'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Uninstall plugin'})).toBeInTheDocument();
+        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enabletrue')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enablefalse')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Enable plugin'})).not.toBeInTheDocument();
+        expect(screen.queryByText('In order to view and configure plugin settings, enable the plugin.')).not.toBeInTheDocument();
         expect(screen.getByText('Custom Component Section 1')).toBeInTheDocument();
         expect(screen.getByText('Custom Component Section 2')).toBeInTheDocument();
     });
