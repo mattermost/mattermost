@@ -1458,6 +1458,11 @@ type PreparePostForClientOpts struct {
 	IncludePriority bool
 	RetainContent   bool
 	IncludeDeleted  bool
+
+	// PropertyGroupID, when set, hydrates each post's property values for that group onto
+	// Metadata.PropertyValues. Empty means no hydration, so the zero value is always safe and
+	// callers opt in rather than out.
+	PropertyGroupID string
 }
 
 // ReportPostOptions contains options for querying posts for reporting/compliance purposes
