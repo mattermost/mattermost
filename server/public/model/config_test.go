@@ -1055,11 +1055,25 @@ func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *t
 }
 
 // func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidEmailAddress(t *testing.T) {
+func customRelaySettings(name, value string) *GlobalRelayMessageExportSettings {
+	return &GlobalRelayMessageExportSettings{
+		CustomerType:         new(GlobalrelayCustomerTypeCustom),
+		EmailAddress:         new("valid@mattermost.com"),
+		SMTPUsername:         new("SomeUsername"),
+		SMTPPassword:         new("SomePassword"),
+		CustomSMTPServerName: new("feeds.example.com"),
+		CustomSMTPPort:       new("25"),
+		CustomHeaderName:     new(name),
+		CustomHeaderValue:    new(value),
+	}
+}
+
 func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 	tests := []struct {
 		name    string
 		value   *GlobalRelayMessageExportSettings
 		success bool
+		errorId string
 	}{
 		{
 			"Invalid email address",
@@ -1070,6 +1084,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			false,
+			"",
 		},
 		{
 			"Missing smtp username",
@@ -1079,6 +1094,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			false,
+			"",
 		},
 		{
 			"Invalid smtp username",
@@ -1089,6 +1105,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			false,
+			"",
 		},
 		{
 			"Invalid smtp password",
@@ -1099,6 +1116,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new(""),
 			},
 			false,
+			"",
 		},
 		{
 			"Valid data",
@@ -1109,138 +1127,127 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			true,
+			"",
+		},
+		{
+			"A9 with only custom header name set is ignored",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:     new(GlobalrelayCustomerTypeA9),
+				EmailAddress:     new("valid@mattermost.com"),
+				SMTPUsername:     new("SomeUsername"),
+				SMTPPassword:     new("SomePassword"),
+				CustomHeaderName: new("X-Custom"),
+			},
+			true,
+			"",
 		},
 		{
 			"Valid custom header",
-			&GlobalRelayMessageExportSettings{
-				CustomerType:      new(GlobalrelayCustomerTypeA9),
-				EmailAddress:      new("valid@mattermost.com"),
-				SMTPUsername:      new("SomeUsername"),
-				SMTPPassword:      new("SomePassword"),
-				CustomHeaderName:  new("X-ProofpointArchiveMediaType"),
-				CustomHeaderValue: new("Message"),
-			},
+			customRelaySettings("X-ProofpointArchiveMediaType", "Message"),
 			true,
+			"",
 		},
 		{
 			"Custom header name with CRLF",
-			&GlobalRelayMessageExportSettings{
-				CustomerType:      new(GlobalrelayCustomerTypeA9),
-				EmailAddress:      new("valid@mattermost.com"),
-				SMTPUsername:      new("SomeUsername"),
-				SMTPPassword:      new("SomePassword"),
-				CustomHeaderName:  new("X-Custom\r\nInjected"),
-				CustomHeaderValue: new("Message"),
-			},
+			customRelaySettings("X-Custom\r\nInjected", "Message"),
 			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
 		},
 		{
 			"Custom header value with CRLF",
-			&GlobalRelayMessageExportSettings{
-				CustomerType:      new(GlobalrelayCustomerTypeA9),
-				EmailAddress:      new("valid@mattermost.com"),
-				SMTPUsername:      new("SomeUsername"),
-				SMTPPassword:      new("SomePassword"),
-				CustomHeaderName:  new("X-Custom"),
-				CustomHeaderValue: new("Message\r\nInjected: evil"),
-			},
+			customRelaySettings("X-Custom", "Message\r\nInjected: evil"),
 			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
 		},
 		{
 			"Custom header name with invalid character",
-			&GlobalRelayMessageExportSettings{
-				CustomerType:      new(GlobalrelayCustomerTypeA9),
-				EmailAddress:      new("valid@mattermost.com"),
-				SMTPUsername:      new("SomeUsername"),
-				SMTPPassword:      new("SomePassword"),
-				CustomHeaderName:  new("X-Custom:Header"),
-				CustomHeaderValue: new("Message"),
-			},
+			customRelaySettings("X-Custom:Header", "Message"),
 			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
 		},
 		{
 			"Custom header name with a space",
-			&GlobalRelayMessageExportSettings{
-				CustomerType:      new(GlobalrelayCustomerTypeA9),
-				EmailAddress:      new("valid@mattermost.com"),
-				SMTPUsername:      new("SomeUsername"),
-				SMTPPassword:      new("SomePassword"),
-				CustomHeaderName:  new("X Custom"),
-				CustomHeaderValue: new("Message"),
-			},
+			customRelaySettings("X Custom", "Message"),
 			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
 		},
 		{
 			"Custom header value may contain spaces and colons",
-			&GlobalRelayMessageExportSettings{
-				CustomerType:      new(GlobalrelayCustomerTypeA9),
-				EmailAddress:      new("valid@mattermost.com"),
-				SMTPUsername:      new("SomeUsername"),
-				SMTPPassword:      new("SomePassword"),
-				CustomHeaderName:  new("X-Custom"),
-				CustomHeaderValue: new("some value: with punctuation"),
-			},
+			customRelaySettings("X-Custom", "some value: with punctuation"),
 			true,
+			"",
 		},
 		{
 			"Custom header name set without a value",
-			&GlobalRelayMessageExportSettings{
-				CustomerType:      new(GlobalrelayCustomerTypeA9),
-				EmailAddress:      new("valid@mattermost.com"),
-				SMTPUsername:      new("SomeUsername"),
-				SMTPPassword:      new("SomePassword"),
-				CustomHeaderName:  new("X-Custom"),
-				CustomHeaderValue: new(""),
-			},
+			customRelaySettings("X-Custom", ""),
 			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
 		},
 		{
 			"Custom header value set without a name",
-			&GlobalRelayMessageExportSettings{
-				CustomerType:      new(GlobalrelayCustomerTypeA9),
-				EmailAddress:      new("valid@mattermost.com"),
-				SMTPUsername:      new("SomeUsername"),
-				SMTPPassword:      new("SomePassword"),
-				CustomHeaderName:  new(""),
-				CustomHeaderValue: new("Message"),
-			},
+			customRelaySettings("", "Message"),
 			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
 		},
 		{
 			"Custom header both empty",
-			&GlobalRelayMessageExportSettings{
-				CustomerType:      new(GlobalrelayCustomerTypeA9),
-				EmailAddress:      new("valid@mattermost.com"),
-				SMTPUsername:      new("SomeUsername"),
-				SMTPPassword:      new("SomePassword"),
-				CustomHeaderName:  new(""),
-				CustomHeaderValue: new(""),
-			},
+			customRelaySettings("", ""),
 			true,
+			"",
 		},
 		{
 			"Custom header value may contain non-ASCII",
-			&GlobalRelayMessageExportSettings{
-				CustomerType:      new(GlobalrelayCustomerTypeA9),
-				EmailAddress:      new("valid@mattermost.com"),
-				SMTPUsername:      new("SomeUsername"),
-				SMTPPassword:      new("SomePassword"),
-				CustomHeaderName:  new("X-Custom"),
-				CustomHeaderValue: new("Café Meeting"),
-			},
+			customRelaySettings("X-Custom", "Café Meeting"),
 			true,
+			"",
 		},
 		{
 			"Custom header name with a non-token character",
-			&GlobalRelayMessageExportSettings{
-				CustomerType:      new(GlobalrelayCustomerTypeA9),
-				EmailAddress:      new("valid@mattermost.com"),
-				SMTPUsername:      new("SomeUsername"),
-				SMTPPassword:      new("SomePassword"),
-				CustomHeaderName:  new("X-Custom(Foo)"),
-				CustomHeaderValue: new("Message"),
-			},
+			customRelaySettings("X-Custom(Foo)", "Message"),
 			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+		},
+		{
+			"Custom header name reserved: From",
+			customRelaySettings("From", "attacker@example.com"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: to (case-insensitive)",
+			customRelaySettings("to", "attacker@example.com"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: X-GlobalRelay-MsgType",
+			customRelaySettings(GlobalRelayMsgTypeHeader, "NotMattermost"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: Content-Type",
+			customRelaySettings("Content-Type", "text/plain"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: mixed-case fRoM",
+			customRelaySettings("fRoM", "attacker@example.com"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: mixed-case x-globalrelay-MSGTYPE",
+			customRelaySettings("x-globalrelay-MSGTYPE", "NotMattermost"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header value is whitespace-only",
+			customRelaySettings("X-Custom", "   "),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
 		},
 	}
 
@@ -1258,7 +1265,11 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 			if tt.success {
 				require.Nil(t, mes.isValid())
 			} else {
-				require.NotNil(t, mes.isValid())
+				appErr := mes.isValid()
+				require.NotNil(t, appErr)
+				if tt.errorId != "" {
+					require.Equal(t, tt.errorId, appErr.Id)
+				}
 			}
 		})
 	}
@@ -1297,7 +1308,9 @@ func TestMessageExportSettingsGlobalRelayZipCustomHeader(t *testing.T) {
 		},
 	}
 
-	require.NotNil(t, mes.isValid())
+	appErr := mes.isValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.message_export.global_relay.custom_header_name.app_error", appErr.Id)
 }
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.T) {

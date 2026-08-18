@@ -287,6 +287,11 @@ const (
 	GlobalrelayCustomerTypeA10    = "A10"
 	GlobalrelayCustomerTypeCustom = "CUSTOM"
 
+	GlobalRelayMsgTypeHeader     = "X-GlobalRelay-MsgType"
+	GlobalRelayChannelNameHeader = "X-Mattermost-ChannelName"
+	GlobalRelayChannelIDHeader   = "X-Mattermost-ChannelID"
+	GlobalRelayChannelTypeHeader = "X-Mattermost-ChannelType"
+
 	ImageProxyTypeLocal     = "local"
 	ImageProxyTypeAtmosCamo = "atmos/camo"
 
@@ -334,6 +339,31 @@ const (
 
 func GetDefaultAppCustomURLSchemes() []string {
 	return []string{"mmauth://", "mmauthbeta://"}
+}
+
+// globalRelayReservedHeaders are the headers the Global Relay EML export writes itself.
+// A custom header may not reuse any of them: delivery re-parses From out of the generated
+// EML to set the SMTP envelope sender, Global Relay routes on X-GlobalRelay-MsgType, and a
+// duplicate Content-Type or Mime-Version makes the message unparseable.
+var globalRelayReservedHeaders = map[string]struct{}{
+	"from":                      {},
+	"to":                        {},
+	"subject":                   {},
+	"content-transfer-encoding": {},
+	"auto-submitted":            {},
+	"precedence":                {},
+	strings.ToLower(GlobalRelayMsgTypeHeader):     {},
+	strings.ToLower(GlobalRelayChannelNameHeader): {},
+	strings.ToLower(GlobalRelayChannelIDHeader):   {},
+	strings.ToLower(GlobalRelayChannelTypeHeader): {},
+	"date":         {},
+	"mime-version": {},
+	"content-type": {},
+}
+
+func IsGlobalRelayReservedHeader(name string) bool {
+	_, ok := globalRelayReservedHeaders[strings.ToLower(name)]
+	return ok
 }
 
 var ServerTLSSupportedCiphers = map[string]uint16{
@@ -3885,7 +3915,7 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 // inject additional headers.
 func (s *GlobalRelayMessageExportSettings) isValidCustomHeader() *AppError {
 	name := SafeDereference(s.CustomHeaderName)
-	value := SafeDereference(s.CustomHeaderValue)
+	value := strings.TrimSpace(SafeDereference(s.CustomHeaderValue))
 
 	// No custom header configured.
 	if name == "" && value == "" {
@@ -3896,6 +3926,9 @@ func (s *GlobalRelayMessageExportSettings) isValidCustomHeader() *AppError {
 	}
 	if !httpguts.ValidHeaderFieldName(name) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_header_name.app_error", nil, "", http.StatusBadRequest)
+	}
+	if IsGlobalRelayReservedHeader(name) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error", nil, "", http.StatusBadRequest)
 	}
 	if !httpguts.ValidHeaderFieldValue(value) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_header_value.app_error", nil, "", http.StatusBadRequest)
@@ -5303,7 +5336,9 @@ func (s *MessageExportSettings) isValid() *AppError {
 			}
 		}
 
-		if (*s.ExportFormat == ComplianceExportTypeGlobalrelay || *s.ExportFormat == ComplianceExportTypeGlobalrelayZip) && s.GlobalRelaySettings != nil {
+		if (*s.ExportFormat == ComplianceExportTypeGlobalrelay || *s.ExportFormat == ComplianceExportTypeGlobalrelayZip) &&
+			s.GlobalRelaySettings != nil &&
+			SafeDereference(s.GlobalRelaySettings.CustomerType) == GlobalrelayCustomerTypeCustom {
 			if appErr := s.GlobalRelaySettings.isValidCustomHeader(); appErr != nil {
 				return appErr
 			}

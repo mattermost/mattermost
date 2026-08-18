@@ -219,7 +219,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     helpText={<FormattedMessage {...messages.globalRelayCustomerType_description}/>}
                     value={this.state.globalRelayCustomerType ? this.state.globalRelayCustomerType : ''}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.CustomerType')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.CustomerType')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
             );
@@ -232,7 +232,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     helpText={<FormattedMessage {...messages.globalRelaySMTPUsername_description}/>}
                     value={this.state.globalRelaySMTPUsername ? this.state.globalRelaySMTPUsername : ''}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.SMTPUsername')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.SMTPUsername')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
             );
@@ -245,7 +245,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     helpText={<FormattedMessage {...messages.globalRelaySMTPPassword_description}/>}
                     value={this.state.globalRelaySMTPPassword ? this.state.globalRelaySMTPPassword : ''}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.SMTPPassword')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.SMTPPassword')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
             );
@@ -258,7 +258,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     helpText={<FormattedMessage {...messages.globalRelayEmailAddress_description}/>}
                     value={this.state.globalRelayEmailAddress ? this.state.globalRelayEmailAddress : ''}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.EmailAddress')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.EmailAddress')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
             );
@@ -281,7 +281,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     }
                     value={this.state.globalRelayCustomSMTPServerName ? this.state.globalRelayCustomSMTPServerName : ''}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.CustomSMTPServerName')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.CustomSMTPServerName')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
             );
@@ -304,7 +304,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     }
                     value={this.state.globalRelayCustomSMTPPort ? this.state.globalRelayCustomSMTPPort : ''}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.CustomSMTPPort')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.CustomSMTPPort')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
             );
@@ -327,7 +327,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     }
                     value={this.state.globalRelayCustomHeaderName ? this.state.globalRelayCustomHeaderName : ''}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.CustomHeaderName')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.CustomHeaderName')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
             );
@@ -350,7 +350,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     }
                     value={this.state.globalRelayCustomHeaderValue ? this.state.globalRelayCustomHeaderValue : ''}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.CustomHeaderValue')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.CustomHeaderValue')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
             );
@@ -425,7 +425,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     }
                     value={this.state.enableComplianceExport}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.EnableExport')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.EnableExport')}
                     disabled={this.props.isDisabled}
                 />
 
@@ -436,7 +436,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     helpText={<FormattedMessage {...messages.exportJobStartTime_description}/>}
                     value={this.state.exportJobStartTime}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.DailyRunTime')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.DailyRunTime')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
 
@@ -447,7 +447,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     helpText={dropdownHelpText}
                     value={this.state.exportFormat}
                     onChange={this.handleChange}
-                    setByEnv={this.isSetByEnv('DataRetentionSettings.ExportFormat')}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.ExportFormat')}
                     disabled={this.props.isDisabled || !this.state.enableComplianceExport}
                 />
 
