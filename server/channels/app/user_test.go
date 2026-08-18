@@ -2406,7 +2406,7 @@ func TestDemoteUserToGuestSpaceRevocationFailure(t *testing.T) {
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 
 		mockUserStore := storemocks.UserStore{}
-		mockUserStore.On("DemoteUserToGuest", "userID").Return(&model.User{Id: "userID", Roles: model.SystemGuestRoleId}, nil)
+		mockUserStore.On("DemoteUserToGuest", mock.Anything, "userID").Return(&model.User{Id: "userID", Roles: model.SystemGuestRoleId}, nil)
 		mockUserStore.On("InvalidateProfileCacheForUser", "userID").Return()
 		mockUserStore.On("InvalidateProfilesInChannelCacheByUser", "userID").Return()
 
