@@ -52,6 +52,7 @@ var configSensitivePaths = map[string]bool{
 	"Office365Settings.Secret":                               true,
 	"OpenIdSettings.Secret":                                  true,
 	"ElasticsearchSettings.Password":                         true,
+	"CacheSettings.RedisPassword":                            true,
 	"MessageExportSettings.GlobalRelaySettings.SMTPUsername": true,
 	"MessageExportSettings.GlobalRelaySettings.SMTPPassword": true,
 	"MessageExportSettings.GlobalRelaySettings.EmailAddress": true,
