@@ -1083,6 +1083,21 @@ Cloud admins can't modify this configuration setting.
 </tbody>
 </table>
 
+### Use channel name in email notifications
+
+<table>
+<colgroup>
+<col style={{width: '66%'}} />
+<col style={{width: '33%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Channel and team name appears in email notification subject lines. Useful for servers using only one team.</li><li><strong>false</strong>: <strong>(Default)</strong> Only team name appears in email notification subject line.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>UseChannelInEmailNotifications</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_USECHANNELINEMAILNOTIFICATIONS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ### Notification display name
 
 <table>
