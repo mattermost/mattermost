@@ -109,6 +109,57 @@ Access the following configuration settings in the System Console by going to **
 </tbody>
 </table>
 
+### Enable theme selection
+
+<PlanAvailability slug="pro-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables the <strong>Display &gt; Theme</strong> tab in <strong>Settings</strong> so users can select their theme.</li><li><strong>false</strong>: Users can't select a different theme. The <strong>Display &gt; Theme</strong> tab is hidden in <strong>Settings</strong>.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ThemeSettings</code> &gt; <code>EnableThemeSelection</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_THEMESETTINGS_ENABLETHEMESELECTION</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Allow custom themes
+
+<PlanAvailability slug="pro-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables the <strong>Display &gt; Theme &gt; Custom Theme</strong> section in <strong>Settings</strong>.</li><li><strong>false</strong>: Users can't use a custom theme. The <strong>Display &gt; Theme &gt; Custom Theme</strong> section is hidden in <strong>Settings</strong>.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ThemeSettings</code> &gt; <code>AllowCustomThemes</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_THEMESETTINGS_ALLOWCUSTOMTHEMES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Default theme
+
+<PlanAvailability slug="pro-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Set a default theme that applies to all new users on the system.</p><p>String input. One of <code>denim</code>, <code>sapphire</code>, <code>quartz</code>, <code>indigo</code>, or <code>onyx</code>. Default is <code>default</code>, which resolves to the Denim theme.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ThemeSettings</code> &gt; <code>DefaultTheme</code> &gt; <code>default</code></li><li>Environment variable: <code>MM_THEMESETTINGS_DEFAULTTHEME</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ### Enable Ask Community link
 
 <table>

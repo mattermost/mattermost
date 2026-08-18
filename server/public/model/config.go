@@ -2514,9 +2514,9 @@ func (s *AnnouncementSettings) SetDefaults() {
 }
 
 type ThemeSettings struct {
-	EnableThemeSelection *bool   `access:"experimental_features"`
-	DefaultTheme         *string `access:"experimental_features"`
-	AllowCustomThemes    *bool   `access:"experimental_features"`
+	EnableThemeSelection *bool   `access:"site_customization"`
+	DefaultTheme         *string `access:"site_customization"`
+	AllowCustomThemes    *bool   `access:"site_customization"`
 	AllowedThemes        []string
 }
 
