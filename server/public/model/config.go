@@ -2724,10 +2724,6 @@ type LdapSettings struct {
 
 	// Customization
 	LoginFieldName *string `access:"authentication_ldap"`
-
-	LoginButtonColor       *string `access:"experimental_features"`
-	LoginButtonBorderColor *string `access:"experimental_features"`
-	LoginButtonTextColor   *string `access:"experimental_features"`
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -2864,18 +2860,6 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.LoginFieldName == nil {
 		s.LoginFieldName = new(LdapSettingsDefaultLoginFieldName)
-	}
-
-	if s.LoginButtonColor == nil {
-		s.LoginButtonColor = new("#0000")
-	}
-
-	if s.LoginButtonBorderColor == nil {
-		s.LoginButtonBorderColor = new("#2389D7")
-	}
-
-	if s.LoginButtonTextColor == nil {
-		s.LoginButtonTextColor = new("#2389D7")
 	}
 }
 
@@ -3043,10 +3027,6 @@ type SamlSettings struct {
 	PositionAttribute    *string `access:"authentication_saml"`
 
 	LoginButtonText *string `access:"authentication_saml"`
-
-	LoginButtonColor       *string `access:"experimental_features"`
-	LoginButtonBorderColor *string `access:"experimental_features"`
-	LoginButtonTextColor   *string `access:"experimental_features"`
 }
 
 func (s *SamlSettings) SetDefaults() {
@@ -3174,18 +3154,6 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.LocaleAttribute == nil {
 		s.LocaleAttribute = new(SamlSettingsDefaultLocaleAttribute)
-	}
-
-	if s.LoginButtonColor == nil {
-		s.LoginButtonColor = new("#34a28b")
-	}
-
-	if s.LoginButtonBorderColor == nil {
-		s.LoginButtonBorderColor = new("#2389D7")
-	}
-
-	if s.LoginButtonTextColor == nil {
-		s.LoginButtonTextColor = new("#ffffff")
 	}
 }
 
@@ -4101,6 +4069,10 @@ type AccessControlSettings struct {
 	TrustProxyDeviceIdentityHeader    *bool `access:"write_restrictable,cloud_restrictable"`
 	EnforceDeviceIDConsistency        *bool `access:"write_restrictable,cloud_restrictable"`
 	EnableAccessControlAuditLogging   *bool `access:"write_restrictable,cloud_restrictable"`
+	// Shared interval for both the channel and team membership sync schedulers;
+	// applied at scheduler construction (needs a restart to take effect).
+	SyncJobIntervalSeconds          *int `access:"write_restrictable,cloud_restrictable"`
+	AttributeRefreshIntervalSeconds *int `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -4129,6 +4101,29 @@ func (s *AccessControlSettings) SetDefaults() {
 	if s.EnableAccessControlAuditLogging == nil {
 		s.EnableAccessControlAuditLogging = new(false)
 	}
+
+	if s.SyncJobIntervalSeconds == nil {
+		s.SyncJobIntervalSeconds = new(3600)
+	}
+
+	if s.AttributeRefreshIntervalSeconds == nil {
+		s.AttributeRefreshIntervalSeconds = new(30)
+	}
+}
+
+func (s *AccessControlSettings) isValid() *AppError {
+	// The sync schedulers run at most once per minute; a sub-minute interval
+	// would hammer the store to no effect, so reject it outright.
+	if *s.SyncJobIntervalSeconds < 60 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_sync_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+	// Refresh interval is designed to avoid spamming a refresh of the AttributeView in the database.
+	// Minimum is set to 0, so an operator can effectively disable this protection if desired.
+	if *s.AttributeRefreshIntervalSeconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_attribute_refresh_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 type ConfigFunc func() *Config
@@ -4517,6 +4512,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.GuestAccountsSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.AccessControlSettings.isValid(); appErr != nil {
 		return appErr
 	}
 

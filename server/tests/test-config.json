@@ -255,10 +255,7 @@
         "SkipCertificateVerification": false,
         "QueryTimeout": 60,
         "MaxPageSize": 0,
-        "LoginFieldName": "",
-        "LoginButtonColor": "",
-        "LoginButtonBorderColor": "",
-        "LoginButtonTextColor": ""
+        "LoginFieldName": ""
     },
     "ComplianceSettings": {
         "Enable": false,
@@ -291,10 +288,7 @@
         "NicknameAttribute": "",
         "LocaleAttribute": "",
         "PositionAttribute": "",
-        "LoginButtonText": "With SAML",
-        "LoginButtonColor": "",
-        "LoginButtonBorderColor": "",
-        "LoginButtonTextColor": ""
+        "LoginButtonText": "With SAML"
     },
     "NativeAppSettings": {
         "AppDownloadLink": "https://mattermost.com/download/",

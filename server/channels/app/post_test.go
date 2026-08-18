@@ -5406,6 +5406,110 @@ func TestPermanentDeletePost(t *testing.T) {
 	})
 }
 
+func TestCleanUpAfterPostDeletion(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	appErr := th.App.JoinChannel(th.Context, th.BasicChannel, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	appErr = th.App.JoinChannel(th.Context, th.BasicChannel, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+
+	waitForPostDeleted := func(t *testing.T, messages chan *model.WebSocketEvent) *model.WebSocketEvent {
+		t.Helper()
+
+		select {
+		case received := <-messages:
+			return received
+		case <-time.After(10 * time.Second):
+			require.Fail(t, "Did not receive websocket message in time")
+			return nil
+		}
+	}
+
+	t.Run("post_deleted broadcast to channel members strips action integrations", func(t *testing.T) {
+		post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "interactive message",
+			Props: model.StringInterface{
+				model.PostPropsAttachments: []*model.MessageAttachment{
+					{
+						Text: "hello",
+						Actions: []*model.PostAction{
+							{
+								Type: model.PostActionTypeButton,
+								Name: "action",
+								Integration: &model.PostActionIntegration{
+									URL:     "http://localhost:8065/secret-endpoint",
+									Context: map[string]any{"secret_marker": "s3cr3t"},
+								},
+							},
+						},
+					},
+				},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		memberMessages, closeMemberWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPostDeleted})
+		defer closeMemberWS()
+
+		_, appErr = th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		memberEvent := waitForPostDeleted(t, memberMessages)
+		memberPostJSON, ok := memberEvent.GetData()["post"].(string)
+		require.True(t, ok)
+		assert.NotContains(t, memberPostJSON, "secret-endpoint")
+		assert.NotContains(t, memberPostJSON, "secret_marker")
+		assert.Nil(t, memberEvent.GetData()["delete_by"])
+
+		var memberPost model.Post
+		require.NoError(t, json.Unmarshal([]byte(memberPostJSON), &memberPost))
+		require.Equal(t, post.Id, memberPost.Id)
+		memberAttachments := memberPost.Attachments()
+		require.Len(t, memberAttachments, 1)
+		require.Len(t, memberAttachments[0].Actions, 1)
+		assert.Equal(t, "action", memberAttachments[0].Actions[0].Name, "non-secret attachment data must be preserved")
+		assert.Nil(t, memberAttachments[0].Actions[0].Integration)
+	})
+
+	t.Run("post_deleted broadcast to channel members strips mm_blocks_actions secrets", func(t *testing.T) {
+		post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "blocks message",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		post.AddProp(model.PostPropsMmBlocksActions, map[string]any{
+			"mm_blocks_act": map[string]any{
+				"type":    model.MmBlocksActionTypeExternal,
+				"url":     "http://localhost:8065/secret-endpoint",
+				"context": map[string]any{"secret_marker": "s3cr3t"},
+			},
+		})
+
+		memberMessages, closeMemberWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPostDeleted})
+		defer closeMemberWS()
+
+		appErr = th.App.CleanUpAfterPostDeletion(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		memberEvent := waitForPostDeleted(t, memberMessages)
+		memberPostJSON, ok := memberEvent.GetData()["post"].(string)
+		require.True(t, ok)
+		assert.NotContains(t, memberPostJSON, "secret-endpoint")
+		assert.NotContains(t, memberPostJSON, "secret_marker")
+
+		var memberPost model.Post
+		require.NoError(t, json.Unmarshal([]byte(memberPostJSON), &memberPost))
+		assert.Equal(t, post.Id, memberPost.Id)
+		assert.Nil(t, memberPost.GetProp(model.PostPropsMmBlocksActions))
+	})
+}
+
 func TestSendTestMessage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

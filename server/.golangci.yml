@@ -227,7 +227,6 @@ linters:
           platform/services/sharedchannel/permalink_test.go|\
           platform/services/sharedchannel/sync_recv.go|\
           platform/services/sharedchannel/sync_send.go|\
-          platform/services/slackimport/slackimport.go|\
           platform/services/telemetry/telemetry.go|\
           platform/services/telemetry/telemetry_test.go|\
           platform/services/upgrader/upgrader_linux.go|\
