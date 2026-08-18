@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -73,8 +72,8 @@ func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
 	return roles, nil
 }
 
-func (s *Server) GetRoleByName(ctx context.Context, name string) (*model.Role, *model.AppError) {
-	role, nErr := s.Store().Role().GetByName(ctx, name)
+func (s *Server) GetRoleByName(rctx request.CTX, name string) (*model.Role, *model.AppError) {
+	role, nErr := s.Store().Role().GetByName(rctx, name)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -94,7 +93,7 @@ func (s *Server) GetRoleByName(ctx context.Context, name string) (*model.Role, *
 }
 
 func (a *App) GetRoleByName(rctx request.CTX, name string) (*model.Role, *model.AppError) {
-	return a.Srv().GetRoleByName(rctx.Context(), name)
+	return a.Srv().GetRoleByName(rctx, name)
 }
 
 func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {

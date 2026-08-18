@@ -838,7 +838,7 @@ func getSeededSpaceScheme(t *testing.T, th *TestHelper, name string) *model.Sche
 
 func storedRolePermissionSet(t *testing.T, th *TestHelper, roleName string) map[string]bool {
 	t.Helper()
-	role, err := th.App.Srv().Store().Role().GetByName(th.Context.Context(), roleName)
+	role, err := th.App.Srv().Store().Role().GetByName(th.Context, roleName)
 	require.NoError(t, err)
 	return asPermissionSet(role.Permissions)
 }
@@ -880,7 +880,7 @@ func TestSpaceSeedingSurvivesPermissionsReset(t *testing.T) {
 		storedRolePermissionSet(t, th, getSeededSpaceScheme(t, th, model.SchemeNameSpaceReadOnly).DefaultChannelUserRole))
 
 	for _, roleID := range model.SpaceCapabilityRoles {
-		_, err := th.App.Srv().Store().Role().GetByName(th.Context.Context(), roleID)
+		_, err := th.App.Srv().Store().Role().GetByName(th.Context, roleID)
 		require.NoError(t, err, "capability role %q must survive the reset", roleID)
 	}
 }
@@ -903,7 +903,7 @@ func TestSpaceSeedingMigrations(t *testing.T) {
 			model.SpacePageDeleterOwnRoleId,
 			model.SpacePageDeleterRoleId,
 		} {
-			role, err := th.App.Srv().Store().Role().GetByName(th.Context.Context(), roleID)
+			role, err := th.App.Srv().Store().Role().GetByName(th.Context, roleID)
 			require.NoError(t, err, "role %q must be seeded", roleID)
 			assert.ElementsMatch(t, canonical[roleID].Permissions, role.Permissions)
 			assert.False(t, role.SchemeManaged)

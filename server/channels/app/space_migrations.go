@@ -4,13 +4,13 @@
 package app
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -183,7 +183,7 @@ func (s *Server) doSpaceRolesCreationMigration() error {
 	roles := model.MakeDefaultRoles()
 
 	for _, roleID := range model.SpaceCapabilityRoles {
-		if stored, err := s.Store().Role().GetByName(context.Background(), roleID); err == nil {
+		if stored, err := s.Store().Role().GetByName(request.EmptyContext(s.Log()), roleID); err == nil {
 			// A row already under the reserved name is only this migration's own
 			// earlier work if its permissions match the built-in definition. The
 			// lost-insert-race branch below refuses the same way.

@@ -36,14 +36,12 @@ import {LicenseSkus} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
+
 import {it} from '../admin_definition_helpers';
 import {AdminConsoleListTable} from '../list_table';
 
 import './global_attributes_table.scss';
-
-const GLOBAL_ATTRIBUTES_GROUP_NAME = 'access_control';
-const GLOBAL_ATTRIBUTES_OBJECT_TYPE = 'template';
-const GLOBAL_ATTRIBUTES_TARGET_TYPE = 'system';
 
 const columnHelper = createColumnHelper<PropertyField>();
 
@@ -90,16 +88,19 @@ function useClassificationMarkingsReachable(): boolean {
     });
 }
 
-function getTypeLabel(fieldType: FieldType): MessageDescriptor {
+export function getTypeLabel(fieldType: FieldType): MessageDescriptor {
     return (typeLabels as Partial<Record<FieldType, MessageDescriptor>>)[fieldType] ?? typeLabels.fallback;
 }
 
-type SourceKind = 'plugin' | 'ldap' | 'saml' | 'managed';
+type SourceKind = 'plugin' | 'ldap_and_saml' | 'ldap' | 'saml' | 'managed';
 
 export function getSourceKind(field: PropertyField): SourceKind {
     const attrs = field.attrs ?? {};
     if (attrs.source_plugin_id && attrs.protected) {
         return 'plugin';
+    }
+    if (attrs.ldap && attrs.saml) {
+        return 'ldap_and_saml';
     }
     if (attrs.ldap) {
         return 'ldap';
@@ -112,6 +113,7 @@ export function getSourceKind(field: PropertyField): SourceKind {
 
 const SOURCE_ICONS: Partial<Record<SourceKind, ComponentType<IconProps>>> = {
     plugin: PowerPlugOutlineIcon,
+    ldap_and_saml: SyncIcon,
     ldap: SyncIcon,
     saml: SyncIcon,
 };
@@ -136,6 +138,8 @@ function SourceCell({field, isClassificationRow}: ClassificationAwareCellProps) 
         content = <FormattedMessage {...sourceLabels.classificationMarkings}/>;
     } else if (kind === 'plugin') {
         content = pluginDisplayName;
+    } else if (kind === 'ldap_and_saml') {
+        content = <FormattedMessage {...sourceLabels.ldapAndSaml}/>;
     } else if (kind === 'ldap') {
         content = <FormattedMessage {...sourceLabels.ldap}/>;
     } else if (kind === 'saml') {
@@ -465,7 +469,7 @@ const messages = defineMessages({
     options: {id: 'admin.global_attributes.table.options', defaultMessage: 'Options'},
     empty: {
         id: 'admin.global_attributes.table.empty',
-        defaultMessage: 'No attributes yet. Attributes are currently managed elsewhere; creating them from this page is coming soon.',
+        defaultMessage: 'No attributes yet. Click "New attribute" to create one.',
     },
     loadError: {id: 'admin.global_attributes.table.load_error', defaultMessage: 'There was an error while loading attributes.'},
     classificationSubtitle: {
@@ -474,7 +478,7 @@ const messages = defineMessages({
     },
 });
 
-const typeLabels = defineMessages({
+export const typeLabels = defineMessages({
     text: {id: 'admin.global_attributes.table.type.text', defaultMessage: 'Text'},
     select: {id: 'admin.global_attributes.table.type.select', defaultMessage: 'Select'},
     multiselect: {id: 'admin.global_attributes.table.type.multiselect', defaultMessage: 'Multiselect'},
@@ -483,6 +487,7 @@ const typeLabels = defineMessages({
 });
 
 const sourceLabels = defineMessages({
+    ldapAndSaml: {id: 'admin.global_attributes.table.source.ldap_and_saml', defaultMessage: 'AD/LDAP, SAML'},
     ldap: {id: 'admin.global_attributes.table.source.ldap', defaultMessage: 'AD/LDAP'},
     saml: {id: 'admin.global_attributes.table.source.saml', defaultMessage: 'SAML'},
     managed: {id: 'admin.global_attributes.table.source.managed', defaultMessage: 'Managed here'},
@@ -497,7 +502,7 @@ const optionsLabels = defineMessages({
     count: {id: 'admin.global_attributes.table.options.count', defaultMessage: '{count, plural, one {# option} other {# options}}'},
 });
 
-const actionsLabels = defineMessages({
+export const actionsLabels = defineMessages({
     tooltip: {id: 'admin.global_attributes.table.actions.tooltip', defaultMessage: 'More actions'},
     menuLabel: {id: 'admin.global_attributes.table.actions.menu_label', defaultMessage: 'Select an action'},
     edit: {id: 'admin.global_attributes.table.actions.edit', defaultMessage: 'Edit attribute'},

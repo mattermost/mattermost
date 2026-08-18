@@ -102,10 +102,15 @@
                 }
             }
 
-            #hideJoinedPreferenceCheckbox {
+            #hideJoinedPreferenceCheckbox,
+            #hideArchivedPreferenceCheckbox {
                 display: flex;
                 align-items: center;
                 cursor: pointer;
+            }
+
+            #hideArchivedPreferenceCheckbox {
+                margin-right: 16px;
             }
 
             #menuWrapper {

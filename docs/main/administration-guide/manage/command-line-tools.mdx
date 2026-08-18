@@ -320,28 +320,10 @@ Import data into Mattermost.
 
 Child Command  
 - [mattermost import bulk](#mattermost-import-bulk) - Import a Mattermost Bulk Import File. Deprecated in favor of [mmctl import commands](/administration-guide/manage/mmctl-command-line-tool#mmctl-import).
-- [mattermost import slack](#mattermost-import-slack) - Import a team from Slack.
 
 ### mattermost import bulk
 
 From Mattermost v6.0, this command has been deprecated in favor of [mmctl import commands](/administration-guide/manage/mmctl-command-line-tool#mmctl-import) as the supported way to import data into Mattermost.
-
-### mattermost import slack
-
-See the [mmctl import commands](/administration-guide/manage/mmctl-command-line-tool#mmctl-import) documentation as the preferred way to import Slack data into Mattermost.
-
-Description  
-Import a team from a Slack export zip file.
-
-Format  
-. code-block:: sh
-
-mattermost import slack &#123;team&#125; &#123;file&#125;
-
-Example  
-``` sh
-bin/mattermost import slack myteam slack_export.zip
-```
 
 ------------------------------------------------------------------------------------------------------------------------
 

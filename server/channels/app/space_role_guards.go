@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"slices"
@@ -113,7 +112,7 @@ func (a *App) storedRoleForSpaceGuard(role *model.Role) (*model.Role, *model.App
 	// Plain context: as the comment above records, the cache answers this read
 	// before the context is consulted, so asking for the master here would claim
 	// a freshness this path cannot deliver.
-	storedRole, err := a.Srv().Store().Role().GetByName(context.Background(), role.Name)
+	storedRole, err := a.Srv().Store().Role().GetByName(request.EmptyContext(a.Srv().Log()), role.Name)
 	if err != nil {
 		if !errors.As(err, &nfErr) {
 			return nil, readErr(err)

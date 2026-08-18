@@ -12,7 +12,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {ProfilesInChannelSortBy} from 'mattermost-redux/actions/users';
 
-import {areChannelAccessControlIndicatorsEnabled} from 'selectors/general';
+import {areChannelAccessControlIndicatorsEnabled, getConnectionId} from 'selectors/general';
 
 import AlertBanner from 'components/alert_banner';
 import ChannelInviteModal from 'components/channel_invite_modal';
@@ -100,6 +100,11 @@ export default function ChannelMembersRHS({
     // Admins can disable the attribute indicators to avoid leaking policy
     // details; when off we skip fetching/rendering the tags entirely.
     const indicatorsEnabled = useSelector(areChannelAccessControlIndicatorsEnabled);
+
+    // The websocket connection id changes whenever we get a fresh connection that
+    // could not be resumed (e.g. after a server restart), meaning membership events
+    // emitted while we were disconnected were not replayed. Reload the roster then.
+    const connectionId = useSelector(getConnectionId);
     const {structuredAttributes, loading} = useAccessControlAttributes(
         EntityType.Channel,
         channel.id,
@@ -212,7 +217,12 @@ export default function ChannelMembersRHS({
             actions.getChannelJoinRequests(channel.id, {status: 'pending'});
             actions.countPendingChannelJoinRequests(channel.id);
         }
-    }, [channel.id, channel.type, canManageJoinRequests]);
+
+    // connectionId is included so the roster is reloaded on a fresh websocket
+    // connection: adds/removes that happened while we were disconnected (e.g. a
+    // shared-channel membership sync during a server restart) are otherwise never
+    // reflected, since the missed websocket events are not replayed.
+    }, [channel.id, channel.type, canManageJoinRequests, connectionId]);
 
     const setSearchTerms = async (terms: string) => {
         actions.setChannelMembersRhsSearchTerm(terms);

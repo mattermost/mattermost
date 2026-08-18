@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -357,7 +356,7 @@ func (a *App) handleAuthorizationCodeGrant(rctx request.CTX, oauthApp *model.OAu
 		return nil, err
 	}
 
-	user, nErr := a.Srv().Store().User().Get(context.Background(), authData.UserId)
+	user, nErr := a.Srv().Store().User().Get(rctx, authData.UserId)
 	if nErr != nil {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 	}
@@ -407,7 +406,7 @@ func (a *App) handleRefreshTokenGrant(rctx request.CTX, oauthApp *model.OAuthApp
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.client_id_mismatch.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	user, nErr := a.Srv().Store().User().Get(context.Background(), accessData.UserId)
+	user, nErr := a.Srv().Store().User().Get(rctx, accessData.UserId)
 	if nErr != nil {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 	}
@@ -1209,6 +1208,10 @@ func (a *App) SwitchEmailToOAuth(rctx request.CTX, w http.ResponseWriter, r *htt
 func (a *App) SwitchOAuthToEmail(rctx request.CTX, email, password, requesterId string) (string, *model.AppError) {
 	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("oauthToEmail", "api.user.oauth_to_email.not_available.app_error", nil, "", http.StatusForbidden)
+	}
+
+	if rctx.Session().IsOAuth {
+		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.oauth_to_email.integration_session.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if !*a.Config().EmailSettings.EnableSignUpWithEmail {

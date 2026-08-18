@@ -99,7 +99,6 @@ var PermissionDeleteOthersPosts *Permission
 var PermissionRemoveUserFromTeam *Permission
 var PermissionCreateTeam *Permission
 var PermissionManageTeam *Permission
-var PermissionImportTeam *Permission
 var PermissionViewTeam *Permission
 var PermissionListUsersWithoutTeam *Permission
 var PermissionReadJobs *Permission
@@ -1254,12 +1253,6 @@ func initializePermissions() {
 		"manage_team",
 		"authentication.permissions.manage_team.name",
 		"authentication.permissions.manage_team.description",
-		PermissionScopeTeam,
-	}
-	PermissionImportTeam = &Permission{
-		"import_team",
-		"authentication.permissions.import_team.name",
-		"authentication.permissions.import_team.description",
 		PermissionScopeTeam,
 	}
 	PermissionViewTeam = &Permission{
@@ -2810,7 +2803,6 @@ func initializePermissions() {
 		PermissionDeleteOthersEmojis,
 		PermissionRemoveUserFromTeam,
 		PermissionManageTeam,
-		PermissionImportTeam,
 		PermissionViewTeam,
 		PermissionViewMembers,
 		PermissionInviteGuest,
