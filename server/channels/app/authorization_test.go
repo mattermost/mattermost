@@ -2997,3 +2997,189 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 		}
 	})
 }
+
+func TestSessionHasPermissionToSetPropertyFieldValues_PostCreator(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	// System-target field so the dispatch is driven purely by ObjectType plus
+	// the value's target — the shape post attributes use: one field, per-post
+	// values.
+	field := &model.PropertyField{
+		ID:                model.NewId(),
+		GroupID:           groupID,
+		Name:              "post values creator",
+		Type:              model.PropertyFieldTypeText,
+		ObjectType:        model.PropertyFieldObjectTypePost,
+		TargetType:        string(model.PropertyFieldTargetLevelSystem),
+		PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
+		PermissionValues:  model.NewPointer(model.PermissionLevelCreator),
+		PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+	}
+
+	post := th.CreatePost(t, th.BasicChannel) // authored by BasicUser
+
+	// BasicUser2 is a team member but not a channel member out of InitBasic, so
+	// add them: denials should land on "in the channel but not the author"
+	// rather than "not a member at all".
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	channelAdmin := th.CreateUser(t)
+	th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+	th.AddUserToChannel(t, channelAdmin, th.BasicChannel)
+	_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, channelAdmin.Id,
+		model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+	require.Nil(t, appErr)
+
+	// Deliberately NOT added to the channel: a team admin reaches
+	// manage_channel_roles through the team fallback in HasPermissionToChannel,
+	// which is what lets the creator level grant team admins without checking
+	// manage_team separately.
+	teamAdmin := th.CreateUser(t)
+	th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+	_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id,
+		model.TeamUserRoleId+" "+model.TeamAdminRoleId)
+	require.Nil(t, appErr)
+
+	// Team member, no elevated role, not in the channel.
+	outsider := th.CreateUser(t)
+	th.LinkUserToTeam(t, outsider, th.BasicTeam)
+
+	// A DM has no channel-admin tier and cannot acquire one, so
+	// hasChannelPropertyAdmin treats its non-guest participants as its
+	// administrators. Both participants therefore pass the admin arm, which
+	// means creator is no narrower than member inside a DM.
+	dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+	dmPost := th.CreatePost(t, dmChannel) // authored by BasicUser
+
+	session := func(u *model.User) model.Session {
+		return model.Session{UserId: u.Id, Roles: model.SystemUserRoleId}
+	}
+
+	testCases := []struct {
+		name    string
+		session model.Session
+		postID  string
+		allowed bool
+	}{
+		{
+			name:    "author can set values on their own post",
+			session: session(th.BasicUser),
+			postID:  post.Id,
+			allowed: true,
+		},
+		{
+			// The case the member level gets wrong, and the whole reason the
+			// creator level exists.
+			name:    "channel member who did not author the post cannot",
+			session: session(th.BasicUser2),
+			postID:  post.Id,
+			allowed: false,
+		},
+		{
+			name:    "channel admin can set values on someone else's post",
+			session: session(channelAdmin),
+			postID:  post.Id,
+			allowed: true,
+		},
+		{
+			name:    "team admin can set values without being a channel member",
+			session: session(teamAdmin),
+			postID:  post.Id,
+			allowed: true,
+		},
+		{
+			name:    "system admin can set values",
+			session: session(th.SystemAdminUser),
+			postID:  post.Id,
+			allowed: true,
+		},
+		{
+			name:    "team member outside the channel cannot",
+			session: session(outsider),
+			postID:  post.Id,
+			allowed: false,
+		},
+		{
+			name:    "unknown post denies",
+			session: session(th.BasicUser),
+			postID:  model.NewId(),
+			allowed: false,
+		},
+		{
+			// A post always has a real UserId (Post.IsValid requires one), so
+			// the empty-creator guard in hasPropertyFieldValueCreator is
+			// unreachable on this branch and stays as defense in depth; the
+			// channel branch is where an empty creator genuinely occurs. What
+			// is reachable is an empty caller, which must never match.
+			name:    "empty caller denies",
+			session: model.Session{},
+			postID:  post.Id,
+			allowed: false,
+		},
+		{
+			name:    "author can set values on their own direct message post",
+			session: session(th.BasicUser),
+			postID:  dmPost.Id,
+			allowed: true,
+		},
+		{
+			// Passes the admin arm, not the creator arm: DM participants
+			// administer their own DM, so creator is no narrower than member
+			// there.
+			name:    "other direct message participant passes via the admin arm",
+			session: session(th.BasicUser2),
+			postID:  dmPost.Id,
+			allowed: true,
+		},
+		{
+			name:    "system admin can set values on a direct message post",
+			session: session(th.SystemAdminUser),
+			postID:  dmPost.Id,
+			allowed: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.allowed, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, tc.session, field, tc.postID))
+		})
+	}
+}
+
+// TestPropertyFieldCreatorLevelIsFailClosed pins the intermediate state while
+// the creator level is being landed. The values slot now resolves (see
+// TestSessionHasPermissionToSetPropertyFieldValues_PostCreator), but the field
+// and options dispatcher has no creator case yet, so a field gating its own
+// definition on creator grants nothing.
+//
+// Flip these expectations to true when the field/options resolver lands. Until
+// then this also catches a permissive `default:` branch being added to
+// hasPropertyFieldPermissionLevel.
+func TestPropertyFieldCreatorLevelIsFailClosed(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	authorSession := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+
+	field := &model.PropertyField{
+		ID:                model.NewId(),
+		GroupID:           groupID,
+		Name:              "post field creator",
+		Type:              model.PropertyFieldTypeText,
+		ObjectType:        model.PropertyFieldObjectTypePost,
+		TargetType:        string(model.PropertyFieldTargetLevelChannel),
+		TargetID:          th.BasicChannel.Id,
+		CreatedBy:         th.BasicUser.Id,
+		PermissionField:   model.NewPointer(model.PermissionLevelCreator),
+		PermissionValues:  model.NewPointer(model.PermissionLevelSysadmin),
+		PermissionOptions: model.NewPointer(model.PermissionLevelCreator),
+	}
+
+	assert.False(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, authorSession, field))
+	assert.False(t, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, authorSession, field))
+}
