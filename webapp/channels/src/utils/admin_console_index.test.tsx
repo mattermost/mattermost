@@ -42,6 +42,9 @@ describe('AdminConsoleIndex.generateIndex', () => {
             'authentication/saml',
             'site_config/users_and_teams',
         ]);
+        expect(idx.search('away')).toEqual([
+            'site_config/users_and_teams',
+        ]);
         expect(idx.search('caracteres')).toEqual([]);
         expect(idx.search('notexistingword')).toEqual([]);
     });

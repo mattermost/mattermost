@@ -2553,7 +2553,7 @@ type TeamSettings struct {
 	RestrictDirectMessage           *string `access:"site_users_and_teams"`
 	EnableLastActiveTime            *bool   `access:"site_users_and_teams"`
 	// In seconds.
-	UserStatusAwayTimeout               *int64  `access:"experimental_features"`
+	UserStatusAwayTimeout               *int64  `access:"site_users_and_teams"`
 	MaxChannelsPerTeam                  *int64  `access:"site_users_and_teams"`
 	EnableChannelCategorySorting        *bool   `access:"site_users_and_teams"`
 	MaxNotificationsPerChannel          *int64  `access:"environment_push_notification_server"`
