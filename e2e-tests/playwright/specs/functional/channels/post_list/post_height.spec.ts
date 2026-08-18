@@ -174,7 +174,7 @@ test.describe('Post height', () => {
             },
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the images have rendered
-                const image = postComponent.container.locator('.MediaGallery__tile img');
+                const image = postComponent.container.locator('.post-image__column');
                 await expect(image).toHaveCount(3);
             },
         },
