@@ -83,6 +83,15 @@ function createElement(type, config) {
     if (config.refresh) {
         baseElement.refresh = config.refresh;
     }
+    if (config.label_position) {
+        baseElement.label_position = config.label_position;
+    }
+    if (config.matrix_config) {
+        baseElement.matrix_config = config.matrix_config;
+    }
+    if (config.multiselect) {
+        baseElement.multiselect = true;
+    }
     if (config.action_button) {
         baseElement.action_button = config.action_button;
     }
@@ -92,6 +101,17 @@ function createElement(type, config) {
 
 // Standard icon URL
 const STANDARD_ICON = 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png';
+
+const WAIVER_REASON_OPTIONS = [
+    {text: 'Reason 1', value: 'reason_1'},
+    {text: 'Reason 2', value: 'reason_2'},
+    {text: 'Reason 3', value: 'reason_3'},
+];
+
+const SEVERITY_MATRIX_COLUMNS = [
+    {text: 'High', value: 'high'},
+    {text: 'Severe', value: 'severe'},
+];
 
 // Dialog configurations
 const DIALOG_CONFIGS = {
@@ -122,6 +142,59 @@ const DIALOG_CONFIGS = {
         dialog_props: {state: 'somestate'},
     },
 
+    basic: {
+        callback_id: 'basic_dialog_callback',
+        title: 'Basic Dialog',
+        icon_url: STANDARD_ICON,
+        submit_label: 'Submit',
+        introduction_text: 'Required text, optional radio, single select, and optional multiselect.',
+        elements: [
+            createElement('text', {
+                display_name: 'Title',
+                name: 'title',
+                placeholder: 'Enter a title',
+                help_text: 'Required text field.',
+            }),
+            createElement('radio', {
+                display_name: 'Department',
+                name: 'department',
+                help_text: 'Optional.',
+                optional: true,
+                options: [
+                    {text: 'Engineering', value: 'engineering'},
+                    {text: 'Sales', value: 'sales'},
+                    {text: 'Support', value: 'support'},
+                ],
+            }),
+            createElement('select', {
+                display_name: 'Priority',
+                name: 'priority',
+                placeholder: 'Choose priority...',
+                help_text: 'Optional single select. Use the × control to clear.',
+                optional: true,
+                options: [
+                    {text: 'Low', value: 'low'},
+                    {text: 'Medium', value: 'medium'},
+                    {text: 'High', value: 'high'},
+                ],
+            }),
+            createElement('select', {
+                display_name: 'Categories',
+                name: 'categories',
+                multiselect: true,
+                placeholder: 'Select one or more...',
+                help_text: 'Optional multiselect (`type: select` + `multiselect: true`). Submits a string array.',
+                optional: true,
+                options: [
+                    {text: 'Bug', value: 'bug'},
+                    {text: 'Feature', value: 'feature'},
+                    {text: 'Documentation', value: 'docs'},
+                ],
+            }),
+        ],
+        dialog_props: {state: 'basic_dialog_state'},
+    },
+
     userAndChannel: {
         callback_id: 'somecallbackid',
         title: 'Title for Dialog Test with user and channel element',
@@ -143,6 +216,81 @@ const DIALOG_CONFIGS = {
             createElement('bool', {display_name: 'Boolean Selector', name: 'boolean_input', placeholder: 'Was this modal helpful?', default: 'True', optional: true, help_text: 'This is the help text'}),
         ],
         dialog_props: {state: 'somestate'},
+    },
+
+    checkboxGroup: {
+        callback_id: 'checkbox_group_callback',
+        title: 'Checkbox Dialog Feature Demo',
+        icon_url: STANDARD_ICON,
+        submit_label: 'Submit',
+        introduction_text: 'Two checkbox groups (label before vs after), plus related v1 dialog features for manual QA.',
+        elements: [
+            createElement('checkbox_group', {
+                display_name: 'Group A: label before',
+                name: 'waiver_group_label_before',
+                help_text: 'Required. Option text is left of each checkbox (`label_position: before`). Default: reason_1 + reason_3.',
+                default: 'reason_1,reason_3',
+                label_position: 'before',
+                options: WAIVER_REASON_OPTIONS,
+            }),
+            createElement('checkbox_group', {
+                display_name: 'Group B: label after',
+                name: 'waiver_group_label_after',
+                help_text: 'Optional. Option text is right of each checkbox (`label_position: after`, default). Clear all → submits [].',
+                default: 'reason_2',
+                label_position: 'after',
+                optional: true,
+                options: WAIVER_REASON_OPTIONS,
+            }),
+            createElement('radio', {
+                display_name: 'Department (optional)',
+                name: 'department',
+                help_text: 'Optional radio with default + Clear selection link.',
+                default: 'sales',
+                optional: true,
+                label_position: 'after',
+                options: [
+                    {text: 'Engineering', value: 'engineering'},
+                    {text: 'Sales', value: 'sales'},
+                    {text: 'Administration', value: 'administration'},
+                ],
+            }),
+            createElement('bool', {
+                display_name: 'Acknowledgement',
+                name: 'acknowledged',
+                placeholder: 'I understand the waiver terms',
+                help_text: 'Bool with label before the checkbox.',
+                label_position: 'before',
+                default: 'false',
+            }),
+            createElement('checkbox_matrix', {
+                display_name: 'Severity (multi per row)',
+                name: 'severity_multiple',
+                help_text: 'Matrix with row_selection: multiple — multiple columns per row allowed.',
+                optional: true,
+                matrix_config: {
+                    row_selection: 'multiple',
+                    rows: WAIVER_REASON_OPTIONS,
+                    columns: SEVERITY_MATRIX_COLUMNS,
+                },
+            }),
+            createElement('checkbox_matrix', {
+                display_name: 'Priority (one per row)',
+                name: 'priority_single',
+                help_text: 'Matrix with row_selection: single — radio-style, one column per row.',
+                optional: true,
+                matrix_config: {
+                    row_selection: 'single',
+                    rows: WAIVER_REASON_OPTIONS,
+                    columns: [
+                        {text: 'Low', value: 'low'},
+                        {text: 'Medium', value: 'medium'},
+                        {text: 'High', value: 'high'},
+                    ],
+                },
+            }),
+        ],
+        dialog_props: {state: 'checkbox_group_state'},
     },
 
     fieldRefresh: {
@@ -215,12 +363,20 @@ function getSimpleDialog(triggerId, webhookBaseUrl) {
     return createDialog(triggerId, webhookBaseUrl, DIALOG_CONFIGS.simple);
 }
 
+function getBasicDialog(triggerId, webhookBaseUrl) {
+    return createDialog(triggerId, webhookBaseUrl, DIALOG_CONFIGS.basic);
+}
+
 function getUserAndChannelDialog(triggerId, webhookBaseUrl) {
     return createDialog(triggerId, webhookBaseUrl, DIALOG_CONFIGS.userAndChannel);
 }
 
 function getBooleanDialog(triggerId, webhookBaseUrl) {
     return createDialog(triggerId, webhookBaseUrl, DIALOG_CONFIGS.boolean);
+}
+
+function getCheckboxGroupDialog(triggerId, webhookBaseUrl) {
+    return createDialog(triggerId, webhookBaseUrl, DIALOG_CONFIGS.checkboxGroup);
 }
 
 function getFieldRefreshDialog(triggerId, webhookBaseUrl) {
@@ -681,8 +837,10 @@ function getActionButtonChildDialog(triggerId, webhookBaseUrl, source) {
 module.exports = {
     getFullDialog,
     getSimpleDialog,
+    getBasicDialog,
     getUserAndChannelDialog,
     getBooleanDialog,
+    getCheckboxGroupDialog,
     getFieldRefreshDialog,
     getMultistepStep1Dialog,
     getMultistepStep2Dialog,

@@ -17,6 +17,8 @@ export const DialogElementTypes = {
     RADIO: 'radio',
     DATE: 'date',
     DATETIME: 'datetime',
+    CHECKBOX_GROUP: 'checkbox_group',
+    CHECKBOX_MATRIX: 'checkbox_matrix',
     FILE: 'file',
     ACTION_BUTTON: 'action_button',
 } as const;
@@ -140,8 +142,8 @@ export function validateDialogElement(element: DialogElement, index: number, opt
         });
     }
 
-    // Validation for select/radio options
-    if ((element.type === DialogElementTypes.SELECT || element.type === DialogElementTypes.RADIO) && element.options) {
+    // Validation for select/radio/checkbox_group options
+    if ((element.type === DialogElementTypes.SELECT || element.type === DialogElementTypes.RADIO || element.type === DialogElementTypes.CHECKBOX_GROUP) && element.options) {
         for (let optIndex = 0; optIndex < element.options.length; optIndex++) {
             const option = element.options[optIndex];
 
@@ -233,6 +235,10 @@ export function getFieldType(element: DialogElement): string | null {
         return AppFieldTypes.DATE;
     case DialogElementTypes.DATETIME:
         return AppFieldTypes.DATETIME;
+    case DialogElementTypes.CHECKBOX_GROUP:
+        return AppFieldTypes.CHECKBOX_GROUP;
+    case DialogElementTypes.CHECKBOX_MATRIX:
+        return AppFieldTypes.CHECKBOX_MATRIX;
     case DialogElementTypes.FILE:
         return AppFieldTypes.FILE;
     case DialogElementTypes.ACTION_BUTTON:
@@ -247,7 +253,14 @@ export function getFieldType(element: DialogElement): string | null {
  */
 export function getDefaultValue(element: DialogElement): AppFormValue {
     if (element.default === null || element.default === undefined) {
+        if (element.type === DialogElementTypes.CHECKBOX_GROUP || element.type === DialogElementTypes.CHECKBOX_MATRIX) {
+            return [];
+        }
         return null;
+    }
+
+    if (element.default === '' && (element.type === DialogElementTypes.CHECKBOX_GROUP || element.type === DialogElementTypes.CHECKBOX_MATRIX)) {
+        return [];
     }
 
     switch (element.type) {
@@ -349,6 +362,18 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
         return testMoment?.isValid() ? stringValue : null;
     }
 
+    case DialogElementTypes.CHECKBOX_GROUP:
+        return String(element.default).
+            split(',').
+            map((val) => val.trim()).
+            filter((val) => val.length > 0);
+
+    case DialogElementTypes.CHECKBOX_MATRIX:
+        return String(element.default).
+            split(';').
+            map((val) => val.trim()).
+            filter((val) => val.length > 0);
+
     default:
         return String(element.default);
     }
@@ -366,6 +391,21 @@ export function getOptions(element: DialogElement): AppSelectOption[] | undefine
         label: String(option.text || ''),
         value: option.value || '',
     }));
+}
+
+function getMatrixConfig(element: DialogElement) {
+    if (!element.matrix_config) {
+        return undefined;
+    }
+    const mapOptions = (options: Array<{text: string; value: string}>) => options.map((option) => ({
+        label: String(option.text || ''),
+        value: option.value || '',
+    }));
+    return {
+        rows: mapOptions(element.matrix_config.rows || []),
+        columns: mapOptions(element.matrix_config.columns || []),
+        row_selection: element.matrix_config.row_selection || 'multiple',
+    };
 }
 
 /**
@@ -417,6 +457,10 @@ export function convertElement(element: DialogElement, options: ConversionOption
         value: getDefaultValue(element),
     };
 
+    if (element.label_position === 'before' || element.label_position === 'after') {
+        appField.label_position = element.label_position;
+    }
+
     // Add type-specific properties
     if (element.type === DialogElementTypes.TEXTAREA) {
         appField.subtype = 'textarea';
@@ -439,8 +483,8 @@ export function convertElement(element: DialogElement, options: ConversionOption
         }
     }
 
-    // Add options for select and radio fields
-    if (element.type === DialogElementTypes.SELECT || element.type === DialogElementTypes.RADIO) {
+    // Add options for select, radio, and checkbox_group fields
+    if (element.type === DialogElementTypes.SELECT || element.type === DialogElementTypes.RADIO || element.type === DialogElementTypes.CHECKBOX_GROUP) {
         appField.options = getOptions(element);
 
         // Add multiselect support for select fields
@@ -457,6 +501,13 @@ export function convertElement(element: DialogElement, options: ConversionOption
         }
 
         // Copy refresh property for dynamic field updates
+        if (element.refresh !== undefined) {
+            appField.refresh = element.refresh;
+        }
+    }
+
+    if (element.type === DialogElementTypes.CHECKBOX_MATRIX) {
+        appField.matrix_config = getMatrixConfig(element);
         if (element.refresh !== undefined) {
             appField.refresh = element.refresh;
         }
@@ -721,6 +772,8 @@ export function convertAppFormValuesToDialogSubmission(
                     message: `"${element.name}" field is not valid: Required field has null/undefined value`,
                     code: ValidationErrorCode.REQUIRED,
                 });
+            } else if (element.type === DialogElementTypes.CHECKBOX_GROUP || element.type === DialogElementTypes.CHECKBOX_MATRIX) {
+                submission[element.name] = [];
             }
             return;
         }
@@ -825,6 +878,24 @@ export function convertAppFormValuesToDialogSubmission(
             // Date and datetime values should be passed through as strings (ISO format)
             submission[element.name] = String(value);
             break;
+
+        case DialogElementTypes.CHECKBOX_GROUP:
+        case DialogElementTypes.CHECKBOX_MATRIX: {
+            const arrayValue = Array.isArray(value) ? value.map(String) : [String(value)];
+
+            // An empty array is a distinct "nothing selected" state that the
+            // null/undefined guard above does not catch, so enforce required here.
+            if (arrayValue.length === 0 && !element.optional && options.enhanced) {
+                errors.push({
+                    field: element.name,
+                    message: `"${element.name}" field is not valid: Required field has no selected values`,
+                    code: ValidationErrorCode.REQUIRED,
+                });
+            }
+            submission[element.name] = arrayValue;
+            break;
+        }
+
         case DialogElementTypes.FILE:
             // File elements store file IDs as strings
             submission[element.name] = String(value || '');
@@ -832,6 +903,7 @@ export function convertAppFormValuesToDialogSubmission(
 
         case DialogElementTypes.ACTION_BUTTON:
             break;
+
         default:
             submission[element.name] = String(value);
         }

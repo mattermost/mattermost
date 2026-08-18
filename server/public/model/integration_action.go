@@ -42,6 +42,13 @@ const (
 	DialogElementBoolMaxLength        = 150
 	DialogElementFileMaxLength        = 300
 	DefaultTimeIntervalMinutes        = 60 // Default time interval for DateTime fields
+	MaxDialogCheckboxGroupOptions     = 50
+	MaxDialogMatrixRows               = 30
+	MaxDialogMatrixColumns            = 10
+	DialogLabelPositionBefore         = "before"
+	DialogLabelPositionAfter          = "after"
+	DialogMatrixRowSelectionMultiple  = "multiple"
+	DialogMatrixRowSelectionSingle    = "single"
 	MaxDialogFileIds                  = 10
 	// MaxDialogSubmissionIDShapedTokenScan bounds defense-in-depth scanning of
 	// request.Submission for ID-shaped tokens (file IDs, user/channel select values,
@@ -472,6 +479,13 @@ type DialogDateTimeConfig struct {
 	AllowManualTimeEntry bool `json:"allow_manual_time_entry,omitempty"`
 }
 
+// DialogMatrixConfig groups checkbox_matrix specific configuration.
+type DialogMatrixConfig struct {
+	Rows         []*PostActionOptions `json:"rows"`
+	Columns      []*PostActionOptions `json:"columns"`
+	RowSelection string               `json:"row_selection,omitempty"` // "multiple" | "single"
+}
+
 type DialogElement struct {
 	DisplayName   string               `json:"display_name"`
 	Name          string               `json:"name"`
@@ -502,6 +516,8 @@ type DialogElement struct {
 	// if DateTimeConfig is provided, its TimeInterval takes precedence.
 	TimeInterval int `json:"time_interval,omitempty"`
 
+	LabelPosition string              `json:"label_position,omitempty"` // "before" | "after"
+	MatrixConfig  *DialogMatrixConfig `json:"matrix_config,omitempty"`
 	// Action button configuration (type "action_button")
 	ActionButton *DialogActionButton `json:"action_button,omitempty"`
 }
@@ -530,6 +546,18 @@ func (e *DialogElement) EffectiveDateTimeConfig() DialogDateTimeConfig {
 		// distinguish explicit-false from not-set across JSON (omitempty drops the zero value),
 		// so either field being true must enable the feature during the deprecation window.
 		cfg.ManualTimeEntry = e.DateTimeConfig.ManualTimeEntry || e.DateTimeConfig.AllowManualTimeEntry
+	}
+	return cfg
+}
+
+// EffectiveMatrixConfig returns the resolved checkbox_matrix configuration.
+func (e *DialogElement) EffectiveMatrixConfig() DialogMatrixConfig {
+	if e.MatrixConfig == nil {
+		return DialogMatrixConfig{RowSelection: DialogMatrixRowSelectionMultiple}
+	}
+	cfg := *e.MatrixConfig
+	if cfg.RowSelection == "" {
+		cfg.RowSelection = DialogMatrixRowSelectionMultiple
 	}
 	return cfg
 }
@@ -785,6 +813,9 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, errors.Errorf("multiselect can only be used with select elements, got type %q", e.Type))
 	}
 
+	multiErr = multierror.Append(multiErr, validateDialogElementLabelPosition(e))
+	multiErr = multierror.Append(multiErr, validateDialogElementMatrixConfigPlacement(e))
+
 	if e.AllowMultiple && e.Type != "file" {
 		multiErr = multierror.Append(multiErr, errors.Errorf("allow_multiple can only be used with file elements, got type %q", e.Type))
 	}
@@ -841,6 +872,41 @@ func (e *DialogElement) IsValid() error {
 	case "radio":
 		if !isDefaultInOptions(e.Default, e.Options) {
 			multiErr = multierror.Append(multiErr, errors.Errorf("default value %q doesn't exist in options ", e.Default))
+		}
+
+	case "checkbox_group":
+		multiErr = multierror.Append(multiErr, validateDialogElementOptions(e.Options, 1, MaxDialogCheckboxGroupOptions, "options", ",")...)
+		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementSelectMaxLength))
+		if !isMultiSelectDefaultInOptions(e.Default, e.Options) {
+			multiErr = multierror.Append(multiErr, errors.Errorf("default value %q contains values not in options", e.Default))
+		}
+		if e.MultiSelect {
+			multiErr = multierror.Append(multiErr, errors.New("multiselect cannot be used with checkbox_group elements"))
+		}
+		if e.DataSource != "" {
+			multiErr = multierror.Append(multiErr, errors.New("checkbox_group elements cannot have a data source"))
+		}
+		if e.Placeholder != "" {
+			multiErr = multierror.Append(multiErr, errors.New("checkbox_group elements cannot have a placeholder"))
+		}
+
+	case "checkbox_matrix":
+		multiErr = multierror.Append(multiErr, validateDialogElementMatrixConfig(e)...)
+		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementSelectMaxLength))
+		if e.Default != "" {
+			multiErr = multierror.Append(multiErr, validateMatrixDefaultValue(e.Default, e.EffectiveMatrixConfig())...)
+		}
+		if len(e.Options) > 0 {
+			multiErr = multierror.Append(multiErr, errors.New("checkbox_matrix elements cannot have options"))
+		}
+		if e.MultiSelect {
+			multiErr = multierror.Append(multiErr, errors.New("multiselect cannot be used with checkbox_matrix elements"))
+		}
+		if e.DataSource != "" {
+			multiErr = multierror.Append(multiErr, errors.New("checkbox_matrix elements cannot have a data source"))
+		}
+		if e.Placeholder != "" {
+			multiErr = multierror.Append(multiErr, errors.New("checkbox_matrix elements cannot have a placeholder"))
 		}
 
 	case "date":
@@ -934,7 +1000,11 @@ func isMultiSelectDefaultInOptions(defaultValue string, options []*PostActionOpt
 		return true
 	}
 
-	for value := range strings.SplitSeq(strings.ReplaceAll(defaultValue, " ", ""), ",") {
+	for value := range strings.SplitSeq(defaultValue, ",") {
+		// Trim whitespace around each comma-separated token so defaults like
+		// "a, b" match, without stripping spaces inside an option value (e.g.
+		// an option whose value is legitimately "high risk").
+		value = strings.TrimSpace(value)
 		if value == "" {
 			continue
 		}
@@ -951,6 +1021,136 @@ func isMultiSelectDefaultInOptions(defaultValue string, options []*PostActionOpt
 	}
 
 	return true
+}
+
+func validateDialogElementLabelPosition(e *DialogElement) error {
+	if e.LabelPosition == "" {
+		return nil
+	}
+	if e.LabelPosition != DialogLabelPositionBefore && e.LabelPosition != DialogLabelPositionAfter {
+		return errors.Errorf("invalid label_position %q, must be %q or %q", e.LabelPosition, DialogLabelPositionBefore, DialogLabelPositionAfter)
+	}
+	switch e.Type {
+	case "bool", "radio", "checkbox_group":
+		return nil
+	default:
+		return errors.Errorf("label_position cannot be used with type %q", e.Type)
+	}
+}
+
+func validateDialogElementMatrixConfigPlacement(e *DialogElement) error {
+	if e.MatrixConfig == nil {
+		return nil
+	}
+	if e.Type != "checkbox_matrix" {
+		return errors.Errorf("matrix_config can only be used with checkbox_matrix elements, got type %q", e.Type)
+	}
+	return nil
+}
+
+func validateDialogElementOptions(options []*PostActionOptions, minOptions, maxOptions int, fieldName, disallowedChars string) []error {
+	var errs []error
+	if len(options) < minOptions {
+		errs = append(errs, errors.Errorf("%s must contain at least %d option(s), got %d", fieldName, minOptions, len(options)))
+		return errs
+	}
+	if len(options) > maxOptions {
+		errs = append(errs, errors.Errorf("%s may not contain more than %d option(s), got %d", fieldName, maxOptions, len(options)))
+	}
+	seen := make(map[string]bool, len(options))
+	for i, option := range options {
+		if option == nil {
+			errs = append(errs, errors.Errorf("%s[%d] is nil", fieldName, i))
+			continue
+		}
+		if err := option.IsValid(); err != nil {
+			errs = append(errs, errors.Wrapf(err, "%s[%d] is invalid", fieldName, i))
+		}
+		if disallowedChars != "" && strings.ContainsAny(option.Value, disallowedChars) {
+			errs = append(errs, errors.Errorf("%s[%d] value %q must not contain any of %q", fieldName, i, option.Value, disallowedChars))
+		}
+		if seen[option.Value] {
+			errs = append(errs, errors.Errorf("%s[%d] duplicate value %q", fieldName, i, option.Value))
+		}
+		seen[option.Value] = true
+	}
+	return errs
+}
+
+func validateDialogElementMatrixConfig(e *DialogElement) []error {
+	var errs []error
+	if e.MatrixConfig == nil {
+		errs = append(errs, errors.New("matrix_config is required for checkbox_matrix elements"))
+		return errs
+	}
+	cfg := e.MatrixConfig
+	if cfg.RowSelection != "" && cfg.RowSelection != DialogMatrixRowSelectionMultiple && cfg.RowSelection != DialogMatrixRowSelectionSingle {
+		errs = append(errs, errors.Errorf("invalid row_selection %q, must be %q or %q", cfg.RowSelection, DialogMatrixRowSelectionMultiple, DialogMatrixRowSelectionSingle))
+	}
+	// Disallow the three characters used to encode the matrix default value:
+	// ";" separates row entries, ":" separates a row from its columns, and ","
+	// separates columns. Allowing them in a row/column value would corrupt
+	// parsing of the default string in validateMatrixDefaultValue.
+	errs = append(errs, validateDialogElementOptions(cfg.Rows, 1, MaxDialogMatrixRows, "matrix_config.rows", ":,;")...)
+	errs = append(errs, validateDialogElementOptions(cfg.Columns, 1, MaxDialogMatrixColumns, "matrix_config.columns", ":,;")...)
+	return errs
+}
+
+// validateMatrixDefaultValue checks that defaultValue is a valid encoded matrix
+// selection. The format is semicolon-separated row entries, each of the form
+// "rowValue:col1,col2". For example:
+//
+//	multiple: "row1:colA,colB;row2:colA"
+//	single:   "row1:colA;row2:colB"
+func validateMatrixDefaultValue(defaultValue string, cfg DialogMatrixConfig) []error {
+	var errs []error
+	rowValues := make(map[string]bool, len(cfg.Rows))
+	for _, row := range cfg.Rows {
+		if row != nil {
+			rowValues[row.Value] = true
+		}
+	}
+	columnValues := make(map[string]bool, len(cfg.Columns))
+	for _, col := range cfg.Columns {
+		if col != nil {
+			columnValues[col.Value] = true
+		}
+	}
+	seenRows := make(map[string]bool)
+	for rowEntry := range strings.SplitSeq(defaultValue, ";") {
+		rowEntry = strings.TrimSpace(rowEntry)
+		if rowEntry == "" {
+			continue
+		}
+		rowValue, columnsPart, ok := strings.Cut(rowEntry, ":")
+		if !ok || rowValue == "" || columnsPart == "" {
+			errs = append(errs, errors.Errorf("invalid matrix default entry %q, expected row:col1,col2", rowEntry))
+			continue
+		}
+		if !rowValues[rowValue] {
+			errs = append(errs, errors.Errorf("matrix default row %q is not in matrix_config.rows", rowValue))
+		}
+		if seenRows[rowValue] {
+			errs = append(errs, errors.Errorf("duplicate row %q in matrix default", rowValue))
+		}
+		seenRows[rowValue] = true
+		columnCount := 0
+		for colValue := range strings.SplitSeq(columnsPart, ",") {
+			colValue = strings.TrimSpace(colValue)
+			if colValue == "" {
+				errs = append(errs, errors.Errorf("invalid empty column in matrix default entry %q", rowEntry))
+				continue
+			}
+			columnCount++
+			if !columnValues[colValue] {
+				errs = append(errs, errors.Errorf("matrix default column %q is not in matrix_config.columns", colValue))
+			}
+		}
+		if cfg.RowSelection == DialogMatrixRowSelectionSingle && columnCount > 1 {
+			errs = append(errs, errors.Errorf("matrix default entry %q has multiple columns but row_selection is single", rowEntry))
+		}
+	}
+	return errs
 }
 
 // validateRelativePattern validates relative date patterns like +1d, +2w, +1m, +2H, +30M, +90S

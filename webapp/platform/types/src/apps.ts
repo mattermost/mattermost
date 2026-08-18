@@ -388,7 +388,7 @@ function isAppForm(v: unknown): v is AppForm {
     return true;
 }
 
-export type AppFormValue = string | AppSelectOption | AppSelectOption[] | boolean | null;
+export type AppFormValue = string | string[] | AppSelectOption | AppSelectOption[] | boolean | null;
 
 function isAppFormValue(v: unknown): v is AppFormValue {
     if (typeof v === 'string') {
@@ -404,7 +404,7 @@ function isAppFormValue(v: unknown): v is AppFormValue {
     }
 
     if (Array.isArray(v)) {
-        return v.every(isAppSelectOption);
+        return v.every((e) => typeof e === 'string' || isAppSelectOption(e));
     }
 
     return isAppSelectOption(v);
@@ -448,6 +448,12 @@ export type DateTimeConfig = {
 
     /** @deprecated Use manual_time_entry instead. Kept for backward compatibility. */
     allow_manual_time_entry?: boolean;
+};
+
+export type MatrixConfig = {
+    rows: AppSelectOption[];
+    columns: AppSelectOption[];
+    row_selection?: 'multiple' | 'single';
 };
 
 // This should go in mattermost-redux
@@ -495,6 +501,9 @@ export type AppField = {
 
     /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
     time_interval?: number;
+
+    label_position?: 'before' | 'after';
+    matrix_config?: MatrixConfig;
 
     // Action button props
     action_button_url?: string;

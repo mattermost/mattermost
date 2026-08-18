@@ -221,6 +221,14 @@ export type DialogElement = {
     /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
     time_interval?: number;
 
+    label_position?: 'before' | 'after';
+
+    matrix_config?: {
+        rows: Array<{text: string; value: string}>;
+        columns: Array<{text: string; value: string}>;
+        row_selection?: 'multiple' | 'single';
+    };
+
     // Action button configuration (type "action_button")
     action_button?: {
         url: string;
