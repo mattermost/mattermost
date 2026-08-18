@@ -15,7 +15,7 @@ import type {
     FormatRelativeTimeOptions} from 'react-intl';
 import {isValidElementType} from 'react-is';
 
-import type {RequireOnlyOne} from '@mattermost/types/utilities';
+import type {Either, RequireOnlyOne} from '@mattermost/types/utilities';
 
 import {isSameYear, isWithin, isEqual, getDiff} from 'utils/datetime';
 import {resolve} from 'utils/resolvable';
@@ -100,17 +100,11 @@ export type ResolvedFormats = {
     time: DateTimeOptions | false;
 };
 
-type FormattedParts = {
-    relative?: ReactNode;
-    date?: ReactNode;
-    time?: ReactNode;
-
-    /**
-     * Both halves already rendered together by Intl, so there is nothing left to join.
-     * Mutually exclusive with `date`/`time`.
-     */
-    datetime?: ReactNode;
-};
+/** Parts left to join, or the single string Intl already combined -- never both. */
+type FormattedParts = Either<
+    {relative?: ReactNode; date?: ReactNode; time?: ReactNode},
+    {datetime: ReactNode}
+>;
 
 type FormatOptions = DateTimeOptions & Partial<RelativeOptions>;
 
