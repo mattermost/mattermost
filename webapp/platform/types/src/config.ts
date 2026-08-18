@@ -1058,6 +1058,8 @@ export type AccessControlSettings = {
     TrustProxyDeviceIdentityHeader: boolean;
     EnforceDeviceIDConsistency: boolean;
     EnableAccessControlAuditLogging: boolean;
+    SyncJobIntervalSeconds: number;
+    AttributeRefreshIntervalSeconds: number;
 };
 
 export type ContentFlaggingNotificationSettings = {
