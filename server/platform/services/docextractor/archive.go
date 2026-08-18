@@ -130,10 +130,16 @@ func (ae *archiveExtractor) Extract(name string, r io.ReadSeeker, maxFileSize in
 			}
 
 			subtext, extractErr := ae.SubExtractor.Extract(filename, bytes.NewReader(data), maxFileSize, budget)
-			if extractErr == nil {
+			if extractErr == nil && budget.Remaining() > 0 {
 				subtextEntry := subtext + " "
-				text.WriteString(subtextEntry)
-				budget.Deduct(int64(len(subtextEntry)))
+				if int64(len(subtextEntry)) > budget.Remaining() {
+					subtextEntry = subtextEntry[:budget.Remaining()]
+					text.WriteString(subtextEntry)
+					budget.Exhaust()
+				} else {
+					text.WriteString(subtextEntry)
+					budget.Deduct(int64(len(subtextEntry)))
+				}
 			}
 		}
 		return nil
