@@ -56,51 +56,6 @@ Adds a configurable timeout for requests made to return link metadata. If the me
 </tbody>
 </table>
 
-### Email batching buffer size
-
-Specify the maximum number of notifications batched into a single email.
-
-<Note>
-
-- We recommend increasing the buffer size from the default value if you see the following error in the Mattermost logs: `Email batching job's receiving buffer was full. Please increase the EmailBatchingBufferSize. Falling back to sending immediate mail.` Increasing this value will ensure emails are queued up, without impacting server performance.
-- Notifications will be sent instantly if the queue of emails exceeds the [email batching interval](#email-batching-interval) configured.
-
-</Note>
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>EmailBatchingBufferSize</code>: 256`` with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
-### Email batching interval
-
-Specify the maximum frequency, in seconds, which the batching job checks for new notifications.
-
-<Note>
-
-- We recommend decreasing the email batching interval from the default value if you see the following error in the Mattermost logs: `Email batching job's receiving buffer was full. Please increase the EmailBatchingBufferSize. Falling back to sending immediate mail.`.
-- Longer batching intervals may increase performance.
-- Notifications will be sent instantly if the [queue of emails](#email-batching-buffer-size) exceeds the email batching interval configured.
-
-</Note>
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>EmailBatchingInterval": 30</code> with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
 ### Email login button color
 
 Specify the color of the email login button for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.

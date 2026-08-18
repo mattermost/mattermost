@@ -2159,8 +2159,8 @@ type EmailSettings struct {
 	PushNotificationContents          *string `access:"site_notifications"`
 	PushNotificationBuffer            *int    // telemetry: none
 	EnableEmailBatching               *bool   `access:"site_notifications"`
-	EmailBatchingBufferSize           *int    `access:"experimental_features"`
-	EmailBatchingInterval             *int    `access:"experimental_features"`
+	EmailBatchingBufferSize           *int    `access:"site_notifications"`
+	EmailBatchingInterval             *int    `access:"site_notifications"`
 	EnablePreviewModeBanner           *bool   `access:"site_notifications"`
 	SkipServerCertificateVerification *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable"`
 	EmailNotificationContentsType     *string `access:"site_notifications"`
