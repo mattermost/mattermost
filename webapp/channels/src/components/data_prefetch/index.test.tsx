@@ -67,15 +67,20 @@ describe('components/data_prefetch (connected)', () => {
         },
     };
 
-    const channelsLoaded: DeepPartial<GlobalState> = {
+    const initChannelsLoaded: DeepPartial<GlobalState> = {
         entities: {
             channels: {
                 channelsInTeam: {[currentTeam.id]: new Set([channel.id])},
             },
         },
+        views: {
+            channelSidebar: {
+                initChannelsLoaded: true,
+            },
+        },
     };
 
-    const membershipsLoaded: DeepPartial<GlobalState> = {
+    const initChannelMembershipsLoaded: DeepPartial<GlobalState> = {
         entities: {
             channels: {
                 myMembers: {
@@ -84,6 +89,11 @@ describe('components/data_prefetch (connected)', () => {
                         user_id: currentUser.id,
                     }),
                 },
+            },
+        },
+        views: {
+            channelSidebar: {
+                initChannelMembershipsLoaded: true,
             },
         },
     };
@@ -96,9 +106,9 @@ describe('components/data_prefetch (connected)', () => {
     // One case per request arriving last, so that dropping any one of the three checks fails a test
     // rather than leaving a silently blank sidebar row.
     test.each([
-        ['categories', [channelsLoaded, membershipsLoaded, categoriesLoaded]],
-        ['channels', [categoriesLoaded, membershipsLoaded, channelsLoaded]],
-        ['memberships', [categoriesLoaded, channelsLoaded, membershipsLoaded]],
+        ['categories', [initChannelsLoaded, initChannelMembershipsLoaded, categoriesLoaded]],
+        ['channels', [categoriesLoaded, initChannelMembershipsLoaded, initChannelsLoaded]],
+        ['memberships', [categoriesLoaded, initChannelsLoaded, initChannelMembershipsLoaded]],
     ] as Array<[string, Array<DeepPartial<GlobalState>>]>)(
         'should not load profiles for the sidebar until the %s arrive last',
         async (_, [first, second, last]) => {
@@ -125,8 +135,8 @@ describe('components/data_prefetch (connected)', () => {
         const {updateStoreState} = renderWithContext(<DataPrefetch/>, nothingLoaded);
 
         updateStoreState(categoriesLoaded);
-        updateStoreState(channelsLoaded);
-        updateStoreState(membershipsLoaded);
+        updateStoreState(initChannelsLoaded);
+        updateStoreState(initChannelMembershipsLoaded);
         await runPostRenderAct();
 
         expect(loadProfilesForSidebar).toHaveBeenCalledTimes(1);

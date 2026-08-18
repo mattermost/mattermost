@@ -539,6 +539,7 @@ export function fetchAllMyChannelMembers(): ActionFuncAsync {
             data: channelMembers,
             currentUserId,
         });
+        dispatch({type: ChannelTypes.INIT_CHANNEL_MEMBERSHIPS_LOADED});
         return {data: channelMembers};
     };
 }
@@ -558,6 +559,7 @@ export function fetchAllMyTeamsChannels(): ActionFuncAsync {
             type: ChannelTypes.RECEIVED_CHANNELS,
             data: channels,
         });
+        dispatch({type: ChannelTypes.INIT_CHANNELS_LOADED});
         return {data: channels};
     };
 }
