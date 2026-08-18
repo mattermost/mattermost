@@ -86,6 +86,31 @@ func TestNewOAuthAppFromClientRegistration(t *testing.T) {
 
 		require.Empty(t, app.ClientSecret)
 	})
+
+	t.Run("CustomSchemeRedirectURIPassesOAuthAppValidation", func(t *testing.T) {
+		req := &ClientRegistrationRequest{
+			RedirectURIs: []string{"cursor://anysphere.cursor-mcp/oauth/callback"},
+			ClientName:   new("Desktop Client"),
+		}
+
+		app := NewOAuthAppFromClientRegistration(req, NewId())
+		app.PreSave()
+
+		// DCR apps map redirect URIs to CallbackUrls, so OAuthApp.IsValid must
+		// accept the same custom schemes allowed at registration time.
+		require.Nil(t, app.IsValid())
+	})
+
+	t.Run("DangerousSchemeRedirectURIRejectedByOAuthAppValidation", func(t *testing.T) {
+		app := &OAuthApp{
+			CallbackUrls:            StringArray{"javascript://evil.example.com/steal"},
+			Name:                    "Desktop Client",
+			IsDynamicallyRegistered: true,
+		}
+		app.PreSave()
+
+		require.NotNil(t, app.IsValid())
+	})
 }
 
 func TestRedirectURIMatchesGlob(t *testing.T) {

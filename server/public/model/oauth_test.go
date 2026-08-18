@@ -121,4 +121,44 @@ func TestOAuthAppIsValid(t *testing.T) {
 		require.False(t, app.IsPublicClient())
 		require.Equal(t, ClientAuthMethodClientSecretPost, app.GetTokenEndpointAuthMethod())
 	})
+
+	t.Run("ManualAppRejectsCustomSchemeCallback", func(t *testing.T) {
+		app := OAuthApp{
+			Id:           NewId(),
+			CreatorId:    NewId(),
+			CreateAt:     1,
+			UpdateAt:     1,
+			Name:         "Test Client",
+			CallbackUrls: []string{"cursor://anysphere.cursor-mcp/oauth/callback"},
+			Homepage:     "https://example.com",
+		}
+
+		require.NotNil(t, app.IsValid())
+	})
+
+	t.Run("DynamicallyRegisteredAppAcceptsCustomSchemeCallback", func(t *testing.T) {
+		app := OAuthApp{
+			Id:                      NewId(),
+			CreateAt:                1,
+			UpdateAt:                1,
+			Name:                    "Test Client",
+			CallbackUrls:            []string{"cursor://anysphere.cursor-mcp/oauth/callback"},
+			IsDynamicallyRegistered: true,
+		}
+
+		require.Nil(t, app.IsValid())
+	})
+
+	t.Run("DynamicallyRegisteredAppRejectsDangerousSchemeCallback", func(t *testing.T) {
+		app := OAuthApp{
+			Id:                      NewId(),
+			CreateAt:                1,
+			UpdateAt:                1,
+			Name:                    "Test Client",
+			CallbackUrls:            []string{"javascript://evil.example.com/steal"},
+			IsDynamicallyRegistered: true,
+		}
+
+		require.NotNil(t, app.IsValid())
+	})
 }

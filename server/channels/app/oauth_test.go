@@ -914,6 +914,21 @@ func TestRegisterOAuthClient(t *testing.T) {
 		require.Equal(t, model.ClientAuthMethodNone, registeredApp.GetTokenEndpointAuthMethod())
 		require.True(t, registeredApp.IsDynamicallyRegistered)
 	})
+
+	t.Run("Custom scheme redirect URI persists end-to-end", func(t *testing.T) {
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"cursor://anysphere.cursor-mcp/oauth/callback"},
+			ClientName:   new("Desktop Client"),
+		}
+
+		app, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, app)
+		assert.Equal(t, request.RedirectURIs, []string(app.CallbackUrls))
+		assert.True(t, app.IsDynamicallyRegistered)
+		assert.NotEmpty(t, app.Id)
+	})
 }
 
 func TestGetAuthorizationServerMetadata_DCRConfig(t *testing.T) {
