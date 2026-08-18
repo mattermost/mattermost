@@ -24,13 +24,8 @@
         }
     }
 
-    // Also carries the live tail status, which belongs next to its selector but
-    // must not push the actions off the row
     &__filters-spacer {
-        display: flex;
         flex: 1;
-        align-items: center;
-        justify-content: flex-start;
     }
 
     &__search {
@@ -74,9 +69,13 @@
         }
     }
 
+    // Sits next to the live tail selector, so it needs a fixed width to stop the
+    // ticking elapsed time from nudging the filters beside it every second
     &__last-updated {
+        min-width: 96px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-size: 12px;
+        margin-inline-start: -4px;
         white-space: nowrap;
     }
 
