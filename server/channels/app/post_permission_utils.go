@@ -11,8 +11,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func PostPriorityCheckWithApp(where string, a *App, userId string, priority *model.PostPriority, rootId string) *model.AppError {
-	user, appErr := a.GetUser(userId)
+func PostPriorityCheckWithApp(where string, a *App, rctx request.CTX, userId string, priority *model.PostPriority, rootId string) *model.AppError {
+	user, appErr := a.GetUser(rctx, userId)
 	if appErr != nil {
 		return appErr
 	}
@@ -157,7 +157,7 @@ func PostBurnOnReadCheckWithApp(where string, a *App, rctx request.CTX, userId, 
 		// Check if the DM is with a bot (AI agents, plugins, etc.)
 		otherUserId := channel.GetOtherUserIdForDM(userId)
 		if otherUserId != "" && otherUserId != userId {
-			otherUser, err := a.GetUser(otherUserId)
+			otherUser, err := a.GetUser(rctx, otherUserId)
 			if err != nil {
 				// Failed to retrieve the other user (user not found, DB error, etc.)
 				// Block burn-on-read post as we cannot validate the recipient

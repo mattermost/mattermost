@@ -1633,7 +1633,7 @@ func TestSwitchOAuthToEmail(t *testing.T) {
 		require.NoError(t, err)
 		th.App.InvalidateCacheForUser(th.BasicUser.Id)
 
-		user, appErr := th.App.GetUser(th.BasicUser.Id)
+		user, appErr := th.App.GetUser(th.Context, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, model.UserAuthServiceGitlab, user.AuthService)
 
@@ -1650,7 +1650,7 @@ func TestSwitchOAuthToEmail(t *testing.T) {
 		require.Equal(t, "api.user.oauth_to_email.integration_session.app_error", appErr.Id)
 		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
 
-		user, appErr = th.App.GetUser(user.Id)
+		user, appErr = th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, model.UserAuthServiceGitlab, user.AuthService)
 	})
@@ -1664,7 +1664,7 @@ func TestSwitchOAuthToEmail(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, "/login?extra=signin_change", link)
 
-		user, appErr = th.App.GetUser(user.Id)
+		user, appErr = th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, appErr)
 		require.Empty(t, user.AuthService)
 	})
@@ -1982,7 +1982,7 @@ func TestLoginByIntune_BotAccountBlocked(t *testing.T) {
 
 	// Create bot account
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 
 	// Create mock Intune interface that returns bot user
@@ -2028,7 +2028,7 @@ func TestLoginByIntune_AccountLocked(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Reload user to get updated DeleteAt
-	deletedUser, appErr = th.App.GetUser(deletedUser.Id)
+	deletedUser, appErr = th.App.GetUser(th.Context, deletedUser.Id)
 	require.Nil(t, appErr)
 
 	// Create mock Intune interface that returns deleted user

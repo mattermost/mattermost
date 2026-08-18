@@ -25,7 +25,7 @@ var (
 
 // PermissionChecker checks whether a user has a specific permission.
 // This avoids a circular dependency between the properties and app packages.
-type PermissionChecker func(userID string, permission *model.Permission) bool
+type PermissionChecker func(rctx request.CTX, userID string, permission *model.Permission) bool
 
 // AccessControlAttributeValidationHook validates and sanitizes property field attributes
 // and values for managed property groups. It owns the full attr pipeline
@@ -413,7 +413,7 @@ func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx requ
 			return nil, fmt.Errorf("missing permission to set managed=admin: no permission checker configured: %w", ErrAdminRequired)
 		}
 		callerID := h.propertyService.extractCallerID(rctx)
-		if callerID == "" || !h.permissionChecker(callerID, model.PermissionManageSystem) {
+		if callerID == "" || !h.permissionChecker(rctx, callerID, model.PermissionManageSystem) {
 			return nil, fmt.Errorf("missing permission to set managed=admin: only system admins can set managed=admin: %w", ErrAdminRequired)
 		}
 		field.PermissionValues = &sysadmin

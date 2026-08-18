@@ -169,7 +169,7 @@ func (a *App) FilterNonQualifyingTeamsForUser(rctx request.CTX, teams []*model.T
 		}
 
 		userOnce.Do(func() {
-			user, userErr = a.GetUser(userID)
+			user, userErr = a.GetUser(rctx, userID)
 		})
 		if userErr != nil {
 			return nil, 0, userErr
@@ -261,7 +261,7 @@ func (a *App) AnnotateRecommendedTeamsForUser(rctx request.CTX, teams []*model.T
 		}
 
 		userOnce.Do(func() {
-			user, userErr = a.GetUser(userID)
+			user, userErr = a.GetUser(rctx, userID)
 		})
 		if userErr != nil {
 			return

@@ -697,14 +697,14 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 
 	err = api.UpdateUserCustomStatus(user1.Id, custom)
 	assert.Nil(t, err)
-	userCs, err := th.App.GetCustomStatus(user1.Id)
+	userCs, err := th.App.GetCustomStatus(th.Context, user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, custom, userCs)
 
 	custom.Text = ""
 	err = api.UpdateUserCustomStatus(user1.Id, custom)
 	assert.Nil(t, err)
-	userCs, err = th.App.GetCustomStatus(user1.Id)
+	userCs, err = th.App.GetCustomStatus(th.Context, user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, custom, userCs)
 
@@ -712,7 +712,7 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	custom.Emoji = ""
 	err = api.UpdateUserCustomStatus(user1.Id, custom)
 	assert.Nil(t, err)
-	userCs, err = th.App.GetCustomStatus(user1.Id)
+	userCs, err = th.App.GetCustomStatus(th.Context, user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, custom, userCs)
 
@@ -725,7 +725,7 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	err = api.RemoveUserCustomStatus(user1.Id)
 	assert.Nil(t, err)
 	var csClear *model.CustomStatus
-	userCs, err = th.App.GetCustomStatus(user1.Id)
+	userCs, err = th.App.GetCustomStatus(th.Context, user1.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, csClear, userCs)
 }
@@ -2397,7 +2397,7 @@ func TestAPIMetrics(t *testing.T) {
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
 		time.Sleep(1 * time.Second)
-		user1, appErr = th.App.GetUser(user1.Id)
+		user1, appErr = th.App.GetUser(th.Context, user1.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 

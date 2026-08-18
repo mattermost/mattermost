@@ -88,7 +88,7 @@ func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, g
 	if appErr := a.writeContentReviewEntry(rctx, zw, rc.Post, generatedByUserID, comment, action); appErr != nil {
 		return appErr
 	}
-	if appErr := a.writeReportMetadataEntry(zw, generatedByUserID); appErr != nil {
+	if appErr := a.writeReportMetadataEntry(rctx, zw, generatedByUserID); appErr != nil {
 		return appErr
 	}
 
@@ -114,7 +114,7 @@ func (a *App) loadFlaggedPostReportContext(rctx request.CTX, postID string) (*mo
 		}
 	}
 
-	author, appErr := a.GetUser(post.UserId)
+	author, appErr := a.GetUser(rctx, post.UserId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -190,8 +190,8 @@ func (a *App) writeContentReviewEntry(rctx request.CTX, zw *zip.Writer, post *mo
 	return nil
 }
 
-func (a *App) writeReportMetadataEntry(zw *zip.Writer, generatedByUserID string) *model.AppError {
-	generator, appErr := a.GetUser(generatedByUserID)
+func (a *App) writeReportMetadataEntry(rctx request.CTX, zw *zip.Writer, generatedByUserID string) *model.AppError {
+	generator, appErr := a.GetUser(rctx, generatedByUserID)
 	if appErr != nil {
 		return appErr
 	}
@@ -276,7 +276,7 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generat
 	out.Hidden = postHiddenByContentFlagging
 
 	if reporterID := out.ReporterUserID; reporterID != "" {
-		if u, uErr := a.GetUser(reporterID); uErr == nil {
+		if u, uErr := a.GetUser(rctx, reporterID); uErr == nil {
 			out.ReporterUsername = u.Username
 		} else {
 			rctx.Logger().Warn("Failed to fetch reporter user for flagged post report", mlog.String("user_id", reporterID), mlog.Err(uErr))
@@ -303,7 +303,7 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generat
 	}
 
 	if actorUserId != "" {
-		if u, uErr := a.GetUser(actorUserId); uErr == nil {
+		if u, uErr := a.GetUser(rctx, actorUserId); uErr == nil {
 			out.ActorUsername = u.Username
 			out.ActorUserId = u.Id
 		} else {
@@ -323,7 +323,7 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generat
 	}
 
 	if reviewerID != "" {
-		if u, uErr := a.GetUser(reviewerID); uErr == nil {
+		if u, uErr := a.GetUser(rctx, reviewerID); uErr == nil {
 			out.ReviewerUsername = u.Username
 		} else {
 			rctx.Logger().Warn("Failed to fetch reviewer user for flagged post report", mlog.String("user_id", reviewerID), mlog.Err(uErr))
@@ -432,7 +432,7 @@ func (a *App) NotifyReviewersOfFlaggedPostReportGeneration(rctx request.CTX, fla
 		return
 	}
 
-	generator, appErr := a.GetUser(generatedByUserID)
+	generator, appErr := a.GetUser(rctx, generatedByUserID)
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to fetch generating user for report generation notification", mlog.Err(appErr))
 		return

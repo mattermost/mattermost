@@ -68,7 +68,7 @@ func (a *App) SlackImport(rctx request.CTX, fileData multipart.File, fileSize in
 		rctx.Logger().Info("Slack import initiated via CLI, treating as admin import")
 	} else if rctx.Session().UserId != "" {
 		// Web API + mmctl import - check if the user is a system admin
-		if user, err := a.GetUser(rctx.Session().UserId); err == nil {
+		if user, err := a.GetUser(rctx, rctx.Session().UserId); err == nil {
 			isAdminImport = user.IsSystemAdmin()
 		}
 	}

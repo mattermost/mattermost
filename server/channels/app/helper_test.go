@@ -311,15 +311,15 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 	th.SystemAdminUser = th.CreateUser(tb)
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 	require.Nil(tb, appErr)
-	th.SystemAdminUser, appErr = th.App.GetUser(th.SystemAdminUser.Id)
+	th.SystemAdminUser, appErr = th.App.GetUser(th.Context, th.SystemAdminUser.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicUser = th.CreateUser(tb)
-	th.BasicUser, appErr = th.App.GetUser(th.BasicUser.Id)
+	th.BasicUser, appErr = th.App.GetUser(th.Context, th.BasicUser.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicUser2 = th.CreateUser(tb)
-	th.BasicUser2, appErr = th.App.GetUser(th.BasicUser2.Id)
+	th.BasicUser2, appErr = th.App.GetUser(th.Context, th.BasicUser2.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicTeam = th.CreateTeam(tb)
@@ -829,7 +829,7 @@ func (th *TestHelper) SetUserRemoteID(tb testing.TB, userID, remoteID string) *m
 	require.NoError(tb, err)
 
 	th.App.InvalidateCacheForUser(userID)
-	user, appErr := th.App.GetUser(userID)
+	user, appErr := th.App.GetUser(th.Context, userID)
 	require.Nil(tb, appErr)
 	return user
 }

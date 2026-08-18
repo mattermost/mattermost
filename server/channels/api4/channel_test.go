@@ -250,7 +250,7 @@ func TestCreateChannel(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
 
 		guestUser := th.CreateUser(t)
-		appErr := th.App.VerifyUserEmail(guestUser.Id, guestUser.Email)
+		appErr := th.App.VerifyUserEmail(th.Context, guestUser.Id, guestUser.Email)
 		require.Nil(t, appErr)
 
 		appErr = th.App.DemoteUserToGuest(th.Context, guestUser)

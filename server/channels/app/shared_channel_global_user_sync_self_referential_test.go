@@ -204,7 +204,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Create bot
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		botUser.UpdateAt = baseTime + 300
 		_, err = ss.User().Update(th.Context, botUser, true)
@@ -1222,7 +1222,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		}, 2*time.Second, 100*time.Millisecond, "Synced user should NEVER be synced back to its originating cluster")
 
 		// Verify that the synced user still exists locally but wasn't synced
-		user, appErr := th.App.GetUser(syncedUserOnB.Id)
+		user, appErr := th.App.GetUser(th.Context, syncedUserOnB.Id)
 		require.Nil(t, appErr)
 		assert.NotNil(t, user.RemoteId, "Synced user should still have RemoteId")
 		assert.Equal(t, clusterB.RemoteId, *user.RemoteId, "RemoteId should point to origin cluster")

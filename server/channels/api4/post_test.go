@@ -1683,7 +1683,7 @@ func TestCreatePostSilentQueryParam(t *testing.T) {
 			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 		bot := th.CreateBotWithSystemAdminClient(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		_, appErr = th.App.UpdateUserRoles(th.Context, bot.UserId, model.TeamUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)

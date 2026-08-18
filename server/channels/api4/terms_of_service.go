@@ -59,7 +59,7 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if oldTermsOfService == nil || oldTermsOfService.Text != text {
-		termsOfService, err := c.App.CreateTermsOfService(text, userId)
+		termsOfService, err := c.App.CreateTermsOfService(c.AppContext, text, userId)
 		if err != nil {
 			c.Err = err
 			return
