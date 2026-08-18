@@ -210,6 +210,7 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["OutgoingOAuthConnections"] = strconv.FormatBool(*l.Features.OutgoingOAuthConnections)
 		props["IsTrial"] = strconv.FormatBool(l.IsTrial)
 		props["IsGovSku"] = strconv.FormatBool(l.IsGovSku)
+		props["IsNonProduction"] = strconv.FormatBool(l.IsNonProduction)
 	}
 
 	return props

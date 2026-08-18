@@ -123,7 +123,9 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
     );
 
     const isSingle = tiles.length === 1;
-    const showHeader = !isSingle && Boolean(onToggleCollapse);
+
+    // Collapsed single videos need a header, otherwise the tile disappears with no toggle.
+    const showHeader = Boolean(onToggleCollapse) && (!isSingle || !isEmbedVisible);
 
     let tileIdx = 0;
 

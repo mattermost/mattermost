@@ -242,3 +242,22 @@ func marshalPublicKeyPEM(t *testing.T, pub *rsa.PublicKey) []byte {
 	require.NoError(t, err)
 	return pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: der})
 }
+
+func TestGetClientLicense(t *testing.T) {
+	license := &model.License{
+		Customer: &model.Customer{},
+		Features: &model.Features{},
+	}
+	license.Features.SetDefaults()
+
+	props := GetClientLicense(license)
+	require.Equal(t, "false", props["IsNonProduction"])
+
+	license.IsNonProduction = true
+	props = GetClientLicense(license)
+	require.Equal(t, "true", props["IsNonProduction"])
+
+	// The flag must survive sanitization so all users can see the non-production banner.
+	sanitized := GetSanitizedClientLicense(props)
+	require.Equal(t, "true", sanitized["IsNonProduction"])
+}

@@ -22,10 +22,6 @@ export function getFeatureFlagValue(state: GlobalState, key: keyof FeatureFlags)
     return getConfig(state)?.[`FeatureFlag${key}` as keyof Partial<ClientConfig>];
 }
 
-export function isCustomProfileAttributesEnabled(state: GlobalState): boolean {
-    return getConfig(state).FeatureFlagCustomProfileAttributes === 'true';
-}
-
 export function isPostAttributesEnabled(state: GlobalState): boolean {
     return getConfig(state).FeatureFlagPostAttributes === 'true';
 }

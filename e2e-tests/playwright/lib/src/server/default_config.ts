@@ -541,9 +541,6 @@ const defaultServerConfig: AdminConfig = {
         QueryTimeout: 60,
         MaxPageSize: 0,
         LoginFieldName: '',
-        LoginButtonColor: '#0000',
-        LoginButtonBorderColor: '#2389D7',
-        LoginButtonTextColor: '#2389D7',
     },
     ComplianceSettings: {
         Enable: false,
@@ -589,9 +586,6 @@ const defaultServerConfig: AdminConfig = {
         LocaleAttribute: '',
         PositionAttribute: '',
         LoginButtonText: 'SAML',
-        LoginButtonColor: '#34a28b',
-        LoginButtonBorderColor: '#2389D7',
-        LoginButtonTextColor: '#ffffff',
     },
     NativeAppSettings: {
         AppCustomURLSchemes: ['mmauth://', 'mmauthbeta://'],
@@ -780,8 +774,6 @@ const defaultServerConfig: AdminConfig = {
     ImageProxySettings: {
         Enable: false,
         ImageProxyType: 'local',
-        RemoteImageProxyURL: '',
-        RemoteImageProxyOptions: '',
     },
     CloudSettings: {
         CWSURL: 'https://customers.mattermost.com',
@@ -801,10 +793,8 @@ const defaultServerConfig: AdminConfig = {
         AppsEnabled: false,
         NormalizeLdapDNs: false,
         WysiwygEditor: false,
-        EnableExportDirectDownload: false,
         MoveThreadsEnabled: false,
         NotificationMonitoring: true,
-        CustomProfileAttributes: true,
         AttributeValueMasking: false,
         PermissionPolicies: false,
         ChannelPermissionPolicies: false,

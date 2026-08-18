@@ -286,8 +286,8 @@ const (
 	GlobalrelayCustomerTypeA10    = "A10"
 	GlobalrelayCustomerTypeCustom = "CUSTOM"
 
-	ImageProxyTypeLocal     = "local"
-	ImageProxyTypeAtmosCamo = "atmos/camo"
+	ImageProxyTypeLocal           = "local"
+	ImageProxyTypeLegacyAtmosCamo = "atmos/camo"
 
 	GoogleSettingsDefaultScope           = "profile email"
 	GoogleSettingsDefaultAuthEndpoint    = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -2727,10 +2727,6 @@ type LdapSettings struct {
 
 	// Customization
 	LoginFieldName *string `access:"authentication_ldap"`
-
-	LoginButtonColor       *string `access:"experimental_features"`
-	LoginButtonBorderColor *string `access:"experimental_features"`
-	LoginButtonTextColor   *string `access:"experimental_features"`
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -2867,18 +2863,6 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.LoginFieldName == nil {
 		s.LoginFieldName = new(LdapSettingsDefaultLoginFieldName)
-	}
-
-	if s.LoginButtonColor == nil {
-		s.LoginButtonColor = new("#0000")
-	}
-
-	if s.LoginButtonBorderColor == nil {
-		s.LoginButtonBorderColor = new("#2389D7")
-	}
-
-	if s.LoginButtonTextColor == nil {
-		s.LoginButtonTextColor = new("#2389D7")
 	}
 }
 
@@ -3046,10 +3030,6 @@ type SamlSettings struct {
 	PositionAttribute    *string `access:"authentication_saml"`
 
 	LoginButtonText *string `access:"authentication_saml"`
-
-	LoginButtonColor       *string `access:"experimental_features"`
-	LoginButtonBorderColor *string `access:"experimental_features"`
-	LoginButtonTextColor   *string `access:"experimental_features"`
 }
 
 func (s *SamlSettings) SetDefaults() {
@@ -3177,18 +3157,6 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.LocaleAttribute == nil {
 		s.LocaleAttribute = new(SamlSettingsDefaultLocaleAttribute)
-	}
-
-	if s.LoginButtonColor == nil {
-		s.LoginButtonColor = new("#34a28b")
-	}
-
-	if s.LoginButtonBorderColor == nil {
-		s.LoginButtonBorderColor = new("#2389D7")
-	}
-
-	if s.LoginButtonTextColor == nil {
-		s.LoginButtonTextColor = new("#ffffff")
 	}
 }
 
@@ -4021,10 +3989,8 @@ func (s *GuestAccountsSettings) IsValid() *AppError {
 }
 
 type ImageProxySettings struct {
-	Enable                  *bool   `access:"environment_image_proxy"`
-	ImageProxyType          *string `access:"environment_image_proxy"`
-	RemoteImageProxyURL     *string `access:"environment_image_proxy"`
-	RemoteImageProxyOptions *string `access:"environment_image_proxy"`
+	Enable         *bool   `access:"environment_image_proxy"`
+	ImageProxyType *string `access:"environment_image_proxy"`
 }
 
 func (s *ImageProxySettings) SetDefaults() {
@@ -4034,14 +4000,6 @@ func (s *ImageProxySettings) SetDefaults() {
 
 	if s.ImageProxyType == nil {
 		s.ImageProxyType = new(ImageProxyTypeLocal)
-	}
-
-	if s.RemoteImageProxyURL == nil {
-		s.RemoteImageProxyURL = new("")
-	}
-
-	if s.RemoteImageProxyOptions == nil {
-		s.RemoteImageProxyOptions = new("")
 	}
 }
 
@@ -4116,7 +4074,8 @@ type AccessControlSettings struct {
 	EnableAccessControlAuditLogging   *bool `access:"write_restrictable,cloud_restrictable"`
 	// Shared interval for both the channel and team membership sync schedulers;
 	// applied at scheduler construction (needs a restart to take effect).
-	SyncJobIntervalSeconds *int `access:"write_restrictable,cloud_restrictable"`
+	SyncJobIntervalSeconds          *int `access:"write_restrictable,cloud_restrictable"`
+	AttributeRefreshIntervalSeconds *int `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -4149,6 +4108,10 @@ func (s *AccessControlSettings) SetDefaults() {
 	if s.SyncJobIntervalSeconds == nil {
 		s.SyncJobIntervalSeconds = new(3600)
 	}
+
+	if s.AttributeRefreshIntervalSeconds == nil {
+		s.AttributeRefreshIntervalSeconds = new(30)
+	}
 }
 
 func (s *AccessControlSettings) isValid() *AppError {
@@ -4156,6 +4119,11 @@ func (s *AccessControlSettings) isValid() *AppError {
 	// would hammer the store to no effect, so reject it outright.
 	if *s.SyncJobIntervalSeconds < 60 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_sync_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+	// Refresh interval is designed to avoid spamming a refresh of the AttributeView in the database.
+	// Minimum is set to 0, so an operator can effectively disable this protection if desired.
+	if *s.AttributeRefreshIntervalSeconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_attribute_refresh_interval.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -4552,6 +4520,12 @@ func (o *Config) IsValid() *AppError {
 
 	if appErr := o.AccessControlSettings.isValid(); appErr != nil {
 		return appErr
+	}
+
+	if o.FeatureFlags != nil {
+		if appErr := o.FeatureFlags.isValid(); appErr != nil {
+			return appErr
+		}
 	}
 
 	return nil
@@ -5324,24 +5298,14 @@ func (s *DisplaySettings) isValid() *AppError {
 }
 
 func (s *ImageProxySettings) isValid() *AppError {
+	if *s.ImageProxyType == ImageProxyTypeLegacyAtmosCamo {
+		return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_removed.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.Enable {
 		switch *s.ImageProxyType {
 		case ImageProxyTypeLocal:
 			// No other settings to validate
-		case ImageProxyTypeAtmosCamo:
-			if *s.RemoteImageProxyURL == "" {
-				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_url.app_error", nil, "", http.StatusBadRequest)
-			}
-
-			if *s.RemoteImageProxyOptions == "" {
-				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options.app_error", nil, "", http.StatusBadRequest)
-			}
-
-			// RemoteImageProxyOptions is used as the HMAC key for URL signing,
-			// so it is subject to the same FIPS minimum key length as passwords.
-			if FIPSEnabled && len(*s.RemoteImageProxyOptions) < PasswordFIPSMinimumLength {
-				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error", map[string]any{"MinLength": PasswordFIPSMinimumLength}, "", http.StatusBadRequest)
-			}
 		default:
 			return NewAppError("Config.IsValid", "model.config.is_valid.image_proxy_type.app_error", nil, "", http.StatusBadRequest)
 		}

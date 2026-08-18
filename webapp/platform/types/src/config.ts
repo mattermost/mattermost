@@ -129,7 +129,6 @@ export type ClientConfig = {
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
-    FeatureFlagCustomProfileAttributes: string;
     FeatureFlagTeamMembershipAccessControl: string;
     FeatureFlagPermissionPolicies: string;
     FeatureFlagChannelPermissionPolicies: string;
@@ -141,6 +140,7 @@ export type ClientConfig = {
     FeatureFlagSessionAttributes: string;
     FeatureFlagPostAttributes: string;
     FeatureFlagDiscoverableChannels: string;
+    FeatureFlagRecurringScheduledPosts: string;
 
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -156,9 +156,6 @@ export type ClientConfig = {
     IsDefaultMarketplace: string;
     LdapFirstNameAttributeSet: string;
     LdapLastNameAttributeSet: string;
-    LdapLoginButtonBorderColor: string;
-    LdapLoginButtonColor: string;
-    LdapLoginButtonTextColor: string;
     LdapLoginFieldName: string;
     LdapNicknameAttributeSet: string;
     LdapPositionAttributeSet: string;
@@ -193,10 +190,7 @@ export type ClientConfig = {
     RunJobs: string;
     SamlFirstNameAttributeSet: string;
     SamlLastNameAttributeSet: string;
-    SamlLoginButtonBorderColor: string;
-    SamlLoginButtonColor: string;
     SamlLoginButtonText: string;
-    SamlLoginButtonTextColor: string;
     SamlNicknameAttributeSet: string;
     SamlPositionAttributeSet: string;
     SchemaVersion: string;
@@ -776,9 +770,6 @@ export type LdapSettings = {
     QueryTimeout: number;
     MaxPageSize: number;
     LoginFieldName: string;
-    LoginButtonColor: string;
-    LoginButtonBorderColor: string;
-    LoginButtonTextColor: string;
     MaximumLoginAttempts: number;
 };
 
@@ -844,9 +835,6 @@ export type SamlSettings = {
     LocaleAttribute: string;
     PositionAttribute: string;
     LoginButtonText: string;
-    LoginButtonColor: string;
-    LoginButtonBorderColor: string;
-    LoginButtonTextColor: string;
 };
 
 export type NativeAppSettings = {
@@ -1038,8 +1026,6 @@ export type GuestAccountsSettings = {
 export type ImageProxySettings = {
     Enable: boolean;
     ImageProxyType: string;
-    RemoteImageProxyURL: string;
-    RemoteImageProxyOptions: string;
 };
 
 export type CloudSettings = {

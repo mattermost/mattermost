@@ -1936,7 +1936,7 @@ func TestPluginRPCSharedChannelSync(t *testing.T) {
 	// the detailed DB verification for attachment persistence.
 
 	// Verify profile image was saved for the synced user
-	updatedUser, err := th.App.Srv().Store().User().Get(th.Context.Context(), syncUserID)
+	updatedUser, err := th.App.Srv().Store().User().Get(th.Context, syncUserID)
 	require.NoError(t, err)
 	assert.Greater(t, updatedUser.LastPictureUpdate, int64(0), "LastPictureUpdate should be set after profile image sync")
 

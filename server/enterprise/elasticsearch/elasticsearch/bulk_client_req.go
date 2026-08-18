@@ -103,20 +103,26 @@ func (r *ReqBulkClient) flushIfNecessary() error {
 
 func (r *ReqBulkClient) Stop() error {
 	r.mut.Lock()
-	defer r.mut.Unlock()
 
 	r.logger.Info("Stopping Bulk processor")
 
+	var flushErr error
 	if r.pendingRequests > 0 {
-		return r._flush()
+		flushErr = r._flush()
 	}
 
 	if r.bulkSettings.FlushInterval > 0 {
 		close(r.quitFlusher)
+	}
+	r.mut.Unlock()
+
+	// The periodic flusher may already be waiting for mut after its timer
+	// fires, so release the mutex before waiting for it to exit.
+	if r.bulkSettings.FlushInterval > 0 {
 		r.quitFlusherWg.Wait()
 	}
 
-	return nil
+	return flushErr
 }
 
 func (r *ReqBulkClient) periodicFlusher() {
