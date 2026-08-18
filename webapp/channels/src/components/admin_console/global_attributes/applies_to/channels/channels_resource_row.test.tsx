@@ -161,7 +161,7 @@ describe('ChannelsResourceRow', () => {
             permissionValues: 'admin',
         });
 
-        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Required · Display: Header + Sidebar · Set by Channel admin');
+        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Required · Display: Header + Channel Info · Set by Channel admin');
     });
 
     it('says so in the summary when the attribute is displayed nowhere or locked', () => {

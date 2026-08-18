@@ -129,9 +129,9 @@ test.describe('System Console - applying an attribute to channels', {tag: ['@sys
     });
 
     /**
-     * @objective Ensure the Sidebar display location puts the attribute in Channel Info only.
+     * @objective Ensure the Channel Info display location puts the attribute in Channel Info only.
      */
-    test('shows a Sidebar-only attribute in Channel Info and not in the header', async ({pw}) => {
+    test('shows a Channel-Info-only attribute in Channel Info and not in the header', async ({pw}) => {
         const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
         await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
@@ -142,7 +142,7 @@ test.describe('System Console - applying an attribute to channels', {tag: ['@sys
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
             name = await configureChannelAttribute(systemConsolePage, {
-                displayName: `Sidebar ${suffix}`,
+                displayName: `Info ${suffix}`,
                 type: 'Select',
                 options: ['INTERNAL'],
                 required: true,
@@ -155,7 +155,7 @@ test.describe('System Console - applying an attribute to channels', {tag: ['@sys
             await channelsPage.toBeVisible();
 
             const modal = await channelsPage.openNewChannelModal();
-            await modal.fillDisplayName(`Attr Sidebar ${suffix}`);
+            await modal.fillDisplayName(`Attr Info ${suffix}`);
             await channelsPage.page.getByTestId(`channelAttribute-${name}`).click();
             await channelsPage.page.getByText('INTERNAL', {exact: true}).click();
             await modal.create();

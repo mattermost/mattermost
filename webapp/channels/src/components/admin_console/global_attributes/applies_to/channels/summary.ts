@@ -12,7 +12,7 @@ import type {ChannelChangePolicy, ChannelDisplayLocation, ChannelResourceConfig}
 
 export const locationMessages = defineMessages({
     [DISPLAY_LABEL_HEADER]: {id: 'admin.global_attributes.applies_to.channels.location.header', defaultMessage: 'Header'},
-    [DISPLAY_LABEL_INFO]: {id: 'admin.global_attributes.applies_to.channels.location.sidebar', defaultMessage: 'Sidebar'},
+    [DISPLAY_LABEL_INFO]: {id: 'admin.global_attributes.applies_to.channels.location.info', defaultMessage: 'Channel Info'},
     [DISPLAY_BANNER_TOP]: {id: 'admin.global_attributes.applies_to.channels.location.banner', defaultMessage: 'Banner'},
 });
 
@@ -59,7 +59,7 @@ export function displayLocationLabel(location: ChannelDisplayLocation, intl: Int
 }
 
 /**
- * The collapsed one-liner, e.g. "Optional · Display: Header + Sidebar · Set by
+ * The collapsed one-liner, e.g. "Optional · Display: Header + Channel Info · Set by
  * Channel admin". Assembled from short conditional segments rather than one
  * message with five optional slots, which translators cannot work with.
  */

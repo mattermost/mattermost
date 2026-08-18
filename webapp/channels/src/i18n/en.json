@@ -1451,7 +1451,7 @@
   "admin.global_attributes.applies_to.channels.expand": "Expand channel settings",
   "admin.global_attributes.applies_to.channels.location.banner": "Banner",
   "admin.global_attributes.applies_to.channels.location.header": "Header",
-  "admin.global_attributes.applies_to.channels.location.sidebar": "Sidebar",
+  "admin.global_attributes.applies_to.channels.location.info": "Channel Info",
   "admin.global_attributes.applies_to.channels.remove": "Remove resource",
   "admin.global_attributes.applies_to.channels.required.help_off": "Optional — this attribute can still be added to a channel after it is created.",
   "admin.global_attributes.applies_to.channels.required.help_on": "Required — the channel must have a value for this attribute before it can be created.",
