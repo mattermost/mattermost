@@ -25,7 +25,10 @@ const (
 
 // ExtractSettings defines the features enabled/disable during the document text extraction.
 type ExtractSettings struct {
-	// Ctx is retained for API compatibility; it is no longer passed to extractors.
+	// Ctx, when set, cancels the caller's wait for extraction to complete.
+	// Because the underlying converters are not context-aware, in-progress
+	// extraction continues on a detached goroutine; only the caller's wait is
+	// unblocked.
 	Ctx              context.Context
 	ArchiveRecursion bool
 	MaxFileSize      int64
@@ -91,12 +94,13 @@ func ExtractWithExtraExtractors(logger mlog.LoggerIFace, filename string, r io.R
 }
 
 // extractWithTimeout runs the extraction and stops waiting for it once
-// settings.Timeout elapses. Because the underlying docconv converters are not
-// context-aware, the extraction runs on a detached goroutine: on timeout we
-// stop waiting and return an error, releasing the caller (and its worker slot)
-// even though the converter keeps running. A global concurrency cap applies to
-// every in-flight extraction, including detached goroutines, so timed-out work
-// cannot accumulate beyond the limit.
+// settings.Timeout elapses or settings.Ctx is cancelled. Because the underlying
+// docconv converters are not context-aware, the extraction runs on a detached
+// goroutine: on timeout or cancellation we stop waiting and return an error,
+// releasing the caller (and its worker slot) even though the converter keeps
+// running. A global concurrency cap applies to every in-flight extraction,
+// including detached goroutines, so timed-out work cannot accumulate beyond the
+// limit.
 func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings ExtractSettings) (string, error) {
 	if !tryAcquireExtractionSlot() {
 		if settings.ReaderCloser != nil {
@@ -111,12 +115,19 @@ func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings 
 	}
 	budget := newExtractionBudget(maxArchiveExtractedText, maxDepth)
 
-	if settings.Timeout <= 0 {
+	// Use the fast synchronous path only when neither a timeout nor a
+	// cancellable context is in play.
+	if settings.Timeout <= 0 && settings.Ctx == nil {
 		defer releaseExtractionSlot()
 		if settings.ReaderCloser != nil {
 			defer settings.ReaderCloser.Close()
 		}
 		return e.Extract(filename, r, settings.MaxFileSize, budget)
+	}
+
+	ctx := settings.Ctx
+	if ctx == nil {
+		ctx = context.Background()
 	}
 
 	type extractResult struct {
@@ -127,16 +138,16 @@ func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings 
 	go func() {
 		defer releaseExtractionSlot()
 		// This goroutine owns the reader for the lifetime of the extraction.
-		// After the timeout fires the caller returns, but the converter may
-		// still be reading r here, so the reader is closed only once this
-		// goroutine is done with it - never by the caller.
+		// After the timeout or cancellation fires the caller returns, but the
+		// converter may still be reading r here, so the reader is closed only
+		// once this goroutine is done with it - never by the caller.
 		if settings.ReaderCloser != nil {
 			defer settings.ReaderCloser.Close()
 		}
 		// This goroutine is detached, so an unrecovered panic in an extractor
 		// would crash the whole server. Convert it into an error instead.
 		// resultCh is buffered (cap 1), so this send never blocks even if the
-		// caller already timed out and stopped receiving.
+		// caller already returned.
 		defer func() {
 			if rec := recover(); rec != nil {
 				resultCh <- extractResult{err: fmt.Errorf("panic during document text extraction: %v", rec)}
@@ -146,13 +157,21 @@ func extractWithTimeout(e Extractor, filename string, r io.ReadSeeker, settings 
 		resultCh <- extractResult{text: text, err: err}
 	}()
 
-	timer := time.NewTimer(settings.Timeout)
-	defer timer.Stop()
+	// timeoutCh is nil when Timeout <= 0; a nil channel is never selected,
+	// so the timeout case simply never fires.
+	var timeoutCh <-chan time.Time
+	if settings.Timeout > 0 {
+		timer := time.NewTimer(settings.Timeout)
+		defer timer.Stop()
+		timeoutCh = timer.C
+	}
 
 	select {
 	case res := <-resultCh:
 		return res.text, res.err
-	case <-timer.C:
+	case <-timeoutCh:
 		return "", fmt.Errorf("document text extraction timed out after %s", settings.Timeout)
+	case <-ctx.Done():
+		return "", fmt.Errorf("document text extraction cancelled: %w", ctx.Err())
 	}
 }
