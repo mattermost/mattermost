@@ -83,7 +83,7 @@ func postPriorityCheck(
 }
 
 func PostHardenedModeCheckWithApp(a *App, isIntegration bool, props model.StringInterface) *model.AppError {
-	hardenedModeEnabled := *a.Config().ServiceSettings.ExperimentalEnableHardenedMode
+	hardenedModeEnabled := *a.Config().ServiceSettings.EnableHardenedMode
 	return postHardenedModeCheck(hardenedModeEnabled, isIntegration, props)
 }
 

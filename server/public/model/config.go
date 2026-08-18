@@ -455,7 +455,8 @@ type ServiceSettings struct {
 	EnableAPIPostDeletion                             *bool
 	EnableDesktopLandingPage                          *bool
 	MinimumDesktopAppVersion                          *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	ExperimentalEnableHardenedMode                    *bool   `access:"experimental_features"`
+	EnableHardenedMode                                *bool   `access:"environment_web_server"`
+	ExperimentalEnableHardenedMode                    *bool   `json:",omitempty"` // Deprecated: use `EnableHardenedMode`; migrated automatically by SetDefaults.
 	ExperimentalStrictCSRFEnforcement                 *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool   `access:"authentication_signup"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool   `access:"integrations_bot_accounts"`
@@ -902,9 +903,15 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableAPIChannelDeletion = new(false)
 	}
 
-	if s.ExperimentalEnableHardenedMode == nil {
-		s.ExperimentalEnableHardenedMode = new(false)
+	if s.EnableHardenedMode == nil {
+		if s.ExperimentalEnableHardenedMode != nil && *s.ExperimentalEnableHardenedMode {
+			s.EnableHardenedMode = new(true)
+		} else {
+			s.EnableHardenedMode = new(false)
+		}
 	}
+	// Always clear the deprecated field; the next config write will omit the old key.
+	s.ExperimentalEnableHardenedMode = nil
 
 	if s.ExperimentalStrictCSRFEnforcement == nil {
 		s.ExperimentalStrictCSRFEnforcement = new(false)

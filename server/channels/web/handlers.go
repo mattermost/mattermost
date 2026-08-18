@@ -438,7 +438,7 @@ func (h Handler) handleContextError(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	// Sanitize all 5xx error messages in hardened mode
-	if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err.StatusCode >= 500 {
+	if *c.App.Config().ServiceSettings.EnableHardenedMode && c.Err.StatusCode >= 500 {
 		c.Err.Id = ""
 		c.Err.Message = "Internal Server Error"
 		c.Err.WipeDetailed()
