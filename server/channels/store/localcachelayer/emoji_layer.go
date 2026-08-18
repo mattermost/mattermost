@@ -6,12 +6,17 @@ package localcachelayer
 import (
 	"bytes"
 	"sync"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
+
+// emojiNotFoundSentinel is stored in emojiIdCacheByName for names known to be
+// absent from the DB; real emoji ids are always 26 characters, so no collision.
+const emojiNotFoundSentinel = "-"
 
 type LocalCacheEmojiStore struct {
 	store.EmojiStore
@@ -20,6 +25,21 @@ type LocalCacheEmojiStore struct {
 	emojiByIdInvalidations   map[string]bool
 	emojiByNameMut           sync.Mutex
 	emojiByNameInvalidations map[string]bool
+}
+
+func (es *LocalCacheEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
+	savedEmoji, err := es.EmojiStore.Save(emoji)
+
+	if err == nil {
+		// A negative cache entry may exist for this name if it was looked up
+		// before the emoji was created, so it needs to be invalidated.
+		es.emojiByNameMut.Lock()
+		es.emojiByNameInvalidations[savedEmoji.Name] = true
+		es.emojiByNameMut.Unlock()
+		es.rootStore.doInvalidateCacheCluster(es.rootStore.emojiIdCacheByName, savedEmoji.Name, nil)
+	}
+
+	return savedEmoji, err
 }
 
 func (es *LocalCacheEmojiStore) handleClusterInvalidateEmojiById(msg *model.ClusterMessage) {
@@ -106,20 +126,27 @@ func (es *LocalCacheEmojiStore) GetMultipleByName(rctx request.CTX, names []stri
 	remainingEmojiNames := make([]string, 0)
 
 	for _, name := range names {
-		if emoji, ok := es.getFromCacheByName(name); ok {
-			emojis = append(emojis, emoji)
-		} else {
-			// If it was invalidated, then we need to query master.
-			es.emojiByNameMut.Lock()
-			if es.emojiByNameInvalidations[name] {
-				rctx = sqlstore.RequestContextWithMaster(rctx)
-				// And then remove the key from the map.
-				delete(es.emojiByNameInvalidations, name)
+		var emojiId string
+		if err := es.rootStore.doStandardReadCache(es.rootStore.emojiIdCacheByName, name, &emojiId); err == nil {
+			if emojiId == emojiNotFoundSentinel {
+				continue
 			}
-			es.emojiByNameMut.Unlock()
-
-			remainingEmojiNames = append(remainingEmojiNames, name)
+			if emoji, ok := es.getFromCacheById(emojiId); ok {
+				emojis = append(emojis, emoji)
+				continue
+			}
 		}
+
+		// If it was invalidated, then we need to query master.
+		es.emojiByNameMut.Lock()
+		if es.emojiByNameInvalidations[name] {
+			rctx = sqlstore.RequestContextWithMaster(rctx)
+			// And then remove the key from the map.
+			delete(es.emojiByNameInvalidations, name)
+		}
+		es.emojiByNameMut.Unlock()
+
+		remainingEmojiNames = append(remainingEmojiNames, name)
 	}
 
 	if len(remainingEmojiNames) > 0 {
@@ -127,9 +154,21 @@ func (es *LocalCacheEmojiStore) GetMultipleByName(rctx request.CTX, names []stri
 		if err != nil {
 			return nil, err
 		}
+		foundNames := make(map[string]bool, len(remainingEmojis))
 		for _, emoji := range remainingEmojis {
 			es.addToCache(emoji)
 			emojis = append(emojis, emoji)
+			foundNames[emoji.Name] = true
+		}
+		// Cache the names that don't exist in the database with a short TTL,
+		// so they don't trigger a DB query on every subsequent lookup. Save
+		// invalidates these entries when an emoji with such a name is
+		// created. Names longer than the maximum can never exist and are
+		// skipped to avoid flooding the cache.
+		for _, name := range remainingEmojiNames {
+			if !foundNames[name] && len(name) <= model.EmojiNameMaxLength {
+				es.rootStore.doStandardAddToCacheWithExpiry(es.rootStore.emojiIdCacheByName, name, emojiNotFoundSentinel, EmojiNotFoundCacheSec*time.Second)
+			}
 		}
 	}
 
