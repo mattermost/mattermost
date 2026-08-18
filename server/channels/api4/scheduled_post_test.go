@@ -77,7 +77,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 
 		createdScheduledPost.ErrorCode = model.ScheduledPostErrorUnableToSend
 		createdScheduledPost.ProcessedAt = model.GetMillis()
-		require.NoError(t, th.App.Srv().Store().ScheduledPost().UpdatedScheduledPost(createdScheduledPost))
+		require.NoError(t, th.App.Srv().Store().ScheduledPost().UpdatedScheduledPost(th.Context, createdScheduledPost))
 
 		createdScheduledPost.ScheduledAt = model.GetMillis() + 300000
 		createdScheduledPost.RepeatTimezone = "America/New_York"
@@ -90,7 +90,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, updatedScheduledPost.RepeatType)
 		require.Equal(t, "America/New_York", updatedScheduledPost.RepeatTimezone)
 
-		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(th.Context, createdScheduledPost.Id)
 		require.NoError(t, err)
 		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, fetchedPost.RepeatType)
 		require.Equal(t, "America/New_York", fetchedPost.RepeatTimezone)
@@ -134,7 +134,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, updatedScheduledPost.RepeatType)
 		require.Equal(t, "America/New_York", updatedScheduledPost.RepeatTimezone)
 
-		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(th.Context, createdScheduledPost.Id)
 		require.NoError(t, err)
 		require.Equal(t, "rescheduled by an old client", fetchedPost.Message)
 		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, fetchedPost.RepeatType)
@@ -166,7 +166,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.Empty(t, updatedScheduledPost.RepeatType)
 		require.Empty(t, updatedScheduledPost.RepeatTimezone)
 
-		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(th.Context, createdScheduledPost.Id)
 		require.NoError(t, err)
 		require.Empty(t, fetchedPost.RepeatType)
 		require.Empty(t, fetchedPost.RepeatTimezone)
@@ -413,7 +413,7 @@ func TestScheduledPostRecurringFeatureFlag(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "app.scheduled_post.recurring_disabled.app_error")
 
-		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(created.Id)
+		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
 		require.NoError(t, storeErr)
 		require.Equal(t, model.ScheduledPostRepeatTypeNone, fetched.RepeatType)
 	})
