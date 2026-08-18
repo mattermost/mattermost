@@ -179,3 +179,29 @@ export async function purgeAttributes(adminClient: Client4): Promise<void> {
         } catch {} // eslint-disable-line no-empty
     }
 }
+
+/**
+ * Throws when the server carries a required channel attribute these specs did not
+ * create.
+ *
+ * The create dialog asks for every required channel attribute, and Create channel
+ * stays disabled until all of them have a value. A required attribute left behind
+ * by hand (or by another suite) therefore breaks every create-modal test, and does
+ * it as a 30s timeout on a disabled button that says nothing about the cause.
+ * purgeAttributes cannot clear these: it is deliberately scoped to FIELD_PREFIX so
+ * it never deletes a field someone meant to keep.
+ */
+export async function assertNoForeignRequiredAttributes(adminClient: Client4): Promise<void> {
+    const fields = await adminClient.getPropertyFields(GROUP, 'channel', TARGET_TYPE, undefined, {perPage: 200});
+    const foreign = (fields ?? []).filter(
+        (field) => field.delete_at === 0 && field.attrs?.required === true && !field.name.startsWith(FIELD_PREFIX),
+    );
+
+    if (foreign.length) {
+        const names = foreign.map((field) => field.name).join(', ');
+        throw new Error(
+            `Required channel attributes not owned by these specs are present: ${names}. ` +
+            'Channel creation cannot complete until each has a value. Delete them, or turn off Required, and re-run.',
+        );
+    }
+}

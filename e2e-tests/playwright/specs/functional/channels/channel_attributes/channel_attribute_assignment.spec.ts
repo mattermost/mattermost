@@ -6,6 +6,7 @@ import type {PropertyField} from '@mattermost/types/properties';
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {
+    assertNoForeignRequiredAttributes,
     attributeName,
     createAttribute,
     deleteAttributes,
@@ -34,6 +35,7 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
 
         try {
             await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
 
             // Required, because the create dialog asks only for required attributes.
             const program = await createAttribute(adminClient, attributeName('program', suffix), {
@@ -113,6 +115,7 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
 
         try {
             await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
 
             const program = await createAttribute(adminClient, attributeName('private_program', suffix), {
                 options: ['AURORA', 'BOREALIS'],
@@ -159,6 +162,7 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
 
         try {
             await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
 
             const program = await createAttribute(adminClient, attributeName('failing', suffix), {
                 options: ['AURORA'],

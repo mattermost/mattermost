@@ -3,7 +3,7 @@
 
 import {fireEvent, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
+import React, {useState} from 'react';
 
 import type {PropertyField} from '@mattermost/types/properties';
 
@@ -12,6 +12,50 @@ import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import BannerTextEditor from './banner_text_editor';
+
+// The real control is a MUI menu, which jsdom cannot open: it has no layout, so the
+// popover rejects its anchor. Only the editor's own insertion path is under test.
+jest.mock('./banner_token_controls', () => ({
+    __esModule: true,
+    default: ({onInsertToken}: {onInsertToken: (token: string) => void}) => (
+        <>
+            <button
+                data-testid='insertClassification'
+                onClick={() => onInsertToken('{{classification}}')}
+            />
+            <button
+                data-testid='insertProgram'
+                onClick={() => onInsertToken('{{program}}')}
+            />
+        </>
+    ),
+}));
+
+// Mirrors the configuration tab, which owns the value and echoes every change back.
+const Host = ({onChange}: {onChange: (next: string) => void}) => {
+    const [value, setValue] = useState('');
+
+    return (
+        <BannerTextEditor
+            value={value}
+            attributes={ATTRIBUTES}
+            onChange={(next) => {
+                onChange(next);
+                setValue(next);
+            }}
+        />
+    );
+};
+
+function putCaretAtEnd(editor: HTMLElement) {
+    const range = document.createRange();
+    range.selectNodeContents(editor);
+    range.collapse(false);
+
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+}
 
 function attribute(name: string, displayValue: string, displayName?: string): ResolvedChannelAttribute {
     const field = {
@@ -247,5 +291,56 @@ describe('BannerTextEditor', () => {
 
         // Editing keys stay live, or the field could not be corrected once full.
         expect(!fireEvent.keyDown(editor, {key: 'Backspace'})).toBe(false);
+    });
+
+    // A Range does not survive the remount each insert performs, so an insert that
+    // reused a saved one spliced against a stale position: the second chip landed at
+    // the start of the banner, or vanished.
+    test('inserts a second token at the caret, after the first chip and the typed text', async () => {
+        const onChange = jest.fn();
+        renderWithContext(<Host onChange={onChange}/>);
+
+        await userEvent.click(screen.getByTestId('insertClassification'));
+        expect(onChange).toHaveBeenLastCalledWith('{{classification}}');
+
+        const editor = screen.getByTestId('bannerTextEditor');
+        editor.appendChild(document.createTextNode(' \u00b7 '));
+        putCaretAtEnd(editor);
+        fireEvent.input(editor);
+        expect(onChange).toHaveBeenLastCalledWith('{{classification}} \u00b7 ');
+
+        await userEvent.click(screen.getByTestId('insertProgram'));
+
+        expect(onChange).toHaveBeenLastCalledWith('{{classification}} \u00b7 {{program}}');
+        expect(screen.getAllByTestId(/^bannerTextEditorChip-/)).toHaveLength(2);
+    });
+
+    test('inserts at the caret rather than the end when the caret sits mid-text', async () => {
+        const onChange = jest.fn();
+        renderWithContext(<Host onChange={onChange}/>);
+
+        const editor = screen.getByTestId('bannerTextEditor');
+        editor.appendChild(document.createTextNode('AB'));
+
+        const range = document.createRange();
+        range.setStart(editor.firstChild as Text, 1);
+        range.collapse(true);
+        window.getSelection()?.removeAllRanges();
+        window.getSelection()?.addRange(range);
+        fireEvent.input(editor);
+
+        await userEvent.click(screen.getByTestId('insertProgram'));
+
+        expect(onChange).toHaveBeenLastCalledWith('A{{program}}B');
+    });
+
+    test('appends when the caret was never placed in the editor', async () => {
+        const onChange = jest.fn();
+        renderWithContext(<Host onChange={onChange}/>);
+
+        await userEvent.click(screen.getByTestId('insertClassification'));
+        await userEvent.click(screen.getByTestId('insertProgram'));
+
+        expect(onChange).toHaveBeenLastCalledWith('{{classification}}{{program}}');
     });
 });

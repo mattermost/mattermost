@@ -9,6 +9,7 @@ import {
     DISPLAY_BANNER_TOP,
     DISPLAY_LABEL_HEADER,
     DISPLAY_LABEL_INFO,
+    assertNoForeignRequiredAttributes,
     attributeName,
     createAttribute,
     deleteAttributes,
@@ -33,6 +34,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
 
         try {
             await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
 
             const program = await createAttribute(adminClient, attributeName('shown', suffix), {
                 options: ['AURORA'],
@@ -88,6 +90,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
 
         try {
             await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
 
             const channel = await adminClient.createChannel({
                 team_id: team.id,
@@ -167,6 +170,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
 
         try {
             await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
 
             const locked = await createAttribute(adminClient, attributeName('locked', suffix), {
                 options: ['FIXED', 'OTHER'],
@@ -225,6 +229,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
 
         try {
             await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
 
             const optional = await createAttribute(adminClient, attributeName('optional', suffix), {
                 options: ['LATER'],
@@ -280,6 +285,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
 
         try {
             await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
 
             const marking = await createAttribute(adminClient, attributeName('banner', suffix), {
                 options: ['RESTRICTED'],
@@ -321,6 +327,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
 
         try {
             await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
 
             // admin tier resolves to manage_channel_roles, which a member lacks.
             const adminOnly = await createAttribute(adminClient, attributeName('admin_tier', suffix), {

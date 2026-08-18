@@ -10,7 +10,8 @@ import {CloseCircleIcon} from '@mattermost/compass-icons/components';
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
-import {parseBannerTemplate} from './banner_template';
+import type {BannerSegment} from './banner_template';
+import {attributeToken, parseBannerTemplate} from './banner_template';
 import BannerTokenControls from './banner_token_controls';
 
 import './banner_text_editor.scss';
@@ -73,6 +74,39 @@ function restoreCaretOffset(editor: HTMLElement, offset: number) {
     selection?.addRange(range);
 }
 
+// Visible length of a segment: a chip reads as its label, which is what the caret
+// offsets returned by readCaretOffset are measured in.
+function visibleLength(segment: BannerSegment, labels: Map<string, string>): number {
+    if (segment.type === 'text') {
+        return segment.text.length;
+    }
+    return (labels.get(segment.name) ?? segment.name).length;
+}
+
+// Converts a caret offset in visible text into an offset into the template string.
+// A caret inside a chip's label snaps to just after that chip, matching where
+// restoreCaretOffset puts it.
+function templateOffsetFor(segments: BannerSegment[], labels: Map<string, string>, visibleOffset: number): number {
+    let visible = 0;
+    let template = 0;
+
+    for (const segment of segments) {
+        const length = visibleLength(segment, labels);
+
+        if (visibleOffset <= visible + length) {
+            if (segment.type === 'text') {
+                return template + (visibleOffset - visible);
+            }
+            return visibleOffset === visible ? template : template + attributeToken(segment.name).length;
+        }
+
+        visible += length;
+        template += segment.type === 'text' ? segment.text.length : attributeToken(segment.name).length;
+    }
+
+    return template;
+}
+
 type Props = {
 
     // The banner text as authored, tokens included.
@@ -101,9 +135,10 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
     const {formatMessage} = useIntl();
     const editorRef = useRef<HTMLDivElement>(null);
 
-    // Last selection inside the editor, so an inserted chip lands at the caret
-    // rather than always at the end. Menus steal focus before the click lands.
-    const savedRangeRef = useRef<Range | null>(null);
+    // Where the caret last was, as an offset into the visible text. An integer, not
+    // a Range: a Range points at nodes, and every insert remounts the editor, so a
+    // saved one is stale by the time the menu closes and the insert runs.
+    const caretRef = useRef<number | null>(null);
 
     // What this component last emitted, so its own echo is not mistaken for an
     // external edit.
@@ -200,20 +235,23 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
     }, []);
 
     const emit = useCallback(() => {
+        const editor = editorRef.current;
         const next = serialize();
+        if (editor) {
+            caretRef.current = readCaretOffset(editor);
+        }
         emittedRef.current = next;
         onChange(next);
     }, [onChange, serialize]);
 
-    const rememberSelection = useCallback(() => {
+    const rememberCaret = useCallback(() => {
         const editor = editorRef.current;
-        const selection = window.getSelection();
-        if (!editor || !selection || selection.rangeCount === 0) {
+        if (!editor) {
             return;
         }
-        const range = selection.getRangeAt(0);
-        if (editor.contains(range.commonAncestorContainer)) {
-            savedRangeRef.current = range.cloneRange();
+        const offset = readCaretOffset(editor);
+        if (offset !== null) {
+            caretRef.current = offset;
         }
     }, []);
 
@@ -224,33 +262,25 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
         }
 
         const name = token.replace(/[{}]/g, '');
-        const chip = document.createElement('span');
-        chip.setAttribute(TOKEN_ATTRIBUTE, name);
-        chip.textContent = labels.get(name) ?? name;
+        const label = labels.get(name) ?? name;
 
-        const range = savedRangeRef.current;
-        if (range && editor.contains(range.commonAncestorContainer)) {
-            range.deleteContents();
-            range.insertNode(chip);
-            range.setStartAfter(chip);
-            range.collapse(true);
+        // Spliced into the template rather than inserted into the DOM: the template is
+        // what gets saved, and rebuilding from it is the only way the new chip arrives
+        // with its remove control and contentEditable=false.
+        const template = serialize();
+        const segments = parseBannerTemplate(template);
+        const visibleTotal = segments.reduce((total, segment) => total + visibleLength(segment, labels), 0);
+        const caret = Math.min(caretRef.current ?? visibleTotal, visibleTotal);
+        const at = templateOffsetFor(segments, labels, caret);
 
-            const selection = window.getSelection();
-            selection?.removeAllRanges();
-            selection?.addRange(range);
-        } else {
-            editor.appendChild(chip);
-        }
-
-        const caret = readCaretOffset(editor);
-        const next = serialize();
+        const next = template.slice(0, at) + attributeToken(name) + template.slice(at);
         emittedRef.current = next;
         onChange(next);
 
-        // Rebuilt from the serialized template so the chip gains its remove control and
-        // contentEditable=false, which a bare DOM node inserted here does not have. The
-        // menu took focus, so the editor is refocused at the caret regardless.
-        rebuild(next, {focused: true, caret});
+        // The menu took focus, so the editor is refocused regardless, with the caret
+        // left after the chip just inserted.
+        caretRef.current = caret + label.length;
+        rebuild(next, {focused: true, caret: caretRef.current});
     }, [disabled, labels, onChange, rebuild, serialize]);
 
     // Reads the chip out of the DOM rather than off a segment index: the DOM is the
@@ -261,6 +291,7 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
             return;
         }
         chip.remove();
+        caretRef.current = null;
 
         const next = serialize();
         emittedRef.current = next;
@@ -309,9 +340,9 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
                     data-testid='bannerTextEditor'
                     data-placeholder={formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Channel banner text'})}
                     onInput={emit}
-                    onBlur={rememberSelection}
-                    onKeyUp={rememberSelection}
-                    onMouseUp={rememberSelection}
+                    onBlur={rememberCaret}
+                    onKeyUp={rememberCaret}
+                    onMouseUp={rememberCaret}
                     onKeyDown={handleKeyDown}
                     onPaste={handlePaste}
                 >

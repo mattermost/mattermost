@@ -9,6 +9,7 @@ import {
     DISPLAY_BANNER_TOP,
     DISPLAY_LABEL_HEADER,
     DISPLAY_LABEL_INFO,
+    assertNoForeignRequiredAttributes,
     attributeName,
     createAttribute,
     deleteAttributes,
@@ -33,6 +34,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
 
         try {
             await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
 
             const required = await createAttribute(adminClient, attributeName('mandatory', suffix), {
                 options: ['ALPHA'],
@@ -89,6 +91,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
 
         try {
             await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
 
             const program = await createAttribute(adminClient, attributeName('live', suffix), {
                 options: ['BEFORE', 'AFTER'],
@@ -141,6 +144,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
 
         try {
             await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
 
             const required = await createAttribute(adminClient, attributeName('unfilled', suffix), {
                 options: ['RECOVERED'],
@@ -202,6 +206,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
 
         try {
             await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
 
             const marking = await createAttribute(adminClient, attributeName('bannertoken', suffix), {
                 options: ['RESTRICTED'],
@@ -268,6 +273,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
 
         try {
             await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
 
             const marking = await createAttribute(adminClient, attributeName('dm', suffix), {
                 options: ['PRIVATE'],
@@ -308,6 +314,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
 
         try {
             await purgeAttributes(adminClient);
+            await assertNoForeignRequiredAttributes(adminClient);
 
             const marking = await createAttribute(adminClient, attributeName('coloured', suffix), {
                 options: ['DARKBG'],
