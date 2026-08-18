@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"slices"
@@ -16,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
@@ -2107,7 +2107,7 @@ func spaceRolesMigrationStore(t *testing.T, saveErr error, reread func(roleID st
 	mockRoleStore := mocks.RoleStore{}
 	// The first pass reads the replica and misses.
 	mockRoleStore.On("GetByName", mock.Anything, mock.Anything).Return(
-		func(_ context.Context, name string) (*model.Role, error) {
+		func(_ request.CTX, name string) (*model.Role, error) {
 			return nil, store.NewErrNotFound("Role", name)
 		})
 	// The recovery pass re-reads on the primary through the uncached
@@ -2195,7 +2195,7 @@ func TestSpaceRolesMigrationRefusesPreexistingForeignRole(t *testing.T) {
 
 		mockRoleStore := mocks.RoleStore{}
 		mockRoleStore.On("GetByName", mock.Anything, mock.Anything).Return(
-			func(_ context.Context, name string) (*model.Role, error) { return stored(name), nil })
+			func(_ request.CTX, name string) (*model.Role, error) { return stored(name), nil })
 		mockStore.On("Role").Return(&mockRoleStore)
 
 		mockStore.On("Close").Return(nil)
@@ -2317,7 +2317,7 @@ func spaceSchemesMigrationStoreGranting(t *testing.T, reread func(name string) (
 	}
 	mockRoleStore := mocks.RoleStore{}
 	mockRoleStore.On("GetByName", mock.Anything, mock.Anything).Return(
-		func(_ context.Context, name string) (*model.Role, error) { return roleByName(name) })
+		func(_ request.CTX, name string) (*model.Role, error) { return roleByName(name) })
 	// The validation and seeding reads go through the uncached primary read.
 	mockRoleStore.On("GetByNamesFromMaster", mock.Anything).Return(
 		func(names []string) ([]*model.Role, error) {
