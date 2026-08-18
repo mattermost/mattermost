@@ -143,7 +143,7 @@ func generatePostExposureReport(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	requireActionableFlaggedPost(c, postId)
+	requireFlaggedPost(c, postId)
 	if c.Err != nil {
 		return
 	}

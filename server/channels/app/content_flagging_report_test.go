@@ -595,7 +595,7 @@ func TestNotifyReviewersOfPostExposureReportGeneration(t *testing.T) {
 		th.App.NotifyReviewersOfPostExposureReportGeneration(th.Context, post.Id, th.BasicUser.Id)
 
 		messages := reviewerMessages(t, post.Id)
-		require.Contains(t, messages, "@"+th.BasicUser.Username+" generated an exposure report for the quarantined message.")
+		require.Contains(t, messages, "@"+th.BasicUser.Username+" downloaded an exposure report for the quarantined message.")
 		require.NotContains(t, messages, "@"+th.BasicUser.Username+" generated a report for the quarantined message.")
 	})
 

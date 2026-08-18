@@ -454,7 +454,7 @@ func (a *App) NotifyReviewersOfFlaggedPostReportGeneration(rctx request.CTX, fla
 // NotifyReviewersOfPostExposureReportGeneration is the exposure report counterpart of
 // NotifyReviewersOfFlaggedPostReportGeneration.
 func (a *App) NotifyReviewersOfPostExposureReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID string) {
-	a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, "@%s generated an exposure report for the quarantined message.")
+	a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, "@%s downloaded an exposure report for the quarantined message.")
 }
 
 func (a *App) notifyReviewersOfReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, messageFormat string) {
