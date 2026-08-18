@@ -41,6 +41,12 @@ describe('AdminConsoleIndex.generateIndex', () => {
         expect(idx.search('batching')).toEqual([
             'environment/notifications',
         ]);
+        expect(idx.search('Email Batching Buffer Size')).toEqual([
+            'environment/notifications',
+        ]);
+        expect(idx.search('subject lines')).toEqual([
+            'environment/notifications',
+        ]);
         expect(idx.search('caracteres')).toEqual([]);
         expect(idx.search('notexistingword')).toEqual([]);
     });
