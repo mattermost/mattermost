@@ -30,15 +30,9 @@ type FeatureFlags struct {
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
 
-	EnableExportDirectDownload bool
-
 	MoveThreadsEnabled bool
 
-	CloudDedicatedExportUI bool
-
 	NotificationMonitoring bool
-
-	CustomProfileAttributes bool
 
 	// Mask non-held attribute values in the policy editor for delegated admins.
 	AttributeValueMasking bool
@@ -87,6 +81,9 @@ type FeatureFlags struct {
 	// Enable classification markings for banners at the system and channel level
 	ClassificationMarkings bool
 
+	// Enable the Global Attributes management page in the System Console
+	GlobalAttributes bool
+
 	// Enable burn-on-read messages that automatically delete after viewing
 	BurnOnRead bool
 
@@ -100,6 +97,10 @@ type FeatureFlags struct {
 	// Enable the Integrated Boards feature within Mattermost channels
 	IntegratedBoards bool
 
+	// FEATURE_FLAG_REMOVAL: EnableDocs - Remove this when GA is released
+	// Enable the Docs (spaces and pages) feature within Mattermost channels
+	EnableDocs bool
+
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
 
@@ -111,6 +112,9 @@ type FeatureFlags struct {
 
 	// Enable collection of request-provided session attributes (user agent, IP address, etc.).
 	SessionAttributes bool
+
+	// Gates the Post Attributes feature (post_attributes property group).
+	PostAttributes bool
 
 	// FEATURE_FLAG_REMOVAL: DiscoverableChannels - Remove this when the feature is GA.
 	// Gates the per-channel Discoverable toggle and the channel-join-request flow that lets
@@ -138,6 +142,16 @@ type FeatureFlags struct {
 	ClusterGracefulDrain bool
 
 	ChannelBookmarks bool
+
+	// Enable React concurrent rendering
+	EnableConcurrentReact bool
+
+	// Enable verifying plugin signatures against the MFI public key, in addition to the
+	// existing hard-coded Mattermost public key and any admin-configured public keys.
+	EnableMFIPluginSignaturePublicKey bool
+
+	// FEATURE_FLAG_REMOVAL: RecurringScheduledPosts - Remove this when the feature is GA.
+	RecurringScheduledPosts bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -149,14 +163,11 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.WysiwygEditor = false
-	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
-	f.CloudDedicatedExportUI = false
 	f.NotificationMonitoring = true
-	f.CustomProfileAttributes = true
 	f.AttributeValueMasking = true
 	f.PermissionPolicies = true
-	f.TeamMembershipAccessControl = false
+	f.TeamMembershipAccessControl = true
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
 	f.ContentFlagging = true
@@ -179,6 +190,8 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.IntegratedBoards = false
 
+	f.EnableDocs = false
+
 	f.CJKSearch = true
 
 	f.AggregatePluginMetrics = false
@@ -186,6 +199,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ManagedChannelCategories = false
 
 	f.SessionAttributes = false
+
+	f.PostAttributes = false
 
 	f.DiscoverableChannels = false
 
@@ -196,6 +211,12 @@ func (f *FeatureFlags) SetDefaults() {
 	f.MmBlocksEnabled = true
 
 	f.ChannelBookmarks = true
+
+	f.EnableConcurrentReact = false
+
+	f.EnableMFIPluginSignaturePublicKey = true
+
+	f.RecurringScheduledPosts = false
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope

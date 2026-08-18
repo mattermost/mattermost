@@ -12,6 +12,7 @@ import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {markAsReadOnFocus} from 'actions/views/channel';
+import {selectTeamScopedProducts} from 'selectors/products';
 import {getSelectedPostId} from 'selectors/rhs';
 import {getSelectedThreadIdInCurrentTeam} from 'selectors/views/threads';
 
@@ -35,6 +36,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);
     const currentUser = getCurrentUser(state);
     const plugins = state.plugins.components.NeedsTeamComponent;
+    const products = selectTeamScopedProducts(state);
     const disableRefetchingOnBrowserFocus = config.DisableRefetchingOnBrowserFocus === 'true';
     const disableWakeUpReconnectHandler = config.DisableWakeUpReconnectHandler === 'true';
 
@@ -43,6 +45,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         currentChannelId: getCurrentChannelId(state),
         teamsList: getMyTeams(state),
         plugins,
+        products,
         selectedThreadId: getSelectedThreadIdInCurrentTeam(state),
         selectedPostId: getSelectedPostId(state),
         mfaRequired: checkIfMFARequired(currentUser, license, config, ownProps.match.url),

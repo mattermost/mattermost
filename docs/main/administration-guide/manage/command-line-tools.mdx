@@ -101,7 +101,7 @@ The Docker Install tab details and command references below also apply to the [M
 
 <Note>
 
-\- The CLI is run in a single node which bypasses the mechanisms that a [High Availability environment](/administration-guide/scale/high-availability-cluster-based-deployment) uses to perform actions across all nodes in the cluster. As a result, when running [CLI commands](/administration-guide/manage/command-line-tools) in a High Availability environment, tasks that change configuration settings require a server restart. - Parameters in CLI commands are order-specific. - If special characters (`!`, `|`, `(`, `)`, `\`, `'`, or `"`) are used, the entire argument needs to be surrounded by single quotes, or the individual characters need to be escaped out.
+\- The CLI is run in a single node which bypasses the mechanisms that a [High Availability environment](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) uses to perform actions across all nodes in the cluster. As a result, when running [CLI commands](/administration-guide/manage/command-line-tools) in a High Availability environment, tasks that change configuration settings require a server restart. - Parameters in CLI commands are order-specific. - If special characters (`!`, `|`, `(`, `)`, `\`, `'`, or `"`) are used, the entire argument needs to be surrounded by single quotes, or the individual characters need to be escaped out.
 
 </Note>
 
@@ -320,28 +320,10 @@ Import data into Mattermost.
 
 Child Command  
 - [mattermost import bulk](#mattermost-import-bulk) - Import a Mattermost Bulk Import File. Deprecated in favor of [mmctl import commands](/administration-guide/manage/mmctl-command-line-tool#mmctl-import).
-- [mattermost import slack](#mattermost-import-slack) - Import a team from Slack.
 
 ### mattermost import bulk
 
 From Mattermost v6.0, this command has been deprecated in favor of [mmctl import commands](/administration-guide/manage/mmctl-command-line-tool#mmctl-import) as the supported way to import data into Mattermost.
-
-### mattermost import slack
-
-See the [mmctl import commands](/administration-guide/manage/mmctl-command-line-tool#mmctl-import) documentation as the preferred way to import Slack data into Mattermost.
-
-Description  
-Import a team from a Slack export zip file.
-
-Format  
-. code-block:: sh
-
-mattermost import slack &#123;team&#125; &#123;file&#125;
-
-Example  
-``` sh
-bin/mattermost import slack myteam slack_export.zip
-```
 
 ------------------------------------------------------------------------------------------------------------------------
 

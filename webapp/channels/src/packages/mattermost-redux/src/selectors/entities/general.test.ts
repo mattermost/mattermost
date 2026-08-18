@@ -448,6 +448,35 @@ describe('Selectors.General', () => {
         });
     });
 
+    describe('isPostAttributesEnabled', () => {
+        const buildState = (config: Record<string, string>) => ({
+            entities: {
+                general: {
+                    config,
+                },
+            },
+        } as unknown as GlobalState);
+
+        test('returns true when the flag is on', () => {
+            const state = buildState({
+                FeatureFlagPostAttributes: 'true',
+            });
+            expect(Selectors.isPostAttributesEnabled(state)).toBe(true);
+        });
+
+        test('returns false when the flag is off', () => {
+            const state = buildState({
+                FeatureFlagPostAttributes: 'false',
+            });
+            expect(Selectors.isPostAttributesEnabled(state)).toBe(false);
+        });
+
+        test('returns false when the flag is absent', () => {
+            const state = buildState({});
+            expect(Selectors.isPostAttributesEnabled(state)).toBe(false);
+        });
+    });
+
     describe('firstAdminVisitMarketplaceStatus', () => {
         test('should return empty when status does not exist', () => {
             const state = {

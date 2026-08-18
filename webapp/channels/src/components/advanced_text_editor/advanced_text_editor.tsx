@@ -67,7 +67,7 @@ import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import {isPostDraftEmpty} from 'types/store/draft';
+import {draftHasAttachments, isPostDraftEmpty} from 'types/store/draft';
 
 import AIActionsMenu from './ai_actions_menu';
 import DoNotDisturbWarning from './do_not_disturb_warning';
@@ -271,6 +271,14 @@ const AdvancedTextEditor = ({
                 return;
             }
 
+            // Editing an existing post must never create a synced/visible draft. Edit
+            // content is only persisted locally under the edit_draft_* key, so skip the
+            // show + server-upsert paths that would surface it in the drafts UI.
+            if (isInEditMode) {
+                dispatch(updateDraft(key, draftToChange, draftToChange.rootId));
+                return;
+            }
+
             if (options.show) {
                 dispatch(updateDraft(key, {...draftToChange, show: true}, draftToChange.rootId, true));
                 return;
@@ -288,7 +296,7 @@ const AdvancedTextEditor = ({
         }
 
         storedDrafts.current[draftToChange.rootId || draftToChange.channelId] = draftToChange;
-    }, [dispatch]);
+    }, [dispatch, isInEditMode, storageKey]);
 
     const applyWysiwygFormatting = useCallback((editor: Editor, mode: MarkdownMode) => {
         const isInlineMark = mode === 'bold' || mode === 'italic' || mode === 'strike';
@@ -707,6 +715,7 @@ const AdvancedTextEditor = ({
             disabled={disableSendButton}
             handleSubmit={handleSubmitPostAndScheduledMessage}
             channelId={channelId}
+            allowRecurring={!draftHasAttachments(draft)}
         />
     );
 

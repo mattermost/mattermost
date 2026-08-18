@@ -56,6 +56,7 @@ func TestConfigSave(t *testing.T) {
 	mainHelper.Parallel(t)
 	cm := &mocks.ClusterInterface{}
 	cm.On("SendClusterMessage", mock.AnythingOfType("*model.ClusterMessage")).Return(nil)
+	cm.On("Shutdown").Return()
 	th := SetupWithCluster(t, cm)
 
 	t.Run("trigger a config changed event for the cluster", func(t *testing.T) {

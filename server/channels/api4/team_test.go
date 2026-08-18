@@ -5,8 +5,6 @@ package api4
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -591,6 +589,81 @@ func TestGetTeam(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
+
+	t.Run("Content reviewer should not be able to get a team via a DM or GM post", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		contentReviewClient := th.CreateClient()
+		_, _, err := contentReviewClient.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+
+		flagRequest := model.FlagContentRequest{
+			Reason:  "Classification mismatch",
+			Comment: "This is sensitive content",
+		}
+
+		testCases := []struct {
+			name    string
+			post    *model.Post
+			flagged bool
+		}{
+			{"flagged DM post", createDmPost(t, th, contentReviewClient), true},
+			{"flagged GM post", createGmPost(t, th, contentReviewClient), true},
+			{"unflagged DM post", createDmPost(t, th, contentReviewClient), false},
+			{"unflagged GM post", createGmPost(t, th, contentReviewClient), false},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.name, func(t *testing.T) {
+				if testCase.flagged {
+					flagErr := th.App.FlagPost(th.Context, testCase.post, "", th.BasicUser.Id, flagRequest)
+					require.Nil(t, flagErr)
+				}
+
+				_, resp, err := contentReviewClient.GetTeamAsContentReviewer(context.Background(), th.BasicTeam.Id, "", testCase.post.Id)
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+				CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+			})
+		}
+	})
+
+	t.Run("Content reviewer should not be able to get a team via a post from another team", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		contentReviewClient := th.CreateClient()
+		_, _, err := contentReviewClient.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+
+		otherTeam := th.CreateTeam(t)
+		otherChannel := th.CreateChannelWithClientAndTeam(t, contentReviewClient, model.ChannelTypeOpen, otherTeam.Id)
+
+		// As above, the flagged and the unflagged post have to fail identically so the
+		// error doesn't disclose the flag status of a post outside the requested team.
+		for _, testCase := range []struct {
+			name    string
+			flagged bool
+		}{
+			{"flagged post", true},
+			{"unflagged post", false},
+		} {
+			t.Run(testCase.name, func(t *testing.T) {
+				post := th.CreatePostWithClient(t, contentReviewClient, otherChannel)
+				if testCase.flagged {
+					flagPostViaAPI(t, contentReviewClient, post.Id)
+				}
+
+				_, resp, err := contentReviewClient.GetTeamAsContentReviewer(context.Background(), th.BasicTeam.Id, "", post.Id)
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+				CheckErrorID(t, err, "api.team.get_team.flagged_post_mismatch.app_error")
+			})
+		}
+	})
 }
 
 func TestGetTeamSanitization(t *testing.T) {
@@ -747,11 +820,11 @@ func TestUpdateTeam(t *testing.T) {
 
 		require.Equal(t, uteam.AllowedDomains, "domain", "Update failed")
 
-		team.Name = "Updated name"
+		team.Name = "updated-" + model.NewRandomTeamName()
 		uteam, _, err = client.UpdateTeam(context.Background(), team)
 		require.NoError(t, err)
 
-		require.NotEqual(t, uteam.Name, "Updated name", "Should not update name")
+		require.Equal(t, uteam.Name, team.Name, "Should update name")
 
 		team.Email = "test@domain.com"
 		uteam, _, err = client.UpdateTeam(context.Background(), team)
@@ -794,9 +867,49 @@ func TestUpdateTeam(t *testing.T) {
 		team, _, err := client.CreateTeam(context.Background(), team)
 		require.NoError(t, err)
 
-		team.Name = "new-name"
-		_, _, err = client.UpdateTeam(context.Background(), team)
+		// Renaming the slug must also persist sanitized fields without letting
+		// non-renamable fields (e.g. Email, Type) leak through.
+		newName := "renamed-" + model.NewRandomTeamName()
+		newDescription := "Updated description"
+		team.Name = newName
+		team.Description = newDescription
+		team.Email = "leak+" + model.NewId() + "@simulator.amazonses.com"
+		team.Type = model.TeamInvite
+		uteam, _, err := client.UpdateTeam(context.Background(), team)
 		require.NoError(t, err)
+		require.Equal(t, newName, uteam.Name, "team name (slug) should be updated")
+		require.Equal(t, newDescription, uteam.Description, "team description should be updated")
+
+		fetched, _, err := client.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, newName, fetched.Name, "renamed slug should be persisted")
+		require.Equal(t, newDescription, fetched.Description, "updated description should be persisted")
+		require.NotEqual(t, team.Email, fetched.Email, "rename must not change the email")
+		require.Equal(t, model.TeamOpen, fetched.Type, "rename must not change the type")
+
+		// An invalid team name must be rejected and must not be persisted.
+		team.Name = "Invalid Name"
+		_, resp, err := client.UpdateTeam(context.Background(), team)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		fetched, _, err = client.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, newName, fetched.Name, "an invalid rename must leave the slug unchanged")
+
+		// Renaming to a name that is already in use must be rejected.
+		other := &model.Team{DisplayName: "Other", Name: "z-z-" + model.NewRandomTeamName() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TeamOpen}
+		other, _, err = client.CreateTeam(context.Background(), other)
+		require.NoError(t, err)
+
+		team.Name = other.Name
+		_, resp, err = client.UpdateTeam(context.Background(), team)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		fetched, _, err = client.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, newName, fetched.Name, "a duplicate rename must leave the slug unchanged")
 	})
 }
 
@@ -3740,6 +3853,25 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestUpdateTeamMemberRolesRejectsGuestAndAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	SystemAdminClient := th.SystemAdminClient
+
+	memberBefore, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+	require.NoError(t, err)
+	rolesBefore := memberBefore.Roles
+
+	resp, err := SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, model.TeamGuestRoleId+" "+model.TeamAdminRoleId)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "api.team.update_team_member_roles.guest_and_admin.app_error")
+
+	memberAfter, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+	require.NoError(t, err)
+	require.Equal(t, rolesBefore, memberAfter.Roles)
+}
+
 func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -3997,97 +4129,6 @@ func TestTeamExists(t *testing.T) {
 	})
 }
 
-func TestImportTeam(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
-	th.TestForAllClients(t, func(T *testing.T, c *model.Client4) {
-		data, err := testutils.ReadTestFile("Fake_Team_Import.zip")
-
-		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
-		_, resp, err := th.SystemAdminClient.ImportTeam(context.Background(), data, binary.Size(data), "XYZ", "Fake_Team_Import.zip", th.BasicTeam.Id)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-
-		_, resp, err = th.SystemAdminClient.ImportTeam(context.Background(), data, binary.Size(data), "", "Fake_Team_Import.zip", th.BasicTeam.Id)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	}, "Import from unknown and source")
-
-	t.Run("ImportTeam", func(t *testing.T) {
-		var data []byte
-		var err error
-		data, err = testutils.ReadTestFile("Fake_Team_Import.zip")
-
-		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
-
-		// Import the channels/users/posts
-		fileResp, _, err := th.SystemAdminClient.ImportTeam(context.Background(), data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
-		require.NoError(t, err)
-
-		fileData, err := base64.StdEncoding.DecodeString(fileResp["results"])
-		require.NoError(t, err, "failed to decode base64 results data")
-
-		fileReturned := string(fileData)
-		require.Truef(t, strings.Contains(fileReturned, "darth.vader@stardeath.com"), "failed to report the user was imported, fileReturned: %s", fileReturned)
-
-		// Checking the imported users
-		importedUser, _, err := th.SystemAdminClient.GetUserByUsername(context.Background(), "bot_test", "")
-		require.NoError(t, err)
-		require.Equal(t, importedUser.Username, "bot_test", "username should match with the imported user")
-
-		importedUser, _, err = th.SystemAdminClient.GetUserByUsername(context.Background(), "lordvader", "")
-		require.NoError(t, err)
-		require.Equal(t, importedUser.Username, "lordvader", "username should match with the imported user")
-
-		// Checking the imported Channels
-		importedChannel, _, err := th.SystemAdminClient.GetChannelByName(context.Background(), "testchannel", th.BasicTeam.Id, "")
-		require.NoError(t, err)
-		require.Equal(t, importedChannel.Name, "testchannel", "names did not match expected: testchannel")
-
-		importedChannel, _, err = th.SystemAdminClient.GetChannelByName(context.Background(), "general", th.BasicTeam.Id, "")
-		require.NoError(t, err)
-		require.Equal(t, importedChannel.Name, "general", "names did not match expected: general")
-
-		posts, _, err := th.SystemAdminClient.GetPostsForChannel(context.Background(), importedChannel.Id, 0, 60, "", false, false)
-		require.NoError(t, err)
-		require.Equal(t, posts.Posts[posts.Order[3]].Message, "This is a test post to test the import process", "missing posts in the import process")
-	})
-
-	t.Run("Cloud Forbidden", func(t *testing.T) {
-		var data []byte
-		var err error
-		data, err = testutils.ReadTestFile("Fake_Team_Import.zip")
-
-		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		// Import the channels/users/posts
-		_, resp, err := th.SystemAdminClient.ImportTeam(context.Background(), data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-		th.App.Srv().SetLicense(nil)
-	})
-
-	t.Run("MissingFile", func(t *testing.T) {
-		_, resp, err := th.SystemAdminClient.ImportTeam(context.Background(), nil, 4343, "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
-
-	t.Run("WrongPermission", func(t *testing.T) {
-		var data []byte
-		var err error
-		data, err = testutils.ReadTestFile("Fake_Team_Import.zip")
-		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
-
-		// Import the channels/users/posts
-		_, resp, err := th.Client.ImportTeam(context.Background(), data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
-}
-
 func TestValidateUserPermissionsOnChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -4283,6 +4324,241 @@ func TestInviteUsersToTeam(t *testing.T) {
 		CheckRequestEntityTooLargeStatus(t, resp)
 		CheckErrorID(t, err, "app.email.rate_limit_exceeded.app_error")
 	}, "rate limits")
+}
+
+func TestLocalInviteUsersToTeamDeactivatedUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
+
+	_, appErr := th.App.UpdateActive(th.Context, th.BasicUser2, false)
+	require.Nil(t, appErr)
+	t.Cleanup(func() {
+		_, _ = th.App.UpdateActive(th.Context, th.BasicUser2, true)
+	})
+
+	t.Run("non-graceful local invite returns error for deactivated user", func(t *testing.T) {
+		_, err := th.LocalClient.InviteUsersToTeam(context.Background(), th.BasicTeam.Id, []string{th.BasicUser2.Email})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.team.invite_members.account_deactivated.app_error")
+	})
+
+	t.Run("graceful local invite returns error for deactivated user", func(t *testing.T) {
+		invitesWithErrors, _, err := th.LocalClient.InviteUsersToTeamGracefully(context.Background(), th.BasicTeam.Id, []string{th.BasicUser2.Email})
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.NotNil(t, invitesWithErrors[0].Error)
+		CheckErrorID(t, invitesWithErrors[0].Error, "api.team.invite_members.account_deactivated.app_error")
+	})
+}
+
+func TestInviteUsersToTeamWithProfiles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+
+	newInvite := func() *model.MemberInvite {
+		email := th.GenerateTestEmail()
+		return &model.MemberInvite{
+			Emails: []string{email},
+			Profiles: []*model.MemberInviteProfile{{
+				Email:     email,
+				Username:  "un_" + model.NewId(),
+				FirstName: "Pre",
+				LastName:  "Set",
+			}},
+		}
+	}
+	findResendJob := func(t *testing.T, email string) *model.Job {
+		t.Helper()
+		resendJobs, err := th.App.Srv().Store().Job().GetAllByType(th.Context, model.JobTypeResendInvitationEmail)
+		require.NoError(t, err)
+		for _, job := range resendJobs {
+			if job.Data["teamID"] != th.BasicTeam.Id {
+				continue
+			}
+			var emails []string
+			if json.Unmarshal([]byte(job.Data["emailList"]), &emails) != nil {
+				continue
+			}
+			for _, jobEmail := range emails {
+				if model.NormalizeEmail(jobEmail) == model.NormalizeEmail(email) {
+					return job
+				}
+			}
+		}
+		require.FailNow(t, "resend job not found", "team=%s email=%s", th.BasicTeam.Id, email)
+		return nil
+	}
+
+	t.Run("rejected without an Enterprise license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+		_, resp, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, newInvite())
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.team.invite_members.profiles_license.app_error")
+	})
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	t.Run("rejected when locked profile fields are disabled", func(t *testing.T) {
+		_, resp, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, newInvite())
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.team.invite_members.profiles_disabled.app_error")
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.LockProfileFieldsForEmailUsers = model.TeamSettingsLockProfileFieldsNameAndUsername
+	})
+
+	t.Run("rejected without graceful mode", func(t *testing.T) {
+		invite := newInvite()
+		inviteJSON, err := json.Marshal(invite)
+		require.NoError(t, err)
+		resp, err := th.Client.DoAPIPost(context.Background(), "/teams/"+th.BasicTeam.Id+"/invite/email", string(inviteJSON))
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		CheckErrorID(t, err, "api.team.invite_members.profiles_graceful.app_error")
+	})
+
+	t.Run("accepted from a regular member with invite permission", func(t *testing.T) {
+		invite := newInvite()
+		invitesWithErrors, _, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.Nil(t, invitesWithErrors[0].Error)
+
+		resendJob := findResendJob(t, invite.Emails[0])
+		var profiles []*model.MemberInviteProfile
+		require.NoError(t, json.Unmarshal([]byte(resendJob.Data["profilesList"]), &profiles))
+		require.Equal(t, invite.Profiles, profiles)
+	})
+
+	t.Run("accepted from a system admin", func(t *testing.T) {
+		invitesWithErrors, _, err := th.SystemAdminClient.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, newInvite())
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.Nil(t, invitesWithErrors[0].Error)
+	})
+
+	t.Run("accepted from local mode with profile data in the token", func(t *testing.T) {
+		invite := newInvite()
+		invitesWithErrors, _, err := th.LocalClient.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.Nil(t, invitesWithErrors[0].Error)
+
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(model.TokenTypeTeamInvitation)
+		require.NoError(t, err)
+		var tokenData map[string]string
+		for _, token := range tokens {
+			var data map[string]string
+			require.NoError(t, json.Unmarshal([]byte(token.Extra), &data))
+			if data["email"] == invite.Emails[0] {
+				tokenData = data
+				break
+			}
+		}
+		require.NotNil(t, tokenData)
+		require.Equal(t, invite.Profiles[0].Username, tokenData["username"])
+		require.Equal(t, invite.Profiles[0].FirstName, tokenData["first_name"])
+		require.Equal(t, invite.Profiles[0].LastName, tokenData["last_name"])
+	})
+
+	t.Run("invalid username is rejected in local mode", func(t *testing.T) {
+		invite := newInvite()
+		invite.Profiles[0].Username = "inv@lid username"
+		_, resp, err := th.LocalClient.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "model.member.is_valid.profile_username.app_error")
+	})
+
+	t.Run("profile email must be in the invited email list", func(t *testing.T) {
+		invite := newInvite()
+		invite.Profiles[0].Email = th.GenerateTestEmail()
+		_, resp, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "model.member.is_valid.profile_email.app_error")
+	})
+
+	t.Run("taken username produces a per-email graceful error", func(t *testing.T) {
+		invite := newInvite()
+		invite.Profiles[0].Username = th.BasicUser2.Username
+
+		invitesWithErrors, _, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.NotNil(t, invitesWithErrors[0].Error)
+		require.Equal(t, "api.team.invite_members.username_taken.app_error", invitesWithErrors[0].Error.Id)
+	})
+
+	t.Run("group name collision produces a per-email graceful error", func(t *testing.T) {
+		invite := newInvite()
+		username := invite.Profiles[0].Username
+		group, appErr := th.App.CreateGroup(&model.Group{
+			Name:        &username,
+			DisplayName: "Username collision",
+			Source:      model.GroupSourceLdap,
+			RemoteId:    model.NewPointer("ri_" + model.NewId()),
+		})
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, appErr := th.App.DeleteGroup(group.Id)
+			require.Nil(t, appErr)
+		})
+
+		invitesWithErrors, _, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.NotNil(t, invitesWithErrors[0].Error)
+		require.Equal(t, "api.team.invite_members.username_taken.app_error", invitesWithErrors[0].Error.Id)
+	})
+
+	t.Run("mixed valid and taken usernames only fails the taken one", func(t *testing.T) {
+		goodEmail := th.GenerateTestEmail()
+		badEmail := th.GenerateTestEmail()
+		invite := &model.MemberInvite{
+			Emails: []string{goodEmail, badEmail},
+			Profiles: []*model.MemberInviteProfile{
+				{Email: goodEmail, Username: "un_" + model.NewId()},
+				{Email: badEmail, Username: th.BasicUser2.Username},
+			},
+		}
+
+		invitesWithErrors, _, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 2)
+		byEmail := make(map[string]*model.EmailInviteWithError, 2)
+		for _, invited := range invitesWithErrors {
+			byEmail[invited.Email] = invited
+		}
+		require.Nil(t, byEmail[goodEmail].Error)
+		require.NotNil(t, byEmail[badEmail].Error)
+	})
+
+	t.Run("uppercase profile emails and usernames are normalized", func(t *testing.T) {
+		email := th.GenerateTestEmail()
+		invite := &model.MemberInvite{
+			Emails: []string{email},
+			Profiles: []*model.MemberInviteProfile{{
+				Email:    strings.ToUpper(email),
+				Username: "UN_" + model.NewId(),
+			}},
+		}
+
+		invitesWithErrors, _, err := th.Client.InviteMembersToTeamGracefully(context.Background(), th.BasicTeam.Id, invite)
+		require.NoError(t, err)
+		require.Len(t, invitesWithErrors, 1)
+		require.Nil(t, invitesWithErrors[0].Error)
+	})
 }
 
 func TestInviteGuestsToTeam(t *testing.T) {

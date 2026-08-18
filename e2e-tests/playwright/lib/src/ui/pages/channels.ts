@@ -13,7 +13,15 @@ import type {
     InvitePeopleModal,
     MembersInvitedModal,
 } from '@/ui/components';
-import {BrowseChannelsModal, ChannelSettingsModal, CreateTeamForm, NewChannelModal, components} from '@/ui/components';
+import {
+    BrowseChannelsModal,
+    ChannelsCenterView,
+    ChannelSettingsModal,
+    CreateTeamForm,
+    NewChannelModal,
+    components,
+    ChannelsSidebarLeft,
+} from '@/ui/components';
 import {duration} from '@/util';
 export default class ChannelsPage {
     readonly channels = 'Channels';
@@ -21,6 +29,7 @@ export default class ChannelsPage {
     readonly page: Page;
 
     readonly globalHeader;
+    readonly mobileNavbar;
     readonly userAccountMenuButton;
     readonly searchBox;
     readonly centerView;
@@ -75,9 +84,10 @@ export default class ChannelsPage {
 
         // The main areas of the app
         this.globalHeader = new components.GlobalHeader(this, page.locator('#global-header'));
+        this.mobileNavbar = new components.ChannelsMobileNavbar(page.locator('#navbar'));
         this.searchBox = new components.SearchBox(page.locator('#searchBox'));
-        this.centerView = new components.ChannelsCenterView(page.getByTestId('channel_view'), page);
-        this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
+        this.centerView = new ChannelsCenterView(page.getByTestId('channel_view'), page);
+        this.sidebarLeft = new ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
         this.appBar = new components.ChannelsAppBar(page.getByTestId('app-bar'));
         this.messagePriority = new components.MessagePriority(page.locator('body'));
@@ -397,6 +407,16 @@ export default class ChannelsPage {
     }
 
     /**
+     * Switches to the given team and leaves it via the team menu, confirming the modal.
+     */
+    async leaveTeam(teamName: string) {
+        await this.switchToTeam(teamName);
+        await this.sidebarLeft.teamMenuButton.click();
+        await this.teamMenu.clickLeaveTeam();
+        await this.leaveTeamModal.confirm();
+    }
+
+    /**
      * Logs the current user out via the user account menu.
      */
     async logout() {
@@ -423,7 +443,12 @@ export default class ChannelsPage {
         return popover;
     }
 
-    async scheduleMessage(message: string, dayFromToday: number = 0, timeOptionIndex: number = 0) {
+    async scheduleMessage(
+        message: string,
+        dayFromToday: number = 0,
+        timeOptionIndex: number = 0,
+        repeatWeekly?: boolean,
+    ) {
         await this.centerView.postCreate.writeMessage(message);
 
         await expect(this.centerView.postCreate.scheduleMessageButton).toBeVisible();
@@ -432,10 +457,15 @@ export default class ChannelsPage {
         await this.scheduleMessageMenu.toBeVisible();
         await this.scheduleMessageMenu.selectCustomTime();
 
-        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex, repeatWeekly);
     }
 
-    async scheduleMessageFromThread(message: string, dayFromToday: number = 0, timeOptionIndex: number = 0) {
+    async scheduleMessageFromThread(
+        message: string,
+        dayFromToday: number = 0,
+        timeOptionIndex: number = 0,
+        repeatWeekly?: boolean,
+    ) {
         await this.sidebarRight.postCreate.writeMessage(message);
 
         await expect(this.sidebarRight.postCreate.scheduleMessageButton).toBeVisible();
@@ -444,7 +474,7 @@ export default class ChannelsPage {
         await this.scheduleMessageMenu.toBeVisible();
         await this.scheduleMessageMenu.selectCustomTime();
 
-        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex, repeatWeekly);
     }
 
     async getFlaggedPostViewDetailButton(flaggedPostId: string) {
