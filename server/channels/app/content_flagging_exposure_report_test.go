@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -548,6 +549,32 @@ func TestWritePostExposureCSV(t *testing.T) {
 
 		out := buf.String()
 		require.Contains(t, out, "# Channel: Town Square Annex Wing (channel1)")
+
+		records := parseCSV(t, buf.Bytes())
+		require.Len(t, records, 1, "the preamble must stay fully commented out")
+		require.Equal(t, model.PostExposureReportCSVHeader(T), records[0])
+	})
+
+	t.Run("keeps a preamble value from opening a second cell", func(t *testing.T) {
+		// A spreadsheet honours no comment convention: it splits every line on the field
+		// separator and reads each cell on its own. A separator in the value would open a
+		// second cell that the leading "#" no longer guards, and a cell starting with "=",
+		// "+", "-" or "@" is a formula.
+		report := baseReport()
+		report.ChannelName = "a,=1+1;=2+2\t=3+3"
+
+		var buf bytes.Buffer
+		require.NoError(t, WritePostExposureCSV(&buf, report, T))
+
+		out := buf.String()
+		require.Contains(t, out, "# Channel: a =1+1 =2+2 =3+3 (channel1)")
+
+		for _, line := range strings.Split(out, "\n") {
+			if !strings.HasPrefix(line, "#") {
+				continue
+			}
+			require.False(t, strings.ContainsAny(line, ",;\t"), "preamble line %q is more than one cell", line)
+		}
 
 		records := parseCSV(t, buf.Bytes())
 		require.Len(t, records, 1, "the preamble must stay fully commented out")

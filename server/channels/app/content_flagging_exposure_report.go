@@ -21,7 +21,7 @@ import (
 
 const exposureProfileBatchSize = 1000
 
-var exposurePreambleSanitizer = strings.NewReplacer("\r\n", " ", "\n", " ", "\r", " ")
+var exposurePreambleSanitizer = strings.NewReplacer("\r\n", " ", "\n", " ", "\r", " ", ",", " ", ";", " ", "\t", " ")
 
 func (a *App) ComputePostExposure(rctx request.CTX, postID string) (*model.PostExposureReport, *model.AppError) {
 	post, appErr := a.GetSinglePost(rctx, postID, true)
