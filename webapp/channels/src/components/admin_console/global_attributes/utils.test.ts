@@ -107,5 +107,63 @@ describe('global_attributes/utils', () => {
 
             await expect(createAttributeField('Name', 'name', 'text', [])).rejects.toThrow('boom');
         });
+
+        it('omits ldap/saml entirely when the links parameter is not passed', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createAttributeField('My Attribute', 'my_attribute', 'text', []);
+
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', {
+                name: 'my_attribute',
+                type: 'text',
+                target_type: 'system',
+                target_id: '',
+                attrs: {display_name: 'My Attribute'},
+            });
+        });
+
+        it('omits ldap/saml when links is passed but both fields are empty', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {ldapAttr: '', samlAttr: ''});
+
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', {
+                name: 'my_attribute',
+                type: 'text',
+                target_type: 'system',
+                target_id: '',
+                attrs: {display_name: 'My Attribute'},
+            });
+        });
+
+        it('includes only attrs.ldap when only ldapAttr is set', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {ldapAttr: 'department'});
+
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                attrs: {display_name: 'My Attribute', ldap: 'department'},
+            }));
+        });
+
+        it('includes only attrs.saml when only samlAttr is set', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {samlAttr: 'department'});
+
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                attrs: {display_name: 'My Attribute', saml: 'department'},
+            }));
+        });
+
+        it('includes both attrs.ldap and attrs.saml when both are set', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createAttributeField('My Attribute', 'my_attribute', 'text', [], {ldapAttr: 'department', samlAttr: 'dept'});
+
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                attrs: {display_name: 'My Attribute', ldap: 'department', saml: 'dept'},
+            }));
+        });
     });
 });
