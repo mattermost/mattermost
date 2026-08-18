@@ -4,6 +4,7 @@
 package docextractor
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"time"
@@ -24,6 +25,8 @@ const (
 
 // ExtractSettings defines the features enabled/disable during the document text extraction.
 type ExtractSettings struct {
+	// Ctx is retained for API compatibility; it is no longer passed to extractors.
+	Ctx              context.Context
 	ArchiveRecursion bool
 	MaxFileSize      int64
 	// MaxArchiveDepth limits how many levels deep recursive archive extraction
