@@ -627,6 +627,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	var savedUser *model.User
 	var err error
 	if user.Id == "" {
+		user.SetProp(model.UserPropsKeyImportedInactive, "true")
 		if savedUser, err = a.ch.srv.userService.CreateUser(rctx, user, users.UserCreateOptions{FromImport: true}); err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
