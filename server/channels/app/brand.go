@@ -62,8 +62,8 @@ func (a *App) SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader) 
 			rctx.Logger().Warn(
 				"Failed to backup old brand image",
 				mlog.Err(err),
-				mlog.String("oldPath", oldPath),
-				mlog.String("newPath", newPath),
+				mlog.String("old_path", oldPath),
+				mlog.String("new_path", newPath),
 			)
 		}
 	}
