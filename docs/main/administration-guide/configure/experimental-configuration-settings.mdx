@@ -344,46 +344,6 @@ Set a default theme that applies to all new users on the system.
 </tbody>
 </table>
 
-### Enable user typing messages
-
-This setting determines whether "user is typing..." messages are displayed below the message box when using Mattermost in a web browser or the desktop app.
-
-<table style={{width: '98%'}}>
-<colgroup>
-<col style={{width: '98%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"EnableUserTypingMessages": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-<Note>
-
-Disabling this experimental configuration setting in larger deployments may improve server performance in the following areas:
-
-- Reduced Server Load: Typing events generate additional websocket traffic. Disabling them can reduce the amount of data that needs to be handled by the server, improving the overall response time and decreasing server load.
-- Lower Network Traffic: When typing events are enabled, every keystroke generates a network event. This can lead to a significant amount of network traffic, particularly in busy channels. Disabling these events reduces the amount of information transmitted over the network.
-- Client Performance: On the client side, processing typing events requires resources. By not having to handle these events, the client can be more responsive and use less memory and CPU.
-
-</Note>
-
-### User typing timeout
-
-This setting defines how frequently "user is typing..." messages are updated, measured in milliseconds.
-
-<table style={{width: '99%'}}>
-<colgroup>
-<col style={{width: '99%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"TimeBetweenUserTypingUpdatesMilliseconds": 5000</code> with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
 ### User's status and profile fetching poll interval
 
 This setting configures the number of milliseconds to wait between fetching user statuses and profiles periodically. Set to `0` to disable.
