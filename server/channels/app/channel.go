@@ -1555,23 +1555,18 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_guest_role.app_error", nil, "role_name="+capabilityRoleName, http.StatusBadRequest)
 	}
 
-	// The scheme's own admin role carries the same authority a capability role
-	// does — admin_space and every page permission — and the check above does not
-	// see it, because a scheme role sets SchemeAdmin instead of landing in
-	// ExplicitRoles. Guest and admin resolve independently in getChannelRoles, so
-	// a member holding both reads as a guest and is granted the admin role.
-	//
-	// Gated on the space: an ordinary channel may still have a guest channel
-	// admin, which is long-standing behaviour this does not disturb.
 	if member.SchemeGuest && member.SchemeAdmin {
+		// Space channels have a stricter error so admins know which policy applies.
 		if !spaceLookupDone {
 			if channelIsSpace, err = a.IsSpaceChannelByID(rctx, channelID); err != nil {
 				return nil, err
 			}
+			spaceLookupDone = true
 		}
 		if channelIsSpace {
 			return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_guest_admin.app_error", nil, "", http.StatusBadRequest)
 		}
+		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.guest_and_admin.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if prevSchemeGuestValue != member.SchemeGuest {

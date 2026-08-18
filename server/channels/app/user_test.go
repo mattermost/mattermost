@@ -2435,7 +2435,7 @@ func TestDemoteUserToGuestSpaceRevocationFailure(t *testing.T) {
 		return th, &mockTeamStore, &mockChannelStore
 	}
 
-	t.Run("space channel listing failure surfaces as an error", func(t *testing.T) {
+	t.Run("space channel listing failure does not fail the demotion", func(t *testing.T) {
 		th, mockTeamStore, mockChannelStore := setupDemoteMocks(t)
 
 		mockTeamStore.On("GetTeamsForUser", mock.Anything, "userID", "", true).Return([]*model.TeamMember{{TeamId: "teamID", UserId: "userID"}}, nil)
@@ -2443,18 +2443,16 @@ func TestDemoteUserToGuestSpaceRevocationFailure(t *testing.T) {
 		mockChannelStore.On("GetMembersForUser", "teamID", "userID").Return(nil, errors.New("member listing failed"))
 
 		appErr := th.App.DemoteUserToGuest(th.Context, &model.User{Id: "userID"})
-		require.NotNil(t, appErr)
-		assert.Equal(t, "app.user.demote_user_to_guest.strip_space_roles.app_error", appErr.Id)
+		require.Nil(t, appErr, "demotion must succeed even when space cleanup lookups fail")
 	})
 
-	t.Run("team listing failure surfaces as an error", func(t *testing.T) {
+	t.Run("team listing failure does not fail the demotion", func(t *testing.T) {
 		th, mockTeamStore, _ := setupDemoteMocks(t)
 
 		mockTeamStore.On("GetTeamsForUser", mock.Anything, "userID", "", true).Return(nil, errors.New("team listing failed"))
 
 		appErr := th.App.DemoteUserToGuest(th.Context, &model.User{Id: "userID"})
-		require.NotNil(t, appErr)
-		assert.Equal(t, "app.user.demote_user_to_guest.strip_space_roles.app_error", appErr.Id)
+		require.Nil(t, appErr, "demotion must succeed even when team listing fails")
 	})
 }
 
