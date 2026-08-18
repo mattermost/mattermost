@@ -1037,7 +1037,7 @@ Cloud admins can't modify this configuration setting.
 - Cloud admins can't modify this configuration setting.
 - This setting only applies when [email batching](#enable-email-batching) is enabled.
 - We recommend increasing the buffer size from the default value if you see the following error in the Mattermost logs: `Email batching job's receiving buffer was full. Please increase the EmailBatchingBufferSize. Falling back to sending immediate mail.` Increasing this value will ensure emails are queued up, without impacting server performance.
-- Notifications will be sent instantly if the queue of emails exceeds the [email batching interval](#email-batching-interval) configured.
+- Notifications are sent immediately when the receiving buffer is full.
 
 </Note>
 
@@ -1060,9 +1060,8 @@ Cloud admins can't modify this configuration setting.
 
 - Cloud admins can't modify this configuration setting.
 - This setting only applies when [email batching](#enable-email-batching) is enabled.
-- We recommend decreasing the email batching interval from the default value if you see the following error in the Mattermost logs: `Email batching job's receiving buffer was full. Please increase the EmailBatchingBufferSize. Falling back to sending immediate mail.`.
 - Longer batching intervals may increase performance.
-- Notifications will be sent instantly if the [queue of emails](#email-batching-buffer-size) exceeds the email batching interval configured.
+- Notifications are sent immediately when the receiving buffer is full. If that occurs, increase [Email batching buffer size](#email-batching-buffer-size).
 
 </Note>
 
