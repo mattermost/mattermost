@@ -455,7 +455,7 @@ type ServiceSettings struct {
 	EnableAPIPostDeletion                             *bool
 	EnableDesktopLandingPage                          *bool
 	MinimumDesktopAppVersion                          *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
-	ExperimentalEnableHardenedMode                    *bool   `access:"experimental_features"`
+	ExperimentalEnableHardenedMode                    *bool   `access:"environment_web_server"`
 	ExperimentalStrictCSRFEnforcement                 *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool   `access:"authentication_signup"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool   `access:"integrations_bot_accounts"`
