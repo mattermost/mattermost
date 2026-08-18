@@ -415,6 +415,36 @@ This setting is applicable to self-hosted deployments only.
 
 </Note>
 
+### Enable tutorial
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Users are prompted with a tutorial when they open Mattermost for the first time after account creation.</li><li><strong>false</strong>: The tutorial is disabled. Users are placed in Town Square when they open Mattermost for the first time after account creation.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableTutorial</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLETUTORIAL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable onboarding
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> New users are shown key tasks to complete as part of initial onboarding.</li><li><strong>false</strong>: User onboarding tasks are disabled.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableOnboardingFlow</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ### Enable desktop app landing page
 
 <table>
