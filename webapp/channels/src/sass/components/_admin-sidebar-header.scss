@@ -2,6 +2,7 @@
     position: relative;
     display: flex;
     width: 100%;
+    flex-shrink: 0;
     align-items: center;
     padding: 14px 18px;
     border: none;

@@ -627,6 +627,7 @@
     display: flex;
     overflow: clip;
     width: var(--admin-sidebar-width);
+    height: 100%;
     min-height: 0;
     flex-direction: column;
     background: var(--sys-sidebar-bg);
@@ -636,6 +637,7 @@
     .filter-container {
         position: relative;
         z-index: 1;
+        flex-shrink: 0;
         padding: 0px 12px;
         margin-top: 8px;
         box-shadow: 0px 8px 8px 0px rgba(var(--sys-sidebar-bg-rgb), 0.75);
@@ -724,9 +726,13 @@
         background: transparent;
     }
 
+    [data-simplebar] {
+        flex: 1;
+        min-height: 0;
+    }
+
     .nav-pills__container {
         position: relative;
-        height: calc(100% - var(--admin-sidebar-nav-offset));
         padding-top: 16px;
         padding-bottom: 20px;
         overflow-x: hidden;

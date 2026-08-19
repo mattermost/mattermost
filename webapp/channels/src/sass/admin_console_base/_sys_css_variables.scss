@@ -30,8 +30,6 @@
 
     // Admin console sidebar layout
     --admin-sidebar-width: 264px;
-    // Header (64px) + filter (40px) + nav padding-top (16px)
-    --admin-sidebar-nav-offset: 120px;
 
     // Cloned RGB values from base/css_variables, to be used as rgba(var(--sys-color), opacity_here) to apply opacity to base colors
     --sys-away-indicator-rgb: 255, 188, 31;
