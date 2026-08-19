@@ -11,11 +11,11 @@ import (
 
 // Property field permission actions. Each names one cell of the
 // field/option/value × read/write grid the permission model is asked per
-// action (§2.1). Aspect comes first so everything governing one part of a
+// action. Aspect comes first so everything governing one part of a
 // field sorts together.
 //
 // Five of the six grid cells are enforced and appear here. The sixth,
-// field.read, is deliberately left unenforced in v1 — a field definition's
+// field.read, is deliberately left unenforced — a field definition's
 // discoverability is not gated — so it has no constant, and neither a grant's
 // allow list nor a restrictions leaf may name it.
 const (
@@ -28,7 +28,7 @@ const (
 
 // validPropertyActions is the set of enforced actions a grant's allow list may
 // name. There is deliberately no "*": full access is typed out, so a serialization
-// default or a future sixth action never confers control by accident (§2.3).
+// default or a future action never confers control by accident.
 var validPropertyActions = []string{
 	PropertyActionFieldWrite,
 	PropertyActionOptionRead,
@@ -37,27 +37,25 @@ var validPropertyActions = []string{
 	PropertyActionValueWrite,
 }
 
-// Permissions is a field's single "who may do what" setting (§1.3). It replaces
-// the seven legacy mechanisms with three parts:
+// Permissions is a field's single "who may do what" setting. It comprises three parts:
 //
 //   - Restrictions — the default rule for human callers, on the ladder.
 //   - Grants — named machine/human identities, each with an explicit action list.
 //   - Masking — an optional read filter for fields whose option list is itself
 //     sensitive.
 //
-// All three are optional at the top level; on a whole-object write an absent
-// part means "unchanged" (§9.3), which is why each is a pointer or a nil-able
-// slice rather than a value.
+// All three are optional at the top level; an absent part means "unchanged"
+// on update, which is why each is a pointer or a nil-able slice rather than a value.
 type Permissions struct {
 	Restrictions *Restrictions `json:"restrictions,omitempty"`
 	Grants       []Grant       `json:"grants,omitempty"`
 	Masking      *Masking      `json:"masking,omitempty"`
 }
 
-// Restrictions holds the human ladder per aspect (§2.2). A leaf omitted on input
-// means none (§2.2); validation fills it in so a stored object always carries
+// Restrictions holds the human permission ladder per aspect. A leaf omitted on input
+// means none; validation fills it in so a stored object always carries
 // all five enforced leaves. field carries no read leaf because field.read is not
-// enforced in v1 (§2.1).
+// enforced.
 type Restrictions struct {
 	Value  ReadWrite `json:"value"`
 	Option ReadWrite `json:"option"`
@@ -65,14 +63,14 @@ type Restrictions struct {
 }
 
 // ReadWrite is the read/write pair for the value and option aspects. Each leaf
-// is a ladder tier; the empty string means the leaf was omitted (→ none).
+// is a permission level; the empty string means the leaf was omitted (none).
 type ReadWrite struct {
 	Read  PermissionLevel `json:"read,omitempty"`
 	Write PermissionLevel `json:"write,omitempty"`
 }
 
 // WriteOnly is the field aspect's single write leaf. There is no read leaf by
-// construction, which is how field.read is kept unexpressible (§2.1).
+// construction, which is how field.read is kept unexpressible.
 type WriteOnly struct {
 	Write PermissionLevel `json:"write,omitempty"`
 }
@@ -95,7 +93,7 @@ func (w *WriteOnly) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Grant names one identity and lists the actions it may perform (§2.3). Type is
+// Grant names one identity and lists the actions it may perform. Type is
 // one of the PropertyOwnerType* constants (grants generalize the owners list).
 // Allow is required and non-empty; an empty allow is rejected, not ignored.
 type Grant struct {
@@ -105,7 +103,7 @@ type Grant struct {
 	Allow  []string `json:"allow"`
 }
 
-// Masking is the read filter for a field whose option list is sensitive (§2.6).
+// Masking is the read filter for a field whose option list is sensitive.
 // Its presence (even empty) marks the field masked; MaskByFieldID names where
 // the caller's holdings live (template-only), and Except lists identities exempt
 // from masking.
@@ -123,11 +121,11 @@ type Identity struct {
 
 // IsValid validates the permissions object and normalizes it in place so a
 // stored object is always complete: restrictions leaves omitted on input are
-// filled to none (§2.2), which is why the receiver is a pointer. It is
+// filled to none, which is why the receiver is a pointer. It is
 // idempotent, so re-validating a normalized object is a no-op.
 //
 // objectType is the owning field's object type; masking's self-writable rule is
-// stated relative to it (§2.6).
+// stated relative to it.
 func (p *Permissions) IsValid(objectType string) error {
 	if p.Restrictions != nil {
 		if err := p.Restrictions.normalizeAndValidate(); err != nil {
@@ -150,9 +148,9 @@ func (p *Permissions) IsValid(objectType string) error {
 	return nil
 }
 
-// isValid checks the shape-only masking rules (§2.6): every except identity is a
-// known type with a present, non-wildcard id — a masking exemption is exactly
-// what must never be granted to "any plugin, present or future".
+// isValid checks the shape-only masking rules: every except identity is a
+// known type with a present, non-wildcard id — a masking exemption must never
+// be granted to unknown identity types or the wildcard.
 func (m *Masking) isValid() error {
 	for _, id := range m.Except {
 		if !IsValidPropertyOwnerType(id.Type) {
@@ -165,14 +163,12 @@ func (m *Masking) isValid() error {
 			return fmt.Errorf("except: wildcard id is not allowed")
 		}
 	}
-	// TODO(phase-2/5): the checks that need the store are deferred here —
-	// mask_by_field_id must name an existing object_type:user field linked to
-	// this template, and it is template-only. Add them where the store is
-	// reachable (plan Phase 1 step 5).
+	// TODO: mask_by_field_id must name an existing object_type:user field linked to
+	// this template. Add validation when the store is reachable.
 	return nil
 }
 
-// validateMaskingForField enforces the self-writable rule (§2.6): a masked
+// validateMaskingForField enforces the self-writable rule: a masked
 // object_type:user field may not let a human write its own holdings, or a caller
 // could widen their own view by editing their value. Runs after restrictions
 // normalization, so value.write is already filled.
@@ -186,7 +182,7 @@ func (p *Permissions) validateMaskingForField(objectType string) error {
 	return nil
 }
 
-// isValid checks one grant's shape (§2.3): a known identity type, a present id,
+// isValid checks one grant's shape: a known identity type, a present id,
 // the wildcard limited to machine types, identifier-shaped scopes, and a
 // non-empty allow list naming only enforced actions.
 func (g *Grant) isValid() error {
@@ -197,7 +193,7 @@ func (g *Grant) isValid() error {
 		return fmt.Errorf("id is required")
 	}
 	// The wildcard is machine-only: "any human" is what restrictions already
-	// says, and better (§2.3).
+	// express.
 	if g.ID == "*" && g.Type != PropertyOwnerTypePlugin && g.Type != PropertyOwnerTypeService {
 		return fmt.Errorf("wildcard id is only allowed for plugin or service grants")
 	}
@@ -207,7 +203,7 @@ func (g *Grant) isValid() error {
 		}
 	}
 	// Required and non-empty: a grant that grants nothing is almost always a
-	// mistake, so it is rejected rather than dropped (§2.3).
+	// mistake, so it is rejected rather than dropped.
 	if len(g.Allow) == 0 {
 		return fmt.Errorf("allow must be non-empty")
 	}
@@ -220,7 +216,7 @@ func (g *Grant) isValid() error {
 }
 
 // restrictionsLeaves returns pointers to the five enforced leaves in a stable
-// order, so normalization and validation walk exactly the set §2.1 enforces —
+// order, so normalization and validation walk exactly the set of enforced leaves —
 // field.read is absent by construction.
 func (r *Restrictions) restrictionsLeaves() []*PermissionLevel {
 	return []*PermissionLevel{
@@ -231,7 +227,7 @@ func (r *Restrictions) restrictionsLeaves() []*PermissionLevel {
 }
 
 // normalizeAndValidate fills every omitted leaf with none and rejects any
-// present leaf that is not a ladder tier (§2.2). After it returns nil all five
+// present leaf that is not a valid permission level. After it returns nil all five
 // leaves are set explicitly, so nothing has to be inferred on read.
 func (r *Restrictions) normalizeAndValidate() error {
 	for _, leaf := range r.restrictionsLeaves() {
