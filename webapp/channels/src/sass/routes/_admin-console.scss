@@ -874,8 +874,8 @@
 
         &--active {
             padding-left: 8px;
-            background: rgba(var(--sys-sidebar-text-rgb), 0.12);
             border-left: 2px solid var(--sys-sidebar-text-active-border);
+            background: rgba(var(--sys-sidebar-text-rgb), 0.12);
             color: var(--sys-sidebar-text);
             font-weight: 600;
 
