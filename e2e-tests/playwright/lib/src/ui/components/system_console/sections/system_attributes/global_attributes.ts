@@ -6,6 +6,7 @@ import {expect} from '@playwright/test';
 
 export const GLOBAL_ATTRIBUTES_PATH = '/admin_console/system_attributes/manage_attributes';
 export const ATTRIBUTE_DETAILS_PATH = `${GLOBAL_ATTRIBUTES_PATH}/attribute_details`;
+export const CLASSIFICATION_ATTRIBUTE_PATH = `${GLOBAL_ATTRIBUTES_PATH}/classification`;
 
 export type ChannelDisplayLocation = 'display_label_header' | 'display_label_info' | 'display_banner_top';
 
@@ -71,6 +72,10 @@ export class AppliesToChannels {
             await this.location(location).check();
         }
     }
+
+    async removeResource() {
+        await this.container.getByTestId('channelsResourceRowRemove').click();
+    }
 }
 
 /**
@@ -104,6 +109,37 @@ export default class GlobalAttributes {
     async gotoNewAttribute() {
         await this.container.page().goto(ATTRIBUTE_DETAILS_PATH);
         await expect(this.displayNameInput).toBeVisible();
+    }
+
+    /**
+     * Classification's own attribute page. Its definition is read-only; only the
+     * Applies to card can be edited here.
+     */
+    async gotoClassificationAttribute() {
+        await this.container.page().goto(CLASSIFICATION_ATTRIBUTE_PATH);
+        await expect(this.container.getByTestId('classificationAttributeName')).toBeVisible();
+    }
+
+    get classificationLevels() {
+        return this.container.getByTestId('classificationAttributeLevels');
+    }
+
+    get classificationMarkingsLink() {
+        return this.container.getByTestId('classificationAttributeMarkingsLink');
+    }
+
+    /**
+     * Saves without waiting for a redirect: the classification page stays put, unlike
+     * the New attribute form which returns to the list.
+     *
+     * Waits for Save to go back to disabled, which is the page's own "nothing left to
+     * save" state. Waiting for it to be enabled would pass before the request even
+     * left, and the assertions that follow read the field straight from the API.
+     */
+    async saveInPlace() {
+        await expect(this.saveButton).toBeEnabled();
+        await this.saveButton.click();
+        await expect(this.saveButton).toBeDisabled();
     }
 
     async setDisplayName(displayName: string) {

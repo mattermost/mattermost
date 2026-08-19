@@ -98,6 +98,7 @@ import UserAttributesFeatureDiscovery from './feature_discovery/features/user_at
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GlobalAttributes, {searchableStrings as globalAttributesSearchableStrings} from './global_attributes';
 import AttributeDetails from './global_attributes/attribute_details';
+import ClassificationAttribute from './global_attributes/classification_attribute';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import IPFiltering from './ip_filtering';
@@ -714,6 +715,23 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'BoardAttributes',
                     component: BoardAttributes,
+                },
+            },
+            classification_attribute: {
+                url: 'system_attributes/manage_attributes/classification',
+
+                // Gated on ChannelAttributes as well: with that flag off the only
+                // editable thing on this page is the Channels resource, so there is
+                // nothing here that the Classification Markings page does not cover.
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
+                    it.configIsTrue('FeatureFlags', 'ChannelAttributes'),
+                )),
+                isDisabled: it.not(it.isSystemAdmin),
+                schema: {
+                    id: 'ClassificationAttribute',
+                    component: ClassificationAttribute,
                 },
             },
             global_attribute_details: {

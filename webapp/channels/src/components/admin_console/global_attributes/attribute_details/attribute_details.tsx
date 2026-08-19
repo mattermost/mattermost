@@ -40,6 +40,7 @@ import AttributeOptionsValues from './attribute_options_values';
 import AppliesToCard from '../applies_to/applies_to_card';
 import {buildChannelFieldPayload, isOrderedChangePolicy} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
+import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
 import {getTypeIcon, getTypeLabel, typeLabels} from '../global_attributes_table';
 import type {AttributeFieldType} from '../utils';
 import {createAttributeField} from '../utils';
@@ -47,7 +48,7 @@ import {createAttributeField} from '../utils';
 import './attribute_details.scss';
 
 const ALL_TYPES: AttributeFieldType[] = ['text', 'select', 'multiselect', 'rank'];
-const LIST_ROUTE = '/admin_console/system_attributes/manage_attributes';
+const LIST_ROUTE = GLOBAL_ATTRIBUTES_LIST_ROUTE;
 
 // Whether any option in `options` has a name equal to another option's name.
 // Used defensively by canSave -- both options editors already block this

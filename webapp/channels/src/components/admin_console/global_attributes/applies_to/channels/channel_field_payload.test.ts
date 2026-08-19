@@ -5,8 +5,8 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {DISPLAY_BANNER_TOP, DISPLAY_LABEL_HEADER, DISPLAY_LABEL_INFO} from 'mattermost-redux/constants/properties';
 
-import {buildChannelFieldPayload} from './channel_field_payload';
-import type {ChannelDisplayLocation} from './types';
+import {buildChannelFieldPatch, buildChannelFieldPayload, parseChannelFieldConfig} from './channel_field_payload';
+import type {ChannelDisplayLocation, ChannelResourceConfig} from './types';
 import {DEFAULT_CHANNEL_RESOURCE_CONFIG} from './types';
 
 const template = {
@@ -111,5 +111,84 @@ describe('buildChannelFieldPayload', () => {
 
         expect(payload).not.toHaveProperty('permission_field');
         expect(payload).not.toHaveProperty('permission_options');
+    });
+});
+
+describe('parseChannelFieldConfig', () => {
+    const channelField = (attrs: Record<string, unknown>) => ({
+        ...template,
+        object_type: 'channel',
+        attrs,
+    } as unknown as PropertyField);
+
+    it('reads a field carrying no channel keys as the defaults', () => {
+        expect(parseChannelFieldConfig(channelField({}))).toEqual(DEFAULT_CHANNEL_RESOURCE_CONFIG);
+    });
+
+    it('reads required, the change policy and the display locations', () => {
+        const config = parseChannelFieldConfig(channelField({
+            required: true,
+            change_policy: 'raise_only',
+            actions: [DISPLAY_BANNER_TOP, DISPLAY_LABEL_HEADER],
+        }));
+
+        expect(config.required).toBe(true);
+        expect(config.changePolicy).toBe('raise_only');
+
+        // Canonical order, not the order the field happened to store them in.
+        expect(config.displayLocations).toEqual([DISPLAY_LABEL_HEADER, DISPLAY_BANNER_TOP]);
+    });
+
+    it('reads a legacy editable=false as never, the way the server does', () => {
+        expect(parseChannelFieldConfig(channelField({editable: false})).changePolicy).toBe('never');
+    });
+
+    it('drops an action the row cannot render', () => {
+        // display_banner_bottom validates server-side but has no control here, so
+        // carrying it through would let a save silently rewrite it.
+        const config = parseChannelFieldConfig(channelField({actions: ['display_banner_bottom', DISPLAY_LABEL_INFO]}));
+
+        expect(config.displayLocations).toEqual([DISPLAY_LABEL_INFO]);
+    });
+
+    it('round-trips whatever buildChannelFieldPayload wrote', () => {
+        const configs: ChannelResourceConfig[] = [
+            DEFAULT_CHANNEL_RESOURCE_CONFIG,
+            {required: true, changePolicy: 'never', displayLocations: [DISPLAY_LABEL_HEADER]},
+            {required: false, changePolicy: 'raise_only', displayLocations: [DISPLAY_LABEL_INFO, DISPLAY_BANNER_TOP]},
+        ];
+
+        for (const config of configs) {
+            const payload = buildChannelFieldPayload(template, config);
+            expect(parseChannelFieldConfig({...template, attrs: payload.attrs ?? {}} as PropertyField)).toEqual(config);
+        }
+    });
+});
+
+describe('buildChannelFieldPatch', () => {
+    it('writes every key on every save, so a merge cannot leave a stale one behind', () => {
+        expect(buildChannelFieldPatch(DEFAULT_CHANNEL_RESOURCE_CONFIG).attrs).toEqual({
+            required: false,
+            change_policy: 'any',
+            editable: null,
+            actions: [],
+        });
+    });
+
+    it('clears editable when the policy is no longer never', () => {
+        // editable predates change_policy and still wins when change_policy is
+        // absent, so a stale false would keep the attribute locked. Only an explicit
+        // null removes it.
+        expect(buildChannelFieldPatch({...DEFAULT_CHANNEL_RESOURCE_CONFIG, changePolicy: 'raise_only'}).attrs).toMatchObject({
+            change_policy: 'raise_only',
+            editable: null,
+        });
+    });
+
+    it('writes editable alongside never, for readers that predate change_policy', () => {
+        expect(buildChannelFieldPatch({...DEFAULT_CHANNEL_RESOURCE_CONFIG, changePolicy: 'never'}).attrs).toMatchObject({
+            change_policy: 'never',
+            editable: false,
+        });
     });
 });

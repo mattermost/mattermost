@@ -411,16 +411,21 @@ export default function ClassificationMarkings({disabled}: Props) {
                 savedLinked = await savePatchLinkedField(savedLinked.id, resolvedBanner);
             }
 
-            // Ensure the channel-scoped classification linked field exists as part of the set.
-            // Push saved fields into Redux eagerly so the banner updates
-            // atomically rather than waiting for out-of-order WS events.
+            // Created on the transition into enabled, not on every save: an admin who
+            // removed the Channels resource from the attribute page must not have it
+            // reinstated by an unrelated save here.
+            //
+            // Push saved fields into Redux eagerly so the banner updates atomically
+            // rather than waiting for out-of-order WS events.
             const existingChannelField = await fetchChannelClassificationField();
-            if (existingChannelField) {
-                dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked, existingChannelField]}});
-            } else {
-                const savedChannelField = await saveCreateChannelLinkedField(savedTemplate.id);
-                dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked, savedChannelField]}});
+            let channelField = existingChannelField;
+            if (!channelField && !initialEnabled) {
+                channelField = await saveCreateChannelLinkedField(savedTemplate.id);
             }
+            dispatch({
+                type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
+                data: {fields: channelField ? [savedTemplate, savedLinked, channelField] : [savedTemplate, savedLinked]},
+            });
 
             setExistingField(savedTemplate);
             setExistingLinkedField(savedLinked);
@@ -455,7 +460,7 @@ export default function ClassificationMarkings({disabled}: Props) {
             setGlobalBanner({...DEFAULT_GLOBAL_BANNER});
             setInitialGlobalBanner({...DEFAULT_GLOBAL_BANNER});
         }
-    }, [enabled, existingField, existingLinkedField, levels, globalBanner, dispatch]);
+    }, [enabled, initialEnabled, existingField, existingLinkedField, levels, globalBanner, dispatch]);
 
     const handleSave = useCallback(async () => {
         setSaveError(undefined);

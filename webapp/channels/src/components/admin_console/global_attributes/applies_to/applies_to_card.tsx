@@ -21,6 +21,11 @@ type Props = {
     channelResource: ChannelResourceConfig | null;
     onChannelResourceChange: (next: ChannelResourceConfig | null) => void;
 
+    // Removal is only a form action while the resource is unsaved. A host editing an
+    // attribute that already exists has a field to delete, and values that go with
+    // it, so it takes the removal over.
+    onChannelResourceRemove?: () => void;
+
     // Whether the attribute's values are ranked; gates the raise/lower policies.
     ordered?: boolean;
 
@@ -33,7 +38,7 @@ type Props = {
  * Global Attributes owns the real "Applies to" card, which does not exist yet.
  * Delete this file when it lands; ChannelsResourceRow is the part that survives.
  */
-const AppliesToCard = ({channelResource, onChannelResourceChange, ordered, disabled}: Props) => {
+const AppliesToCard = ({channelResource, onChannelResourceChange, onChannelResourceRemove, ordered, disabled}: Props) => {
     return (
         <Card
             expanded={true}
@@ -69,7 +74,7 @@ const AppliesToCard = ({channelResource, onChannelResourceChange, ordered, disab
                     <ChannelsResourceRow
                         value={channelResource}
                         onChange={onChannelResourceChange}
-                        onRemove={() => onChannelResourceChange(null)}
+                        onRemove={onChannelResourceRemove ?? (() => onChannelResourceChange(null))}
                         ordered={ordered}
                         disabled={disabled}
                     />

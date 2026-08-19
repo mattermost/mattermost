@@ -64,6 +64,26 @@ describe('AppliesToCard', () => {
         expect(onChannelResourceChange).toHaveBeenCalledWith(null);
     });
 
+    it('hands removal to the host when it has a saved field to delete', async () => {
+        // Clearing the form is right while the resource is unsaved. A host editing an
+        // attribute that already exists owns the removal instead, because it deletes a
+        // field and the values on it.
+        const onChannelResourceChange = jest.fn();
+        const onChannelResourceRemove = jest.fn();
+        renderWithContext(
+            <AppliesToCard
+                channelResource={DEFAULT_CHANNEL_RESOURCE_CONFIG}
+                onChannelResourceChange={onChannelResourceChange}
+                onChannelResourceRemove={onChannelResourceRemove}
+            />,
+        );
+
+        await userEvent.click(screen.getByTestId('channelsResourceRowRemove'));
+
+        expect(onChannelResourceRemove).toHaveBeenCalled();
+        expect(onChannelResourceChange).not.toHaveBeenCalled();
+    });
+
     it('does not offer to add a resource while disabled', async () => {
         const onChannelResourceChange = jest.fn();
         renderWithContext(

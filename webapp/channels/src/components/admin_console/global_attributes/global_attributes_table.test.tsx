@@ -69,14 +69,14 @@ type EntitiesPartial = NonNullable<DeepPartial<GlobalState>['entities']>;
 // route rule itself reads. Both conditions default to "reachable" but can be independently
 // overridden to exercise the AND logic off the all-true/all-false diagonal (e.g. license ok
 // but flag off, or vice versa).
-function getReachableState(overrides: {licenseSku?: string; classificationMarkingsFlagOn?: boolean} = {}): DeepPartial<GlobalState> {
-    const {licenseSku = 'enterprise', classificationMarkingsFlagOn = true} = overrides;
+function getReachableState(overrides: {licenseSku?: string; classificationMarkingsFlagOn?: boolean; channelAttributesFlagOn?: boolean} = {}): DeepPartial<GlobalState> {
+    const {licenseSku = 'enterprise', classificationMarkingsFlagOn = true, channelAttributesFlagOn = true} = overrides;
     const state = getBaseState();
     state.entities!.general = {
         license: {IsLicensed: 'true', SkuShortName: licenseSku},
     } as EntitiesPartial['general'];
     state.entities!.admin = {
-        config: {FeatureFlags: {ClassificationMarkings: classificationMarkingsFlagOn}},
+        config: {FeatureFlags: {ClassificationMarkings: classificationMarkingsFlagOn, ChannelAttributes: channelAttributesFlagOn}},
     } as EntitiesPartial['admin'];
     return state;
 }
@@ -437,23 +437,34 @@ describe('GlobalAttributesTable', () => {
     });
 
     describe('Classification Markings row', () => {
-        it('renders the subtitle and an open-in-new link (not the dot-menu) when the field matches and the destination is reachable', async () => {
+        it('renders the subtitle, an open-in-new link and a menu carrying Edit when the field matches and the destination is reachable', async () => {
             getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getReachableState());
 
-            expect(await screen.findByTestId('global-attribute-classification-subtitle-field-1')).toHaveTextContent('Read-only');
+            // * The subtitle is scoped to the definition, not to the whole row
+            expect(await screen.findByTestId('global-attribute-classification-subtitle-field-1')).toHaveTextContent('Definition is read-only');
 
             const link = screen.getByTestId('global-attribute-classification-link-field-1');
             expect(link).toHaveAttribute('href', CLASSIFICATIONS_MARKINGS_ADMIN_URL);
             expect(link).toHaveAccessibleName('Open Classification Markings');
 
-            // * The dot-menu is not rendered for this row
-            expect(screen.queryByTestId('global-attribute-actions-field-1')).not.toBeInTheDocument();
+            // * Unlike every other row, this one's Edit is live: it is the only way to
+            // configure classification's resources outside the API
+            expect(screen.getByTestId('global-attribute-actions-field-1')).toBeInTheDocument();
 
             // * The Source column also identifies this row's true source, rather than the
             // generic "Managed here" every other native field gets
             expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Classification Markings');
+        });
+
+        it('offers the link alone when ChannelAttributes is off, since the attribute page is hidden then', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getReachableState({channelAttributesFlagOn: false}));
+
+            expect(await screen.findByTestId('global-attribute-classification-link-field-1')).toBeInTheDocument();
+            expect(screen.queryByTestId('global-attribute-actions-field-1')).not.toBeInTheDocument();
         });
 
         it('renders the ordinary dot-menu, no subtitle, and the generic "Managed here" source when the field matches but the destination is not reachable (flag off / sub-Enterprise)', async () => {
