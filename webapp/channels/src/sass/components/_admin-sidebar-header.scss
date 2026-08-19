@@ -1,5 +1,3 @@
-@use "utils/mixins";
-
 .AdminSidebarHeader {
     position: relative;
     display: flex;
@@ -23,8 +21,6 @@
     }
 
     .header__info {
-        @include mixins.clearfix;
-
         position: relative;
         width: 100%;
         flex-grow: 1;
