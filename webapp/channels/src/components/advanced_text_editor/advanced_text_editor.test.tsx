@@ -5,13 +5,14 @@ import React from 'react';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
+import {onSubmit} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
 
 import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
 import Constants, {Locations, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -24,6 +25,11 @@ jest.mock('actions/views/drafts', () => ({
     ...jest.requireActual('actions/views/drafts'),
     updateDraft: jest.fn((...args) => ({type: 'MOCK_UPDATE_DRAFT', args})),
     removeDraft: jest.fn((...args) => ({type: 'MOCK_REMOVE_DRAFT', args})),
+}));
+
+jest.mock('actions/views/create_comment', () => ({
+    ...jest.requireActual('actions/views/create_comment'),
+    onSubmit: jest.fn(() => () => Promise.resolve({data: true})),
 }));
 
 jest.mock('utils/exec_commands.ts', () => ({
@@ -44,6 +50,7 @@ jest.mock('utils/exec_commands.ts', () => ({
 
 const mockedRemoveDraft = jest.mocked(removeDraft);
 const mockedUpdateDraft = jest.mocked(updateDraft);
+const mockedOnSubmit = jest.mocked(onSubmit);
 
 const currentUserId = 'current_user_id';
 const channelId = 'current_channel_id';
@@ -285,6 +292,87 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         );
 
         expect(screen.getByPlaceholderText('Write to Other Channel')).toHaveValue('a different draft');
+    });
+
+    it('should submit a new message to the destination channel while the textbox still holds the previous channel draft', async () => {
+        const sourceDraft = 'stale draft from the source channel';
+        const destinationMessage = 'new message composed for the destination channel';
+        const submitOnSwitchRef = {current: false};
+
+        function Harness({editorChannelId}: {editorChannelId: string}) {
+            const [submitStaleDraft, setSubmitStaleDraft] = React.useState(false);
+
+            // Cmd+K can focus the composer after channelId updates but before ATE's
+            // useEffect replaces the local draft. RTL flushes that effect before
+            // userEvent, so type here — after the destination placeholder paints,
+            // before the swap.
+            React.useLayoutEffect(() => {
+                if (!submitOnSwitchRef.current) {
+                    return;
+                }
+                submitOnSwitchRef.current = false;
+
+                const textbox = screen.getByPlaceholderText('Write to Other Channel');
+                expect(textbox).toHaveValue(sourceDraft);
+
+                // SuggestionBox listens to onInput, not onChange.
+                fireEvent.input(textbox, {target: {value: destinationMessage}});
+                setSubmitStaleDraft(true);
+            }, [editorChannelId]);
+
+            // Input setState is applied on the next render, still before the draft-swap
+            // useEffect. Submit from this layout effect so handleSubmit closes over the
+            // new message while draft.channelId is still the source channel.
+            React.useLayoutEffect(() => {
+                if (!submitStaleDraft) {
+                    return;
+                }
+
+                expect(screen.getByPlaceholderText('Write to Other Channel')).toHaveValue(destinationMessage);
+                fireEvent.click(screen.getByTestId('SendMessageButton'));
+            }, [submitStaleDraft]);
+
+            return (
+                <AdvancedTextEditor
+                    {...baseProps}
+                    channelId={editorChannelId}
+                />
+            );
+        }
+
+        const {rerender} = renderWithContext(
+            <Harness editorChannelId={channelId}/>,
+            mergeObjects(initialState, {
+                storage: {
+                    storage: {
+                        [StoragePrefixes.DRAFT + channelId]: {
+                            value: TestHelper.getPostDraftMock({
+                                message: sourceDraft,
+                                channelId,
+                            }),
+                        },
+                    },
+                },
+            }),
+        );
+
+        expect(screen.getByPlaceholderText('Write to Test Channel')).toHaveValue(sourceDraft);
+
+        submitOnSwitchRef.current = true;
+        rerender(<Harness editorChannelId={otherChannelId}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(mockedOnSubmit).toHaveBeenCalledWith(
+            expect.objectContaining({
+                message: destinationMessage,
+                channelId: otherChannelId,
+            }),
+            expect.anything(),
+            undefined,
+        );
     });
 
     it('should save a new draft when changing channels', async () => {
