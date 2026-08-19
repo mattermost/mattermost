@@ -681,6 +681,57 @@ describe('components/PluginManagement', () => {
         expect(screen.getByText('Plugin uploads are disabled. Enable plugin uploads in config.json before uploading a plugin.')).toBeInTheDocument();
     });
 
+    const overwriteUpload = async (data: {id: string; name: string; version: string}) => {
+        const uploadPlugin = jest.fn().
+            mockResolvedValueOnce({error: {server_error_id: 'app.plugin.install_id.app_error', message: 'A plugin with this ID already exists.'}}).
+            mockResolvedValueOnce({data});
+        const getPlugins = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...defaultProps,
+            actions: {
+                ...defaultProps.actions,
+                uploadPlugin,
+                getPlugins,
+            },
+        };
+        const {container} = renderWithContext(<PluginManagement {...props}/>);
+
+        const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+        const file = new File(['plugin'], 'sample-plugin.tar.gz', {type: 'application/gzip'});
+        await userEvent.upload(input, file);
+
+        const confirmButton = await screen.findByText('Overwrite');
+        await userEvent.click(confirmButton);
+
+        await waitFor(() => {
+            expect(uploadPlugin).toHaveBeenCalledWith(file, true);
+        });
+    };
+
+    test('formats an upgraded plugin overwrite message when the new version is newer', async () => {
+        await overwriteUpload({id: 'plugin_0', name: 'Plugin 0', version: '0.2.0'});
+
+        expect(await screen.findByText('Successfully upgraded plugin: Plugin 0 (v0.1.0 → v0.2.0)')).toBeInTheDocument();
+    });
+
+    test('formats a downgraded plugin overwrite message when the new version is older', async () => {
+        await overwriteUpload({id: 'plugin_0', name: 'Plugin 0', version: '0.0.9'});
+
+        expect(await screen.findByText('Successfully downgraded plugin: Plugin 0 (v0.1.0 → v0.0.9)')).toBeInTheDocument();
+    });
+
+    test('formats a same-version plugin overwrite message when the version is unchanged', async () => {
+        await overwriteUpload({id: 'plugin_0', name: 'Plugin 0', version: '0.1.0'});
+
+        expect(await screen.findByText('Successfully replaced plugin: Plugin 0 (same version v0.1.0)')).toBeInTheDocument();
+    });
+
+    test('falls back to a generic overwrite message when versions are missing or invalid semver', async () => {
+        await overwriteUpload({id: 'plugin_unknown', name: 'Plugin Unknown', version: 'not-a-version'});
+
+        expect(await screen.findByText('Successfully updated plugin: Plugin Unknown')).toBeInTheDocument();
+    });
+
     test('should show the settings link for a plugin with sections only', () => {
         const props = {
             ...defaultProps,
