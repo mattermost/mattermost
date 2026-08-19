@@ -304,7 +304,13 @@ const useSubmit = (
             return;
         }
 
-        const submittingDraft = setUpdatedFileIds(submittingDraftParam);
+        // The editor channel/root are the destination. draft.channelId can still
+        // belong to the previous channel after Cmd+K until Redux and local draft state catch up.
+        const submittingDraft = setUpdatedFileIds({
+            ...submittingDraftParam,
+            channelId,
+            rootId,
+        });
         setShowPreview(false);
         isDraftSubmitting.current = true;
 
@@ -407,6 +413,7 @@ const useSubmit = (
         isInEditMode,
         channel,
         channelId,
+        rootId,
         channelMembersCount,
         dispatch,
         enableConfirmNotificationsToChannel,
