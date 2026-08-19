@@ -13,8 +13,8 @@ import {openModal} from 'actions/views/modals';
 import * as Menu from 'components/menu';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
-import {TestHelper} from 'utils/test_helper';
 import {ModalIdentifiers} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
