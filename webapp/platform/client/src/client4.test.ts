@@ -232,6 +232,52 @@ describe('Client4', () => {
 
             expect(receivedBody).toEqual({comment: ''});
         });
+
+        test('getPostExposureReportUrl should build correct URL', () => {
+            expect(client.getPostExposureReportUrl('post123')).toBe(
+                'http://mattermost.example.com/api/v4/content_flagging/post/post123/exposure_report',
+            );
+        });
+
+        test('generatePostExposureReport should return the CSV blob and the filename from Content-Disposition', async () => {
+            nock(client.getBaseRoute()).
+                post('/content_flagging/post/post123/exposure_report').
+                reply(200, '#Post ID,post123\nUser ID,Username\nuid1,alice\n', {
+                    'Content-Type': 'text/csv; charset=utf-8',
+                    'Content-Disposition': 'attachment; filename="post-exposure-post123-1700000000000.csv"',
+                });
+
+            const result = await client.generatePostExposureReport('post123');
+
+            expect(result.filename).toEqual('post-exposure-post123-1700000000000.csv');
+            expect(typeof result.blob.text).toBe('function');
+            expect(await result.blob.text()).toContain('uid1,alice');
+        });
+
+        test('generatePostExposureReport should fall back to a generated filename when the header is absent', async () => {
+            nock(client.getBaseRoute()).
+                post('/content_flagging/post/post123/exposure_report').
+                reply(200, 'User ID,Username\n', {'Content-Type': 'text/csv; charset=utf-8'});
+
+            const result = await client.generatePostExposureReport('post123');
+
+            expect(result.filename).toMatch(/^post-exposure-post123-\d+\.csv$/);
+        });
+
+        test('generatePostExposureReport should surface server errors as ClientError', async () => {
+            nock(client.getBaseRoute()).
+                post('/content_flagging/post/post123/exposure_report').
+                reply(400, {
+                    id: 'api.data_spillage.error.post_not_in_progress',
+                    message: 'The review of this post is already closed.',
+                    status_code: 400,
+                }, {'Content-Type': 'application/json'});
+
+            await expect(client.generatePostExposureReport('post123')).rejects.toMatchObject({
+                server_error_id: 'api.data_spillage.error.post_not_in_progress',
+                status_code: 400,
+            });
+        });
     });
 
     describe('team access control routes', () => {

@@ -27,7 +27,7 @@ type SqlAttributesStore struct {
 // attributeViewsByObjectType is the single source of truth for the
 // object-type-to-materialized-view mapping: both the per-type lookup and the
 // refresh sweep read it, so adding an object type cannot leave a new view
-// perpetually stale. The view is per-object-type (migration 000212) so a
+// perpetually stale. The view is per-object-type (migration 000216) so a
 // refresh of one type's attributes doesn't recompute the others.
 var attributeViewsByObjectType = map[string]string{
 	model.PropertyFieldObjectTypeChannel: "ChannelAttributeView",
@@ -86,7 +86,7 @@ func newSqlAttributesStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterf
 }
 
 func (s *SqlAttributesStore) RefreshAttributes() error {
-	// Both per-object-type views (migration 000212) refresh on one cadence, so a
+	// Both per-object-type views (migration 000216) refresh on one cadence, so a
 	// caller does not have to know which object types it is about to read. They
 	// refresh in separate statements, though, so this is not an atomic snapshot:
 	// a read straddling a refresh can see the two views a generation apart. Every

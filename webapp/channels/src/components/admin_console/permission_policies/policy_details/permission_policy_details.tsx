@@ -119,7 +119,13 @@ function PermissionPolicyDetails({
     sessionAttributesEnabled,
 }: PermissionPolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
-    const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
+
+    // Not seeded from `policy`: the list leaves the search endpoint's copy in the
+    // store, and search returns rules in their stored form — a rank comparison is
+    // stored desugared as `_rank_ge(...)`, which /cel/visual_ast rejects, so the
+    // editor would fire a doomed parse on mount. fetchPolicy below is the only
+    // source; it also sets the name, role and permissions seeded here.
+    const [expression, setExpression] = useState('');
     const [selectedRole, setSelectedRole] = useState(policy?.roles?.[0] || 'system_user');
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>(
         getPermissionActions(policy?.rules || []),

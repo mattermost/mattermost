@@ -34,7 +34,7 @@ import Constants from 'utils/constants';
 import ChannelList from './channel_list';
 
 import CELEditor from '../editors/cel_editor/editor';
-import {excludeSessionAttributes, hasUsableAttributes, isSimpleExpression, toCELEditorAttributes, MASKED_VALUE_TOKEN_LITERAL} from '../editors/shared';
+import {excludeSessionAttributes, hasUsableAttributes, isSimpleExpression, referencesResourceAttributes, toCELEditorAttributes, MASKED_VALUE_TOKEN_LITERAL} from '../editors/shared';
 import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
@@ -83,7 +83,17 @@ function PolicyDetails({
     accessControlSettings,
 }: PolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
-    const [expression, setExpression] = useState(getMembershipRule(policy?.rules)?.expression || '');
+
+    // Deliberately not seeded from `policy`: that copy comes from the policies
+    // list, which is filled by the search endpoint, and search returns a rule in
+    // its *stored* form. A rank comparison is stored desugared into the marker
+    // call `_rank_ge(user.attributes.x, "Secret", "<fieldID>")`, which
+    // /cel/visual_ast rejects — so seeding it makes TableEditor fire a doomed
+    // parse on mount, and whether that 400 or fetchPolicy below resolves first
+    // decides whether the editor flips to Advanced mode. fetchPolicy (the single
+    // GET, which rehydrates markers back to operators) is the only source, and it
+    // sets every other field seeded here too.
+    const [expression, setExpression] = useState('');
     const [existingRules, setExistingRules] = useState<AccessControlPolicyRule[]>(policy?.rules || []);
     const [autoSyncMembership, setAutoSyncMembership] = useState(policy?.active || false);
     const [serverError, setServerError] = useState<string | undefined>(undefined);
@@ -445,6 +455,15 @@ function PolicyDetails({
         );
     };
 
+    // A channel that has no value for a referenced channel attribute cannot be
+    // evaluated, and the server fails closed by denying the whole rule — so every
+    // member of that channel loses access. Warn as soon as the rule references any
+    // channel attribute, before any channel is assigned, without checking which
+    // channels actually carry a value: reading that would cost one property-values
+    // request per assigned channel (the endpoint takes a single target id), and the
+    // broad warning is what the reviewer asked for.
+    const showChannelAttributeWarning = referencesResourceAttributes(expression);
+
     // Deletion is blocked while the policy still has ANY assigned resource —
     // channels or teams. Teams aren't editable from this editor (MVF), so a
     // linked team must be removed from the per-team System Console page first.
@@ -540,6 +559,21 @@ function PolicyDetails({
                                     getHistory().push('/admin_console/system_attributes/user_attributes');
                                 },
                             }}
+                        />
+                    </div>)}
+                    {showChannelAttributeWarning && (<div className='admin-console__warning-notice'>
+                        <SectionNotice
+                            type='warning'
+                            title={
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.channel_attribute_notice.title'
+                                    defaultMessage='Potential for denied access'
+                                />
+                            }
+                            text={formatMessage({
+                                id: 'admin.access_control.policy.edit_policy.channel_attribute_notice.text',
+                                defaultMessage: 'If any assigned channel is missing the referenced channel attribute, all members will be denied access. This notice is shown whenever a channel attribute is referenced in a policy.',
+                            })}
                         />
                     </div>)}
                     <Card

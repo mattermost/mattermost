@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"sort"
@@ -63,7 +62,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 	pchan := make(chan store.StoreResult[map[string]*model.User], 1)
 	go func() {
-		props, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
+		props, err := a.Srv().Store().User().GetAllProfilesInChannel(rctx, channel.Id, true)
 		pchan <- store.StoreResult[map[string]*model.User]{Data: props, NErr: err}
 		close(pchan)
 	}()
@@ -859,8 +858,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 						userThread.UnreadMentions = 0
 						userThread.UnreadReplies = 0
 					}
-					a.sanitizeProfiles(userThread.Participants, false)
-					userThread.Post.SanitizeProps()
+					a.sanitizeThreadResponse(userThread)
 
 					sanitizedPost, isMemberForPreview, err := a.SanitizePostMetadataForUser(rctx, userThread.Post, uid)
 					if err != nil {
@@ -932,7 +930,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 
 		pCh := make(chan store.StoreResult[map[string]*model.User], 1)
 		go func() {
-			props, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
+			props, err := a.Srv().Store().User().GetAllProfilesInChannel(rctx, channel.Id, true)
 			pCh <- store.StoreResult[map[string]*model.User]{Data: props, NErr: err}
 			close(pCh)
 		}()
@@ -1027,8 +1025,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				previousUnreadMentions := int64(0)
 				previousUnreadReplies := int64(0)
 
-				a.sanitizeProfiles(userThread.Participants, false)
-				userThread.Post.SanitizeProps()
+				a.sanitizeThreadResponse(userThread)
 
 				sanitizedPost, isMemberForPreview, err1 := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
 				if err1 != nil {
@@ -1083,7 +1080,7 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 			if _, ok := profileMap[user1]; ok {
 				mentions.addMention(user1, DMMention)
 			} else {
-				a.Log().Debug("missing profile: DM user not in profiles", mlog.String("userId", user1), mlog.String("channelId", channel.Id))
+				a.Log().Debug("missing profile: DM user not in profiles", mlog.String("user_id", user1), mlog.String("channel_id", channel.Id))
 			}
 		}
 
@@ -1092,7 +1089,7 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 				if _, ok := profileMap[user2]; ok {
 					mentions.addMention(user2, DMMention)
 				} else {
-					a.Log().Debug("missing profile: DM user not in profiles", mlog.String("userId", user2), mlog.String("channelId", channel.Id))
+					a.Log().Debug("missing profile: DM user not in profiles", mlog.String("user_id", user2), mlog.String("channel_id", channel.Id))
 				}
 			}
 		}
@@ -1108,7 +1105,7 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 				if _, ok := profileMap[id]; ok {
 					mentions.addMention(id, GMMention)
 				} else {
-					a.Log().Debug("missing profile: GM user not in profiles", mlog.String("userId", id), mlog.String("channelId", channel.Id))
+					a.Log().Debug("missing profile: GM user not in profiles", mlog.String("user_id", id), mlog.String("channel_id", channel.Id))
 				}
 			}
 		}
@@ -1120,7 +1117,7 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 				if _, ok := profileMap[addedUserId]; ok {
 					mentions.addMention(addedUserId, KeywordMention)
 				} else {
-					a.Log().Debug("missing profile: user added to channel not in profiles", mlog.String("userId", addedUserId), mlog.String("channelId", channel.Id))
+					a.Log().Debug("missing profile: user added to channel not in profiles", mlog.String("user_id", addedUserId), mlog.String("channel_id", channel.Id))
 				}
 			}
 		}

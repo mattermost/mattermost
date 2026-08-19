@@ -2722,6 +2722,27 @@ func (s *RetryLayerChannelStore) GetMembersInfoByChannelIds(channelIDs []string)
 
 }
 
+func (s *RetryLayerChannelStore) GetMembersWithLastViewedAtSince(rctx request.CTX, channelID string, since int64, afterUserID string, limit int) ([]*model.ChannelMemberLastViewed, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetMembersWithLastViewedAtSince(rctx, channelID, since, afterUserID, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetMoreChannels(teamID string, userID string, offset int, limit int) (model.ChannelList, error) {
 
 	tries := 0
@@ -4444,11 +4465,11 @@ func (s *RetryLayerChannelMemberHistoryStore) LogJoinEvent(userID string, channe
 
 }
 
-func (s *RetryLayerChannelMemberHistoryStore) LogLeaveEvent(userID string, channelID string, leaveTime int64) error {
+func (s *RetryLayerChannelMemberHistoryStore) LogLeaveEvent(rctx request.CTX, userID string, channelID string, leaveTime int64) error {
 
 	tries := 0
 	for {
-		err := s.ChannelMemberHistoryStore.LogLeaveEvent(userID, channelID, leaveTime)
+		err := s.ChannelMemberHistoryStore.LogLeaveEvent(rctx, userID, channelID, leaveTime)
 		if err == nil {
 			return nil
 		}
@@ -11422,11 +11443,11 @@ func (s *RetryLayerReactionStore) Delete(reaction *model.Reaction) (*model.React
 
 }
 
-func (s *RetryLayerReactionStore) DeleteAllWithEmojiName(emojiName string) error {
+func (s *RetryLayerReactionStore) DeleteAllWithEmojiName(rctx request.CTX, emojiName string) error {
 
 	tries := 0
 	for {
-		err := s.ReactionStore.DeleteAllWithEmojiName(emojiName)
+		err := s.ReactionStore.DeleteAllWithEmojiName(rctx, emojiName)
 		if err == nil {
 			return nil
 		}
@@ -11590,11 +11611,11 @@ func (s *RetryLayerReactionStore) PermanentDeleteBatch(endTime int64, limit int6
 
 }
 
-func (s *RetryLayerReactionStore) PermanentDeleteByUser(userID string) error {
+func (s *RetryLayerReactionStore) PermanentDeleteByUser(rctx request.CTX, userID string) error {
 
 	tries := 0
 	for {
-		err := s.ReactionStore.PermanentDeleteByUser(userID)
+		err := s.ReactionStore.PermanentDeleteByUser(rctx, userID)
 		if err == nil {
 			return nil
 		}
@@ -12919,11 +12940,11 @@ func (s *RetryLayerRoleStore) GetAll() ([]*model.Role, error) {
 
 }
 
-func (s *RetryLayerRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
+func (s *RetryLayerRoleStore) GetByName(rctx request.CTX, name string) (*model.Role, error) {
 
 	tries := 0
 	for {
-		result, err := s.RoleStore.GetByName(ctx, name)
+		result, err := s.RoleStore.GetByName(rctx, name)
 		if err == nil {
 			return result, nil
 		}
@@ -13024,11 +13045,11 @@ func (s *RetryLayerRoleStore) SavePreservingUnknownPermissions(role *model.Role)
 
 }
 
-func (s *RetryLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
+func (s *RetryLayerScheduledPostStore) CreateScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
 
 	tries := 0
 	for {
-		result, err := s.ScheduledPostStore.CreateScheduledPost(scheduledPost)
+		result, err := s.ScheduledPostStore.CreateScheduledPost(rctx, scheduledPost)
 		if err == nil {
 			return result, nil
 		}
@@ -13045,11 +13066,11 @@ func (s *RetryLayerScheduledPostStore) CreateScheduledPost(scheduledPost *model.
 
 }
 
-func (s *RetryLayerScheduledPostStore) Get(scheduledPostId string) (*model.ScheduledPost, error) {
+func (s *RetryLayerScheduledPostStore) Get(rctx request.CTX, scheduledPostId string) (*model.ScheduledPost, error) {
 
 	tries := 0
 	for {
-		result, err := s.ScheduledPostStore.Get(scheduledPostId)
+		result, err := s.ScheduledPostStore.Get(rctx, scheduledPostId)
 		if err == nil {
 			return result, nil
 		}
@@ -13072,11 +13093,11 @@ func (s *RetryLayerScheduledPostStore) GetMaxMessageSize() int {
 
 }
 
-func (s *RetryLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
+func (s *RetryLayerScheduledPostStore) GetPendingScheduledPosts(rctx request.CTX, beforeTime int64, afterTime int64, lastScheduledPostId string, perPage uint64) ([]*model.ScheduledPost, error) {
 
 	tries := 0
 	for {
-		result, err := s.ScheduledPostStore.GetPendingScheduledPosts(beforeTime, afterTime, lastScheduledPostId, perPage)
+		result, err := s.ScheduledPostStore.GetPendingScheduledPosts(rctx, beforeTime, afterTime, lastScheduledPostId, perPage)
 		if err == nil {
 			return result, nil
 		}
@@ -13093,11 +13114,11 @@ func (s *RetryLayerScheduledPostStore) GetPendingScheduledPosts(beforeTime int64
 
 }
 
-func (s *RetryLayerScheduledPostStore) GetScheduledPostsForUser(userId string, teamId string) ([]*model.ScheduledPost, error) {
+func (s *RetryLayerScheduledPostStore) GetScheduledPostsForUser(rctx request.CTX, userId string, teamId string) ([]*model.ScheduledPost, error) {
 
 	tries := 0
 	for {
-		result, err := s.ScheduledPostStore.GetScheduledPostsForUser(userId, teamId)
+		result, err := s.ScheduledPostStore.GetScheduledPostsForUser(rctx, userId, teamId)
 		if err == nil {
 			return result, nil
 		}
@@ -13156,11 +13177,11 @@ func (s *RetryLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduled
 
 }
 
-func (s *RetryLayerScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
+func (s *RetryLayerScheduledPostStore) UpdateOldScheduledPosts(rctx request.CTX, beforeTime int64) error {
 
 	tries := 0
 	for {
-		err := s.ScheduledPostStore.UpdateOldScheduledPosts(beforeTime)
+		err := s.ScheduledPostStore.UpdateOldScheduledPosts(rctx, beforeTime)
 		if err == nil {
 			return nil
 		}
@@ -13177,11 +13198,32 @@ func (s *RetryLayerScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64)
 
 }
 
-func (s *RetryLayerScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
+func (s *RetryLayerScheduledPostStore) UpdateRecurringScheduledPosts(rctx request.CTX, scheduledPosts []*model.ScheduledPost) error {
 
 	tries := 0
 	for {
-		err := s.ScheduledPostStore.UpdatedScheduledPost(scheduledPost)
+		err := s.ScheduledPostStore.UpdateRecurringScheduledPosts(rctx, scheduledPosts)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerScheduledPostStore) UpdatedScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) error {
+
+	tries := 0
+	for {
+		err := s.ScheduledPostStore.UpdatedScheduledPost(rctx, scheduledPost)
 		if err == nil {
 			return nil
 		}
@@ -17323,11 +17365,11 @@ func (s *RetryLayerUserStore) DecrementFailedPasswordAttempts(userID string) err
 
 }
 
-func (s *RetryLayerUserStore) DemoteUserToGuest(userID string) (*model.User, error) {
+func (s *RetryLayerUserStore) DemoteUserToGuest(rctx request.CTX, userID string) (*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.DemoteUserToGuest(userID)
+		result, err := s.UserStore.DemoteUserToGuest(rctx, userID)
 		if err == nil {
 			return result, nil
 		}
@@ -17344,11 +17386,11 @@ func (s *RetryLayerUserStore) DemoteUserToGuest(userID string) (*model.User, err
 
 }
 
-func (s *RetryLayerUserStore) Get(ctx context.Context, id string) (*model.User, error) {
+func (s *RetryLayerUserStore) Get(rctx request.CTX, id string) (*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.Get(ctx, id)
+		result, err := s.UserStore.Get(rctx, id)
 		if err == nil {
 			return result, nil
 		}
@@ -17449,11 +17491,11 @@ func (s *RetryLayerUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 
 }
 
-func (s *RetryLayerUserStore) GetAllProfilesInChannel(ctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error) {
+func (s *RetryLayerUserStore) GetAllProfilesInChannel(rctx request.CTX, channelID string, allowFromCache bool) (map[string]*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.GetAllProfilesInChannel(ctx, channelID, allowFromCache)
+		result, err := s.UserStore.GetAllProfilesInChannel(rctx, channelID, allowFromCache)
 		if err == nil {
 			return result, nil
 		}
@@ -18262,11 +18304,11 @@ func (s *RetryLayerUserStore) PermanentDelete(rctx request.CTX, userID string) e
 
 }
 
-func (s *RetryLayerUserStore) PromoteGuestToUser(userID string) error {
+func (s *RetryLayerUserStore) PromoteGuestToUser(rctx request.CTX, userID string) error {
 
 	tries := 0
 	for {
-		err := s.UserStore.PromoteGuestToUser(userID)
+		err := s.UserStore.PromoteGuestToUser(rctx, userID)
 		if err == nil {
 			return nil
 		}

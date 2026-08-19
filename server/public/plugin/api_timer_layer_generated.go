@@ -1797,3 +1797,59 @@ func (api *apiTimerLayer) LogAuditRecWithLevel(rec *model.AuditRecord, level mlo
 	api.apiImpl.LogAuditRecWithLevel(rec, level)
 	api.recordTime(startTime, "LogAuditRecWithLevel", true)
 }
+
+func (api *apiTimerLayer) EvaluateAccessControl(userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.EvaluateAccessControl(userID, resourceType, resourceID, action)
+	api.recordTime(startTime, "EvaluateAccessControl", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.SaveAccessControlPolicy(actingUserID, policy)
+	api.recordTime(startTime, "SaveAccessControlPolicy", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetAccessControlPolicy(id)
+	api.recordTime(startTime, "GetAccessControlPolicy", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) DeleteAccessControlPolicy(actingUserID, resourceType, id string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.DeleteAccessControlPolicy(actingUserID, resourceType, id)
+	api.recordTime(startTime, "DeleteAccessControlPolicy", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) CheckAccessControlExpression(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CheckAccessControlExpression(actingUserID, resourceType, expression)
+	api.recordTime(startTime, "CheckAccessControlExpression", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID, limit)
+	api.recordTime(startTime, "QueryUsersForAccessControlExpression", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetAccessControlFieldsAutocomplete(actingUserID, after string, limit int) ([]*model.PropertyField, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetAccessControlFieldsAutocomplete(actingUserID, after, limit)
+	api.recordTime(startTime, "GetAccessControlFieldsAutocomplete", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetAccessControlVisualAST(actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetAccessControlVisualAST(actingUserID, resourceType, expression)
+	api.recordTime(startTime, "GetAccessControlVisualAST", _returnsB == nil)
+	return _returnsA, _returnsB
+}

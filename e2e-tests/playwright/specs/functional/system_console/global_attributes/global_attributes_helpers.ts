@@ -8,11 +8,17 @@ import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 export const GLOBAL_ATTRIBUTES_ADMIN_PATH = '/admin_console/system_attributes/manage_attributes';
 
-// Canonical values: webapp/channels/src/components/admin_console/global_attributes/global_attributes_table.tsx
+// Canonical values: webapp/channels/src/components/admin_console/global_attributes/constants.ts
 // (cross-package import not feasible between e2e-tests and webapp)
 const PROPERTY_GROUP = 'access_control';
 const OBJECT_TYPE = 'template';
 const TARGET_TYPE = 'system';
+
+// Object type used to seed a field that *links to* a template field. It has to be
+// anything but 'template': PropertyField.IsValid rejects a template field carrying a
+// linked_field_id ("template fields cannot have a linked field"). 'user' matches the
+// shape the store's own CountLinkedFields coverage uses.
+const LINKED_OBJECT_TYPE = 'user';
 
 // Server clamps per_page to this max (see web.PerPageMaximum in server/channels/web/params.go).
 // Directory-mode search with no cursor sorts CreateAt ASC, so the default 60-item page only
@@ -95,4 +101,38 @@ export async function createGlobalAttributeField(
         target_id: '',
         ...field,
     } as Parameters<Client4['createPropertyField']>[2]);
+}
+
+/**
+ * Creates a field that links to `sourceFieldId`, which makes the server refuse to delete
+ * that source field: deletePropertyField counts live linked dependents and returns 409
+ * `has_linked_dependents` when any exist (server/channels/app/properties/property_field.go).
+ * This is the only way to exercise the listing's 409 branch against a real server response.
+ */
+export async function createLinkedDependentField(
+    adminClient: Client4,
+    name: string,
+    sourceFieldId: string,
+    type: string,
+) {
+    return adminClient.createPropertyField(PROPERTY_GROUP, LINKED_OBJECT_TYPE, {
+        name,
+        type,
+        target_type: TARGET_TYPE,
+        target_id: '',
+        linked_field_id: sourceFieldId,
+    } as unknown as Parameters<Client4['createPropertyField']>[2]);
+}
+
+/**
+ * Deletes a linked dependent field by id, ignoring failures (it may already be gone).
+ * Must run BEFORE deleting the field it points at — the source delete stays blocked
+ * with a 409 for as long as a live dependent exists.
+ */
+export async function deleteLinkedDependentField(adminClient: Client4, fieldId: string) {
+    try {
+        await adminClient.deletePropertyField(PROPERTY_GROUP, LINKED_OBJECT_TYPE, fieldId);
+    } catch {
+        // Already deleted, or routes unavailable; ignore.
+    }
 }

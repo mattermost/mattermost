@@ -42,6 +42,11 @@ const BASE_STATE = {entities: {users: {currentUserId: MOCK_USER_ID}}};
 
 jest.mock('mattermost-redux/client');
 
+const mockHistoryPush = jest.fn();
+jest.mock('utils/browser_history', () => ({
+    getHistory: () => ({push: mockHistoryPush}),
+}));
+
 function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'field1',
@@ -122,7 +127,7 @@ function makeUserLinkedField(overrides: Partial<PropertyField> = {}): PropertyFi
     };
 }
 
-// State with ABAC enabled, which reveals the Classification Enforcement section.
+// State with ABAC enabled, which reveals the clearance attribute checkbox.
 const ABAC_STATE = {
     entities: {
         users: {currentUserId: MOCK_USER_ID},
@@ -526,7 +531,7 @@ describe('ClassificationMarkings component', () => {
         });
 
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
-        await screen.findByText('Classification Enforcement');
+        await screen.findByTestId('clearanceAttributeCheckbox');
 
         expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeChecked();
         expect(
@@ -539,6 +544,19 @@ describe('ClassificationMarkings component', () => {
             await screen.findByRole('heading', {name: 'Classification markings are informational only'}),
         ).toBeInTheDocument();
         await act(async () => {});
+    });
+
+    test('should navigate to the membership policies page from the clearance help text', async () => {
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            return objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE ? [field] : [];
+        });
+
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByTestId('clearanceAttributeCheckbox');
+
+        await userEvent.setup().click(screen.getByText('membership policy'));
+        expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/membership_policies');
     });
 
     test('should render disabled state when no existing field', async () => {
@@ -1301,7 +1319,7 @@ describe('Channel classification linked field branches', () => {
         const createSpy = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(createdClearance);
 
         const {store} = renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
-        await screen.findByText('Classification Enforcement');
+        await screen.findByTestId('clearanceAttributeCheckbox');
 
         const user = userEvent.setup();
         await user.click(screen.getByTestId('clearanceAttributeCheckbox'));
@@ -1358,7 +1376,7 @@ describe('Channel classification linked field branches', () => {
         const deleteSpy = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
 
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
-        await screen.findByText('Classification Enforcement');
+        await screen.findByTestId('clearanceAttributeCheckbox');
 
         const user = userEvent.setup();
         const checkbox = screen.getByTestId('clearanceAttributeCheckbox');

@@ -21,7 +21,6 @@ function matchingOrder(actual: string[], expected: string[]) {
 test('MM-T5745 navigates to user attributes page and displays empty state', {tag: '@user_attributes'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
     const {adminClient, adminUser} = await pw.initSetup();
 
     // Custom profile attribute fields are global, so other specs may have left fields behind
@@ -69,7 +68,6 @@ test('MM-T5745 navigates to user attributes page and displays empty state', {tag
 test('MM-T5746 adds, edits, and deletes a user attribute', {tag: '@user_attributes'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
     const {adminClient, adminUser} = await pw.initSetup();
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
     const sp = systemConsolePage.systemProperties;
@@ -118,7 +116,6 @@ test(
     async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
         const {adminClient, adminUser, team, user} = await pw.initSetup();
         const suffix = pw.random.id();
         const labels = [`First ${suffix}`, `Second ${suffix}`, `Favorite Food ${suffix}`];

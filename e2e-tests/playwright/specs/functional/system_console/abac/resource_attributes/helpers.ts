@@ -452,10 +452,9 @@ export async function expectAddToChannelDenied(adminClient: Client4, userId: str
 }
 
 /**
- * Assert assigning a parent policy to a team is refused. SavePolicy reports every
- * rejection under one id, so this pins the status and rules out a permission,
- * feature-gate or server error — the message itself is asserted by the enterprise
- * unit test that owns the team-boundary rule.
+ * Assert assigning a parent policy to a team is refused. The team-boundary
+ * rejection carries its own error id, so pinning it rules out a permission,
+ * feature-gate or generic server error reaching this assertion instead.
  */
 export async function expectAssignTeamsDenied(
     adminClient: Client4,
@@ -464,15 +463,14 @@ export async function expectAssignTeamsDenied(
 ): Promise<void> {
     await expectRejection(
         () => adminClient.assignTeamsToAccessControlPolicy(policyId, teamIds),
-        {statusCode: 400, serverErrorId: 'app.pap.save_policy.app_error'},
+        {statusCode: 400, serverErrorId: 'app.pap.save_policy.team_resource_attributes'},
         'a team cannot import a parent that references resource.attributes.*',
     );
 }
 
 /**
  * Assert a policy save is refused because its expression still carries the
- * masked-value sentinel. This rejection has its own error id, so unlike the
- * others it distinguishes the reason and not just the class of failure.
+ * masked-value sentinel, which has its own error id.
  */
 export async function expectMaskedTokenRejected(adminClient: Client4, opts: ParentPolicyOptions): Promise<void> {
     await expectRejection(

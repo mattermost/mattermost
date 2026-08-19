@@ -92,7 +92,7 @@ func dbPingCmdF(command *cobra.Command, _ []string) error {
 	defer cancel()
 
 	return pingWithRetry(ctx, db, retryInterval, logger.With(
-		mlog.String("dataSource", sanitized),
+		mlog.String("data_source", sanitized),
 	))
 }
 

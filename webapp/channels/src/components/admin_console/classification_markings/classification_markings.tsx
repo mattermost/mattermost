@@ -24,6 +24,8 @@ import LoadingScreen from 'components/loading_screen';
 import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import {getHistory} from 'utils/browser_history';
+
 import {
     AddLevelButton,
     AddLevelButtonRow,
@@ -31,7 +33,6 @@ import {
     InformationNoticeWrapper,
     PresetDropdownWrapper,
 } from './classification_markings_styled';
-import ClassificationEnforcement from './components/classification_enforcement';
 import ClassificationLevelsTable from './components/classification_levels_table';
 import GlobalClassificationIndicators from './components/global_classification_indicators';
 import type {GlobalBannerConfig} from './utils';
@@ -66,12 +67,17 @@ import {PENDING_LEVEL_PREFIX, PRESET_CUSTOM, PRESET_EMPTY, presets} from './util
 import SaveChangesPanel from '../save_changes_panel';
 import {AdminSection, AdminWrapper, SectionHeader, SectionHeading} from '../system_properties/controls';
 
+const MEMBERSHIP_POLICIES_URL = '/admin_console/system_attributes/membership_policies';
+
 const msg = defineMessages({
     pageTitle: {id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'},
     enableTitle: {id: 'admin.classification_markings.enable.title', defaultMessage: 'Enable classification markings'},
     enableDescription: {id: 'admin.classification_markings.enable.description', defaultMessage: 'Use this to enable classification markings as banners at the system and channel level. You can pre-select text and colors for your banner, as well as set a default option for consistency.'},
     presetTitle: {id: 'admin.classification_markings.preset.title', defaultMessage: 'Classification preset'},
     presetDescription: {id: 'admin.classification_markings.preset.description', defaultMessage: 'Select a classification preset from the dropdown menu based on your country affiliation. This will help tailor the options to your specific needs. You can also create custom classification levels.'},
+    clearanceTitle: {id: 'admin.classification_markings.enforcement.clearance.title', defaultMessage: 'Clearance attribute'},
+    clearanceCheckbox: {id: 'admin.classification_markings.enforcement.clearance.checkbox', defaultMessage: 'Enable clearance attribute'},
+    clearanceHelp: {id: 'admin.classification_markings.enforcement.clearance.help', defaultMessage: 'Creates a ranked "Clearance" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.'},
     levelsTitle: {id: 'admin.classification_markings.levels.title', defaultMessage: 'Classification levels'},
     levelsDescription: {id: 'admin.classification_markings.levels.description', defaultMessage: 'Text and colors for different classification levels that will be used in the system'},
     informationalNoticeTitle: {id: 'admin.classification_markings.notice.title', defaultMessage: 'Classification markings are informational only'},
@@ -236,6 +242,22 @@ export default function ClassificationMarkings({disabled}: Props) {
     const handleClassificationEnabledChange = useCallback((_id: string, value: boolean) => {
         setEnabled(value);
     }, []);
+
+    const handleClearanceChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setClearanceEnabled(e.target.checked);
+    }, []);
+
+    const membershipPolicyLink = useCallback((chunks: React.ReactNode) => (
+        <a
+            href={MEMBERSHIP_POLICIES_URL}
+            onClick={(e) => {
+                e.preventDefault();
+                getHistory().push(MEMBERSHIP_POLICIES_URL);
+            }}
+        >
+            {chunks}
+        </a>
+    ), []);
 
     const applyPreset = useCallback((newPresetId: string) => {
         if (newPresetId === PRESET_CUSTOM) {
@@ -641,6 +663,30 @@ export default function ClassificationMarkings({disabled}: Props) {
                             </PresetDropdownWrapper>
                         </Setting>
                     )}
+                    {enabled && abacEnabled && (
+                        <Setting
+                            inputId='clearanceAttribute'
+                            label={<FormattedMessage {...msg.clearanceTitle}/>}
+                            helpText={
+                                <FormattedMessage
+                                    {...msg.clearanceHelp}
+                                    values={{link: membershipPolicyLink}}
+                                />
+                            }
+                            setByEnv={false}
+                        >
+                            <label className='checkbox-inline'>
+                                <input
+                                    data-testid='clearanceAttributeCheckbox'
+                                    type='checkbox'
+                                    checked={clearanceEnabled}
+                                    onChange={handleClearanceChange}
+                                    disabled={disabled}
+                                />
+                                <FormattedMessage {...msg.clearanceCheckbox}/>
+                            </label>
+                        </Setting>
+                    )}
                 </form>
 
                 {enabled && (
@@ -675,14 +721,6 @@ export default function ClassificationMarkings({disabled}: Props) {
                             )}
                         </ClassificationLevelsSectionContent>
                     </AdminSection>
-                )}
-
-                {enabled && abacEnabled && (
-                    <ClassificationEnforcement
-                        clearanceEnabled={clearanceEnabled}
-                        onClearanceEnabledChange={setClearanceEnabled}
-                        disabled={disabled}
-                    />
                 )}
 
                 {enabled && (
