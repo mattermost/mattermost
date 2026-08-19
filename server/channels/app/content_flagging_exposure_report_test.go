@@ -569,7 +569,7 @@ func TestWritePostExposureCSV(t *testing.T) {
 		out := buf.String()
 		require.Contains(t, out, "# Channel: a =1+1 =2+2 =3+3 (channel1)")
 
-		for _, line := range strings.Split(out, "\n") {
+		for line := range strings.SplitSeq(out, "\n") {
 			if !strings.HasPrefix(line, "#") {
 				continue
 			}
