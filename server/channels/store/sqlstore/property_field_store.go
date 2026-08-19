@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/lib/pq"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
@@ -922,4 +923,76 @@ func (s *SqlPropertyFieldStore) syncPropertyFieldGrants(transaction *sqlxTxWrapp
 	}
 
 	return nil
+}
+
+// GetFieldsByGrant returns the IDs of fields where (ownerType, ownerID) holds a
+// grant for action, used by delegated-admin and system-console tooling to
+// answer "which fields can this caller act on".
+func (s *SqlPropertyFieldStore) GetFieldsByGrant(ctx context.Context, ownerType, ownerID, action string) ([]string, error) {
+	builder := s.getQueryBuilder().
+		Select("DISTINCT FieldID").
+		From("PropertyFieldGrants").
+		Where(sq.Eq{"Type": ownerType, "ID": ownerID, "Action": action}).
+		OrderBy("FieldID")
+
+	fieldIDs := []string{}
+	if err := s.DBXFromContext(ctx).SelectBuilder(&fieldIDs, builder); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_fields_by_grant")
+	}
+
+	return fieldIDs, nil
+}
+
+// GetGrantsForField reconstructs a field's grants from the normalized
+// PropertyFieldGrants table, one model.Grant per (type, id) pair with Allow
+// populated from its aggregated actions.
+func (s *SqlPropertyFieldStore) GetGrantsForField(ctx context.Context, fieldID string) ([]model.Grant, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("Type", "ID", "Array_Agg(Action ORDER BY Action) as Actions").
+		From("PropertyFieldGrants").
+		Where(sq.Eq{"FieldID": fieldID}).
+		GroupBy("Type", "ID").
+		OrderBy("Type", "ID").
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "property_field_get_grants_for_field_tosql")
+	}
+
+	rows, err := s.DBXFromContext(ctx).Query(query, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "property_field_get_grants_for_field_query")
+	}
+	defer rows.Close()
+
+	grants := []model.Grant{}
+	for rows.Next() {
+		var grant model.Grant
+		if err := rows.Scan(&grant.Type, &grant.ID, pq.Array(&grant.Allow)); err != nil {
+			return nil, errors.Wrap(err, "property_field_get_grants_for_field_scan")
+		}
+		grants = append(grants, grant)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_grants_for_field_rows")
+	}
+
+	return grants, nil
+}
+
+// HasGrantForIdentity returns whether (ownerType, ownerID) holds a grant on any
+// field, used by delegated-admin's quick "does this user hold any grant" check.
+func (s *SqlPropertyFieldStore) HasGrantForIdentity(ctx context.Context, ownerType, ownerID string) (bool, error) {
+	builder := s.getQueryBuilder().
+		Select("1").
+		Prefix("SELECT EXISTS (").
+		From("PropertyFieldGrants").
+		Where(sq.Eq{"Type": ownerType, "ID": ownerID}).
+		Suffix(")")
+
+	var exists bool
+	if err := s.DBXFromContext(ctx).GetBuilder(&exists, builder); err != nil {
+		return false, errors.Wrap(err, "property_field_has_grant_for_identity")
+	}
+
+	return exists, nil
 }

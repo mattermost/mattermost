@@ -428,6 +428,36 @@ func (_m *PropertyFieldStore) GetFieldOptions(field *model.PropertyField, cursor
 	return r0, r1
 }
 
+// GetFieldsByGrant provides a mock function with given fields: ctx, ownerType, ownerID, action
+func (_m *PropertyFieldStore) GetFieldsByGrant(ctx context.Context, ownerType string, ownerID string, action string) ([]string, error) {
+	ret := _m.Called(ctx, ownerType, ownerID, action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetFieldsByGrant")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) ([]string, error)); ok {
+		return rf(ctx, ownerType, ownerID, action)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) []string); ok {
+		r0 = rf(ctx, ownerType, ownerID, action)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, ownerType, ownerID, action)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetForGroup provides a mock function with given fields: ctx, groupID
 func (_m *PropertyFieldStore) GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error) {
 	ret := _m.Called(ctx, groupID)
@@ -451,6 +481,36 @@ func (_m *PropertyFieldStore) GetForGroup(ctx context.Context, groupID string) (
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, groupID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetGrantsForField provides a mock function with given fields: ctx, fieldID
+func (_m *PropertyFieldStore) GetGrantsForField(ctx context.Context, fieldID string) ([]model.Grant, error) {
+	ret := _m.Called(ctx, fieldID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGrantsForField")
+	}
+
+	var r0 []model.Grant
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]model.Grant, error)); ok {
+		return rf(ctx, fieldID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []model.Grant); ok {
+		r0 = rf(ctx, fieldID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.Grant)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, fieldID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -781,6 +841,34 @@ func (_m *PropertyFieldStore) GetOptionsByName(field *model.PropertyField, names
 
 	if rf, ok := ret.Get(1).(func(*model.PropertyField, []string) error); ok {
 		r1 = rf(field, names)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// HasGrantForIdentity provides a mock function with given fields: ctx, ownerType, ownerID
+func (_m *PropertyFieldStore) HasGrantForIdentity(ctx context.Context, ownerType string, ownerID string) (bool, error) {
+	ret := _m.Called(ctx, ownerType, ownerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasGrantForIdentity")
+	}
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
+		return rf(ctx, ownerType, ownerID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
+		r0 = rf(ctx, ownerType, ownerID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, ownerType, ownerID)
 	} else {
 		r1 = ret.Error(1)
 	}

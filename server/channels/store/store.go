@@ -1218,6 +1218,9 @@ type PropertyFieldStore interface {
 	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
 	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)
+	GetFieldsByGrant(ctx context.Context, ownerType, ownerID, action string) ([]string, error)
+	GetGrantsForField(ctx context.Context, fieldID string) ([]model.Grant, error)
+	HasGrantForIdentity(ctx context.Context, ownerType, ownerID string) (bool, error)
 }
 
 type PropertyValueStore interface {

@@ -23,6 +23,7 @@ import (
 func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("CreatePropertyField", func(t *testing.T) { testCreatePropertyField(t, rctx, ss) })
 	t.Run("CreatePropertyFieldPermissions", func(t *testing.T) { testCreatePropertyFieldPermissions(t, rctx, ss, s) })
+	t.Run("ReverseLookupGrants", func(t *testing.T) { testReverseLookupGrants(t, rctx, ss) })
 	t.Run("GetPropertyField", func(t *testing.T) { testGetPropertyField(t, rctx, ss, s) })
 	t.Run("GetManyPropertyFields", func(t *testing.T) { testGetManyPropertyFields(t, rctx, ss) })
 	t.Run("GetFieldByName", func(t *testing.T) { testGetFieldByName(t, rctx, ss) })
@@ -268,6 +269,80 @@ func testCreatePropertyFieldPermissions(t *testing.T, _ request.CTX, ss store.St
 		require.NoError(t, s.GetMaster().Get(&stored,
 			"SELECT Permissions FROM PropertyFields WHERE ID = $1", created.ID))
 		require.False(t, stored.Valid)
+	})
+}
+
+func testReverseLookupGrants(t *testing.T, _ request.CTX, ss store.Store) {
+	roleID := model.NewId()
+	userID := model.NewId()
+
+	field := &model.PropertyField{
+		GroupID:    model.NewId(),
+		Name:       "Field with grants",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Permissions: &model.Permissions{
+			Grants: []model.Grant{
+				{
+					Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: roleID},
+					Allow:    []string{model.PropertyActionValueWrite, model.PropertyActionOptionWrite},
+				},
+				{
+					Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: userID},
+					Allow:    []string{model.PropertyActionValueRead},
+				},
+			},
+		},
+	}
+	created, err := ss.PropertyField().Create(field)
+	require.NoError(t, err)
+
+	otherField := &model.PropertyField{
+		GroupID: model.NewId(),
+		Name:    "Field without grants",
+		Type:    model.PropertyFieldTypeText,
+	}
+	_, err = ss.PropertyField().Create(otherField)
+	require.NoError(t, err)
+
+	t.Run("GetFieldsByGrant", func(t *testing.T) {
+		fieldIDs, err := ss.PropertyField().GetFieldsByGrant(context.Background(), model.PropertyOwnerTypeRole, roleID, model.PropertyActionValueWrite)
+		require.NoError(t, err)
+		require.Equal(t, []string{created.ID}, fieldIDs)
+
+		fieldIDs, err = ss.PropertyField().GetFieldsByGrant(context.Background(), model.PropertyOwnerTypeRole, roleID, model.PropertyActionValueRead)
+		require.NoError(t, err)
+		require.Empty(t, fieldIDs)
+	})
+
+	t.Run("GetGrantsForField", func(t *testing.T) {
+		grants, err := ss.PropertyField().GetGrantsForField(context.Background(), created.ID)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []model.Grant{
+			{
+				Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: roleID},
+				Allow:    []string{model.PropertyActionOptionWrite, model.PropertyActionValueWrite},
+			},
+			{
+				Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: userID},
+				Allow:    []string{model.PropertyActionValueRead},
+			},
+		}, grants)
+
+		grants, err = ss.PropertyField().GetGrantsForField(context.Background(), model.NewId())
+		require.NoError(t, err)
+		require.Empty(t, grants)
+	})
+
+	t.Run("HasGrantForIdentity", func(t *testing.T) {
+		has, err := ss.PropertyField().HasGrantForIdentity(context.Background(), model.PropertyOwnerTypeUser, userID)
+		require.NoError(t, err)
+		require.True(t, has)
+
+		has, err = ss.PropertyField().HasGrantForIdentity(context.Background(), model.PropertyOwnerTypeUser, model.NewId())
+		require.NoError(t, err)
+		require.False(t, has)
 	})
 }
 
