@@ -116,6 +116,39 @@ func TestConfigIsValid(t *testing.T) {
 	})
 }
 
+func TestFeatureFlagsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		f := &FeatureFlags{}
+		f.SetDefaults()
+		require.Nil(t, f.isValid())
+	})
+
+	t.Run("MoveThreadsEnabled is rejected", func(t *testing.T) {
+		f := &FeatureFlags{}
+		f.SetDefaults()
+		f.MoveThreadsEnabled = true
+
+		appErr := f.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.feature_flags.move_threads_enabled.app_error", appErr.Id)
+	})
+}
+
+func TestConfigIsValidMoveThreadsEnabled(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+	require.Nil(t, c.IsValid())
+
+	c.FeatureFlags.MoveThreadsEnabled = true
+	appErr := c.IsValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.feature_flags.move_threads_enabled.app_error", appErr.Id)
+
+	// A nil FeatureFlags must not panic the validation chain.
+	c.FeatureFlags = nil
+	require.Nil(t, c.IsValid())
+}
+
 func TestAccessControlSettingsIsValid(t *testing.T) {
 	for name, test := range map[string]struct {
 		AccessControlSettings AccessControlSettings
@@ -1524,21 +1557,15 @@ func TestImageProxySettingsSetDefaults(t *testing.T) {
 
 		assert.Equal(t, false, *ips.Enable)
 		assert.Equal(t, ImageProxyTypeLocal, *ips.ImageProxyType)
-		assert.Equal(t, "", *ips.RemoteImageProxyURL)
-		assert.Equal(t, "", *ips.RemoteImageProxyOptions)
 	})
 }
 
 func TestImageProxySettingsIsValid(t *testing.T) {
-	testHMACKey := NewTestPassword()
-
 	for _, test := range []struct {
-		Name                    string
-		Enable                  bool
-		ImageProxyType          string
-		RemoteImageProxyURL     string
-		RemoteImageProxyOptions string
-		ExpectError             bool
+		Name           string
+		Enable         bool
+		ImageProxyType string
+		ExpectError    bool
 	}{
 		{
 			Name:        "disabled",
@@ -1546,12 +1573,22 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			ExpectError: false,
 		},
 		{
-			Name:                    "disabled with bad values",
-			Enable:                  false,
-			ImageProxyType:          "garbage",
-			RemoteImageProxyURL:     "garbage",
-			RemoteImageProxyOptions: "garbage",
-			ExpectError:             false,
+			Name:           "disabled with bad values",
+			Enable:         false,
+			ImageProxyType: "garbage",
+			ExpectError:    false,
+		},
+		{
+			Name:           "atmos/camo, disabled",
+			Enable:         false,
+			ImageProxyType: ImageProxyTypeLegacyAtmosCamo,
+			ExpectError:    true,
+		},
+		{
+			Name:           "atmos/camo, enabled",
+			Enable:         true,
+			ImageProxyType: ImageProxyTypeLegacyAtmosCamo,
+			ExpectError:    true,
 		},
 		{
 			Name:           "missing type",
@@ -1560,52 +1597,16 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			ExpectError:    true,
 		},
 		{
-			Name:                    "local",
-			Enable:                  true,
-			ImageProxyType:          "local",
-			RemoteImageProxyURL:     "garbage",
-			RemoteImageProxyOptions: "garbage",
-			ExpectError:             false,
-		},
-		{
-			Name:                    "atmos/camo",
-			Enable:                  true,
-			ImageProxyType:          ImageProxyTypeAtmosCamo,
-			RemoteImageProxyURL:     "someurl",
-			RemoteImageProxyOptions: testHMACKey,
-			ExpectError:             false,
-		},
-		{
-			Name:                    "atmos/camo, missing url",
-			Enable:                  true,
-			ImageProxyType:          ImageProxyTypeAtmosCamo,
-			RemoteImageProxyURL:     "",
-			RemoteImageProxyOptions: "garbage",
-			ExpectError:             true,
-		},
-		{
-			Name:                    "atmos/camo, missing options",
-			Enable:                  true,
-			ImageProxyType:          ImageProxyTypeAtmosCamo,
-			RemoteImageProxyURL:     "someurl",
-			RemoteImageProxyOptions: "",
-			ExpectError:             true,
-		},
-		{
-			Name:                    "atmos/camo, short options under FIPS",
-			Enable:                  true,
-			ImageProxyType:          ImageProxyTypeAtmosCamo,
-			RemoteImageProxyURL:     "someurl",
-			RemoteImageProxyOptions: "foo",
-			ExpectError:             FIPSEnabled,
+			Name:           "local",
+			Enable:         true,
+			ImageProxyType: "local",
+			ExpectError:    false,
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			ips := &ImageProxySettings{
-				Enable:                  &test.Enable,
-				ImageProxyType:          &test.ImageProxyType,
-				RemoteImageProxyURL:     &test.RemoteImageProxyURL,
-				RemoteImageProxyOptions: &test.RemoteImageProxyOptions,
+				Enable:         &test.Enable,
+				ImageProxyType: &test.ImageProxyType,
 			}
 
 			appErr := ips.isValid()

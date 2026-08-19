@@ -405,9 +405,6 @@ const defaultServerConfig: AdminConfig = {
         EnablePreviewModeBanner: true,
         SkipServerCertificateVerification: false,
         EmailNotificationContentsType: 'full',
-        LoginButtonColor: '#0000',
-        LoginButtonBorderColor: '#2389D7',
-        LoginButtonTextColor: '#2389D7',
     },
     RateLimitSettings: {
         Enable: false,
@@ -777,8 +774,6 @@ const defaultServerConfig: AdminConfig = {
     ImageProxySettings: {
         Enable: false,
         ImageProxyType: 'local',
-        RemoteImageProxyURL: '',
-        RemoteImageProxyOptions: '',
     },
     CloudSettings: {
         CWSURL: 'https://customers.mattermost.com',
