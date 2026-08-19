@@ -2787,7 +2787,6 @@
   "admin.plugin.state.stopping.description": "This plugin is stopping.",
   "admin.plugin.state.unknown": "Unknown",
   "admin.plugin.upload": "Upload",
-  "admin.plugin.upload.overwrite_review.cancel": "Cancel",
   "admin.plugin.upload.overwrite_review.downgrade": "This upload downgrades the existing plugin. Downgrades can remove fixes or features.",
   "admin.plugin.upload.overwrite_review.overwrite": "Overwrite",
   "admin.plugin.upload.overwrite_review.plugin": "Plugin",

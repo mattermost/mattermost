@@ -260,7 +260,7 @@ func newPluginInstallConflictAppError(existingManifest, uploadedManifest *model.
 		HomepageURL:      uploadedManifest.HomepageURL,
 		ExistingVersion:  existingManifest.Version,
 		UploadedVersion:  uploadedManifest.Version,
-		VersionDirection: pluginInstallConflictVersionDirection(existingManifest, uploadedManifest),
+		VersionDirection: model.PluginInstallConflictVersionDirection(existingManifest, uploadedManifest),
 	}
 
 	// Installing only validates the plugin id, so the name and homepage may be missing. Fall back to
@@ -281,31 +281,6 @@ func newPluginInstallConflictAppError(existingManifest, uploadedManifest *model.
 	appErr.ExposeDetailedError = true
 
 	return appErr
-}
-
-func pluginInstallConflictVersionDirection(existingManifest, uploadedManifest *model.Manifest) string {
-	if existingManifest == nil || uploadedManifest == nil {
-		return model.PluginInstallConflictVersionDirectionUnknown
-	}
-
-	existing, err := semver.StrictNewVersion(existingManifest.Version)
-	if err != nil {
-		return model.PluginInstallConflictVersionDirectionUnknown
-	}
-
-	uploaded, err := semver.StrictNewVersion(uploadedManifest.Version)
-	if err != nil {
-		return model.PluginInstallConflictVersionDirectionUnknown
-	}
-
-	if uploaded.Equal(existing) {
-		return model.PluginInstallConflictVersionDirectionSame
-	}
-	if uploaded.GreaterThan(existing) {
-		return model.PluginInstallConflictVersionDirectionUpgrade
-	}
-
-	return model.PluginInstallConflictVersionDirectionDowngrade
 }
 
 // InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the

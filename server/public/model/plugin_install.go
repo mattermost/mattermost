@@ -3,6 +3,8 @@
 
 package model
 
+import "github.com/Masterminds/semver/v3"
+
 const (
 	PluginInstallConflictVersionDirectionUpgrade   = "upgrade"
 	PluginInstallConflictVersionDirectionDowngrade = "downgrade"
@@ -21,4 +23,32 @@ type PluginInstallConflict struct {
 	ExistingVersion  string `json:"existing_version"`
 	UploadedVersion  string `json:"uploaded_version"`
 	VersionDirection string `json:"version_direction"`
+}
+
+// PluginInstallConflictVersionDirection compares the versions of an already installed plugin
+// manifest and an uploaded plugin manifest with the same id, returning one of the
+// PluginInstallConflictVersionDirection* constants.
+func PluginInstallConflictVersionDirection(existingManifest, uploadedManifest *Manifest) string {
+	if existingManifest == nil || uploadedManifest == nil {
+		return PluginInstallConflictVersionDirectionUnknown
+	}
+
+	existing, err := semver.StrictNewVersion(existingManifest.Version)
+	if err != nil {
+		return PluginInstallConflictVersionDirectionUnknown
+	}
+
+	uploaded, err := semver.StrictNewVersion(uploadedManifest.Version)
+	if err != nil {
+		return PluginInstallConflictVersionDirectionUnknown
+	}
+
+	if uploaded.Equal(existing) {
+		return PluginInstallConflictVersionDirectionSame
+	}
+	if uploaded.GreaterThan(existing) {
+		return PluginInstallConflictVersionDirectionUpgrade
+	}
+
+	return PluginInstallConflictVersionDirectionDowngrade
 }
