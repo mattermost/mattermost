@@ -57,3 +57,10 @@ export function createAttributeField(
         },
     });
 }
+
+// Deletes a template field from the access_control group. The server returns
+// 409 when the field still has active linked dependents (CountLinkedFields > 0);
+// callers are expected to surface that case distinctly.
+export function deleteAttributeField(fieldId: string): Promise<unknown> {
+    return Client4.deletePropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, fieldId);
+}

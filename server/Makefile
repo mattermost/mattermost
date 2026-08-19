@@ -942,6 +942,7 @@ vet: setup-go-work ## Run mattermost go vet specific checks
 	cd ../tools/mattermost-govet && $(GO) install .
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet \
 		-structuredLogging \
+		-mlogFieldNaming \
 		-inconsistentReceiverName \
 		-emptyStrCmp \
 		-tFatal \
@@ -957,7 +958,17 @@ vet: setup-go-work ## Run mattermost go vet specific checks
 		./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -mlogFieldNaming -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
+  endif
+endif
+
+.PHONY: vet-fix
+vet-fix: setup-go-work ## Apply the suggested fixes from mattermost go vet checks
+	cd ../tools/mattermost-govet && $(GO) install .
+	$(GO) fix -fixtool=$(GOBIN)/mattermost-govet -mlogFieldNaming ./...
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+  ifneq ($(MM_NO_ENTERPRISE_LINT),true)
+	$(GO) fix -fixtool=$(GOBIN)/mattermost-govet -mlogFieldNaming $(BUILD_ENTERPRISE_DIR)/...
   endif
 endif
 
