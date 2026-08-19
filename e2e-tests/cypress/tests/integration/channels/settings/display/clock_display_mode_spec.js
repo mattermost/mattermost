@@ -88,6 +88,11 @@ describe('Settings > Display > Clock Display Mode', () => {
                 category: 'display_settings',
                 name: 'datetime_display_format',
                 value: 'standard',
+            }, {
+                user_id: user.id,
+                category: 'display_settings',
+                name: 'show_timestamp_seconds',
+                value: 'false',
             }], user.id);
 
             // # Set clock display to 24-hour
