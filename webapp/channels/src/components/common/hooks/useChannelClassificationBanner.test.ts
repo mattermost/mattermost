@@ -171,6 +171,32 @@ describe('useChannelClassificationBanner', () => {
         });
     });
 
+    test('still banners a classification field carrying no display locations', () => {
+        // How a field predating any configuration keeps today's behaviour: no actions
+        // key at all means the classification fallback still applies.
+        mockClassification({channelField: makeChannelField({attrs: {}})});
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            stateWithValue(makePropertyValue('lvl2')),
+        );
+
+        expect(result.current.hasClassification).toBe(true);
+    });
+
+    test('stops bannering once display locations are configured without the banner', () => {
+        // An admin who unticked Banner on the attribute page has to get no banner. The
+        // fallback would otherwise render one regardless of what they chose.
+        mockClassification({channelField: makeChannelField({attrs: {actions: ['display_label_header']}})});
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            stateWithValue(makePropertyValue('lvl2')),
+        );
+
+        expect(result.current.hasClassification).toBe(false);
+    });
+
     test('falls back to level name when banner_info.text is missing but classification is set', () => {
         mockClassification();
         const value = makePropertyValue('lvl1');

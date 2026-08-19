@@ -1426,6 +1426,39 @@ describe('components/new_channel_modal - channel attributes', () => {
         expect((createChannel as jest.Mock).mock.calls[0][0]).not.toHaveProperty('property_values');
     });
 
+    test('asks for classification even when it is optional, without blocking Create', async () => {
+        // Classification has always been offered at channel creation, and its own
+        // control here is suppressed once the flag is on, so the generic section has
+        // to carry it whether or not it is required.
+        const classification = {
+            ...program,
+            id: 'f_classification',
+            name: 'classification',
+            attrs: {display_name: 'Classification', options: [{id: 'lvl1', name: 'SECRET'}]},
+        };
+        mockedUseClassificationMarkings.mockReturnValue({
+            available: true,
+            loading: false,
+            channelField: classification,
+            levels: [],
+        });
+        mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [classification]});
+
+        renderWithContext(<NewChannelModal/>, state);
+
+        const row = screen.getByTestId('channelAttributeRow-classification');
+        expect(row).toBeInTheDocument();
+
+        // Offered, but not marked required and not standing in the way of Create.
+        expect(row).not.toHaveTextContent('Classification*');
+
+        await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
+        expect(screen.getByText('Create channel').closest('button')).toBeEnabled();
+
+        await userEvent.click(screen.getByText('Create channel'));
+        await waitFor(() => expect(createChannel).toHaveBeenCalled());
+    });
+
     test('surfaces a server refusal instead of closing', async () => {
         (createChannel as jest.Mock).mockReturnValue(() => Promise.resolve({
             data: null,

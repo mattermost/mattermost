@@ -135,18 +135,20 @@ const NewChannelModal = () => {
     const canManageClassification = classification.available && isSystemAdmin && !channelAttributes.enabled;
     const [attributeValues, setAttributeValues] = useState<ChannelAttributeSelection>({});
 
-    // Required only; optional ones are added later from Channel Info. Classification
-    // is one of these once the flag is on, and its dedicated section is suppressed
-    // in the same breath so the field never gets two controls.
+    // Required attributes, plus classification whether or not it is required: it has
+    // always been offered here, and its dedicated section below is suppressed once the
+    // flag is on, so leaving it out would take it off the dialog altogether. Every
+    // other optional attribute is added later from Channel Info.
     //
     // The setter tier cannot be evaluated without a channel, so this renders
     // optimistically and the server stays authoritative. sysadmin is the exception:
     // a required sysadmin-only attribute would disable Create for everyone else,
     // which is a worse failure than an unset marking — the server skips the same
     // tier for the same reason.
+    const classificationFieldId = classification.channelField?.id;
     const assignableAttributeFields = useMemo(() => {
         return channelAttributes.fields.filter((field) => {
-            if (!isPropertyFieldRequired(field)) {
+            if (!isPropertyFieldRequired(field) && field.id !== classificationFieldId) {
                 return false;
             }
             if (field.permission_values === 'none') {
@@ -157,10 +159,15 @@ const NewChannelModal = () => {
             }
             return true;
         });
-    }, [channelAttributes.fields, isSystemAdmin]);
+    }, [channelAttributes.fields, classificationFieldId, isSystemAdmin]);
 
+    // Reads attrs.required rather than membership of the list above, so an optional
+    // classification never blocks Create.
     const missingRequiredAttributes = useMemo(() => {
         return assignableAttributeFields.filter((field) => {
+            if (!isPropertyFieldRequired(field)) {
+                return false;
+            }
             const value = attributeValues[field.id];
             if (Array.isArray(value)) {
                 return value.length === 0;

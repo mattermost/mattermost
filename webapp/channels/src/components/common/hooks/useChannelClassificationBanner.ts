@@ -84,7 +84,12 @@ export default function useChannelClassificationBanner(channelId: string): Chann
         return channelFields.find((field) => bannerAction(field) !== undefined);
     }, [attributesEnabled, hasEnterpriseLicense, channelFields]);
 
-    const bannerField = designated ?? classification.channelField ?? undefined;
+    // Only while the channel field carries no display locations at all, which is how
+    // a field predating any configuration keeps today's banner. Once an admin has
+    // chosen locations, an unticked Banner has to mean no banner.
+    const classificationFallback = Array.isArray(classification.channelField?.attrs?.actions) ? undefined : classification.channelField;
+
+    const bannerField = designated ?? classificationFallback ?? undefined;
     const position = (designated && bannerAction(designated)) || DISPLAY_BANNER_TOP;
 
     const fieldId = bannerField?.id ?? '';
