@@ -14,7 +14,7 @@ function openMenu(name, item) {
     }
 
     // # Click on a particular item
-    return cy.findByRole('menu').findByText(item).scrollIntoView().should('be.visible').click();
+    return cy.findByRole('menu', {name}).findByText(item).scrollIntoView().should('be.visible').click();
 }
 
 function getMenu(name) {

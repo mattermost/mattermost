@@ -96,10 +96,8 @@ describe('Guest Account - Verify Guest Access UI', () => {
         cy.get('#saveSetting').should('be.visible').click();
         cy.get('#confirmModalButton').should('be.visible').click().wait(TIMEOUTS.TWO_SEC);
 
-        // # Visit the chat facing application
-        cy.findByRole('button', {name: 'Admin Console Menu'}).should('be.visible').click();
-        cy.findByText('Switch teams').should('be.visible').trigger('mouseover');
-        cy.findByText('eligendi').should('be.visible').click();
+        // # Return to the chat-facing application via BackstageNavbar
+        cy.findByTestId('backstage-navbar-back').should('be.visible').click();
 
         // # Open team menu and click 'Invite People'
         cy.uiOpenTeamMenu('Invite people');
