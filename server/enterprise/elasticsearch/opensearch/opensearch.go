@@ -35,6 +35,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
 
+const opensearchMinVersion = 2
 const opensearchMaxVersion = 3
 
 var (
@@ -2369,9 +2370,10 @@ func checkVersion(ctx context.Context, client *opensearchapi.Client, logger mlog
 		return "", 0, model.NewAppError("Opensearch.checkVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(esErr)
 	}
 
-	if major > opensearchMaxVersion {
+	if major < opensearchMinVersion || major > opensearchMaxVersion {
 		logger.Error("Unsupported OpenSearch version. Running an unsupported version may lead to unexpected behaviour.",
 			mlog.String("version", resp.Version.Number),
+			mlog.Int("min_version", opensearchMinVersion),
 			mlog.Int("max_version", opensearchMaxVersion),
 		)
 	}

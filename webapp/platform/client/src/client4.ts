@@ -3068,7 +3068,7 @@ export default class Client4 {
 
     getClientLicenseOld = () => {
         return this.doFetch<ClientLicense>(
-            `${this.getBaseRoute()}/license/client?format=old`,
+            `${this.getBaseRoute()}/license/client`,
             {method: 'get'},
         );
     };

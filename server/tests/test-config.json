@@ -164,10 +164,7 @@
         "EmailBatchingInterval": 30,
         "EnablePreviewModeBanner": true,
         "SkipServerCertificateVerification": false,
-        "EmailNotificationContentsType": "full",
-        "LoginButtonColor": "",
-        "LoginButtonBorderColor": "",
-        "LoginButtonTextColor": ""
+        "EmailNotificationContentsType": "full"
     },
     "RateLimitSettings": {
         "Enable": false,

@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -90,19 +91,53 @@ func (o *ChannelMember) Auditable() map[string]any {
 	}
 }
 
-// SanitizeForCurrentUser sanitizes channel member data based on whether
-// it's the current user's own membership or another user's membership
+// sanitizedTimestamp marks a LastViewedAt/LastUpdateAt field that belongs to
+// another user and must be hidden. MarshalJSON omits any field holding this
+// sentinel rather than serializing an invalid value
+const sanitizedTimestamp int64 = -1
+
+// SanitizeForCurrentUser hides another user's private timestamp fields by
+// marking them with the sanitized sentinel, which MarshalJSON then omits from
+// API responses. The requester's own values are left untouched.
 func (o *ChannelMember) SanitizeForCurrentUser(currentUserId string) {
-	// If this is not the current user's own membership,
-	// sanitize sensitive timestamp fields
 	if o.UserId != currentUserId {
-		o.LastViewedAt = -1
-		o.LastUpdateAt = -1
+		o.LastViewedAt = sanitizedTimestamp
+		o.LastUpdateAt = sanitizedTimestamp
 	}
+}
+
+// timestampOrNil returns nil for the sanitized sentinel so that the omitempty
+// tag drops the field, and a pointer to the real value otherwise (including a
+// legitimate 0).
+func timestampOrNil(ts int64) *int64 {
+	if ts == sanitizedTimestamp {
+		return nil
+	}
+	return &ts
+}
+
+// MarshalJSON serializes the channel member in a single pass, omitting
+// last_viewed_at and/or last_update_at when they hold the sanitized sentinel
+// written by SanitizeForCurrentUser. The shadowing pointer fields allow for a
+// direct marshal with the sanitized values removed if needed.
+func (o ChannelMember) MarshalJSON() ([]byte, error) {
+	type alias ChannelMember
+	return json.Marshal(&struct {
+		*alias
+		LastViewedAt *int64 `json:"last_viewed_at,omitempty"`
+		LastUpdateAt *int64 `json:"last_update_at,omitempty"`
+	}{
+		alias:        (*alias)(&o),
+		LastViewedAt: timestampOrNil(o.LastViewedAt),
+		LastUpdateAt: timestampOrNil(o.LastUpdateAt),
+	})
 }
 
 // ChannelMemberWithTeamData contains ChannelMember appended with extra team information
 // as well.
+//
+// Any new non-embedded field added here must also be added to MarshalJSON below,
+// otherwise it will be silently dropped from the JSON output.
 type ChannelMemberWithTeamData struct {
 	ChannelMember
 	TeamDisplayName string `json:"team_display_name"`
@@ -110,10 +145,35 @@ type ChannelMemberWithTeamData struct {
 	TeamUpdateAt    int64  `json:"team_update_at"`
 }
 
+// MarshalJSON flattens the embedded ChannelMember together with the team fields
+// in a single pass. It is required because ChannelMember's MarshalJSON would
+// otherwise be promoted and drop the team fields entirely.
+func (o ChannelMemberWithTeamData) MarshalJSON() ([]byte, error) {
+	type alias ChannelMember
+	return json.Marshal(&struct {
+		*alias
+		LastViewedAt    *int64 `json:"last_viewed_at,omitempty"`
+		LastUpdateAt    *int64 `json:"last_update_at,omitempty"`
+		TeamDisplayName string `json:"team_display_name"`
+		TeamName        string `json:"team_name"`
+		TeamUpdateAt    int64  `json:"team_update_at"`
+	}{
+		alias:           (*alias)(&o.ChannelMember),
+		LastViewedAt:    timestampOrNil(o.LastViewedAt),
+		LastUpdateAt:    timestampOrNil(o.LastUpdateAt),
+		TeamDisplayName: o.TeamDisplayName,
+		TeamName:        o.TeamName,
+		TeamUpdateAt:    o.TeamUpdateAt,
+	})
+}
+
 type ChannelMembers []ChannelMember
 
 type ChannelMembersWithTeamData []ChannelMemberWithTeamData
 
+// ChannelMemberForExport is only converted field-by-field for export and is
+// never JSON-marshaled. If that changes, it must define its own MarshalJSON;
+// otherwise ChannelMember's promoted MarshalJSON drops ChannelName and Username.
 type ChannelMemberForExport struct {
 	ChannelMember
 	ChannelName string
