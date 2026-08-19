@@ -31,7 +31,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost1)
+		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost1)
 		assert.NoError(t, err)
 
 		scheduledPost2 := &model.ScheduledPost{
@@ -43,14 +43,14 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost2)
+		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost2)
 		assert.NoError(t, err)
 
 		time.Sleep(1 * time.Second)
 
 		th.App.ProcessScheduledPosts(th.Context)
 
-		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicChannel.TeamId)
+		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId)
 		assert.NoError(t, err)
 		assert.Len(t, scheduledPosts, 0)
 	})
@@ -72,13 +72,13 @@ func TestProcessScheduledPosts(t *testing.T) {
 			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
 			RepeatTimezone: "UTC",
 		}
-		created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost)
+		created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost)
 		assert.NoError(t, err)
 		require.NotNil(t, created)
 
 		th.App.ProcessScheduledPosts(th.Context)
 
-		updated, err := th.Server.Store().ScheduledPost().Get(created.Id)
+		updated, err := th.Server.Store().ScheduledPost().Get(th.Context, created.Id)
 		assert.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, model.ScheduledPostRepeatTypeWeekly, updated.RepeatType)
@@ -107,7 +107,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
 			RepeatTimezone: "UTC",
 		}
-		firstCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(firstScheduledPost)
+		firstCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, firstScheduledPost)
 		require.NoError(t, err)
 		require.NotNil(t, firstCreated)
 
@@ -122,13 +122,13 @@ func TestProcessScheduledPosts(t *testing.T) {
 			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
 			RepeatTimezone: "UTC",
 		}
-		secondCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(secondScheduledPost)
+		secondCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, secondScheduledPost)
 		require.NoError(t, err)
 		require.NotNil(t, secondCreated)
 
 		th.App.ProcessScheduledPosts(th.Context)
 
-		firstUpdated, err := th.Server.Store().ScheduledPost().Get(firstCreated.Id)
+		firstUpdated, err := th.Server.Store().ScheduledPost().Get(th.Context, firstCreated.Id)
 		require.NoError(t, err)
 		require.NotNil(t, firstUpdated)
 		assert.Equal(t, model.ScheduledPostRepeatTypeWeekly, firstUpdated.RepeatType)
@@ -136,7 +136,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 		assert.Zero(t, firstUpdated.ProcessedAt)
 		assert.Greater(t, firstUpdated.ScheduledAt, scheduledAt)
 
-		secondUpdated, err := th.Server.Store().ScheduledPost().Get(secondCreated.Id)
+		secondUpdated, err := th.Server.Store().ScheduledPost().Get(th.Context, secondCreated.Id)
 		require.NoError(t, err)
 		require.NotNil(t, secondUpdated)
 		assert.Equal(t, model.ScheduledPostRepeatTypeWeekly, secondUpdated.RepeatType)
@@ -162,13 +162,13 @@ func TestProcessScheduledPosts(t *testing.T) {
 			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
 			RepeatTimezone: "UTC",
 		}
-		created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost)
+		created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost)
 		assert.NoError(t, err)
 		require.NotNil(t, created)
 
 		th.App.ProcessScheduledPosts(th.Context)
 
-		updated, err := th.Server.Store().ScheduledPost().Get(created.Id)
+		updated, err := th.Server.Store().ScheduledPost().Get(th.Context, created.Id)
 		assert.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, model.ScheduledPostRepeatTypeWeekly, updated.RepeatType)
@@ -197,7 +197,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
 			RepeatTimezone: "UTC",
 		}
-		recurringCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(recurringScheduledPost)
+		recurringCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, recurringScheduledPost)
 		require.NoError(t, err)
 
 		oneShotScheduledPost := &model.ScheduledPost{
@@ -209,16 +209,16 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		oneShotCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(oneShotScheduledPost)
+		oneShotCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, oneShotScheduledPost)
 		require.NoError(t, err)
 
 		th.App.ProcessScheduledPosts(th.Context)
 
 		// Both rows must be permanently deleted: the series ends rather than advancing,
 		// erroring, or being silently reposted on later runs.
-		_, err = th.Server.Store().ScheduledPost().Get(recurringCreated.Id)
+		_, err = th.Server.Store().ScheduledPost().Get(th.Context, recurringCreated.Id)
 		require.Error(t, err)
-		_, err = th.Server.Store().ScheduledPost().Get(oneShotCreated.Id)
+		_, err = th.Server.Store().ScheduledPost().Get(th.Context, oneShotCreated.Id)
 		require.Error(t, err)
 	})
 
@@ -242,7 +242,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
 			RepeatTimezone: "UTC",
 		}
-		weeklyCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(weeklyScheduledPost)
+		weeklyCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, weeklyScheduledPost)
 		assert.NoError(t, err)
 		require.NotNil(t, weeklyCreated)
 
@@ -255,13 +255,13 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: oneShotScheduledAt,
 		}
-		oneShotCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(oneShotScheduledPost)
+		oneShotCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, oneShotScheduledPost)
 		assert.NoError(t, err)
 		require.NotNil(t, oneShotCreated)
 
 		th.App.ProcessScheduledPosts(th.Context)
 
-		weeklyUpdated, err := th.Server.Store().ScheduledPost().Get(weeklyCreated.Id)
+		weeklyUpdated, err := th.Server.Store().ScheduledPost().Get(th.Context, weeklyCreated.Id)
 		assert.NoError(t, err)
 		require.NotNil(t, weeklyUpdated)
 		assert.Equal(t, model.ScheduledPostRepeatTypeWeekly, weeklyUpdated.RepeatType)
@@ -270,7 +270,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 		assert.Zero(t, weeklyUpdated.ProcessedAt)
 		assert.Greater(t, weeklyUpdated.ScheduledAt, model.GetMillis())
 
-		oneShotUpdated, err := th.Server.Store().ScheduledPost().Get(oneShotCreated.Id)
+		oneShotUpdated, err := th.Server.Store().ScheduledPost().Get(th.Context, oneShotCreated.Id)
 		assert.NoError(t, err)
 		require.NotNil(t, oneShotUpdated)
 		assert.Equal(t, model.ScheduledPostErrorUnableToSend, oneShotUpdated.ErrorCode)
@@ -295,7 +295,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost1)
+		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost1)
 		assert.NoError(t, err)
 
 		scheduledPost2 := &model.ScheduledPost{
@@ -307,7 +307,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost2)
+		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost2)
 		assert.NoError(t, err)
 
 		time.Sleep(1 * time.Second)
@@ -316,7 +316,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 
 		// since the channel ID we set in the above created scheduled posts is of a
 		// non-existing channel, the job should have set the appropriate error code for them in the database
-		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicChannel.TeamId)
+		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId)
 		assert.NoError(t, err)
 		assert.Len(t, scheduledPosts, 2)
 
@@ -342,7 +342,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost1)
+		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost1)
 		assert.NoError(t, err)
 
 		scheduledPost2 := &model.ScheduledPost{
@@ -354,7 +354,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost2)
+		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost2)
 		assert.NoError(t, err)
 
 		_, appErr := th.App.UpdateActive(th.Context, th.BasicUser, false)
@@ -368,7 +368,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 
 		th.App.ProcessScheduledPosts(th.Context)
 
-		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicChannel.TeamId)
+		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId)
 		assert.NoError(t, err)
 		assert.Len(t, scheduledPosts, 2)
 
@@ -394,7 +394,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost1)
+		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost1)
 		assert.NoError(t, err)
 
 		scheduledPost2 := &model.ScheduledPost{
@@ -406,7 +406,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost2)
+		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost2)
 		assert.NoError(t, err)
 
 		appErr := th.App.LeaveChannel(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
@@ -420,7 +420,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 
 		th.App.ProcessScheduledPosts(th.Context)
 
-		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicChannel.TeamId)
+		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId)
 		assert.NoError(t, err)
 		assert.Len(t, scheduledPosts, 2)
 
@@ -446,7 +446,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost1)
+		_, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost1)
 		assert.NoError(t, err)
 
 		scheduledPost2 := &model.ScheduledPost{
@@ -458,7 +458,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 			},
 			ScheduledAt: scheduledAt,
 		}
-		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(scheduledPost2)
+		_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost2)
 		assert.NoError(t, err)
 
 		appErr := th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.BasicUser.Id)
@@ -472,7 +472,7 @@ func TestProcessScheduledPosts(t *testing.T) {
 
 		th.App.ProcessScheduledPosts(th.Context)
 
-		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicChannel.TeamId)
+		scheduledPosts, err := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicChannel.TeamId)
 		assert.NoError(t, err)
 		assert.Len(t, scheduledPosts, 2)
 
@@ -540,7 +540,7 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 
 		// Save the failed scheduled posts in the store
 		for _, sp := range failedScheduledPosts {
-			_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(sp)
+			_, err = th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, sp)
 			assert.NoError(t, err)
 		}
 

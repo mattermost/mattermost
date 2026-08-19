@@ -4,6 +4,7 @@
 package model
 
 import (
+	"net/http"
 	"reflect"
 	"strconv"
 )
@@ -29,8 +30,6 @@ type FeatureFlags struct {
 
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
-
-	EnableExportDirectDownload bool
 
 	MoveThreadsEnabled bool
 
@@ -165,7 +164,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.WysiwygEditor = false
-	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
 	f.NotificationMonitoring = true
 	f.AttributeValueMasking = true
@@ -220,6 +218,23 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableMFIPluginSignaturePublicKey = true
 
 	f.RecurringScheduledPosts = false
+}
+
+// isValid rejects feature flag combinations that are no longer supported.
+func (f *FeatureFlags) isValid() *AppError {
+	// The Apps framework is being retired, so the server refuses to start
+	// while the AppsEnabled feature flag is enabled.
+	if f.AppsEnabled {
+		return NewAppError("FeatureFlags.IsValid", "model.config.is_valid.feature_flags.apps_enabled.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// MoveThreadsEnabled is being retired in favor of Wrangler, so the server
+	// refuses to start while it is enabled.
+	if f.MoveThreadsEnabled {
+		return NewAppError("FeatureFlags.IsValid", "model.config.is_valid.feature_flags.move_threads_enabled.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope

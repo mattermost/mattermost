@@ -21,7 +21,9 @@ import {
 import {
     GLOBAL_ATTRIBUTES_ADMIN_PATH,
     createGlobalAttributeField,
+    createLinkedDependentField,
     deleteGlobalAttributeFieldIfExists,
+    deleteLinkedDependentField,
     requireGlobalAttributesEnabled,
     setGlobalAttributesFeatureFlag,
 } from './global_attributes_helpers';
@@ -436,9 +438,13 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             // one, so "E2E ..." would actually slugify to "e2_e_..." (verified against
             // slugifyForCEL directly), not the naively-expected "e2e_...". "Playwright"
             // has no internal case/digit boundary, so its derived slug is unambiguous.
+            // The prefix is kept short on purpose: the Unique name input is capped at
+            // Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH (40), and a 13-digit Date.now()
+            // leaves only 27 characters for everything before it. A longer prefix derives
+            // a silently truncated slug that no longer matches the expectation below.
             const timestamp = Date.now();
-            const displayName = `Playwright Created Attribute ${timestamp}`;
-            const expectedName = `playwright_created_attribute_${timestamp}`;
+            const displayName = `Playwright Attr ${timestamp}`;
+            const expectedName = `playwright_attr_${timestamp}`;
 
             try {
                 // # Log in and open the Manage Attributes page
@@ -681,8 +687,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
-            const displayName = `Playwright Select Attribute ${timestamp}`;
-            const expectedName = `playwright_select_attribute_${timestamp}`;
+            // Short prefix: see the 40-char Unique name cap noted in the bare-Text test above
+            const displayName = `Playwright Select ${timestamp}`;
+            const expectedName = `playwright_select_${timestamp}`;
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -736,8 +743,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
-            const displayName = `Playwright Ranked Attribute ${timestamp}`;
-            const expectedName = `playwright_ranked_attribute_${timestamp}`;
+            // Short prefix: see the 40-char Unique name cap noted in the bare-Text test above
+            const displayName = `Playwright Ranked ${timestamp}`;
+            const expectedName = `playwright_ranked_${timestamp}`;
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -811,6 +819,366 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             await expect(systemConsolePage.page.getByTestId('attributeOptionsValues__chipLabel')).toHaveText(
                 'Engineering',
             );
+        });
+
+        /**
+         * @objective Ensure a Text attribute can be linked to AD/LDAP via the external source
+         * picker end-to-end, and that the Manage Attributes list picks up the new attrs.ldap
+         * value with no further changes needed on that page.
+         */
+        test('creates a Text attribute linked to AD/LDAP via the external source picker', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            // Short prefix: see the 40-char Unique name cap noted in the bare-Text test above.
+            // This one only uses expectedName for cleanup, so an over-long prefix leaked the
+            // created field onto the shared server instead of failing loudly.
+            const displayName = `Playwright Ldap ${timestamp}`;
+            const expectedName = `playwright_ldap_${timestamp}`;
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await systemConsolePage.page.getByTestId('newAttributeButton').click();
+                await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+
+                // # Open the external source picker and link AD/LDAP
+                await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
+                await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+                await systemConsolePage.page.getByRole('textbox').fill('employeeID');
+                await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+
+                // * A chip for AD/LDAP now appears, and Type shows Text
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toBeVisible();
+                await expect(systemConsolePage.page.getByTestId('attributeTypeMenuButton')).toContainText('Text');
+
+                await systemConsolePage.page.getByTestId('saveSetting').click();
+
+                // * The new attribute shows "AD/LDAP" in the Source column
+                await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+                const row = systemConsolePage.page.locator('tr', {
+                    has: systemConsolePage.page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row.getByTestId('global-attribute-source')).toContainText('AD/LDAP');
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
+         * @objective Ensure both AD/LDAP and SAML can be linked on the same attribute, that an
+         * already-linked source is excluded from the "add" menu (and the trigger disappears
+         * once both are linked), and that each chip shows the actual linked value, not just the
+         * source name.
+         */
+        test('links both AD/LDAP and SAML, excludes an already-linked source from the menu, and shows the linked value in each chip', async ({
+            pw,
+        }) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            // Short prefix: see the 40-char Unique name cap noted in the bare-Text test above
+            const displayName = `Playwright Dual ${timestamp}`;
+            const expectedName = `playwright_dual_${timestamp}`;
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await systemConsolePage.page.getByTestId('newAttributeButton').click();
+                await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+
+                // # Before anything is linked, the menu offers both sources
+                await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
+                await expect(systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/})).toBeVisible();
+                await expect(systemConsolePage.page.getByRole('menuitem', {name: /^SAML/})).toBeVisible();
+
+                // # Link AD/LDAP
+                await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+                await systemConsolePage.page.getByPlaceholder('department').fill('employeeID');
+                await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+
+                // * The chip shows the source and the value that was actually typed
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
+                    'AD/LDAP: employeeID',
+                );
+
+                // # Reopen the trigger -- AD/LDAP is no longer offered, only SAML
+                await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
+                await expect(systemConsolePage.page.getByRole('menuitem', {name: /^SAML/})).toBeVisible();
+                await expect(systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/})).not.toBeVisible();
+
+                // # Link SAML too
+                await systemConsolePage.page.getByRole('menuitem', {name: /^SAML/}).click();
+                await systemConsolePage.page.getByPlaceholder('department').fill('position');
+                await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+
+                // * Both chips are shown with their own values, and the trigger disappears
+                // entirely -- there is nothing left to add
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
+                    'AD/LDAP: employeeID',
+                );
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-saml')).toHaveText(
+                    'SAML: position',
+                );
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceTrigger')).not.toBeVisible();
+
+                await systemConsolePage.page.getByTestId('saveSetting').click();
+
+                // * With both linked, the list's Source column shows both sources together
+                await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+                const row = systemConsolePage.page.locator('tr', {
+                    has: systemConsolePage.page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row.getByTestId('global-attribute-source')).toContainText('AD/LDAP, SAML');
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
+         * @objective Ensure a linked chip's edit action reopens the modal pre-filled and commits
+         * a changed value, and that its remove action clears the link immediately with no modal.
+         */
+        test("edits a linked chip's value via its edit action, and removes a link via its remove action with no modal", async ({
+            pw,
+        }) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+            await systemConsolePage.page.getByTestId('newAttributeButton').click();
+
+            // # Link AD/LDAP
+            await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
+            await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+            await systemConsolePage.page.getByPlaceholder('department').fill('employeeID');
+            await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
+                'AD/LDAP: employeeID',
+            );
+
+            // # Click the chip's edit action -- the modal reopens pre-filled with the current value
+            await systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap-edit').click();
+            await expect(systemConsolePage.page.getByPlaceholder('department')).toHaveValue('employeeID');
+
+            // # Change the value and save
+            await systemConsolePage.page.getByPlaceholder('department').fill('newEmployeeID');
+            await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toHaveText(
+                'AD/LDAP: newEmployeeID',
+            );
+
+            // # Click the chip's remove action -- the link clears immediately, no modal opens
+            await systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap-remove').click();
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).not.toBeVisible();
+            await expect(systemConsolePage.page.getByPlaceholder('department')).not.toBeVisible();
+
+            // * The trigger is back, offering AD/LDAP again since nothing is linked anymore
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceTrigger')).toBeVisible();
+        });
+
+        /**
+         * @objective Ensure the picker warns before converting a non-Text field to Text, and that
+         * manually switching Type away from Text afterward clears the link and announces it via
+         * the status region (not just a silently-removed chip).
+         */
+        test('warns before converting a non-Text field, and clears + announces the link when Type is switched away from Text', async ({
+            pw,
+        }) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+            await systemConsolePage.page.getByTestId('newAttributeButton').click();
+
+            // # Switch to Select, then try linking AD/LDAP
+            await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
+            await systemConsolePage.page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
+            await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
+            await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
+
+            // * The modal warns the field will convert to Text
+            await expect(systemConsolePage.page.getByText(/converted to a TEXT attribute/i)).toBeVisible();
+
+            // # Save the link anyway
+            await systemConsolePage.page.getByPlaceholder('department').fill('employeeID');
+            await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+
+            // * Type switched to Text, and a chip appeared
+            await expect(systemConsolePage.page.getByTestId('attributeTypeMenuButton')).toContainText('Text');
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toBeVisible();
+
+            // # Switch Type away from Text again
+            await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
+            await systemConsolePage.page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
+
+            // * The link is cleared, and the removal is announced via the status region
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).not.toBeVisible();
+            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceStatus')).toHaveText(
+                'External source link removed',
+            );
+        });
+    });
+
+    test.describe('delete attribute', () => {
+        /**
+         * @objective Ensure the row kebab's Delete action removes the attribute end-to-end:
+         * the confirmation names the attribute, and confirming drops the row from the table.
+         */
+        test('deletes an attribute from the row menu after confirming, and the row disappears', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_delete_${timestamp}`;
+            const displayName = `E2E Delete Attribute ${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                const row = page.locator('tr', {
+                    has: page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row).toBeVisible();
+
+                // # Open the row kebab and click Delete
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-delete`).click();
+
+                // * The confirmation names the specific attribute rather than prompting generically
+                await expect(page.getByRole('heading', {name: `Delete ${displayName} attribute`})).toBeVisible();
+
+                // # Confirm
+                await page.getByRole('button', {name: 'Delete', exact: true}).click();
+
+                // * The row is gone and no error banner appeared
+                await expect(row).toHaveCount(0);
+                await expect(page.getByTestId('global-attributes-delete-error')).toHaveCount(0);
+
+                // * The delete really hit the server, not just the client store — a fresh
+                // page load still doesn't show it
+                await page.reload();
+                await expect(page.getByTestId('global-attribute-name').filter({hasText: displayName})).toHaveCount(0);
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Ensure cancelling the confirmation is a true no-op — no delete call fires
+         * and the attribute survives a reload.
+         */
+        test('leaves the attribute in place when the confirmation is cancelled', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_cancel_${timestamp}`;
+            const displayName = `E2E Cancel Attribute ${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                const row = page.locator('tr', {
+                    has: page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row).toBeVisible();
+
+                // # Open the row kebab, click Delete, then back out
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-delete`).click();
+                await expect(page.getByRole('heading', {name: `Delete ${displayName} attribute`})).toBeVisible();
+                await page.getByRole('button', {name: 'Cancel'}).click();
+
+                // * The modal closed and the row survived
+                await expect(page.getByRole('heading', {name: `Delete ${displayName} attribute`})).toHaveCount(0);
+                await expect(row).toBeVisible();
+
+                // * Nothing was deleted server-side either
+                await page.reload();
+                await expect(page.getByTestId('global-attribute-name').filter({hasText: displayName})).toBeVisible();
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Ensure a server-side 409 (the attribute still has live linked dependents)
+         * surfaces as the specific "still linked" banner above the table, not the generic error,
+         * and leaves the row intact. Exercised against a real 409 from the server rather than a
+         * stubbed rejection.
+         */
+        test('shows the linked-dependents banner and keeps the row when the server refuses the delete', async ({
+            pw,
+        }) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_linked_${timestamp}`;
+            const displayName = `E2E Linked Attribute ${timestamp}`;
+            const dependentName = `e2e_global_attribute_dependent_${timestamp}`;
+
+            let dependentFieldId: string | undefined;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+
+                // # Point a dependent field at it, which is what makes the server refuse the delete
+                const dependent = await createLinkedDependentField(adminClient, dependentName, field.id, 'text');
+                dependentFieldId = dependent.id;
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                const row = page.locator('tr', {
+                    has: page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row).toBeVisible();
+
+                // # Try to delete it
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-delete`).click();
+                await page.getByRole('button', {name: 'Delete', exact: true}).click();
+
+                // * The banner explains the blocking dependency instead of the generic failure
+                const banner = page.getByTestId('global-attributes-delete-error');
+                await expect(banner).toBeVisible();
+                await expect(banner).toContainText('other attributes are still linked to it');
+                await expect(banner).not.toContainText('An error occurred while deleting this attribute');
+
+                // * The row survived the rejected delete
+                await expect(row).toBeVisible();
+
+                // # The banner is dismissible
+                await banner.getByRole('button', {name: 'Close'}).click();
+                await expect(banner).toHaveCount(0);
+            } finally {
+                // Dependent first: the source delete stays blocked while it exists
+                if (dependentFieldId) {
+                    await deleteLinkedDependentField(adminClient, dependentFieldId);
+                }
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
         });
     });
 });
