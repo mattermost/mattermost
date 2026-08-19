@@ -24,6 +24,3 @@ BEGIN
 	END IF;
 END;
 $$;
-
--- Indexes for efficient lookup by FieldID (useful for field deletes and reading all grants for a field).
-CREATE INDEX IF NOT EXISTS idx_propertyfieldgrants_fieldid ON PropertyFieldGrants (FieldID);
