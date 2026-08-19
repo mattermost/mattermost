@@ -221,7 +221,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		for _, jType := range model.AllJobTypes {
 			hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jType)
 			if permissionRequired == nil {
-				c.Logger.Warn("The job types of a job you are trying to retrieve does not contain permissions", mlog.String("jobType", jType))
+				c.Logger.Warn("The job types of a job you are trying to retrieve does not contain permissions", mlog.String("job_type", jType))
 				continue
 			}
 			if hasPermission {

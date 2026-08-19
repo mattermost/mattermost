@@ -11719,16 +11719,8 @@
     "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo: HMAC key must be at least {{.MinLength}} bytes for FIPS compliance."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "The 'atmos/camo' image proxy type was removed in Mattermost v12.0. Set ImageProxySettings.ImageProxyType to 'local', or set ImageProxySettings.Enable to false to disable the image proxy."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -11971,6 +11963,10 @@
     "translation": "Invalid content extraction timeout for file settings. Must be a whole number of seconds greater than or equal to zero."
   },
   {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "The MoveThreadsEnabled feature flag is no longer supported and must be disabled."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Invalid driver name for file settings. Must be 'local', 'amazons3', or 'azureblob'."
   },
@@ -11992,7 +11988,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
+    "translation": "Invalid image proxy type. Must be 'local'."
   },
   {
     "id": "model.config.is_valid.import.directory.app_error",
