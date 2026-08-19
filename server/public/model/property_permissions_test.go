@@ -109,3 +109,45 @@ func TestFieldReadRejectedOnUnmarshal(t *testing.T) {
 	require.NoError(t, json.Unmarshal([]byte(`{"restrictions":{"field":{"write":"sysadmin"}}}`), &p))
 	assert.Equal(t, PermissionLevelSysadmin, p.Restrictions.Field.Write)
 }
+
+func TestGrantsValidation(t *testing.T) {
+	grant := func(g Grant) *Permissions { return &Permissions{Grants: []Grant{g}} }
+
+	t.Run("valid grant", func(t *testing.T) {
+		require.NoError(t, grant(Grant{
+			Type: PropertyOwnerTypePlugin, ID: "com.example", Scopes: []string{"entra"},
+			Allow: []string{PropertyActionValueRead, PropertyActionValueWrite},
+		}).IsValid())
+	})
+
+	t.Run("empty allow rejected", func(t *testing.T) {
+		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "com.example"}).IsValid())
+	})
+
+	t.Run("unknown action rejected", func(t *testing.T) {
+		require.Error(t, grant(Grant{Type: PropertyOwnerTypeUser, ID: NewId(), Allow: []string{"field.read"}}).IsValid())
+	})
+
+	t.Run("wildcard action rejected", func(t *testing.T) {
+		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "com.example", Allow: []string{"*"}}).IsValid())
+	})
+
+	t.Run("wildcard id allowed for plugin, rejected for user", func(t *testing.T) {
+		require.NoError(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid())
+		require.NoError(t, grant(Grant{Type: PropertyOwnerTypeService, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid())
+		require.Error(t, grant(Grant{Type: PropertyOwnerTypeUser, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid())
+		require.Error(t, grant(Grant{Type: PropertyOwnerTypeRole, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid())
+	})
+
+	t.Run("invalid type rejected", func(t *testing.T) {
+		require.Error(t, grant(Grant{Type: "bogus", ID: "x", Allow: []string{PropertyActionValueWrite}}).IsValid())
+	})
+
+	t.Run("missing id rejected", func(t *testing.T) {
+		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, Allow: []string{PropertyActionValueWrite}}).IsValid())
+	})
+
+	t.Run("malformed scope rejected", func(t *testing.T) {
+		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "com.example", Scopes: []string{"a b"}, Allow: []string{PropertyActionValueWrite}}).IsValid())
+	})
+}

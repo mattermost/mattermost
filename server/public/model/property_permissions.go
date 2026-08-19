@@ -26,6 +26,17 @@ const (
 	PropertyActionValueWrite  = "value.write"
 )
 
+// validPropertyActions is the set of enforced actions a grant's allow list may
+// name. There is deliberately no "*": full access is typed out, so a serialization
+// default or a future sixth action never confers control by accident (§2.3).
+var validPropertyActions = []string{
+	PropertyActionFieldWrite,
+	PropertyActionOptionRead,
+	PropertyActionOptionWrite,
+	PropertyActionValueRead,
+	PropertyActionValueWrite,
+}
+
 // Permissions is a field's single "who may do what" setting (§1.3). It replaces
 // the seven legacy mechanisms with three parts:
 //
@@ -118,6 +129,44 @@ func (p *Permissions) IsValid() error {
 	if p.Restrictions != nil {
 		if err := p.Restrictions.normalizeAndValidate(); err != nil {
 			return err
+		}
+	}
+	for i := range p.Grants {
+		if err := p.Grants[i].isValid(); err != nil {
+			return fmt.Errorf("grant %d: %w", i, err)
+		}
+	}
+	return nil
+}
+
+// isValid checks one grant's shape (§2.3): a known identity type, a present id,
+// the wildcard limited to machine types, identifier-shaped scopes, and a
+// non-empty allow list naming only enforced actions.
+func (g *Grant) isValid() error {
+	if !IsValidPropertyOwnerType(g.Type) {
+		return fmt.Errorf("invalid type %q", g.Type)
+	}
+	if g.ID == "" {
+		return fmt.Errorf("id is required")
+	}
+	// The wildcard is machine-only: "any human" is what restrictions already
+	// says, and better (§2.3).
+	if g.ID == "*" && g.Type != PropertyOwnerTypePlugin && g.Type != PropertyOwnerTypeService {
+		return fmt.Errorf("wildcard id is only allowed for plugin or service grants")
+	}
+	for _, scope := range g.Scopes {
+		if !IsValidPropertyOwnerScope(scope) {
+			return fmt.Errorf("invalid scope %q", scope)
+		}
+	}
+	// Required and non-empty: a grant that grants nothing is almost always a
+	// mistake, so it is rejected rather than dropped (§2.3).
+	if len(g.Allow) == 0 {
+		return fmt.Errorf("allow must be non-empty")
+	}
+	for _, action := range g.Allow {
+		if !slices.Contains(validPropertyActions, action) {
+			return fmt.Errorf("invalid action %q", action)
 		}
 	}
 	return nil
