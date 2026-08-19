@@ -58,4 +58,27 @@ describe('components/user_settings/display/premade_theme_chooser', () => {
         expect(screen.getByText('Onyx')).toBeInTheDocument();
         expect(screen.queryByText('Denim')).not.toBeInTheDocument();
     });
+
+    test('ignores the whitespace surrounding the themes listed in ThemeSettings.AllowedThemes', () => {
+        renderChooser(' denim , onyx ');
+
+        expect(document.querySelectorAll('.premade-themes')).toHaveLength(2);
+        expect(screen.getByText('Denim')).toBeInTheDocument();
+        expect(screen.getByText('Onyx')).toBeInTheDocument();
+        expect(screen.queryByText('Sapphire')).not.toBeInTheDocument();
+    });
+
+    test('ignores the empty entries in ThemeSettings.AllowedThemes', () => {
+        renderChooser('onyx,,');
+
+        expect(document.querySelectorAll('.premade-themes')).toHaveLength(1);
+        expect(screen.getByText('Onyx')).toBeInTheDocument();
+        expect(screen.queryByText('Denim')).not.toBeInTheDocument();
+    });
+
+    test('renders every premade theme when ThemeSettings.AllowedThemes is only whitespace', () => {
+        renderChooser(' , ');
+
+        expect(document.querySelectorAll('.premade-themes')).toHaveLength(allThemeKeys.length);
+    });
 });
