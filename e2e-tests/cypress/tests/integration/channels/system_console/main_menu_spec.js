@@ -10,8 +10,28 @@
 // Stage: @prod
 // Group: @channels @system_console
 
+import {DEFAULT_TEAM} from '@/support/constants';
+
 describe('Main menu', () => {
     describe('MM-T909 Can switch to team', () => {
+        before(() => {
+            cy.apiGetTeamsForUser().then(({teams}) => {
+                teams.forEach((team) => {
+                    if (team.name !== DEFAULT_TEAM.name) {
+                        cy.apiDeleteTeam(team.id);
+                    }
+                });
+            });
+
+            cy.apiGetTeamsForUser().then(({teams}) => {
+                const defaultTeam = teams.find((team) => team.name === DEFAULT_TEAM.name);
+
+                if (!defaultTeam) {
+                    cy.apiCreateTeam(DEFAULT_TEAM.name, DEFAULT_TEAM.display_name, 'O', false);
+                }
+            });
+        });
+
         it('returns to team via BackstageNavbar when user has a single team', () => {
             cy.visit('/admin_console');
 
@@ -20,12 +40,12 @@ describe('Main menu', () => {
 
             // * With a single team, Switch teams is not shown in the header menu
             cy.findByRole('menu', {name: 'Admin Console Menu'}).within(() => {
-                cy.findByText('Switch teams').should('not.exist');
+                cy.findByRole('menuitem', {name: 'Switch teams'}).should('not.exist');
             });
 
             // * Return to team via BackstageNavbar instead
             cy.findByTestId('backstage-navbar-back').should('be.visible').click();
-            cy.url().should('include', '/eligendi');
+            cy.url().should('include', `/${DEFAULT_TEAM.name}`);
         });
     });
 
