@@ -230,11 +230,12 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 		return nil, nil
 	}
 
-	// DMs and GMs are not created through this endpoint, and attributes are not
-	// assigned to them by hand.
+	// A DM/GM type reaching here is refused by the app layer anyway, but values on
+	// one are never legitimate: DM/GM attributes are derived from the participants,
+	// not hand-written.
 	if channel.IsGroupOrDirect() {
 		if len(items) > 0 {
-			return nil, model.NewAppError("createChannel", "api.channel.create_channel.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.invalid_attribute.app_error", nil, "attributes are not assigned to direct or group channels", http.StatusBadRequest)
 		}
 		return nil, nil
 	}
@@ -311,19 +312,23 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 // "admin" and "member". A tier the caller cannot satisfy is skipped rather than
 // enforced — one sysadmin-only required attribute must not make channel creation
 // impossible for everyone else.
+//
+// Unrecognised and unset tiers answer no, matching
+// SessionHasPermissionToSetPropertyFieldValues. That check is the only gate on
+// this path, so a field the property API would refuse a value for must not
+// become settable through channel creation.
 func canSetChannelAttributeOnCreate(c *Context, field *model.PropertyField) bool {
-	level := ""
-	if field.PermissionValues != nil {
-		level = string(*field.PermissionValues)
+	if field.PermissionValues == nil {
+		return false
 	}
 
-	switch level {
-	case string(model.PermissionLevelNone):
-		return false
-	case string(model.PermissionLevelSysadmin):
+	switch *field.PermissionValues {
+	case model.PermissionLevelMember, model.PermissionLevelAdmin:
+		return true
+	case model.PermissionLevelSysadmin:
 		return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	default:
-		return true
+		return false
 	}
 }
 

@@ -519,6 +519,39 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 	})
 }
 
+// The tiers that need a session are covered by TestCreateChannelWithPropertyValues.
+// This covers the ones that must answer no without consulting one, because on the
+// create path this function is the only gate: a field the property API would refuse
+// a value for must not become settable by creating a channel.
+func TestCanSetChannelAttributeOnCreate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	c := &Context{App: th.App, AppContext: th.Context}
+
+	member := model.PermissionLevelMember
+	admin := model.PermissionLevelAdmin
+	none := model.PermissionLevelNone
+	unknown := model.PermissionLevel("supervisor")
+
+	t.Run("member and admin are satisfied by creation itself", func(t *testing.T) {
+		require.True(t, canSetChannelAttributeOnCreate(c, &model.PropertyField{PermissionValues: &member}))
+		require.True(t, canSetChannelAttributeOnCreate(c, &model.PropertyField{PermissionValues: &admin}))
+	})
+
+	t.Run("none is never settable", func(t *testing.T) {
+		require.False(t, canSetChannelAttributeOnCreate(c, &model.PropertyField{PermissionValues: &none}))
+	})
+
+	t.Run("an unset tier is not settable", func(t *testing.T) {
+		require.False(t, canSetChannelAttributeOnCreate(c, &model.PropertyField{}))
+	})
+
+	t.Run("an unrecognised tier is not settable", func(t *testing.T) {
+		require.False(t, canSetChannelAttributeOnCreate(c, &model.PropertyField{PermissionValues: &unknown}))
+	})
+}
+
 func TestCreateChannelRejectsSpaceType(t *testing.T) {
 	mainHelper.Parallel(t)
 
