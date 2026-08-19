@@ -34,6 +34,9 @@ describe('AdminConsoleIndex.generateIndex', () => {
         expect(idx.search('nginx')).toEqual([
             'environment/rate_limiting',
         ]);
+        expect(idx.search('channel_viewed')).toEqual([
+            'environment/web_server',
+        ]);
         expect(idx.search('characters')).toEqual([
             'site_config/customization',
             'authentication/password',

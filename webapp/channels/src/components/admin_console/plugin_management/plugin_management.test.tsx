@@ -9,7 +9,7 @@ import PluginState from 'mattermost-redux/constants/plugins';
 import {PluginManagement} from 'components/admin_console/plugin_management/plugin_management';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 describe('components/PluginManagement', () => {
     const defaultProps = {
@@ -575,5 +575,37 @@ describe('components/PluginManagement', () => {
             ref.current!.setState({loading: false} as any);
         });
         expect(container).toMatchSnapshot();
+    });
+
+    test('should show the settings link for a plugin with sections only', () => {
+        const props = {
+            ...defaultProps,
+            pluginStatuses: {
+                plugin_0: defaultProps.pluginStatuses.plugin_0,
+            },
+            plugins: {
+                plugin_0: {
+                    ...defaultProps.plugins.plugin_0,
+                    settings_schema: {
+                        sections: [{
+                            key: 'section',
+                            settings: [],
+                        }],
+                    },
+                },
+            },
+        };
+        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+        renderWithContext(
+            <PluginManagement
+                {...props}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current!.setState({loading: false} as any);
+        });
+
+        expect(screen.getByText('Settings')).toBeInTheDocument();
     });
 });
