@@ -33,6 +33,9 @@ describe('Helpers', () => {
             // A quoted value may contain the separator and escaped quotes.
             ['attachment; filename="report; final.csv"', 'report; final.csv'],
             ['attachment; filename="say \\"hi\\".csv"', 'say "hi".csv'],
+            ["attachment; filename='say \\'hi\\'.csv'", "say 'hi'.csv"],
+            ['attachment; filename="back\\\\slash.csv"', 'back\\slash.csv'],
+            ["attachment; filename='back\\\\slash.csv'", 'back\\slash.csv'],
 
             // RFC 5987 extended values are percent-decoded, and preferred over plain filename.
             ["attachment; filename*=UTF-8''report.csv", 'report.csv'],
@@ -54,5 +57,17 @@ describe('Helpers', () => {
         ])('with header %p should return %p', (header, expected) => {
             expect(extractFilenameFromContentDisposition(header, fallback)).toEqual(expected);
         });
+
+        // Only the "\\." alternative may consume a backslash. If the fallback character class
+        // could consume it too, every escaped character would have two ways to match and an
+        // unterminated value would backtrack exponentially, blocking the calling thread.
+        test.each([
+            ['"', '\\!'],
+            ["'", '\\&'],
+        ])('with an unterminated %p quoted value repeating %p should not backtrack', (quote, escaped) => {
+            const value = escaped.repeat(80);
+
+            expect(extractFilenameFromContentDisposition(`attachment; filename=${quote}${value}`, fallback)).toEqual(`${quote}${value}`);
+        }, 1000);
     });
 });

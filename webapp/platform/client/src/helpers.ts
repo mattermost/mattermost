@@ -36,7 +36,7 @@ export function extractFilenameFromContentDisposition(header: string | null | un
     // unit. An unquoted value ends at the next ";" or at the end of the header; without that
     // bound a trailing parameter such as "; size=1" would be read as part of the filename.
     const quoted = (/filename\s*=\s*"((?:\\.|[^"\\])*)"/i).exec(header) ??
-        (/filename\s*=\s*'((?:\\.|[^'])*)'/i).exec(header);
+        (/filename\s*=\s*'((?:\\.|[^'\\])*)'/i).exec(header);
     if (quoted) {
         return quoted[1].replace(/\\(.)/g, '$1').trim() || fallback;
     }
