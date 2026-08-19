@@ -94,7 +94,7 @@ func (w *WriteOnly) UnmarshalJSON(data []byte) error {
 }
 
 // Grant names one identity and lists the actions it may perform. Type is
-// one of the PropertyOwnerType* constants (grants generalize the owners list).
+// one of the PropertyOwnerType* constants.
 // Allow is required and non-empty; an empty allow is rejected, not ignored.
 type Grant struct {
 	Type   string   `json:"type"`
