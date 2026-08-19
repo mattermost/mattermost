@@ -936,7 +936,6 @@ func (s *SqlPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error)
 // individual rows, one per action. If Permissions is nil or has no grants, only the
 // delete is run (which is a no-op if the field had no prior grants).
 func (s *SqlPropertyFieldStore) syncPropertyFieldGrants(transaction *sqlxTxWrapper, fieldID string, permissions *model.Permissions, now int64) error {
-	// Delete all existing grants for this field.
 	builder := s.getQueryBuilder().
 		Delete("PropertyFieldGrants").
 		Where(sq.Eq{"FieldID": fieldID})
@@ -945,12 +944,10 @@ func (s *SqlPropertyFieldStore) syncPropertyFieldGrants(transaction *sqlxTxWrapp
 		return errors.Wrap(err, "property_field_sync_grants_delete")
 	}
 
-	// Nothing more to do if permissions is nil or has no grants.
 	if permissions == nil || len(permissions.Grants) == 0 {
 		return nil
 	}
 
-	// Insert one row per (grant, action) pair.
 	insertBuilder := s.getQueryBuilder().Insert("PropertyFieldGrants").
 		Columns("FieldID", "Type", "ID", "Action")
 

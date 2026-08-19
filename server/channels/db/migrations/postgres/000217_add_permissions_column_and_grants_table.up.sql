@@ -1,11 +1,9 @@
--- Add permissions column to PropertyFields table to store the typed permissions
--- object (restrictions + masking) as JSONB. Nullable because permissions is
--- optional on a field.
+-- Nullable because permissions is optional on a field; holds the typed
+-- restrictions+masking object as JSONB.
 ALTER TABLE PropertyFields ADD COLUMN IF NOT EXISTS permissions jsonb NULL;
 
--- Create PropertyFieldGrants table to store normalized grants. The composite
--- primary key (FieldID, Type, ID, Action) serves the forward direction --
--- reading all grants for a known field.
+-- The composite primary key (FieldID, Type, ID, Action) serves the forward
+-- direction -- reading all grants for a known field.
 CREATE TABLE IF NOT EXISTS PropertyFieldGrants (
 	FieldID varchar(26) NOT NULL,
 	Type varchar(64) NOT NULL,
@@ -14,7 +12,6 @@ CREATE TABLE IF NOT EXISTS PropertyFieldGrants (
 	PRIMARY KEY (FieldID, Type, ID, Action)
 );
 
--- Foreign key: cascading delete when a field is deleted.
 DO $$
 BEGIN
 	IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_propertyfieldgrants_propertyfields') THEN
