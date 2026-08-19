@@ -93,12 +93,10 @@ func (w *WriteOnly) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Grant names one identity and lists the actions it may perform. Type is
-// one of the PropertyOwnerType* constants.
+// Grant names one identity and lists the actions it may perform.
 // Allow is required and non-empty; an empty allow is rejected, not ignored.
 type Grant struct {
-	Type   string   `json:"type"`
-	ID     string   `json:"id"`
+	Identity
 	Scopes []string `json:"scopes,omitempty"`
 	Allow  []string `json:"allow"`
 }

@@ -90,40 +90,41 @@ func TestGrantsValidation(t *testing.T) {
 
 	t.Run("valid grant", func(t *testing.T) {
 		require.NoError(t, grant(Grant{
-			Type: PropertyOwnerTypePlugin, ID: "com.example", Scopes: []string{"entra"},
-			Allow: []string{PropertyActionValueRead, PropertyActionValueWrite},
+			Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "com.example"},
+			Scopes:   []string{"entra"},
+			Allow:    []string{PropertyActionValueRead, PropertyActionValueWrite},
 		}).IsValid(""))
 	})
 
 	t.Run("empty allow rejected", func(t *testing.T) {
-		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "com.example"}).IsValid(""))
+		require.Error(t, grant(Grant{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "com.example"}}).IsValid(""))
 	})
 
 	t.Run("unknown action rejected", func(t *testing.T) {
-		require.Error(t, grant(Grant{Type: PropertyOwnerTypeUser, ID: NewId(), Allow: []string{"field.read"}}).IsValid(""))
+		require.Error(t, grant(Grant{Identity: Identity{Type: PropertyOwnerTypeUser, ID: NewId()}, Allow: []string{"field.read"}}).IsValid(""))
 	})
 
 	t.Run("wildcard action rejected", func(t *testing.T) {
-		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "com.example", Allow: []string{"*"}}).IsValid(""))
+		require.Error(t, grant(Grant{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "com.example"}, Allow: []string{"*"}}).IsValid(""))
 	})
 
 	t.Run("wildcard id allowed for plugin, rejected for user", func(t *testing.T) {
-		require.NoError(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid(""))
-		require.NoError(t, grant(Grant{Type: PropertyOwnerTypeService, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid(""))
-		require.Error(t, grant(Grant{Type: PropertyOwnerTypeUser, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid(""))
-		require.Error(t, grant(Grant{Type: PropertyOwnerTypeRole, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid(""))
+		require.NoError(t, grant(Grant{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"}, Allow: []string{PropertyActionValueWrite}}).IsValid(""))
+		require.NoError(t, grant(Grant{Identity: Identity{Type: PropertyOwnerTypeService, ID: "*"}, Allow: []string{PropertyActionValueWrite}}).IsValid(""))
+		require.Error(t, grant(Grant{Identity: Identity{Type: PropertyOwnerTypeUser, ID: "*"}, Allow: []string{PropertyActionValueWrite}}).IsValid(""))
+		require.Error(t, grant(Grant{Identity: Identity{Type: PropertyOwnerTypeRole, ID: "*"}, Allow: []string{PropertyActionValueWrite}}).IsValid(""))
 	})
 
 	t.Run("invalid type rejected", func(t *testing.T) {
-		require.Error(t, grant(Grant{Type: "bogus", ID: "x", Allow: []string{PropertyActionValueWrite}}).IsValid(""))
+		require.Error(t, grant(Grant{Identity: Identity{Type: "bogus", ID: "x"}, Allow: []string{PropertyActionValueWrite}}).IsValid(""))
 	})
 
 	t.Run("missing id rejected", func(t *testing.T) {
-		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, Allow: []string{PropertyActionValueWrite}}).IsValid(""))
+		require.Error(t, grant(Grant{Identity: Identity{Type: PropertyOwnerTypePlugin}, Allow: []string{PropertyActionValueWrite}}).IsValid(""))
 	})
 
 	t.Run("malformed scope rejected", func(t *testing.T) {
-		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "com.example", Scopes: []string{"a b"}, Allow: []string{PropertyActionValueWrite}}).IsValid(""))
+		require.Error(t, grant(Grant{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "com.example"}, Scopes: []string{"a b"}, Allow: []string{PropertyActionValueWrite}}).IsValid(""))
 	})
 }
 
@@ -244,7 +245,7 @@ func TestPropertyFieldPermissionsWiring(t *testing.T) {
 
 	t.Run("an invalid grant surfaces as a field error", func(t *testing.T) {
 		pf := base(PropertyFieldObjectTypeUser)
-		pf.Permissions = &Permissions{Grants: []Grant{{Type: PropertyOwnerTypePlugin, ID: "x"}}} // empty allow
+		pf.Permissions = &Permissions{Grants: []Grant{{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "x"}}}} // empty allow
 		require.Error(t, pf.IsValid())
 	})
 
