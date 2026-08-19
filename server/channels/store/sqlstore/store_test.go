@@ -541,28 +541,37 @@ func TestCheckVersion(t *testing.T) {
 			ver:            "110001",
 			wantLog:        "Unsupported Postgres version",
 			wantVersion:    "11.1",
-			wantMinVersion: "14.0",
+			wantMinVersion: "15.0",
 		},
 		{
 			ver:            "130001",
 			wantLog:        "Unsupported Postgres version",
 			wantVersion:    "13.1",
-			wantMinVersion: "14.0",
+			wantMinVersion: "15.0",
 		},
 		{
-			ver: "140000",
+			ver:            "140000",
+			wantLog:        "Unsupported Postgres version",
+			wantVersion:    "14.0",
+			wantMinVersion: "15.0",
 		},
 		{
-			ver: "140019",
+			ver:            "140019",
+			wantLog:        "Unsupported Postgres version",
+			wantVersion:    "14.19",
+			wantMinVersion: "15.0",
 		},
 		{
 			ver: "150000",
 		},
 		{
+			ver: "150019",
+		},
+		{
 			ver:            "90603",
 			wantLog:        "Unsupported Postgres version",
 			wantVersion:    "9.6.3",
-			wantMinVersion: "14.0",
+			wantMinVersion: "15.0",
 		},
 		{
 			ver:     "12.34.1",
