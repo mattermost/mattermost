@@ -206,89 +206,6 @@ Available on [Enterprise Advanced](https://mattermost.com/pricing/) from Matterm
 </tbody>
 </table>
 
-### Enable theme selection
-
-**True**: Enables the **Display \> Theme** tab in **Settings** so users can select their theme.
-
-**False**: Users cannot select a different theme. The **Display \> Theme** tab is hidden in **Settings**.
-
-<table style={{width: '95%'}}>
-<colgroup>
-<col style={{width: '95%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"EnableThemeSelection": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### Allow custom themes
-
-**True**: Enables the **Display \> Theme \> Custom Theme** section in **Settings**.
-
-**False**: Users cannot use a custom theme. The **Display \> Theme \> Custom Theme** section is hidden in **Settings**.
-
-<table style={{width: '92%'}}>
-<colgroup>
-<col style={{width: '92%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"AllowCustomThemes": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### Default theme
-
-Set a default theme that applies to all new users on the system.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"DefaultTheme": "default"</code> with options <code>"default"</code>, <code>"organization"</code>, <code>"mattermostDark"</code>, and <code>"windows10"</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### Enable tutorial
-
-**True**: Users are prompted with a tutorial when they open Mattermost for the first time after account creation.
-
-**False**: The tutorial is disabled. Users are placed in Town Square when they open Mattermost for the first time after account creation.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"ServiceSettings.EnableTutorial": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### Enable onboarding flow
-
-**True**: New Mattermost users are shown key tasks to complete as part of initial onboarding.
-
-**False**: User onboarding tasks are disabled. Users are placed in Town Square when they open Mattermost for the first time after account creation.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"ServiceSettings.EnableOnboardingFlow": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
 ### User's status and profile fetching poll interval
 
 This setting configures the number of milliseconds to wait between fetching user statuses and profiles periodically. Set to `0` to disable.
@@ -543,23 +460,6 @@ Each configuration value below includes a JSON path to access the value programm
 - When working with the `config.json` file manually, look for the key `ServiceSettings`, then within that object, find the key `SiteURL`.
 
 </Tip>
-
-### Allowed themes
-
-This setting isn't available in the System Console and can only be set in `config.json`.
-
-Select the themes that can be chosen by users when `EnableThemeSelection` is set to `true`.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"AllowedThemes": []</code> with string array input consisting of the options <code>"default"</code>, <code>"organization"</code>, <code>"mattermostDark"</code>, and <code>"windows10"</code>, such as <code>["mattermostDark", "windows10"]</code>.</td>
-</tr>
-</tbody>
-</table>
 
 ### File Location
 
