@@ -378,7 +378,7 @@ type Hooks interface {
 	// upload, removal, expiry, and cluster-driven reloads. Either license may
 	// be nil (unlicensed ↔ licensed transitions).
 	//
-	// Minimum server version: 11.12
+	// Minimum server version: 12.0
 	OnLicenseChanged(oldLicense, newLicense *model.License)
 
 	// ConfigurationWillBeSaved is invoked before saving the configuration to the
