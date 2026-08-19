@@ -378,11 +378,8 @@ type Hooks interface {
 	// upload, removal, expiry, and cluster-driven reloads. Either license may
 	// be nil (unlicensed ↔ licensed transitions).
 	//
-	// Returning an error does not prevent or roll back the license change, but
-	// the plugin will be deactivated and marked as failed to stay running.
-	//
 	// Minimum server version: 11.12
-	OnLicenseChanged(oldLicense, newLicense *model.License) error
+	OnLicenseChanged(oldLicense, newLicense *model.License)
 
 	// ConfigurationWillBeSaved is invoked before saving the configuration to the
 	// backing store.

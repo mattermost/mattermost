@@ -198,16 +198,6 @@ func (env *Environment) setPluginState(id string, state int) {
 	}
 }
 
-// MarkPluginFailedToStayRunning deactivates a plugin and records it as failed to stay running,
-// matching the health-check crash exhaustion path. Order matters: deactivate first, then set state.
-func (env *Environment) MarkPluginFailedToStayRunning(id string, err error) {
-	env.Deactivate(id)
-	if err != nil {
-		env.SetPluginError(id, err.Error())
-	}
-	env.setPluginState(id, model.PluginStateFailedToStayRunning)
-}
-
 // setPluginSupervisor records the supervisor for a registered plugin.
 func (env *Environment) setPluginSupervisor(id string, supervisor *supervisor) {
 	if rp, ok := env.registeredPlugins.Load(id); ok {

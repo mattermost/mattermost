@@ -1392,10 +1392,9 @@ type Z_OnLicenseChangedArgs struct {
 }
 
 type Z_OnLicenseChangedReturns struct {
-	A error
 }
 
-func (g *hooksRPCClient) OnLicenseChanged(oldLicense, newLicense *model.License) error {
+func (g *hooksRPCClient) OnLicenseChanged(oldLicense, newLicense *model.License) {
 	_args := &Z_OnLicenseChangedArgs{oldLicense, newLicense}
 	_returns := &Z_OnLicenseChangedReturns{}
 	if g.implemented[OnLicenseChangedID] {
@@ -1403,12 +1402,12 @@ func (g *hooksRPCClient) OnLicenseChanged(oldLicense, newLicense *model.License)
 			g.log.Error("RPC call OnLicenseChanged to plugin failed.", mlog.Err(err))
 		}
 	}
-	return _returns.A
+
 }
 
 // OnLicenseChangedWithRPCErr returns the same values as OnLicenseChanged, with an additional trailing error
 // for the RPC transport — always the LAST return slot.
-func (g *hooksRPCClient) OnLicenseChangedWithRPCErr(oldLicense, newLicense *model.License) (error, error) {
+func (g *hooksRPCClient) OnLicenseChangedWithRPCErr(oldLicense, newLicense *model.License) error {
 	_args := &Z_OnLicenseChangedArgs{oldLicense, newLicense}
 	_returns := &Z_OnLicenseChangedReturns{}
 	var _err error
@@ -1421,15 +1420,14 @@ func (g *hooksRPCClient) OnLicenseChangedWithRPCErr(oldLicense, newLicense *mode
 			g.log.Debug("RPC call OnLicenseChanged to plugin failed.", mlog.Err(_err))
 		}
 	}
-	return _returns.A, _err
+	return _err
 }
 
 func (s *hooksRPCServer) OnLicenseChanged(args *Z_OnLicenseChangedArgs, returns *Z_OnLicenseChangedReturns) error {
 	if hook, ok := s.impl.(interface {
-		OnLicenseChanged(oldLicense, newLicense *model.License) error
+		OnLicenseChanged(oldLicense, newLicense *model.License)
 	}); ok {
-		returns.A = hook.OnLicenseChanged(args.A, args.B)
-		returns.A = encodableError(returns.A)
+		hook.OnLicenseChanged(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("Hook OnLicenseChanged called but not implemented."))
 	}
@@ -2305,7 +2303,7 @@ type HooksWithRPCErrGenerated interface {
 
 	OnCloudLimitsUpdatedWithRPCErr(limits *model.ProductLimits) error
 
-	OnLicenseChangedWithRPCErr(oldLicense, newLicense *model.License) (error, error)
+	OnLicenseChangedWithRPCErr(oldLicense, newLicense *model.License) error
 
 	ConfigurationWillBeSavedWithRPCErr(newCfg *model.Config) (*model.Config, error, error)
 

@@ -573,21 +573,8 @@ func (_m *Hooks) OnInstall(c *plugin.Context, event model.OnInstallEvent) error 
 }
 
 // OnLicenseChanged provides a mock function with given fields: oldLicense, newLicense
-func (_m *Hooks) OnLicenseChanged(oldLicense *model.License, newLicense *model.License) error {
-	ret := _m.Called(oldLicense, newLicense)
-
-	if len(ret) == 0 {
-		panic("no return value specified for OnLicenseChanged")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.License, *model.License) error); ok {
-		r0 = rf(oldLicense, newLicense)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
+func (_m *Hooks) OnLicenseChanged(oldLicense *model.License, newLicense *model.License) {
+	_m.Called(oldLicense, newLicense)
 }
 
 // OnPluginClusterEvent provides a mock function with given fields: c, ev
