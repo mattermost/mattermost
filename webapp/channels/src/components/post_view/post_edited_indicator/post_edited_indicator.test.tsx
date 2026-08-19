@@ -68,11 +68,11 @@ describe('PostEditedIndicator', () => {
     });
 
     test.each([
-        ['today', '2020-06-15T16:32:00.000Z', 'Edited today at 4:32 PM'],
-        ['yesterday', '2020-06-14T16:32:00.000Z', 'Edited yesterday at 4:32 PM'],
-        ['within the last week', '2020-06-11T16:32:00.000Z', 'Edited Thursday at 4:32 PM'],
-        ['earlier this year', '2020-02-11T16:32:00.000Z', 'Edited February 11 at 4:32 PM'],
-    ])('tooltip describes an edit %s', async (_label, editedAt, expected) => {
+        ['today', '2020-06-15T16:32:00.000Z', 'Edited Monday, June 15, 2020 at 4:32:00 PM'],
+        ['yesterday', '2020-06-14T16:32:00.000Z', 'Edited Sunday, June 14, 2020 at 4:32:00 PM'],
+        ['within the last week', '2020-06-11T16:32:00.000Z', 'Edited Thursday, June 11, 2020 at 4:32:00 PM'],
+        ['earlier this year', '2020-02-11T16:32:00.000Z', 'Edited Tuesday, February 11, 2020 at 4:32:00 PM'],
+    ])('tooltip describes an edit %s with full datetime', async (_label, editedAt, expected) => {
         const user = userEvent.setup();
 
         renderAt(editedAt);

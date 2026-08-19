@@ -2,20 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ComponentProps, MouseEvent, KeyboardEvent} from 'react';
+import type {MouseEvent, KeyboardEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {PencilOutlineIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import Timestamp, {RelativeRanges} from 'components/timestamp';
+import Timestamp from 'components/timestamp';
+import {
+    fullDateTimeTooltipDateFormat,
+    fullDateTimeTooltipTimeFormat,
+} from 'components/timestamp/full_datetime_tooltip_format';
 
 import Constants from 'utils/constants';
 
 import type {Props} from './index';
-
-const EDITED_AT_RANGES = [RelativeRanges.TODAY_YESTERDAY];
-const EDITED_AT_TIME_FORMAT: ComponentProps<typeof Timestamp>['useTime'] = {hour: 'numeric', minute: '2-digit'};
 
 const PostEditedIndicator = ({postId, editedAt = 0, postOwner, post, canEdit, actions}: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();
@@ -87,9 +88,8 @@ const PostEditedIndicator = ({postId, editedAt = 0, postOwner, post, canEdit, ac
                                 <Timestamp
                                     value={editedAt}
                                     useSemanticOutput={false}
-                                    ranges={EDITED_AT_RANGES}
-                                    day='numeric'
-                                    useTime={EDITED_AT_TIME_FORMAT}
+                                    useDate={fullDateTimeTooltipDateFormat}
+                                    useTime={fullDateTimeTooltipTimeFormat}
                                 />
                             ),
                         }}

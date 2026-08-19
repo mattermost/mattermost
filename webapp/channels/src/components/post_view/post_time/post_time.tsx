@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ComponentProps} from 'react';
 import {Link} from 'react-router-dom';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -12,11 +11,12 @@ import * as GlobalActions from 'actions/global_actions';
 
 import Timestamp from 'components/timestamp';
 import type {TimestampVariant} from 'components/timestamp';
+import {
+    fullDateTimeTooltipDateFormat,
+    fullDateTimeTooltipTimeFormat,
+} from 'components/timestamp/full_datetime_tooltip_format';
 
 import {Locations} from 'utils/constants';
-
-const getTimeFormat: ComponentProps<typeof Timestamp>['useTime'] = (_, {hour, minute, second}) => ({hour, minute, second});
-const getDateFormat: ComponentProps<typeof Timestamp>['useDate'] = {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'};
 
 type Props = {
 
@@ -106,8 +106,8 @@ export default class PostTime extends React.PureComponent<Props> {
                     <Timestamp
                         value={eventTime}
                         useSemanticOutput={false}
-                        useDate={getDateFormat}
-                        useTime={getTimeFormat}
+                        useDate={fullDateTimeTooltipDateFormat}
+                        useTime={fullDateTimeTooltipTimeFormat}
                     />
                 }
             >
