@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"slices"
@@ -21,12 +22,14 @@ import (
 
 func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("CreatePropertyField", func(t *testing.T) { testCreatePropertyField(t, rctx, ss) })
+	t.Run("CreatePropertyFieldPermissions", func(t *testing.T) { testCreatePropertyFieldPermissions(t, rctx, ss, s) })
 	t.Run("GetPropertyField", func(t *testing.T) { testGetPropertyField(t, rctx, ss, s) })
 	t.Run("GetManyPropertyFields", func(t *testing.T) { testGetManyPropertyFields(t, rctx, ss) })
 	t.Run("GetFieldByName", func(t *testing.T) { testGetFieldByName(t, rctx, ss) })
 	t.Run("GetFieldByNameForObjectType", func(t *testing.T) { testGetFieldByNameForObjectType(t, rctx, ss) })
 	t.Run("UpdatePropertyField", func(t *testing.T) { testUpdatePropertyField(t, rctx, ss) })
 	t.Run("DeletePropertyField", func(t *testing.T) { testDeletePropertyField(t, rctx, ss, s) })
+	t.Run("DeletePropertyFieldPermissions", func(t *testing.T) { testDeletePropertyFieldPermissions(t, rctx, ss, s) })
 	t.Run("SearchPropertyFields", func(t *testing.T) { testSearchPropertyFields(t, rctx, ss, s) })
 	t.Run("CountForGroup", func(t *testing.T) { testCountForGroup(t, rctx, ss) })
 	t.Run("CheckPropertyNameConflict", func(t *testing.T) { testCheckPropertyNameConflict(t, rctx, ss) })
@@ -196,6 +199,74 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Len(t, options, 2)
 		require.Equal(t, existingID1, options[0].(map[string]any)["id"])
 		require.Equal(t, existingID2, options[1].(map[string]any)["id"])
+	})
+}
+
+func testCreatePropertyFieldPermissions(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+	countGrants := func(t *testing.T, fieldID string) int {
+		t.Helper()
+		var count int
+		require.NoError(t, s.GetMaster().Get(&count,
+			"SELECT COUNT(*) FROM PropertyFieldGrants WHERE FieldID = $1", fieldID))
+		return count
+	}
+
+	t.Run("should store one grants row per action in each grant's allow list", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field with grants",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: "system_admin"},
+						Allow:    []string{model.PropertyActionValueWrite, model.PropertyActionOptionWrite},
+					},
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()},
+						Allow:    []string{model.PropertyActionValueRead},
+					},
+				},
+			},
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.Equal(t, 3, countGrants(t, created.ID))
+
+		type grantRow struct {
+			Type   string `db:"type"`
+			ID     string `db:"id"`
+			Action string `db:"action"`
+		}
+		var rows []grantRow
+		require.NoError(t, s.GetMaster().Select(&rows,
+			"SELECT Type, ID, Action FROM PropertyFieldGrants WHERE FieldID = $1", created.ID))
+
+		require.ElementsMatch(t, []grantRow{
+			{Type: model.PropertyOwnerTypeRole, ID: "system_admin", Action: model.PropertyActionValueWrite},
+			{Type: model.PropertyOwnerTypeRole, ID: "system_admin", Action: model.PropertyActionOptionWrite},
+			{Type: model.PropertyOwnerTypeUser, ID: rows[2].ID, Action: model.PropertyActionValueRead},
+		}, rows)
+	})
+
+	t.Run("should store NULL permissions and no grants when Permissions is nil", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Field without permissions",
+			Type:    model.PropertyFieldTypeText,
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.Zero(t, countGrants(t, created.ID))
+
+		var stored sql.NullString
+		require.NoError(t, s.GetMaster().Get(&stored,
+			"SELECT Permissions FROM PropertyFields WHERE ID = $1", created.ID))
+		require.False(t, stored.Valid)
 	})
 }
 
@@ -1161,6 +1232,41 @@ func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlS
 		edges, err := ss.PropertyField().GetOptionEdges(field.ID)
 		require.NoError(t, err)
 		require.Len(t, edges, 1)
+	})
+}
+
+func testDeletePropertyFieldPermissions(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+	t.Run("should remove grants when the field is deleted", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field with grants to delete",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: "system_admin"},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+
+		var before int
+		require.NoError(t, s.GetMaster().Get(&before,
+			"SELECT COUNT(*) FROM PropertyFieldGrants WHERE FieldID = $1", created.ID))
+		require.Equal(t, 1, before)
+
+		require.NoError(t, ss.PropertyField().Delete("", created.ID))
+
+		var after int
+		require.NoError(t, s.GetMaster().Get(&after,
+			"SELECT COUNT(*) FROM PropertyFieldGrants WHERE FieldID = $1", created.ID))
+		require.Zero(t, after)
 	})
 }
 
