@@ -19,7 +19,7 @@ const TARGET_TYPE = 'system';
 // only object types (besides 'template') PropertyField.IsValid allows a linked
 // field to carry -- a template field itself is rejected for having a
 // linked_field_id ("template fields cannot have a linked field").
-// Canonical values: webapp/channels/.../attribute_details/attribute_applies_to_constants.tsx
+// Canonical values: webapp/channels/.../attribute_details/attribute_applies_to_constants.ts
 export type ResourceObjectType = 'user' | 'channel' | 'post';
 const ALL_RESOURCE_OBJECT_TYPES: ResourceObjectType[] = ['user', 'channel', 'post'];
 
