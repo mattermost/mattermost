@@ -680,4 +680,36 @@ describe('components/PluginManagement', () => {
         expect(screen.getByRole('button', {name: /Click or drop plugin bundle to upload/})).toBeDisabled();
         expect(screen.getByText('Plugin uploads are disabled. Enable plugin uploads in config.json before uploading a plugin.')).toBeInTheDocument();
     });
+
+    test('should show the settings link for a plugin with sections only', () => {
+        const props = {
+            ...defaultProps,
+            pluginStatuses: {
+                plugin_0: defaultProps.pluginStatuses.plugin_0,
+            },
+            plugins: {
+                plugin_0: {
+                    ...defaultProps.plugins.plugin_0,
+                    settings_schema: {
+                        sections: [{
+                            key: 'section',
+                            settings: [],
+                        }],
+                    },
+                },
+            },
+        };
+        const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+        renderWithContext(
+            <PluginManagement
+                {...props}
+                ref={ref}
+            />,
+        );
+        act(() => {
+            ref.current!.setState({loading: false} as any);
+        });
+
+        expect(screen.getByText('Settings')).toBeInTheDocument();
+    });
 });
