@@ -918,9 +918,10 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 await systemConsolePage.page.getByRole('textbox').fill('employeeID');
                 await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
 
-                // * A chip for AD/LDAP now appears, and Type shows Text
+                // * A chip for AD/LDAP now appears on the Options line, prefixed by Synced with, and Type shows Text
                 await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toBeVisible();
                 await expect(systemConsolePage.page.getByTestId('attributeTypeMenuButton')).toContainText('Text');
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceSynced')).toContainText('Synced with');
 
                 await systemConsolePage.page.getByTestId('saveSetting').click();
 

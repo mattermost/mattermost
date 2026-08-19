@@ -706,6 +706,8 @@ describe('AttributeDetails', () => {
 
             expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Text');
             expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+            expect(screen.getByTestId('attributeExternalSourceSynced')).toHaveTextContent(/^Synced with/);
+            expect(screen.queryByTestId('attributeOptionsHelp')).not.toBeInTheDocument();
             expect(mockSetNavigationBlocked).toHaveBeenCalledWith(true);
         });
 
@@ -723,10 +725,12 @@ describe('AttributeDetails', () => {
             renderComponent();
 
             expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
+            expect(screen.getByTestId('attributeOptionsHelp')).toBeInTheDocument();
 
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
             expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
             expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Text');
+            expect(screen.queryByTestId('attributeOptionsHelp')).not.toBeInTheDocument();
 
             await linkViaMenu(/^SAML/, 'position');
             expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
@@ -737,6 +741,8 @@ describe('AttributeDetails', () => {
 
             await userEvent.click(screen.getByTestId('attributeExternalSourceChip-saml-remove'));
             expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
+            expect(screen.getByTestId('attributeOptionsHelp')).toBeInTheDocument();
+            expect(screen.queryByTestId('attributeExternalSourceSynced')).not.toBeInTheDocument();
 
             await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));

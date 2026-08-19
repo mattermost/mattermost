@@ -75,7 +75,10 @@
 }
 
 .AttributeDetails__fieldControl {
+    display: flex;
+    flex-direction: column;
     min-width: 0;
+    gap: 8px;
 }
 
 .AttributeDetails__uniqueName {

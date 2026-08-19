@@ -837,12 +837,14 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             )}
                                         </>
                                     ) : (
-                                        <p
-                                            className='AttributeDetails__optionsHelp'
-                                            data-testid='attributeOptionsHelp'
-                                        >
-                                            <FormattedMessage {...messages.optionsHelp}/>
-                                        </p>
+                                        !hasExternalSource && (
+                                            <p
+                                                className='AttributeDetails__optionsHelp'
+                                                data-testid='attributeOptionsHelp'
+                                            >
+                                                <FormattedMessage {...messages.optionsHelp}/>
+                                            </p>
+                                        )
                                     )}
                                     <AttributeExternalSource
                                         ldapAttr={ldapAttr}

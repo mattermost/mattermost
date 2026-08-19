@@ -1468,6 +1468,7 @@
   "admin.global_attributes.attribute_details.external_source.saml.modal_title": "Link to SAML",
   "admin.global_attributes.attribute_details.external_source.saml.subtitle": "Map values from SAML at sign-in",
   "admin.global_attributes.attribute_details.external_source.saml.title": "SAML",
+  "admin.global_attributes.attribute_details.external_source.synced_with": "Synced with",
   "admin.global_attributes.attribute_details.external_source.trigger_label": "Link to external source",
   "admin.global_attributes.attribute_details.name_error.invalid_charset": "Name must start with a letter or underscore, and contain only letters, numbers, and underscores.",
   "admin.global_attributes.attribute_details.name_error.reserved_word": "\"{word}\" is a reserved word and cannot be used as a name.",
