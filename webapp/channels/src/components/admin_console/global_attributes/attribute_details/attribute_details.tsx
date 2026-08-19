@@ -480,6 +480,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         }
     }, [handleDoneClick, handleCancelEdit]);
 
+    const hasExternalSource = Boolean(ldapAttr || samlAttr);
     const typeSupportsOptions = supportsOptions({type: fieldType} as PropertyField);
 
     // Defensive re-check, not the primary guard: both options editors already
@@ -762,15 +763,17 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                         menuButton={{
                                             id: 'attribute-type-menu-button',
                                             class: 'AttributeDetails__typeButton',
-                                            disabled: saving || disabled,
-                                            'aria-label': formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))}),
+                                            disabled: saving || disabled || hasExternalSource,
+                                            'aria-label': hasExternalSource ? formatMessage(messages.typeFieldLockedAriaLabel) : formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))}),
                                             children: (
                                                 <>
                                                     <span className='AttributeDetails__typeButtonInner'>
                                                         <TypeIcon size={18}/>
                                                         <FormattedMessage {...getTypeLabel(fieldType)}/>
                                                     </span>
-                                                    <i className='icon icon-chevron-down'/>
+                                                    {!hasExternalSource && (
+                                                        <i className='icon icon-chevron-down'/>
+                                                    )}
                                                 </>
                                             ),
                                             dataTestId: 'attributeTypeMenuButton',
@@ -916,6 +919,7 @@ const messages = defineMessages({
     typeLabel: {id: 'admin.global_attributes.attribute_details.type.label', defaultMessage: 'Type'},
     typeMenuAriaLabel: {id: 'admin.global_attributes.attribute_details.type.menu_label', defaultMessage: 'Select type'},
     typeFieldAriaLabel: {id: 'admin.global_attributes.attribute_details.type.field_aria_label', defaultMessage: 'Type: {value}'},
+    typeFieldLockedAriaLabel: {id: 'admin.global_attributes.attribute_details.type.field_locked_aria_label', defaultMessage: 'Type: Text. Locked while linked to an external source.'},
     optionsLabel: {id: 'admin.global_attributes.attribute_details.options.label', defaultMessage: 'Options'},
     optionsHelp: {
         id: 'admin.global_attributes.attribute_details.options.help',

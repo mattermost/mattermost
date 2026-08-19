@@ -1499,6 +1499,7 @@
   "admin.global_attributes.attribute_details.subtitle": "Add a display name, choose a type, and pick where it applies.",
   "admin.global_attributes.attribute_details.title": "New attribute",
   "admin.global_attributes.attribute_details.type.field_aria_label": "Type: {value}",
+  "admin.global_attributes.attribute_details.type.field_locked_aria_label": "Type: Text. Locked while linked to an external source.",
   "admin.global_attributes.attribute_details.type.label": "Type",
   "admin.global_attributes.attribute_details.type.menu_label": "Select type",
   "admin.global_attributes.attribute_details.unique_name.could_not_generate": "Couldn't generate a unique name from this display name. Click Edit to set one manually.",

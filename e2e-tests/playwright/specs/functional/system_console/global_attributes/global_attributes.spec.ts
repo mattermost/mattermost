@@ -1051,10 +1051,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
 
         /**
          * @objective Ensure the picker warns before converting a non-Text field to Text, and that
-         * manually switching Type away from Text afterward clears the link and announces it via
-         * the status region (not just a silently-removed chip).
+         * once a source is linked the Type control is locked to Text until the last chip is removed.
          */
-        test('warns before converting a non-Text field, and clears + announces the link when Type is switched away from Text', async ({
+        test('warns before converting a non-Text field, and locks Type to Text while a source is linked', async ({
             pw,
         }) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
@@ -1077,19 +1076,20 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             await systemConsolePage.page.getByPlaceholder('department').fill('employeeID');
             await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
 
-            // * Type switched to Text, and a chip appeared
-            await expect(systemConsolePage.page.getByTestId('attributeTypeMenuButton')).toContainText('Text');
+            // * Type switched to Text, a chip appeared, and Type is locked
+            const typeButton = systemConsolePage.page.getByTestId('attributeTypeMenuButton');
+            await expect(typeButton).toContainText('Text');
             await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toBeVisible();
+            await expect(typeButton).toBeDisabled();
 
-            // # Switch Type away from Text again
-            await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
+            // # Remove the chip
+            await systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap-remove').click();
+
+            // * Type is editable again
+            await expect(typeButton).toBeEnabled();
+            await typeButton.click();
             await systemConsolePage.page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
-
-            // * The link is cleared, and the removal is announced via the status region
-            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).not.toBeVisible();
-            await expect(systemConsolePage.page.getByTestId('attributeExternalSourceStatus')).toHaveText(
-                'External source link removed',
-            );
+            await expect(typeButton).toContainText('Select');
         });
     });
 

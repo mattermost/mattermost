@@ -705,6 +705,7 @@ describe('AttributeDetails', () => {
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
 
             expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Text');
+            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
             expect(mockSetNavigationBlocked).toHaveBeenCalledWith(true);
         });
 
@@ -718,16 +719,28 @@ describe('AttributeDetails', () => {
             expect(screen.getByTestId('attributeExternalSourceChip-saml')).toBeInTheDocument();
         });
 
-        it('manually switching Type away from Text clears any linked sources', async () => {
+        it('disables the Type menu while a source is linked, and re-enables it after the last chip is removed', async () => {
             renderComponent();
 
+            expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
+
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
-            expect(screen.getByTestId('attributeExternalSourceChip-ldap')).toBeInTheDocument();
+            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Text');
+
+            await linkViaMenu(/^SAML/, 'position');
+            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+
+            // Removing one of two links must keep Type locked
+            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-remove'));
+            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+
+            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-saml-remove'));
+            expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
 
             await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
-
-            expect(screen.queryByTestId('attributeExternalSourceChip-ldap')).not.toBeInTheDocument();
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
         });
 
         it('re-saving a linked chip with the unchanged value is a no-op -- no extra dirty-marking dispatch', async () => {

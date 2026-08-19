@@ -194,6 +194,15 @@
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-size: 18px;
     }
+
+    &:disabled {
+        cursor: default;
+        opacity: 0.64;
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.16);
+        }
+    }
 }
 
 .AttributeDetails__typeButtonInner {
