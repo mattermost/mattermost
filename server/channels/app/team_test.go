@@ -2289,6 +2289,8 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 			false,
 		).Once().Return(nil)
 		emailServiceMock.On("Stop").Once().Return()
+		// The teardown license reset saves a config change, whose listener re-inits email batching.
+		emailServiceMock.On("InitEmailBatching").Return().Maybe()
 		th.App.Srv().EmailService = &emailServiceMock
 
 		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{
@@ -2318,6 +2320,8 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 			false,
 		).Once().Return(email.SendMailError)
 		emailServiceMock.On("Stop").Once().Return()
+		// The teardown license reset saves a config change, whose listener re-inits email batching.
+		emailServiceMock.On("InitEmailBatching").Return().Maybe()
 		th.App.Srv().EmailService = &emailServiceMock
 
 		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{
