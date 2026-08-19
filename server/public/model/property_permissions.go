@@ -52,6 +52,23 @@ type Permissions struct {
 	Masking      *Masking      `json:"masking,omitempty"`
 }
 
+// Scan implements sql.Scanner so a jsonb column reads directly into a
+// *Permissions field.
+func (p *Permissions) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+
+	switch v := value.(type) {
+	case []byte:
+		return json.Unmarshal(v, p)
+	case string:
+		return json.Unmarshal([]byte(v), p)
+	default:
+		return fmt.Errorf("received value %T is neither a byte slice nor string", value)
+	}
+}
+
 // Restrictions holds the human permission ladder per aspect. A leaf omitted on input
 // means none; validation fills it in so a stored object always carries
 // all five enforced leaves. field carries no read leaf because field.read is not

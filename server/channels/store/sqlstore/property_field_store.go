@@ -25,7 +25,7 @@ func newPropertyFieldStore(sqlStore *SqlStore) store.PropertyFieldStore {
 	s := SqlPropertyFieldStore{SqlStore: sqlStore}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "COALESCE(CreatedBy, '') as CreatedBy", "COALESCE(UpdatedBy, '') as UpdatedBy").
+		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "COALESCE(CreatedBy, '') as CreatedBy", "COALESCE(UpdatedBy, '') as UpdatedBy", "Permissions").
 		From("PropertyFields")
 
 	return &s
@@ -411,6 +411,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	linkedFieldIDCase := sq.Case("id")
 	deleteAtCase := sq.Case("id")
 	updatedByCase := sq.Case("id")
+	permissionsCase := sq.Case("id")
 	ids := make([]string, len(fields))
 
 	for i, field := range fields {
@@ -436,6 +437,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		linkedFieldIDCase = linkedFieldIDCase.When(whenID, sq.Expr("?", field.LinkedFieldID))
 		deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
 		updatedByCase = updatedByCase.When(whenID, sq.Expr("?::text", field.UpdatedBy))
+		permissionsCase = permissionsCase.When(whenID, sq.Expr("?::jsonb", storedFieldPermissions(field)))
 	}
 
 	// Read before the UPDATE overwrites it: a field that stops linking has to take
@@ -461,6 +463,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		Set("UpdateAt", updateTime).
 		Set("DeleteAt", deleteAtCase).
 		Set("UpdatedBy", updatedByCase).
+		Set("Permissions", permissionsCase).
 		Where(sq.Eq{"id": ids})
 
 	if groupID != "" {
@@ -498,6 +501,12 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 			return nil, store.NewErrConflict("PropertyField", nil, "concurrent modification detected; retry the update")
 		}
 		return nil, errors.Errorf("failed to update, some property fields were not found, got %d of %d", count, len(fields))
+	}
+
+	for _, field := range fields {
+		if err = s.syncPropertyFieldGrants(transaction, field.ID, field.Permissions, updateTime); err != nil {
+			return nil, errors.Wrap(err, "property_field_update_grants")
+		}
 	}
 
 	// Before the option lists are reconciled: a field that has just stopped

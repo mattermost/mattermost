@@ -28,6 +28,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("GetFieldByName", func(t *testing.T) { testGetFieldByName(t, rctx, ss) })
 	t.Run("GetFieldByNameForObjectType", func(t *testing.T) { testGetFieldByNameForObjectType(t, rctx, ss) })
 	t.Run("UpdatePropertyField", func(t *testing.T) { testUpdatePropertyField(t, rctx, ss) })
+	t.Run("UpdatePropertyFieldPermissions", func(t *testing.T) { testUpdatePropertyFieldPermissions(t, rctx, ss, s) })
 	t.Run("DeletePropertyField", func(t *testing.T) { testDeletePropertyField(t, rctx, ss, s) })
 	t.Run("DeletePropertyFieldPermissions", func(t *testing.T) { testDeletePropertyFieldPermissions(t, rctx, ss, s) })
 	t.Run("SearchPropertyFields", func(t *testing.T) { testSearchPropertyFields(t, rctx, ss, s) })
@@ -1068,6 +1069,83 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, user2, fetched2.UpdatedBy)
 		require.Equal(t, creatorUserID, fetched2.CreatedBy)
+	})
+}
+
+func testUpdatePropertyFieldPermissions(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+	countGrants := func(t *testing.T, fieldID string) int {
+		t.Helper()
+		var count int
+		require.NoError(t, s.GetMaster().Get(&count,
+			"SELECT COUNT(*) FROM PropertyFieldGrants WHERE FieldID = $1", fieldID))
+		return count
+	}
+
+	t.Run("should sync grants and the permissions column to match the updated field", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field with grants",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: "system_admin"},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.Equal(t, 1, countGrants(t, created.ID))
+
+		created.Permissions = &model.Permissions{
+			Grants: []model.Grant{
+				{
+					Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: model.NewId()},
+					Allow:    []string{model.PropertyActionValueRead, model.PropertyActionOptionRead},
+				},
+			},
+		}
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{created}, nil)
+		require.NoError(t, err)
+		require.Equal(t, 2, countGrants(t, created.ID))
+
+		fetched, err := ss.PropertyField().Get(context.Background(), "", created.ID)
+		require.NoError(t, err)
+		require.Equal(t, created.Permissions, fetched.Permissions)
+	})
+
+	t.Run("should delete all grants and store NULL when permissions is cleared", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Field losing its grants",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: "system_admin"},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+		created, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+		require.Equal(t, 1, countGrants(t, created.ID))
+
+		created.Permissions = nil
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{created}, nil)
+		require.NoError(t, err)
+		require.Zero(t, countGrants(t, created.ID))
+
+		fetched, err := ss.PropertyField().Get(context.Background(), "", created.ID)
+		require.NoError(t, err)
+		require.Nil(t, fetched.Permissions)
 	})
 }
 
