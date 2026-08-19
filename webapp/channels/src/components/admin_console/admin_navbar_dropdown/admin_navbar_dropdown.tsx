@@ -25,7 +25,7 @@ import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
 
 import type {GlobalState} from 'types/store';
 
-const AdminNavbarDropdown = ({...firstMenuItemProps}: Menu.FirstMenuItemProps) => {
+const AdminNavbarDropdown = () => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -78,61 +78,40 @@ const AdminNavbarDropdown = ({...firstMenuItemProps}: Menu.FirstMenuItemProps) =
         'https://docs.mattermost.com/guides/administration.html#cloud-workspace-management' :
         'https://docs.mattermost.com/guides/administration.html';
 
-    let switchTeamsMenuItem = null;
-    if (sortedTeams.length === 0) {
-        switchTeamsMenuItem = (
-            <Menu.LinkItem
-                id='adminConsoleSwitchTeams'
-                to='/select_team'
-                labels={
-                    <FormattedMessage
-                        id='admin.nav.switchTeams'
-                        defaultMessage='Switch teams'
-                    />
-                }
-                {...firstMenuItemProps}
-            />
-        );
-    } else if (sortedTeams.length === 1) {
-        switchTeamsMenuItem = (
-            <Menu.LinkItem
-                id='adminConsoleSwitchTeams'
-                to={'/' + sortedTeams[0].name}
-                labels={
-                    <FormattedMessage
-                        id='admin.nav.switchTeams'
-                        defaultMessage='Switch teams'
-                    />
-                }
-                {...firstMenuItemProps}
-            />
-        );
-    } else if (sortedTeams.length > 1) {
-        switchTeamsMenuItem = (
-            <Menu.SubMenu
-                id='adminConsoleSwitchTeams'
-                labels={
-                    <FormattedMessage
-                        id='admin.nav.switchTeams'
-                        defaultMessage='Switch teams'
-                    />
-                }
-                trailingElements={<ChevronRightIcon size={16}/>}
-                menuId='adminConsoleSwitchTeamsMenu'
-                menuAriaLabel={formatMessage({id: 'admin.nav.switchTeams', defaultMessage: 'Switch teams'})}
-                {...firstMenuItemProps}
-            >
-                {sortedTeams.map((team) => (
-                    <Menu.LinkItem
-                        key={'team_' + team.name}
-                        id={'switchTo_' + team.name}
-                        to={'/' + team.name}
-                        labels={<span>{team.display_name}</span>}
-                    />
-                ))}
-            </Menu.SubMenu>
-        );
-    }
+    const switchTeamsMenuItem = sortedTeams.length === 0 ? (
+        <Menu.LinkItem
+            id='adminConsoleSwitchTeams'
+            to='/select_team'
+            labels={
+                <FormattedMessage
+                    id='admin.nav.switchTeams'
+                    defaultMessage='Switch teams'
+                />
+            }
+        />
+    ) : sortedTeams.length > 1 ? (
+        <Menu.SubMenu
+            id='adminConsoleSwitchTeams'
+            labels={
+                <FormattedMessage
+                    id='admin.nav.switchTeams'
+                    defaultMessage='Switch teams'
+                />
+            }
+            trailingElements={<ChevronRightIcon size={16}/>}
+            menuId='adminConsoleSwitchTeamsMenu'
+            menuAriaLabel={formatMessage({id: 'admin.nav.switchTeams', defaultMessage: 'Switch teams'})}
+        >
+            {sortedTeams.map((team) => (
+                <Menu.LinkItem
+                    key={'team_' + team.name}
+                    id={'switchTo_' + team.name}
+                    to={'/' + team.name}
+                    labels={<span>{team.display_name}</span>}
+                />
+            ))}
+        </Menu.SubMenu>
+    ) : null;
 
     return (
         <>
@@ -147,7 +126,6 @@ const AdminNavbarDropdown = ({...firstMenuItemProps}: Menu.FirstMenuItemProps) =
                         defaultMessage="Administrator's Guide"
                     />
                 }
-                {...(switchTeamsMenuItem ? {} : firstMenuItemProps)}
             />
             <Menu.Item
                 id='adminConsoleTroubleshootingForum'
