@@ -200,3 +200,96 @@ func TestMaskingValidation(t *testing.T) {
 		require.NoError(t, p.IsValid(PropertyFieldObjectTypeChannel))
 	})
 }
+
+// TestWorkedExamplesValidate parses the §3 permissions blocks as written and
+// confirms each validates against its field's object type.
+func TestWorkedExamplesValidate(t *testing.T) {
+	cases := []struct {
+		name       string
+		objectType string
+		json       string
+	}{
+		{"3.1 Department", PropertyFieldObjectTypeUser,
+			`{"restrictions":{"value":{"read":"everyone","write":"none"},"field":{"write":"sysadmin"}},
+			  "grants":[{"type":"plugin","id":"com.mattermost.scim","scopes":["entra"],"allow":["value.write"]}]}`},
+		{"3.1 LDAP service variant", PropertyFieldObjectTypeUser,
+			`{"grants":[{"type":"service","id":"ldap","allow":["value.write"]}]}`},
+		{"3.2 CostCenter", PropertyFieldObjectTypeUser,
+			`{"restrictions":{"value":{"read":"everyone","write":"admin"},"option":{"read":"everyone","write":"sysadmin"},"field":{"write":"sysadmin"}},
+			  "grants":[{"type":"user","id":"someuserid","allow":["value.write"]},
+			            {"type":"role","id":"finance_admin","allow":["value.write","option.write"]}]}`},
+		{"3.3 ProjectCodename", PropertyFieldObjectTypeUser,
+			`{"restrictions":{"value":{"read":"everyone","write":"none"}},
+			  "grants":[{"type":"service","id":"ldap","allow":["value.write"]}],"masking":{}}`},
+		{"3.4 ProgramsTemplate", PropertyFieldObjectTypeTemplate,
+			`{"restrictions":{"field":{"write":"sysadmin"},"option":{"write":"sysadmin"}},
+			  "masking":{"mask_by_field_id":"UserPrograms","except":[{"type":"plugin","id":"com.example.programs-manager"}]}}`},
+		{"3.4 UserPrograms", PropertyFieldObjectTypeUser,
+			`{"restrictions":{"value":{"read":"everyone","write":"none"}},
+			  "grants":[{"type":"service","id":"ldap","allow":["value.write"]}]}`},
+		{"3.4 ChannelPrograms", PropertyFieldObjectTypeChannel,
+			`{"restrictions":{"value":{"read":"member","write":"admin"},"option":{"read":"member"}}}`},
+		{"3.5 FlagReason", PropertyFieldObjectTypePost,
+			`{"restrictions":{"value":{"read":"none","write":"none"},"option":{"read":"none","write":"sysadmin"},"field":{"write":"sysadmin"}},
+			  "grants":[{"type":"role","id":"content_reviewer","allow":["value.read","option.read","value.write"]},
+			            {"type":"plugin","id":"com.mattermost.content-flagging","allow":["value.read","value.write"]}]}`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var p Permissions
+			require.NoError(t, json.Unmarshal([]byte(tc.json), &p))
+			require.NoError(t, p.IsValid(tc.objectType))
+		})
+	}
+}
+
+func TestPropertyFieldPermissionsWiring(t *testing.T) {
+	base := func(objectType string) *PropertyField {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			ObjectType: objectType,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		return pf
+	}
+
+	t.Run("valid permissions pass and normalize through the field", func(t *testing.T) {
+		pf := base(PropertyFieldObjectTypeUser)
+		pf.Permissions = &Permissions{Restrictions: &Restrictions{Value: ReadWrite{Read: PermissionLevelEveryone}}}
+		require.NoError(t, pf.IsValid())
+		// IsValid normalized the omitted leaves in place.
+		assert.Equal(t, PermissionLevelNone, pf.Permissions.Restrictions.Value.Write)
+		assert.Equal(t, PermissionLevelNone, pf.Permissions.Restrictions.Field.Write)
+	})
+
+	t.Run("an invalid grant surfaces as a field error", func(t *testing.T) {
+		pf := base(PropertyFieldObjectTypeUser)
+		pf.Permissions = &Permissions{Grants: []Grant{{Type: PropertyOwnerTypePlugin, ID: "x"}}} // empty allow
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("self-writable masked user field surfaces as a field error", func(t *testing.T) {
+		pf := base(PropertyFieldObjectTypeUser)
+		pf.Permissions = &Permissions{
+			Restrictions: &Restrictions{Value: ReadWrite{Write: PermissionLevelMember}},
+			Masking:      &Masking{},
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("PSAv1 field cannot carry permissions", func(t *testing.T) {
+		pf := base(PropertyFieldObjectTypeUser)
+		pf.ObjectType = "" // PSAv1
+		pf.Permissions = &Permissions{Restrictions: &Restrictions{Value: ReadWrite{Read: PermissionLevelEveryone}}}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("nil permissions is fine", func(t *testing.T) {
+		require.NoError(t, base(PropertyFieldObjectTypeUser).IsValid())
+	})
+}

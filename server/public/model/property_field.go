@@ -133,6 +133,7 @@ type PropertyField struct {
 	PermissionField   *PermissionLevel  `json:"permission_field,omitempty"`
 	PermissionValues  *PermissionLevel  `json:"permission_values,omitempty"`
 	PermissionOptions *PermissionLevel  `json:"permission_options,omitempty"`
+	Permissions       *Permissions      `json:"permissions,omitempty"`
 	LinkedFieldID     *string           `json:"linked_field_id,omitempty"`
 	CreateAt          int64             `json:"create_at"`
 	UpdateAt          int64             `json:"update_at"`
@@ -155,6 +156,7 @@ func (pf *PropertyField) Auditable() map[string]any {
 		"permission_field":   pf.PermissionField,
 		"permission_values":  pf.PermissionValues,
 		"permission_options": pf.PermissionOptions,
+		"permissions":        pf.Permissions,
 		"linked_field_id":    pf.LinkedFieldID,
 		"create_at":          pf.CreateAt,
 		"update_at":          pf.UpdateAt,
@@ -428,6 +430,10 @@ func (pf *PropertyField) IsValid() error {
 		if pf.PermissionOptions != nil {
 			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_options", "Reason": "PSAv1 properties cannot have permissions"}, "id="+pf.ID, http.StatusBadRequest)
 		}
+
+		if pf.Permissions != nil {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions", "Reason": "PSAv1 properties cannot have permissions"}, "id="+pf.ID, http.StatusBadRequest)
+		}
 	}
 
 	if pf.Type != PropertyFieldTypeText &&
@@ -499,6 +505,15 @@ func (pf *PropertyField) IsValid() error {
 	// Cross-validation: non-protected fields cannot have field permission set to "none"
 	if !pf.Protected && pf.PermissionField != nil && *pf.PermissionField == PermissionLevelNone {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_field", "Reason": "non-protected fields cannot have field permission set to none"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	// The typed permissions object validates (and normalizes) itself against the
+	// field's object type. Nothing reads it yet — it rides here unenforced until
+	// the decision engine is switched on.
+	if pf.Permissions != nil {
+		if err := pf.Permissions.IsValid(pf.ObjectType); err != nil {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions", "Reason": err.Error()}, "id="+pf.ID, http.StatusBadRequest)
+		}
 	}
 
 	return nil
