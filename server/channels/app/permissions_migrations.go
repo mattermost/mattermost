@@ -1187,6 +1187,15 @@ func (a *App) removeGetAnalyticsPermissionMigration() (permissionsMap, error) {
 	return transformations, nil
 }
 
+func (a *App) removeImportTeamPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:     permissionExists("import_team"),
+			Remove: []string{"import_team"},
+		},
+	}, nil
+}
+
 func (a *App) addSysConsoleMobileSecurityPermission() (permissionsMap, error) {
 	transformations := []permissionTransformation{}
 
@@ -1408,6 +1417,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddManageAgentPermissions, Migration: a.getAddManageAgentPermissionsMigration},
 		{Key: model.MigrationKeyAddEditFileAttachmentPermission, Migration: a.getAddEditFileAttachmentPermissionMigration},
 		{Key: model.MigrationKeyAddDiscoverableChannelPermissions, Migration: a.getAddDiscoverableChannelPermissionsMigration},
+		{Key: model.MigrationRemoveImportTeamPermission, Migration: a.removeImportTeamPermissionMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()

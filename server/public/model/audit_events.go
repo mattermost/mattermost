@@ -238,7 +238,6 @@ const (
 const (
 	AuditEventBulkImport   = "bulkImport"   // bulk import data from a file
 	AuditEventDeleteImport = "deleteImport" // delete import file
-	AuditEventSlackImport  = "slackImport"  // import data from Slack
 )
 
 // Jobs
@@ -434,7 +433,6 @@ const (
 	AuditEventAddUserToTeamFromInvite     = "addUserToTeamFromInvite"     // add user to team using invitation link
 	AuditEventCreateTeam                  = "createTeam"                  // create team
 	AuditEventDeleteTeam                  = "deleteTeam"                  // delete team
-	AuditEventImportTeam                  = "importTeam"                  // import team data from external source
 	AuditEventInvalidateAllEmailInvites   = "invalidateAllEmailInvites"   // invalidate all pending email invitations
 	AuditEventInviteGuestsToChannels      = "inviteGuestsToChannels"      // invite guest users to specific channels
 	AuditEventInviteUsersToTeam           = "inviteUsersToTeam"           // invite users to team
@@ -543,4 +541,5 @@ const (
 	AuditEventUpdateContentFlaggingConfig  = "updateContentFlaggingConfig"  // update content flagging configuration
 	AuditEventSetReviewer                  = "setFlaggedPostReviewer"       // assign reviewer for flagged post
 	AuditEventGenerateFlaggedPostReport    = "generateFlaggedPostReport"    // generate flagged post data report
+	AuditEventGeneratePostExposureReport   = "generatePostExposureReport"   // generate flagged post exposure report
 )

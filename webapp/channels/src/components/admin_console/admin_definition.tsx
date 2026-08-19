@@ -97,6 +97,7 @@ import SessionAttributesFeatureDiscovery from './feature_discovery/features/sess
 import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GlobalAttributes, {searchableStrings as globalAttributesSearchableStrings} from './global_attributes';
+import AttributeDetails from './global_attributes/attribute_details';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import IPFiltering from './ip_filtering';
@@ -715,6 +716,18 @@ const AdminDefinition: AdminDefinitionType = {
                     component: BoardAttributes,
                 },
             },
+            global_attribute_details: {
+                url: 'system_attributes/manage_attributes/attribute_details',
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
+                )),
+                isDisabled: it.not(it.isSystemAdmin),
+                schema: {
+                    id: 'GlobalAttributeDetails',
+                    component: AttributeDetails,
+                },
+            },
             global_attributes: {
                 url: 'system_attributes/manage_attributes',
                 title: defineMessage({id: 'admin.sidebar.global_attributes', defaultMessage: 'Manage Attributes'}),
@@ -776,6 +789,40 @@ const AdminDefinition: AdminDefinitionType = {
                                     key: 'AccessControlSettings.EnableChannelPolicyIndicators',
                                     label: defineMessage({id: 'admin.accesscontrol.enableChannelPolicyIndicatorsTitle', defaultMessage: 'Show channel access indicators to end users'}),
                                     help_text: defineMessage({id: 'admin.accesscontrol.enableChannelPolicyIndicatorsDesc', defaultMessage: 'When enabled, channels restricted by a membership access policy display the matching user attributes as tags in the channel members list and the invite dialog. Disable this to avoid revealing policy details to end users.'}),
+                                    isDisabled: it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'admin.accesscontrol.session_attributes',
+                            title: defineMessage({id: 'admin.accesscontrol.session_attributes', defaultMessage: 'Session Attributes'}),
+                            isHidden: it.any(
+                                it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                                it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                            ),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.TrustProxyDeviceIdentityHeader',
+                                    label: defineMessage({id: 'admin.accesscontrol.trustProxyDeviceIdentityHeader.title', defaultMessage: 'Trust proxy device identity header'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.trustProxyDeviceIdentityHeader.desc', defaultMessage: 'When enabled, the **TLS device ID** attribute is populated from the `X-Mattermost-Session-Attribute-Device-Id` request header, letting a reverse proxy that performs mutual TLS assert a device identity that the client cannot forge. **Note:** The device identity is accepted from the request header, so all clients must connect to Mattermost through a proxy that sets it and strips it from inbound requests.'}),
+                                    help_text_markdown: true,
+                                    isHidden: it.any(
+                                        it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                                        it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                                    ),
+                                    isDisabled: it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'AccessControlSettings.EnforceDeviceIDConsistency',
+                                    label: defineMessage({id: 'admin.accesscontrol.enforceDeviceIdConsistency.title', defaultMessage: 'Enforce device ID consistency'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enforceDeviceIdConsistency.desc', defaultMessage: 'When enabled, the **TLS device ID**, **Device ID**, and **Hardware ID** attributes are compared against the values cached for a session. If one of them changes mid-session, the session is revoked, the user must log in again, and the revocation is recorded in the audit log. This mitigates token theft, since a stolen token replayed from another device reports a different identifier. When disabled, a changed device identity overwrites the cached value and the session continues. **Note:** Confirm that these attributes report stable values across your fleet before enabling, since an identifier that legitimately changes will log users out.'}),
+                                    help_text_markdown: true,
+                                    isHidden: it.any(
+                                        it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                                        it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                                    ),
                                     isDisabled: it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
                                 },
                             ],
@@ -1099,6 +1146,11 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.EnableInsecureOutgoingConnections',
                             label: defineMessage({id: 'admin.service.insecureTlsTitle', defaultMessage: 'Enable Insecure Outgoing Connections: '}),
                             help_text: defineMessage({id: 'admin.service.insecureTlsDesc', defaultMessage: 'When true, any outgoing HTTPS requests will accept unverified, self-signed certificates. For example, outgoing webhooks to a server with a self-signed TLS certificate, using any domain, will be allowed. Note that this makes these connections susceptible to man-in-the-middle attacks.'}),
+                            production_warning: {
+                                isEnabled: it.stateIsTrue('ServiceSettings.EnableInsecureOutgoingConnections'),
+                                title: defineMessage({id: 'admin.service.insecureTlsProductionWarning.title', defaultMessage: 'Insecure outgoing connections are not recommended for production environments'}),
+                                text: defineMessage({id: 'admin.service.insecureTlsProductionWarning.text', defaultMessage: 'Mattermost will not verify TLS certificates for outbound connections, exposing them to man-in-the-middle attacks. Enable only for testing.'}),
+                            },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
                         {
@@ -1622,10 +1674,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             options: [
                                 {
-                                    value: 'atmos/camo',
-                                    display_name: defineMessage({id: 'atmos/camo', defaultMessage: 'atmos/camo'}),
-                                },
-                                {
                                     value: 'local',
                                     display_name: defineMessage({id: 'local', defaultMessage: 'local'}),
                                 },
@@ -1633,28 +1681,6 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.IMAGE_PROXY)),
                                 it.stateIsFalse('ImageProxySettings.Enable'),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'ImageProxySettings.RemoteImageProxyURL',
-                            label: defineMessage({id: 'admin.image.proxyURL', defaultMessage: 'Remote Image Proxy URL:'}),
-                            help_text: defineMessage({id: 'admin.image.proxyURLDescription', defaultMessage: 'URL of your remote image proxy server.'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.IMAGE_PROXY)),
-                                it.stateIsFalse('ImageProxySettings.Enable'),
-                                it.stateEquals('ImageProxySettings.ImageProxyType', 'local'),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'ImageProxySettings.RemoteImageProxyOptions',
-                            label: defineMessage({id: 'admin.image.proxyOptions', defaultMessage: 'Remote Image Proxy Options:'}),
-                            help_text: defineMessage({id: 'admin.image.proxyOptionsDescription', defaultMessage: 'Additional options such as the URL signing key. Refer to your image proxy documentation to learn more about what options are supported.'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.IMAGE_PROXY)),
-                                it.stateIsFalse('ImageProxySettings.Enable'),
-                                it.stateEquals('ImageProxySettings.ImageProxyType', 'local'),
                             ),
                         },
                     ],
@@ -1752,6 +1778,11 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'EmailSettings.SkipServerCertificateVerification',
                             label: defineMessage({id: 'admin.environment.smtp.skipServerCertificateVerification.title', defaultMessage: 'Skip Server Certificate Verification:'}),
                             help_text: defineMessage({id: 'admin.environment.smtp.skipServerCertificateVerification.description', defaultMessage: 'When true, Mattermost will not verify the email server certificate.'}),
+                            production_warning: {
+                                isEnabled: it.stateIsTrue('EmailSettings.SkipServerCertificateVerification'),
+                                title: defineMessage({id: 'admin.environment.smtp.skipServerCertificateVerificationProductionWarning.title', defaultMessage: 'Skipping certificate verification is not recommended for production environments'}),
+                                text: defineMessage({id: 'admin.environment.smtp.skipServerCertificateVerificationProductionWarning.text', defaultMessage: "Mattermost will not validate the SMTP server's TLS certificate, exposing email delivery to man-in-the-middle attacks. Enable only while troubleshooting."}),
+                            },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
                         },
                         {
@@ -2235,15 +2266,15 @@ const AdminDefinition: AdminDefinitionType = {
                     name: defineMessage({id: 'admin.developer.title', defaultMessage: 'Developer Settings'}),
                     settings: [
                         {
-                            type: 'banner',
-                            label: defineMessage({id: 'admin.service.testingWarning', defaultMessage: 'Warning: Testing commands are intended only for isolated non-production environments with test users and sample data. Never enable this setting in production.'}),
-                            banner_type: 'warning',
-                        },
-                        {
                             type: 'bool',
                             key: 'ServiceSettings.EnableTesting',
                             label: defineMessage({id: 'admin.service.testingTitle', defaultMessage: 'Enable Testing Commands:'}),
                             help_text: defineMessage({id: 'admin.service.testingDescription', defaultMessage: 'When true, the /test slash command is enabled to load test accounts, data, and text formatting. Use this setting only in isolated non-production environments and never in production. Changing this requires a server restart before taking effect.'}),
+                            production_warning: {
+                                isEnabled: it.stateIsTrue('ServiceSettings.EnableTesting'),
+                                title: defineMessage({id: 'admin.service.testingProductionWarning.title', defaultMessage: 'Testing commands are not recommended for production environments'}),
+                                text: defineMessage({id: 'admin.service.testingProductionWarning.text', defaultMessage: 'The /test command exposes load-testing and data-generation tools that can modify your data. Enable only in non-production environments.'}),
+                            },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.DEVELOPER)),
                         },
                         {
@@ -2251,6 +2282,11 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.EnableDeveloper',
                             label: defineMessage({id: 'admin.service.developerTitle', defaultMessage: 'Enable Developer Mode: '}),
                             help_text: defineMessage({id: 'admin.service.developerDesc', defaultMessage: 'When true, JavaScript errors are shown in a purple bar at the top of the user interface. Not recommended for use in production. Changing this requires a server restart before taking effect.'}),
+                            production_warning: {
+                                isEnabled: it.stateIsTrue('ServiceSettings.EnableDeveloper'),
+                                title: defineMessage({id: 'admin.service.developerProductionWarning.title', defaultMessage: 'Developer mode is not recommended for production environments'}),
+                                text: defineMessage({id: 'admin.service.developerProductionWarning.text', defaultMessage: 'Developer mode surfaces JavaScript errors in the UI and relaxes web app restrictions. Enable only in development environments.'}),
+                            },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.DEVELOPER)),
                         },
                         {
@@ -3778,6 +3814,26 @@ const AdminDefinition: AdminDefinitionType = {
                                         return new ValidationResult(true, '');
                                     },
                                 },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableUserTypingMessages',
+                                    label: defineMessage({id: 'admin.posts.enableUserTypingMessages.title', defaultMessage: 'Enable User Typing Messages:'}),
+                                    help_text: defineMessage({id: 'admin.posts.enableUserTypingMessages.desc', defaultMessage: 'This setting determines whether "user is typing..." messages are displayed below the message box. Disabling the setting in larger deployments may improve server performance.'}),
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds',
+                                    label: defineMessage({id: 'admin.posts.timeBetweenUserTypingUpdatesMilliseconds.title', defaultMessage: 'User Typing Timeout (milliseconds):'}),
+                                    help_text: defineMessage({id: 'admin.posts.timeBetweenUserTypingUpdatesMilliseconds.desc', defaultMessage: 'The number of milliseconds to wait between emitting user typing websocket events.'}),
+                                    help_text_markdown: false,
+                                    placeholder: defineMessage({id: 'admin.posts.timeBetweenUserTypingUpdatesMilliseconds.example', defaultMessage: 'E.g.: "5000"'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableUserTypingMessages'),
+                                    ),
+                                },
                             ],
                         },
                     ],
@@ -4528,6 +4584,11 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'SamlSettings.Verify',
                             label: defineMessage({id: 'admin.saml.verifyTitle', defaultMessage: 'Verify Signature:'}),
                             help_text: defineMessage({id: 'admin.saml.verifyDescription', defaultMessage: 'When false, Mattermost will not verify that the signature sent from a SAML Response matches the Service Provider Login URL. Disabling verification is not recommended for production environments.'}),
+                            production_warning: {
+                                isEnabled: it.stateIsFalse('SamlSettings.Verify'),
+                                title: defineMessage({id: 'admin.saml.verifyProductionWarning.title', defaultMessage: 'Disabling verification is not recommended for production environments'}),
+                                text: defineMessage({id: 'admin.saml.verifyProductionWarning.text', defaultMessage: 'Without verification, forged SAML responses can authenticate as any user. Disable only while troubleshooting your SAML setup in non-production environments.'}),
+                            },
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
                                 it.stateIsFalse('SamlSettings.Enable'),
@@ -4574,6 +4635,11 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'SamlSettings.Encrypt',
                             label: defineMessage({id: 'admin.saml.encryptTitle', defaultMessage: 'Enable Encryption:'}),
                             help_text: defineMessage({id: 'admin.saml.encryptDescription', defaultMessage: 'When false, Mattermost will not decrypt SAML Assertions encrypted with your Service Provider Public Certificate. Disabling encryption is not recommended for production environments.'}),
+                            production_warning: {
+                                isEnabled: it.stateIsFalse('SamlSettings.Encrypt'),
+                                title: defineMessage({id: 'admin.saml.encryptProductionWarning.title', defaultMessage: 'Disabling encryption is not recommended for production environments'}),
+                                text: defineMessage({id: 'admin.saml.encryptProductionWarning.text', defaultMessage: 'Without encryption, SAML assertions are sent in plain text and may expose user attributes. Disable only while troubleshooting your SAML setup in non-production environments.'}),
+                            },
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
                                 it.stateIsFalse('SamlSettings.Enable'),
@@ -6049,6 +6115,11 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.service.corsTitle', defaultMessage: 'Enable cross-origin requests from:'}),
                             placeholder: defineMessage({id: 'admin.service.corsEx', defaultMessage: 'http://example.com'}),
                             help_text: defineMessage({id: 'admin.service.corsDescription', defaultMessage: 'Enable HTTP Cross origin request from a specific domain. Use "*" if you want to allow CORS from any domain or leave it blank to disable it. Should not be set to "*" in production.'}),
+                            production_warning: {
+                                isEnabled: it.stateEquals('ServiceSettings.AllowCorsFrom', '*'),
+                                title: defineMessage({id: 'admin.service.corsProductionWarning.title', defaultMessage: 'Allowing all origins is not recommended for production environments'}),
+                                text: defineMessage({id: 'admin.service.corsProductionWarning.text', defaultMessage: 'Setting allowed origins to a wildcard lets any website make cross-origin requests to your server. Specify explicit trusted origins instead.'}),
+                            },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.CORS)),
                         },
                         {
@@ -6439,33 +6510,6 @@ const AdminDefinition: AdminDefinitionType = {
                     name: defineMessage({id: 'admin.experimental.experimentalFeatures', defaultMessage: 'Experimental Features'}),
                     settings: [
                         {
-                            type: 'color',
-                            key: 'LdapSettings.LoginButtonColor',
-                            label: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonColor.title', defaultMessage: 'AD/LDAP Login Button Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonColor.desc', defaultMessage: 'Specify the color of the AD/LDAP login button for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.licensedForFeature('LDAP')),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'LdapSettings.LoginButtonBorderColor',
-                            label: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonBorderColor.title', defaultMessage: 'AD/LDAP Login Button Border Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonBorderColor.desc', defaultMessage: 'Specify the color of the AD/LDAP login button border for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.licensedForFeature('LDAP')),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'LdapSettings.LoginButtonTextColor',
-                            label: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonTextColor.title', defaultMessage: 'AD/LDAP Login Button Text Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.ldapSettingsLoginButtonTextColor.desc', defaultMessage: 'Specify the color of the AD/LDAP login button text for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.licensedForFeature('LDAP')),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
                             type: 'bool',
                             key: 'ServiceSettings.ExperimentalEnableAuthenticationTransfer',
                             label: defineMessage({id: 'admin.experimental.experimentalEnableAuthenticationTransfer.title', defaultMessage: 'Allow Authentication Transfer:'}),
@@ -6502,30 +6546,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.experimental.emailBatchingInterval.desc', defaultMessage: 'Specify the maximum frequency, in seconds, which the batching job checks for new notifications. Longer batching intervals will increase performance.'}),
                             help_text_markdown: false,
                             placeholder: defineMessage({id: 'admin.experimental.emailBatchingInterval.example', defaultMessage: 'E.g.: "30"'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'EmailSettings.LoginButtonColor',
-                            label: defineMessage({id: 'admin.experimental.emailSettingsLoginButtonColor.title', defaultMessage: 'Email Login Button Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.emailSettingsLoginButtonColor.desc', defaultMessage: 'Specify the color of the email login button for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'EmailSettings.LoginButtonBorderColor',
-                            label: defineMessage({id: 'admin.experimental.emailSettingsLoginButtonBorderColor.title', defaultMessage: 'Email Login Button Border Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.emailSettingsLoginButtonBorderColor.desc', defaultMessage: 'Specify the color of the email login button border for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'EmailSettings.LoginButtonTextColor',
-                            label: defineMessage({id: 'admin.experimental.emailSettingsLoginButtonTextColor.title', defaultMessage: 'Email Login Button Text Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.emailSettingsLoginButtonTextColor.desc', defaultMessage: 'Specify the color of the email login button text for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
@@ -6656,32 +6676,12 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableUserTypingMessages',
-                            label: defineMessage({id: 'admin.experimental.enableUserTypingMessages.title', defaultMessage: 'Enable User Typing Messages:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableUserTypingMessages.desc', defaultMessage: 'This setting determines whether "user is typing..." messages are displayed below the message box. Disabling the setting in larger deployments may improve server performance.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds',
-                            label: defineMessage({id: 'admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.title', defaultMessage: 'User Typing Timeout:'}),
-                            help_text: defineMessage({id: 'admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.desc', defaultMessage: 'The number of milliseconds to wait between emitting user typing websocket events.'}),
-                            help_text_markdown: false,
-                            placeholder: defineMessage({id: 'admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.example', defaultMessage: 'E.g.: "5000"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                                it.stateIsFalse('ServiceSettings.EnableUserTypingMessages'),
-                            ),
-                        },
-                        {
                             type: 'number',
                             key: 'ExperimentalSettings.UsersStatusAndProfileFetchingPollIntervalMilliseconds',
                             label: defineMessage({id: 'admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.title', defaultMessage: 'User\'s Status and Profile Fetching Poll Interval:'}),
                             help_text: defineMessage({id: 'admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.desc', defaultMessage: 'The number of milliseconds to wait between fetching user statuses and profiles periodically.'}),
                             help_text_markdown: false,
-                            placeholder: defineMessage({id: 'admin.experimental.timeBetweenUserTypingUpdatesMilliseconds.example', defaultMessage: 'E.g.: "5000"'}),
+                            placeholder: defineMessage({id: 'admin.experimental.UsersStatusAndProfileFetchingPollIntervalMilliseconds.example', defaultMessage: 'E.g.: "5000"'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
@@ -6691,33 +6691,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.experimental.experimentalPrimaryTeam.desc', defaultMessage: 'The primary team of which users on the server are members. When a primary team is set, the options to join other teams or leave the primary team are disabled.'}),
                             help_text_markdown: true,
                             placeholder: defineMessage({id: 'admin.experimental.experimentalPrimaryTeam.example', defaultMessage: 'E.g.: "teamname"'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'SamlSettings.LoginButtonColor',
-                            label: defineMessage({id: 'admin.experimental.samlSettingsLoginButtonColor.title', defaultMessage: 'SAML Login Button Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.samlSettingsLoginButtonColor.desc', defaultMessage: 'Specify the color of the SAML login button for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.licensedForFeature('SAML')),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'SamlSettings.LoginButtonBorderColor',
-                            label: defineMessage({id: 'admin.experimental.samlSettingsLoginButtonBorderColor.title', defaultMessage: 'SAML Login Button Border Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.samlSettingsLoginButtonBorderColor.desc', defaultMessage: 'Specify the color of the SAML login button border for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.licensedForFeature('SAML')),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'color',
-                            key: 'SamlSettings.LoginButtonTextColor',
-                            label: defineMessage({id: 'admin.experimental.samlSettingsLoginButtonTextColor.title', defaultMessage: 'SAML Login Button Text Color:'}),
-                            help_text: defineMessage({id: 'admin.experimental.samlSettingsLoginButtonTextColor.desc', defaultMessage: 'Specify the color of the SAML login button text for white labeling purposes. Use a hex code with a #-sign before the code. This setting only applies to the mobile apps.'}),
-                            help_text_markdown: false,
-                            isHidden: it.not(it.licensedForFeature('SAML')),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
