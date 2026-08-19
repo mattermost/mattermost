@@ -39,6 +39,43 @@ describe('AdminDefinition - graduated theme and onboarding settings', () => {
         expect(findSetting(experimentalSettings, key)).toBeUndefined();
     });
 
+    const boolGraduatedKeys = [
+        'ThemeSettings.EnableThemeSelection',
+        'ThemeSettings.AllowCustomThemes',
+        'ServiceSettings.EnableTutorial',
+        'ServiceSettings.EnableOnboardingFlow',
+    ];
+
+    test.each(boolGraduatedKeys)('%s is a bool control that round-trips its value through the admin console', (key) => {
+        const setting = findSetting(customizationSettings, key) as AdminDefinitionSetting;
+
+        expect(setting.type).toBe('bool');
+
+        const schema = {...customizationSchema, settings: [setting]} as AdminDefinitionSubSectionSchema;
+        const [section, field] = key.split('.') as [keyof AdminConfig, string];
+
+        const stateFalse = getStateFromConfig(
+            {[section]: {[field]: false}} as unknown as Partial<AdminConfig>,
+            schema,
+        );
+        expect(stateFalse[key]).toBe(false);
+
+        const stateTrue = getStateFromConfig(
+            {[section]: {[field]: true}} as unknown as Partial<AdminConfig>,
+            schema,
+        );
+        expect(stateTrue[key]).toBe(true);
+
+        // The value chosen in the console must be the value written back to config, not the base config value.
+        const config = getConfigFromState(
+            {[section]: {[field]: true}} as unknown as Partial<AdminConfig>,
+            stateFalse,
+            schema,
+            () => false,
+        );
+        expect((config[section] as Record<string, unknown>)[field]).toBe(false);
+    });
+
     test('AllowedThemes round-trips through the admin console as a string array', () => {
         const setting = findSetting(customizationSettings, 'ThemeSettings.AllowedThemes') as AdminDefinitionSettingInput;
 
