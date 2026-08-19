@@ -2,8 +2,6 @@
 @use "utils/mixins";
 @use "utils/variables";
 
-@use 'sass:color';
-
 .admin-console__wrapper {
     overflow: auto;
 }
@@ -448,12 +446,6 @@
         letter-spacing: -0.01em;
         line-height: 32px;
 
-        .Avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 36px;
-        }
-
         button,
         select {
             font-family: "Open Sans", sans-serif;
@@ -811,14 +803,6 @@
 
             &:empty {
                 display: none;
-            }
-        }
-    }
-
-    .sections {
-        &.sections--settings {
-            .sidebar-section-title {
-                text-transform: uppercase;
             }
         }
     }
