@@ -1,14 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import MuiMenuList from '@mui/material/MenuList';
 import {createMemoryHistory} from 'history';
 import React from 'react';
-import {useSelector} from 'react-redux';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
-
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {deferNavigation} from 'actions/admin_actions';
 import * as GlobalActions from 'actions/global_actions';
@@ -16,7 +12,6 @@ import {openModal} from 'actions/views/modals';
 
 import AboutBuildModal from 'components/about_build_modal';
 import CommercialSupportModal from 'components/commercial_support_modal';
-import CompassDesignProvider from 'components/compass_design_provider';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
@@ -38,23 +33,6 @@ jest.mock('actions/global_actions', () => ({
 jest.mock('actions/admin_actions', () => ({
     deferNavigation: jest.fn((callback) => ({type: 'MOCK_DEFER_NAVIGATION', callback})),
 }));
-
-function TestMenuWrapper({children}: {children: React.ReactNode}) {
-    const theme = useSelector(getTheme);
-
-    return (
-        <CompassDesignProvider theme={theme}>
-            <WithTestMenuContext>
-                <MuiMenuList
-                    role='menu'
-                    aria-label='Admin Console Menu'
-                >
-                    {children}
-                </MuiMenuList>
-            </WithTestMenuContext>
-        </CompassDesignProvider>
-    );
-}
 
 describe('components/admin_console/admin_navbar_dropdown', () => {
     const team1 = TestHelper.getTeamMock({
@@ -122,9 +100,9 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
         const history = createMemoryHistory({initialEntries: ['/admin_console']});
 
         return renderWithContext(
-            <TestMenuWrapper>
+            <WithTestMenuContext>
                 <AdminNavbarDropdown/>
-            </TestMenuWrapper>,
+            </WithTestMenuContext>,
             initialState,
             {history},
         );
