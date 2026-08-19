@@ -8,7 +8,6 @@ import {Link} from 'react-router-dom';
 
 import {Button} from '@mattermost/shared/components/button';
 import type {AdminConfig} from '@mattermost/types/config';
-import type {PluginManifest} from '@mattermost/types/plugins';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import PluginState from 'mattermost-redux/constants/plugins';
@@ -181,9 +180,13 @@ type PluginStatus = {
 
 type PluginInstallVersionDirection = 'upgrade' | 'downgrade' | 'same' | 'unknown';
 
+// Mirrors model.PluginInstallConflict on the server, delivered in AppError.detailed_error.
 type PluginInstallConflict = {
-    existing_manifest?: PluginManifest;
-    uploaded_manifest?: PluginManifest;
+    plugin_id?: string;
+    plugin_name?: string;
+    homepage_url?: string;
+    existing_version?: string;
+    uploaded_version?: string;
     version_direction?: PluginInstallVersionDirection;
 };
 
@@ -873,10 +876,8 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             return null;
         }
 
-        const existingManifest = conflict.existing_manifest;
-        const uploadedManifest = conflict.uploaded_manifest;
-        const existingVersion = existingManifest?.version || '';
-        const uploadedVersion = uploadedManifest?.version || '';
+        const existingVersion = conflict.existing_version || '';
+        const uploadedVersion = conflict.uploaded_version || '';
         const displayExistingVersion = formatPluginVersion(existingVersion) || (
             <FormattedMessage
                 id='admin.plugin.upload.overwrite_review.version_unknown'
@@ -921,15 +922,14 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             );
         }
 
-        const pluginManifest = uploadedManifest || existingManifest;
-        const plugin = pluginManifest && (
+        const plugin = conflict.plugin_id ? (
             <PluginMetadataPanel
-                name={pluginManifest.name || pluginManifest.id}
-                id={pluginManifest.id}
+                name={conflict.plugin_name || conflict.plugin_id}
+                id={conflict.plugin_id}
                 version=''
-                homepageUrl={pluginManifest.homepage_url}
+                homepageUrl={conflict.homepage_url}
             />
-        );
+        ) : null;
 
         return (
             <div

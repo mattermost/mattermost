@@ -255,9 +255,21 @@ func (ch *Channels) installPluginToFilestore(manifest *model.Manifest, bundle, s
 
 func newPluginInstallConflictAppError(existingManifest, uploadedManifest *model.Manifest) *model.AppError {
 	conflict := model.PluginInstallConflict{
-		ExistingManifest: existingManifest,
-		UploadedManifest: uploadedManifest,
+		PluginID:         uploadedManifest.Id,
+		PluginName:       uploadedManifest.Name,
+		HomepageURL:      uploadedManifest.HomepageURL,
+		ExistingVersion:  existingManifest.Version,
+		UploadedVersion:  uploadedManifest.Version,
 		VersionDirection: pluginInstallConflictVersionDirection(existingManifest, uploadedManifest),
+	}
+
+	// Installing only validates the plugin id, so the name and homepage may be missing. Fall back to
+	// the installed plugin's metadata to keep the plugin identifiable.
+	if conflict.PluginName == "" {
+		conflict.PluginName = existingManifest.Name
+	}
+	if conflict.HomepageURL == "" {
+		conflict.HomepageURL = existingManifest.HomepageURL
 	}
 
 	details := ""
@@ -265,7 +277,10 @@ func newPluginInstallConflictAppError(existingManifest, uploadedManifest *model.
 		details = string(data)
 	}
 
-	return model.NewAppError("installExtractedPlugin", "app.plugin.install_id.app_error", nil, details, http.StatusBadRequest)
+	appErr := model.NewAppError("installExtractedPlugin", "app.plugin.install_id.app_error", nil, details, http.StatusBadRequest)
+	appErr.ExposeDetailedError = true
+
+	return appErr
 }
 
 func pluginInstallConflictVersionDirection(existingManifest, uploadedManifest *model.Manifest) string {

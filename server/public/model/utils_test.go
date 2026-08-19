@@ -224,6 +224,52 @@ func TestAppErrorSerialize(t *testing.T) {
 		require.EqualError(t, berr, aerr.Error())
 	})
 
+	t.Run("Wipe Detailed, but detailed error is exposed", func(t *testing.T) {
+		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot)
+		aerr.ExposeDetailedError = true
+		aerr.WipeDetailed()
+		js := aerr.ToJSON()
+		err := AppErrorFromJSON(strings.NewReader(js))
+		berr, ok := err.(*AppError)
+		require.True(t, ok)
+		require.Equal(t, "message", berr.Id)
+		require.Equal(t, "detail", berr.DetailedError)
+		require.Equal(t, http.StatusTeapot, berr.StatusCode)
+
+		require.EqualError(t, berr, aerr.Error())
+	})
+
+	t.Run("Wipe Detailed + Wrapped, but detailed error is exposed", func(t *testing.T) {
+		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot).Wrap(errors.New("wrapped"))
+		aerr.ExposeDetailedError = true
+		aerr.WipeDetailed()
+		js := aerr.ToJSON()
+		err := AppErrorFromJSON(strings.NewReader(js))
+		berr, ok := err.(*AppError)
+		require.True(t, ok)
+		require.Equal(t, "message", berr.Id)
+		require.Equal(t, "detail", berr.DetailedError)
+		require.NotContains(t, berr.DetailedError, "wrapped")
+		require.Equal(t, http.StatusTeapot, berr.StatusCode)
+
+		require.EqualError(t, berr, aerr.Error())
+	})
+
+	t.Run("Wipe Wrapped, but detailed error is exposed", func(t *testing.T) {
+		aerr := NewAppError("", "message", nil, "", http.StatusTeapot).Wrap(errors.New("wrapped"))
+		aerr.ExposeDetailedError = true
+		aerr.WipeDetailed()
+		js := aerr.ToJSON()
+		err := AppErrorFromJSON(strings.NewReader(js))
+		berr, ok := err.(*AppError)
+		require.True(t, ok)
+		require.Equal(t, "message", berr.Id)
+		require.Empty(t, berr.DetailedError)
+		require.Equal(t, http.StatusTeapot, berr.StatusCode)
+
+		require.EqualError(t, berr, aerr.Error())
+	})
+
 	t.Run("Where", func(t *testing.T) {
 		appErr := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
 		json := appErr.ToJSON()

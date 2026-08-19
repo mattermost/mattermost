@@ -107,16 +107,10 @@ describe('components/PluginManagement', () => {
     };
 
     const makeConflictDetails = (versionDirection: string, existingVersion = '1.0.0', uploadedVersion = '2.0.0') => JSON.stringify({
-        existing_manifest: {
-            id: 'com.mattermost.test-plugin',
-            name: 'Test Plugin',
-            version: existingVersion,
-        },
-        uploaded_manifest: {
-            id: 'com.mattermost.test-plugin',
-            name: 'Test Plugin',
-            version: uploadedVersion,
-        },
+        plugin_id: 'com.mattermost.test-plugin',
+        plugin_name: 'Test Plugin',
+        existing_version: existingVersion,
+        uploaded_version: uploadedVersion,
         version_direction: versionDirection,
     });
 
