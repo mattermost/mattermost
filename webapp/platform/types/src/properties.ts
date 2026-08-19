@@ -10,7 +10,12 @@ export type FieldType = (
     'date' |
     'user' |
     'multiuser' |
-    'rank'
+    'rank' |
+
+    // A multi-valued select whose options form a hierarchy. The options and
+    // their parent edges are created through the REST and plugin APIs only, so
+    // no editor here writes them.
+    'graph'
 );
 
 export type FieldVisibility = 'always' | 'hidden' | 'when_set';
@@ -79,7 +84,24 @@ export type PropertyFieldOption = {
 export type SelectPropertyField = PropertyField & {
     attrs?: {
         editable?: boolean;
+
+        /**
+         * Absent both for a field with no options and for one whose list the
+         * server declined to inline because the field has too many. In the
+         * latter case `options_count` reports how many there are and
+         * `options_omitted` is true; check it before treating an absent list as
+         * "this field has no options".
+         *
+         * An editor that reads such a field holds no option list, so it must not
+         * send one back: the server rejects a non-empty list on a field whose
+         * options it withheld, because appending to the empty list the editor
+         * was given would ask it to delete the rest. Sending no list, or an
+         * empty one, leaves the options untouched and lets every other attr be
+         * patched normally.
+         */
         options?: PropertyFieldOption[];
+        options_count?: number;
+        options_omitted?: boolean;
     };
 };
 

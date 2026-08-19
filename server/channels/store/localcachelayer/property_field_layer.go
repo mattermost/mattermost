@@ -29,8 +29,8 @@ func (s LocalCachePropertyFieldStore) Update(groupID string, fields []*model.Pro
 	}
 
 	// The returned slice includes both the requested fields and any linked
-	// fields the store propagated to. Invalidate each distinct group so all
-	// affected GetForGroup caches are cleared.
+	// fields whose derived option list the update changed. Invalidate each
+	// distinct group so all affected GetForGroup caches are cleared.
 	invalidated := make(map[string]bool, len(updated))
 	for _, field := range updated {
 		if invalidated[field.GroupID] {
@@ -40,6 +40,45 @@ func (s LocalCachePropertyFieldStore) Update(groupID string, fields []*model.Pro
 		s.InvalidateFieldsForGroup(field.GroupID)
 	}
 	return updated, nil
+}
+
+func (s LocalCachePropertyFieldStore) MutateOptions(groupID, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add, remove []*model.PropertyOptionEdge) error {
+	if err := s.PropertyFieldStore.MutateOptions(groupID, fieldID, expectedUpdateAt, upsert, add, remove); err != nil {
+		return err
+	}
+
+	s.invalidateForOptionChange(groupID)
+	return nil
+}
+
+func (s LocalCachePropertyFieldStore) MutateOptionEdges(groupID, fieldID string, expectedUpdateAt int64, add, remove []*model.PropertyOptionEdge) error {
+	if err := s.PropertyFieldStore.MutateOptionEdges(groupID, fieldID, expectedUpdateAt, add, remove); err != nil {
+		return err
+	}
+
+	s.invalidateForOptionChange(groupID)
+	return nil
+}
+
+func (s LocalCachePropertyFieldStore) DeleteOptions(groupID, fieldID string, expectedUpdateAt int64, optionIDs []string) error {
+	if err := s.PropertyFieldStore.DeleteOptions(groupID, fieldID, expectedUpdateAt, optionIDs); err != nil {
+		return err
+	}
+
+	s.invalidateForOptionChange(groupID)
+	return nil
+}
+
+// invalidateForOptionChange drops the cached fields of the group whose field
+// just had its options or their hierarchy changed. Neither kind of change writes
+// a column of the field, but both move its UpdateAt -- which is how clients hear
+// about them -- so a cached copy would go on reporting that nothing had changed.
+//
+// One group is enough even though the change is visible through more than one
+// field: a field linking to this one serves the template's options as its own, so
+// what it reads back changed too, and a link never crosses property groups.
+func (s LocalCachePropertyFieldStore) invalidateForOptionChange(groupID string) {
+	s.InvalidateFieldsForGroup(groupID)
 }
 
 func (s LocalCachePropertyFieldStore) Delete(groupID string, id string) error {

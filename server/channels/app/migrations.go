@@ -906,6 +906,13 @@ func mergeBoardsStatusColors(attrs model.StringInterface, colorByName map[string
 	}
 	rawOptions, ok := attrs["options"]
 	if !ok {
+		// No options to colour. This is also the branch a field whose option list
+		// was withheld from the read for exceeding
+		// model.PropertyFieldMaxHydratedOptions takes, and returning attrs untouched
+		// is right for it too: they still carry the marker that tells the store to
+		// leave the field's options alone, so nothing is recoloured and nothing is
+		// lost. The seeded Status field has three options, so that is a guard
+		// against a hand-edited field rather than a case this migration meets.
 		return attrs
 	}
 

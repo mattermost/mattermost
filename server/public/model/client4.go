@@ -686,6 +686,10 @@ func (c *Client4) propertyFieldRoute(groupName, objectType, fieldID string) clie
 	return c.propertyFieldsRoute(groupName, objectType).Join(fieldID)
 }
 
+func (c *Client4) propertyFieldOptionsRoute(groupName, objectType, fieldID string) clientRoute {
+	return c.propertyFieldRoute(groupName, objectType, fieldID).Join("options")
+}
+
 func (c *Client4) propertyFieldsSearchRoute(groupName string) clientRoute {
 	return newClientRoute("properties").Join("groups", groupName, "fields", "search")
 }
@@ -8250,6 +8254,61 @@ func (c *Client4) PatchPropertyField(ctx context.Context, groupName, objectType,
 
 func (c *Client4) DeletePropertyField(ctx context.Context, groupName, objectType, fieldID string) (*Response, error) {
 	r, err := c.doAPIDelete(ctx, c.propertyFieldRoute(groupName, objectType, fieldID))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// GetPropertyFieldOptions returns one page of a property field's options, in
+// creation order. Continue from the last option of a page by passing its id and
+// create_at; a page shorter than perPage is the last one.
+func (c *Client4) GetPropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*PropertyFieldOption, *Response, error) {
+	values := url.Values{}
+	if perPage > 0 {
+		values.Set("per_page", strconv.Itoa(perPage))
+	}
+	if cursorID != "" {
+		values.Set("cursor_id", cursorID)
+	}
+	if cursorCreateAt > 0 {
+		values.Set("cursor_create_at", strconv.FormatInt(cursorCreateAt, 10))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyFieldOption](r)
+}
+
+// CreatePropertyFieldOptions adds options to a property field. Each option may
+// name the options it sits below, by name, including others in the same call.
+func (c *Client4) CreatePropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, options []*PropertyFieldOption) ([]*PropertyFieldOption, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), options)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyFieldOption](r)
+}
+
+// PatchPropertyFieldOptions changes options a property field owns. Only the
+// options named are touched, and only the parts of each that the option carries.
+func (c *Client4) PatchPropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, options []*PropertyFieldOption) ([]*PropertyFieldOption, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), options)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyFieldOption](r)
+}
+
+// DeletePropertyFieldOptions removes options a property field owns. The whole
+// list is judged together, so a branch of a hierarchy goes in one call.
+func (c *Client4) DeletePropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, optionIDs []string) (*Response, error) {
+	r, err := c.doAPIDeleteJSON(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), optionIDs)
 	if err != nil {
 		return BuildResponse(r), err
 	}

@@ -105,6 +105,13 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 
 	if !isSelect {
 		delete(field.Attrs, model.PropertyFieldAttributeOptions)
+		// The two keys a read substitutes for an oversized option list go with it.
+		// Only a select-shaped field's attrs are stripped of them before storage,
+		// so converting an oversized field to text would otherwise persist them
+		// and every later read of that text field would claim its (non-existent)
+		// options were withheld.
+		delete(field.Attrs, model.PropertyFieldAttributeOptionsCount)
+		delete(field.Attrs, model.PropertyFieldAttributeOptionsOmitted)
 	}
 	if !isText {
 		delete(field.Attrs, model.PropertyFieldAttrLDAP)
@@ -541,38 +548,30 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 	return fields, nil
 }
 
-// extractOptionIDs extracts the set of valid option IDs from a
-// select or multiselect PropertyField's attrs. Returns nil if the
-// field has no options.
-func extractOptionIDs(field *model.PropertyField) (map[string]struct{}, error) {
-	if field.Attrs == nil {
-		return nil, nil
+// requireOptionsExist checks that every given option ID is an option of the
+// field: one it owns, or one it inherits from the template it links to.
+//
+// The check queries the option rows rather than the option list inlined into
+// field.Attrs. A field with more than model.PropertyFieldMaxHydratedOptions
+// options reads back without that list, and a check against the list cannot tell
+// the absent list from a field that has no options — so it would reject every
+// value assigned to a field once the field grew past the cap.
+func (h *AccessControlAttributeValidationHook) requireOptionsExist(field *model.PropertyField, optionIDs []string) error {
+	if len(optionIDs) == 0 {
+		return nil
 	}
 
-	rawOptions, ok := field.Attrs[model.PropertyFieldAttributeOptions]
-	if !ok || rawOptions == nil {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(rawOptions)
+	existing, err := h.propertyService.fieldStore.GetExistingOptionIDs(field, optionIDs)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal options: %w", err)
+		return fmt.Errorf("failed to look up the options of field %s: %w", field.ID, err)
 	}
 
-	var options []struct {
-		ID string `json:"id"`
-	}
-	if err := json.Unmarshal(data, &options); err != nil {
-		return nil, fmt.Errorf("invalid options format: %w", err)
-	}
-
-	ids := make(map[string]struct{}, len(options))
-	for _, opt := range options {
-		if opt.ID != "" {
-			ids[opt.ID] = struct{}{}
+	for _, id := range optionIDs {
+		if !slices.Contains(existing, id) {
+			return fmt.Errorf("option %q does not exist", id)
 		}
 	}
-	return ids, nil
+	return nil
 }
 
 // validateValueAgainstField checks a property value against field-type
@@ -580,8 +579,16 @@ func extractOptionIDs(field *model.PropertyField) (map[string]struct{}, error) {
 //   - text: max length, value_type format (email, url, phone)
 //   - select: option ID must exist in the field's options
 //   - multiselect: all option IDs must exist
+//   - graph: all option IDs must exist, and none may be repeated
 //   - user: value must be a valid Mattermost ID
 //   - multiuser: all values must be valid Mattermost IDs
+//   - date: nothing
+//
+// Every field type the model allows has a case, and a type with none is refused
+// outright. Access rules in these groups are written against the values this
+// decides on, so a type falling through to "valid" would let anything at all be
+// stored under it -- the wrong shape, or option identifiers naming no option --
+// and every rule reading it would then decide from data nothing had checked.
 func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *model.PropertyField, value *model.PropertyValue) error {
 	switch field.Type {
 	case model.PropertyFieldTypeText:
@@ -607,28 +614,36 @@ func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *
 		if str == "" {
 			return nil
 		}
-		optionIDs, err := extractOptionIDs(field)
-		if err != nil {
-			return fmt.Errorf("failed to extract options: %w", err)
-		}
-		if _, ok := optionIDs[str]; !ok {
-			return fmt.Errorf("option %q does not exist", str)
-		}
+		return h.requireOptionsExist(field, []string{str})
 
 	case model.PropertyFieldTypeMultiselect:
 		var values []string
 		if err := json.Unmarshal(value.Value, &values); err != nil {
 			return fmt.Errorf("expected string array value for multiselect field: %w", err)
 		}
-		optionIDs, err := extractOptionIDs(field)
-		if err != nil {
-			return fmt.Errorf("failed to extract options: %w", err)
+		return h.requireOptionsExist(field, values)
+
+	case model.PropertyFieldTypeGraph:
+		// The same shape as a multiselect value -- the options an object holds, in
+		// no particular order -- and checked the same way, against the option rows.
+		var values []string
+		if err := json.Unmarshal(value.Value, &values); err != nil {
+			return fmt.Errorf("expected string array value for graph field: %w", err)
 		}
+
+		// Holding an option twice says nothing that holding it once does not, so a
+		// repeat is a mistake in the caller rather than something to quietly
+		// discard. Refused here and not for multiselect, where a repeat has always
+		// been accepted and refusing one now would reject values callers already
+		// send.
+		seen := make(map[string]bool, len(values))
 		for _, v := range values {
-			if _, ok := optionIDs[v]; !ok {
-				return fmt.Errorf("option %q does not exist", v)
+			if seen[v] {
+				return fmt.Errorf("option %q is listed more than once", v)
 			}
+			seen[v] = true
 		}
+		return h.requireOptionsExist(field, values)
 
 	case model.PropertyFieldTypeUser:
 		var str string
@@ -649,6 +664,14 @@ func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *
 				return fmt.Errorf("invalid user id: %s", v)
 			}
 		}
+
+	case model.PropertyFieldTypeDate:
+		// Nothing to check. A date value's shape has never been constrained here,
+		// and constraining it now would refuse values already stored. Listed so
+		// that the case below is only reached by a type nobody has considered.
+
+	default:
+		return fmt.Errorf("values of a %s field are not validated, so none may be written", field.Type)
 	}
 
 	return nil

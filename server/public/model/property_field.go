@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"slices"
 	"unicode/utf8"
 )
@@ -29,6 +30,19 @@ const (
 	PropertyFieldTypeUser        PropertyFieldType = "user"
 	PropertyFieldTypeMultiuser   PropertyFieldType = "multiuser"
 	PropertyFieldTypeRank        PropertyFieldType = "rank"
+	// PropertyFieldTypeGraph is a multi-value select whose options are meant to
+	// form a hierarchy: one option can stand above another, and access rules are
+	// to reason over that relation rather than over exact option equality. An
+	// object holds several options at once, as it does for multiselect; there is
+	// no single-value variant, which is why the name is unqualified.
+	//
+	// The hierarchy is held as parent links between options, in
+	// PropertyOptionEdges. A graph field's options are served inline like a
+	// multiselect field's and read back without any parent information: an
+	// option's place in the hierarchy is reported by the endpoints that address
+	// options one at a time. A write may state it, though -- see
+	// PropertyField.OptionParentLinks.
+	PropertyFieldTypeGraph PropertyFieldType = "graph"
 
 	PropertyFieldNameMaxRunes       = 255
 	PropertyFieldTargetIDMaxRunes   = 255
@@ -90,10 +104,12 @@ var optionFieldTypes = []PropertyFieldType{
 	PropertyFieldTypeSelect,
 	PropertyFieldTypeMultiselect,
 	PropertyFieldTypeRank,
+	PropertyFieldTypeGraph,
 }
 
 // SupportsOptions reports whether the field type carries a list of options
-// (select, multiselect, rank). Mirrors the webapp's supportsOptions helper.
+// (select, multiselect, rank, graph). Mirrors the webapp's supportsOptions
+// helper, which does not list graph: the webapp has no graph authoring UI.
 func (t PropertyFieldType) SupportsOptions() bool {
 	return slices.Contains(optionFieldTypes, t)
 }
@@ -197,6 +213,144 @@ func (pf *PropertyField) EnsureOptionIDs() error {
 	return nil
 }
 
+// PropertyFieldOptionKeyParents is the key an inline option carries the options
+// directly above it under. Its value is a list of option *names*: an identifier
+// is assigned when an option is created, so a list that creates a hierarchy in
+// one write has no identifier to refer to yet, while a name is something the
+// caller chose and can refer forwards to.
+const PropertyFieldOptionKeyParents = "parents"
+
+// OptionParentLinks returns the parent links the field's inline option list asks
+// for, and the options whose parents that list states in full.
+//
+// A name resolves within the list itself, and nowhere else: the list is the whole
+// of the field's option set once the write lands, so an option outside it is
+// either about to be removed or belongs to another field. That is also what lets
+// one write build a hierarchy, naming an option that appears further down the
+// list.
+//
+// An option with no "parents" key is absent from replacing, because a write that
+// says nothing about an option's parents leaves them as they are. The alternative
+// -- treating an absent key as "no parents" -- would make an unrelated edit, or a
+// read-modify-write of a field read back without parent information, silently turn
+// options into roots: an option covered by nothing but itself, which every rule
+// that reached it through an option above stops matching.
+//
+// Run EnsureOptionIDs first. Every option's identifier is taken as given here,
+// and so is the field's, which the returned links belong to.
+func (pf *PropertyField) OptionParentLinks() (add []*PropertyOptionEdge, replacing []string, err error) {
+	options, err := pf.inlineOptions()
+	if err != nil || len(options) == 0 {
+		return nil, nil, err
+	}
+
+	// Two options answering to the same name make every reference to it
+	// ambiguous. Only a name actually referenced is refused, so a field whose
+	// options are not uniquely named -- which nothing has ever stopped for a type
+	// with no hierarchy -- stays writable.
+	idsByName := make(map[string]string, len(options))
+	ambiguous := make(map[string]bool)
+	for _, option := range options {
+		name, _ := option["name"].(string)
+		if name == "" {
+			continue
+		}
+		if _, taken := idsByName[name]; taken {
+			ambiguous[name] = true
+			continue
+		}
+		idsByName[name], _ = option["id"].(string)
+	}
+
+	for i, option := range options {
+		raw, ok := option[PropertyFieldOptionKeyParents]
+		if !ok || raw == nil {
+			continue
+		}
+		if pf.Type != PropertyFieldTypeGraph {
+			return nil, nil, fmt.Errorf("the option at index %d carries parents, and the options of a %s field form no hierarchy", i, pf.Type)
+		}
+
+		parents, ok := optionParentNames(raw)
+		if !ok {
+			return nil, nil, fmt.Errorf("the parents of the option at index %d are not a list of option names", i)
+		}
+		optionID, _ := option["id"].(string)
+		if optionID == "" {
+			return nil, nil, fmt.Errorf("the option at index %d carries parents but has no id", i)
+		}
+		replacing = append(replacing, optionID)
+
+		named, _ := option["name"].(string)
+		for _, parent := range parents {
+			switch {
+			case parent == "":
+				return nil, nil, fmt.Errorf("the option at index %d is put under an option with no name", i)
+			case ambiguous[parent]:
+				return nil, nil, fmt.Errorf("the option at index %d is put under %q, and two of the field's options are called that", i, parent)
+			case idsByName[parent] == "":
+				return nil, nil, fmt.Errorf("the option at index %d is put under %q, which the field has no option called", i, parent)
+			case idsByName[parent] == optionID:
+				return nil, nil, fmt.Errorf("the option at index %d, %q, is put under itself", i, named)
+			}
+			add = append(add, &PropertyOptionEdge{
+				FieldID:        pf.ID,
+				ChildOptionID:  optionID,
+				ParentOptionID: idsByName[parent],
+			})
+		}
+	}
+	return add, replacing, nil
+}
+
+// inlineOptions returns the field's option list as the objects it is made of.
+// The shape is the one EnsureOptionIDs normalizes any option list to, so a list
+// in any other shape is a caller that did not run it.
+func (pf *PropertyField) inlineOptions() ([]map[string]any, error) {
+	if pf.Attrs == nil {
+		return nil, nil
+	}
+	raw, ok := pf.Attrs[PropertyFieldAttributeOptions]
+	if !ok || raw == nil {
+		return nil, nil
+	}
+	list, ok := raw.([]any)
+	if !ok {
+		return nil, errors.New("the option list is not a list")
+	}
+
+	options := make([]map[string]any, 0, len(list))
+	for i, item := range list {
+		option, ok := item.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("the option at index %d is not an object", i)
+		}
+		options = append(options, option)
+	}
+	return options, nil
+}
+
+// optionParentNames reads an inline option's parents key. It arrives as []any of
+// string from JSON, and as []string from a Go caller building a field directly.
+func optionParentNames(raw any) ([]string, bool) {
+	switch value := raw.(type) {
+	case []string:
+		return value, true
+	case []any:
+		names := make([]string, 0, len(value))
+		for _, item := range value {
+			name, ok := item.(string)
+			if !ok {
+				return nil, false
+			}
+			names = append(names, name)
+		}
+		return names, true
+	default:
+		return nil, false
+	}
+}
+
 func (pf *PropertyField) IsValid() error {
 	if !IsValidId(pf.ID) {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "id", "Reason": "invalid id"}, "", http.StatusBadRequest)
@@ -276,8 +430,22 @@ func (pf *PropertyField) IsValid() error {
 		pf.Type != PropertyFieldTypeDate &&
 		pf.Type != PropertyFieldTypeUser &&
 		pf.Type != PropertyFieldTypeMultiuser &&
-		pf.Type != PropertyFieldTypeRank {
+		pf.Type != PropertyFieldTypeRank &&
+		pf.Type != PropertyFieldTypeGraph {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	if pf.Type == PropertyFieldTypeGraph {
+		if i := optionIndexCarryingRank(pf.Attrs); i >= 0 {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": fmt.Sprintf("attrs.options[%d].rank", i), "Reason": "rank is not supported on a graph field"}, "id="+pf.ID, http.StatusBadRequest)
+		}
+
+		// The list a field is written with is the whole of its option set, so its
+		// length is the count the limit is about. A field grown past the limit one
+		// option at a time is refused where those options are created instead.
+		if count := propertyFieldOptionCount(pf.Attrs); count > PropertyGraphMaxOptions {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "attrs.options", "Reason": fmt.Sprintf("a graph field cannot have more than %d options", PropertyGraphMaxOptions)}, "id="+pf.ID, http.StatusBadRequest)
+		}
 	}
 
 	// LinkedFieldID validation: if set, must be a valid 26-char ID.
@@ -374,7 +542,8 @@ func (pfp *PropertyFieldPatch) IsValid() error {
 		*pfp.Type != PropertyFieldTypeDate &&
 		*pfp.Type != PropertyFieldTypeUser &&
 		*pfp.Type != PropertyFieldTypeMultiuser &&
-		*pfp.Type != PropertyFieldTypeRank {
+		*pfp.Type != PropertyFieldTypeRank &&
+		*pfp.Type != PropertyFieldTypeGraph {
 		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "", http.StatusBadRequest)
 	}
 
@@ -591,6 +760,105 @@ func (pf *PropertyField) GetAttr(key string) any {
 }
 
 const PropertyFieldAttributeOptions = "options"
+
+// A field's options are stored as rows and inlined into
+// Attrs[PropertyFieldAttributeOptions] when the field is read. Past
+// PropertyFieldMaxHydratedOptions that would be an unbounded amount of JSON on
+// every field listing, so the options are left out and replaced by these two
+// keys: the number of options the field actually has, and a marker saying the
+// list was withheld rather than empty. Never an error — a field with too many
+// options must still list.
+const (
+	PropertyFieldAttributeOptionsCount   = "options_count"
+	PropertyFieldAttributeOptionsOmitted = "options_omitted"
+
+	PropertyFieldMaxHydratedOptions = 1000
+)
+
+// PropertyFieldOptionsOmitted reports whether these attrs came from a read that
+// left the option list out because the field has more than
+// PropertyFieldMaxHydratedOptions of them. The options key is absent in that
+// case exactly as it is for a field with no options at all, so anything that
+// treats an absent list as "this field has none" has to ask this first.
+func PropertyFieldOptionsOmitted(attrs StringInterface) bool {
+	omitted, _ := attrs[PropertyFieldAttributeOptionsOmitted].(bool)
+	return omitted
+}
+
+// HideOptions empties the field's option list and removes the keys that report a
+// withheld one, so a masked field discloses neither option names nor how many
+// options exist. Mutates in place — call it on a copy, never on a field another
+// caller (or a cache) still holds.
+func (pf *PropertyField) HideOptions() {
+	if pf.Attrs == nil {
+		pf.Attrs = make(StringInterface, 1)
+	}
+	pf.Attrs[PropertyFieldAttributeOptions] = []any{}
+	delete(pf.Attrs, PropertyFieldAttributeOptionsCount)
+	delete(pf.Attrs, PropertyFieldAttributeOptionsOmitted)
+}
+
+// PropertyFieldSuppliesOptions reports whether these attrs carry a non-empty
+// option list — a caller asserting what the field's options should be, as
+// opposed to one that left the key out or echoed back an empty list because the
+// list it read was withheld.
+func PropertyFieldSuppliesOptions(attrs StringInterface) bool {
+	return propertyFieldOptionCount(attrs) > 0
+}
+
+// propertyFieldOptionCount reports how many options an option list carries.
+// Counted through reflection rather than a type switch because the key
+// legitimately holds any slice shape: []any from JSON, []map[string]any from Go
+// callers, or a typed PropertyOptions. Anything that is not a list carries no
+// options.
+func propertyFieldOptionCount(attrs StringInterface) int {
+	options, ok := attrs[PropertyFieldAttributeOptions]
+	if !ok || options == nil {
+		return 0
+	}
+	v := reflect.ValueOf(options)
+	switch v.Kind() {
+	case reflect.Slice, reflect.Array:
+		return v.Len()
+	default:
+		return 0
+	}
+}
+
+// optionIndexCarryingRank returns the position of the first inline option that
+// carries a non-null "rank", or -1 if none does. Used to keep ranks off the
+// types they mean nothing for: the option store promotes the key into a column
+// of its own for every option-bearing type, so an unwanted rank does not stay
+// inert — it is persisted, served back, and reads as an ordering the field does
+// not have.
+//
+// Decoded through JSON because the options key legitimately holds several
+// shapes (see PropertyFieldSuppliesOptions). A list that will not decode is
+// reported as carrying no rank rather than as an error: the field-level callers
+// run EnsureOptionIDs first, which rejects an undecodable list with a message
+// about the real problem.
+func optionIndexCarryingRank(attrs StringInterface) int {
+	raw, ok := attrs[PropertyFieldAttributeOptions]
+	if !ok || raw == nil {
+		return -1
+	}
+
+	encoded, err := json.Marshal(raw)
+	if err != nil {
+		return -1
+	}
+	var options []map[string]any
+	if err := json.Unmarshal(encoded, &options); err != nil {
+		return -1
+	}
+
+	for i, option := range options {
+		if rank, ok := option["rank"]; ok && rank != nil {
+			return i
+		}
+	}
+	return -1
+}
 
 type PropertyOption interface {
 	GetID() string

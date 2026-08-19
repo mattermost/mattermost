@@ -1199,6 +1199,23 @@ type PropertyFieldStore interface {
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
 	CountLinkedFields(fieldID string) (int64, error)
+	GetLinkedFields(fieldIDs, excludeIDs []string) ([]*model.PropertyField, error)
+	GetExistingOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error)
+	GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error)
+	GetOptionsByID(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error)
+	GetOptionsByName(field *model.PropertyField, names []string) ([]*model.PropertyFieldOption, error)
+	GetLinkedFieldOptionNames(fieldID string, names []string) (map[string]string, error)
+	CountOptions(fieldID string) (int, error)
+	MutateOptions(groupID, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add, remove []*model.PropertyOptionEdge) error
+	DeleteOptions(groupID, fieldID string, expectedUpdateAt int64, optionIDs []string) error
+	MutateOptionEdges(groupID, fieldID string, expectedUpdateAt int64, add, remove []*model.PropertyOptionEdge) error
+	GetOptionEdges(fieldID string) ([]*model.PropertyOptionEdge, error)
+	GetOptionChildEdges(fieldID string, parentOptionIDs []string) ([]*model.PropertyOptionEdge, error)
+	GetOptionParentEdges(fieldID string, childOptionIDs []string) ([]*model.PropertyOptionEdge, error)
+	CountOptionEdges(fieldID string) (int, error)
+	GetOptionAncestorsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
+	GetOptionDescendantsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
+	GetOptionChildren(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error

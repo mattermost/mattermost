@@ -3,7 +3,10 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
+import {
+    deleteCustomProfileAttributes,
+    setupCustomProfileAttributeFields,
+} from '../../../channels/custom_profile_attributes/helpers';
 import {
     assertAccessControlAutocompleteContains,
     createPrivateChannelForABAC,
@@ -11,7 +14,14 @@ import {
     enableUserManagedAttributes,
 } from '../support';
 
-import {createChannelTextField, createParentPolicyViaAPI, openPolicyEditor, setChannelAttributeValue} from './helpers';
+import {
+    createChannelTextField,
+    createParentPolicyViaAPI,
+    deleteParentPolicy,
+    deletePropertyFieldQuietly,
+    openPolicyEditor,
+    setChannelAttributeValue,
+} from './helpers';
 
 /**
  * Test-matching-users channel picker end to end.
@@ -30,6 +40,21 @@ import {createChannelTextField, createParentPolicyViaAPI, openPolicyEditor, setC
  * matching assertion re-searches until the view catches up.
  */
 test.describe('ABAC resource.attributes - test picker', {tag: ['@abac', '@abac_resource_attributes']}, () => {
+    // Fixtures this file created, torn down after each test. The access_control group
+    // allows at most 20 user-object fields, so a spec that leaks its fields eventually
+    // fails every later spec's setup rather than its own.
+    const cleanups: Array<() => Promise<void>> = [];
+
+    test.afterEach(async () => {
+        // Reverse order, so a policy goes before the fields its rules reference: while
+        // attribute-value masking is on, deleting a policy whose field is already gone
+        // is refused outright and the policy can no longer be removed at all.
+        for (const cleanup of cleanups.reverse()) {
+            await cleanup().catch(() => {});
+        }
+        cleanups.length = 0;
+    });
+
     test('picker resolves a resource rule against the chosen channel', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
@@ -45,7 +70,9 @@ test.describe('ABAC resource.attributes - test picker', {tag: ['@abac', '@abac_r
         // to resource.attributes.<attr>.
         const attr = `region${pw.random.id()}`;
         const fieldsMap = await setupCustomProfileAttributeFields(adminClient, [{name: attr, type: 'text', value: ''}]);
+        cleanups.push(() => deleteCustomProfileAttributes(adminClient, fieldsMap));
         const channelFieldId = await createChannelTextField(adminClient, attr);
+        cleanups.push(() => deletePropertyFieldQuietly(adminClient, 'channel', channelFieldId));
 
         const userUS = await createUserForABAC(adminClient, fieldsMap, [{name: attr, type: 'text', value: 'us'}]);
         const userEU = await createUserForABAC(adminClient, fieldsMap, [{name: attr, type: 'text', value: 'eu'}]);
@@ -65,6 +92,7 @@ test.describe('ABAC resource.attributes - test picker', {tag: ['@abac', '@abac_r
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         const page = systemConsolePage.page;
+        cleanups.push(() => deleteParentPolicy(adminClient, policyId));
         await openPolicyEditor(page, policyId);
 
         const testButton = page.getByRole('button', {name: /test access rule/i});

@@ -34,6 +34,11 @@ func (api *API) InitProperties() {
 		api.BaseRoutes.PropertyField.Handle("", api.APISessionRequired(patchPropertyField)).Methods(http.MethodPatch)
 		api.BaseRoutes.PropertyField.Handle("", api.APISessionRequired(deletePropertyField)).Methods(http.MethodDelete)
 
+		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(getPropertyFieldOptions)).Methods(http.MethodGet)
+		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(createPropertyFieldOptions)).Methods(http.MethodPost)
+		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(patchPropertyFieldOptions)).Methods(http.MethodPatch)
+		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(deletePropertyFieldOptions)).Methods(http.MethodDelete)
+
 		api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(patchPropertyValues)).Methods(http.MethodPatch)
 		api.BaseRoutes.PropertySystemValues.Handle("", api.APISessionRequired(patchSystemPropertyValues)).Methods(http.MethodPatch)
 	}
@@ -334,7 +339,13 @@ func searchPropertyFieldsCore(c *Context, w http.ResponseWriter, group *model.Pr
 		return
 	}
 
-	fields, err := c.App.SearchPropertyFields(c.AppContext, group.ID, opts)
+	// A shared_only field's option list is filtered to the options the caller
+	// themselves holds, so this read has to say who is asking. See the note on
+	// sessionCallerID: an untagged read is not refused, it is answered as a
+	// caller who holds nothing.
+	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
+
+	fields, err := c.App.SearchPropertyFields(rctx, group.ID, opts)
 	if err != nil {
 		c.Err = err
 		return
@@ -665,7 +676,14 @@ func getPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, o
 	model.AddEventParameterToAuditRec(auditRec, "target_id", targetID)
 	model.AddEventParameterToAuditRec(auditRec, "since", opts.SinceUpdateAt)
 
-	values, err := c.App.SearchPropertyValues(c.AppContext, group.ID, opts)
+	// A shared_only field's values are masked against what the caller themselves
+	// holds, so this read has to say who is asking. See the note on
+	// sessionCallerID: an untagged read is not refused, it is answered as a
+	// caller who holds nothing -- and that answer is indistinguishable from
+	// masking working.
+	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
+
+	values, err := c.App.SearchPropertyValues(rctx, group.ID, opts)
 	if err != nil {
 		c.Err = err
 		return
@@ -915,6 +933,22 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 // for property-service hook identification. Local-mode (unrestricted)
 // sessions have an empty Session.UserId but full admin privileges, so they
 // are tagged with CallerIDLocalAdmin instead.
+//
+// EVERY handler that reads or writes property fields, options or values must
+// pass an rctx built with this -- reads no less than writes. An access mode of
+// shared_only masks a field's options and values against what the caller
+// themselves holds, so a read that does not say who is asking is answered as a
+// caller who holds nothing and is shown nothing. That fails closed, which is
+// correct, but it is also the exact answer a legitimate caller who shares
+// nothing with the target gets, so a handler that forgets looks like masking
+// doing its job and nothing anywhere says otherwise. The properties read
+// handlers shipped that way.
+//
+// There is no structural guard, and there is deliberately no log either: the
+// property service cannot tell a request that forgot to tag itself from a
+// caller that is genuinely anonymous, so warning on the second to catch the
+// first would mean a line per anonymous read forever. Nothing will tell you.
+// Reviewing a new property handler means checking this by eye.
 func sessionCallerID(c *Context) string {
 	session := c.AppContext.Session()
 	if session.IsUnrestricted() {

@@ -372,6 +372,137 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		assert.NotEmpty(t, result.ID)
 	})
 
+	// Graph field validation tests
+
+	// newGraphField creates a graph field holding one option per given name, and
+	// reports the identifier each name was given.
+	newGraphField := func(t *testing.T, names ...string) (*model.PropertyField, map[string]string) {
+		t.Helper()
+		options := make([]any, 0, len(names))
+		for _, name := range names {
+			options = append(options, map[string]any{"id": model.NewId(), "name": name})
+		}
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "graph_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeGraph,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: options},
+		})
+
+		ids := make(map[string]string, len(names))
+		for _, option := range options {
+			option := option.(map[string]any)
+			ids[option["name"].(string)] = option["id"].(string)
+		}
+		return field, ids
+	}
+
+	graphValue := func(field *model.PropertyField, optionIDs ...string) *model.PropertyValue {
+		encoded, err := json.Marshal(optionIDs)
+		require.NoError(t, err)
+		return &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      encoded,
+		}
+	}
+
+	t.Run("graph — accepts the options the field holds", func(t *testing.T) {
+		field, ids := newGraphField(t, "Air Program", "Fighter Jet Program")
+
+		result, upsertErr := th.service.UpsertPropertyValue(th.Context, graphValue(field, ids["Air Program"], ids["Fighter Jet Program"]))
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	t.Run("graph — rejects an option the field does not hold", func(t *testing.T) {
+		field, ids := newGraphField(t, "Air Program")
+
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, graphValue(field, ids["Air Program"], model.NewId()))
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "does not exist")
+	})
+
+	t.Run("graph — rejects an option listed twice", func(t *testing.T) {
+		field, ids := newGraphField(t, "Air Program")
+
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, graphValue(field, ids["Air Program"], ids["Air Program"]))
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "listed more than once")
+	})
+
+	t.Run("graph — rejects a value that is not an array of options", func(t *testing.T) {
+		field, ids := newGraphField(t, "Air Program")
+
+		value := graphValue(field)
+		value.Value = json.RawMessage(`"` + ids["Air Program"] + `"`)
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "expected string array value for graph field")
+	})
+
+	t.Run("graph — accepts a field whose options are past the point of being served inline", func(t *testing.T) {
+		// The state a graph field is normally in: a field with more than
+		// model.PropertyFieldMaxHydratedOptions options reads back with no option
+		// list at all, so a check against the inlined list would refuse every value
+		// written to one. This is the subtest that fails if the check ever stops
+		// asking the option rows.
+		names := make([]string, 0, model.PropertyFieldMaxHydratedOptions+1)
+		for i := range model.PropertyFieldMaxHydratedOptions + 1 {
+			names = append(names, fmt.Sprintf("Program %d", i))
+		}
+		field, ids := newGraphField(t, names...)
+
+		stored, getErr := th.service.GetPropertyField(th.Context, group.ID, field.ID)
+		require.NoError(t, getErr)
+		require.True(t, model.PropertyFieldOptionsOmitted(stored.Attrs), "the field should read back without its option list")
+
+		result, upsertErr := th.service.UpsertPropertyValue(th.Context, graphValue(field, ids["Program 7"]))
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	t.Run("graph — a value naming a deleted option is still readable", func(t *testing.T) {
+		// An option is soft-deleted, and the values pointing at it are left alone:
+		// such a value is ignored everywhere it is read rather than being an error,
+		// which is how the property system has always treated one. Only writing it
+		// again is refused.
+		field, ids := newGraphField(t, "Air Program", "Sea Program")
+
+		written, upsertErr := th.service.UpsertPropertyValue(th.Context, graphValue(field, ids["Air Program"], ids["Sea Program"]))
+		require.NoError(t, upsertErr)
+
+		require.NoError(t, th.dbStore.PropertyField().DeleteOptions(group.ID, field.ID, 0, []string{ids["Sea Program"]}))
+
+		read, getErr := th.service.GetPropertyValue(th.Context, group.ID, written.ID)
+		require.NoError(t, getErr)
+		var held []string
+		require.NoError(t, json.Unmarshal(read.Value, &held))
+		assert.ElementsMatch(t, []string{ids["Air Program"], ids["Sea Program"]}, held)
+
+		_, rewriteErr := th.service.UpsertPropertyValue(th.Context, graphValue(field, ids["Air Program"], ids["Sea Program"]))
+		require.Error(t, rewriteErr, "writing the dangling option again should be refused")
+		assert.Contains(t, rewriteErr.Error(), "does not exist")
+	})
+
+	t.Run("a value of a type nothing validates is refused", func(t *testing.T) {
+		// Not reachable through a stored field: every type the model allows has a
+		// case, so the field this needs cannot be created. The refusal exists so that
+		// adding a type and forgetting to validate its values is a failure rather
+		// than a field whose values nothing checks at all, and calling the check
+		// directly is the only way to reach it.
+		err := hook.validateValueAgainstField(
+			&model.PropertyField{ID: model.NewId(), GroupID: group.ID, Type: "spline"},
+			&model.PropertyValue{Value: json.RawMessage(`"anything"`)},
+		)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "values of a spline field are not validated")
+	})
+
 	// User field validation tests
 
 	t.Run("user — accepts valid user ID", func(t *testing.T) {
@@ -965,6 +1096,38 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 			_, ok := opt.(map[string]any)
 			assert.True(t, ok, "each option element should be map[string]any, got %T", opt)
 		}
+	})
+
+	t.Run("sanitizeAndValidateOptions carries a graph field's parents through", func(t *testing.T) {
+		// That canonicalization decodes each option into a fixed shape and encodes it
+		// again, which drops every key the shape does not name. The options above
+		// carry none that matter; the parents of a graph field's option do, and a
+		// hierarchy silently dropped here would leave every option a root -- covered
+		// by nothing, so every rule written over it denies.
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeGraph,
+			TargetType: "system",
+			ObjectType: "template",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air"},
+					map[string]any{"name": "Fighter Jet", "parents": []string{"Air"}},
+				},
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		options := created.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.Len(t, options, 2)
+		air := options[0].(map[string]any)["id"].(string)
+		jet := options[1].(map[string]any)["id"].(string)
+
+		above, resolveErr := th.service.AncestorsOrSelf(th.Context, created, []string{jet})
+		require.NoError(t, resolveErr)
+		assert.ElementsMatch(t, []string{jet, air}, above[jet])
 	})
 }
 
