@@ -154,11 +154,10 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
     });
 
     /**
-     * @objective Verify a locked attribute renders read-only with its reason, and that the lock key itself is validated server-side.
+     * @objective Verify a locked attribute renders read-only with its reason, and that the lock is enforced server-side.
      *
-     * `editable: false` is client-side only — the server validates the key's type
-     * but does not reject a write for a locked attribute. The last assertion pins
-     * that as current behaviour; invert it if server enforcement lands.
+     * `editable: false` with no change_policy reads as "never", so the lock is a
+     * server-side invariant and not only a hidden pencil.
      */
     test('renders a locked attribute read-only and validates the lock key server-side', async ({pw}) => {
         await pw.skipIfNoLicense();
@@ -207,10 +206,12 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
                 ),
             ).rejects.toThrow();
 
-            // Succeeds today: nothing server-side consults the key.
-            await setChannelValue(adminClient, channel.id, locked, optionId(locked, 'OTHER'));
+            // Refused for a system admin too: the lock is a property of the attribute,
+            // not a permission tier.
+            await expect(setChannelValue(adminClient, channel.id, locked, optionId(locked, 'OTHER'))).rejects.toThrow();
+
             const values = await adminClient.getPropertyValues('access_control', 'channel', channel.id);
-            expect(values?.find((value) => value.field_id === locked.id)?.value).toBe(optionId(locked, 'OTHER'));
+            expect(values?.find((value) => value.field_id === locked.id)?.value).toBe(optionId(locked, 'FIXED'));
         } finally {
             await deleteAttributes(adminClient, created);
         }
