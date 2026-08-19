@@ -881,22 +881,20 @@ func singleOptionRank(fieldType model.PropertyFieldType, raw json.RawMessage, ra
 // newChangePolicyError returns the refusal for a policy. The AppError is
 // returned rather than a sentinel so its specific i18n key survives the HTTP
 // layer's mapPropertyServiceError fallback, the same way the CEL name errors do.
+//
+// Each key is written inline: i18n-extract only sees IDs passed literally to
+// NewAppError, and drops any it cannot find from en.json.
 func newChangePolicyError(field *model.PropertyField, policy string) error {
-	id := "app.property_value.change_policy.never.app_error"
+	details := fmt.Sprintf("field %s: change policy %q does not permit this change", field.ID, policy)
+
 	switch policy {
 	case model.PropertyFieldChangePolicyRaiseOnly:
-		id = "app.property_value.change_policy.raise_only.app_error"
+		return model.NewAppError("UpsertPropertyValues", "app.property_value.change_policy.raise_only.app_error", nil, details, http.StatusForbidden)
 	case model.PropertyFieldChangePolicyLowerOnly:
-		id = "app.property_value.change_policy.lower_only.app_error"
+		return model.NewAppError("UpsertPropertyValues", "app.property_value.change_policy.lower_only.app_error", nil, details, http.StatusForbidden)
+	default:
+		return model.NewAppError("UpsertPropertyValues", "app.property_value.change_policy.never.app_error", nil, details, http.StatusForbidden)
 	}
-
-	return model.NewAppError(
-		"UpsertPropertyValues",
-		id,
-		nil,
-		fmt.Sprintf("field %s: change policy %q does not permit this change", field.ID, policy),
-		http.StatusForbidden,
-	)
 }
 
 // getValuesForTarget loads every value stored against one target, paging with
