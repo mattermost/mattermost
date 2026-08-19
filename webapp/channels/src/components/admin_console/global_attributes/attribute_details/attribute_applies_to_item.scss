@@ -90,6 +90,7 @@
     grid-template-columns: 176px 1fr;
 
     &:last-child {
+        padding-bottom: 0;
         border-bottom: none;
     }
 
