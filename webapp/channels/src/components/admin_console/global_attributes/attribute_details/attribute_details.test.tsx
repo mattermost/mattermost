@@ -80,7 +80,7 @@ describe('AttributeDetails', () => {
         expect(screen.getByTestId('saveSetting')).toBeDisabled();
     });
 
-    it('reveals a focused editable Name input seeded with the current slug when Edit is clicked, and stops auto-updating it', async () => {
+    it('reveals a focused editable Name input seeded with the current slug when Edit is clicked', async () => {
         renderComponent();
 
         await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
@@ -89,9 +89,6 @@ describe('AttributeDetails', () => {
         const nameInput = screen.getByTestId('attributeNameInput');
         expect(nameInput).toHaveValue('my_attribute');
         expect(nameInput).toHaveFocus();
-
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Extra');
-        expect(nameInput).toHaveValue('my_attribute');
     });
 
     it('swaps the Edit link to Done while editing, and back to Edit (keeping the typed value) when Done is clicked', async () => {
@@ -130,6 +127,39 @@ describe('AttributeDetails', () => {
         // an actual change must not freeze the Name to the seeded snapshot.
         await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Two');
         expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute_two');
+    });
+
+    it('exits edit mode on blur without pinning if the seeded value was not changed', async () => {
+        renderComponent();
+
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.click(screen.getByTestId('attributeDisplayNameInput'));
+
+        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeNameEditLink')).toHaveTextContent('Edit');
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute');
+
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Two');
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute_two');
+    });
+
+    it('commits a typed Name on blur and stops auto-derivation', async () => {
+        renderComponent();
+
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+
+        const nameInput = screen.getByTestId('attributeNameInput');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'custom_name');
+        await userEvent.click(screen.getByTestId('attributeDisplayNameInput'));
+
+        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('custom_name');
+
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Two');
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('custom_name');
     });
 
     it('reverts to auto-derived mode if Done is clicked with an empty field on the very first edit', async () => {
@@ -183,7 +213,7 @@ describe('AttributeDetails', () => {
         expect(screen.getByTestId('saveSetting')).toBeDisabled();
     });
 
-    it('refuses to commit an invalid Name via Done or Enter, keeping the editor open', async () => {
+    it('refuses to commit an invalid Name via Done, Enter, or blur, keeping the editor open', async () => {
         renderComponent();
 
         await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
@@ -204,6 +234,10 @@ describe('AttributeDetails', () => {
         await userEvent.type(screen.getByTestId('attributeNameInput'), '{Enter}');
         expect(screen.getByTestId('attributeNameInput')).toHaveValue('for');
         expect(screen.getByTestId('attributeUniqueNameError')).toHaveTextContent('reserved word');
+
+        await userEvent.click(screen.getByTestId('attributeDisplayNameInput'));
+        expect(screen.getByTestId('attributeNameInput')).toHaveValue('for');
+        expect(screen.getByTestId('attributeNameEditLink')).toHaveTextContent('Done');
     });
 
     it('commits the Name once the invalid value is corrected', async () => {
@@ -572,7 +606,7 @@ describe('AttributeDetails', () => {
         expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('committed_name');
     });
 
-    it('disables the Display name input, Name input, and Edit/Done link while saving', async () => {
+    it('disables the Display name input and Edit link while saving', async () => {
         let resolveCreate: (value: PropertyField) => void = () => {};
         jest.spyOn(Client4, 'createPropertyField').mockReturnValue(new Promise((resolve) => {
             resolveCreate = resolve;
@@ -583,8 +617,9 @@ describe('AttributeDetails', () => {
         await userEvent.click(screen.getByTestId('attributeNameEditLink'));
         await userEvent.click(screen.getByTestId('saveSetting'));
 
+        // Clicking Save blurs the Name input first, which commits like Done.
         expect(screen.getByTestId('attributeDisplayNameInput')).toBeDisabled();
-        expect(screen.getByTestId('attributeNameInput')).toBeDisabled();
+        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
         expect(screen.getByTestId('attributeNameEditLink')).toBeDisabled();
 
         resolveCreate({} as PropertyField);

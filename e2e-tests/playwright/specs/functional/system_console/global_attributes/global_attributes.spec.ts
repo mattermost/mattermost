@@ -521,11 +521,11 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
         });
 
         /**
-         * @objective Ensure "Done" and Enter both refuse to commit an invalid manual Unique name,
-         * so a reserved word can never be left sitting in the field, and that correcting the value
-         * unblocks the commit and lets the attribute save for real.
+         * @objective Ensure "Done", Enter, and blur all refuse to commit an invalid manual Unique
+         * name, so a reserved word can never be left sitting in the field, and that correcting the
+         * value unblocks the commit and lets the attribute save for real.
          */
-        test('blocks Done and Enter while the manual Unique name is a reserved word, then commits once corrected', async ({
+        test('blocks Done, Enter, and blur while the manual Unique name is a reserved word, then commits once corrected', async ({
             pw,
         }) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
@@ -596,7 +596,16 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                     'reserved word',
                 );
 
+                // # Click away onto the Display name field (blur), same commit path as Done/Enter
+                await systemConsolePage.page.getByTestId('attributeDisplayNameInput').click();
+
+                // * Also rejected -- the editor stays open rather than committing on click-away
+                await expect(nameInput).toBeVisible();
+                await expect(nameInput).toHaveValue('for');
+                await expect(doneLink).toHaveText('Done');
+
                 // # Correct the value by typing the rest of the identifier
+                await nameInput.click();
                 await nameInput.press('End');
                 await nameInput.pressSequentially(`_${timestamp}`);
 
@@ -680,6 +689,62 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
 
             // * Save is available again, since the Name is back to a valid auto-derived slug
             await expect(systemConsolePage.page.getByTestId('saveSetting')).toBeEnabled();
+        });
+
+        /**
+         * @objective Ensure clicking away from the Unique name input is the same as Done: an
+         * unchanged seed keeps auto-derivation live, and an actual edit pins the Name so further
+         * Display name changes no longer rewrite it. Mirrors the channel URL field in create/settings.
+         */
+        test('treats clicking away from Unique name as Done: no-op keeps derivation, an edit pins', async ({pw}) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            // Short prefix: see the 40-char Unique name cap noted in the reserved-word test above
+            const displayName = `Playwright Blur ${timestamp}`;
+            const autoDerivedName = `playwright_blur_${timestamp}`;
+            const extendedDisplayName = `${displayName} Two`;
+            const extendedAutoDerivedName = `${autoDerivedName}_two`;
+            const pinnedName = `custom_blur_${timestamp}`;
+
+            // # Log in and open the create page
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+            await systemConsolePage.page.getByTestId('newAttributeButton').click();
+            await expect(systemConsolePage.page).toHaveURL(/attribute_details/);
+
+            const displayNameInput = systemConsolePage.page.getByTestId('attributeDisplayNameInput');
+            await displayNameInput.fill(displayName);
+            await expect(systemConsolePage.page.getByTestId('attributeUniqueNameValue')).toHaveText(autoDerivedName);
+
+            // # Open the editor and click away without changing the seeded value
+            await systemConsolePage.page.getByTestId('attributeNameEditLink').click();
+            await expect(systemConsolePage.page.getByTestId('attributeNameInput')).toBeFocused();
+            await displayNameInput.click();
+
+            // * Exited edit mode, still showing the auto-derived slug
+            await expect(systemConsolePage.page.getByTestId('attributeNameInput')).toHaveCount(0);
+            await expect(systemConsolePage.page.getByTestId('attributeNameEditLink')).toHaveText('Edit');
+            await expect(systemConsolePage.page.getByTestId('attributeUniqueNameValue')).toHaveText(autoDerivedName);
+
+            // * Auto-derivation is still live
+            await displayNameInput.fill(extendedDisplayName);
+            await expect(systemConsolePage.page.getByTestId('attributeUniqueNameValue')).toHaveText(
+                extendedAutoDerivedName,
+            );
+
+            // # Open the editor, type a different Name, and click away
+            await systemConsolePage.page.getByTestId('attributeNameEditLink').click();
+            await systemConsolePage.page.getByTestId('attributeNameInput').fill(pinnedName);
+            await displayNameInput.click();
+
+            // * Committed -- the editor closed and the typed Name is shown
+            await expect(systemConsolePage.page.getByTestId('attributeNameInput')).toHaveCount(0);
+            await expect(systemConsolePage.page.getByTestId('attributeUniqueNameValue')).toHaveText(pinnedName);
+
+            // * Manual override stays in effect -- further Display name edits do not overwrite it
+            await displayNameInput.fill(`${extendedDisplayName} Three`);
+            await expect(systemConsolePage.page.getByTestId('attributeUniqueNameValue')).toHaveText(pinnedName);
         });
 
         /**

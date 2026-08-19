@@ -434,9 +434,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         setIsEditingName(true);
     }, [autoSlugDisplay, isNameManuallyEdited, manualName]);
 
-    // Done (and Enter, which routes here) is inert while the typed Name is
-    // invalid, so a reserved word or bad charset can never be committed into
-    // the field -- the admin must fix it first. This is not a focus trap:
+    // Done, Enter, and blur (clicking away) share this path. Inert while the
+    // typed Name is invalid, so a reserved word or bad charset can never be
+    // committed -- the admin must fix it first. This is not a focus trap:
     // clearing the field makes Done live again (an empty name has no
     // validation error, and Done then applies the revert rules below), and
     // Escape still discards the whole edit outright.
@@ -686,6 +686,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                     value={manualName}
                                                     onChange={handleNameChange}
                                                     onKeyDown={handleNameKeyDown}
+                                                    onBlur={handleDoneClick}
                                                     autoFocus={true}
                                                     disabled={saving || disabled}
                                                     maxLength={CPA_FIELD_NAME_MAX_RUNES}
@@ -707,6 +708,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 type='button'
                                                 className='AttributeDetails__editLink'
                                                 onClick={isEditingName ? handleDoneClick : handleEditClick}
+                                                onMouseDown={(e) => {
+                                                    // Blur runs before click. Without this, Done would
+                                                    // commit on blur and the same click would re-open Edit.
+                                                    if (isEditingName) {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
                                                 disabled={saving || disabled}
                                                 aria-disabled={isDoneBlocked || undefined}
                                                 aria-describedby={isDoneBlocked ? 'attribute-unique-name-error' : undefined}
