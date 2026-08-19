@@ -166,9 +166,9 @@ func (p *Permissions) IsValid(objectType string) error {
 // isValid checks the shape-only masking rules — the ones answerable without a
 // store: every except identity is a known type with a present, non-wildcard
 // id; mask_by_field_id is only ever set on a template; and a masked field that
-// isn't object_type:user must set it, since that is otherwise the only place
-// holdings can be read from. Whether mask_by_field_id actually names a live,
-// linked field is checked separately, once a store is reachable.
+// isn't object_type:user must set it, since object_type:user is the only place
+// holdings can be read from today. Whether mask_by_field_id actually names a
+// live, linked field is checked separately, once a store is reachable.
 func (m *Masking) isValid(objectType string) error {
 	for _, id := range m.Except {
 		if !IsValidPropertyOwnerType(id.Type) {

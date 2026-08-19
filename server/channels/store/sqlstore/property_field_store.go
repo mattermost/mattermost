@@ -111,9 +111,9 @@ func (s *SqlPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*m
 
 // ValidateMaskByFieldID enforces the store-dependent half of a masking
 // field's mask_by_field_id: the named field must exist, be live, be
-// object_type:user, and be linked back to fieldID. The shape-only half
-// (template-only, must resolve holdings somewhere) is checked without a
-// store by Masking.isValid.
+// object_type:user (the only holder type resolved today), and be linked back
+// to fieldID. The shape-only half (template-only, must resolve holdings
+// somewhere) is checked without a store by Masking.isValid.
 func (s *SqlPropertyFieldStore) ValidateMaskByFieldID(ctx context.Context, groupID, fieldID, maskByFieldID string) error {
 	target, err := s.Get(store.WithMaster(ctx), groupID, maskByFieldID)
 	if err != nil {
