@@ -153,7 +153,7 @@ func (p *Permissions) IsValid(objectType string) error {
 		}
 	}
 	if p.Masking != nil {
-		if err := p.Masking.isValid(); err != nil {
+		if err := p.Masking.isValid(objectType); err != nil {
 			return err
 		}
 		if err := p.validateMaskingForField(objectType); err != nil {
@@ -163,10 +163,13 @@ func (p *Permissions) IsValid(objectType string) error {
 	return nil
 }
 
-// isValid checks the shape-only masking rules: every except identity is a
-// known type with a present, non-wildcard id — a masking exemption must never
-// be granted to unknown identity types or the wildcard.
-func (m *Masking) isValid() error {
+// isValid checks the shape-only masking rules — the ones answerable without a
+// store: every except identity is a known type with a present, non-wildcard
+// id; mask_by_field_id is only ever set on a template; and a masked field that
+// isn't object_type:user must set it, since that is otherwise the only place
+// holdings can be read from. Whether mask_by_field_id actually names a live,
+// linked field is checked separately, once a store is reachable.
+func (m *Masking) isValid(objectType string) error {
 	for _, id := range m.Except {
 		if !IsValidPropertyOwnerType(id.Type) {
 			return fmt.Errorf("except: invalid type %q", id.Type)
@@ -178,8 +181,12 @@ func (m *Masking) isValid() error {
 			return fmt.Errorf("except: wildcard id is not allowed")
 		}
 	}
-	// TODO: mask_by_field_id must name an existing object_type:user field linked to
-	// this template. Add validation when the store is reachable.
+	if m.MaskByFieldID != "" && objectType != PropertyFieldObjectTypeTemplate {
+		return fmt.Errorf("mask_by_field_id is only allowed on object_type:template")
+	}
+	if objectType != PropertyFieldObjectTypeUser && m.MaskByFieldID == "" {
+		return fmt.Errorf("masked field with no mask_by_field_id and object_type != user has no resolvable holdings")
+	}
 	return nil
 }
 

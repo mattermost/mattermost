@@ -972,6 +972,24 @@ func (_m *PropertyFieldStore) Update(groupID string, fields []*model.PropertyFie
 	return r0, r1
 }
 
+// ValidateMaskByFieldID provides a mock function with given fields: ctx, groupID, fieldID, maskByFieldID
+func (_m *PropertyFieldStore) ValidateMaskByFieldID(ctx context.Context, groupID string, fieldID string, maskByFieldID string) error {
+	ret := _m.Called(ctx, groupID, fieldID, maskByFieldID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ValidateMaskByFieldID")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
+		r0 = rf(ctx, groupID, fieldID, maskByFieldID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewPropertyFieldStore creates a new instance of PropertyFieldStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewPropertyFieldStore(t interface {

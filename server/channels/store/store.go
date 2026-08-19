@@ -1189,6 +1189,7 @@ type PropertyGroupStore interface {
 type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
 	Get(ctx context.Context, groupID, id string) (*model.PropertyField, error)
+	ValidateMaskByFieldID(ctx context.Context, groupID, fieldID, maskByFieldID string) error
 	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
 	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
 	GetFieldByNameForObjectType(ctx context.Context, groupID, targetID, objectType, name string) (*model.PropertyField, error)

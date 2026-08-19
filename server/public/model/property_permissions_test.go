@@ -145,7 +145,17 @@ func TestMaskingValidation(t *testing.T) {
 
 	t.Run("valid non-wildcard except passes", func(t *testing.T) {
 		p := &Permissions{Masking: &Masking{Except: []Identity{{Type: PropertyOwnerTypePlugin, ID: "com.example"}}}}
-		require.NoError(t, p.IsValid(PropertyFieldObjectTypeChannel))
+		require.NoError(t, p.IsValid(PropertyFieldObjectTypeUser))
+	})
+
+	t.Run("mask_by_field_id rejected off a template", func(t *testing.T) {
+		p := &Permissions{Masking: &Masking{MaskByFieldID: "sampleid"}}
+		require.Error(t, p.IsValid(PropertyFieldObjectTypeUser))
+	})
+
+	t.Run("masked non-user field with no mask_by_field_id has no resolvable holdings", func(t *testing.T) {
+		p := &Permissions{Masking: &Masking{}}
+		require.Error(t, p.IsValid(PropertyFieldObjectTypeChannel))
 	})
 
 	t.Run("self-writable user field rejected", func(t *testing.T) {
@@ -171,9 +181,9 @@ func TestMaskingValidation(t *testing.T) {
 	t.Run("self-writable rule does not apply to non-user objects", func(t *testing.T) {
 		p := &Permissions{
 			Restrictions: &Restrictions{Value: ReadWrite{Write: PermissionLevelMember}},
-			Masking:      &Masking{},
+			Masking:      &Masking{MaskByFieldID: "sampleid"},
 		}
-		require.NoError(t, p.IsValid(PropertyFieldObjectTypeChannel))
+		require.NoError(t, p.IsValid(PropertyFieldObjectTypeTemplate))
 	})
 }
 

@@ -46,6 +46,12 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 		return nil, errors.Wrap(err, "property_field_create_isvalid")
 	}
 
+	if field.Permissions != nil && field.Permissions.Masking != nil && field.Permissions.Masking.MaskByFieldID != "" {
+		if err := s.ValidateMaskByFieldID(context.Background(), field.GroupID, field.ID, field.Permissions.Masking.MaskByFieldID); err != nil {
+			return nil, errors.Wrap(err, "property_field_create_validate_mask_by_field_id")
+		}
+	}
+
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "property_field_create_begin_transaction")
@@ -101,6 +107,36 @@ func (s *SqlPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*m
 	}
 
 	return &field, nil
+}
+
+// ValidateMaskByFieldID enforces the store-dependent half of a masking
+// field's mask_by_field_id: the named field must exist, be live, be
+// object_type:user, and be linked back to fieldID. The shape-only half
+// (template-only, must resolve holdings somewhere) is checked without a
+// store by Masking.isValid.
+func (s *SqlPropertyFieldStore) ValidateMaskByFieldID(ctx context.Context, groupID, fieldID, maskByFieldID string) error {
+	target, err := s.Get(ctx, groupID, maskByFieldID)
+	if err != nil {
+		var notFound *store.ErrNotFound
+		if errors.As(err, &notFound) {
+			return fmt.Errorf("mask_by_field_id references non-existent field %s", maskByFieldID)
+		}
+		return errors.Wrap(err, "property_field_validate_mask_by_field_id_get")
+	}
+
+	if target.DeleteAt != 0 {
+		return fmt.Errorf("mask_by_field_id references a deleted field")
+	}
+
+	if target.ObjectType != model.PropertyFieldObjectTypeUser {
+		return fmt.Errorf("mask_by_field_id must reference an object_type:user field")
+	}
+
+	if target.LinkedFieldID == nil || *target.LinkedFieldID != fieldID {
+		return fmt.Errorf("mask_by_field_id references a field not linked to this template")
+	}
+
+	return nil
 }
 
 // GetFieldByName retrieves a single property field by group, target, and name,
@@ -422,6 +458,12 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		}
 		if vErr := field.IsValid(); vErr != nil {
 			return nil, errors.Wrap(vErr, "property_field_update_isvalid")
+		}
+
+		if field.Permissions != nil && field.Permissions.Masking != nil && field.Permissions.Masking.MaskByFieldID != "" {
+			if maskErr := s.ValidateMaskByFieldID(context.Background(), field.GroupID, field.ID, field.Permissions.Masking.MaskByFieldID); maskErr != nil {
+				return nil, errors.Wrap(maskErr, "property_field_update_validate_mask_by_field_id")
+			}
 		}
 
 		ids[i] = field.ID

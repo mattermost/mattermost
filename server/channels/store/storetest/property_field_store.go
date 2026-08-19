@@ -24,6 +24,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("CreatePropertyField", func(t *testing.T) { testCreatePropertyField(t, rctx, ss) })
 	t.Run("CreatePropertyFieldPermissions", func(t *testing.T) { testCreatePropertyFieldPermissions(t, rctx, ss, s) })
 	t.Run("ReverseLookupGrants", func(t *testing.T) { testReverseLookupGrants(t, rctx, ss) })
+	t.Run("ValidateMaskByFieldID", func(t *testing.T) { testValidateMaskByFieldID(t, rctx, ss) })
 	t.Run("GetPropertyField", func(t *testing.T) { testGetPropertyField(t, rctx, ss, s) })
 	t.Run("GetManyPropertyFields", func(t *testing.T) { testGetManyPropertyFields(t, rctx, ss) })
 	t.Run("GetFieldByName", func(t *testing.T) { testGetFieldByName(t, rctx, ss) })
@@ -343,6 +344,124 @@ func testReverseLookupGrants(t *testing.T, _ request.CTX, ss store.Store) {
 		has, err = ss.PropertyField().HasGrantForIdentity(context.Background(), model.PropertyOwnerTypeUser, model.NewId())
 		require.NoError(t, err)
 		require.False(t, has)
+	})
+}
+
+func testValidateMaskByFieldID(t *testing.T, _ request.CTX, ss store.Store) {
+	groupID := model.NewId()
+
+	t.Run("mask_by_field_id referencing a non-existent field is rejected", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Missing target template",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Masking: &model.Masking{MaskByFieldID: model.NewId()},
+			},
+		}
+		_, err := ss.PropertyField().Create(field)
+		require.ErrorContains(t, err, "non-existent field")
+	})
+
+	userField, err := ss.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       "Unlinked holdings field",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	require.NoError(t, err)
+
+	t.Run("mask_by_field_id referencing a field not linked to this template is rejected", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Unlinked template",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Masking: &model.Masking{MaskByFieldID: userField.ID},
+			},
+		}
+		_, err := ss.PropertyField().Create(field)
+		require.ErrorContains(t, err, "not linked")
+	})
+
+	t.Run("mask_by_field_id referencing a non-user field is rejected", func(t *testing.T) {
+		otherTemplate, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Other template",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Template masked by a template",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Masking: &model.Masking{MaskByFieldID: otherTemplate.ID},
+			},
+		}
+		_, err = ss.PropertyField().Create(field)
+		require.ErrorContains(t, err, "object_type:user")
+	})
+
+	t.Run("mask_by_field_id referencing a deleted field is rejected", func(t *testing.T) {
+		deletedUserField, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Deleted holdings field",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+		require.NoError(t, ss.PropertyField().Delete(groupID, deletedUserField.ID))
+
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Template masked by a deleted field",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Masking: &model.Masking{MaskByFieldID: deletedUserField.ID},
+			},
+		}
+		_, err = ss.PropertyField().Create(field)
+		require.ErrorContains(t, err, "deleted field")
+	})
+
+	t.Run("mask_by_field_id referencing a live, linked user field is accepted", func(t *testing.T) {
+		template, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Linked template",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+
+		linkedFieldID := template.ID
+		linkedUserField, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:       groupID,
+			Name:          "Linked holdings field",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedFieldID,
+		})
+		require.NoError(t, err)
+
+		template.Permissions = &model.Permissions{Masking: &model.Masking{MaskByFieldID: linkedUserField.ID}}
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{template}, nil)
+		require.NoError(t, err)
 	})
 }
 

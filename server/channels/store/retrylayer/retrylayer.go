@@ -10750,11 +10750,53 @@ func (s *RetryLayerPropertyFieldStore) GetFieldOptions(field *model.PropertyFiel
 
 }
 
+func (s *RetryLayerPropertyFieldStore) GetFieldsByGrant(ctx context.Context, ownerType string, ownerID string, action string) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetFieldsByGrant(ctx, ownerType, ownerID, action)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyFieldStore) GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error) {
 
 	tries := 0
 	for {
 		result, err := s.PropertyFieldStore.GetForGroup(ctx, groupID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) GetGrantsForField(ctx context.Context, fieldID string) ([]model.Grant, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.GetGrantsForField(ctx, fieldID)
 		if err == nil {
 			return result, nil
 		}
@@ -11002,6 +11044,27 @@ func (s *RetryLayerPropertyFieldStore) GetOptionsByName(field *model.PropertyFie
 
 }
 
+func (s *RetryLayerPropertyFieldStore) HasGrantForIdentity(ctx context.Context, ownerType string, ownerID string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.HasGrantForIdentity(ctx, ownerType, ownerID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyFieldStore) MutateOptionEdges(groupID string, fieldID string, expectedUpdateAt int64, add []*model.PropertyOptionEdge, remove []*model.PropertyOptionEdge) error {
 
 	tries := 0
@@ -11080,6 +11143,27 @@ func (s *RetryLayerPropertyFieldStore) Update(groupID string, fields []*model.Pr
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) ValidateMaskByFieldID(ctx context.Context, groupID string, fieldID string, maskByFieldID string) error {
+
+	tries := 0
+	for {
+		err := s.PropertyFieldStore.ValidateMaskByFieldID(ctx, groupID, fieldID, maskByFieldID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
