@@ -150,7 +150,7 @@ func TestMigration000185(t *testing.T) {
 	assert.Equal(t, "user", val.TargetType, "value TargetType should be unchanged")
 
 	// Verify: the user attribute matview exists and includes the ObjectType
-	// filter (user-type fields only). Since migration 000214 the single
+	// filter (user-type fields only). Since migration 000216 the single
 	// AttributeView is split per object type; the user row lives in UserAttributeView.
 	var viewDef string
 	err = master.Get(&viewDef, "SELECT definition FROM pg_matviews WHERE matviewname = 'userattributeview'")
@@ -323,7 +323,7 @@ func TestMigration000185NoOpOnFreshDB(t *testing.T) {
 	_, err = master.ExecNoTimeout(upSQL)
 	assert.NoError(t, err, "up migration should be a safe no-op on fresh DB")
 
-	// The attribute matviews exist in the final schema. Since migration 000214
+	// The attribute matviews exist in the final schema. Since migration 000216
 	// the single AttributeView is split into per-object-type views.
 	for _, view := range []string{"userattributeview", "channelattributeview"} {
 		var viewExists bool

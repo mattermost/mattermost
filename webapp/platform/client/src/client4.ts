@@ -159,7 +159,7 @@ import type {
 import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
 
 import {cleanUrlForLogging} from './errors';
-import {buildQueryString} from './helpers';
+import {buildQueryString, extractFilenameFromContentDisposition} from './helpers';
 
 export enum LdapDiagnosticTestType {
     FILTERS = 'filters',
@@ -3068,7 +3068,7 @@ export default class Client4 {
 
     getClientLicenseOld = () => {
         return this.doFetch<ClientLicense>(
-            `${this.getBaseRoute()}/license/client?format=old`,
+            `${this.getBaseRoute()}/license/client`,
             {method: 'get'},
         );
     };
@@ -4883,7 +4883,7 @@ export default class Client4 {
                 const text = await response.text();
                 const objects = text.trim().split('\n');
                 data = objects.map((obj) => JSON.parse(obj));
-            } else if (contentType === 'application/zip') {
+            } else if (contentType === 'application/zip' || contentType?.startsWith('text/csv')) {
                 data = await response.blob();
             } else {
                 data = await response.text();
@@ -5430,6 +5430,28 @@ export default class Client4 {
                 signal,
             },
         );
+    };
+
+    getPostExposureReportUrl = (postId: string) => {
+        return `${this.getContentFlaggingRoute()}/post/${postId}/exposure_report`;
+    };
+
+    generatePostExposureReport = async (postId: string, signal?: AbortSignal): Promise<{blob: Blob; filename: string}> => {
+        const {data, headers} = await this.doFetchWithResponse<Blob>(
+            this.getPostExposureReportUrl(postId),
+            {
+                method: 'post',
+                signal,
+            },
+        );
+
+        return {
+            blob: data,
+            filename: extractFilenameFromContentDisposition(
+                headers.get('Content-Disposition'),
+                `post-exposure-${postId}-${Date.now()}.csv`,
+            ),
+        };
     };
 }
 

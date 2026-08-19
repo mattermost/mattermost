@@ -6,6 +6,7 @@ import {
     CPA_FIELD_NAME_RESERVED_WORDS,
     filterCELIdentifier,
     getUserPropertyFieldLabel,
+    isFieldOrphaned,
     slugifyForCEL,
     validateCPAFieldName,
 } from './properties';
@@ -272,5 +273,32 @@ describe('filterCELIdentifier', () => {
 
     test.each(cases)('%s: %s → %s', (_label, input, expected) => {
         expect(filterCELIdentifier(input)).toBe(expected);
+    });
+});
+
+describe('isFieldOrphaned', () => {
+    const installed = new Set(['com.acme.plugin']);
+
+    it('reports a plugin-owned field whose plugin is gone', () => {
+        const field = {attrs: {source_plugin_id: 'com.acme.removed', protected: true}};
+        expect(isFieldOrphaned(field, installed)).toBe(true);
+    });
+
+    it('does not report a plugin-owned field whose plugin is still installed', () => {
+        const field = {attrs: {source_plugin_id: 'com.acme.plugin', protected: true}};
+        expect(isFieldOrphaned(field, installed)).toBe(false);
+    });
+
+    // An unprotected field is admin-managed regardless of where it came from, so it
+    // is never "orphaned" — it was always the admin's to delete.
+    it('does not report an unprotected field even when its plugin is gone', () => {
+        const field = {attrs: {source_plugin_id: 'com.acme.removed'}};
+        expect(isFieldOrphaned(field, installed)).toBe(false);
+    });
+
+    it('does not report a field with no source plugin at all', () => {
+        expect(isFieldOrphaned({attrs: {protected: true}}, installed)).toBe(false);
+        expect(isFieldOrphaned({attrs: {}}, installed)).toBe(false);
+        expect(isFieldOrphaned({}, installed)).toBe(false);
     });
 });

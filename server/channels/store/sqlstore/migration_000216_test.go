@@ -22,11 +22,11 @@ func matviewExists(t *testing.T, s *SqlStore, name string) bool {
 	return count > 0
 }
 
-// TestMigration000214 verifies the split of AttributeView into per-object-type
+// TestMigration000216 verifies the split of AttributeView into per-object-type
 // views: after the migration both UserAttributeView and ChannelAttributeView
 // exist (and the combined AttributeView is gone), each filtering to its own
 // ObjectType. The down migration restores the single combined view.
-func TestMigration000214(t *testing.T) {
+func TestMigration000216(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
 	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
@@ -38,7 +38,7 @@ func TestMigration000214(t *testing.T) {
 	require.NoError(t, err)
 	defer store.Close()
 
-	// New() applies all migrations, so 000214 is already in effect.
+	// New() applies all migrations, so 000216 is already in effect.
 	require.True(t, matviewExists(t, store, "UserAttributeView"), "UserAttributeView should exist after migration")
 	require.True(t, matviewExists(t, store, "ChannelAttributeView"), "ChannelAttributeView should exist after migration")
 	require.False(t, matviewExists(t, store, "AttributeView"), "combined AttributeView should be gone after migration")
@@ -100,8 +100,8 @@ func TestMigration000214(t *testing.T) {
 	require.Equal(t, 0, countInView("ChannelAttributeView", userTarget), "user row should not be in ChannelAttributeView")
 
 	// Down then up round-trips the view topology.
-	downSQL := readMigrationSQL(t, "000214_split_attribute_view_by_object_type.down.sql")
-	upSQL := readMigrationSQL(t, "000214_split_attribute_view_by_object_type.up.sql")
+	downSQL := readMigrationSQL(t, "000216_split_attribute_view_by_object_type.down.sql")
+	upSQL := readMigrationSQL(t, "000216_split_attribute_view_by_object_type.up.sql")
 
 	_, err = store.GetMaster().Exec(downSQL)
 	require.NoError(t, err)
