@@ -378,6 +378,10 @@ type Hooks interface {
 	// upload, removal, expiry, and cluster-driven reloads. Either license may
 	// be nil (unlicensed ↔ licensed transitions).
 	//
+	// This hook is not invoked for the initial license load at startup. Plugins
+	// that need the current license when activated should call API.GetLicense()
+	// from OnActivate.
+	//
 	// Minimum server version: 12.0
 	OnLicenseChanged(oldLicense, newLicense *model.License)
 
