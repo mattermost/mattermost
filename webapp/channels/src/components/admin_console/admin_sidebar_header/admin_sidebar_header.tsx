@@ -56,7 +56,7 @@ const SidebarHeader = ({currentUser: me}: Props) => {
                             className='header__info'
                             data-testid='admin-sidebar-header-info'
                         >
-                            <div className='team__name'>
+                            <div className='header__title'>
                                 <FormattedMessage
                                     id='admin.sidebarHeader.systemConsole'
                                     defaultMessage='System Console'
