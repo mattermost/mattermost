@@ -900,7 +900,7 @@ func storedFieldAttrs(field *model.PropertyField) model.StringInterface {
 
 // storedFieldPermissions encodes field.Permissions to JSONB for storage. If
 // Permissions is nil, returns nil for database NULL; otherwise marshals to JSON.
-func storedFieldPermissions(field *model.PropertyField) interface{} {
+func storedFieldPermissions(field *model.PropertyField) any {
 	if field.Permissions == nil {
 		return nil
 	}
