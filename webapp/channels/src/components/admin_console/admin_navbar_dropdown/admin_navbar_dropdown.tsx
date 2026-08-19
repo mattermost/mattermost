@@ -86,8 +86,8 @@ const AdminNavbarDropdown = () => {
                 to='/select_team'
                 labels={
                     <FormattedMessage
-                        id='admin.nav.switchTeams'
-                        defaultMessage='Switch teams'
+                        id='admin.nav.switch'
+                        defaultMessage='Team Selection'
                     />
                 }
             />

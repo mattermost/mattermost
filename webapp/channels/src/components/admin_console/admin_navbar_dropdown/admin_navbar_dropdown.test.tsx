@@ -140,10 +140,11 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
         expect(screen.queryByRole('menuitem', {name: 'Switch teams'})).not.toBeInTheDocument();
     });
 
-    test('should show Switch teams link when user has no teams', () => {
+    test('should show Team Selection link when user has no teams', () => {
         renderDropdown({});
 
-        expect(screen.getByRole('menuitem', {name: 'Switch teams'})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: 'Team Selection'})).toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', {name: 'Switch teams'})).not.toBeInTheDocument();
     });
 
     test('should show Switch teams submenu with team names when user has multiple teams', async () => {

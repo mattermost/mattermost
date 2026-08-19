@@ -2208,6 +2208,7 @@
   "admin.nav.administratorsGuide": "Administrator's Guide",
   "admin.nav.commercialSupport": "Commercial Support",
   "admin.nav.menuAriaLabel": "Admin Console Menu",
+  "admin.nav.switch": "Team Selection",
   "admin.nav.switchTeams": "Switch teams",
   "admin.nav.troubleshootingForum": "Troubleshooting Forum",
   "admin.notices.enableAdminNoticesDescription": "When enabled, System Admins will receive notices about available server upgrades and relevant system administration features. <link>Learn more about notices</link> in our documentation.",
