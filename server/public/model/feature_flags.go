@@ -222,6 +222,12 @@ func (f *FeatureFlags) SetDefaults() {
 
 // isValid rejects feature flag combinations that are no longer supported.
 func (f *FeatureFlags) isValid() *AppError {
+	// The Apps framework is being retired, so the server refuses to start
+	// while the AppsEnabled feature flag is enabled.
+	if f.AppsEnabled {
+		return NewAppError("FeatureFlags.IsValid", "model.config.is_valid.feature_flags.apps_enabled.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	// MoveThreadsEnabled is being retired in favor of Wrangler, so the server
 	// refuses to start while it is enabled.
 	if f.MoveThreadsEnabled {
