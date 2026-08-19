@@ -19,10 +19,19 @@
     text-align: center;
 }
 
+.AttributeAppliesTo__emptyStateHeading {
+    margin: 0;
+    font-family: Metropolis, sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 28px;
+}
+
 .AttributeAppliesTo__emptyStateHelperText {
     margin: 0 0 12px;
-    color: rgba(var(--center-channel-color-rgb), 0.72);
-    font-size: 12px;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 14px;
+    line-height: 20px;
 }
 
 .AttributeAppliesTo__list {

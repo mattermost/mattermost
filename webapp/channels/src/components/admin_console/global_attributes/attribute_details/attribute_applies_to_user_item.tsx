@@ -30,7 +30,7 @@ function AttributeAppliesToUserItem({disabled = false, onRemove}: AttributeAppli
 
     return (
         <div
-            className='AttributeAppliesToItem'
+            className={classNames('AttributeAppliesToItem', {'AttributeAppliesToItem--open': isOpen})}
             data-testid='attributeAppliesToRow-user'
         >
             <div className='AttributeAppliesToItem__header'>
@@ -71,7 +71,11 @@ function AttributeAppliesToUserItem({disabled = false, onRemove}: AttributeAppli
                     className='AttributeAppliesToItem__body'
                     data-testid='attributeAppliesToRow-user-body'
                 >
-                    <FormattedMessage {...messages.bodyPlaceholder}/>
+                    <div className='AttributeAppliesToItem__row'>
+                        <span>
+                            <FormattedMessage {...messages.bodyPlaceholder}/>
+                        </span>
+                    </div>
                 </div>
             )}
         </div>

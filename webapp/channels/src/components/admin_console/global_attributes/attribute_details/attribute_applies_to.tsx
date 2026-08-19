@@ -7,6 +7,7 @@ import React, {useMemo} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
+import type {ButtonEmphasis} from '@mattermost/shared/components/button';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 
 import Card from 'components/card/card';
@@ -52,11 +53,11 @@ function AttributeAppliesTo({appliesTo, disabled = false, onAdd, onRemove}: Prop
         [appliesTo],
     );
 
-    const renderAddResourceMenu = (triggerId: string, dataTestId: string, label: string) => (
+    const renderAddResourceMenu = (triggerId: string, dataTestId: string, label: string, emphasis: ButtonEmphasis) => (
         <Menu.Container
             menuButton={{
                 id: triggerId,
-                class: classNames(buttonClassNames({emphasis: 'quaternary'}), 'AttributeAppliesTo__trigger'),
+                class: classNames(buttonClassNames({emphasis}), 'AttributeAppliesTo__trigger'),
                 disabled,
                 'aria-label': label,
                 children: (
@@ -108,6 +109,7 @@ function AttributeAppliesTo({appliesTo, disabled = false, onAdd, onRemove}: Prop
                         ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID,
                         'attributeAppliesToAddResourceButtonHeader',
                         formatMessage(messages.addResourceHeader),
+                        'tertiary',
                     )}
                 </Card.Header>
                 <Card.Body expanded={true}>
@@ -116,17 +118,17 @@ function AttributeAppliesTo({appliesTo, disabled = false, onAdd, onRemove}: Prop
                             className='AttributeAppliesTo__emptyState'
                             data-testid='attributeAppliesToEmptyState'
                         >
-                            <FormattedMessage
-                                tagName='h5'
-                                {...messages.emptyStateHeading}
-                            />
+                            <h5 className='AttributeAppliesTo__emptyStateHeading'>
+                                <FormattedMessage {...messages.emptyStateHeading}/>
+                            </h5>
                             <p className='AttributeAppliesTo__emptyStateHelperText'>
                                 <FormattedMessage {...messages.emptyStateHelperText}/>
                             </p>
                             {availableTypes.length > 0 && renderAddResourceMenu(
                                 'attribute-applies-to-add-inline',
                                 'attributeAppliesToAddResourceButtonInline',
-                                formatMessage(messages.addResourceInline),
+                                formatMessage(messages.addResourceHeader),
+                                'primary',
                             )}
                         </div>
                     ) : (
@@ -147,6 +149,7 @@ function AttributeAppliesTo({appliesTo, disabled = false, onAdd, onRemove}: Prop
                                 'attribute-applies-to-add-inline',
                                 'attributeAppliesToAddResourceButtonInline',
                                 formatMessage(messages.addResourceInline),
+                                'tertiary',
                             )}
                         </>
                     )}
@@ -160,11 +163,11 @@ export default AttributeAppliesTo;
 
 const messages = defineMessages({
     title: {id: 'admin.global_attributes.attribute_details.applies_to.title', defaultMessage: 'Applies to'},
-    subtitle: {id: 'admin.global_attributes.attribute_details.applies_to.subtitle', defaultMessage: 'Choose which kinds of resources this attribute applies to.'},
-    emptyStateHeading: {id: 'admin.global_attributes.attribute_details.applies_to.empty_state.heading', defaultMessage: 'Nothing added yet'},
+    subtitle: {id: 'admin.global_attributes.attribute_details.applies_to.subtitle', defaultMessage: 'Resources this attribute applies to, and who can set the value on each.'},
+    emptyStateHeading: {id: 'admin.global_attributes.attribute_details.applies_to.empty_state.heading', defaultMessage: 'No resources yet'},
     emptyStateHelperText: {
         id: 'admin.global_attributes.attribute_details.applies_to.empty_state.helper_text',
-        defaultMessage: 'Add a resource to choose where this attribute applies.',
+        defaultMessage: 'Add a resource to apply this attribute to users, channels, or posts.',
     },
     addResourceHeader: {id: 'admin.global_attributes.attribute_details.applies_to.add_resource_header', defaultMessage: 'Add resource'},
     addResourceInline: {id: 'admin.global_attributes.attribute_details.applies_to.add_resource_inline', defaultMessage: 'Add another resource'},

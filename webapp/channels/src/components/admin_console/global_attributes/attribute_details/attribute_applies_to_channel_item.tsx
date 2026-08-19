@@ -30,7 +30,7 @@ function AttributeAppliesToChannelItem({disabled = false, onRemove}: AttributeAp
 
     return (
         <div
-            className='AttributeAppliesToItem'
+            className={classNames('AttributeAppliesToItem', {'AttributeAppliesToItem--open': isOpen})}
             data-testid='attributeAppliesToRow-channel'
         >
             <div className='AttributeAppliesToItem__header'>
@@ -71,7 +71,11 @@ function AttributeAppliesToChannelItem({disabled = false, onRemove}: AttributeAp
                     className='AttributeAppliesToItem__body'
                     data-testid='attributeAppliesToRow-channel-body'
                 >
-                    <FormattedMessage {...messages.bodyPlaceholder}/>
+                    <div className='AttributeAppliesToItem__row'>
+                        <span>
+                            <FormattedMessage {...messages.bodyPlaceholder}/>
+                        </span>
+                    </div>
                 </div>
             )}
         </div>

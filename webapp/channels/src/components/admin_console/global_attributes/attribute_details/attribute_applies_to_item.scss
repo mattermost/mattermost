@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 .AttributeAppliesToItem {
+    overflow: hidden;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
 }
@@ -11,7 +12,13 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 4px 0 12px;
+    background: transparent;
     gap: 8px;
+    transition: background 0.15s ease-in-out;
+}
+
+.AttributeAppliesToItem--open .AttributeAppliesToItem__header {
+    background: rgba(var(--center-channel-color-rgb), 0.03);
 }
 
 .AttributeAppliesToItem__toggle {
@@ -69,7 +76,24 @@
 }
 
 .AttributeAppliesToItem__body {
-    padding: 0 12px 12px 46px;
+    padding: 0 12px 12px;
     color: rgba(var(--center-channel-color-rgb), 0.72);
     font-size: 12px;
+}
+
+.AttributeAppliesToItem__row {
+    display: grid;
+    align-items: start;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    column-gap: 12px;
+    grid-template-columns: 176px 1fr;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    > :only-child {
+        grid-column: 1 / -1;
+    }
 }

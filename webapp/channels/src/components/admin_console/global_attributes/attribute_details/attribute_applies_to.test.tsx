@@ -33,18 +33,25 @@ describe('AttributeAppliesTo', () => {
         expect(screen.queryByTestId(/attributeAppliesToRow-/)).not.toBeInTheDocument();
     });
 
-    it('shows both Add-resource triggers with distinct accessible names when the empty state is showing', () => {
+    it('shows both Add-resource triggers when the empty state is showing', () => {
         renderComponent();
         const header = screen.getByTestId('attributeAppliesToAddResourceButtonHeader');
         const inline = screen.getByTestId('attributeAppliesToAddResourceButtonInline');
         expect(header).toBeVisible();
         expect(inline).toBeVisible();
         expect(header).toHaveAccessibleName('Add resource');
-        expect(inline).toHaveAccessibleName('Add another resource');
+        expect(inline).toHaveAccessibleName('Add resource');
+        expect(header).toHaveClass('btn-tertiary');
+        expect(inline).toHaveClass('btn-primary');
     });
 
     it('offers exactly the not-yet-selected types, in Users -> Channels -> Posts order', async () => {
         renderComponent({appliesTo: ['channel']});
+
+        expect(screen.getByTestId('attributeAppliesToAddResourceButtonHeader')).toHaveClass('btn-tertiary');
+        expect(screen.getByTestId('attributeAppliesToAddResourceButtonHeader')).toHaveAccessibleName('Add resource');
+        expect(screen.getByTestId('attributeAppliesToAddResourceButtonInline')).toHaveClass('btn-tertiary');
+        expect(screen.getByTestId('attributeAppliesToAddResourceButtonInline')).toHaveAccessibleName('Add another resource');
 
         await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
         const items = screen.getAllByRole('menuitem');

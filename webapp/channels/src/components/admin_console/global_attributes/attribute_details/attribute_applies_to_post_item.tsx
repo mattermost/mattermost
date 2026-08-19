@@ -30,7 +30,7 @@ function AttributeAppliesToPostItem({disabled = false, onRemove}: AttributeAppli
 
     return (
         <div
-            className='AttributeAppliesToItem'
+            className={classNames('AttributeAppliesToItem', {'AttributeAppliesToItem--open': isOpen})}
             data-testid='attributeAppliesToRow-post'
         >
             <div className='AttributeAppliesToItem__header'>
@@ -71,7 +71,11 @@ function AttributeAppliesToPostItem({disabled = false, onRemove}: AttributeAppli
                     className='AttributeAppliesToItem__body'
                     data-testid='attributeAppliesToRow-post-body'
                 >
-                    <FormattedMessage {...messages.bodyPlaceholder}/>
+                    <div className='AttributeAppliesToItem__row'>
+                        <span>
+                            <FormattedMessage {...messages.bodyPlaceholder}/>
+                        </span>
+                    </div>
                 </div>
             )}
         </div>
