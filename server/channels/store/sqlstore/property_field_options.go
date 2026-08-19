@@ -898,6 +898,15 @@ func storedFieldAttrs(field *model.PropertyField) model.StringInterface {
 	return stored
 }
 
+// storedFieldPermissions encodes field.Permissions to JSONB for storage. If
+// Permissions is nil, returns nil for database NULL; otherwise marshals to JSON.
+func storedFieldPermissions(field *model.PropertyField) interface{} {
+	if field.Permissions == nil {
+		return nil
+	}
+	return model.ToJSON(field.Permissions)
+}
+
 // optionsWithheld reports whether a field's attrs came from a read that left the
 // option list out because the field has too many. Writing such a field back must
 // not be read as "this field now has no options".

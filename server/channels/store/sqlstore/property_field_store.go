@@ -53,8 +53,8 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 
 	builder := s.getQueryBuilder().
 		Insert("PropertyFields").
-		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
-		Values(field.ID, field.GroupID, field.Name, field.Type, storedFieldAttrs(field), field.TargetID, field.TargetType, field.ObjectType, field.Protected, field.PermissionField, field.PermissionValues, field.PermissionOptions, field.LinkedFieldID, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy)
+		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy", "Permissions").
+		Values(field.ID, field.GroupID, field.Name, field.Type, storedFieldAttrs(field), field.TargetID, field.TargetType, field.ObjectType, field.Protected, field.PermissionField, field.PermissionValues, field.PermissionOptions, field.LinkedFieldID, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy, storedFieldPermissions(field))
 
 	if _, err = transaction.ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_insert")
@@ -65,6 +65,10 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	// those options stay owned by the template.
 	if _, err = s.syncPropertyFieldOptions(transaction, []*model.PropertyField{field}, field.CreateAt); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_options")
+	}
+
+	if err = s.syncPropertyFieldGrants(transaction, field.ID, field.Permissions, field.CreateAt); err != nil {
+		return nil, errors.Wrap(err, "property_field_create_grants")
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -590,6 +594,13 @@ func (s *SqlPropertyFieldStore) Delete(groupID string, id string) (err error) {
 		return err
 	}
 
+	// Soft-delete cascades only on hard deletes, so explicit cleanup is needed.
+	if _, err = transaction.ExecBuilder(s.getQueryBuilder().
+		Delete("PropertyFieldGrants").
+		Where(sq.Eq{"FieldID": id})); err != nil {
+		return errors.Wrap(err, "property_field_delete_grants")
+	}
+
 	if err = transaction.Commit(); err != nil {
 		return errors.Wrap(err, "property_field_delete_commit_transaction")
 	}
@@ -866,4 +877,40 @@ func (s *SqlPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error)
 		return 0, errors.Wrap(err, "property_field_count_linked_fields")
 	}
 	return count, nil
+}
+
+// syncPropertyFieldGrants deletes all existing grants for a field and inserts new
+// ones based on field.Permissions.Grants. Each grant's allow list is expanded into
+// individual rows, one per action. If Permissions is nil or has no grants, only the
+// delete is run (which is a no-op if the field had no prior grants).
+func (s *SqlPropertyFieldStore) syncPropertyFieldGrants(transaction *sqlxTxWrapper, fieldID string, permissions *model.Permissions, now int64) error {
+	// Delete all existing grants for this field.
+	builder := s.getQueryBuilder().
+		Delete("PropertyFieldGrants").
+		Where(sq.Eq{"FieldID": fieldID})
+
+	if _, err := transaction.ExecBuilder(builder); err != nil {
+		return errors.Wrap(err, "property_field_sync_grants_delete")
+	}
+
+	// Nothing more to do if permissions is nil or has no grants.
+	if permissions == nil || len(permissions.Grants) == 0 {
+		return nil
+	}
+
+	// Insert one row per (grant, action) pair.
+	insertBuilder := s.getQueryBuilder().Insert("PropertyFieldGrants").
+		Columns("FieldID", "Type", "ID", "Action")
+
+	for _, grant := range permissions.Grants {
+		for _, action := range grant.Allow {
+			insertBuilder = insertBuilder.Values(fieldID, grant.Type, grant.ID, action)
+		}
+	}
+
+	if _, err := transaction.ExecBuilder(insertBuilder); err != nil {
+		return errors.Wrap(err, "property_field_sync_grants_insert")
+	}
+
+	return nil
 }
