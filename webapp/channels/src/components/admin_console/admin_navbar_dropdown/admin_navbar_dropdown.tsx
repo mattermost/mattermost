@@ -78,40 +78,45 @@ const AdminNavbarDropdown = () => {
         'https://docs.mattermost.com/guides/administration.html#cloud-workspace-management' :
         'https://docs.mattermost.com/guides/administration.html';
 
-    const switchTeamsMenuItem = sortedTeams.length === 0 ? (
-        <Menu.LinkItem
-            id='adminConsoleSwitchTeams'
-            to='/select_team'
-            labels={
-                <FormattedMessage
-                    id='admin.nav.switchTeams'
-                    defaultMessage='Switch teams'
-                />
-            }
-        />
-    ) : sortedTeams.length > 1 ? (
-        <Menu.SubMenu
-            id='adminConsoleSwitchTeams'
-            labels={
-                <FormattedMessage
-                    id='admin.nav.switchTeams'
-                    defaultMessage='Switch teams'
-                />
-            }
-            trailingElements={<ChevronRightIcon size={16}/>}
-            menuId='adminConsoleSwitchTeamsMenu'
-            menuAriaLabel={formatMessage({id: 'admin.nav.switchTeams', defaultMessage: 'Switch teams'})}
-        >
-            {sortedTeams.map((team) => (
-                <Menu.LinkItem
-                    key={'team_' + team.name}
-                    id={'switchTo_' + team.name}
-                    to={'/' + team.name}
-                    labels={<span>{team.display_name}</span>}
-                />
-            ))}
-        </Menu.SubMenu>
-    ) : null;
+    let switchTeamsMenuItem = null;
+    if (sortedTeams.length === 0) {
+        switchTeamsMenuItem = (
+            <Menu.LinkItem
+                id='adminConsoleSwitchTeams'
+                to='/select_team'
+                labels={
+                    <FormattedMessage
+                        id='admin.nav.switchTeams'
+                        defaultMessage='Switch teams'
+                    />
+                }
+            />
+        );
+    } else if (sortedTeams.length > 1) {
+        switchTeamsMenuItem = (
+            <Menu.SubMenu
+                id='adminConsoleSwitchTeams'
+                labels={
+                    <FormattedMessage
+                        id='admin.nav.switchTeams'
+                        defaultMessage='Switch teams'
+                    />
+                }
+                trailingElements={<ChevronRightIcon size={16}/>}
+                menuId='adminConsoleSwitchTeamsMenu'
+                menuAriaLabel={formatMessage({id: 'admin.nav.switchTeams', defaultMessage: 'Switch teams'})}
+            >
+                {sortedTeams.map((team) => (
+                    <Menu.LinkItem
+                        key={'team_' + team.name}
+                        id={'switchTo_' + team.name}
+                        to={'/' + team.name}
+                        labels={<span>{team.display_name}</span>}
+                    />
+                ))}
+            </Menu.SubMenu>
+        );
+    }
 
     return (
         <>
