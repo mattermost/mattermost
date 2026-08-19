@@ -2493,6 +2493,25 @@ func TestSessionHasPropertyFieldPermissionAdmin(t *testing.T) {
 			assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, channelMember, field, th.BasicChannel.Id))
 		})
 
+		t.Run("channel-object value: team admin of the channel's team passes without a channel role", func(t *testing.T) {
+			// The cascade this relies on is load-bearing for channel attributes: the
+			// System Console offers no setter control, so "admin" is the only tier
+			// they get, and it has to admit the roles above channel admin.
+			field := fieldFor(model.PropertyFieldObjectTypeChannel)
+			_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, th.BasicUser.Id,
+				model.TeamUserRoleId+" "+model.TeamAdminRoleId)
+			require.Nil(t, appErr)
+			t.Cleanup(func() {
+				_, _ = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, th.BasicUser.Id, model.TeamUserRoleId)
+			})
+
+			teamAdmin := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+			assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, teamAdmin, field, th.BasicChannel.Id))
+
+			sysadmin := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemUserRoleId + " " + model.SystemAdminRoleId}
+			assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, sysadmin, field, th.BasicChannel.Id))
+		})
+
 		t.Run("post-object value: post-lookup yields the post's channel admin", func(t *testing.T) {
 			field := fieldFor(model.PropertyFieldObjectTypePost)
 			_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,

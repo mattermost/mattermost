@@ -88,7 +88,7 @@ const AppliesToCard = ({channelResource, onChannelResourceChange, ordered, disab
 
 const messages = defineMessages({
     title: {id: 'admin.global_attributes.applies_to.title', defaultMessage: 'Applies to'},
-    subtitle: {id: 'admin.global_attributes.applies_to.subtitle', defaultMessage: 'Resources this attribute applies to, and who can set the value on each.'},
+    subtitle: {id: 'admin.global_attributes.applies_to.subtitle', defaultMessage: 'Resources this attribute applies to, and how it behaves on each.'},
     addResource: {id: 'admin.global_attributes.applies_to.add_resource', defaultMessage: 'Add resource'},
     empty: {id: 'admin.global_attributes.applies_to.empty', defaultMessage: 'This attribute does not apply to any resource yet.'},
 });

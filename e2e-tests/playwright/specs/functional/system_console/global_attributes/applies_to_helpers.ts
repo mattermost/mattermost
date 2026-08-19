@@ -21,9 +21,6 @@ export type ChannelAttributeConfig = {
     changePolicy?: string;
 
     displayLocations?: ChannelDisplayLocation[];
-
-    // The menu label, e.g. 'Any member' or 'Channel admin'.
-    setter?: string;
 };
 
 /**
@@ -55,7 +52,6 @@ export async function configureChannelAttribute(
         required = false,
         changePolicy,
         displayLocations = [],
-        setter,
     }: ChannelAttributeConfig,
 ): Promise<string> {
     const {globalAttributes} = systemConsolePage;
@@ -77,9 +73,6 @@ export async function configureChannelAttribute(
         await appliesToChannels.setChangePolicy(changePolicy);
     }
     await appliesToChannels.setDisplayLocations(displayLocations);
-    if (setter) {
-        await appliesToChannels.setSetter(setter);
-    }
 
     await globalAttributes.save();
 

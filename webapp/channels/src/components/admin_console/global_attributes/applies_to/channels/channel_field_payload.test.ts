@@ -94,9 +94,16 @@ describe('buildChannelFieldPayload', () => {
         expect((payload.attrs as {actions: string[]}).actions).not.toBe(displayLocations);
     });
 
-    it('carries the chosen setter tier', () => {
-        expect(buildChannelFieldPayload(template, {...DEFAULT_CHANNEL_RESOURCE_CONFIG, permissionValues: 'member'}).permission_values).toBe('member');
-        expect(buildChannelFieldPayload(template, {...DEFAULT_CHANNEL_RESOURCE_CONFIG, permissionValues: 'admin'}).permission_values).toBe('admin');
+    it('always pins channel admin, never leaving the tier to the server', () => {
+        // The server defaults a channel field to "member", so an omitted tier is a
+        // silent grant to every channel member rather than an absent setting.
+        for (const config of [
+            DEFAULT_CHANNEL_RESOURCE_CONFIG,
+            {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: true, changePolicy: 'never' as const},
+            {...DEFAULT_CHANNEL_RESOURCE_CONFIG, displayLocations: [DISPLAY_LABEL_HEADER] as ChannelDisplayLocation[]},
+        ]) {
+            expect(buildChannelFieldPayload(template, config).permission_values).toBe('admin');
+        }
     });
 
     it('leaves permission_field and permission_options to the server default', () => {

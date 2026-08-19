@@ -4,8 +4,6 @@
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages} from 'react-intl';
 
-import type {PropertyPermissionLevel} from '@mattermost/types/properties';
-
 import {DISPLAY_BANNER_TOP, DISPLAY_LABEL_HEADER, DISPLAY_LABEL_INFO} from 'mattermost-redux/constants/properties';
 
 import type {ChannelChangePolicy, ChannelDisplayLocation, ChannelResourceConfig} from './types';
@@ -15,19 +13,6 @@ export const locationMessages = defineMessages({
     [DISPLAY_LABEL_INFO]: {id: 'admin.global_attributes.applies_to.channels.location.info', defaultMessage: 'Channel Info'},
     [DISPLAY_BANNER_TOP]: {id: 'admin.global_attributes.applies_to.channels.location.banner', defaultMessage: 'Banner'},
 });
-
-export const setterMessages = defineMessages({
-    member: {id: 'admin.global_attributes.applies_to.channels.setter.member', defaultMessage: 'Any member'},
-    admin: {id: 'admin.global_attributes.applies_to.channels.setter.admin', defaultMessage: 'Channel admin'},
-    sysadmin: {id: 'admin.global_attributes.applies_to.channels.setter.sysadmin', defaultMessage: 'System admin'},
-    none: {id: 'admin.global_attributes.applies_to.channels.setter.none', defaultMessage: 'Nobody'},
-});
-
-// The row offers two tiers, but a field configured through the API can carry any
-// of the four, so every level stays describable rather than rendering undefined.
-export function setterLabelFor(permissionValues: PropertyPermissionLevel): MessageDescriptor {
-    return setterMessages[permissionValues as keyof typeof setterMessages] ?? setterMessages.admin;
-}
 
 export const changePolicyMessages = defineMessages({
     any: {id: 'admin.global_attributes.applies_to.channels.change_policy.any', defaultMessage: 'Can be changed at any time'},
@@ -51,7 +36,6 @@ const messages = defineMessages({
     optional: {id: 'admin.global_attributes.applies_to.channels.summary.optional', defaultMessage: 'Optional'},
     display: {id: 'admin.global_attributes.applies_to.channels.summary.display', defaultMessage: 'Display: {locations}'},
     hidden: {id: 'admin.global_attributes.applies_to.channels.summary.hidden', defaultMessage: 'Not displayed'},
-    setBy: {id: 'admin.global_attributes.applies_to.channels.summary.set_by', defaultMessage: 'Set by {setter}'},
 });
 
 export function displayLocationLabel(location: ChannelDisplayLocation, intl: IntlShape): string {
@@ -59,9 +43,9 @@ export function displayLocationLabel(location: ChannelDisplayLocation, intl: Int
 }
 
 /**
- * The collapsed one-liner, e.g. "Optional · Display: Header + Channel Info · Set by
- * Channel admin". Assembled from short conditional segments rather than one
- * message with five optional slots, which translators cannot work with.
+ * The collapsed one-liner, e.g. "Optional · Display: Header + Channel Info".
+ * Assembled from short conditional segments rather than one message with four
+ * optional slots, which translators cannot work with.
  */
 export function summarizeChannelResource(config: ChannelResourceConfig, intl: IntlShape): string {
     const segments: string[] = [
@@ -76,10 +60,6 @@ export function summarizeChannelResource(config: ChannelResourceConfig, intl: In
     } else {
         segments.push(intl.formatMessage(messages.hidden));
     }
-
-    segments.push(intl.formatMessage(messages.setBy, {
-        setter: intl.formatMessage(setterLabelFor(config.permissionValues)),
-    }));
 
     const policySegment = summaryChangePolicyMessages[config.changePolicy as keyof typeof summaryChangePolicyMessages];
     if (policySegment) {

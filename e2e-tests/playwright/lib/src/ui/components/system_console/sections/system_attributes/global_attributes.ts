@@ -49,10 +49,6 @@ export class AppliesToChannels {
         return this.container.getByTestId(`channelsResourceLocation-${location}`);
     }
 
-    get setterButton() {
-        return this.container.getByTestId('channelsResourceSetterButton');
-    }
-
     async addResource() {
         await this.addResourceButton.click();
         await expect(this.row).toBeVisible();
@@ -74,14 +70,6 @@ export class AppliesToChannels {
         for (const location of locations) {
             await this.location(location).check();
         }
-    }
-
-    /**
-     * @param setter the menu label, e.g. 'Any member' or 'Channel admin'
-     */
-    async setSetter(setter: string) {
-        await this.setterButton.click();
-        await this.container.page().getByRole('menuitemradio', {name: setter, exact: true}).click();
     }
 }
 

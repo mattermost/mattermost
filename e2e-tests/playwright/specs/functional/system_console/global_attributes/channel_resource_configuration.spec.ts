@@ -55,13 +55,11 @@ test.describe('System Console - applying an attribute to channels', {tag: ['@sys
         try {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-            // # Apply it to channels, required, shown in the header and the banner,
-            // # settable by any member rather than the default channel admin
+            // # Apply it to channels, required, shown in the header and the banner
             name = await configureChannelAttribute(systemConsolePage, {
                 displayName,
                 required: true,
                 displayLocations: ['display_label_header', 'display_banner_top'],
-                setter: 'Any member',
             });
 
             // * The linked channel field carries every configured key
@@ -69,7 +67,10 @@ test.describe('System Console - applying an attribute to channels', {tag: ['@sys
             expect(channelField).toBeDefined();
             expect(channelField?.linked_field_id).toBeTruthy();
             expect(channelField?.object_type).toBe('channel');
-            expect(channelField?.permission_values).toBe('member');
+
+            // The console has no control for this, so the payload has to pin it: the
+            // server would otherwise default a channel field to any member.
+            expect(channelField?.permission_values).toBe('admin');
             expect(channelField?.attrs?.required).toBe(true);
             expect(channelField?.attrs?.actions).toEqual(['display_label_header', 'display_banner_top']);
 
@@ -317,10 +318,13 @@ test.describe('System Console - applying an attribute to channels', {tag: ['@sys
     });
 
     /**
-     * @objective Ensure the configured setter tier reaches the channel field, so a
-     * "Channel admin" attribute is not editable by an ordinary member.
+     * @objective Ensure the channel-admin tier the console pins reaches the channel
+     * field, so an attribute configured here is not editable by an ordinary member.
+     *
+     * There is no control for this, which is what makes the assertion worth keeping:
+     * the tier is only correct as long as the payload keeps pinning it.
      */
-    test('keeps a Channel admin setter out of a plain member reach', async ({pw}) => {
+    test('keeps a console-configured attribute out of a plain member reach', async ({pw}) => {
         const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
         await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
@@ -336,11 +340,8 @@ test.describe('System Console - applying an attribute to channels', {tag: ['@sys
                 options: ['SET'],
                 required: true,
                 displayLocations: ['display_label_info'],
-                setter: 'Channel admin',
             });
 
-            // The linked field used to inherit the template's sysadmin tier and
-            // silently discard this pin.
             const channelField = await findChannelField(adminClient, name);
             expect(channelField?.permission_values).toBe('admin');
 

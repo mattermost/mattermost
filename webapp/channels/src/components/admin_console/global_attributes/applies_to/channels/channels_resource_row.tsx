@@ -5,14 +5,13 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {ChevronDownIcon, ChevronRightIcon, GlobeIcon} from '@mattermost/compass-icons/components';
-import type {PropertyPermissionLevel} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
 import Toggle from 'components/toggle';
 
-import {changePolicyLabelFor, displayLocationLabel, setterLabelFor, summarizeChannelResource} from './summary';
+import {changePolicyLabelFor, displayLocationLabel, summarizeChannelResource} from './summary';
 import type {ChannelChangePolicy, ChannelDisplayLocation, ChannelResourceConfig} from './types';
-import {CHANNEL_CHANGE_POLICIES, CHANNEL_DISPLAY_LOCATIONS, CHANNEL_VALUE_SETTERS, isOrderedChangePolicy} from './types';
+import {CHANNEL_CHANGE_POLICIES, CHANNEL_DISPLAY_LOCATIONS, isOrderedChangePolicy} from './types';
 
 import './channels_resource_row.scss';
 
@@ -64,11 +63,6 @@ const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled}: Pro
         onChange({...value, displayLocations: [...next]});
     }, [onChange, value]);
 
-    const handleSetterChange = useCallback((permissionValues: PropertyPermissionLevel) => {
-        onChange({...value, permissionValues});
-    }, [onChange, value]);
-
-    const setterLabel = setterLabelFor(value.permissionValues);
     const changePolicyLabel = changePolicyLabelFor(value.changePolicy);
 
     // A policy already set to raise/lower stays listed even on an unordered
@@ -187,45 +181,6 @@ const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled}: Pro
 
                     <div className='ChannelsResourceRow__field'>
                         <span className='ChannelsResourceRow__label'>
-                            <FormattedMessage {...messages.setterLabel}/>
-                        </span>
-                        <div className='ChannelsResourceRow__control'>
-                            <Menu.Container
-                                menuButton={{
-                                    id: 'channelsResourceSetterButton',
-                                    class: 'ChannelsResourceRow__selectButton',
-                                    disabled,
-                                    'aria-label': formatMessage(messages.setterAriaLabel, {value: formatMessage(setterLabel)}),
-                                    children: (
-                                        <>
-                                            <FormattedMessage {...setterLabel}/>
-                                            <i className='icon icon-chevron-down'/>
-                                        </>
-                                    ),
-                                    dataTestId: 'channelsResourceSetterButton',
-                                }}
-                                menu={{
-                                    id: 'channelsResourceSetterMenu',
-                                    'aria-label': formatMessage(messages.setterLabel),
-                                }}
-                            >
-                                {CHANNEL_VALUE_SETTERS.map((setter) => (
-                                    <Menu.Item
-                                        id={`channelsResourceSetter-${setter}`}
-                                        key={setter}
-                                        role='menuitemradio'
-                                        aria-checked={setter === value.permissionValues}
-                                        forceCloseOnSelect={true}
-                                        onClick={() => handleSetterChange(setter)}
-                                        labels={<FormattedMessage {...setterLabelFor(setter)}/>}
-                                    />
-                                ))}
-                            </Menu.Container>
-                        </div>
-                    </div>
-
-                    <div className='ChannelsResourceRow__field'>
-                        <span className='ChannelsResourceRow__label'>
                             <FormattedMessage {...messages.changePolicyLabel}/>
                         </span>
                         <div className='ChannelsResourceRow__control'>
@@ -288,8 +243,6 @@ const messages = defineMessages({
     changePolicyUnorderedHelp: {id: 'admin.global_attributes.applies_to.channels.change_policy.unordered_help', defaultMessage: 'Raising and lowering need ranked values, so they are only offered on a Rank attribute.'},
     displayLabel: {id: 'admin.global_attributes.applies_to.channels.display.label', defaultMessage: 'Display location'},
     displayHelp: {id: 'admin.global_attributes.applies_to.channels.display.help', defaultMessage: 'Multiple locations can be selected. Uncheck all to hide.'},
-    setterLabel: {id: 'admin.global_attributes.applies_to.channels.setter.label', defaultMessage: 'Who can set the value'},
-    setterAriaLabel: {id: 'admin.global_attributes.applies_to.channels.setter.aria_label', defaultMessage: 'Who can set the value, currently {value}'},
 });
 
 export default ChannelsResourceRow;

@@ -1,9 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField} from '@mattermost/types/properties';
+import type {PropertyField, PropertyPermissionLevel} from '@mattermost/types/properties';
 
 import type {ChannelResourceConfig} from './types';
+
+/**
+ * Who may set a channel attribute's value. Not configurable: the control is held
+ * back until the permissions work lands.
+ *
+ * Written rather than omitted because the server defaults a channel field to
+ * "member", which would let any channel member change a marking. Dropping this
+ * loosens access; it is not a tidy-up.
+ */
+const CHANNEL_VALUE_SETTER: PropertyPermissionLevel = 'admin';
 
 /**
  * Builds the linked channel field for a template attribute.
@@ -42,7 +52,7 @@ export function buildChannelFieldPayload(
         target_type: template.target_type,
         target_id: template.target_id,
         linked_field_id: template.id,
-        permission_values: config.permissionValues,
+        permission_values: CHANNEL_VALUE_SETTER,
         ...(Object.keys(attrs).length > 0 ? {attrs} : {}),
     };
 }

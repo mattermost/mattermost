@@ -121,20 +121,13 @@ describe('ChannelsResourceRow', () => {
         }));
     });
 
-    it('shows which setter is currently selected', () => {
-        const {rerender} = renderRow({permissionValues: 'admin'});
-        expect(screen.getByTestId('channelsResourceSetterButton')).toHaveTextContent('Channel admin');
+    it('offers no control over who can set the value', () => {
+        // Held back until the permissions work lands. The tier itself is still
+        // written -- see channel_field_payload.
+        renderRow();
 
-        rerender({permissionValues: 'member'});
-        expect(screen.getByTestId('channelsResourceSetterButton')).toHaveTextContent('Any member');
-    });
-
-    it('renders a tier it does not offer rather than failing on it', () => {
-        // A field configured through the Property API can carry any of the four.
-        renderRow({permissionValues: 'sysadmin'});
-
-        expect(screen.getByTestId('channelsResourceSetterButton')).toHaveTextContent('System admin');
-        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Set by System admin');
+        expect(screen.queryByTestId('channelsResourceSetterButton')).not.toBeInTheDocument();
+        expect(screen.queryByText('Who can set the value')).not.toBeInTheDocument();
     });
 
     it('names its icon-only disclosure control', async () => {
@@ -157,22 +150,21 @@ describe('ChannelsResourceRow', () => {
         renderRow({
             required: true,
             displayLocations: [DISPLAY_LABEL_HEADER, DISPLAY_LABEL_INFO],
-            permissionValues: 'admin',
         });
 
-        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Required · Display: Header + Channel Info · Set by Channel admin');
+        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Required · Display: Header + Channel Info');
     });
 
     it('says so in the summary when the attribute is displayed nowhere or locked', () => {
-        renderRow({displayLocations: [], changePolicy: 'never', permissionValues: 'member'});
+        renderRow({displayLocations: [], changePolicy: 'never'});
 
-        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Optional · Not displayed · Set by Any member · Locked once set');
+        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Optional · Not displayed · Locked once set');
     });
 
     it('summarises a directional policy too', () => {
         renderRow({changePolicy: 'raise_only', displayLocations: [DISPLAY_LABEL_HEADER]}, {ordered: true});
 
-        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Optional · Display: Header · Set by Channel admin · Raise only');
+        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Optional · Display: Header · Raise only');
     });
 
     it('collapses and expands its body', async () => {
