@@ -115,7 +115,7 @@ func (s *SqlPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*m
 // (template-only, must resolve holdings somewhere) is checked without a
 // store by Masking.isValid.
 func (s *SqlPropertyFieldStore) ValidateMaskByFieldID(ctx context.Context, groupID, fieldID, maskByFieldID string) error {
-	target, err := s.Get(ctx, groupID, maskByFieldID)
+	target, err := s.Get(store.WithMaster(ctx), groupID, maskByFieldID)
 	if err != nil {
 		var notFound *store.ErrNotFound
 		if errors.As(err, &notFound) {
