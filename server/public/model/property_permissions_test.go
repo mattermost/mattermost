@@ -81,7 +81,7 @@ func TestRestrictionsLeafDefaulting(t *testing.T) {
 	p := &Permissions{Restrictions: &Restrictions{
 		Value: ReadWrite{Read: PermissionLevelEveryone},
 	}}
-	require.NoError(t, p.IsValid())
+	require.NoError(t, p.IsValid(""))
 
 	// The one set leaf is kept; the other four are filled to none explicitly.
 	assert.Equal(t, PermissionLevelEveryone, p.Restrictions.Value.Read)
@@ -95,7 +95,7 @@ func TestRestrictionsRejectsInvalidTier(t *testing.T) {
 	p := &Permissions{Restrictions: &Restrictions{
 		Value: ReadWrite{Write: PermissionLevel("bogus")},
 	}}
-	require.Error(t, p.IsValid())
+	require.Error(t, p.IsValid(""))
 }
 
 func TestFieldReadRejectedOnUnmarshal(t *testing.T) {
@@ -117,37 +117,86 @@ func TestGrantsValidation(t *testing.T) {
 		require.NoError(t, grant(Grant{
 			Type: PropertyOwnerTypePlugin, ID: "com.example", Scopes: []string{"entra"},
 			Allow: []string{PropertyActionValueRead, PropertyActionValueWrite},
-		}).IsValid())
+		}).IsValid(""))
 	})
 
 	t.Run("empty allow rejected", func(t *testing.T) {
-		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "com.example"}).IsValid())
+		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "com.example"}).IsValid(""))
 	})
 
 	t.Run("unknown action rejected", func(t *testing.T) {
-		require.Error(t, grant(Grant{Type: PropertyOwnerTypeUser, ID: NewId(), Allow: []string{"field.read"}}).IsValid())
+		require.Error(t, grant(Grant{Type: PropertyOwnerTypeUser, ID: NewId(), Allow: []string{"field.read"}}).IsValid(""))
 	})
 
 	t.Run("wildcard action rejected", func(t *testing.T) {
-		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "com.example", Allow: []string{"*"}}).IsValid())
+		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "com.example", Allow: []string{"*"}}).IsValid(""))
 	})
 
 	t.Run("wildcard id allowed for plugin, rejected for user", func(t *testing.T) {
-		require.NoError(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid())
-		require.NoError(t, grant(Grant{Type: PropertyOwnerTypeService, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid())
-		require.Error(t, grant(Grant{Type: PropertyOwnerTypeUser, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid())
-		require.Error(t, grant(Grant{Type: PropertyOwnerTypeRole, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid())
+		require.NoError(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid(""))
+		require.NoError(t, grant(Grant{Type: PropertyOwnerTypeService, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid(""))
+		require.Error(t, grant(Grant{Type: PropertyOwnerTypeUser, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid(""))
+		require.Error(t, grant(Grant{Type: PropertyOwnerTypeRole, ID: "*", Allow: []string{PropertyActionValueWrite}}).IsValid(""))
 	})
 
 	t.Run("invalid type rejected", func(t *testing.T) {
-		require.Error(t, grant(Grant{Type: "bogus", ID: "x", Allow: []string{PropertyActionValueWrite}}).IsValid())
+		require.Error(t, grant(Grant{Type: "bogus", ID: "x", Allow: []string{PropertyActionValueWrite}}).IsValid(""))
 	})
 
 	t.Run("missing id rejected", func(t *testing.T) {
-		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, Allow: []string{PropertyActionValueWrite}}).IsValid())
+		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, Allow: []string{PropertyActionValueWrite}}).IsValid(""))
 	})
 
 	t.Run("malformed scope rejected", func(t *testing.T) {
-		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "com.example", Scopes: []string{"a b"}, Allow: []string{PropertyActionValueWrite}}).IsValid())
+		require.Error(t, grant(Grant{Type: PropertyOwnerTypePlugin, ID: "com.example", Scopes: []string{"a b"}, Allow: []string{PropertyActionValueWrite}}).IsValid(""))
+	})
+}
+
+func TestMaskingValidation(t *testing.T) {
+	t.Run("empty masking is valid", func(t *testing.T) {
+		require.NoError(t, (&Permissions{Masking: &Masking{}}).IsValid(PropertyFieldObjectTypeUser))
+	})
+
+	t.Run("wildcard except rejected", func(t *testing.T) {
+		p := &Permissions{Masking: &Masking{Except: []Identity{{Type: PropertyOwnerTypePlugin, ID: "*"}}}}
+		require.Error(t, p.IsValid(PropertyFieldObjectTypeChannel))
+	})
+
+	t.Run("except with bad type or missing id rejected", func(t *testing.T) {
+		require.Error(t, (&Permissions{Masking: &Masking{Except: []Identity{{Type: "bogus", ID: "x"}}}}).IsValid(""))
+		require.Error(t, (&Permissions{Masking: &Masking{Except: []Identity{{Type: PropertyOwnerTypePlugin}}}}).IsValid(""))
+	})
+
+	t.Run("valid non-wildcard except passes", func(t *testing.T) {
+		p := &Permissions{Masking: &Masking{Except: []Identity{{Type: PropertyOwnerTypePlugin, ID: "com.example"}}}}
+		require.NoError(t, p.IsValid(PropertyFieldObjectTypeChannel))
+	})
+
+	t.Run("self-writable user field rejected", func(t *testing.T) {
+		for _, w := range []PermissionLevel{PermissionLevelMember, PermissionLevelEveryone} {
+			p := &Permissions{
+				Restrictions: &Restrictions{Value: ReadWrite{Write: w}},
+				Masking:      &Masking{},
+			}
+			require.Error(t, p.IsValid(PropertyFieldObjectTypeUser), "value.write %s", w)
+		}
+	})
+
+	t.Run("admin/none/sysadmin user field allowed", func(t *testing.T) {
+		for _, w := range []PermissionLevel{PermissionLevelNone, PermissionLevelAdmin, PermissionLevelSysadmin} {
+			p := &Permissions{
+				Restrictions: &Restrictions{Value: ReadWrite{Write: w}},
+				Masking:      &Masking{},
+			}
+			require.NoError(t, p.IsValid(PropertyFieldObjectTypeUser), "value.write %s", w)
+		}
+	})
+
+	t.Run("self-writable rule does not apply to non-user objects", func(t *testing.T) {
+		p := &Permissions{
+			Restrictions: &Restrictions{Value: ReadWrite{Write: PermissionLevelMember}},
+			Masking:      &Masking{},
+		}
+		require.NoError(t, p.IsValid(PropertyFieldObjectTypeChannel))
 	})
 }

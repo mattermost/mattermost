@@ -125,7 +125,10 @@ type Identity struct {
 // stored object is always complete: restrictions leaves omitted on input are
 // filled to none (§2.2), which is why the receiver is a pointer. It is
 // idempotent, so re-validating a normalized object is a no-op.
-func (p *Permissions) IsValid() error {
+//
+// objectType is the owning field's object type; masking's self-writable rule is
+// stated relative to it (§2.6).
+func (p *Permissions) IsValid(objectType string) error {
 	if p.Restrictions != nil {
 		if err := p.Restrictions.normalizeAndValidate(); err != nil {
 			return err
@@ -135,6 +138,50 @@ func (p *Permissions) IsValid() error {
 		if err := p.Grants[i].isValid(); err != nil {
 			return fmt.Errorf("grant %d: %w", i, err)
 		}
+	}
+	if p.Masking != nil {
+		if err := p.Masking.isValid(); err != nil {
+			return err
+		}
+		if err := p.validateMaskingForField(objectType); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// isValid checks the shape-only masking rules (§2.6): every except identity is a
+// known type with a present, non-wildcard id — a masking exemption is exactly
+// what must never be granted to "any plugin, present or future".
+func (m *Masking) isValid() error {
+	for _, id := range m.Except {
+		if !IsValidPropertyOwnerType(id.Type) {
+			return fmt.Errorf("except: invalid type %q", id.Type)
+		}
+		if id.ID == "" {
+			return fmt.Errorf("except: id is required")
+		}
+		if id.ID == "*" {
+			return fmt.Errorf("except: wildcard id is not allowed")
+		}
+	}
+	// TODO(phase-2/5): the checks that need the store are deferred here —
+	// mask_by_field_id must name an existing object_type:user field linked to
+	// this template, and it is template-only. Add them where the store is
+	// reachable (plan Phase 1 step 5).
+	return nil
+}
+
+// validateMaskingForField enforces the self-writable rule (§2.6): a masked
+// object_type:user field may not let a human write its own holdings, or a caller
+// could widen their own view by editing their value. Runs after restrictions
+// normalization, so value.write is already filled.
+func (p *Permissions) validateMaskingForField(objectType string) error {
+	if objectType != PropertyFieldObjectTypeUser || p.Restrictions == nil {
+		return nil
+	}
+	if w := p.Restrictions.Value.Write; w == PermissionLevelMember || w == PermissionLevelEveryone {
+		return fmt.Errorf("a masked object_type:user field may not be self-writable (value.write is %q)", w)
 	}
 	return nil
 }
