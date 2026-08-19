@@ -12,7 +12,7 @@ import {openModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -119,6 +119,14 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
         await userEvent.click(screen.getByRole('button', {name: 'Open menu'}));
     }
 
+    async function clickMenuItem(name: string) {
+        await userEvent.click(screen.getByRole('menuitem', {name}));
+
+        await waitFor(() => {
+            expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+        });
+    }
+
     test('should not show Switch teams when user has only one team', async () => {
         renderDropdown({[team1.id]: team1});
 
@@ -155,7 +163,7 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
         renderDropdown({[team1.id]: team1});
 
         await openMenu();
-        await userEvent.click(screen.getByRole('menuitem', {name: "Administrator's Guide"}));
+        await clickMenuItem("Administrator's Guide");
 
         expect(window.open).toHaveBeenCalledWith(
             'https://docs.mattermost.com/guides/administration.html',
@@ -168,7 +176,7 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
         renderDropdown({[team1.id]: team1}, {isLicensed: true});
 
         await openMenu();
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Commercial Support'}));
+        await clickMenuItem('Commercial Support');
 
         expect(openModalMock).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.COMMERCIAL_SUPPORT,
@@ -181,7 +189,7 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
         renderDropdown({[team1.id]: team1}, {isLicensed: false});
 
         await openMenu();
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Commercial Support'}));
+        await clickMenuItem('Commercial Support');
 
         expect(window.open).toHaveBeenCalledWith(
             'https://mattermost.com/support/',
@@ -195,7 +203,7 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
         renderDropdown({[team1.id]: team1});
 
         await openMenu();
-        await userEvent.click(screen.getByRole('menuitem', {name: 'About Mattermost'}));
+        await clickMenuItem('About Mattermost');
 
         expect(openModalMock).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.ABOUT,
@@ -207,7 +215,7 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
         renderDropdown({[team1.id]: team1});
 
         await openMenu();
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Log Out'}));
+        await clickMenuItem('Log Out');
 
         expect(emitUserLoggedOutEventMock).toHaveBeenCalled();
         expect(deferNavigationMock).not.toHaveBeenCalled();
@@ -217,7 +225,7 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
         renderDropdown({[team1.id]: team1}, {navigationBlocked: true});
 
         await openMenu();
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Log Out'}));
+        await clickMenuItem('Log Out');
 
         expect(deferNavigationMock).toHaveBeenCalledWith(emitUserLoggedOutEventMock);
         expect(emitUserLoggedOutEventMock).not.toHaveBeenCalled();
