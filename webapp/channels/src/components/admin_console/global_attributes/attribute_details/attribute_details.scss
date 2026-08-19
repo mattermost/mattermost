@@ -87,7 +87,7 @@
 .AttributeDetails__uniqueNameCaption {
     display: flex;
     align-items: center;
-    font-size: 14px;
+    font-size: 12px;
     gap: 8px;
 }
 
@@ -100,12 +100,12 @@
 .AttributeDetails__uniqueNameInput {
     width: 300px;
     max-width: 100%;
-    padding: 8px 12px;
+    padding: 4px 8px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
     background: var(--center-channel-bg);
     color: var(--center-channel-color);
-    font-size: 14px;
+    font-size: 12px;
 
     &:hover {
         border-color: rgba(var(--center-channel-color-rgb), 0.32);
@@ -132,7 +132,7 @@
     background: none;
     color: var(--link-color);
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
 
     &:hover {
         text-decoration: underline;
