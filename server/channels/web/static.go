@@ -32,7 +32,7 @@ func (w *Web) InitStatic() {
 		}
 
 		staticDir, _ := fileutils.FindDir(model.ClientDir)
-		mlog.Debug("Using client directory", mlog.String("clientDir", staticDir))
+		mlog.Debug("Using client directory", mlog.String("client_dir", staticDir))
 
 		subpath, _ := utils.GetSubpathFromConfig(w.srv.Config())
 

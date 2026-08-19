@@ -7,6 +7,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {extractFilenameFromContentDisposition} from '@mattermost/client';
 import {Button} from '@mattermost/shared/components/button';
 import type {SupportPacketContent} from '@mattermost/types/admin';
 import type {UserProfile} from '@mattermost/types/users';
@@ -97,14 +98,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
         const formattedDate = (moment(new Date())).format('YYYY-MM-DDTHH-mm');
         const presumedFileName = `mm_support_packet_${formattedDate}.zip`;
 
-        if (input === null) {
-            return presumedFileName;
-        }
-
-        const regex = /filename\*?=["']?((?:\\.|[^"'\s])+)(?=["']?)/g;
-        const matches = regex.exec(input!);
-
-        return matches ? matches[1] : presumedFileName;
+        return extractFilenameFromContentDisposition(input, presumedFileName);
     };
 
     downloadSupportPacket = async () => {
