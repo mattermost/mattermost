@@ -325,14 +325,6 @@ func buildTombstonedTeamIDs(teamMembers []*model.TeamMember, deletedTeams []*mod
 	return tombstonedTeamIDs
 }
 
-func listTeamIDsFromSet(ids map[string]struct{}) []string {
-	out := make([]string, 0, len(ids))
-	for id := range ids {
-		out = append(out, id)
-	}
-	return out
-}
-
 func indexTeamUnreadsByTeamID(teamsUnread []*model.TeamUnread) map[string]*model.TeamUnread {
 	unreadByTeam := make(map[string]*model.TeamUnread, len(teamsUnread))
 	for _, u := range teamsUnread {
@@ -346,7 +338,7 @@ func indexTeamUnreadsByTeamID(teamsUnread []*model.TeamUnread) map[string]*model
 func collectRoleNames(me *model.User, teamMembers []*model.TeamMember, channelMembers model.ChannelMembersWithTeamData) []string {
 	seen := make(map[string]struct{})
 	add := func(roles string) {
-		for _, r := range strings.Fields(roles) {
+		for r := range strings.FieldsSeq(roles) {
 			seen[r] = struct{}{}
 		}
 	}
@@ -575,7 +567,7 @@ func (a *App) resolveActiveTeam(hintID string, teams []*model.Team, prefs model.
 
 	for _, p := range prefs {
 		if p.Category == preferenceTeamsOrder {
-			for _, id := range strings.Split(p.Value, ",") {
+			for id := range strings.SplitSeq(p.Value, ",") {
 				id = strings.TrimSpace(id)
 				if _, ok := teamByID[id]; ok {
 					return id
@@ -957,10 +949,7 @@ func filterAutoclosedDMEntries(
 			unreadCount++
 		}
 	}
-	remaining := dmLimit
-	if unreadCount > remaining {
-		remaining = unreadCount
-	}
+	remaining := max(dmLimit, unreadCount)
 	if len(dmCat) > remaining {
 		dmCat = dmCat[:remaining]
 	}

@@ -31,7 +31,7 @@ import (
 // buildFlatMapFixture mimics a small, flat JSON response like GET /system/ping.
 func buildFlatMapFixture(fieldCount int) []byte {
 	m := make(map[string]string, fieldCount)
-	for i := 0; i < fieldCount; i++ {
+	for i := range fieldCount {
 		m[fmt.Sprintf("field_%d", i)] = fmt.Sprintf("value_%d_%s", i, model.NewId())
 	}
 	body, err := json.Marshal(m)
@@ -46,7 +46,7 @@ func buildFlatMapFixture(fieldCount int) []byte {
 func buildExperienceInitialLoadFixture(channelCount int) []byte {
 	channels := make([]*model.ExperienceChannel, 0, channelCount)
 	members := make([]*model.ExperienceChannelMember, 0, channelCount)
-	for i := 0; i < channelCount; i++ {
+	for i := range channelCount {
 		id := model.NewId()
 		channels = append(channels, &model.ExperienceChannel{
 			Id:                id,

@@ -238,12 +238,8 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 		return nil, model.NewAppError("GetInitialLoad", "app.initial_load.team_data.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Merge team channels + ALL DM/GM channels for profile fetch.
-	// selectVisibleDMGMChannels needs the full profile map (including deactivated-user
-	// detection) so profiles must be fetched before filtering.
-	allChannels := mergeChannels(teamChannels, dmChannels)
-
 	var (
+		allChannels           model.ChannelList
 		roles                 []*model.Role
 		dmGMProfilesByChannel map[string][]*model.User
 	)

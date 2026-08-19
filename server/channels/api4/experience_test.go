@@ -908,7 +908,7 @@ func TestGetInitialLoadPreferenceTombstones(t *testing.T) {
 func collectNeededRoles(r model.InitialLoadResponse) map[string]struct{} {
 	seen := make(map[string]struct{})
 	add := func(roles string) {
-		for _, name := range strings.Fields(roles) {
+		for name := range strings.FieldsSeq(roles) {
 			seen[name] = struct{}{}
 		}
 	}

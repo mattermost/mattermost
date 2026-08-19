@@ -100,10 +100,10 @@ func TestFilterAutoclosedDMEntries(t *testing.T) {
 
 	t.Run("dmLimit caps the list; unread count sets a floor beyond the limit", func(t *testing.T) {
 		var entries []dmEntry
-		for i := 0; i < 3; i++ { // 3 unreads
+		for range 3 { // 3 unreads
 			entries = append(entries, entry(ch(model.NewId()), 100, true))
 		}
-		for i := 0; i < 5; i++ { // 5 read channels
+		for range 5 { // 5 read channels
 			entries = append(entries, entry(ch(model.NewId()), 100, false))
 		}
 		// dmLimit=4: 3 unreads preserved + 1 read channel = 4 total
