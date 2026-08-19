@@ -131,4 +131,22 @@ describe('MediaGallery', () => {
         expect(rows).toHaveClass('MediaGallery__rows--collapsed');
         expect(rows).toHaveAttribute('aria-hidden', 'true');
     });
+
+    it('renders a collapse toggle for a collapsed single video', async () => {
+        const onToggle = jest.fn();
+        renderWithContext(
+            <MediaGallery
+                fileInfos={[fileInfo({id: 'v', name: 'clip.mp4', extension: 'mp4', mime_type: 'video/mp4'})]}
+                postId='p1'
+                isEmbedVisible={false}
+                onItemClick={jest.fn()}
+                onToggleCollapse={onToggle}
+            />,
+            baseState,
+        );
+
+        const toggle = screen.getByRole('button', {name: /toggle media gallery/i});
+        await userEvent.click(toggle);
+        expect(onToggle).toHaveBeenCalledWith('p1');
+    });
 });

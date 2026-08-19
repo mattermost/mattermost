@@ -4,8 +4,6 @@
 package api4
 
 import (
-	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -19,9 +17,8 @@ import (
 )
 
 const (
-	MaxAddMembersBatch    = 256
-	MaximumBulkImportSize = 10 * 1024 * 1024
-	groupIDsParamPattern  = "[^a-zA-Z0-9,]*"
+	MaxAddMembersBatch   = 256
+	groupIDsParamPattern = "[^a-zA-Z0-9,]*"
 )
 
 var groupIDsQueryParamRegex *regexp.Regexp
@@ -68,7 +65,6 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.TeamByName.Handle("/exists", api.APISessionRequired(teamExists)).Methods(http.MethodGet)
 	api.BaseRoutes.TeamMember.Handle("/roles", api.APISessionRequired(updateTeamMemberRoles)).Methods(http.MethodPut)
 	api.BaseRoutes.TeamMember.Handle("/schemeRoles", api.APISessionRequired(updateTeamMemberSchemeRoles)).Methods(http.MethodPut)
-	api.BaseRoutes.Team.Handle("/import", api.APISessionRequired(importTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.Team.Handle("/invite/email", api.APISessionRequired(inviteUsersToTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.Team.Handle("/invite-guests/email", api.APISessionRequired(inviteGuestsToChannels)).Methods(http.MethodPost)
 	api.BaseRoutes.Teams.Handle("/invites/email", api.APISessionRequired(invalidateAllEmailInvites)).Methods(http.MethodDelete)
@@ -1653,97 +1649,6 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	resp := map[string]bool{"exists": exists}
 	if _, err := w.Write([]byte(model.MapBoolToJSON(resp))); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
-func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License().IsCloud() {
-		c.Err = model.NewAppError("importTeam", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-		return
-	}
-
-	c.RequireTeamId()
-	if c.Err != nil {
-		return
-	}
-
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionImportTeam) {
-		c.SetPermissionError(model.PermissionImportTeam)
-		return
-	}
-
-	if err := r.ParseMultipartForm(MaximumBulkImportSize); err != nil {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.parse.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	importFromArray, ok := r.MultipartForm.Value["importFrom"]
-	if !ok || len(importFromArray) < 1 {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.no_import_from.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-	importFrom := importFromArray[0]
-
-	fileSizeStr, ok := r.MultipartForm.Value["filesize"]
-	if !ok || len(fileSizeStr) < 1 {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.unavailable.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	fileSize, err := strconv.ParseInt(fileSizeStr[0], 10, 64)
-	if err != nil {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.integer.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	fileInfoArray, ok := r.MultipartForm.File["file"]
-	if !ok {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.no_file.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if len(fileInfoArray) <= 0 {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.array.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	auditRec := c.MakeAuditRecord(model.AuditEventImportTeam, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
-
-	fileInfo := fileInfoArray[0]
-
-	fileData, err := fileInfo.Open()
-	if err != nil {
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	}
-	defer fileData.Close()
-	model.AddEventParameterToAuditRec(auditRec, "filename", fileInfo.Filename)
-	model.AddEventParameterToAuditRec(auditRec, "filesize", fileSize)
-	model.AddEventParameterToAuditRec(auditRec, "from", importFrom)
-
-	var log *bytes.Buffer
-	data := map[string]string{}
-	switch importFrom {
-	case "slack":
-		var err *model.AppError
-		if err, log = c.App.SlackImport(c.AppContext, fileData, fileSize, c.Params.TeamId); err != nil {
-			c.Err = err
-			c.Err.StatusCode = http.StatusBadRequest
-		}
-		data["results"] = base64.StdEncoding.EncodeToString(log.Bytes())
-	default:
-		c.Err = model.NewAppError("importTeam", "api.team.import_team.unknown_import_from.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if c.Err != nil {
-		w.WriteHeader(c.Err.StatusCode)
-		return
-	}
-	auditRec.Success()
-	if _, err := w.Write([]byte(model.MapToJSON(data))); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
