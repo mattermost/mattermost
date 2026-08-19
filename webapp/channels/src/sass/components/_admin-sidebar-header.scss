@@ -56,11 +56,7 @@
     }
 }
 
-// Parent menu: 8px inset from the sidebar edge; min-width = sidebar width - 16px
-.MuiPopover-root.menu_menuStyled:has(#adminConsoleMenu, #adminConsoleSwitchTeamsMenu) > .MuiPaper-root {
+// Match parent menu width for the Switch teams submenu (positioning uses Menu.SubMenu defaults).
+#adminConsoleSwitchTeamsMenu {
     min-width: calc(var(--admin-sidebar-width) - 16px);
-}
-
-.MuiPopover-root.menu_menuStyled:has(#adminConsoleMenu) > .MuiPaper-root {
-    margin-inline-start: 8px;
 }

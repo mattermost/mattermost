@@ -17,6 +17,10 @@ type Props = {
     currentUser: UserProfile;
 };
 
+// Inset the menu 8px from the sidebar edge, matching the LHS filter field padding.
+const anchorOrigin = {vertical: 'bottom', horizontal: 'left'} as const;
+const transformOrigin = {vertical: 'top', horizontal: -8} as const;
+
 const SidebarHeader = ({currentUser: me}: Props) => {
     const {formatMessage} = useIntl();
 
@@ -67,11 +71,10 @@ const SidebarHeader = ({currentUser: me}: Props) => {
             menu={{
                 id: 'adminConsoleMenu',
                 'aria-label': formatMessage({id: 'admin.nav.menuAriaLabel', defaultMessage: 'Admin Console Menu'}),
-                className: 'AdminSidebarHeaderMenu',
                 width: 'calc(var(--admin-sidebar-width) - 16px)',
             }}
-            anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
-            transformOrigin={{vertical: 'top', horizontal: 'left'}}
+            anchorOrigin={anchorOrigin}
+            transformOrigin={transformOrigin}
         >
             <AdminNavbarDropdown/>
         </Menu.Container>
