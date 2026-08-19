@@ -453,7 +453,7 @@
             height: 36px;
             border-radius: 36px;
         }
-        
+
         button,
         select {
             font-family: "Open Sans", sans-serif;
@@ -634,7 +634,7 @@
     z-index: 10;
     display: flex;
     overflow: clip;
-    width: 264px;
+    width: var(--admin-sidebar-width);
     min-height: 0;
     flex-direction: column;
     background: var(--sys-sidebar-bg);
@@ -734,7 +734,7 @@
 
     .nav-pills__container {
         position: relative;
-        height: calc(100% - 68px);
+        height: calc(100% - var(--admin-sidebar-nav-offset));
         padding-top: 16px;
         padding-bottom: 20px;
         overflow-x: hidden;
@@ -770,7 +770,7 @@
 
         .category-title {
             padding: 4px 12px 4px 22px;
-            color: rgba(var(--sys-sidebar-text-rgb), 1);
+            color: var(--sys-sidebar-text);
             font-size: 12px;
             font-weight: 600;
             letter-spacing: 0.1em;
@@ -819,14 +819,6 @@
         &.sections--settings {
             .sidebar-section-title {
                 text-transform: uppercase;
-
-                &:hover {
-                    background-color: rgba(var(--sys-sidebar-text-rgb), 0.08);
-                }
-
-                &:focus {
-                    color: functions.alpha-color(variables.$white, 0.5);
-                }
             }
         }
     }
@@ -883,7 +875,7 @@
         &--active {
             padding-left: 8px;
             background: rgba(var(--sys-sidebar-text-rgb), 0.12);
-            border-left: 2px solid var(--sys-sidebar-active-border);
+            border-left: 2px solid var(--sys-sidebar-text-active-border);
             color: var(--sys-sidebar-text);
             font-weight: 600;
 

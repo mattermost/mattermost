@@ -68,7 +68,7 @@ const SidebarHeader = ({currentUser: me}: Props) => {
                 id: 'adminConsoleMenu',
                 'aria-label': formatMessage({id: 'admin.nav.menuAriaLabel', defaultMessage: 'Admin Console Menu'}),
                 className: 'AdminSidebarHeaderMenu',
-                width: 'calc(264px - 16px)',
+                width: 'calc(var(--admin-sidebar-width) - 16px)',
             }}
             anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
             transformOrigin={{vertical: 'top', horizontal: 'left'}}

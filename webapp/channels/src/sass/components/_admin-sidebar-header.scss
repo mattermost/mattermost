@@ -57,15 +57,18 @@
     &:active {
         background-color: rgba(var(--sys-sidebar-text-rgb), 0.08);
     }
+
+    &:focus-visible {
+        outline: 2px solid var(--sys-button-bg);
+        outline-offset: -2px;
+    }
 }
 
 // Parent menu: 8px inset from the sidebar edge; min-width = sidebar width - 16px
-.MuiPopover-root.menu_menuStyled:has(#adminConsoleMenu) > .MuiPaper-root {
-    min-width: calc(264px - 16px);
-    margin-inline-start: 8px;
+.MuiPopover-root.menu_menuStyled:has(#adminConsoleMenu, #adminConsoleSwitchTeamsMenu) > .MuiPaper-root {
+    min-width: calc(var(--admin-sidebar-width) - 16px);
 }
 
-// Switch teams submenu matches the parent min-width
-.MuiPopover-root.menu_menuStyled:has(#adminConsoleSwitchTeamsMenu) > .MuiPaper-root {
-    min-width: calc(264px - 16px);
+.MuiPopover-root.menu_menuStyled:has(#adminConsoleMenu) > .MuiPaper-root {
+    margin-inline-start: 8px;
 }

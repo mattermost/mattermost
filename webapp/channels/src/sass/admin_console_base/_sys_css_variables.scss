@@ -18,22 +18,20 @@
     --sys-new-message-separator: #f80;
     --sys-online-indicator: #3db887;
     --sys-sidebar-bg: #1B1D22;
-    // --sys-sidebar-bg: #E8E9ED;
-    --sys-sidebar-header-bg: #1B1D22;
-    // --sys-sidebar-header-bg: #E8E9ED;
     --sys-sidebar-header-text-color: #fff;
-    // --sys-sidebar-header-text-color: #3f4350;
     --sys-sidebar-text: #fff;
-    // --sys-sidebar-text: #3f4350;
     --sys-sidebar-text-60: #fff9;
     --sys-sidebar-text-80: #fffc;
     --sys-sidebar-text-active-border: #5d89ea;
     --sys-sidebar-text-active-color: #fff;
-    --sys-sidebar-text-hover-bg: #4578bf;
     --sys-sidebar-unread-text: #fff;
-    --sys-sidebar-active-border: #5D89ea;
     --sys-denim-button-bg: #1c58d9;
     --sys-denim-center-channel-text: #3f4350;
+
+    // Admin console sidebar layout
+    --admin-sidebar-width: 264px;
+    // Header (64px) + filter (40px) + nav padding-top (16px)
+    --admin-sidebar-nav-offset: 120px;
 
     // Cloned RGB values from base/css_variables, to be used as rgba(var(--sys-color), opacity_here) to apply opacity to base colors
     --sys-away-indicator-rgb: 255, 188, 31;
@@ -52,16 +50,10 @@
     --sys-new-message-separator-rgb: 255, 136, 0;
     --sys-online-indicator-rgb: 61, 184, 135;
     --sys-sidebar-bg-rgb: 27, 29, 34;
-    // --sys-sidebar-bg-rgb: 232, 233, 237;
-    --sys-sidebar-header-bg-rgb: 27, 29, 34;
-    // --sys-sidebar-header-bg-rgb: 232, 233, 237;
     --sys-sidebar-header-text-color-rgb: 255, 255, 255;
-    // --sys-sidebar-header-text-color-rgb: 63, 67, 80;
     --sys-sidebar-text-rgb: 255, 255, 255;
-    // --sys-sidebar-text-rgb: 63, 67, 80;
     --sys-sidebar-text-active-border-rgb: 93, 137, 234;
     --sys-sidebar-text-active-color-rgb: 255, 255, 255;
-    --sys-sidebar-text-hover-bg-rgb: 69, 120, 191;
     --sys-sidebar-unread-text-rgb: 255, 255, 255;
     --sys-denim-button-bg-rgb: 28, 88, 217;
     --sys-denim-center-channel-text-rgb: 63, 67, 80;
