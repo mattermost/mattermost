@@ -8,61 +8,57 @@ test.describe('draft channel switch', () => {
      * @objective Verify a typed draft on one channel persists, restores after
      * switching away and back, and posts only to the origin channel.
      */
-    test(
-        'typed draft stays on the origin channel after switching away and back',
-        {tag: '@messaging'},
-        async ({pw}) => {
-            const {team, user} = await pw.initSetup();
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'off-topic');
-            await channelsPage.toBeVisible();
+    test('typed draft stays on the origin channel after switching away and back', {tag: '@messaging'}, async ({pw}) => {
+        const {team, user} = await pw.initSetup();
+        const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, 'off-topic');
+        await channelsPage.toBeVisible();
 
-            const originDraft = `origin-draft-${pw.random.id()}`;
-            const destinationMessage = `town-square-${pw.random.id()}`;
+        const originDraft = `origin-draft-${pw.random.id()}`;
+        const destinationMessage = `town-square-${pw.random.id()}`;
 
-            // # Type a draft in Off-Topic and do not send it
-            await channelsPage.centerView.postCreate.writeMessage(originDraft);
+        // # Type a draft in Off-Topic and do not send it
+        await channelsPage.centerView.postCreate.writeMessage(originDraft);
 
-            // # Switch to Town Square via the sidebar
-            await channelsPage.sidebarLeft.goToItem('town-square');
-            await channelsPage.centerView.header.toHaveTitle('Town Square');
+        // # Switch to Town Square via the sidebar
+        await channelsPage.sidebarLeft.goToItem('town-square');
+        await channelsPage.centerView.header.toHaveTitle('Town Square');
 
-            // * Destination composer must not inherit the origin draft
-            expect(await channelsPage.centerView.postCreate.getInputValue()).toBe('');
+        // * Destination composer must not inherit the origin draft
+        expect(await channelsPage.centerView.postCreate.getInputValue()).toBe('');
 
-            // * Origin draft was persisted: the channel pencil is in the DOM
-            // (often CSS-hidden until hover) and the Drafts sidebar link appears
-            await expect(channelsPage.sidebarLeft.item('off-topic').getByTestId('draftIcon')).toHaveCount(1);
-            await channelsPage.sidebarLeft.draftsVisible();
+        // * Origin draft was persisted: the channel pencil is in the DOM
+        // (often CSS-hidden until hover) and the Drafts sidebar link appears
+        await expect(channelsPage.sidebarLeft.item('off-topic').getByTestId('draftIcon')).toHaveCount(1);
+        await channelsPage.sidebarLeft.draftsVisible();
 
-            // # Send a different message from Town Square
-            await channelsPage.centerView.postCreate.writeMessage(destinationMessage);
-            await channelsPage.centerView.postCreate.sendMessage();
+        // # Send a different message from Town Square
+        await channelsPage.centerView.postCreate.writeMessage(destinationMessage);
+        await channelsPage.centerView.postCreate.sendMessage();
 
-            // * Town Square shows the destination message
-            await channelsPage.centerView.waitUntilLastPostContains(destinationMessage);
+        // * Town Square shows the destination message
+        await channelsPage.centerView.waitUntilLastPostContains(destinationMessage);
 
-            // # Return to Off-Topic
-            await channelsPage.sidebarLeft.goToItem('off-topic');
-            await channelsPage.centerView.header.toHaveTitle('Off-Topic');
+        // # Return to Off-Topic
+        await channelsPage.sidebarLeft.goToItem('off-topic');
+        await channelsPage.centerView.header.toHaveTitle('Off-Topic');
 
-            // * Origin draft is still in the composer
-            expect(await channelsPage.centerView.postCreate.getInputValue()).toBe(originDraft);
+        // * Origin draft is still in the composer
+        expect(await channelsPage.centerView.postCreate.getInputValue()).toBe(originDraft);
 
-            // # Send the restored draft
-            await channelsPage.centerView.postCreate.sendMessage();
+        // # Send the restored draft
+        await channelsPage.centerView.postCreate.sendMessage();
 
-            // * Off-Topic shows the origin draft message
-            await channelsPage.centerView.waitUntilLastPostContains(originDraft);
+        // * Off-Topic shows the origin draft message
+        await channelsPage.centerView.waitUntilLastPostContains(originDraft);
 
-            // # Return to Town Square
-            await channelsPage.sidebarLeft.goToItem('town-square');
-            await channelsPage.centerView.header.toHaveTitle('Town Square');
+        // # Return to Town Square
+        await channelsPage.sidebarLeft.goToItem('town-square');
+        await channelsPage.centerView.header.toHaveTitle('Town Square');
 
-            // * Origin draft did not post to Town Square
-            await expect(channelsPage.centerView.container).not.toContainText(originDraft);
-        },
-    );
+        // * Origin draft did not post to Town Square
+        await expect(channelsPage.centerView.container).not.toContainText(originDraft);
+    });
 
     /**
      * @objective Verify sending /msg to an existing DM clears the origin
