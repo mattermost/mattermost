@@ -1,9 +1,11 @@
 ---
 title: "Experimental configuration settings"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="all-commercial" />
 
-Review and manage the following [experimental](/administration-guide/manage/feature-labels#experimental) configuration options in the System Console by selecting the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Experimental \> Features**:
+Review and manage the following [experimental](/administration-guide/manage/feature-labels#experimental) configuration options in the System Console by selecting the **Product** <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Experimental \> Features**:
 
 - [Experimental System Console configuration settings](#experimental-system-console-configuration-settings)
 - [Experimental job configuration settings](#experimental-job-configuration-settings)
@@ -11,61 +13,16 @@ Review and manage the following [experimental](/administration-guide/manage/feat
 
 <Tip>
 
-System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, one `LoginButtonColor` value is under `LdapSettings`.
+System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, the `EmailBatchingBufferSize` value is under `EmailSettings`.
 
-- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.LdapSettings.LoginButtonColor'`
-- When working with the `config.json` file manually, look for an object such as `LdapSettings`, then within that object, find the key `LoginButtonColor`.
+- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.EmailSettings.EmailBatchingBufferSize'`
+- When working with the `config.json` file manually, look for an object such as `EmailSettings`, then within that object, find the key `EmailBatchingBufferSize`.
 
 </Tip>
 
 ------------------------------------------------------------------------------------------------------------------------
 
 ## Experimental System Console configuration settings
-
-### AD/LDAP login button color
-
-Specify the color of the AD/LDAP login button for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### AD/LDAP login button border color
-
-Specify the color of the AD/LDAP login button border for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonBorderColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### AD/LDAP login button text color
-
-Specify the color of the AD/LDAP login button text for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonTextColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
 
 ### Change authentication method
 
@@ -140,51 +97,6 @@ Specify the maximum frequency, in seconds, which the batching job checks for new
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>EmailBatchingInterval": 30</code> with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
-### Email login button color
-
-Specify the color of the email login button for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### Email login button border color
-
-Specify the color of the email login button border for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonBorderColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### Email login button text color
-
-Specify the color of the email login button text for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonTextColor": ""</code> with string input.</td>
 </tr>
 </tbody>
 </table>
@@ -404,46 +316,6 @@ Set a default theme that applies to all new users on the system.
 </tbody>
 </table>
 
-### Enable user typing messages
-
-This setting determines whether "user is typing..." messages are displayed below the message box when using Mattermost in a web browser or the desktop app.
-
-<table style={{width: '98%'}}>
-<colgroup>
-<col style={{width: '98%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"EnableUserTypingMessages": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-<Note>
-
-Disabling this experimental configuration setting in larger deployments may improve server performance in the following areas:
-
-- Reduced Server Load: Typing events generate additional websocket traffic. Disabling them can reduce the amount of data that needs to be handled by the server, improving the overall response time and decreasing server load.
-- Lower Network Traffic: When typing events are enabled, every keystroke generates a network event. This can lead to a significant amount of network traffic, particularly in busy channels. Disabling these events reduces the amount of information transmitted over the network.
-- Client Performance: On the client side, processing typing events requires resources. By not having to handle these events, the client can be more responsive and use less memory and CPU.
-
-</Note>
-
-### User typing timeout
-
-This setting defines how frequently "user is typing..." messages are updated, measured in milliseconds.
-
-<table style={{width: '99%'}}>
-<colgroup>
-<col style={{width: '99%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"TimeBetweenUserTypingUpdatesMilliseconds": 5000</code> with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
 ### User's status and profile fetching poll interval
 
 This setting configures the number of milliseconds to wait between fetching user statuses and profiles periodically. Set to `0` to disable.
@@ -478,51 +350,6 @@ If the team URL of the primary team is `https://example.mattermost.com/myteam/`,
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>"ExperimentalPrimaryTeam": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### SAML login button color
-
-Specify the color of the SAML login button for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### SAML login button border color
-
-Specify the color of the SAML login button border for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonBorderColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### SAML login button text color
-
-Specify the color of the SAML login button text for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonTextColor": ""</code> with string input.</td>
 </tr>
 </tbody>
 </table>
@@ -643,7 +470,7 @@ This setting resolves issues where YouTube video previews display as unavailable
 
 <Important>
 
-**From Mattermost v11, Bleve search has been deprecated.** These configuration settings are only available for Mattermost versions prior to v11.0. For v11.0 and later, [Elasticsearch](/administration-guide/scale/elasticsearch-setup) or [OpenSearch](/administration-guide/scale/opensearch-setup) for [enterprise search](/administration-guide/scale/enterprise-search) capabilities.
+**From Mattermost v11, Bleve search has been deprecated.** These configuration settings are only available for Mattermost versions prior to v11.0. For v11.0 and later, [Elasticsearch](/deployment-guide/reference-architecture/scale/elasticsearch-setup) or [OpenSearch](/deployment-guide/reference-architecture/scale/opensearch-setup) for [enterprise search](/deployment-guide/reference-architecture/scale/enterprise-search) capabilities.
 
 </Important>
 
@@ -1552,7 +1379,7 @@ This setting isn't available in the System Console and can only be set in `confi
 
 Set whether or not this Mattermost server will handle tasks created by the Scheduler. When running Mattermost on a single machine, this setting should always be enabled.
 
-When running Mattermost in [High Availablity mode](/administration-guide/scale/high-availability-cluster-based-deployment), one or more servers should have this setting enabled. We recommend that your High Availability cluster-based deployment has one or more dedicated Workers with this setting enabled while the remaining Mattermost app servers have it disabled.
+When running Mattermost in [High Availablity mode](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment), one or more servers should have this setting enabled. We recommend that your High Availability cluster-based deployment has one or more dedicated Workers with this setting enabled while the remaining Mattermost app servers have it disabled.
 
 <table>
 <colgroup>
@@ -1571,7 +1398,7 @@ This setting isn't available in the System Console and can only be set in `confi
 
 Set whether or not this Mattermost server will schedule tasks that will be completed by a Worker. When running Mattermost on a single machine, this setting should always be enabled.
 
-When running Mattermost in [High Availablity mode](/administration-guide/scale/high-availability-cluster-based-deployment), this setting should always be enabled. In a High Availability cluster-based deployment, exactly one of the servers will be designated as the Scheduler at a time to ensure that duplicate tasks aren't created. See [High Availability documentation](/administration-guide/scale/high-availability-cluster-based-deployment) for more details.
+When running Mattermost in [High Availablity mode](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment), this setting should always be enabled. In a High Availability cluster-based deployment, exactly one of the servers will be designated as the Scheduler at a time to ensure that duplicate tasks aren't created. See [High Availability documentation](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) for more details.
 
 <Warning>
 

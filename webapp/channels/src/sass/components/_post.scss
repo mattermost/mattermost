@@ -134,7 +134,6 @@
 
 #post-list {
     position: relative;
-    height: 100%;
     flex: 1 1 auto;
     overflow-y: hidden;
 
@@ -406,7 +405,7 @@
     > button {
         @include mixins.button-small;
 
-        padding: 10px 16px;
+        flex-shrink: 0;
         border-width: 0;
         border-radius: 4px;
         box-shadow: none;
@@ -914,6 +913,8 @@
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 11px;
         font-style: italic;
+        line-height: normal;
+
         -webkit-user-select: none; /* Chrome all / Safari all */
         -moz-user-select: none; /* Firefox all */
         -ms-user-select: none; /* IE 10+ */
@@ -1769,11 +1770,18 @@
         .post__img {
             width: 24px;
             height: 24px;
+            flex: 0 0 auto;
             padding: 0;
             text-align: left;
 
             img.avatar-post-preview {
                 display: block;
+
+                // The shared avatar rules set min-width: 0, which lets the image
+                // shrink (and look squished) inside constrained flex layouts.
+                // Pin it to its intended size so it always stays round.
+                min-width: 24px;
+                flex-shrink: 0;
             }
         }
 

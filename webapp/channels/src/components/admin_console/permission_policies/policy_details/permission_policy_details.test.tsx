@@ -82,6 +82,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         EnableChannelPolicyIndicators: true,
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
+        EnableAccessControlAuditLogging: false,
     };
 
     const baseProps = {
@@ -242,6 +243,14 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             ['startsWith', 'user.attributes.email.startsWith("admin")'],
             ['endsWith', 'user.attributes.email.endsWith("@acme.com")'],
             ['contains', 'user.attributes.email.contains("acme")'],
+
+            // MM-64357: values containing a quote character must stay simple so
+            // reopening the policy lands in Simple mode instead of trapping the
+            // admin in Advanced mode. These affect the Permission Policy surface
+            // too, since it shares isSimpleExpression with the Membership editor.
+            ['equality with an apostrophe value (MM-64357)', 'user.attributes.department == "Matt\'s Department"'],
+            ['in-list with apostrophe values (MM-64357)', 'user.attributes.teams in ["Matt\'s", "sales"]'],
+            ['multiselect "has any of" apostrophe group (MM-64357)', '("Matt\'s" in user.attributes.teams || "sales" in user.attributes.teams)'],
         ];
 
         test.each(simpleExpressions)('%s', async (_label, expression) => {
@@ -271,5 +280,17 @@ describe('components/admin_console/permission_policies/policy_details/Permission
 
         const toggle = await screen.findByText('Switch to Simple Mode');
         expect(toggle.closest('button')).toBeDisabled();
+    });
+
+    // MM-64357: after switching an apostrophe-valued rule to Advanced mode, the
+    // "Switch to Simple Mode" toggle must stay enabled so the admin can return.
+    test('keeps the mode toggle enabled for an apostrophe value in Advanced mode (MM-64357)', async () => {
+        renderWithExpression('user.attributes.department == "Matt\'s Department"');
+
+        // Opens in Simple mode; switch to Advanced to reach the toggle under test.
+        await userEvent.click(await screen.findByText('Switch to Advanced Mode'));
+
+        const toggle = await screen.findByText('Switch to Simple Mode');
+        expect(toggle.closest('button')).toBeEnabled();
     });
 });

@@ -4,7 +4,7 @@
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import type {AccessControlVisualAST} from '@mattermost/types/access_control';
+import type {AccessControlTestResult, AccessControlVisualAST} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {SESSION_ATTRIBUTES_OBJECT_TYPE, isSessionAttributeField} from '@mattermost/types/properties_user';
 
@@ -20,7 +20,7 @@ import ValueSelectorMenu from './value_selector_menu';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
 import TestResultsModal from '../../modals/policy_test/test_modal';
-import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isRankOperator, isNativeMethodOperator, celPathFor, isNativeField, isNativeBooleanField, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
+import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isRankOperator, isNativeMethodOperator, isFieldAdvertisedOperator, celPathFor, isNativeField, isNativeBooleanField, hasControlledAttributeValues, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, valuePlaceholderForOperator, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
 
 import './table_editor.scss';
 
@@ -110,7 +110,7 @@ export function isRowValueValid(row: TableRow): boolean {
     return true;
 }
 
-interface TableEditorProps {
+export interface TableEditorProps {
     value: string;
     onChange: (value: string) => void;
     onValidate?: (isValid: boolean) => void;
@@ -122,6 +122,9 @@ interface TableEditorProps {
     teamId?: string;
     actions: {
         getVisualAST: (expr: string) => Promise<ActionResult>;
+
+        /** Overrides the searchUsersForExpression thunk backing the built-in TestResultsModal. */
+        searchUsers?: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
     };
 
     // Props for user self-exclusion detection
@@ -168,10 +171,7 @@ export const findFirstAvailableAttributeFromList = (
         // Mirror AttributeSelectorMenu: session attributes are always
         // selectable, so a session-only attribute set must yield a usable
         // default instead of failing rule creation.
-        const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
-        const isAdminManaged = attr.attrs?.managed === 'admin';
-        const isProtected = attr.attrs?.protected;
-        const allowed = isSessionAttributeField(attr) || isNativeField(attr) || isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
+        const allowed = isSessionAttributeField(attr) || isNativeField(attr) || hasControlledAttributeValues(attr) || enableUserManagedAttributes;
         return isValidCELIdentifier && allowed;
     });
 };
@@ -191,14 +191,14 @@ const defaultOperatorForType = (type?: string): OperatorLabel => {
 
 // Whether an operator is valid for an attribute of the given type. Mirrors the
 // per-type operator sets shown by OperatorSelectorMenu.
-const isOperatorValidForType = (op: string, type?: string): boolean => {
+export const isOperatorValidForType = (op: string, type?: string): boolean => {
     if (type === 'multiselect') {
         return isMultiselectOperator(op);
     }
     if (type === 'rank') {
         return isRankOperator(op) || op === OperatorLabel.IS_NOT;
     }
-    return !isMultiselectOperator(op) && !isRankOperator(op) && !isNativeMethodOperator(op);
+    return !isMultiselectOperator(op) && !isRankOperator(op) && !isNativeMethodOperator(op) && !isFieldAdvertisedOperator(op);
 };
 
 // Parses a CEL (Common Expression Language) string into a structured array of TableRow objects.
@@ -421,7 +421,7 @@ function TableEditor({
         const newRow: TableRow = {
             attribute: firstAvailableAttribute.name,
             attribute_object_type: firstAvailableAttribute.object_type,
-            operator: isNativeField(firstAvailableAttribute) ? defaultOperatorForField(firstAvailableAttribute) : defaultOperatorForType(firstAvailableAttribute.type),
+            operator: allowedOperatorLabelsForField(firstAvailableAttribute) ? defaultOperatorForField(firstAvailableAttribute) : defaultOperatorForType(firstAvailableAttribute.type),
             values: [],
             attribute_type: firstAvailableAttribute.type || '',
             hasMaskedValues: false,
@@ -582,6 +582,7 @@ function TableEditor({
                             const isYoungerThan = row.operator === OperatorLabel.YOUNGER_THAN;
                             const youngerThanValue = row.values.length > 0 ? row.values[0] : '';
                             const youngerThanInvalid = isYoungerThan && youngerThanValue.trim() !== '' && !isValidYoungerThanDaysValue(youngerThanValue);
+                            const valuePlaceholder = valuePlaceholderForOperator(row.operator);
                             return (
                                 <tr
                                     key={index}
@@ -621,7 +622,7 @@ function TableEditor({
                                             disabled={disabled || row.hasMaskedValues}
                                             updateValues={(values: string[]) => updateRowValues(index, values)}
                                             options={row.attribute ? field?.attrs?.options || [] : []}
-                                            placeholder={isYoungerThan ? formatMessage({id: 'admin.access_control.table_editor.value.days_placeholder', defaultMessage: 'Number of days'}) : undefined}
+                                            placeholder={valuePlaceholder ? formatMessage(valuePlaceholder) : undefined}
                                         />
                                         {youngerThanInvalid && (
                                             <div className='table-editor__value-error'>
@@ -706,6 +707,12 @@ function TableEditor({
                     actions={{
                         openModal: () => {},
                         searchUsers: (term: string, after: string, limit: number) => {
+                            if (actions.searchUsers) {
+                                // Wrap in a thunk so TestResultsModal can dispatch it unchanged.
+                                const search = actions.searchUsers;
+                                return () => search(value, term, after, limit);
+                            }
+
                             // Return the action for the modal to dispatch
                             return searchUsersForExpression(value, term, after, limit, channelId, teamId);
                         },

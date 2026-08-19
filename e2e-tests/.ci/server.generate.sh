@@ -64,7 +64,6 @@ services:
       MM_EMAILSETTINGS_SMTPSERVER: "localhost"
       MM_CLUSTERSETTINGS_READONLYCONFIG: "false"
       MM_SERVICEENVIRONMENT: "test"
-      MM_FEATUREFLAGS_MOVETHREADSENABLED: "true"
       MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES: "true"
       MM_FEATUREFLAGS_PERMISSIONPOLICIES: "true"
       MM_FEATUREFLAGS_TEAMMEMBERSHIPACCESSCONTROL: "true"
@@ -73,6 +72,7 @@ services:
       MM_FEATUREFLAGS_PROPERTYFIELDRANK: "true"
       MM_FEATUREFLAGS_ATTRIBUTEVALUEMASKING: "true"
       MM_FEATUREFLAGS_WYSIWYGEDITOR: "true"
+      MM_FEATUREFLAGS_RECURRINGSCHEDULEDPOSTS: "true"
       MM_LOGSETTINGS_ENABLEDIAGNOSTICS: "false"
       MM_LOGSETTINGS_CONSOLELEVEL: "DEBUG"
     network_mode: host
@@ -92,7 +92,7 @@ $(for service in $ENABLED_DOCKER_SERVICES; do
 $(if mme2e_is_token_in_list "postgres" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   postgres:
-    image: mattermostdevelopment/mirrored-postgres:14
+    image: mattermostdevelopment/mirrored-postgres:15
     restart: "no"
     network_mode: host
     networks: !reset []
