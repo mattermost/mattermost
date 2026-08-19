@@ -5,6 +5,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Permissions} from 'mattermost-redux/constants';
 
+import {onSubmit} from 'actions/views/create_comment';
 import {openModal} from 'actions/views/modals';
 
 import {renderHookWithContext} from 'tests/react_testing_utils';
@@ -17,6 +18,11 @@ import useSubmit from './use_submit';
 
 jest.mock('actions/views/modals', () => ({
     openModal: jest.fn(() => ({type: ''})),
+}));
+
+jest.mock('actions/views/create_comment', () => ({
+    ...jest.requireActual('actions/views/create_comment'),
+    onSubmit: jest.fn(() => () => Promise.resolve({data: true})),
 }));
 
 describe('useSubmit', () => {
@@ -264,6 +270,63 @@ describe('useSubmit', () => {
         expect(openModal).not.toHaveBeenCalledWith(expect.objectContaining({
             modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
         }));
+    });
+
+    // Cmd+K (Find Channels) only history.push-es; SELECT_CHANNEL and the composer
+    // draft swap happen later. The focused textbox can submit a new message whose
+    // draft.channelId is still the channel we switched away from.
+    it('should submit a new message to the destination channel when the draft still belongs to the previous channel', async () => {
+        const sourceChannelId = 'source_channel_id';
+        const destinationChannelId = 'destination_channel_id';
+        const message = 'new message composed for the destination channel';
+
+        const state = getBaseState();
+        state.entities!.channels!.channels = {
+            [sourceChannelId]: {},
+            [destinationChannelId]: {},
+        };
+        state.entities!.channels!.stats = {
+            [sourceChannelId]: {member_count: 1},
+            [destinationChannelId]: {member_count: 1},
+        };
+
+        const staleDraft: PostDraft = {
+            ...mockDraft,
+            message,
+            channelId: sourceChannelId,
+            rootId: '',
+        };
+
+        const {result} = renderHookWithContext(() => useSubmit(
+            staleDraft,
+            mockPostError,
+            destinationChannelId,
+            '',
+            mockServerError,
+            mockLastBlurAt,
+            mockFocusTextbox,
+            mockSetServerError,
+            mockSetShowPreview,
+            mockHandleDraftChange,
+            mockPrioritySubmitCheck,
+            mockAfterOptimisticSubmit,
+            mockAfterSubmit,
+            false,
+            false,
+        ), state);
+
+        const [handleSubmit] = result.current;
+        await handleSubmit();
+
+        expect(onSubmit).toHaveBeenCalledWith(
+            expect.objectContaining({
+                message,
+                channelId: destinationChannelId,
+                rootId: '',
+            }),
+            expect.anything(),
+            undefined,
+        );
     });
 });
 
