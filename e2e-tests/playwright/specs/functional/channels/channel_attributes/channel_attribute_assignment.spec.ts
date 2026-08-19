@@ -163,7 +163,7 @@ test.describe('Channel attribute assignment', {tag: ['@channel_attributes']}, ()
             await purgeAttributes(adminClient);
             await assertNoForeignRequiredAttributes(adminClient);
 
-            const program = await createAttribute(adminClient, attributeName('required-api', suffix), {
+            const program = await createAttribute(adminClient, attributeName('required_api', suffix), {
                 options: ['AURORA'],
                 required: true,
             });

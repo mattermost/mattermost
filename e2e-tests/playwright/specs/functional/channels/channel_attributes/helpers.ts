@@ -38,8 +38,10 @@ type CreateOptions = {
     optionColors?: Record<string, string>;
 };
 
+// The server validates field names as CEL identifiers, so anything that is not
+// a word character has to be folded away before it reaches the API.
 export function attributeName(suffix: string, uniqueId: string): string {
-    return `${FIELD_PREFIX}_${suffix}_${uniqueId}`;
+    return `${FIELD_PREFIX}_${suffix}_${uniqueId}`.replace(/[^A-Za-z0-9_]/g, '_');
 }
 
 export async function createAttribute(
