@@ -1,18 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import MuiMenuList from '@mui/material/MenuList';
 import {createMemoryHistory} from 'history';
 import React from 'react';
+import {useSelector} from 'react-redux';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {deferNavigation} from 'actions/admin_actions';
 import * as GlobalActions from 'actions/global_actions';
 import {openModal} from 'actions/views/modals';
 
-import * as Menu from 'components/menu';
+import AboutBuildModal from 'components/about_build_modal';
+import CommercialSupportModal from 'components/commercial_support_modal';
+import CompassDesignProvider from 'components/compass_design_provider';
+import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -31,6 +38,23 @@ jest.mock('actions/global_actions', () => ({
 jest.mock('actions/admin_actions', () => ({
     deferNavigation: jest.fn((callback) => ({type: 'MOCK_DEFER_NAVIGATION', callback})),
 }));
+
+function TestMenuWrapper({children}: {children: React.ReactNode}) {
+    const theme = useSelector(getTheme);
+
+    return (
+        <CompassDesignProvider theme={theme}>
+            <WithTestMenuContext>
+                <MuiMenuList
+                    role='menu'
+                    aria-label='Admin Console Menu'
+                >
+                    {children}
+                </MuiMenuList>
+            </WithTestMenuContext>
+        </CompassDesignProvider>
+    );
+}
 
 describe('components/admin_console/admin_navbar_dropdown', () => {
     const team1 = TestHelper.getTeamMock({
@@ -98,47 +122,26 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
         const history = createMemoryHistory({initialEntries: ['/admin_console']});
 
         return renderWithContext(
-            <Menu.Container
-                menuButton={{
-                    id: 'admin-sidebar-header',
-                    children: <span>{'Open menu'}</span>,
-                }}
-                menu={{
-                    id: 'adminConsoleMenu',
-                    'aria-label': 'Admin Console Menu',
-                }}
-            >
+            <TestMenuWrapper>
                 <AdminNavbarDropdown/>
-            </Menu.Container>,
+            </TestMenuWrapper>,
             initialState,
             {history},
         );
     }
 
-    async function openMenu() {
-        await userEvent.click(screen.getByRole('button', {name: 'Open menu'}));
-    }
-
     async function clickMenuItem(name: string) {
         await userEvent.click(screen.getByRole('menuitem', {name}));
-
-        await waitFor(() => {
-            expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-        });
     }
 
-    test('should not show Switch teams when user has only one team', async () => {
+    test('should not show Switch teams when user has only one team', () => {
         renderDropdown({[team1.id]: team1});
-
-        await openMenu();
 
         expect(screen.queryByRole('menuitem', {name: 'Switch teams'})).not.toBeInTheDocument();
     });
 
-    test('should show Switch teams link when user has no teams', async () => {
+    test('should show Switch teams link when user has no teams', () => {
         renderDropdown({});
-
-        await openMenu();
 
         expect(screen.getByRole('menuitem', {name: 'Switch teams'})).toBeInTheDocument();
     });
@@ -148,8 +151,6 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
             [team1.id]: team1,
             [team2.id]: team2,
         });
-
-        await openMenu();
 
         expect(screen.getByText('Switch teams')).toBeInTheDocument();
 
@@ -162,7 +163,6 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
     test('should open external link for Administrator\'s Guide', async () => {
         renderDropdown({[team1.id]: team1});
 
-        await openMenu();
         await clickMenuItem("Administrator's Guide");
 
         expect(window.open).toHaveBeenCalledWith(
@@ -175,12 +175,11 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
     test('should open Commercial Support modal when licensed', async () => {
         renderDropdown({[team1.id]: team1}, {isLicensed: true});
 
-        await openMenu();
         await clickMenuItem('Commercial Support');
 
         expect(openModalMock).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.COMMERCIAL_SUPPORT,
-            dialogType: expect.any(Function),
+            dialogType: CommercialSupportModal,
         });
         expect(window.open).not.toHaveBeenCalled();
     });
@@ -188,7 +187,6 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
     test('should open external Commercial Support link when unlicensed', async () => {
         renderDropdown({[team1.id]: team1}, {isLicensed: false});
 
-        await openMenu();
         await clickMenuItem('Commercial Support');
 
         expect(window.open).toHaveBeenCalledWith(
@@ -202,19 +200,17 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
     test('should open About modal', async () => {
         renderDropdown({[team1.id]: team1});
 
-        await openMenu();
         await clickMenuItem('About Mattermost');
 
         expect(openModalMock).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.ABOUT,
-            dialogType: expect.any(Function),
+            dialogType: AboutBuildModal,
         });
     });
 
     test('should log out immediately when navigation is not blocked', async () => {
         renderDropdown({[team1.id]: team1});
 
-        await openMenu();
         await clickMenuItem('Log Out');
 
         expect(emitUserLoggedOutEventMock).toHaveBeenCalled();
@@ -224,7 +220,6 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
     test('should defer logout when navigation is blocked', async () => {
         renderDropdown({[team1.id]: team1}, {navigationBlocked: true});
 
-        await openMenu();
         await clickMenuItem('Log Out');
 
         expect(deferNavigationMock).toHaveBeenCalledWith(emitUserLoggedOutEventMock);
