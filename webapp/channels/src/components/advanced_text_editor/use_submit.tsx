@@ -217,8 +217,8 @@ const useSubmit = (
                 uploadsInProgress: [],
                 createAt: 0,
                 updateAt: 0,
-                channelId: submittingDraft.channelId,
-                rootId: submittingDraft.rootId,
+                channelId,
+                rootId,
             }, {instant: true});
         } catch (err: unknown) {
             if (isServerError(err)) {
@@ -265,6 +265,7 @@ const useSubmit = (
         rootId,
         showPostDeletedModal,
         handleDraftChange,
+        channelId,
         isInEditMode,
         handleFileChange,
         editingPostRefocusId,
@@ -303,14 +304,7 @@ const useSubmit = (
             return;
         }
 
-        // A post is routed by its draft's channelId/rootId, so pin them to the channel and
-        // thread this editor is rendered for. Otherwise a local draft that still carries the
-        // previous context (the /msg redirect completes over several async hops) would post there.
-        const submittingDraft = setUpdatedFileIds({
-            ...submittingDraftParam,
-            channelId,
-            rootId,
-        });
+        const submittingDraft = setUpdatedFileIds(submittingDraftParam);
         setShowPreview(false);
         isDraftSubmitting.current = true;
 
@@ -413,7 +407,6 @@ const useSubmit = (
         isInEditMode,
         channel,
         channelId,
-        rootId,
         channelMembersCount,
         dispatch,
         enableConfirmNotificationsToChannel,
