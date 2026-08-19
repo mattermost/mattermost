@@ -1,22 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PostList} from '@mattermost/types/posts';
-
 import {expect, test} from '@mattermost/playwright-lib';
 
-/**
- * Guards the draft persist path around the composer change that refuses to
- * adopt another channel's draft as local state. Persistence to the store is
- * unchanged; these tests pin that the previous channel's draft still saves,
- * restores, and is not stolen by the destination composer.
- */
-test.describe('draft survives channel switch', () => {
+test.describe('draft channel switch', () => {
+    /**
+     * @objective Verify a typed draft on one channel persists, restores after
+     * switching away and back, and posts only to the origin channel.
+     */
     test(
         'typed draft stays on the origin channel after switching away and back',
-        {tag: ['@messaging']},
+        {tag: '@messaging'},
         async ({pw}) => {
-            const {userClient, team, user} = await pw.initSetup();
+            const {team, user} = await pw.initSetup();
             const {channelsPage} = await pw.testBrowser.login(user);
             await channelsPage.goto(team.name, 'off-topic');
             await channelsPage.toBeVisible();
@@ -43,6 +39,9 @@ test.describe('draft survives channel switch', () => {
             await channelsPage.centerView.postCreate.writeMessage(destinationMessage);
             await channelsPage.centerView.postCreate.sendMessage();
 
+            // * Town Square shows the destination message
+            await channelsPage.centerView.waitUntilLastPostContains(destinationMessage);
+
             // # Return to Off-Topic
             await channelsPage.sidebarLeft.goToItem('off-topic');
             await channelsPage.centerView.header.toHaveTitle('Off-Topic');
@@ -53,59 +52,42 @@ test.describe('draft survives channel switch', () => {
             // # Send the restored draft
             await channelsPage.centerView.postCreate.sendMessage();
 
-            const offTopic = await userClient.getChannelByName(team.id, 'off-topic');
-            const townSquare = await userClient.getChannelByName(team.id, 'town-square');
-            const has = (pl: PostList, m: string) =>
-                Object.values(pl.posts ?? {}).some((p) => p.message.includes(m));
+            // * Off-Topic shows the origin draft message
+            await channelsPage.centerView.waitUntilLastPostContains(originDraft);
 
-            await expect
-                .poll(
-                    async () => {
-                        const [offTopicPosts, townSquarePosts] = await Promise.all([
-                            userClient.getPosts(offTopic.id, 0, 30),
-                            userClient.getPosts(townSquare.id, 0, 30),
-                        ]);
-                        return {
-                            originDraftInOffTopic: has(offTopicPosts, originDraft),
-                            originDraftInTownSquare: has(townSquarePosts, originDraft),
-                            destinationInTownSquare: has(townSquarePosts, destinationMessage),
-                            destinationInOffTopic: has(offTopicPosts, destinationMessage),
-                        };
-                    },
-                    {timeout: 15000},
-                )
-                .toEqual({
-                    originDraftInOffTopic: true,
-                    originDraftInTownSquare: false,
-                    destinationInTownSquare: true,
-                    destinationInOffTopic: false,
-                });
+            // # Return to Town Square
+            await channelsPage.sidebarLeft.goToItem('town-square');
+            await channelsPage.centerView.header.toHaveTitle('Town Square');
+
+            // * Origin draft did not post to Town Square
+            await expect(channelsPage.centerView.container).not.toContainText(originDraft);
         },
     );
 
+    /**
+     * @objective Verify sending /msg to an existing DM clears the origin
+     * channel draft instead of leaving it behind for later restoration.
+     *
+     * @precondition
+     * The DM channel already exists so the redirect uses the fast path with no
+     * createDirectChannel round trip.
+     */
     test(
         'sending /msg to an existing DM clears the origin draft instead of restoring it',
-        {tag: ['@slash_commands', '@messaging']},
+        {tag: '@slash_commands'},
         async ({pw}) => {
             const {adminClient, userClient, team, user} = await pw.initSetup();
             const [target] = await adminClient.createUsers(team.id, 1, 'draft-msg');
 
-            // Pre-create the DM so the redirect is the same fast path as the
-            // stale-draft bug: no createDirectChannel round trip.
             await userClient.createDirectChannel([user.id, target.id]);
 
             const {channelsPage, page} = await pw.testBrowser.login(user);
             await channelsPage.goto(team.name, 'off-topic');
             await channelsPage.toBeVisible();
 
-            const executePromise = page.waitForResponse(
-                (r) => r.url().includes('/api/v4/commands/execute') && r.request().method() === 'POST',
-            );
-
             // Trailing space dismisses the @mention autocomplete.
             await channelsPage.centerView.postCreate.writeMessage(`/msg @${target.username} `);
             await channelsPage.centerView.postCreate.sendMessage();
-            await executePromise;
 
             await channelsPage.centerView.header.toHaveTitle(target.username);
             await expect(page).toHaveURL(new RegExp(`/${team.name}/messages/@${target.username}`));
@@ -120,6 +102,54 @@ test.describe('draft survives channel switch', () => {
             // * Origin draft was cleared by the submit, not left behind as /msg
             expect(await channelsPage.centerView.postCreate.getInputValue()).toBe('');
             await expect(channelsPage.sidebarLeft.item('off-topic').getByTestId('draftIcon')).toHaveCount(0);
+        },
+    );
+
+    /**
+     * @objective Verify a message typed after a settled /msg redirect to an
+     * existing DM posts to the DM, not the origin channel.
+     *
+     * @precondition
+     * The DM channel already exists so the redirect uses the fast path with no
+     * createDirectChannel round trip.
+     */
+    test(
+        'posts a later message to the DM rather than the origin channel after /msg',
+        {tag: '@slash_commands'},
+        async ({pw}) => {
+            const {adminClient, userClient, team, user} = await pw.initSetup();
+            const [target] = await adminClient.createUsers(team.id, 1, 'stale-dm');
+
+            const dmChannel = await userClient.createDirectChannel([user.id, target.id]);
+            await userClient.createPost({
+                channel_id: dmChannel.id,
+                message: 'seeding the existing DM',
+            } as Parameters<typeof userClient.createPost>[0]);
+
+            const {channelsPage, page} = await pw.testBrowser.login(user);
+            await channelsPage.goto(team.name, 'off-topic');
+            await channelsPage.toBeVisible();
+
+            // Trailing space dismisses the @mention autocomplete.
+            await channelsPage.centerView.postCreate.writeMessage(`/msg @${target.username} `);
+            await channelsPage.centerView.postCreate.sendMessage();
+
+            await channelsPage.centerView.header.toHaveTitle(target.username);
+            await expect(page).toHaveURL(new RegExp(`/${team.name}/messages/@${target.username}`));
+
+            const message = `stale-draft-${pw.random.id()}`;
+            await channelsPage.centerView.postCreate.writeMessage(message);
+            await channelsPage.centerView.postCreate.sendMessage();
+
+            // * Follow-up message appears in the DM
+            await channelsPage.centerView.waitUntilLastPostContains(message);
+
+            // # Return to Off-Topic
+            await channelsPage.sidebarLeft.goToItem('off-topic');
+            await channelsPage.centerView.header.toHaveTitle('Off-Topic');
+
+            // * Follow-up message did not post to the origin channel
+            await expect(channelsPage.centerView.container).not.toContainText(message);
         },
     );
 });

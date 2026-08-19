@@ -369,6 +369,55 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         });
     });
 
+    it('should not adopt the previous thread draft when a submit resolves after a thread switch', async () => {
+        let resolveSubmit = () => {};
+        mockedOnSubmit.mockImplementation((() => () => new Promise((resolve) => {
+            resolveSubmit = () => resolve({data: true});
+        })) as unknown as typeof onSubmit);
+
+        const firstThreadId = 'thread_1';
+        const secondThreadId = 'thread_2';
+
+        const {rerender} = renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+                rootId={firstThreadId}
+            />,
+            initialState,
+        );
+
+        await userEvent.type(screen.getByPlaceholderText('Reply to this thread...'), 'first reply');
+        await userEvent.click(screen.getByTestId('SendMessageButton'));
+
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                rootId={secondThreadId}
+            />,
+        );
+
+        await act(async () => {
+            resolveSubmit();
+        });
+
+        await userEvent.type(screen.getByPlaceholderText('Reply to this thread...'), 'second reply');
+
+        mockedUpdateDraft.mockClear();
+        rerender(
+            <AdvancedTextEditor
+                {...baseProps}
+                rootId={firstThreadId}
+            />,
+        );
+
+        expect(mockedUpdateDraft).toHaveBeenCalled();
+        expect(mockedUpdateDraft.mock.calls[0][1]).toMatchObject({
+            message: 'second reply',
+            channelId,
+            rootId: secondThreadId,
+        });
+    });
+
     it('MM-60541 should not save an unmodified draft when changing channels', async () => {
         const {rerender} = renderWithContext(
             <AdvancedTextEditor
