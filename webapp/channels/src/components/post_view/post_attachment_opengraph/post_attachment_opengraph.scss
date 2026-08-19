@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 .truncate {
     display: -webkit-box;
     overflow: hidden;
@@ -26,7 +29,7 @@
      * by placing an item outside of the grid will get 80px wide. We use this here
      * to place a small image outside of the grid, but a big one in the row below
      */
-    grid-auto-columns: 80px;
+    grid-auto-columns: var(--open-graph-thumbnail-size);
     grid-template-columns: 1fr;
 
     /** For some reason just setting this on :hover is not sufficient, therefore the !important */
@@ -119,7 +122,7 @@
         position: relative;
         display: flex;
         overflow: visible;
-        height: 80px;
+        height: var(--open-graph-thumbnail-size);
         border-radius: 4px;
         grid-column: 2 / 3;
         grid-row: 1 / 2;
@@ -128,9 +131,9 @@
 
         &.large {
             width: auto;
-            max-width: 392px;
+            max-width: var(--open-graph-max-image-width);
             height: auto;
-            max-height: 240px;
+            max-height: var(--open-graph-max-image-height);
             margin-top: 12px;
             grid-column: 1 / 2;
             grid-row: 2 / 3;
@@ -140,8 +143,8 @@
 
         figure {
             overflow: hidden;
-            max-width: 392px;
-            max-height: 240px;
+            max-width: var(--open-graph-max-image-width);
+            max-height: var(--open-graph-max-image-height);
             border-radius: 4px;
 
             img {

@@ -174,6 +174,7 @@ type PluginStatus = {
         header: string;
         footer: string;
         settings?: unknown[];
+        sections?: unknown[];
     };
 };
 
@@ -997,7 +998,12 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             });
             pluginsList = plugins.map((pluginStatus: PluginStatus) => {
                 const p = this.props.plugins[pluginStatus.id];
-                const hasSettings = Boolean(p && p.settings_schema && (p.settings_schema.header || p.settings_schema.footer || (p.settings_schema.settings && p.settings_schema.settings.length > 0)));
+                const hasSettings = Boolean(p?.settings_schema && (
+                    p.settings_schema.header ||
+                    p.settings_schema.footer ||
+                    p.settings_schema.settings?.length ||
+                    p.settings_schema.sections?.length
+                ));
                 return (
                     <PluginItem
                         key={pluginStatus.id}
