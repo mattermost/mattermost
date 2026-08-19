@@ -106,6 +106,31 @@ describe('getTimestampFormatProps', () => {
         });
     });
 
+    describe('useCalendarDate', () => {
+        test('compares years in the selected time zone, not the browser zone', () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2021-01-10T10:00:00.000Z'));
+
+            const value = new Date('2020-12-31T18:00:00.000Z');
+            const useDate = props(TimestampFormat.DATE_AND_TIME, 'metadata').useDate!;
+
+            // In UTC the value is still calendar year 2020.
+            expect(useDate({value}, {timeZone: 'UTC'})).toEqual({
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+            });
+
+            // In Asia/Shanghai the same instant is already 2021, matching "now".
+            expect(useDate({value}, {timeZone: 'Asia/Shanghai'})).toEqual({
+                month: 'short',
+                day: 'numeric',
+            });
+
+            jest.useRealTimers();
+        });
+    });
+
     describe('memoization', () => {
         test('returns a stable reference for the same inputs', () => {
             // Timestamp is a PureComponent — fresh identities here would re-render every

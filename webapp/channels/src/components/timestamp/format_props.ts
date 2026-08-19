@@ -3,7 +3,7 @@
 
 import {TimestampFormat} from '@mattermost/types/config';
 
-import {isSameYear, isWithin} from 'utils/datetime';
+import {isEqual, isWithin} from 'utils/datetime';
 
 import * as RelativeRanges from './relative_ranges';
 import type {DateTimeOptions, Props as TimestampProps} from './timestamp';
@@ -57,7 +57,7 @@ const useCalendarDate: TimestampProps['useDate'] = ({value}, {timeZone}) => {
         return {weekday: 'short', month: 'short', day: 'numeric'};
     }
 
-    if (isSameYear(value)) {
+    if (isEqual(value, new Date(), timeZone, 'year', 0)) {
         return {month: 'short', day: 'numeric'};
     }
 
