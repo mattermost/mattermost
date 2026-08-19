@@ -201,6 +201,9 @@ func (es *LocalCacheEmojiStore) getFromCacheById(id string) (*model.Emoji, bool)
 func (es *LocalCacheEmojiStore) getFromCacheByName(name string) (*model.Emoji, bool) {
 	var emojiId string
 	if err := es.rootStore.doStandardReadCache(es.rootStore.emojiIdCacheByName, name, &emojiId); err == nil {
+		if emojiId == emojiNotFoundSentinel {
+			return nil, false
+		}
 		return es.getFromCacheById(emojiId)
 	}
 	return nil, false
