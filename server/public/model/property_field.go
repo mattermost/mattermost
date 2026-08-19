@@ -61,6 +61,11 @@ const (
 	// channel targets. The specific permission checked per scope is documented
 	// at hasPropertyFieldPermissionLevel in the app package.
 	PermissionLevelAdmin PermissionLevel = "admin"
+	// PermissionLevelEveryone is the most permissive tier: any caller satisfies
+	// it (§2.2). It still sits under the object-level check (§2.5), so it is not
+	// the same as open access. Added for the permissions model; the legacy
+	// permission columns accept it too.
+	PermissionLevelEveryone PermissionLevel = "everyone"
 
 	PropertyFieldObjectTypePost     = "post"
 	PropertyFieldObjectTypeChannel  = "channel"
@@ -77,6 +82,7 @@ var validPermissionLevels = []PermissionLevel{
 	PermissionLevelSysadmin,
 	PermissionLevelMember,
 	PermissionLevelAdmin,
+	PermissionLevelEveryone,
 }
 
 // validPSAv2TargetTypes contains all valid TargetType values for PSAv2 properties.
