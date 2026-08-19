@@ -255,10 +255,9 @@ const AdvancedTextEditor = ({
             clearTimeout(saveDraftFrame.current);
         }
 
-        // An async submit resolves with the channelId/rootId captured when it started.
-        // If the user has since moved to another channel or thread, adopting that draft
-        // as local state would stamp this composer with the previous context's ids,
-        // and every later message would post there. Persist it, but don't adopt it.
+        // A late async callback (slow submit, finished file upload) may call handleDraftChange
+        // with the channelId/rootId captured when it started. If the user has since moved to
+        // another channel or thread, do not overwrite the text they have typed here.
         setDraft((currentDraft) => {
             if (currentDraft.channelId !== draftToChange.channelId || currentDraft.rootId !== draftToChange.rootId) {
                 // The current channel/thread has changed, so don't update the draft displayed to the user

@@ -12,7 +12,7 @@ import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent, screen, act} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen, act, fireEvent} from 'tests/react_testing_utils';
 import Constants, {Locations, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -28,6 +28,7 @@ jest.mock('actions/views/drafts', () => ({
 }));
 
 jest.mock('actions/views/create_comment', () => ({
+    ...jest.requireActual('actions/views/create_comment'),
     onSubmit: jest.fn(() => () => Promise.resolve({data: true})),
 }));
 
@@ -291,6 +292,87 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         );
 
         expect(screen.getByPlaceholderText('Write to Other Channel')).toHaveValue('a different draft');
+    });
+
+    it('should submit to the destination channel while the textbox still holds the previous channel draft', async () => {
+        const sourceDraft = 'stale draft from the source channel';
+        const destinationMessage = 'new message composed for the destination channel';
+        const typeOnSwitchRef = {current: false};
+
+        function Harness({editorChannelId}: {editorChannelId: string}) {
+            const [sendDestinationMessage, setSendDestinationMessage] = React.useState(false);
+
+            // Cmd+K can focus the composer after channelId updates but before the
+            // composer's effect replaces the local draft. Layout effects run before
+            // that effect, so typing here lands in the window the user reported.
+            React.useLayoutEffect(() => {
+                if (!typeOnSwitchRef.current) {
+                    return;
+                }
+                typeOnSwitchRef.current = false;
+
+                const textbox = screen.getByPlaceholderText('Write to Other Channel');
+                expect(textbox).toHaveValue(sourceDraft);
+
+                // SuggestionBox listens to onInput, not onChange.
+                fireEvent.input(textbox, {target: {value: destinationMessage}});
+                setSendDestinationMessage(true);
+            }, [editorChannelId]);
+
+            // The typed message is applied on the next render, still before the
+            // draft-swap effect, so sending from this layout effect submits while
+            // draft.channelId is still the source channel.
+            React.useLayoutEffect(() => {
+                if (!sendDestinationMessage) {
+                    return;
+                }
+
+                expect(screen.getByPlaceholderText('Write to Other Channel')).toHaveValue(destinationMessage);
+                fireEvent.click(screen.getByTestId('SendMessageButton'));
+            }, [sendDestinationMessage]);
+
+            return (
+                <AdvancedTextEditor
+                    {...baseProps}
+                    channelId={editorChannelId}
+                />
+            );
+        }
+
+        const {rerender} = renderWithContext(
+            <Harness editorChannelId={channelId}/>,
+            mergeObjects(initialState, {
+                storage: {
+                    storage: {
+                        [StoragePrefixes.DRAFT + channelId]: {
+                            value: TestHelper.getPostDraftMock({
+                                message: sourceDraft,
+                                channelId,
+                            }),
+                        },
+                    },
+                },
+            }),
+        );
+
+        expect(screen.getByPlaceholderText('Write to Test Channel')).toHaveValue(sourceDraft);
+
+        typeOnSwitchRef.current = true;
+        rerender(<Harness editorChannelId={otherChannelId}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        // The post is routed by the channel the composer is rendered for, even though
+        // the draft it submitted still carries the source channel's ids.
+        expect(mockedOnSubmit).toHaveBeenCalledWith(
+            otherChannelId,
+            '',
+            expect.objectContaining({message: destinationMessage}),
+            expect.anything(),
+            undefined,
+        );
     });
 
     it('should save a new draft when changing channels', async () => {
