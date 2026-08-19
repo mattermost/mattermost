@@ -1154,6 +1154,24 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
                         {
+                            type: 'bool',
+                            key: 'ServiceSettings.ExperimentalEnableHardenedMode',
+                            label: defineMessage({id: 'admin.service.hardenedModeTitle', defaultMessage: 'Enable Hardened Mode:'}),
+                            help_text: defineMessage({id: 'admin.service.hardenedModeDesc', defaultMessage: 'Enables a hardened mode for Mattermost that makes user experience trade-offs in the interest of security. See <link>documentation</link> to learn more.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                            help_text_values: {
+                                link: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DocLinks.ENABLE_HARDENED_MODE}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            },
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                        },
+                        {
                             type: 'text',
                             key: 'ServiceSettings.ManagedResourcePaths',
                             label: defineMessage({id: 'admin.service.managedResourcePaths', defaultMessage: 'Managed Resource Paths:'}),
@@ -6577,24 +6595,6 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages',
                             label: defineMessage({id: 'admin.experimental.experimentalEnableDefaultChannelLeaveJoinMessages.title', defaultMessage: 'Enable Default Channel Leave/Join System Messages:'}),
                             help_text: defineMessage({id: 'admin.experimental.experimentalEnableDefaultChannelLeaveJoinMessages.desc', defaultMessage: 'This setting determines whether team leave/join system messages are posted in the default town-square channel.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.ExperimentalEnableHardenedMode',
-                            label: defineMessage({id: 'admin.experimental.experimentalEnableHardenedMode.title', defaultMessage: 'Enable Hardened Mode:'}),
-                            help_text: defineMessage({id: 'admin.experimental.experimentalEnableHardenedMode.desc', defaultMessage: 'Enables a hardened mode for Mattermost that makes user experience trade-offs in the interest of security. See <link>documentation</link> to learn more.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href={DocLinks.ENABLE_HARDENED_MODE}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
