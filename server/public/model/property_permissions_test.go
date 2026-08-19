@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,4 +34,45 @@ func TestPermissionLevelEveryoneIsValid(t *testing.T) {
 	}
 	pf.PermissionValues = new(PermissionLevelEveryone)
 	require.NoError(t, pf.IsValid())
+}
+
+func TestPermissionsJSONRoundTrip(t *testing.T) {
+	// The Department field from §3.1: the JSON tags must match the spec wire
+	// shape, and the three parts must decode into their typed fields.
+	raw := []byte(`{
+		"restrictions": {
+			"value":  { "read": "everyone", "write": "none" },
+			"field":  { "write": "sysadmin" }
+		},
+		"grants": [
+			{ "type": "plugin", "id": "com.mattermost.scim", "scopes": ["entra"], "allow": ["value.write"] }
+		],
+		"masking": { "mask_by_field_id": "somefield", "except": [ { "type": "plugin", "id": "com.example" } ] }
+	}`)
+
+	var p Permissions
+	require.NoError(t, json.Unmarshal(raw, &p))
+
+	require.NotNil(t, p.Restrictions)
+	assert.Equal(t, PermissionLevelEveryone, p.Restrictions.Value.Read)
+	assert.Equal(t, PermissionLevelNone, p.Restrictions.Value.Write)
+	assert.Equal(t, PermissionLevelSysadmin, p.Restrictions.Field.Write)
+
+	require.Len(t, p.Grants, 1)
+	assert.Equal(t, PropertyOwnerTypePlugin, p.Grants[0].Type)
+	assert.Equal(t, "com.mattermost.scim", p.Grants[0].ID)
+	assert.Equal(t, []string{"entra"}, p.Grants[0].Scopes)
+	assert.Equal(t, []string{PropertyActionValueWrite}, p.Grants[0].Allow)
+
+	require.NotNil(t, p.Masking)
+	assert.Equal(t, "somefield", p.Masking.MaskByFieldID)
+	require.Len(t, p.Masking.Except, 1)
+	assert.Equal(t, "com.example", p.Masking.Except[0].ID)
+
+	// Round-trips back to equivalent JSON.
+	out, err := json.Marshal(&p)
+	require.NoError(t, err)
+	var p2 Permissions
+	require.NoError(t, json.Unmarshal(out, &p2))
+	assert.Equal(t, p, p2)
 }
