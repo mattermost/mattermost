@@ -6676,7 +6676,7 @@ func TestPostGetInfo(t *testing.T) {
 		})
 	}
 
-	t.Run("Open post - Current team - Non-member denied when compliance is enabled", func(t *testing.T) {
+	t.Run("Open post - Current team - Non-member can get join metadata when compliance is enabled", func(t *testing.T) {
 		info, resp, err := otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -6694,12 +6694,20 @@ func TestPostGetInfo(t *testing.T) {
 			})
 		})
 
-		_, resp, err = otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
+		info, resp, err = otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, openChannel.Id, info.ChannelId)
+		require.Equal(t, openChannel.Type, info.ChannelType)
+		require.True(t, info.HasJoinedTeam)
+		require.False(t, info.HasJoinedChannel)
+
+		_, resp, err = otherTeamMemberClient.GetPost(context.Background(), openPost.Id, "")
 		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("Open post - Open team - Non-member denied when compliance is enabled", func(t *testing.T) {
+	t.Run("Open post - Open team - Non-member can get join metadata when compliance is enabled", func(t *testing.T) {
 		_, appErr := th.App.GetTeamMember(th.Context, openTeam.Id, th.BasicUser.Id)
 		require.NotNil(t, appErr)
 
@@ -6723,9 +6731,17 @@ func TestPostGetInfo(t *testing.T) {
 			})
 		})
 
-		_, resp, err = client.GetPostInfo(context.Background(), openTeamOpenPost.Id)
+		info, resp, err = client.GetPostInfo(context.Background(), openTeamOpenPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, openTeamOpenChannel.Id, info.ChannelId)
+		require.Equal(t, openTeamOpenChannel.Type, info.ChannelType)
+		require.False(t, info.HasJoinedTeam)
+		require.False(t, info.HasJoinedChannel)
+
+		_, resp, err = client.GetPost(context.Background(), openTeamOpenPost.Id, "")
 		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("Private post - Same-team non-member with manage members permission is denied", func(t *testing.T) {
