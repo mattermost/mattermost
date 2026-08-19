@@ -681,6 +681,58 @@ describe('components/PluginManagement', () => {
         expect(screen.getByText('Plugin uploads are disabled. Enable plugin uploads in config.json before uploading a plugin.')).toBeInTheDocument();
     });
 
+    test('explains why direct upload is disabled when the user lacks permission', () => {
+        const props = {
+            ...defaultProps,
+            isDisabled: true,
+        };
+        renderWithContext(<PluginManagement {...props}/>);
+
+        expect(screen.getByRole('button', {name: /Click or drop plugin bundle to upload/})).toBeDisabled();
+        expect(screen.getByText('You need permission to manage plugins before uploading a plugin.')).toBeInTheDocument();
+    });
+
+    test('explains why direct upload is disabled when plugins are not enabled', () => {
+        const props = {
+            ...defaultProps,
+            config: {
+                ...defaultProps.config,
+                PluginSettings: {
+                    ...defaultProps.config.PluginSettings,
+                    Enable: false,
+                },
+            },
+        };
+        renderWithContext(<PluginManagement {...props}/>);
+
+        expect(screen.getByRole('button', {name: /Click or drop plugin bundle to upload/})).toBeDisabled();
+        expect(screen.getByText('Enable plugins before uploading a plugin.')).toBeInTheDocument();
+    });
+
+    test('uploads a dropped plugin bundle', async () => {
+        const uploadPlugin = jest.fn().mockResolvedValue({data: {}});
+        const getPlugins = jest.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...defaultProps,
+            actions: {
+                ...defaultProps.actions,
+                uploadPlugin,
+                getPlugins,
+            },
+        };
+        renderWithContext(<PluginManagement {...props}/>);
+
+        const dropzone = screen.getByRole('button', {name: /Click or drop plugin bundle to upload/});
+        const file = new File(['plugin'], 'sample-plugin.tar.gz', {type: 'application/gzip'});
+
+        fireEvent.drop(dropzone, {dataTransfer: {files: [file]}});
+
+        await waitFor(() => {
+            expect(uploadPlugin).toHaveBeenCalledWith(file, false);
+            expect(getPlugins).toHaveBeenCalled();
+        });
+    });
+
     const overwriteUpload = async (data: {id: string; name: string; version: string}) => {
         const uploadPlugin = jest.fn().
             mockResolvedValueOnce({error: {server_error_id: 'app.plugin.install_id.app_error', message: 'A plugin with this ID already exists.'}}).
