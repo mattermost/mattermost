@@ -189,14 +189,10 @@ export async function purgeAttributes(adminClient: Client4): Promise<void> {
  * Throws when the server carries a required channel attribute these specs did not
  * create.
  *
- * The server refuses any channel create that omits a required attribute, and the
- * dialog keeps Create channel disabled until each one has a value. A required
- * attribute left behind by hand (or by another suite) therefore breaks not only
- * every create-modal test but every fixture that creates a channel through the
- * API — as a 400 there, and as a 30s timeout on a disabled button here, neither of
- * which says anything about the cause. purgeAttributes cannot clear these: it is
- * deliberately scoped to FIELD_PREFIX so it never deletes a field someone meant to
- * keep.
+ * A stray one breaks every fixture that creates a channel — as a 400 from the API,
+ * as a 30s timeout on a disabled Create button here — and neither failure names the
+ * cause. purgeAttributes cannot clear them: it is scoped to FIELD_PREFIX so it never
+ * deletes a field someone meant to keep.
  */
 export async function assertNoForeignRequiredAttributes(adminClient: Client4): Promise<void> {
     const fields = await adminClient.getPropertyFields(GROUP, 'channel', TARGET_TYPE, undefined, {perPage: 200});

@@ -64,8 +64,9 @@ describe('ChannelsResourceRow', () => {
         expect(screen.getByText(/^Required —/)).toBeInTheDocument();
     });
 
-    // The menu itself is covered in Playwright: MUI's Popover rejects a jsdom anchor
-    // as having no layout.
+    // Every menu-driven case here asserts the selected label, never the open menu:
+    // MUI's Popover rejects a jsdom anchor as having no layout. Playwright covers
+    // opening them.
     it('shows which change policy is selected', () => {
         const {rerender} = renderRow({changePolicy: 'any'});
         expect(screen.getByTestId('channelsResourceChangePolicyButton')).toHaveTextContent('Can be changed at any time');
@@ -120,8 +121,6 @@ describe('ChannelsResourceRow', () => {
         }));
     });
 
-    // Opening the menu is covered in Playwright: MUI's Popover rejects a jsdom
-    // anchor as having no layout, which fails every menu-driven suite here.
     it('shows which setter is currently selected', () => {
         const {rerender} = renderRow({permissionValues: 'admin'});
         expect(screen.getByTestId('channelsResourceSetterButton')).toHaveTextContent('Channel admin');

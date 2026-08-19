@@ -144,17 +144,15 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
     // external edit.
     const emittedRef = useRef(value);
 
-    // The DOM is rendered from this snapshot, never from `value` directly. While the
-    // user types, the browser owns the editor's children; re-rendering them from a
-    // changed prop would make React patch the text node it is sitting in, which
-    // collapses the caret to the start of the line. The snapshot therefore only moves
-    // when the value changes from outside — and then the key remounts the editor,
-    // so React never has to reconcile text it did not write.
+    // Rendered from this snapshot, never from `value` directly: while the user types
+    // the browser owns the editor's children, and patching the text node the caret
+    // sits in collapses it to the start of the line. Only an outside change moves the
+    // snapshot, and the key remounts rather than reconciles.
     const [snapshot, setSnapshot] = useState(() => ({segments: parseBannerTemplate(value), key: 0}));
 
-    // A rebuild remounts the editor, which drops focus. Left alone, the caret lands on
-    // document.body and the app's type-anywhere handler starts feeding keystrokes to the
-    // message box instead. Both are captured before the rebuild and reinstated after it.
+    // Captured before a rebuild and reinstated after: the remount drops focus to
+    // document.body, where the app's type-anywhere handler diverts keystrokes into the
+    // message box.
     const restoreRef = useRef<{focused: boolean; caret: number | null}>({focused: false, caret: null});
 
     const labels = useMemo(() => {
