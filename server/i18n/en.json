@@ -12703,6 +12703,14 @@
     "translation": "Length of link metadata URL is {{ .Length }} characters long, which exceeds the maximum limit of {{ .MaxLength }} characters."
   },
   {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Invalid date_from filter. Expected the format \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Invalid date_to filter. Expected the format \"{{.Layout}}\"."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Channel name is not valid"
   },
