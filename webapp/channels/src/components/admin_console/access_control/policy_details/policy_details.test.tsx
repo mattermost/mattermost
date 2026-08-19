@@ -31,19 +31,6 @@ jest.mock('../editors/table_editor/table_editor', () => {
     });
 });
 
-// Mock ChannelSelectorModal so a test can produce an unsaved channel addition:
-// the stub selects a channel as soon as it opens, which is all the
-// channel-attribute warning tests need from it.
-jest.mock('components/channel_selector_modal', () => {
-    const reactLib = require('react');
-    return jest.fn(({onChannelsSelected}: any) => {
-        reactLib.useEffect(() => {
-            onChannelsSelected([{id: 'channel9', name: 'channel9', display_name: 'Channel 9', team_display_name: 'Team 1', type: 'P'}]);
-        }, []);
-        return reactLib.createElement('div', {'data-testid': 'channel-selector-modal'});
-    });
-});
-
 // Mock CELEditor — its real implementation boots Monaco on mount, which is
 // not available in JSDOM. The mode-toggle tests only care that switching to
 // Advanced/Simple flips state in the parent, not how Monaco renders.
@@ -309,8 +296,8 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         const NOTICE_TITLE = 'Potential for denied access';
 
         // A channel with no value for a referenced channel attribute denies every
-        // member, so the notice fires on the pair (rule references a channel
-        // attribute, policy governs a channel) without inspecting values.
+        // member, so the notice fires as soon as the rule references a channel
+        // attribute — before any channel is assigned, without inspecting values.
         const renderWithPolicy = (expression: string, totalChannels: number) => {
             const props = {
                 ...defaultProps,
@@ -334,19 +321,10 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             return renderWithContext(<PolicyDetails {...props}/>);
         };
 
-        test('shows when a channel attribute is referenced and a channel is assigned', async () => {
-            renderWithPolicy('user.attributes.clearance == resource.attributes.minClearance', 1);
-
-            expect(await screen.findByText(NOTICE_TITLE)).toBeInTheDocument();
-        });
-
-        test('stays hidden when the policy has no channels', async () => {
+        test('shows as soon as a channel attribute is referenced, before any channel is assigned', async () => {
             renderWithPolicy('user.attributes.clearance == resource.attributes.minClearance', 0);
 
-            await waitFor(() => {
-                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
-            });
-            expect(screen.queryByText(NOTICE_TITLE)).not.toBeInTheDocument();
+            expect(await screen.findByText(NOTICE_TITLE)).toBeInTheDocument();
         });
 
         test('stays hidden when the rule only references user attributes', async () => {
@@ -367,21 +345,6 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
                 expect(screen.getByTestId('table-editor')).toBeInTheDocument();
             });
             expect(screen.queryByText(NOTICE_TITLE)).not.toBeInTheDocument();
-        });
-
-        test('shows for a channel added but not yet saved', async () => {
-            // The gate must not key on the server's channel count alone, or the
-            // warning would arrive only after save — too late to act on.
-            renderWithPolicy('user.attributes.clearance == resource.attributes.minClearance', 0);
-
-            await waitFor(() => {
-                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
-            });
-            expect(screen.queryByText(NOTICE_TITLE)).not.toBeInTheDocument();
-
-            await userEvent.click(screen.getByText('Add channels'));
-
-            expect(await screen.findByText(NOTICE_TITLE)).toBeInTheDocument();
         });
     });
 

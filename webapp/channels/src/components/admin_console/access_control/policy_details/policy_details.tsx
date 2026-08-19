@@ -458,11 +458,11 @@ function PolicyDetails({
     // A channel that has no value for a referenced channel attribute cannot be
     // evaluated, and the server fails closed by denying the whole rule — so every
     // member of that channel loses access. Warn as soon as the rule references any
-    // channel attribute and the policy governs any channel, without checking which
+    // channel attribute, before any channel is assigned, without checking which
     // channels actually carry a value: reading that would cost one property-values
     // request per assigned channel (the endpoint takes a single target id), and the
     // broad warning is what the reviewer asked for.
-    const showChannelAttributeWarning = referencesResourceAttributes(expression) && hasChannels();
+    const showChannelAttributeWarning = referencesResourceAttributes(expression);
 
     // Deletion is blocked while the policy still has ANY assigned resource —
     // channels or teams. Teams aren't editable from this editor (MVF), so a
