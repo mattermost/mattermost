@@ -6744,6 +6744,32 @@ func TestPostGetInfo(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("Open post - Current team - Guest outside channel is denied when compliance is enabled", func(t *testing.T) {
+		_, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guestUser.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.GetChannelMember(th.Context, openChannel.Id, guestUser.Id)
+		require.NotNil(t, appErr)
+
+		_, resp, err := guestClient.GetPostInfo(context.Background(), openPost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+
+		originalComplianceEnabled := *th.App.Config().ComplianceSettings.Enable
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ComplianceSettings.Enable = true
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ComplianceSettings.Enable = originalComplianceEnabled
+			})
+		})
+
+		_, resp, err = guestClient.GetPostInfo(context.Background(), openPost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
 	t.Run("Private post - Same-team non-member with manage members permission is denied", func(t *testing.T) {
 		_, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, th.BasicUser2.Id)
 		require.Nil(t, appErr)
