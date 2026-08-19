@@ -82,7 +82,7 @@ jobs:
     services:
       # make default-roles-permissions snapshots a live database.
       postgres:
-        image: postgres:14
+        image: postgres:15
         env:
           POSTGRES_USER: mmuser
           POSTGRES_PASSWORD: mostest
