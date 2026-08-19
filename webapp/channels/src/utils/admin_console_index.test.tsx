@@ -38,6 +38,10 @@ describe('AdminConsoleIndex.generateIndex', () => {
             'site_config/customization',
             'authentication/password',
         ]);
+        expect(idx.search('typing')).toEqual([
+            'experimental/features',
+            'site_config/posts',
+        ]);
         expect(idx.search('caracteres')).toEqual([]);
         expect(idx.search('notexistingword')).toEqual([]);
     });

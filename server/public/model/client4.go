@@ -269,10 +269,6 @@ func (c *Client4) teamStatsRoute(teamId string) clientRoute {
 	return c.teamRoute(teamId).Join("stats")
 }
 
-func (c *Client4) teamImportRoute(teamId string) clientRoute {
-	return c.teamRoute(teamId).Join("import")
-}
-
 func (c *Client4) channelsRoute() clientRoute {
 	return newClientRoute("channels")
 }
@@ -2627,50 +2623,6 @@ func (c *Client4) GetTeamUnread(ctx context.Context, teamId, userId string) (*Te
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*TeamUnread](r)
-}
-
-// ImportTeam will import an exported team from other app into a existing team.
-func (c *Client4) ImportTeam(ctx context.Context, data []byte, filesize int, importFrom, filename, teamId string) (map[string]string, *Response, error) {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	part, err := writer.CreateFormFile("file", filename)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
-		return nil, nil, err
-	}
-
-	part, err = writer.CreateFormField("filesize")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if _, err = io.Copy(part, strings.NewReader(strconv.Itoa(filesize))); err != nil {
-		return nil, nil, err
-	}
-
-	part, err = writer.CreateFormField("importFrom")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if _, err = io.Copy(part, strings.NewReader(importFrom)); err != nil {
-		return nil, nil, err
-	}
-
-	if err = writer.Close(); err != nil {
-		return nil, nil, err
-	}
-
-	r, err := c.doAPIRequestReaderRoute(ctx, http.MethodPost, c.teamImportRoute(teamId), writer.FormDataContentType(), body, nil)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[map[string]string](r)
 }
 
 // InviteUsersToTeam invite users by email to the team.
@@ -5510,6 +5462,20 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[[]string](r)
+}
+
+// QueryLogs returns a page of logs, filtered by the given LogFilter, keyed by node id.
+func (c *Client4) QueryLogs(ctx context.Context, page, perPage int, filter *LogFilter) (map[string][]json.RawMessage, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("logs_per_page", strconv.Itoa(perPage))
+
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.logsRoute().Join("query"), values, filter)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[map[string][]json.RawMessage](r)
 }
 
 // Download logs as mattermost.log file

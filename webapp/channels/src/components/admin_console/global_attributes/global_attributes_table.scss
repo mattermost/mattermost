@@ -100,6 +100,15 @@
         text-align: right;
     }
 
+    // table-layout is auto (never overridden), so max-width here is what
+    // actually caps this column -- the inner .GlobalAttributesTable__name
+    // span's own ellipsis-truncation rule only kicks in once the column
+    // itself is this narrow.
+    td.attribute,
+    th.attribute {
+        max-width: 65ch;
+    }
+
     table.adminConsoleListTable thead tr th {
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         background-color: rgba(var(--center-channel-color-rgb), 0.04);

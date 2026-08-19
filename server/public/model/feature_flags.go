@@ -4,6 +4,7 @@
 package model
 
 import (
+	"net/http"
 	"reflect"
 	"strconv"
 )
@@ -29,8 +30,6 @@ type FeatureFlags struct {
 
 	// Enable WYSIWYG text editor
 	WysiwygEditor bool
-
-	EnableExportDirectDownload bool
 
 	MoveThreadsEnabled bool
 
@@ -151,6 +150,9 @@ type FeatureFlags struct {
 	// Enable verifying plugin signatures against the MFI public key, in addition to the
 	// existing hard-coded Mattermost public key and any admin-configured public keys.
 	EnableMFIPluginSignaturePublicKey bool
+
+	// FEATURE_FLAG_REMOVAL: RecurringScheduledPosts - Remove this when the feature is GA.
+	RecurringScheduledPosts bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -162,7 +164,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.WysiwygEditor = false
-	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
 	f.NotificationMonitoring = true
 	f.AttributeValueMasking = true
@@ -215,6 +216,19 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableConcurrentReact = false
 
 	f.EnableMFIPluginSignaturePublicKey = true
+
+	f.RecurringScheduledPosts = false
+}
+
+// isValid rejects feature flag combinations that are no longer supported.
+func (f *FeatureFlags) isValid() *AppError {
+	// MoveThreadsEnabled is being retired in favor of Wrangler, so the server
+	// refuses to start while it is enabled.
+	if f.MoveThreadsEnabled {
+		return NewAppError("FeatureFlags.IsValid", "model.config.is_valid.feature_flags.move_threads_enabled.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 // IsChannelPermissionPoliciesEnabled reports whether channel-scope

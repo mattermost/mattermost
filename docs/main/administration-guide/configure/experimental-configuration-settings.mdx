@@ -13,10 +13,10 @@ Review and manage the following [experimental](/administration-guide/manage/feat
 
 <Tip>
 
-System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, one `LoginButtonColor` value is under `EmailSettings`.
+System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, the `EmailBatchingBufferSize` value is under `EmailSettings`.
 
-- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.EmailSettings.LoginButtonColor'`
-- When working with the `config.json` file manually, look for an object such as `EmailSettings`, then within that object, find the key `LoginButtonColor`.
+- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.EmailSettings.EmailBatchingBufferSize'`
+- When working with the `config.json` file manually, look for an object such as `EmailSettings`, then within that object, find the key `EmailBatchingBufferSize`.
 
 </Tip>
 
@@ -97,51 +97,6 @@ Specify the maximum frequency, in seconds, which the batching job checks for new
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>EmailBatchingInterval": 30</code> with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
-### Email login button color
-
-Specify the color of the email login button for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### Email login button border color
-
-Specify the color of the email login button border for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonBorderColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### Email login button text color
-
-Specify the color of the email login button text for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonTextColor": ""</code> with string input.</td>
 </tr>
 </tbody>
 </table>
@@ -357,46 +312,6 @@ Set a default theme that applies to all new users on the system.
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>"ServiceSettings.EnableOnboardingFlow": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### Enable user typing messages
-
-This setting determines whether "user is typing..." messages are displayed below the message box when using Mattermost in a web browser or the desktop app.
-
-<table style={{width: '98%'}}>
-<colgroup>
-<col style={{width: '98%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"EnableUserTypingMessages": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-<Note>
-
-Disabling this experimental configuration setting in larger deployments may improve server performance in the following areas:
-
-- Reduced Server Load: Typing events generate additional websocket traffic. Disabling them can reduce the amount of data that needs to be handled by the server, improving the overall response time and decreasing server load.
-- Lower Network Traffic: When typing events are enabled, every keystroke generates a network event. This can lead to a significant amount of network traffic, particularly in busy channels. Disabling these events reduces the amount of information transmitted over the network.
-- Client Performance: On the client side, processing typing events requires resources. By not having to handle these events, the client can be more responsive and use less memory and CPU.
-
-</Note>
-
-### User typing timeout
-
-This setting defines how frequently "user is typing..." messages are updated, measured in milliseconds.
-
-<table style={{width: '99%'}}>
-<colgroup>
-<col style={{width: '99%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"TimeBetweenUserTypingUpdatesMilliseconds": 5000</code> with numerical input.</td>
 </tr>
 </tbody>
 </table>
