@@ -53,12 +53,26 @@ func (a *App) genFileInfoFromReader(name string, file io.ReadSeeker, size int64)
 	return info, nil
 }
 
+type trackingWriter struct {
+	io.Writer
+	wrote bool
+}
+
+func (tw *trackingWriter) Write(p []byte) (n int, err error) {
+	if len(p) > 0 {
+		tw.wrote = true
+	}
+	return tw.Writer.Write(p)
+}
+
 func (a *App) runPluginsHook(rctx request.CTX, info *model.FileInfo, file io.Reader) *model.AppError {
 	filePath := info.Path
 	// using a pipe to avoid loading the whole file content in memory.
 	r, w := io.Pipe()
 	errChan := make(chan *model.AppError, 1)
 	hookHasRunCh := make(chan struct{})
+
+	tw := &trackingWriter{Writer: w, wrote: false}
 
 	go func() {
 		defer w.Close()
@@ -71,7 +85,7 @@ func (a *App) runPluginsHook(rctx request.CTX, info *model.FileInfo, file io.Rea
 			once.Do(func() {
 				hookHasRunCh <- struct{}{}
 			})
-			newInfo, rejStr := hooks.FileWillBeUploaded(pluginContext, info, file, w)
+			newInfo, rejStr := hooks.FileWillBeUploaded(pluginContext, info, file, tw)
 			if rejStr != "" {
 				rejErr = model.NewAppError("runPluginsHook", "app.upload.run_plugins_hook.rejected",
 					map[string]any{"Filename": info.Name, "Reason": rejStr}, "", http.StatusBadRequest)
@@ -90,6 +104,13 @@ func (a *App) runPluginsHook(rctx request.CTX, info *model.FileInfo, file io.Rea
 
 	// If the plugin hook has not run we can return early.
 	if _, ok := <-hookHasRunCh; !ok {
+		return nil
+	}
+
+	// If plugin didn't write anything, skip WriteFile and return early.
+	// This respects the hook contract: "allow without modification" means no bytes written.
+	if !tw.wrote {
+		r.Close()
 		return nil
 	}
 
@@ -289,14 +310,25 @@ func (a *App) UploadData(rctx request.CTX, us *model.UploadSession, rd io.Reader
 
 	// generate file info
 	info, genErr := a.genFileInfoFromReader(us.Filename, file, us.FileSize)
-	file.Close()
 	if genErr != nil {
+		file.Close()
 		var appErr *model.AppError
 		switch {
 		case errors.As(genErr, &appErr):
 			return nil, appErr
 		default:
 			return nil, model.NewAppError("UploadData", "app.upload.upload_data.gen_info.app_error", nil, "", http.StatusInternalServerError).Wrap(genErr)
+		}
+	}
+
+	// For images, DecodeConfig reads the header and advances position.
+	// Reset to 0 so plugins can read the full file content.
+	if info.IsImage() {
+		if seeker, ok := file.(io.Seeker); ok {
+			if _, err := seeker.Seek(0, io.SeekStart); err != nil {
+				file.Close()
+				return nil, model.NewAppError("UploadData", "app.upload.upload_data.seek_file.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
 		}
 	}
 
