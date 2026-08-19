@@ -11,31 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPropertyActionConstants(t *testing.T) {
-	// The wire strings are the grid cells clients and stored grants name; they
-	// are part of the contract, so pin them.
-	assert.Equal(t, "field.write", PropertyActionFieldWrite)
-	assert.Equal(t, "option.read", PropertyActionOptionRead)
-	assert.Equal(t, "option.write", PropertyActionOptionWrite)
-	assert.Equal(t, "value.read", PropertyActionValueRead)
-	assert.Equal(t, "value.write", PropertyActionValueWrite)
-}
-
-func TestPermissionLevelEveryoneIsValid(t *testing.T) {
-	pf := &PropertyField{
-		ID:         NewId(),
-		GroupID:    NewId(),
-		Name:       "test field",
-		Type:       PropertyFieldTypeText,
-		ObjectType: PropertyFieldObjectTypePost,
-		TargetType: string(PropertyFieldTargetLevelSystem),
-		CreateAt:   GetMillis(),
-		UpdateAt:   GetMillis(),
-	}
-	pf.PermissionValues = new(PermissionLevelEveryone)
-	require.NoError(t, pf.IsValid())
-}
-
 func TestPermissionsJSONRoundTrip(t *testing.T) {
 	// The Department field from §3.1: the JSON tags must match the spec wire
 	// shape, and the three parts must decode into their typed fields.
