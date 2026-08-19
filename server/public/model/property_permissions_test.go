@@ -76,3 +76,36 @@ func TestPermissionsJSONRoundTrip(t *testing.T) {
 	require.NoError(t, json.Unmarshal(out, &p2))
 	assert.Equal(t, p, p2)
 }
+
+func TestRestrictionsLeafDefaulting(t *testing.T) {
+	p := &Permissions{Restrictions: &Restrictions{
+		Value: ReadWrite{Read: PermissionLevelEveryone},
+	}}
+	require.NoError(t, p.IsValid())
+
+	// The one set leaf is kept; the other four are filled to none explicitly.
+	assert.Equal(t, PermissionLevelEveryone, p.Restrictions.Value.Read)
+	assert.Equal(t, PermissionLevelNone, p.Restrictions.Value.Write)
+	assert.Equal(t, PermissionLevelNone, p.Restrictions.Option.Read)
+	assert.Equal(t, PermissionLevelNone, p.Restrictions.Option.Write)
+	assert.Equal(t, PermissionLevelNone, p.Restrictions.Field.Write)
+}
+
+func TestRestrictionsRejectsInvalidTier(t *testing.T) {
+	p := &Permissions{Restrictions: &Restrictions{
+		Value: ReadWrite{Write: PermissionLevel("bogus")},
+	}}
+	require.Error(t, p.IsValid())
+}
+
+func TestFieldReadRejectedOnUnmarshal(t *testing.T) {
+	// field.read is not enforced and must be rejected as an input key, not
+	// silently dropped.
+	err := json.Unmarshal([]byte(`{"restrictions":{"field":{"read":"everyone","write":"sysadmin"}}}`), &Permissions{})
+	require.Error(t, err)
+
+	// A field block with only write still parses.
+	var p Permissions
+	require.NoError(t, json.Unmarshal([]byte(`{"restrictions":{"field":{"write":"sysadmin"}}}`), &p))
+	assert.Equal(t, PermissionLevelSysadmin, p.Restrictions.Field.Write)
+}

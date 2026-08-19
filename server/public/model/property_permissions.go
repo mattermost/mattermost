@@ -3,6 +3,12 @@
 
 package model
 
+import (
+	"encoding/json"
+	"fmt"
+	"slices"
+)
+
 // Property field permission actions. Each names one cell of the
 // field/option/value × read/write grid the permission model is asked per
 // action (§2.1). Aspect comes first so everything governing one part of a
@@ -60,6 +66,24 @@ type WriteOnly struct {
 	Write PermissionLevel `json:"write,omitempty"`
 }
 
+// UnmarshalJSON rejects a "read" key outright rather than silently dropping it,
+// so a caller that submits field.read gets an error instead of a no-op. Without
+// this the struct having no Read field would swallow the key and the ban would
+// be invisible.
+func (w *WriteOnly) UnmarshalJSON(data []byte) error {
+	var m map[string]json.RawMessage
+	if err := json.Unmarshal(data, &m); err != nil {
+		return err
+	}
+	if _, ok := m["read"]; ok {
+		return fmt.Errorf("field.read is not an enforced action and cannot be set")
+	}
+	if raw, ok := m["write"]; ok {
+		return json.Unmarshal(raw, &w.Write)
+	}
+	return nil
+}
+
 // Grant names one identity and lists the actions it may perform (§2.3). Type is
 // one of the PropertyOwnerType* constants (grants generalize the owners list).
 // Allow is required and non-empty; an empty allow is rejected, not ignored.
@@ -84,4 +108,44 @@ type Masking struct {
 type Identity struct {
 	Type string `json:"type"`
 	ID   string `json:"id"`
+}
+
+// IsValid validates the permissions object and normalizes it in place so a
+// stored object is always complete: restrictions leaves omitted on input are
+// filled to none (§2.2), which is why the receiver is a pointer. It is
+// idempotent, so re-validating a normalized object is a no-op.
+func (p *Permissions) IsValid() error {
+	if p.Restrictions != nil {
+		if err := p.Restrictions.normalizeAndValidate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// restrictionsLeaves returns pointers to the five enforced leaves in a stable
+// order, so normalization and validation walk exactly the set §2.1 enforces —
+// field.read is absent by construction.
+func (r *Restrictions) restrictionsLeaves() []*PermissionLevel {
+	return []*PermissionLevel{
+		&r.Value.Read, &r.Value.Write,
+		&r.Option.Read, &r.Option.Write,
+		&r.Field.Write,
+	}
+}
+
+// normalizeAndValidate fills every omitted leaf with none and rejects any
+// present leaf that is not a ladder tier (§2.2). After it returns nil all five
+// leaves are set explicitly, so nothing has to be inferred on read.
+func (r *Restrictions) normalizeAndValidate() error {
+	for _, leaf := range r.restrictionsLeaves() {
+		if *leaf == "" {
+			*leaf = PermissionLevelNone
+			continue
+		}
+		if !slices.Contains(validPermissionLevels, *leaf) {
+			return fmt.Errorf("invalid permission level %q in restrictions", *leaf)
+		}
+	}
+	return nil
 }
