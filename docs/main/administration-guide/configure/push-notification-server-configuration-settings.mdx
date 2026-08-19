@@ -29,8 +29,6 @@ Mattermost Enterprise, Professional, and Cloud customers can use Mattermost's Ho
 - Production-level uptime expectations.
 - Out-of-box configuration for new servers means nothing is required to enable HPNS for new deployments. HPNS can be [enabled for existing deployments](#enable-hpns-for-existing-deployments).
 
-When a self-hosted server's license includes HPNS, Mattermost automatically switches the **Push Notification Server** from the test endpoint (`https://push-test.mattermost.com`) to the hosted endpoint (`https://global.push.mattermost.com`). When the license no longer includes HPNS, any Mattermost-hosted endpoint (global, regional, or legacy) is switched back to the test endpoint so push notifications aren't left pointing at an endpoint that refuses to send. Custom endpoints, and values managed through the `MM_EMAILSETTINGS_PUSHNOTIFICATIONSERVER` environment variable, are never modified.
-
 <Note>
 
 \- The HPNS only works with pre-built apps Mattermost deploys through the [Apple App Store](https://www.apple.com/app-store/) and [Google Play Store](https://play.google.com/store/games?hl=en). If you build your own mobile apps, you must also [host your own Mattermost push proxy server](#host-your-own-push-proxy-service). - You must ensure that the push proxy can be reached on the correct port. For HPNS, it's port 443 from the Mattermost server. - Mattermost doesn't store any notification data. Any data being stored is at the server level only, such as the `device_id`, since the HPNS needs to know which device the notification must be sent to.
