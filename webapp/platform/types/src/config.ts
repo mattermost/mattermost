@@ -494,7 +494,6 @@ export type SqlSettings = {
     ConnMaxIdleTimeMilliseconds: number;
     MaxOpenConns: number;
     Trace: boolean;
-    AtRestEncryptKey: string;
     QueryTimeout: number;
     AnalyticsQueryTimeout: number;
     DisableDatabaseSearch: boolean;
@@ -843,7 +842,6 @@ export type NativeAppSettings = {
     MobileJailbreakProtection: boolean;
     MobileEnableSecureFilePreview: boolean;
     MobileAllowPdfLinkNavigation: boolean;
-    EnableIntuneMAM: boolean;
 };
 
 export type IntuneSettings = {
@@ -1012,7 +1010,6 @@ export type DisplaySettings = {
 export type GuestAccountsSettings = {
     Enable: boolean;
     HideTags: boolean;
-    AllowEmailAccounts: boolean;
     EnforceMultifactorAuthentication: boolean;
     RestrictCreationToDomains: string;
     EnableGuestMagicLink: boolean;

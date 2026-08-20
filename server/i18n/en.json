@@ -11887,10 +11887,6 @@
     "translation": "Cache type must be either lru or redis."
   },
   {
-    "id": "model.config.is_valid.client_side_cert_enable.app_error",
-    "translation": "Certificate-based authentication has been removed. Please disable ClientSideCertEnable to continue."
-  },
-  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Unable to enable email batching when clustering is enabled."
   },
@@ -12043,20 +12039,12 @@
     "translation": "RedisAddress must be specified for redis cache type."
   },
   {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Invalid at rest encrypt key for SQL settings. Must be 32 chars or more."
-  },
-  {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
     "translation": "When audit file logging is enabled, a file name must be specified."
   },
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
     "translation": "The file name must not be a directory."
-  },
-  {
-    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
-    "translation": "Hiding archived channels is no longer supported. Make these channels private and remove members instead."
   },
   {
     "id": "model.config.is_valid.export.directory.app_error",
