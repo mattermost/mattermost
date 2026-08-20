@@ -294,7 +294,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         expect(screen.getByPlaceholderText('Write to Other Channel')).toHaveValue('a different draft');
     });
 
-    it('should submit to the destination channel while the textbox still holds the previous channel draft', async () => {
+    it('should submit a destination-owned draft while the textbox still holds the previous channel value', async () => {
         const sourceDraft = 'stale draft from the source channel';
         const destinationMessage = 'new message composed for the destination channel';
         const typeOnSwitchRef = {current: false};
@@ -327,7 +327,6 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     return;
                 }
 
-                expect(screen.getByPlaceholderText('Write to Other Channel')).toHaveValue(destinationMessage);
                 fireEvent.click(screen.getByTestId('SendMessageButton'));
             }, [sendDestinationMessage]);
 
@@ -364,15 +363,90 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await Promise.resolve();
         });
 
-        // The post is routed by the channel the composer is rendered for, even though
-        // the draft it submitted still carries the source channel's ids.
         expect(mockedOnSubmit).toHaveBeenCalledWith(
             otherChannelId,
             '',
-            expect.objectContaining({message: destinationMessage}),
+            expect.objectContaining({
+                message: destinationMessage,
+                channelId: otherChannelId,
+                rootId: '',
+            }),
             expect.anything(),
             undefined,
         );
+    });
+
+    it('should persist text typed during a channel switch only under the destination draft', async () => {
+        jest.useFakeTimers();
+
+        const sourceDraft = 'stale draft from the source channel';
+        const destinationMessage = 'new message composed for the destination channel';
+        const typeOnSwitchRef = {current: false};
+
+        function Harness({editorChannelId}: {editorChannelId: string}) {
+            React.useLayoutEffect(() => {
+                if (!typeOnSwitchRef.current) {
+                    return;
+                }
+                typeOnSwitchRef.current = false;
+
+                const textbox = screen.getByPlaceholderText('Write to Other Channel');
+                expect(textbox).toHaveValue(sourceDraft);
+                fireEvent.input(textbox, {target: {value: destinationMessage}});
+            }, [editorChannelId]);
+
+            return (
+                <AdvancedTextEditor
+                    {...baseProps}
+                    channelId={editorChannelId}
+                />
+            );
+        }
+
+        const {rerender} = renderWithContext(
+            <Harness editorChannelId={channelId}/>,
+            mergeObjects(initialState, {
+                storage: {
+                    storage: {
+                        [StoragePrefixes.DRAFT + channelId]: {
+                            value: TestHelper.getPostDraftMock({
+                                message: sourceDraft,
+                                channelId,
+                            }),
+                        },
+                    },
+                },
+            }),
+        );
+
+        mockedUpdateDraft.mockClear();
+        typeOnSwitchRef.current = true;
+        rerender(<Harness editorChannelId={otherChannelId}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        act(() => {
+            jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT + 50);
+        });
+
+        expect(mockedUpdateDraft).toHaveBeenCalledWith(
+            StoragePrefixes.DRAFT + otherChannelId,
+            expect.objectContaining({
+                message: destinationMessage,
+                channelId: otherChannelId,
+                rootId: '',
+            }),
+            '',
+        );
+        expect(mockedUpdateDraft).not.toHaveBeenCalledWith(
+            StoragePrefixes.DRAFT + channelId,
+            expect.objectContaining({message: destinationMessage}),
+            expect.anything(),
+        );
+
+        jest.useRealTimers();
     });
 
     it('should save a new draft when changing channels', async () => {

@@ -273,9 +273,8 @@ describe('useSubmit', () => {
     });
 
     // Cmd+K (Find Channels) only history.push-es; SELECT_CHANNEL and the composer
-    // draft swap happen later. The focused textbox can submit a new message whose
-    // draft.channelId is still the channel we switched away from.
-    it('should submit a new message to the destination channel when the draft still belongs to the previous channel', async () => {
+    // draft swap happen later. A mismatched draft must fail closed.
+    it('should not submit when the draft still belongs to the previous channel', async () => {
         const sourceChannelId = 'source_channel_id';
         const destinationChannelId = 'destination_channel_id';
         const message = 'new message composed for the destination channel';
@@ -318,18 +317,7 @@ describe('useSubmit', () => {
         const [handleSubmit] = result.current;
         await handleSubmit();
 
-        // The post is routed by the editor's channel and thread, not by the ids the
-        // draft happens to carry.
-        expect(onSubmit).toHaveBeenCalledWith(
-            destinationChannelId,
-            '',
-            expect.objectContaining({
-                message,
-                channelId: sourceChannelId,
-            }),
-            expect.anything(),
-            undefined,
-        );
+        expect(onSubmit).not.toHaveBeenCalled();
     });
 });
 

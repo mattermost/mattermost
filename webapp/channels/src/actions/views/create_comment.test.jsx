@@ -337,5 +337,22 @@ describe('rhs view actions', () => {
                 expect.arrayContaining([{args: ['test msg'], type: 'MOCK_ADD_MESSAGE_INTO_HISTORY'}]),
             );
         });
+
+        test('it rejects a draft whose destination does not match the explicit channel and thread', async () => {
+            const result = await store.dispatch(onSubmit(channelId, rootId, {
+                message: 'test msg',
+                fileInfos: [],
+                uploadsInProgress: [],
+                channelId: 'other_channel_id',
+                rootId: '',
+            }, {}));
+
+            expect(result.error).toEqual(new Error('draft destination mismatch'));
+            expect(store.getActions()).toEqual([]);
+            expect(HookActions.runMessageWillBePostedHooks).not.toHaveBeenCalled();
+            expect(HookActions.runSlashCommandWillBePostedHooks).not.toHaveBeenCalled();
+            expect(executeCommand).not.toHaveBeenCalled();
+            expect(PostActions.createPost).not.toHaveBeenCalled();
+        });
     });
 });
