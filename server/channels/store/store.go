@@ -249,6 +249,7 @@ type ChannelStore interface {
 	GetMembers(opts model.ChannelMembersGetOptions) (model.ChannelMembers, error)
 	GetMember(rctx request.CTX, channelID string, userID string) (*model.ChannelMember, error)
 	GetMemberLastViewedAt(rctx request.CTX, channelID string, userID string) (int64, error)
+	GetMembersWithLastViewedAtSince(rctx request.CTX, channelID string, since int64, afterUserID string, limit int) ([]*model.ChannelMemberLastViewed, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(rctx request.CTX, userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)

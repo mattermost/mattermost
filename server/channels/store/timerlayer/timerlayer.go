@@ -2289,6 +2289,22 @@ func (s *TimerLayerChannelStore) GetMembersInfoByChannelIds(channelIDs []string)
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetMembersWithLastViewedAtSince(rctx request.CTX, channelID string, since int64, afterUserID string, limit int) ([]*model.ChannelMemberLastViewed, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetMembersWithLastViewedAtSince(rctx, channelID, since, afterUserID, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMembersWithLastViewedAtSince", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetMoreChannels(teamID string, userID string, offset int, limit int) (model.ChannelList, error) {
 	start := time.Now()
 
