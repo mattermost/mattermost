@@ -62,7 +62,11 @@ function renderReactRootComponent() {
         console.log('Enabling concurrent React 18 due to server-wide feature flag');
 
         // Enable this experimentally since it may cause other issues
-        ReactDOMClient.createRoot(container).render(<App/>);
+        ReactDOMClient.createRoot(container).render(
+            <React.StrictMode>
+                <App/>
+            </React.StrictMode>,
+        );
     } else {
         // We're using React 18, but we're using the deprecated way of starting React because ReactDOM.createRoot enables
         // new features such as automatic batching which breaks some components. This will need to be changed in the future
