@@ -509,7 +509,7 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	// Re-init email batching only when EnableEmailBatching changes.
+	// Re-init email batching only when its enable flag or interval changes.
 	s.platform.AddConfigListener(func(oldCfg, newCfg *model.Config) {
 		if emailBatchingSettingChanged(oldCfg, newCfg) {
 			s.EmailService.InitEmailBatching()
@@ -2069,5 +2069,7 @@ func emailBatchingSettingChanged(oldCfg, newCfg *model.Config) bool {
 		return true
 	}
 	return model.SafeDereference(oldCfg.EmailSettings.EnableEmailBatching) !=
-		model.SafeDereference(newCfg.EmailSettings.EnableEmailBatching)
+		model.SafeDereference(newCfg.EmailSettings.EnableEmailBatching) ||
+		model.SafeDereference(oldCfg.EmailSettings.EmailBatchingInterval) !=
+			model.SafeDereference(newCfg.EmailSettings.EmailBatchingInterval)
 }

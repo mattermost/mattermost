@@ -570,9 +570,10 @@ func TestOriginChecker(t *testing.T) {
 func TestEmailBatchingSettingChanged(t *testing.T) {
 	t.Parallel()
 
-	cfg := func(enabled bool) *model.Config {
+	cfg := func(enabled bool, interval int) *model.Config {
 		c := &model.Config{}
 		c.EmailSettings.EnableEmailBatching = model.NewPointer(enabled)
+		c.EmailSettings.EmailBatchingInterval = model.NewPointer(interval)
 		return c
 	}
 
@@ -582,21 +583,22 @@ func TestEmailBatchingSettingChanged(t *testing.T) {
 		newCfg   *model.Config
 		expected bool
 	}{
-		{name: "nil old config", oldCfg: nil, newCfg: cfg(true), expected: true},
-		{name: "nil new config", oldCfg: cfg(true), newCfg: nil, expected: true},
-		{name: "unchanged disabled", oldCfg: cfg(false), newCfg: cfg(false), expected: false},
-		{name: "unchanged enabled", oldCfg: cfg(true), newCfg: cfg(true), expected: false},
-		{name: "enabled", oldCfg: cfg(false), newCfg: cfg(true), expected: true},
-		{name: "disabled", oldCfg: cfg(true), newCfg: cfg(false), expected: true},
+		{name: "nil old config", oldCfg: nil, newCfg: cfg(true, 30), expected: true},
+		{name: "nil new config", oldCfg: cfg(true, 30), newCfg: nil, expected: true},
+		{name: "unchanged disabled", oldCfg: cfg(false, 30), newCfg: cfg(false, 30), expected: false},
+		{name: "unchanged enabled", oldCfg: cfg(true, 30), newCfg: cfg(true, 30), expected: false},
+		{name: "enabled", oldCfg: cfg(false, 30), newCfg: cfg(true, 30), expected: true},
+		{name: "disabled", oldCfg: cfg(true, 30), newCfg: cfg(false, 30), expected: true},
+		{name: "interval changed", oldCfg: cfg(true, 30), newCfg: cfg(true, 300), expected: true},
 		{
 			name: "push notification server change is ignored",
 			oldCfg: func() *model.Config {
-				c := cfg(false)
+				c := cfg(false, 30)
 				c.EmailSettings.PushNotificationServer = model.NewPointer(model.MHPNSGlobal)
 				return c
 			}(),
 			newCfg: func() *model.Config {
-				c := cfg(false)
+				c := cfg(false, 30)
 				c.EmailSettings.PushNotificationServer = model.NewPointer(model.GenericNotificationServer)
 				return c
 			}(),
