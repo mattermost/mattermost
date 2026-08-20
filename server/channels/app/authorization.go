@@ -513,24 +513,39 @@ func (a *App) HasPermissionToChannelMemberCount(rctx request.CTX, userID string,
 // Returns false if the field is nil, protected on an unmigrated field, or if the field carries no permission
 // configuration at all (an unmigrated field with neither Permissions nor PermissionField set).
 func (a *App) SessionHasPermissionToEditPropertyField(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
+	return a.SessionPropertyFieldEditBasis(rctx, session, field).Allowed
+}
+
+// SessionPropertyFieldEditBasis decides the same question as
+// SessionHasPermissionToEditPropertyField, returning the full basis so a
+// caller that also audits the write can record it directly instead of
+// re-deriving it afterwards.
+func (a *App) SessionPropertyFieldEditBasis(rctx request.CTX, session model.Session, field *model.PropertyField) PropertyPermissionBasis {
+	basis := PropertyPermissionBasis{
+		Action:     model.PropertyActionFieldWrite,
+		CallerType: model.PropertyOwnerTypeUser,
+		CallerID:   session.UserId,
+	}
 	if field == nil {
-		return false
+		return basis
 	}
 	// Protected denies unconditionally only on an unmigrated field: once
 	// converted, the cutover mapping has already encoded an equivalent
 	// restriction, and Protected's bool value on that field is inert.
 	if field.Protected && field.Permissions == nil {
-		return false
+		return basis
 	}
 	if field.Permissions == nil && field.PermissionField == nil {
-		return false
+		return basis
 	}
 	if session.IsUnrestricted() {
 		// Bypasses the decision itself: a local-mode session has no user
 		// identity to resolve a tier or grant against.
-		return true
+		basis.Unrestricted = true
+		basis.Allowed = true
+		return basis
 	}
-	return a.decidePropertyFieldPermission(rctx, session.UserId, field, model.PropertyActionFieldWrite, "").Allowed
+	return a.decidePropertyFieldPermission(rctx, session.UserId, field, model.PropertyActionFieldWrite, "")
 }
 
 // SessionHasPermissionToSetPropertyFieldValues checks if the session has
@@ -557,16 +572,31 @@ func (a *App) SessionHasPermissionToSetPropertyFieldValues(rctx request.CTX, ses
 // Returns false if the field is nil or if the field carries no permission configuration at all (an unmigrated
 // field with neither Permissions nor PermissionOptions set).
 func (a *App) SessionHasPermissionToManagePropertyFieldOptions(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
+	return a.SessionPropertyFieldOptionsBasis(rctx, session, field).Allowed
+}
+
+// SessionPropertyFieldOptionsBasis decides the same question as
+// SessionHasPermissionToManagePropertyFieldOptions, returning the full basis
+// so a caller that also audits the write can record it directly instead of
+// re-deriving it afterwards.
+func (a *App) SessionPropertyFieldOptionsBasis(rctx request.CTX, session model.Session, field *model.PropertyField) PropertyPermissionBasis {
+	basis := PropertyPermissionBasis{
+		Action:     model.PropertyActionOptionWrite,
+		CallerType: model.PropertyOwnerTypeUser,
+		CallerID:   session.UserId,
+	}
 	if field == nil {
-		return false
+		return basis
 	}
 	if field.Permissions == nil && field.PermissionOptions == nil {
-		return false
+		return basis
 	}
 	if session.IsUnrestricted() {
-		return true
+		basis.Unrestricted = true
+		basis.Allowed = true
+		return basis
 	}
-	return a.decidePropertyFieldPermission(rctx, session.UserId, field, model.PropertyActionOptionWrite, "").Allowed
+	return a.decidePropertyFieldPermission(rctx, session.UserId, field, model.PropertyActionOptionWrite, "")
 }
 
 // HasPermissionToEditPropertyField checks if the user has permission to edit the field definition.
