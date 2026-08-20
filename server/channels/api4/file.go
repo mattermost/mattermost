@@ -75,6 +75,20 @@ func multipartReader(req *http.Request, stream io.Reader) (*multipart.Reader, er
 }
 
 func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
+	// An upload is rejected as soon as the reason is known — an access control
+	// policy denying uploads is decided from the channel id, which arrives in the
+	// first form field — so the client is usually still sending the file. Leaving
+	// that data unread makes the server hang up the connection instead of
+	// completing the exchange, and any hop in between (dev server proxy, reverse
+	// proxy, ingress) then reports a transport failure rather than this response,
+	// leaving the client with nothing but a generic upload error. Discard what is
+	// left of the body so the explanation reaches the user.
+	defer func() {
+		if c.Err != nil {
+			_, _ = io.Copy(io.Discard, r.Body)
+		}
+	}()
+
 	if !*c.App.Config().FileSettings.EnableFileAttachments {
 		c.Err = model.NewAppError("uploadFileStream",
 			"api.file.attachments.disabled.app_error",
