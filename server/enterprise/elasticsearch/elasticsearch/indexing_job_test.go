@@ -10,12 +10,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
-	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestElasticSearchIndexerJobIsEnabled(t *testing.T) {
@@ -42,18 +40,6 @@ func TestElasticSearchIndexerJobIsEnabled(t *testing.T) {
 
 	t.Run("there is NO license then job is disabled", func(t *testing.T) {
 		th := api4.SetupEnterpriseWithStoreMock(t)
-
-		// Clearing the license below reverts the auto-selected push notification
-		// server, saving a config change whose listeners regenerate the client
-		// config from the store.
-		mockStore := th.App.Srv().Store().(*storemocks.Store)
-		mockPostStore := storemocks.PostStore{}
-		mockPostStore.On("GetMaxPostSize").Return(65535)
-		mockStore.On("Post").Return(&mockPostStore)
-		mockSystemStore := storemocks.SystemStore{}
-		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
-		mockStore.On("System").Return(&mockSystemStore)
-		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		th.Server.SetLicense(nil)
 

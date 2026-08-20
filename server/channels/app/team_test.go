@@ -2219,7 +2219,9 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	license := model.NewTestLicenseWithFalseDefaults("mhpns")
+	license.SkuShortName = model.LicenseShortSkuEnterprise
+	th.App.Srv().SetLicense(license)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
 		*cfg.TeamSettings.LockProfileFieldsForEmailUsers = model.TeamSettingsLockProfileFieldsNameAndUsername
@@ -2258,8 +2260,6 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			inviteDataMatches(memberInvite),
 		).Once().Return(nil)
 		emailServiceMock.On("Stop").Once().Return()
-		// The teardown license reset saves a config change, whose listener re-inits email batching.
-		emailServiceMock.On("InitEmailBatching").Return().Maybe()
 		th.App.Srv().EmailService = &emailServiceMock
 
 		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
@@ -2278,8 +2278,6 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			inviteDataMatches(memberInvite),
 		).Once().Return(email.SendMailError)
 		emailServiceMock.On("Stop").Once().Return()
-		// The teardown license reset saves a config change, whose listener re-inits email batching.
-		emailServiceMock.On("InitEmailBatching").Return().Maybe()
 		th.App.Srv().EmailService = &emailServiceMock
 
 		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
@@ -2299,8 +2297,6 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			inviteDataMatches(memberInvite),
 		).Once().Return([]*model.EmailInviteWithError{}, nil)
 		emailServiceMock.On("Stop").Once().Return()
-		// The teardown license reset saves a config change, whose listener re-inits email batching.
-		emailServiceMock.On("InitEmailBatching").Return().Maybe()
 		th.App.Srv().EmailService = &emailServiceMock
 
 		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
@@ -2319,8 +2315,6 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			inviteDataMatches(memberInvite),
 		).Once().Return(nil)
 		emailServiceMock.On("Stop").Once().Return()
-		// The teardown license reset saves a config change, whose listener re-inits email batching.
-		emailServiceMock.On("InitEmailBatching").Return().Maybe()
 		th.App.Srv().EmailService = &emailServiceMock
 
 		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
@@ -2345,8 +2339,6 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			inviteDataMatches(memberInvite),
 		).Once().Return(nil)
 		emailServiceMock.On("Stop").Once().Return()
-		// The teardown license reset saves a config change, whose listener re-inits email batching.
-		emailServiceMock.On("InitEmailBatching").Return().Maybe()
 		th.App.Srv().EmailService = &emailServiceMock
 
 		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
@@ -2365,8 +2357,6 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 			}},
 		}
 		emailServiceMock.On("Stop").Once().Return()
-		// The teardown license reset saves a config change, whose listener re-inits email batching.
-		emailServiceMock.On("InitEmailBatching").Return().Maybe()
 		th.App.Srv().EmailService = &emailServiceMock
 
 		res, err := th.App.InviteNewUsersToTeamGracefully(th.Context, memberInvite, th.BasicTeam.Id, th.BasicUser.Id, "")
@@ -2453,8 +2443,6 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 			false,
 		).Once().Return(nil)
 		emailServiceMock.On("Stop").Once().Return()
-		// The teardown license reset saves a config change, whose listener re-inits email batching.
-		emailServiceMock.On("InitEmailBatching").Return().Maybe()
 		th.App.Srv().EmailService = &emailServiceMock
 
 		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{
@@ -2484,8 +2472,6 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 			false,
 		).Once().Return(email.SendMailError)
 		emailServiceMock.On("Stop").Once().Return()
-		// The teardown license reset saves a config change, whose listener re-inits email batching.
-		emailServiceMock.On("InitEmailBatching").Return().Maybe()
 		th.App.Srv().EmailService = &emailServiceMock
 
 		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{

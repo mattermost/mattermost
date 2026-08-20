@@ -106,27 +106,17 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 		t.Run("reactivation blocked at grace limit", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
 
-			// Mock user count at grace limit (105 = 100 + 5% grace period)
-			mockUserStore := storemocks.UserStore{}
-			mockUserStore.On("Count", mock.Anything).Return(int64(105), nil) // At grace limit
-			mockStore := th.App.Srv().Store().(*storemocks.Store)
-			mockStore.On("User").Return(&mockUserStore)
-
-			// Setting an MHPNS-featured license below saves a config change, whose
-			// listeners regenerate the client config from the store.
-			mockPostStore := storemocks.PostStore{}
-			mockPostStore.On("GetMaxPostSize").Return(65535)
-			mockStore.On("Post").Return(&mockPostStore)
-			mockSystemStore := storemocks.SystemStore{}
-			mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
-			mockStore.On("System").Return(&mockSystemStore)
-			mockStore.On("GetDBSchemaVersion").Return(1, nil)
-
 			userLimit := 100
 			license := model.NewTestLicense("")
 			license.IsSeatCountEnforced = true
 			license.Features.Users = &userLimit
 			th.App.Srv().SetLicense(license)
+
+			// Mock user count at grace limit (105 = 100 + 5% grace period)
+			mockUserStore := storemocks.UserStore{}
+			mockUserStore.On("Count", mock.Anything).Return(int64(105), nil) // At grace limit
+			mockStore := th.App.Srv().Store().(*storemocks.Store)
+			mockStore.On("User").Return(&mockUserStore)
 
 			user := &model.User{
 				Id:       model.NewId(),
@@ -168,27 +158,17 @@ func TestUpdateActiveWithUserLimits(t *testing.T) {
 		t.Run("reactivation blocked above grace limit", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
 
-			// Mock user count above grace limit (106 > 105 grace limit)
-			mockUserStore := storemocks.UserStore{}
-			mockUserStore.On("Count", mock.Anything).Return(int64(106), nil) // Above grace limit
-			mockStore := th.App.Srv().Store().(*storemocks.Store)
-			mockStore.On("User").Return(&mockUserStore)
-
-			// Setting an MHPNS-featured license below saves a config change, whose
-			// listeners regenerate the client config from the store.
-			mockPostStore := storemocks.PostStore{}
-			mockPostStore.On("GetMaxPostSize").Return(65535)
-			mockStore.On("Post").Return(&mockPostStore)
-			mockSystemStore := storemocks.SystemStore{}
-			mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
-			mockStore.On("System").Return(&mockSystemStore)
-			mockStore.On("GetDBSchemaVersion").Return(1, nil)
-
 			userLimit := 100
 			license := model.NewTestLicense("")
 			license.IsSeatCountEnforced = true
 			license.Features.Users = &userLimit
 			th.App.Srv().SetLicense(license)
+
+			// Mock user count above grace limit (106 > 105 grace limit)
+			mockUserStore := storemocks.UserStore{}
+			mockUserStore.On("Count", mock.Anything).Return(int64(106), nil) // Above grace limit
+			mockStore := th.App.Srv().Store().(*storemocks.Store)
+			mockStore.On("User").Return(&mockUserStore)
 
 			user := &model.User{
 				Id:       model.NewId(),
@@ -359,16 +339,6 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockStore.On("User").Return(&mockUserStore)
 		mockStore.On("Group").Return(&mockGroupStore)
-
-		// Setting an MHPNS-featured license below saves a config change, whose
-		// listeners regenerate the client config from the store.
-		mockPostStore := storemocks.PostStore{}
-		mockPostStore.On("GetMaxPostSize").Return(65535)
-		mockStore.On("Post").Return(&mockPostStore)
-		mockSystemStore := storemocks.SystemStore{}
-		mockSystemStore.On("GetByName", mock.Anything).Return(&model.System{Name: model.SystemInstallationDateKey, Value: "10"}, nil)
-		mockStore.On("System").Return(&mockSystemStore)
-		mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 		license := model.NewTestLicense("")
 		license.IsSeatCountEnforced = true
