@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -41,6 +41,13 @@ const MAX_TILE_WIDTH = 500;
 const GAP = 8;
 const FALLBACK_WIDTH = 700;
 
+const NARROW_ENTER_WIDTH = 480;
+const NARROW_EXIT_WIDTH = 512;
+
+export function nextNarrowState(isNarrow: boolean, width: number): boolean {
+    return isNarrow ? width < NARROW_EXIT_WIDTH : width < NARROW_ENTER_WIDTH;
+}
+
 function tileKindFor(fileInfo: FileInfo): TileKind | null {
     const type = getFileType(fileInfo.extension);
     if (type === FileTypes.IMAGE) {
@@ -59,6 +66,13 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
     const containerRef = useRef<HTMLDivElement | null>(null);
     const {width: containerWidth} = useContainerDimensions(containerRef);
 
+    const effectiveWidth = containerWidth > 0 ? containerWidth : FALLBACK_WIDTH;
+    const [isNarrow, setIsNarrow] = useState(false);
+
+    useEffect(() => {
+        setIsNarrow((prev) => nextNarrowState(prev, effectiveWidth));
+    }, [effectiveWidth]);
+
     const tiles: ClassifiedFile[] = useMemo(() => {
         const out: ClassifiedFile[] = [];
         for (const file of fileInfos) {
@@ -71,15 +85,14 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
     }, [fileInfos]);
 
     const rows = useMemo(() => {
-        const effectiveWidth = containerWidth > 0 ? containerWidth : FALLBACK_WIDTH;
         return packRows(tiles, {
             containerWidth: effectiveWidth,
-            rowHeight: compactDisplay ? COMPACT_ROW_HEIGHT : ROW_HEIGHT,
+            rowHeight: (compactDisplay || isNarrow) ? COMPACT_ROW_HEIGHT : ROW_HEIGHT,
             minTileWidth: MIN_TILE_WIDTH,
             maxTileWidth: MAX_TILE_WIDTH,
             gap: GAP,
         });
-    }, [tiles, containerWidth, compactDisplay]);
+    }, [tiles, effectiveWidth, isNarrow, compactDisplay]);
 
     const handleClick = useCallback((index: number) => {
         const file = tiles[index]?.file;

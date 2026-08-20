@@ -9,7 +9,7 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
-import MediaGallery from './media_gallery';
+import MediaGallery, {nextNarrowState} from './media_gallery';
 
 function fileInfo(overrides: Partial<FileInfo>): FileInfo {
     return {
@@ -31,6 +31,37 @@ function fileInfo(overrides: Partial<FileInfo>): FileInfo {
         ...overrides,
     };
 }
+
+describe('nextNarrowState', () => {
+    const SCROLLBAR_WIDTH = 15;
+
+    it('switches to compact rows below the enter threshold', () => {
+        expect(nextNarrowState(false, 479)).toBe(true);
+        expect(nextNarrowState(false, 480)).toBe(false);
+    });
+
+    it('stays compact until well past the enter threshold so a vanishing scrollbar cannot flip it back', () => {
+        expect(nextNarrowState(true, 479 + SCROLLBAR_WIDTH)).toBe(true);
+        expect(nextNarrowState(true, 511)).toBe(true);
+        expect(nextNarrowState(true, 512)).toBe(false);
+    });
+
+    it('settles at every width in the worst case, where tall rows scroll and compact rows do not', () => {
+        for (let unscrolledWidth = 400; unscrolledWidth <= 600; unscrolledWidth++) {
+            const scrolledWidth = unscrolledWidth - SCROLLBAR_WIDTH;
+
+            // Going compact hides the scrollbar, which widens the container back out.
+            if (nextNarrowState(false, scrolledWidth)) {
+                expect(nextNarrowState(true, unscrolledWidth)).toBe(true);
+            }
+
+            // Going tall shows the scrollbar, which narrows the container again.
+            if (!nextNarrowState(true, unscrolledWidth)) {
+                expect(nextNarrowState(false, scrolledWidth)).toBe(false);
+            }
+        }
+    });
+});
 
 describe('MediaGallery', () => {
     const baseState = {
@@ -111,10 +142,10 @@ describe('MediaGallery', () => {
         expect(onToggle).toHaveBeenCalledWith('p1');
     });
 
-    it('keeps the row height stable in a narrow container so a toggling scrollbar cannot resize tiles in a loop', () => {
+    it('uses compact rows in a narrow container', () => {
         const rectSpy = jest.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({
-            width: 470,
-            height: 216,
+            width: 400,
+            height: 144,
         } as DOMRect);
 
         try {
@@ -129,7 +160,7 @@ describe('MediaGallery', () => {
 
             const row = container.querySelector<HTMLElement>('.MediaGallery__row');
             expect(row).not.toBeNull();
-            expect(row!.style.height).toBe('216px');
+            expect(row!.style.height).toBe('144px');
         } finally {
             rectSpy.mockRestore();
         }
