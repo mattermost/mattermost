@@ -96,8 +96,8 @@ func (a *App) PropertyPermissionBasisFor(rctx request.CTX, field *model.Property
 	callerID, _ := CallerIDFromRequestContext(rctx)
 	basis.CallerID = callerID
 	if callerID == "" {
-		// §10 fail closed: an unattributable write is recorded as
-		// unattributed, never as allowed by something.
+		// Fail closed: an unattributable write is recorded as unattributed,
+		// never as allowed by something.
 		return basis
 	}
 
@@ -107,14 +107,20 @@ func (a *App) PropertyPermissionBasisFor(rctx request.CTX, field *model.Property
 		return basis
 	}
 
-	if field == nil || field.Permissions == nil {
+	if field == nil {
+		// Nothing to derive a basis from; already-denied basis, same as
+		// decidePropertyFieldPermission's nil-field handling.
+		return basis
+	}
+
+	if field.Permissions == nil {
 		basis.Legacy = true
 		basis.Allowed = a.legacyPropertyFieldPermission(rctx, callerID, field, action, valueTargetID)
 		return basis
 	}
 
 	// The LDAP and SAML sync services are well-known machine callers that
-	// resolve to a fixed service identity and carry no scope. §2.5 a machine
+	// resolve to a fixed service identity and carry no scope. A machine
 	// caller has no human role, so the ladder never applies to it and a
 	// grant is the whole answer.
 	switch callerID {

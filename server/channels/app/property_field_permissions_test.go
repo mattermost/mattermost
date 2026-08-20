@@ -599,4 +599,13 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		assert.Empty(t, basis.GrantID)
 		assert.False(t, basis.Legacy)
 	})
+
+	t.Run("a nil field is denied without panicking", func(t *testing.T) {
+		rctx := RequestContextWithCallerID(th.Context, th.BasicUser.Id)
+		require.NotPanics(t, func() {
+			basis := th.App.PropertyPermissionBasisFor(rctx, nil, model.PropertyActionFieldWrite, "")
+			assert.False(t, basis.Allowed)
+			assert.False(t, basis.Legacy)
+		})
+	})
 }
