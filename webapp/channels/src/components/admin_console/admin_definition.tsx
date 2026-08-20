@@ -1143,6 +1143,14 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
+                            key: 'ServiceSettings.EnableChannelViewedMessages',
+                            label: defineMessage({id: 'admin.service.enableChannelViewedMessages', defaultMessage: 'Enable Channel Viewed WebSocket Messages:'}),
+                            help_text: defineMessage({id: 'admin.service.enableChannelViewedMessagesDescription', defaultMessage: 'This setting determines whether `channel_viewed` WebSocket events are sent, which synchronize unread notifications across clients and devices. Disabling the setting in larger deployments may improve server performance.'}),
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                        },
+                        {
+                            type: 'bool',
                             key: 'ServiceSettings.EnableInsecureOutgoingConnections',
                             label: defineMessage({id: 'admin.service.insecureTlsTitle', defaultMessage: 'Enable Insecure Outgoing Connections: '}),
                             help_text: defineMessage({id: 'admin.service.insecureTlsDesc', defaultMessage: 'When true, any outgoing HTTPS requests will accept unverified, self-signed certificates. For example, outgoing webhooks to a server with a self-signed TLS certificate, using any domain, will be allowed. Note that this makes these connections susceptible to man-in-the-middle attacks.'}),
@@ -2623,6 +2631,84 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
+                            key: 'ThemeSettings.EnableThemeSelection',
+                            label: defineMessage({id: 'admin.customization.enableThemeSelectionTitle', defaultMessage: 'Enable Theme Selection:'}),
+                            help_text: defineMessage({id: 'admin.customization.enableThemeSelectionDesc', defaultMessage: 'Enables the **Display > Theme** tab in Settings so users can select their theme.'}),
+                            help_text_markdown: true,
+                            isHidden: it.any(
+                                it.not(it.licensed),
+                                it.licensedForSku('starter'),
+                            ),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ThemeSettings.AllowCustomThemes',
+                            label: defineMessage({id: 'admin.customization.allowCustomThemesTitle', defaultMessage: 'Allow Custom Themes:'}),
+                            help_text: defineMessage({id: 'admin.customization.allowCustomThemesDesc', defaultMessage: 'Enables the **Display > Theme > Custom Theme** section in Settings.'}),
+                            help_text_markdown: true,
+                            isHidden: it.any(
+                                it.not(it.licensed),
+                                it.licensedForSku('starter'),
+                            ),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('ThemeSettings.EnableThemeSelection'),
+                            ),
+                        },
+                        {
+                            type: 'text',
+                            key: 'ThemeSettings.AllowedThemes',
+                            multiple: true,
+                            label: defineMessage({id: 'admin.customization.allowedThemesTitle', defaultMessage: 'Allowed Themes:'}),
+                            help_text: defineMessage({id: 'admin.customization.allowedThemesDesc', defaultMessage: 'Restrict the themes users can select in **Display > Theme** to a comma-separated list of theme names. Valid names are `denim`, `sapphire`, `quartz`, `indigo`, and `onyx`. Leave this field blank to allow all themes.'}),
+                            help_text_markdown: true,
+                            placeholder: defineMessage({id: 'admin.customization.allowedThemesPlaceholder', defaultMessage: 'E.g.: "denim,onyx"'}),
+                            isHidden: it.any(
+                                it.not(it.licensed),
+                                it.licensedForSku('starter'),
+                            ),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                                it.stateIsFalse('ThemeSettings.EnableThemeSelection'),
+                            ),
+                        },
+                        {
+                            type: 'dropdown',
+                            key: 'ThemeSettings.DefaultTheme',
+                            label: defineMessage({id: 'admin.customization.defaultThemeTitle', defaultMessage: 'Default Theme:'}),
+                            help_text: defineMessage({id: 'admin.customization.defaultThemeDesc', defaultMessage: 'Set a default theme that applies to all new users on the system.'}),
+                            help_text_markdown: true,
+                            options: [
+                                {
+                                    value: 'denim',
+                                    display_name: defineMessage({id: 'admin.customization.defaultTheme.options.denim', defaultMessage: 'Denim'}),
+                                },
+                                {
+                                    value: 'sapphire',
+                                    display_name: defineMessage({id: 'admin.customization.defaultTheme.options.sapphire', defaultMessage: 'Sapphire'}),
+                                },
+                                {
+                                    value: 'quartz',
+                                    display_name: defineMessage({id: 'admin.customization.defaultTheme.options.quartz', defaultMessage: 'Quartz'}),
+                                },
+                                {
+                                    value: 'indigo',
+                                    display_name: defineMessage({id: 'admin.customization.defaultTheme.options.indigo', defaultMessage: 'Indigo'}),
+                                },
+                                {
+                                    value: 'onyx',
+                                    display_name: defineMessage({id: 'admin.customization.defaultTheme.options.onyx', defaultMessage: 'Onyx'}),
+                                },
+                            ],
+                            isHidden: it.any(
+                                it.not(it.licensed),
+                                it.licensedForSku('starter'),
+                            ),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        },
+                        {
+                            type: 'bool',
                             key: 'SupportSettings.EnableAskCommunityLink',
                             label: defineMessage({id: 'admin.support.enableAskCommunityTitle', defaultMessage: 'Enable Ask Community Link:'}),
                             help_text: defineMessage({id: 'admin.support.enableAskCommunityDesc', defaultMessage: 'When true, "Ask the community" link appears on the Mattermost user interface and Help Menu, which allows users to join the Mattermost Community to ask questions and help others troubleshoot issues. When false, the link is hidden from users.'}),
@@ -2758,6 +2844,22 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.customization.iosAppDownloadLinkDesc', defaultMessage: 'Add a link to download the iOS app. Users who access the site on a mobile web browser will be prompted with a page giving them the option to download the app. Leave this field blank to prevent the page from appearing.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                             isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableTutorial',
+                            label: defineMessage({id: 'admin.customization.enableTutorialTitle', defaultMessage: 'Enable Tutorial:'}),
+                            help_text: defineMessage({id: 'admin.customization.enableTutorialDesc', defaultMessage: 'When true, users are prompted with a tutorial when they open Mattermost for the first time after account creation. When false, the tutorial is disabled, and users are placed in Town Square when they open Mattermost for the first time after account creation.'}),
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableOnboardingFlow',
+                            label: defineMessage({id: 'admin.customization.enableOnboardingFlowTitle', defaultMessage: 'Enable Onboarding:'}),
+                            help_text: defineMessage({id: 'admin.customization.enableOnboardingFlowDesc', defaultMessage: 'When true, new users are shown steps to complete as part of an onboarding process'}),
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
                         },
                         {
                             type: 'bool',
@@ -6566,14 +6668,6 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
-                            key: 'ServiceSettings.EnableChannelViewedMessages',
-                            label: defineMessage({id: 'admin.experimental.enableChannelViewedMessages.title', defaultMessage: 'Enable Channel Viewed WebSocket Messages:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableChannelViewedMessages.desc', defaultMessage: 'This setting determines whether `channel_viewed` WebSocket events are sent, which synchronize unread notifications across clients and devices. Disabling the setting in larger deployments may improve server performance.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
                             key: 'ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages',
                             label: defineMessage({id: 'admin.experimental.experimentalEnableDefaultChannelLeaveJoinMessages.title', defaultMessage: 'Enable Default Channel Leave/Join System Messages:'}),
                             help_text: defineMessage({id: 'admin.experimental.experimentalEnableDefaultChannelLeaveJoinMessages.desc', defaultMessage: 'This setting determines whether team leave/join system messages are posted in the default town-square channel.'}),
@@ -6595,83 +6689,6 @@ const AdminDefinition: AdminDefinitionType = {
                                     </ExternalLink>
                                 ),
                             },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ThemeSettings.EnableThemeSelection',
-                            label: defineMessage({id: 'admin.experimental.enableThemeSelection.title', defaultMessage: 'Enable Theme Selection:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableThemeSelection.desc', defaultMessage: 'Enables the **Display > Theme** tab in Settings so users can select their theme.'}),
-                            help_text_markdown: true,
-                            isHidden: it.any(
-                                it.not(it.licensed),
-                                it.licensedForSku('starter'),
-                            ),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ThemeSettings.AllowCustomThemes',
-                            label: defineMessage({id: 'admin.experimental.allowCustomThemes.title', defaultMessage: 'Allow Custom Themes:'}),
-                            help_text: defineMessage({id: 'admin.experimental.allowCustomThemes.desc', defaultMessage: 'Enables the **Display > Theme > Custom Theme** section in Settings.'}),
-                            help_text_markdown: true,
-                            isHidden: it.any(
-                                it.not(it.licensed),
-                                it.licensedForSku('starter'),
-                            ),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                                it.stateIsFalse('ThemeSettings.EnableThemeSelection'),
-                            ),
-                        },
-                        {
-                            type: 'dropdown',
-                            key: 'ThemeSettings.DefaultTheme',
-                            label: defineMessage({id: 'admin.experimental.defaultTheme.title', defaultMessage: 'Default Theme:'}),
-                            help_text: defineMessage({id: 'admin.experimental.defaultTheme.desc', defaultMessage: 'Set a default theme that applies to all new users on the system.'}),
-                            help_text_markdown: true,
-                            options: [
-                                {
-                                    value: 'denim',
-                                    display_name: defineMessage({id: 'admin.experimental.defaultTheme.options.denim', defaultMessage: 'Denim'}),
-                                },
-                                {
-                                    value: 'sapphire',
-                                    display_name: defineMessage({id: 'admin.experimental.defaultTheme.options.sapphire', defaultMessage: 'Sapphire'}),
-                                },
-                                {
-                                    value: 'quartz',
-                                    display_name: defineMessage({id: 'admin.experimental.defaultTheme.options.quartz', defaultMessage: 'Quartz'}),
-                                },
-                                {
-                                    value: 'indigo',
-                                    display_name: defineMessage({id: 'admin.experimental.defaultTheme.options.indigo', defaultMessage: 'Indigo'}),
-                                },
-                                {
-                                    value: 'onyx',
-                                    display_name: defineMessage({id: 'admin.experimental.defaultTheme.options.onyx', defaultMessage: 'Onyx'}),
-                                },
-                            ],
-                            isHidden: it.any(
-                                it.not(it.licensed),
-                                it.licensedForSku('starter'),
-                            ),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableTutorial',
-                            label: defineMessage({id: 'admin.experimental.enableTutorial.title', defaultMessage: 'Enable Tutorial:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableTutorial.desc', defaultMessage: 'When true, users are prompted with a tutorial when they open Mattermost for the first time after account creation. When false, the tutorial is disabled, and users are placed in Town Square when they open Mattermost for the first time after account creation.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableOnboardingFlow',
-                            label: defineMessage({id: 'admin.experimental.enableOnboardingFlow.title', defaultMessage: 'Enable Onboarding:'}),
-                            help_text: defineMessage({id: 'admin.experimental.enableOnboardingFlow.desc', defaultMessage: 'When true, new users are shown steps to complete as part of an onboarding process'}),
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },

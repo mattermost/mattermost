@@ -12,7 +12,7 @@ import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import {it} from './admin_definition_helpers';
-import SchemaAdminSettings, {SchemaAdminSettings as SchemaAdminSettingsClass} from './schema_admin_settings';
+import SchemaAdminSettings, {SchemaAdminSettings as SchemaAdminSettingsClass, getConfigFromState} from './schema_admin_settings';
 import type {ConsoleAccess, AdminDefinitionSubSectionSchema, AdminDefinitionSettingInput} from './types';
 import ValidationResult from './validation';
 
@@ -1117,5 +1117,68 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         await waitFor(() => {
             expect(mockPatchConfig).toHaveBeenCalled();
         });
+    });
+});
+
+describe('components/admin_console/SchemaAdminSettings/getConfigFromState', () => {
+    const buildSchema = (setting: AdminDefinitionSettingInput) => ({
+        id: 'ServiceSettings',
+        name: 'Service Settings',
+        settings: [setting],
+    } as unknown as AdminDefinitionSubSectionSchema);
+
+    const multipleSetting = {
+        type: 'text',
+        key: 'ServiceSettings.DCRRedirectURIAllowlist',
+        label: 'label',
+        multiple: true,
+    } as AdminDefinitionSettingInput;
+
+    test('should trim whitespace from a multiple text setting', () => {
+        const config = getConfigFromState(
+            {},
+            {'ServiceSettings.DCRRedirectURIAllowlist': ['https://one.example.com', ' https://two.example.com']},
+            buildSchema(multipleSetting),
+            () => false,
+        );
+
+        expect(config.ServiceSettings?.DCRRedirectURIAllowlist).toEqual(['https://one.example.com', 'https://two.example.com']);
+    });
+
+    test('should drop empty entries from a multiple text setting', () => {
+        const config = getConfigFromState(
+            {},
+            {'ServiceSettings.DCRRedirectURIAllowlist': ['https://one.example.com', '', '   ']},
+            buildSchema(multipleSetting),
+            () => false,
+        );
+
+        expect(config.ServiceSettings?.DCRRedirectURIAllowlist).toEqual(['https://one.example.com']);
+    });
+
+    test('should save an empty array for a blank multiple text setting', () => {
+        const config = getConfigFromState(
+            {},
+            {'ServiceSettings.DCRRedirectURIAllowlist': [' ']},
+            buildSchema(multipleSetting),
+            () => false,
+        );
+
+        expect(config.ServiceSettings?.DCRRedirectURIAllowlist).toEqual([]);
+    });
+
+    test('should preserve whitespace in a text setting that is not multiple', () => {
+        const config = getConfigFromState(
+            {},
+            {'ServiceSettings.SiteURL': ' https://example.com '},
+            buildSchema({
+                type: 'text',
+                key: 'ServiceSettings.SiteURL',
+                label: 'label',
+            } as AdminDefinitionSettingInput),
+            () => false,
+        );
+
+        expect(config.ServiceSettings?.SiteURL).toBe(' https://example.com ');
     });
 });
