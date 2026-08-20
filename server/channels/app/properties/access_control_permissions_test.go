@@ -127,15 +127,176 @@ func TestPermissionsGrantValueWriteAccessControl(t *testing.T) {
 		require.NoError(t, upErr)
 	})
 
-	t.Run("a human caller is passed through on a field whose grants name only a plugin", func(t *testing.T) {
-		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "GrantHumanPassthrough", []model.Grant{
+	t.Run("a human caller on a field whose grants name only a plugin is judged by the ladder checker, not the grant", func(t *testing.T) {
+		t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
+
+		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "GrantHumanLadder", []model.Grant{
 			{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}, Allow: []string{model.PropertyActionValueWrite}},
 		}))
 		require.NoError(t, err)
 
-		rctx := RequestContextWithCallerID(th.Context, model.NewId())
+		humanID := model.NewId()
+		th.service.setLadderCheckerForTests(func(_ request.CTX, userID string, _ *model.PropertyField, action, _ string) bool {
+			return userID == humanID && action == model.PropertyActionValueWrite
+		})
+
+		rctx := RequestContextWithCallerID(th.Context, humanID)
 		_, upErr := th.service.UpsertPropertyValue(rctx, newValueFor(created.ID))
 		require.NoError(t, upErr)
+
+		th.service.setLadderCheckerForTests(nil)
+		_, upErr = th.service.UpsertPropertyValue(rctx, newValueFor(created.ID))
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
+	})
+}
+
+func TestPermissionsHumanValueWriteAccessControl(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
+
+	newValueFor := func(fieldID, targetID string) *model.PropertyValue {
+		return &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    fieldID,
+			TargetType: "channel",
+			TargetID:   targetID,
+			Value:      json.RawMessage(`"v"`),
+		}
+	}
+
+	t.Run("a human the ladder checker denies is refused a value write by the hook", func(t *testing.T) {
+		th.service.setLadderCheckerForTests(func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool {
+			return false
+		})
+
+		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "HumanDenied", nil))
+		require.NoError(t, err)
+
+		rctx := RequestContextWithCallerID(th.Context, model.NewId())
+		_, upErr := th.service.UpsertPropertyValue(rctx, newValueFor(created.ID, model.NewId()))
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
+	})
+
+	t.Run("a human the ladder checker allows is admitted", func(t *testing.T) {
+		userID := model.NewId()
+		th.service.setLadderCheckerForTests(func(_ request.CTX, callerID string, _ *model.PropertyField, action, _ string) bool {
+			return callerID == userID && action == model.PropertyActionValueWrite
+		})
+
+		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "HumanAllowed", nil))
+		require.NoError(t, err)
+
+		rctx := RequestContextWithCallerID(th.Context, userID)
+		_, upErr := th.service.UpsertPropertyValue(rctx, newValueFor(created.ID, model.NewId()))
+		require.NoError(t, upErr)
+	})
+
+	t.Run("the value's own target reaches the checker, not the field", func(t *testing.T) {
+		userID := model.NewId()
+		clearedChannelID := model.NewId()
+		otherChannelID := model.NewId()
+
+		th.service.setLadderCheckerForTests(func(_ request.CTX, callerID string, _ *model.PropertyField, action, valueTargetID string) bool {
+			return callerID == userID && action == model.PropertyActionValueWrite && valueTargetID == clearedChannelID
+		})
+
+		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "ChannelValueWrite", nil))
+		require.NoError(t, err)
+
+		rctx := RequestContextWithCallerID(th.Context, userID)
+
+		_, upErr := th.service.UpsertPropertyValue(rctx, newValueFor(created.ID, clearedChannelID))
+		require.NoError(t, upErr)
+
+		_, upErr = th.service.UpsertPropertyValue(rctx, newValueFor(created.ID, otherChannelID))
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
+	})
+
+	t.Run("a nil ladder checker refuses a human value write on a field carrying permissions", func(t *testing.T) {
+		th.service.setLadderCheckerForTests(nil)
+
+		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "NilCheckerWrite", nil))
+		require.NoError(t, err)
+
+		rctx := RequestContextWithCallerID(th.Context, model.NewId())
+		_, upErr := th.service.UpsertPropertyValue(rctx, newValueFor(created.ID, model.NewId()))
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
+	})
+
+	t.Run("a batch write of several values on one field and target invokes the ladder checker once", func(t *testing.T) {
+		userID := model.NewId()
+		targetID := model.NewId()
+		calls := 0
+		th.service.setLadderCheckerForTests(func(_ request.CTX, callerID string, _ *model.PropertyField, _, _ string) bool {
+			calls++
+			return callerID == userID
+		})
+
+		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "BatchField", nil))
+		require.NoError(t, err)
+
+		rctx := RequestContextWithCallerID(th.Context, userID)
+		_, upErr := th.service.UpsertPropertyValues(rctx, []*model.PropertyValue{
+			newValueFor(created.ID, targetID),
+			newValueFor(created.ID, targetID),
+			newValueFor(created.ID, targetID),
+		})
+		require.NoError(t, upErr)
+		assert.Equal(t, 1, calls)
+	})
+
+	t.Run("field update and delete refuse a human the ladder checker denies and admit one it permits", func(t *testing.T) {
+		allowedUserID := model.NewId()
+		th.service.setLadderCheckerForTests(func(_ request.CTX, callerID string, _ *model.PropertyField, action, _ string) bool {
+			return callerID == allowedUserID && action == model.PropertyActionFieldWrite
+		})
+
+		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "HumanFieldWrite", nil))
+		require.NoError(t, err)
+
+		deniedRctx := RequestContextWithCallerID(th.Context, model.NewId())
+		created.Attrs = model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.PropertyFieldVisibilityAlways}
+		_, _, upErr := th.service.UpdatePropertyField(deniedRctx, th.CPAGroupID, created)
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
+
+		delErr := th.service.DeletePropertyField(deniedRctx, th.CPAGroupID, created.ID)
+		require.Error(t, delErr)
+		assert.ErrorIs(t, delErr, ErrAccessDenied)
+
+		allowedRctx := RequestContextWithCallerID(th.Context, allowedUserID)
+		updated, _, upErr := th.service.UpdatePropertyField(allowedRctx, th.CPAGroupID, created)
+		require.NoError(t, upErr)
+		assert.Equal(t, model.PropertyFieldVisibilityAlways, updated.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+
+		require.NoError(t, th.service.DeletePropertyField(allowedRctx, th.CPAGroupID, created.ID))
+	})
+
+	t.Run("deleting all of a field's values still admits a human even though it carries permissions", func(t *testing.T) {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-owner" })
+		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+
+		field := grantsField(th.CPAGroupID, "DeleteAllValues", []model.Grant{
+			{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}, Allow: []string{model.PropertyActionValueWrite}},
+		})
+		created, err := th.service.CreatePropertyField(RequestContextWithCallerID(th.Context, "plugin-owner"), field)
+		require.NoError(t, err)
+
+		_, err = th.service.CreatePropertyValue(RequestContextWithCallerID(th.Context, "plugin-owner"), newValueFor(created.ID, model.NewId()))
+		require.NoError(t, err)
+
+		// A ladder checker that always denies -- proves the human pass-through on
+		// this path is a deliberate exception, not an accidental allow.
+		th.service.setLadderCheckerForTests(func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool {
+			return false
+		})
+
+		delErr := th.service.DeletePropertyValuesForField(RequestContextWithCallerID(th.Context, model.NewId()), th.CPAGroupID, created.ID)
+		require.NoError(t, delErr)
 	})
 }
 
@@ -187,14 +348,20 @@ func TestPermissionsReadAccessControl(t *testing.T) {
 		memberID := model.NewId()
 		channelID := model.NewId()
 
+		// The value has to get in somehow -- a plugin write grant does that
+		// without bearing on the human read decision under test, which the
+		// ladder checker below answers on its own.
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "creator-plugin" })
 		th.service.setLadderCheckerForTests(func(_ request.CTX, userID string, _ *model.PropertyField, action, valueTargetID string) bool {
 			return userID == adminID && action == model.PropertyActionValueRead && valueTargetID == channelID
 		})
 
-		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "ChannelValueRead", nil))
+		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "ChannelValueRead", []model.Grant{
+			{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "creator-plugin"}, Allow: []string{model.PropertyActionValueWrite}},
+		}))
 		require.NoError(t, err)
 
-		value, err := th.service.CreatePropertyValue(th.Context, &model.PropertyValue{
+		value, err := th.service.CreatePropertyValue(RequestContextWithCallerID(th.Context, "creator-plugin"), &model.PropertyValue{
 			GroupID:    th.CPAGroupID,
 			FieldID:    created.ID,
 			TargetType: "channel",
@@ -219,11 +386,11 @@ func TestPermissionsReadAccessControl(t *testing.T) {
 		})
 
 		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "GrantValueRead", []model.Grant{
-			{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}, Allow: []string{model.PropertyActionValueRead}},
+			{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}, Allow: []string{model.PropertyActionValueRead, model.PropertyActionValueWrite}},
 		}))
 		require.NoError(t, err)
 
-		value, err := th.service.CreatePropertyValue(th.Context, &model.PropertyValue{
+		value, err := th.service.CreatePropertyValue(RequestContextWithCallerID(th.Context, "plugin-owner"), &model.PropertyValue{
 			GroupID:    th.CPAGroupID,
 			FieldID:    created.ID,
 			TargetType: "user",
@@ -246,7 +413,7 @@ func TestPermissionsReadAccessControl(t *testing.T) {
 		memberID := model.NewId()
 
 		th.service.setLadderCheckerForTests(func(_ request.CTX, userID string, _ *model.PropertyField, action, valueTargetID string) bool {
-			return userID == sysadminID && action == model.PropertyActionOptionRead
+			return userID == sysadminID && (action == model.PropertyActionOptionRead || action == model.PropertyActionFieldWrite)
 		})
 
 		field := grantsField(th.CPAGroupID, "OptionReadField", nil)
@@ -270,7 +437,7 @@ func TestPermissionsReadAccessControl(t *testing.T) {
 		assert.Equal(t, created.Type, memberRead.Type)
 		assert.Empty(t, memberRead.Attrs[model.PropertyFieldAttributeOptions])
 
-		_, err = th.service.CreateFieldOptions(th.Context, created, []*model.PropertyFieldOption{{Name: "Row Option"}})
+		_, err = th.service.CreateFieldOptions(RequestContextWithCallerID(th.Context, sysadminID), created, []*model.PropertyFieldOption{{Name: "Row Option"}})
 		require.NoError(t, err)
 
 		options, err := th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, memberID), created, 0, "", 100)
@@ -284,11 +451,14 @@ func TestPermissionsReadAccessControl(t *testing.T) {
 
 	t.Run("a nil ladder checker denies a human read on a permissions field", func(t *testing.T) {
 		th.service.setLadderCheckerForTests(nil)
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "creator-plugin" })
 
-		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "NilCheckerField", nil))
+		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "NilCheckerField", []model.Grant{
+			{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "creator-plugin"}, Allow: []string{model.PropertyActionValueWrite}},
+		}))
 		require.NoError(t, err)
 
-		value, err := th.service.CreatePropertyValue(th.Context, &model.PropertyValue{
+		value, err := th.service.CreatePropertyValue(RequestContextWithCallerID(th.Context, "creator-plugin"), &model.PropertyValue{
 			GroupID:    th.CPAGroupID,
 			FieldID:    created.ID,
 			TargetType: "user",
