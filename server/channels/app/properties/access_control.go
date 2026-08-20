@@ -1854,6 +1854,7 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 	}
 
 	scope := h.extractActingAsScope(rctx)
+	mc := newMaskingContext()
 
 	filtered := make([]*model.PropertyValue, 0, len(values))
 	for _, value := range values {
@@ -1863,10 +1864,22 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 		}
 
 		if field.Permissions != nil {
-			if h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueRead, value.TargetID) {
-				filtered = append(filtered, value)
+			if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueRead, value.TargetID) {
+				// Denied: dropped silently, as for a source-only field below.
+				continue
 			}
-			// Denied: dropped silently, as for a source-only field below.
+
+			fm, err := mc.resolve(h, field)
+			if err != nil {
+				return nil, fmt.Errorf("applyValueReadAccessControl: %w", err)
+			}
+			if fm.masking == nil || h.exempt(fm.masking.Except, callerID, scope) {
+				filtered = append(filtered, value)
+				continue
+			}
+			if maskedValue := h.maskValue(rctx, mc, field, fm, value, callerID); maskedValue != nil {
+				filtered = append(filtered, maskedValue)
+			}
 			continue
 		}
 
