@@ -290,6 +290,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with an image preview',
+            // CI on release-11.7 doesn't show these link previews, so disable the tests on the branch
+            skipProjects: ['chrome'],
             getSeedOptions: (baseUrl) => ({
                 message: `${baseUrl}/mattermost.png`,
             }),
@@ -301,6 +303,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a small image preview',
+            // CI on release-11.7 doesn't show these link previews, so disable the tests on the branch
+            skipProjects: ['chrome'],
             getSeedOptions: (baseUrl) => ({
                 message: `${baseUrl}/small-image.png`,
             }),
@@ -325,6 +329,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a wide image preview',
+            // CI on release-11.7 doesn't show these link previews, so disable the tests on the branch
+            skipProjects: ['chrome'],
             getSeedOptions: (baseUrl) => ({
                 message: `${baseUrl}/image-400x40.jpg`,
             }),
@@ -336,6 +342,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a tall image preview',
+            // CI on release-11.7 doesn't show these link previews, so disable the tests on the branch
+            skipProjects: ['chrome'],
             getSeedOptions: (baseUrl) => ({
                 message: `${baseUrl}/image-40x400.jpg`,
             }),
@@ -347,6 +355,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with an OpenGraph preview',
+            // CI on release-11.7 doesn't show these link previews, so disable the tests on the branch
+            skipProjects: ['chrome'],
             getSeedOptions: (baseUrl) => ({
                 message: `${baseUrl}/opengraph.html`,
             }),
