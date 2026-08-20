@@ -35,6 +35,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
 
+const opensearchMinVersion = 2
 const opensearchMaxVersion = 3
 
 var (
@@ -117,7 +118,7 @@ func (os *OpensearchInterfaceImpl) IsIndexingSync() bool {
 
 // fetchServerInfo retrieves and stores the server version and plugins from the given client.
 func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *opensearchapi.Client) *model.AppError {
-	version, major, appErr := checkMaxVersion(ctx, client)
+	version, major, appErr := checkVersion(ctx, client, os.Platform.Log())
 	if appErr != nil {
 		return appErr
 	}
@@ -2355,19 +2356,27 @@ func (os *OpensearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime, l
 	return nil
 }
 
-func checkMaxVersion(ctx context.Context, client *opensearchapi.Client) (string, int, *model.AppError) {
+// checkVersion returns the version of the connected OpenSearch server. An
+// unsupported version is logged but not treated as fatal, allowing the server to
+// start regardless.
+func checkVersion(ctx context.Context, client *opensearchapi.Client, logger mlog.LoggerIFace) (string, int, *model.AppError) {
 	resp, err := client.Info(ctx, nil)
 	if err != nil {
-		return "", 0, model.NewAppError("Opensearch.checkMaxVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return "", 0, model.NewAppError("Opensearch.checkVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	major, _, _, esErr := common.GetVersionComponents(resp.Version.Number)
 	if esErr != nil {
-		return "", 0, model.NewAppError("Opensearch.checkMaxVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(esErr)
+		return "", 0, model.NewAppError("Opensearch.checkVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(esErr)
 	}
 
-	if major > opensearchMaxVersion {
-		return "", 0, model.NewAppError("Opensearch.checkMaxVersion", "ent.elasticsearch.max_version.app_error", map[string]any{"Version": major, "MaxVersion": opensearchMaxVersion, "Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusBadRequest)
+	if major < opensearchMinVersion || major > opensearchMaxVersion {
+		logger.Error("Unsupported OpenSearch version. Running an unsupported version may lead to unexpected behaviour.",
+			mlog.String("version", resp.Version.Number),
+			mlog.Int("min_version", opensearchMinVersion),
+			mlog.Int("max_version", opensearchMaxVersion),
+		)
 	}
+
 	return resp.Version.Number, major, nil
 }

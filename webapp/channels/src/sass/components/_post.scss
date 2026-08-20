@@ -1770,11 +1770,18 @@
         .post__img {
             width: 24px;
             height: 24px;
+            flex: 0 0 auto;
             padding: 0;
             text-align: left;
 
             img.avatar-post-preview {
                 display: block;
+
+                // The shared avatar rules set min-width: 0, which lets the image
+                // shrink (and look squished) inside constrained flex layouts.
+                // Pin it to its intended size so it always stays round.
+                min-width: 24px;
+                flex-shrink: 0;
             }
         }
 
@@ -1958,25 +1965,14 @@
 // with a bottom fade so truncated content reads as "more below".
 .post-message--collapsed.post-message-preview--overflow {
     .post-message__text-container {
-        position: relative;
+        -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 82px), transparent calc(100% - 24px));
+        mask-image: linear-gradient(to bottom, black calc(100% - 82px), transparent calc(100% - 24px));
+    }
 
-        &::after {
-            position: absolute;
-            z-index: 1;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            height: 40%;
-            min-height: 28px;
-            max-height: 64px;
-            background: linear-gradient(
-                to bottom,
-                rgba(var(--center-channel-bg-rgb), 0) 0%,
-                var(--center-channel-bg) 100%
-            );
-            content: '';
-            pointer-events: none;
-        }
+    .post-preview-collapse__show-more-button {
+        position: absolute;
+        bottom: 0;
+        left: 0;
     }
 }
 

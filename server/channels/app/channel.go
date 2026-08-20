@@ -75,7 +75,7 @@ func (a *App) JoinDefaultChannels(rctx request.CTX, teamID string, user *model.U
 	for _, channelName := range a.DefaultChannelNames(rctx) {
 		channel, channelErr := a.Srv().Store().Channel().GetByName(teamID, channelName, true)
 		if channelErr != nil {
-			rctx.Logger().Warn("No default channel with this name", mlog.String("channelName", channelName), mlog.String("teamID", teamID), mlog.Err(channelErr))
+			rctx.Logger().Warn("No default channel with this name", mlog.String("channel_name", channelName), mlog.String("team_id", teamID), mlog.Err(channelErr))
 			continue
 		}
 
@@ -3033,7 +3033,7 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 	if appErr := a.removeChannelMembership(rctx, userIDToRemove, channel.Id, "removeUserFromChannel"); appErr != nil {
 		return appErr
 	}
-	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(userIDToRemove, channel.Id, model.GetMillis()); err != nil {
+	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(rctx, userIDToRemove, channel.Id, model.GetMillis()); err != nil {
 		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -3848,7 +3848,7 @@ func (a *App) MoveChannel(rctx request.CTX, team *model.Team, channel *model.Cha
 			}
 			for _, channelMember := range channelMembers {
 				if _, ok := teamMembersMap[channelMember.UserId]; !ok {
-					rctx.Logger().Warn("Not member of the target team", mlog.String("userId", channelMember.UserId))
+					rctx.Logger().Warn("Not member of the target team", mlog.String("user_id", channelMember.UserId))
 				}
 			}
 			return model.NewAppError("MoveChannel", "app.channel.move_channel.members_do_not_match.error", nil, "", http.StatusInternalServerError)
@@ -3895,7 +3895,7 @@ func (a *App) MoveChannel(rctx request.CTX, team *model.Team, channel *model.Cha
 			if webhook.ChannelId == channel.Id {
 				webhook.TeamId = team.Id
 				if _, err := a.Srv().Store().Webhook().UpdateIncoming(webhook); err != nil {
-					rctx.Logger().Warn("Failed to move incoming webhook to new team", mlog.String("webhook id", webhook.Id))
+					rctx.Logger().Warn("Failed to move incoming webhook to new team", mlog.String("webhook_id", webhook.Id))
 				}
 			}
 		}
@@ -3908,7 +3908,7 @@ func (a *App) MoveChannel(rctx request.CTX, team *model.Team, channel *model.Cha
 			if webhook.ChannelId == channel.Id {
 				webhook.TeamId = team.Id
 				if _, err := a.Srv().Store().Webhook().UpdateOutgoing(webhook); err != nil {
-					rctx.Logger().Warn("Failed to move outgoing webhook to new team.", mlog.String("webhook id", webhook.Id))
+					rctx.Logger().Warn("Failed to move outgoing webhook to new team.", mlog.String("webhook_id", webhook.Id))
 				}
 			}
 		}

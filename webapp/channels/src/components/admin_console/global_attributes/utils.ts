@@ -31,11 +31,17 @@ function buildOptionsAttr(fieldType: AttributeFieldType, options: PropertyFieldO
 // Creates a template field in the access_control group. target_type/target_id
 // are set explicitly because CanonicalizeSystemObjectField only auto-corrects
 // ObjectType=system fields, not ObjectType=template ones.
+//
+// `links` is a trailing optional parameter (not folded into the existing 4
+// positional args) so the two new same-typed strings can't be swapped with
+// each other or with displayName/name, and every existing call site keeps
+// compiling unchanged.
 export function createAttributeField(
     displayName: string,
     name: string,
     fieldType: AttributeFieldType,
     options: PropertyFieldOption[],
+    links?: {ldapAttr?: string; samlAttr?: string},
 ): Promise<PropertyField> {
     const optionsAttr = buildOptionsAttr(fieldType, options);
     return Client4.createPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, {
@@ -46,6 +52,15 @@ export function createAttributeField(
         attrs: {
             display_name: displayName.trim() || undefined,
             ...(optionsAttr ? {options: optionsAttr} : {}),
+            ...(links?.ldapAttr ? {ldap: links.ldapAttr} : {}),
+            ...(links?.samlAttr ? {saml: links.samlAttr} : {}),
         },
     });
+}
+
+// Deletes a template field from the access_control group. The server returns
+// 409 when the field still has active linked dependents (CountLinkedFields > 0);
+// callers are expected to surface that case distinctly.
+export function deleteAttributeField(fieldId: string): Promise<unknown> {
+    return Client4.deletePropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, fieldId);
 }
