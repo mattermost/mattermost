@@ -219,13 +219,14 @@ func TestAIRecapsPermissionsMigrationIsRegistered(t *testing.T) {
 		return &model.System{Name: name, Value: "true"}
 	}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddAIRecapsPermissions).
-		Return(nil, model.NewAppError("test", "missing", nil, "", 404)).Once()
-	systemStore.On("GetByName", model.MigrationKeyAddAIRecapsPermissions).
-		Return(&model.System{Name: model.MigrationKeyAddAIRecapsPermissions, Value: "true"}, nil)
+		Return(nil, model.NewAppError("test", "missing", nil, "", 404))
 
 	require.NoError(t, th.App.Srv().doPermissionsMigrations())
 	assert.Contains(t, systemAdminRole.Permissions, model.PermissionSysconsoleReadAiRecaps.Id)
 	assert.Contains(t, systemAdminRole.Permissions, model.PermissionSysconsoleWriteAiRecaps.Id)
+	// A key that collides with an already-completed migration would never run on a
+	// real upgrade, so make sure the permissions came from this migration alone.
+	assert.Len(t, systemAdminRole.Permissions, 3)
 }
 
 // TestPermissionsMigrationPreservesUnknownPermissions is the regression test for
