@@ -1882,61 +1882,88 @@ func TestHeadRequestsFileEndpoints(t *testing.T) {
 	})
 }
 
-// TestUploadFileDeniedByPolicy covers MM-70386. An access control policy denies an
-// upload as soon as the channel id is known, and that is the first form field, so
-// the client is normally still sending the file when the response goes out. If the
-// rest of the body is left unread the server has to hang up rather than finish the
-// exchange, and a hop between the client and the server then reports a transport
-// failure instead of this response — leaving the user with nothing but a generic
-// upload error rather than the reason.
-func TestUploadFileDeniedByPolicy(t *testing.T) {
+// unreadBodyDiscardLimit mirrors net/http's maxPostHandlerReadBytes: a handler
+// that leaves more than this much of the request body unread costs the server the
+// connection. Uploads in the tests below must exceed it for the drain to matter.
+const unreadBodyDiscardLimit = 256 * 1024
+
+// TestUploadFileRejectedResponseReachesClient covers MM-70386. An upload is
+// rejected as soon as the reason is known, and both checks below happen once the
+// channel id has been read - the first form field - so the client is normally
+// still sending the file when the response goes out. Leaving the rest of the body
+// unread makes the server hang up rather than finish the exchange, and a hop
+// between the client and the server then reports a transport failure instead of
+// this response, leaving the user with a generic upload error rather than the
+// reason.
+func TestUploadFileRejectedResponseReachesClient(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
-	th.ConfigStore.SetReadOnlyFF(false)
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
-		cfg.FeatureFlags.PermissionPolicies = true
+	upload := func(t *testing.T, channelID string) *http.Response {
+		t.Helper()
+
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
+		require.NoError(t, writer.WriteField("channel_id", channelID))
+		require.NoError(t, writer.WriteField("client_ids", "rejected-client-id"))
+		part, err := writer.CreateFormFile("files", "rejected.bin")
+		require.NoError(t, err)
+		_, err = part.Write(randomBytes(t, 2*unreadBodyDiscardLimit))
+		require.NoError(t, err)
+		require.NoError(t, writer.Close())
+
+		req, err := http.NewRequest(http.MethodPost, th.Client.APIURL+"/files", bytes.NewReader(body.Bytes()))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+		req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+th.Client.AuthToken)
+
+		resp, err := th.Client.HTTPClient.Do(req)
+		require.NoError(t, err)
+		t.Cleanup(func() { resp.Body.Close() })
+		return resp
+	}
+
+	assertDeliveredError := func(t *testing.T, resp *http.Response, expectedID string) {
+		t.Helper()
+
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+
+		var appErr model.AppError
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&appErr))
+		require.Equal(t, expectedID, appErr.Id)
+		require.NotEmpty(t, appErr.Message)
+
+		require.False(t, resp.Close, "server signalled it was hanging up on the client instead of completing the exchange, which lets the rejection be replaced by a transport error before it reaches the user")
+	}
+
+	t.Run("denied by an access control policy", func(t *testing.T) {
+		require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
+		th.ConfigStore.SetReadOnlyFF(false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+			cfg.FeatureFlags.PermissionPolicies = true
+		})
+
+		acs := &mocks.AccessControlServiceInterface{}
+		acs.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionUploadFileAttachment
+		})).Return(model.AccessDecision{Decision: false}, nil)
+		th.App.Srv().Channels().AccessControl = acs
+		t.Cleanup(func() {
+			th.App.Srv().Channels().AccessControl = nil
+			th.App.Srv().SetLicense(nil)
+		})
+
+		assertDeliveredError(t, upload(t, th.BasicChannel.Id), "api.file.upload_file.abac_denied.app_error")
 	})
 
-	acs := &mocks.AccessControlServiceInterface{}
-	acs.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
-		return req.Action == model.AccessControlPolicyActionUploadFileAttachment
-	})).Return(model.AccessDecision{Decision: false}, nil)
-	th.App.Srv().Channels().AccessControl = acs
-	t.Cleanup(func() {
-		th.App.Srv().Channels().AccessControl = nil
-		th.App.Srv().SetLicense(nil)
+	// Keeps the drain covered without the license, feature flag and policy
+	// decision point the case above needs: this rejection comes from the plain
+	// channel permission check, at the same point in the request stream.
+	t.Run("denied by channel permissions", func(t *testing.T) {
+		channel := th.CreatePrivateChannel(t)
+		require.Nil(t, th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.BasicUser.Id, channel))
+
+		assertDeliveredError(t, upload(t, channel.Id), "api.context.permissions.app_error")
 	})
-
-	// The file part is larger than the 256KB of unread body net/http discards on
-	// its own, so without draining the handler leaves the connection unusable.
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	require.NoError(t, writer.WriteField("channel_id", th.BasicChannel.Id))
-	require.NoError(t, writer.WriteField("client_ids", "denied-client-id"))
-	part, err := writer.CreateFormFile("files", "denied.bin")
-	require.NoError(t, err)
-	_, err = part.Write(randomBytes(t, 512*1024))
-	require.NoError(t, err)
-	require.NoError(t, writer.Close())
-
-	req, err := http.NewRequest(http.MethodPost, th.Client.APIURL+"/files", bytes.NewReader(body.Bytes()))
-	require.NoError(t, err)
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+th.Client.AuthToken)
-
-	resp, err := th.Client.HTTPClient.Do(req)
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	require.Equal(t, http.StatusForbidden, resp.StatusCode)
-
-	var appErr model.AppError
-	require.NoError(t, json.NewDecoder(resp.Body).Decode(&appErr))
-	require.Equal(t, "api.file.upload_file.abac_denied.app_error", appErr.Id)
-	require.NotEmpty(t, appErr.Message)
-
-	require.False(t, resp.Close, "server signalled it was hanging up on the client instead of completing the exchange, which lets the denial be replaced by a transport error before it reaches the user")
 }
