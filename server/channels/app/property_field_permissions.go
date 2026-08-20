@@ -232,18 +232,25 @@ func (a *App) propertyGrantForHuman(rctx request.CTX, userID string, field *mode
 		return nil
 	}
 
-	user, appErr := a.GetUser(userID)
-	if appErr != nil {
-		// Fail closed: a lookup error matches no role grant rather than
-		// erroring into an allow.
-		return nil
-	}
-	for _, role := range user.GetRoles() {
+	for _, role := range a.propertyCallerRoles(userID) {
 		if grant := permissions.MatchingGrant(model.PropertyOwnerTypeRole, role, "", action); grant != nil {
 			return grant
 		}
 	}
 	return nil
+}
+
+// propertyCallerRoles returns the role names userID holds, the same names a
+// role grant (propertyGrantForHuman) and a masking except role entry
+// (properties.PropertyRoleLister) are both matched against, so the gate and
+// the exemption cannot disagree about what a caller is. A lookup that fails
+// yields no roles rather than erroring into a match.
+func (a *App) propertyCallerRoles(userID string) []string {
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return nil
+	}
+	return user.GetRoles()
 }
 
 // legacyPropertyFieldPermission is the pre-Permissions behaviour, expressed

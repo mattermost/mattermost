@@ -89,3 +89,61 @@ func (h *AccessControlHook) resolveFieldMasking(field *model.PropertyField) (fie
 
 	return fieldMasking{masking: masking, holdingsFieldID: holdingsFieldID}, nil
 }
+
+// exempt reports whether callerID, acting under scope, is named in except.
+// Exemption is explicit -- holding a grant confers none (§2.6) -- so this
+// only ever matches an identity except actually lists, and skips the masking
+// filter alone: the §2.5 permission gate still runs regardless of the answer.
+//
+// A machine caller matches the identity callerOwnerIdentity reports for it,
+// mirroring how permissionsGrantAllows resolves a machine's identity. A human
+// caller matches a user entry naming their ID, or a role entry naming a role
+// they hold -- asking the injected roleLister only when except actually
+// carries a role entry, the same guard propertyGrantForHuman uses so an
+// ordinary masked field pays no store read. A nil roleLister, or one that
+// resolves no roles, matches no role entry.
+//
+// An empty callerID is never exempt. model.CallerIDLocalAdmin is not a
+// machine and not a real user ID, so it is only exempt when except names it
+// explicitly as a user entry -- masking does not inherit the ladder's
+// local-admin bypass.
+func (h *AccessControlHook) exempt(except []model.Identity, callerID, scope string) bool {
+	if callerID == "" || len(except) == 0 {
+		return false
+	}
+
+	if h.isMachineCaller(callerID) {
+		ownerID, ownerType, _ := h.callerOwnerIdentity(callerID, scope)
+		for _, id := range except {
+			if id.Type == ownerType && id.ID == ownerID {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, id := range except {
+		if id.Type == model.PropertyOwnerTypeUser && id.ID == callerID {
+			return true
+		}
+	}
+
+	hasRoleEntry := false
+	for _, id := range except {
+		if id.Type == model.PropertyOwnerTypeRole {
+			hasRoleEntry = true
+			break
+		}
+	}
+	if !hasRoleEntry || h.roleLister == nil {
+		return false
+	}
+	for _, role := range h.roleLister(callerID) {
+		for _, id := range except {
+			if id.Type == model.PropertyOwnerTypeRole && id.ID == role {
+				return true
+			}
+		}
+	}
+	return false
+}

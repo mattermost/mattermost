@@ -332,7 +332,7 @@ func NewServer(options ...Option) (*Server, error) {
 			return true
 		}
 		return app.decidePropertyFieldPermission(rctx, userID, field, action, valueTargetID).Allowed
-	}, cpaGroup.ID)
+	}, app.propertyCallerRoles, cpaGroup.ID)
 	s.propertyService.AddHook(accessControlHook)
 
 	// Attribute validation hook — validates visibility, sort_order on fields,

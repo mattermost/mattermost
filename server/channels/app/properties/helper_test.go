@@ -105,6 +105,19 @@ func (h *AccessControlHook) setLadderCheckerForTests(ladderChecker PropertyLadde
 	h.ladderChecker = ladderChecker
 }
 
+// setRoleListerForTests sets the role lister on the AccessControlHook for testing.
+func (ps *PropertyService) setRoleListerForTests(roleLister PropertyRoleLister) {
+	for _, hook := range ps.hooks {
+		if ach, ok := hook.(*AccessControlHook); ok {
+			ach.setRoleListerForTests(roleLister)
+		}
+	}
+}
+
+func (h *AccessControlHook) setRoleListerForTests(roleLister PropertyRoleLister) {
+	h.roleLister = roleLister
+}
+
 // accessControlHookForTests returns the registered AccessControlHook, for
 // tests that need to call its unexported methods directly rather than
 // through a service call that routes to it.
@@ -124,7 +137,7 @@ func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 	th.CPAGroupID = group.ID
 
 	// Create and register the access control hook now that the group ID is known
-	hook := NewAccessControlHook(th.service, nil, nil, group.ID)
+	hook := NewAccessControlHook(th.service, nil, nil, nil, group.ID)
 	th.service.AddHook(hook)
 
 	return th

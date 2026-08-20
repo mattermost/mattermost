@@ -58,6 +58,15 @@ type PluginChecker func(pluginID string) bool
 // must deny rather than allow.
 type PropertyLadderChecker func(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) bool
 
+// PropertyRoleLister answers which role names userID holds, the same names a
+// role grant is matched against (propertyGrantForHuman) and a masking except
+// role entry is matched against, so the exemption and the permission gate
+// cannot disagree about what a caller is. The properties package cannot
+// import the app package to compute this itself, so it arrives as an
+// injected function pointed at the app-layer lookup. A nil lister, or one
+// whose lookup fails, must be treated as no roles held.
+type PropertyRoleLister func(userID string) []string
+
 // AccessControlHook implements the PropertyHook interface to enforce access
 // control based on caller identity. It checks protected fields, plugin
 // ownership, and access modes (public, source-only, shared-only).
@@ -69,6 +78,7 @@ type AccessControlHook struct {
 	propertyService *PropertyService
 	pluginChecker   PluginChecker
 	ladderChecker   PropertyLadderChecker
+	roleLister      PropertyRoleLister
 	managedGroupIDs map[string]struct{}
 }
 
@@ -83,9 +93,12 @@ var _ PropertyHook = (*AccessControlHook)(nil)
 // The ladderChecker function answers the human half of a permissions decision
 // (restrictions ladder plus user/role grants); pass nil where no permissions
 // fields are under test.
+// The roleLister function answers which roles a human caller holds, for
+// matching a masking except list's role entries; pass nil where no masking
+// with a role exemption is under test.
 // managedGroupIDs lists the property group IDs that this hook enforces access
 // control for. Operations on groups not in this list are passed through.
-func NewAccessControlHook(ps *PropertyService, pluginChecker PluginChecker, ladderChecker PropertyLadderChecker, managedGroupIDs ...string) *AccessControlHook {
+func NewAccessControlHook(ps *PropertyService, pluginChecker PluginChecker, ladderChecker PropertyLadderChecker, roleLister PropertyRoleLister, managedGroupIDs ...string) *AccessControlHook {
 	ids := make(map[string]struct{}, len(managedGroupIDs))
 	for _, id := range managedGroupIDs {
 		ids[id] = struct{}{}
@@ -94,6 +107,7 @@ func NewAccessControlHook(ps *PropertyService, pluginChecker PluginChecker, ladd
 		propertyService: ps,
 		pluginChecker:   pluginChecker,
 		ladderChecker:   ladderChecker,
+		roleLister:      roleLister,
 		managedGroupIDs: ids,
 	}
 }

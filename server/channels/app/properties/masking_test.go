@@ -199,3 +199,125 @@ func TestResolveFieldMasking(t *testing.T) {
 		assert.Equal(t, 1, counter.gets)
 	})
 }
+
+func TestExempt(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	h := th.service.accessControlHookForTests()
+	require.NotNil(t, h)
+
+	t.Run("a listed plugin is exempt; an unlisted plugin is not, however broad its grants", func(t *testing.T) {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "plugin-a" })
+		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+
+		except := []model.Identity{{Type: model.PropertyOwnerTypePlugin, ID: "plugin-a"}}
+		assert.True(t, h.exempt(except, "plugin-a", ""))
+		assert.False(t, h.exempt(except, "plugin-b", ""))
+	})
+
+	t.Run("the LDAP sync caller matches a service/ldap entry, the SAML sync caller a service/saml entry", func(t *testing.T) {
+		except := []model.Identity{
+			{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP},
+			{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrSAML},
+		}
+		assert.True(t, h.exempt(except, model.CallerIDLDAPSync, ""))
+		assert.True(t, h.exempt(except, model.CallerIDSAMLSync, ""))
+	})
+
+	t.Run("a user entry exempts that user id and nobody else", func(t *testing.T) {
+		userID := model.NewId()
+		except := []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: userID}}
+		assert.True(t, h.exempt(except, userID, ""))
+		assert.False(t, h.exempt(except, model.NewId(), ""))
+	})
+
+	t.Run("a role entry exempts a caller holding that role and not a caller without it", func(t *testing.T) {
+		holder := model.NewId()
+		other := model.NewId()
+		th.service.setRoleListerForTests(func(userID string) []string {
+			if userID == holder {
+				return []string{"content_reviewer"}
+			}
+			return []string{"some_other_role"}
+		})
+		t.Cleanup(func() { th.service.setRoleListerForTests(nil) })
+
+		except := []model.Identity{{Type: model.PropertyOwnerTypeRole, ID: "content_reviewer"}}
+		assert.True(t, h.exempt(except, holder, ""))
+		assert.False(t, h.exempt(except, other, ""))
+	})
+
+	t.Run("a nil role lister exempts nobody by role; neither does a failing lookup", func(t *testing.T) {
+		except := []model.Identity{{Type: model.PropertyOwnerTypeRole, ID: "content_reviewer"}}
+
+		th.service.setRoleListerForTests(nil)
+		assert.False(t, h.exempt(except, model.NewId(), ""))
+
+		// A failing lookup surfaces to the hook as an empty role list, the
+		// same shape propertyCallerRoles returns for a.GetUser erroring.
+		th.service.setRoleListerForTests(func(userID string) []string { return nil })
+		t.Cleanup(func() { th.service.setRoleListerForTests(nil) })
+		assert.False(t, h.exempt(except, model.NewId(), ""))
+	})
+
+	t.Run("an except list carrying no role entry never calls the lister", func(t *testing.T) {
+		calls := 0
+		th.service.setRoleListerForTests(func(userID string) []string {
+			calls++
+			return nil
+		})
+		t.Cleanup(func() { th.service.setRoleListerForTests(nil) })
+
+		except := []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}}
+		assert.False(t, h.exempt(except, model.NewId(), ""))
+		assert.Equal(t, 0, calls)
+	})
+
+	t.Run("a wildcard plugin entry exempts nobody; an empty caller id and the local-admin caller are not exempt", func(t *testing.T) {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return true })
+		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+
+		except := []model.Identity{{Type: model.PropertyOwnerTypePlugin, ID: "*"}}
+		assert.False(t, h.exempt(except, "any-plugin", ""))
+		assert.False(t, h.exempt(except, "", ""))
+		assert.False(t, h.exempt(except, model.CallerIDLocalAdmin, ""))
+	})
+
+	t.Run("a linked field's own except exempts nobody when its masked template lists nobody", func(t *testing.T) {
+		// object_type:template always requires mask_by_field_id when masked
+		// (Masking.isValid), so the masked "template" here is an
+		// object_type:user field reached through something other than an
+		// object_type:template link source -- the same stand-in
+		// TestResolveFieldMasking's "falls back to self" case uses.
+		template, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Template-Exfil",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+		template.Permissions = &model.Permissions{Masking: &model.Masking{}}
+		updatedTemplate, err := th.dbStore.PropertyField().Update(template.GroupID, []*model.PropertyField{template}, nil)
+		require.NoError(t, err)
+		template = updatedTemplate[0]
+
+		attacker := model.NewId()
+		// Would be rejected on save once the lock lands (a later step); a
+		// direct store write here stands in for a stray one from before that
+		// lock existed, or a migration that has not caught up.
+		linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Linked-Exfil",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+			Permissions:   &model.Permissions{Masking: &model.Masking{Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: attacker}}}},
+		})
+
+		fm, err := h.resolveFieldMasking(linked)
+		require.NoError(t, err)
+		require.NotNil(t, fm.masking)
+		assert.False(t, h.exempt(fm.masking.Except, attacker, ""))
+	})
+}

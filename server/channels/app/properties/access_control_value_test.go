@@ -2179,7 +2179,7 @@ func TestUpsertPropertyValue_SyncLock(t *testing.T) {
 	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_sync_lock", Version: model.PropertyGroupVersionV1})
 	require.NoError(t, err)
 
-	hook := NewAccessControlHook(th.service, nil, nil, group.ID)
+	hook := NewAccessControlHook(th.service, nil, nil, nil, group.ID)
 	th.service.AddHook(hook)
 
 	ldapField := th.CreatePropertyFieldDirect(t, &model.PropertyField{
