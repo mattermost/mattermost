@@ -1,5 +1,6 @@
 ---
 title: "Interactive messages"
+description: "Mattermost supports interactive message buttons and menus through Mattermost Blocks, markdown action buttons, and legacy message attachments so integrations can complete common tasks inside conversations."
 sidebar_position: 80
 ---
 
@@ -17,15 +18,27 @@ To try it out, you can use this [Matterpoll plugin](https://github.com/matterpol
 
 ![image](poll.png)
 
+## Mattermost Blocks (recommended)
+
+[Mattermost Blocks](/developers/integrate/reference/mm-blocks) are the recommended way to build interactive integration posts. Send a block tree in `props.mm_blocks` for layout, text, images, buttons, and menus, and register action handlers in `props.mm_blocks_actions`.
+
+See [Mattermost Blocks](/developers/integrate/reference/mm-blocks) for the full block schema, action types, validation limits, and examples.
+
 ## Markdown action buttons
 
-In addition to message-attachment buttons and menus, you can embed interactive affordances directly in a post's markdown body using `mmaction://` links backed by a `mm_blocks_actions` post prop. This is useful when a short message reads naturally with an inline "Approve" or "Reject" link and a full message attachment isn't warranted.
+Embed interactive affordances directly in a post's markdown body using `mmaction://` links backed by the same `mm_blocks_actions` registry. This is useful when a short message reads naturally with an inline "Approve" or "Reject" link.
 
 See [markdown action buttons](/developers/integrate/reference/markdown-actions) for the full schema, limits, and end-to-end flow.
 
+## Legacy message attachment buttons and menus
+
+:::note[Legacy format]
+The sections below describe interactive buttons and menus placed inside legacy [message attachments](/developers/integrate/reference/message-attachments). Existing integrations continue to work — Mattermost translates attachment actions into Mattermost Blocks at render time — but new integrations should use [Mattermost Blocks](/developers/integrate/reference/mm-blocks) directly.
+:::
+
 ## Message buttons
 
-Add message buttons as `actions` in your integration [message attachments](https://docs.mattermost.com/developer/message-attachments.html).
+Add message buttons as `actions` in your integration [message attachments](/developers/integrate/reference/message-attachments).
 
 The following payload gives an example that uses message buttons.
 
@@ -85,7 +98,7 @@ To return a custom error message to the user, your integration can respond with 
 }
 ```
 
-The error message will be displayed to the user below the message attachment. If no custom error message is provided, a default "Action failed to execute" message is shown. This feature is available in Mattermost v10.5 and later.
+The error message will be displayed to the user below the interactive content. If no custom error message is provided, a default "Action failed to execute" message is shown. This feature is available in Mattermost v10.5 and later.
 
 ![image](interactive_message.gif)
 
@@ -297,7 +310,7 @@ Specify `users` as your action's `data_source` as follows:
 
 ### Parameters
 
-Below is a brief description of each parameter to help you customize the interactive message button and menu in Mattermost. For more information on message attachments, [see our documentation](https://docs.mattermost.com/developer/message-attachments.html).
+Below is a brief description of each parameter to help you customize legacy attachment interactive buttons and menus in Mattermost. For new integrations, see [Mattermost Blocks](/developers/integrate/reference/mm-blocks). For more information on message attachments, see [message attachments](/developers/integrate/reference/message-attachments).
 
 **ID**<br/>
 A per post unique identifier.
@@ -402,7 +415,7 @@ In most cases, your integration will do one or both of these things:
 
 ## Error handling
 
-When an action button integration fails, Mattermost automatically displays an error message to the user below the message attachment. This provides immediate feedback when button actions don't work as expected.
+When an action button integration fails, Mattermost automatically displays an error message to the user below the interactive content. This provides immediate feedback when button actions don't work as expected.
 
 ![image](action-button-error.png)
 
@@ -472,7 +485,7 @@ It is likely for one of three reasons:
 
 ### How do I manage properties of an interactive message?
 
-Use `update.Props` in the following ways to manage properties (`Props`) of an interactive message after a user performs an action via an interactive button or menu:
+Use `update.Props` in the following ways to manage properties (`Props`) of an interactive message after a user performs an action via an interactive button or menu. When using Mattermost Blocks, include updated `mm_blocks` and `mm_blocks_actions` in `update.props` as needed:
 
  - `update.Props == nil` - Do not update `Props` field.
  - `update.Props == {}` - Clear all properties, except the username and icon of the original message, as well as whether the message was pinned to channel or contained emoji reactions.
