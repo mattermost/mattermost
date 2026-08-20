@@ -448,6 +448,56 @@ func TestUpdateScheduledPostWithSystemPostType(t *testing.T) {
 	}
 }
 
+// A stored scheduled post can carry a post type reserved for system messages if the row predates
+// the intake check or was written by something other than the API. Updating such a row restores
+// the stored type after the request has been validated and clears the error code, re-arming it —
+// so what keeps it out of the channel is the check on the publication path, not intake.
+func TestUpdateScheduledPostWithStoredSystemPostTypeIsNotPublished(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	message := "scheduled post stored with a reserved system post type"
+
+	stored, storeErr := th.App.Srv().Store().ScheduledPost().CreateScheduledPost(th.Context, &model.ScheduledPost{
+		Draft: model.Draft{
+			CreateAt:  model.GetMillis(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   message,
+			Type:      model.PostTypeSystemGeneric,
+		},
+		ScheduledAt: model.GetMillis() + 100000,
+	})
+	require.NoError(t, storeErr)
+	require.NotNil(t, stored)
+
+	// Reschedule it to be due now, sending no type at all, the way a client that only knows how
+	// to reschedule would.
+	updated, _, err := th.Client.UpdateScheduledPost(context.Background(), &model.ScheduledPost{
+		Draft: model.Draft{
+			CreateAt:  stored.CreateAt,
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   message,
+		},
+		Id:          stored.Id,
+		ScheduledAt: model.GetMillis() - 1000,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, updated)
+
+	th.App.ProcessScheduledPosts(th.Context)
+
+	posts, _, err := th.SystemAdminClient.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 200, "", false, false)
+	require.NoError(t, err)
+
+	for _, post := range posts.Posts {
+		require.NotEqual(t, message, post.Message, "a rescheduled post that kept its reserved system post type must not be published")
+	}
+}
+
 func TestScheduledPostRecurringFeatureFlag(t *testing.T) {
 	mainHelper.Parallel(t)
 	// SetupConfig also makes feature flags writable, so the subtests below can toggle the flag.
