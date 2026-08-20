@@ -60,7 +60,7 @@ services:
       LDAP_TLS_VERIFY_CLIENT: "never"
       LDAP_ORGANISATION: "Mattermost Test"
       LDAP_DOMAIN: "mm.test.com"
-      LDAP_ADMIN_PASSWORD: "${LDAP_ADMIN_PASSWORD:-mostest}"
+      LDAP_ADMIN_PASSWORD: "mostest_password"
   elasticsearch:
     build:
       context: .

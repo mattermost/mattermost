@@ -82,7 +82,6 @@ jobs:
       - name: Run docker compose
         env:
           POSTGRES_PASSWORD: 'mostest_password'
-          LDAP_ADMIN_PASSWORD: 'mostest_password'
         run: |
           cd server/build
           docker compose --ansi never run --rm start_dependencies
