@@ -486,6 +486,56 @@ func TestLicenseHasSharedChannels(t *testing.T) {
 	}
 }
 
+func TestLicenseHasMHPNS(t *testing.T) {
+	testCases := []struct {
+		description   string
+		license       *License
+		expectedValue bool
+	}{
+		{
+			"nil license",
+			nil,
+			false,
+		},
+		{
+			"nil features",
+			&License{},
+			false,
+		},
+		{
+			"nil MHPNS feature",
+			&License{
+				Features: &Features{},
+			},
+			false,
+		},
+		{
+			"MHPNS feature disabled",
+			&License{
+				Features: &Features{
+					MHPNS: new(false),
+				},
+			},
+			false,
+		},
+		{
+			"MHPNS feature enabled",
+			&License{
+				Features: &Features{
+					MHPNS: new(true),
+				},
+			},
+			true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			assert.Equal(t, testCase.expectedValue, testCase.license.HasMHPNS())
+		})
+	}
+}
+
 func TestMinimumProfessionalLicense(t *testing.T) {
 	testCases := []struct {
 		description   string
