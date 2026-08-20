@@ -32,7 +32,7 @@ See [markdown action buttons](/developers/integrate/reference/markdown-actions) 
 
 ## Legacy message attachment buttons and menus
 
-:::note Legacy format
+:::note[Legacy format]
 The sections below describe interactive buttons and menus placed inside legacy [message attachments](/developers/integrate/reference/message-attachments). Existing integrations continue to work — Mattermost translates attachment actions into Mattermost Blocks at render time — but new integrations should use [Mattermost Blocks](/developers/integrate/reference/mm-blocks) directly.
 :::
 

@@ -5,7 +5,7 @@ sidebar_label: "Markdown action buttons"
 sidebar_position: 45
 ---
 
-:::note Part of the Interactive Messages framework
+:::note[Part of the Interactive Messages framework]
 Markdown action buttons are one binding surface in the Interactive Messages framework alongside [Mattermost Blocks](/developers/integrate/reference/mm-blocks). All surfaces share the same `mm_blocks_actions` action registry.
 :::
 

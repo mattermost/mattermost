@@ -75,11 +75,9 @@ If you leave the channel field blank, the webhook will respond to trigger words 
     "}
     ```
 
-```text
 which would render in Mattermost as:
 
 ![Test results for Server, Web Client and iOS client](/images/webhooksTable.png)
-```
 
 You're all set!
 

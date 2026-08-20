@@ -7,7 +7,7 @@ sidebar_position: 42
 
 Mattermost Blocks are the structured post format for integration messages. An integration sends a block tree in `props.mm_blocks` to define layout, text, images, buttons, and menus, and registers action handlers in `props.mm_blocks_actions` so the server can dispatch clicks and menu selections back to the integration.
 
-:::note Feature flag
+:::note[Feature flag]
 Mattermost Blocks are controlled by the `MmBlocksEnabled` feature flag (enabled by default). When disabled, Mattermost Blocks payloads are not rendered and Mattermost Blocks action cookies are rejected.
 :::
 

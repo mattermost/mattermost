@@ -7,7 +7,7 @@ sidebar_position: 40
 
 For additional formatting options, and for compatibility with Slack non-markdown integrations, an `attachments` array can be sent by integrations and rendered by Mattermost.
 
-:::note Legacy interactive content
+:::note[Legacy interactive content]
 For new integrations, prefer [Mattermost Blocks](/developers/integrate/reference/mm-blocks) over attachment `actions` for buttons and menus. Legacy attachments remain fully supported — Mattermost translates them into Mattermost Blocks at render time — but native Mattermost Blocks give you more layout control and a unified action registry in `props.mm_blocks_actions`.
 :::
 

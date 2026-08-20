@@ -6,6 +6,49 @@ import type * as Preset from '@docusaurus/preset-classic';
 // changes; only entries whose target exists end up here.
 import activeRedirects from './sidebars/active-redirects.json';
 
+const developerRedirects = [
+  {
+    from: '/contribute/mobile/developer-setup',
+    to: '/developers/contribute/more-info/mobile/developer-setup',
+  },
+  {
+    from: '/integrate/admin-guide/admin-interactive-dialogs',
+    to: '/developers/integrate/plugins/interactive-dialogs',
+  },
+  {
+    from: '/integrate/admin-guide/admin-interactive-messages',
+    to: '/developers/integrate/plugins/interactive-messages',
+  },
+  {
+    from: '/integrate/admin-guide/admin-plugins-beta',
+    to: '/developers/integrate/plugins/using-and-managing-plugins',
+  },
+  {
+    from: '/integrate/admin-guide/admin-message-attachments',
+    to: '/developers/integrate/reference/message-attachments',
+  },
+  {
+    from: '/integrate/admin-guide',
+    to: '/developers/integrate/faq',
+  },
+  {
+    from: '/integrate/webhooks/incoming/incoming-webhooks',
+    to: '/developers/integrate/webhooks/incoming',
+  },
+  {
+    from: '/integrate/webhooks/incoming/using-incoming-webhooks',
+    to: '/developers/integrate/webhooks/incoming',
+  },
+  {
+    from: '/integrate/webhooks/outgoing/outgoing-webhooks',
+    to: '/developers/integrate/webhooks/outgoing',
+  },
+  {
+    from: '/integrate/webhooks/outgoing/using-outgoing-webhooks',
+    to: '/developers/integrate/webhooks/outgoing',
+  },
+];
+
 // Multi-instance docs setup with three top-level navigations:
 //   /          → Documentation (admin / end-user)        sources: ../docs
 //   /developers → Developers (contribute / integrate)    sources: ../develop
@@ -131,7 +174,7 @@ const config: Config = {
       {
         // Legacy URL → migrated MDX path. Pre-filtered to entries whose
         // target exists, so the build never breaks on a missing target.
-        redirects: activeRedirects.redirects,
+        redirects: [...activeRedirects.redirects, ...developerRedirects],
       },
     ],
     // Generates API reference pages from the OpenAPI bundle produced by

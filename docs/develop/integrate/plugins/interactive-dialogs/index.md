@@ -620,7 +620,7 @@ The `datetime_config` object groups date/datetime configuration into a single ne
 - Invalid: `"time_interval": 7` (7 is not a divisor of 1440)
 
 ### File elements
-##### Minimum Server Version: 11.10
+#### Minimum Server Version: 11.10
 
 File elements allow users to upload one or more files as part of an interactive dialog submission. Below is an example of a `file` element that requests a single file attachment.
 
@@ -727,7 +727,7 @@ When a user clicks an action button, the Mattermost client sends an `HTTP POST` 
 
 Use the `trigger_id` from this payload to [open a child dialog](#open-a-dialog) — send an `HTTP POST` to `/api/v4/actions/dialogs/open` exactly as you would for a top-level dialog. The child dialog is displayed stacked on top of the dialog the user clicked the button in.
 
-:::note Note:
+:::note
 Up to three dialogs may be open at once. If three dialogs are already open, the request to open a further child dialog is silently ignored by the client, so design your workflows to stay within this limit.
 :::
 
@@ -757,7 +757,7 @@ The submission payload sent to the integration is:
 }
 ```
 
-:::note team_id behavior change (server version 11.10):
+:::note[`team_id` behavior change (server version 11.10)]
 For the `/api/v4/actions/dialogs/submit`, `/api/v4/actions/dialogs/lookup`, and `/api/v4/actions/dialogs/execute` endpoints, the `team_id` forwarded to your integration is now always derived by the server from the channel the dialog was opened in, rather than from the value supplied by the client. Any client-supplied `team_id` is ignored. For direct (DM) and group (GM) message channels — which do not belong to a team — `team_id` is sent as an empty string. If your integration previously relied on a client-supplied `team_id` for team-specific logic, update it to use this channel-derived value (and to handle the empty case for DM/GM channels).
 :::
 

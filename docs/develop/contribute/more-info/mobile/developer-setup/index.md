@@ -141,7 +141,7 @@ If it isn't, we recommend using [Ruby Version Manager](https://rvm.io) or your p
     rvm alias create default 3.2.11
     ```
 
-:::note Apple Silicon
+:::note[Apple Silicon]
 On recent Apple Silicon Macs, installing Ruby through RVM can fail with repeated OpenSSL errors. If you hit those, [`rv`](https://github.com/spinel-coop/rv) (a Ruby version manager) is a reliable alternative:
 
 ```sh
