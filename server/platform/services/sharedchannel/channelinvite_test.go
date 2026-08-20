@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
@@ -27,7 +28,7 @@ var (
 	mockTypeUser       = mock.AnythingOfType("*model.User")
 	mockTypeString     = mock.AnythingOfType("string")
 	mockTypeReqContext = mock.AnythingOfType("*request.Context")
-	mockTypeContext    = mock.MatchedBy(func(ctx context.Context) bool { return true })
+	mockTypeContext    = mock.MatchedBy(func(ctx request.CTX) bool { return true })
 )
 
 // stubRemoteClusterService is a no-op implementation of RemoteClusterServiceIFace for tests

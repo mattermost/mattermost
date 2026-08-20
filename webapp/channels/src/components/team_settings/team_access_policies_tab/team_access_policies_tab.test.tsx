@@ -24,6 +24,7 @@ describe('TeamAccessPoliciesTab', () => {
             EnableChannelPolicyIndicators: true,
             TrustProxyDeviceIdentityHeader: false,
             EnforceDeviceIDConsistency: false,
+            EnableAccessControlAuditLogging: false,
         },
         areThereUnsavedChanges: false,
         setAreThereUnsavedChanges: jest.fn(),

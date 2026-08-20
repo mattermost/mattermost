@@ -333,18 +333,12 @@ func TestTeamAccessControlled(t *testing.T) {
 	})
 }
 
-// TestTeamAccessControlledFeatureFlagOff exercises the kill switch. The
-// FeatureFlags section is read-only at runtime, so the off state is the
-// default (no SetupConfig override) — license and config are on, yet an
-// assigned membership policy must not engage the gate.
+// TestTeamAccessControlledFeatureFlagOff exercises the kill switch: with the
+// flag explicitly off — license and config on, and a membership policy
+// assigned — the gate must not engage. The flag is set at construction because
+// the config store treats the FeatureFlags section as read-only at runtime.
 func TestTeamAccessControlledFeatureFlagOff(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
-	})
-	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-	require.True(t, ok)
-	defer th.App.Srv().SetLicense(nil)
+	th := setupTeamABACPrereqsFlagOff(t)
 
 	team := th.CreateTeam(t)
 	saveTestTeamPolicy(t, th, team.Id, model.AccessControlPolicyActionMembership)
@@ -674,7 +668,7 @@ func TestGetUsersNotInAbacTeam(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		thMock.App.Srv().ch.AccessControl = nil
 
-		users, appErr := thMock.App.GetUsersNotInAbacTeam(thMock.Context, model.NewId(), "", 50, true)
+		users, appErr := thMock.App.GetUsersNotInAbacTeam(thMock.Context, model.NewId(), "", "", 50, true)
 		require.NotNil(t, appErr)
 		require.Nil(t, users)
 		require.Equal(t, "api.user.get_users_not_in_abac_team.access_control_unavailable.app_error", appErr.Id)
@@ -690,13 +684,68 @@ func TestGetUsersNotInAbacTeam(t *testing.T) {
 
 		want := []*model.User{{Id: model.NewId(), Username: model.NewUsername()}}
 		mockACS.On("QueryUsersForResource", th.Context, teamID, model.AccessControlPolicyActionMembership, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
-			return opts.Limit == 25 && opts.Cursor.TargetID == "cursor-id"
+			return opts.Limit == 25 && opts.Cursor.TargetID == "cursor-id" && opts.Term == ""
 		})).Return(want, int64(1), (*model.AppError)(nil))
 
-		users, appErr := th.App.GetUsersNotInAbacTeam(th.Context, teamID, "cursor-id", 25, true)
+		users, appErr := th.App.GetUsersNotInAbacTeam(th.Context, teamID, "", "cursor-id", 25, true)
 		require.Nil(t, appErr)
 		require.Len(t, users, 1)
 		require.Equal(t, want[0].Id, users[0].Id)
 		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("search term is forwarded to the access control query", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		teamID := model.NewId()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+		want := []*model.User{{Id: model.NewId(), Username: model.NewUsername()}}
+		mockACS.On("QueryUsersForResource", th.Context, teamID, model.AccessControlPolicyActionMembership, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+			return opts.Term == "eng" && opts.Limit == 20
+		})).Return(want, int64(1), (*model.AppError)(nil))
+
+		users, appErr := th.App.GetUsersNotInAbacTeam(th.Context, teamID, "eng", "", 20, true)
+		require.Nil(t, appErr)
+		require.Len(t, users, 1)
+		require.Equal(t, want[0].Id, users[0].Id)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("full-name term search is gated by ShowFullName for non-admin callers", func(t *testing.T) {
+		testCases := []struct {
+			name             string
+			asAdmin          bool
+			showFullName     bool
+			wantExcludeNames bool
+		}{
+			{"non-admin with ShowFullName off excludes full names", false, false, true},
+			{"non-admin with ShowFullName on allows full names", false, true, false},
+			{"admin always allows full names", true, false, false},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				th := Setup(t).InitBasic(t)
+				teamID := model.NewId()
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					cfg.PrivacySettings.ShowFullName = model.NewPointer(tc.showFullName)
+				})
+
+				mockACS := &mocks.AccessControlServiceInterface{}
+				th.App.Srv().ch.AccessControl = mockACS
+				t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+				mockACS.On("QueryUsersForResource", th.Context, teamID, model.AccessControlPolicyActionMembership, mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
+					return opts.ExcludeFullNames == tc.wantExcludeNames
+				})).Return([]*model.User{}, int64(0), (*model.AppError)(nil))
+
+				_, appErr := th.App.GetUsersNotInAbacTeam(th.Context, teamID, "smith", "", 20, tc.asAdmin)
+				require.Nil(t, appErr)
+				mockACS.AssertExpectations(t)
+			})
+		}
 	})
 }

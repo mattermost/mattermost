@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"maps"
+	"slices"
 	"strconv"
 )
 
@@ -154,6 +155,7 @@ type WebsocketBroadcast struct {
 	OmitConnectionId      string          `json:"omit_connection_id"`                // broadcast is omitted for this connection
 	ContainsSanitizedData bool            `json:"contains_sanitized_data,omitempty"` // broadcast only occurs for non-sysadmins
 	ContainsSensitiveData bool            `json:"contains_sensitive_data,omitempty"` // broadcast only occurs for sysadmins
+	RequiredPermissions   []string        `json:"required_permissions,omitempty"`    // broadcast only occurs for sessions with all permissions
 	// ReliableClusterSend indicates whether or not the message should
 	// be sent through the cluster using the reliable, TCP backed channel.
 	ReliableClusterSend bool `json:"-"`
@@ -186,6 +188,7 @@ func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
 	c.OmitConnectionId = wb.OmitConnectionId
 	c.ContainsSanitizedData = wb.ContainsSanitizedData
 	c.ContainsSensitiveData = wb.ContainsSensitiveData
+	c.RequiredPermissions = slices.Clone(wb.RequiredPermissions)
 	c.BroadcastHooks = wb.BroadcastHooks
 	c.BroadcastHookArgs = wb.BroadcastHookArgs
 

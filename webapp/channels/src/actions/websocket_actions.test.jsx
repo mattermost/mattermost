@@ -7,7 +7,7 @@ import {WebSocketEvents} from '@mattermost/client';
 
 import {ChannelTypes, CloudTypes, JobTypes, PostTypes, RenderPermissionTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
-import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
+import {fetchAllMyTeamsChannels, getChannelMember} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {getJobsByType} from 'mattermost-redux/actions/jobs';
@@ -102,6 +102,7 @@ jest.mock('mattermost-redux/actions/users', () => ({
 
 jest.mock('mattermost-redux/actions/channels', () => ({
     getChannelStats: jest.fn(() => ({type: 'GET_CHANNEL_STATS'})),
+    getChannelMember: jest.fn(() => ({type: 'GET_CHANNEL_MEMBER'})),
     fetchAllMyChannelMembers: jest.fn(() => ({type: 'FETCH_ALL_MY_CHANNEL_MEMBERS'})),
     fetchAllMyTeamsChannels: jest.fn(),
 }));
@@ -474,7 +475,26 @@ describe('handleUserAddedEvent', () => {
         },
     };
 
-    test('should load the added user profile when it is not already in the store', async () => {
+    // A state where the added user already has both a loaded profile and a loaded
+    // ChannelMembership in the current channel, so nothing needs to be fetched.
+    const stateWithLoadedMember = mergeObjects(stateWithLicense, {
+        entities: {
+            users: {
+                profiles: {
+                    loadedMember: {id: 'loadedMember', roles: 'system_user'},
+                },
+            },
+            channels: {
+                membersInChannel: {
+                    [currentChannelId]: {
+                        loadedMember: {channel_id: currentChannelId, user_id: 'loadedMember'},
+                    },
+                },
+            },
+        },
+    });
+
+    test('should load both the profile and the channel membership for a newly synced remote member', async () => {
         const testStore = configureStore(stateWithLicense);
         const msg = {
             data: {
@@ -486,10 +506,19 @@ describe('handleUserAddedEvent', () => {
         };
 
         await testStore.dispatch(handleUserAddedEvent(msg));
+
+        // Both the profile and the ChannelMembership are required for the member to
+        // render in the participant list.
         expect(getUser).toHaveBeenCalledWith('remoteUser');
+        expect(getChannelMember).toHaveBeenCalledWith(currentChannelId, 'remoteUser');
     });
 
-    test('should not load the added user profile when it is already in the store', async () => {
+    test('should still load the channel membership when the profile is already loaded but the membership is not', async () => {
+        // Regression test for MM-67616: a synced remote member whose profile was
+        // already loaded (e.g. because they posted) but who has no ChannelMembership
+        // was silently dropped from the participant list, because the member list
+        // requires the membership relation. The membership must be fetched even when
+        // the profile fetch is skipped.
         const testStore = configureStore(stateWithLicense);
         const msg = {
             data: {
@@ -501,10 +530,29 @@ describe('handleUserAddedEvent', () => {
         };
 
         await testStore.dispatch(handleUserAddedEvent(msg));
+
         expect(getUser).not.toHaveBeenCalled();
+        expect(getChannelMember).toHaveBeenCalledWith(currentChannelId, 'user');
     });
 
-    test('should not load the added user profile when the channel is not the current channel', async () => {
+    test('should not load the profile or membership when both are already in the store', async () => {
+        const testStore = configureStore(stateWithLoadedMember);
+        const msg = {
+            data: {
+                user_id: 'loadedMember',
+            },
+            broadcast: {
+                channel_id: currentChannelId,
+            },
+        };
+
+        await testStore.dispatch(handleUserAddedEvent(msg));
+
+        expect(getUser).not.toHaveBeenCalled();
+        expect(getChannelMember).not.toHaveBeenCalled();
+    });
+
+    test('should not load the profile or membership when the channel is not the current channel', async () => {
         const testStore = configureStore(stateWithLicense);
         const msg = {
             data: {
@@ -516,7 +564,9 @@ describe('handleUserAddedEvent', () => {
         };
 
         await testStore.dispatch(handleUserAddedEvent(msg));
+
         expect(getUser).not.toHaveBeenCalled();
+        expect(getChannelMember).not.toHaveBeenCalled();
     });
 });
 
@@ -898,9 +948,6 @@ describe('reconnect', () => {
                         license: {
                             SkuShortName: 'enterprise',
                         },
-                        config: {
-                            FeatureFlagCustomProfileAttributes: 'true',
-                        },
                     },
                 },
             },
@@ -914,9 +961,9 @@ describe('reconnect', () => {
     });
 
     test.each([
-        {SkuShortName: 'starter', FeatureFlagCustomProfileAttributes: 'true'},
-        {SkuShortName: 'enterprise', FeatureFlagCustomProfileAttributes: 'false'},
-    ])("should not reload custom profile attribute fields on reconnect if feature isn't available", ({SkuShortName, FeatureFlagCustomProfileAttributes}) => {
+        {SkuShortName: 'starter'},
+        {SkuShortName: 'professional'},
+    ])('should not reload custom profile attribute fields on reconnect without an Enterprise license', ({SkuShortName}) => {
         const clonedMockState = cloneDeep(mockState);
 
         mockState = mergeObjects(
@@ -926,9 +973,6 @@ describe('reconnect', () => {
                     general: {
                         license: {
                             SkuShortName,
-                        },
-                        config: {
-                            FeatureFlagCustomProfileAttributes,
                         },
                     },
                 },

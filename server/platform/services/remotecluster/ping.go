@@ -21,8 +21,8 @@ func (rcs *Service) PingNow(rc *model.RemoteCluster) {
 	if pingErr != nil {
 		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceWarn, "Remote cluster ping failed",
 			mlog.String("remote", rc.DisplayName),
-			mlog.String("remoteId", rc.RemoteId),
-			mlog.String("pluginId", rc.PluginID),
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.String("plugin_id", rc.PluginID),
 			mlog.Err(pingErr),
 		)
 	}
@@ -152,7 +152,7 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	if err := rcs.server.GetStore().RemoteCluster().SetLastPingAt(rc.RemoteId); err != nil {
 		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceError, "Failed to update LastPingAt for remote cluster",
 			mlog.String("remote", rc.DisplayName),
-			mlog.String("remoteId", rc.RemoteId),
+			mlog.String("remote_id", rc.RemoteId),
 			mlog.Err(err),
 		)
 	}
@@ -169,11 +169,11 @@ func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 
 	rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "Remote cluster ping",
 		mlog.String("remote", rc.DisplayName),
-		mlog.String("remoteId", rc.RemoteId),
-		mlog.String("pluginId", rc.PluginID),
-		mlog.Int("SentAt", ping.SentAt),
-		mlog.Int("RecvAt", ping.RecvAt),
-		mlog.Int("Diff", ping.RecvAt-ping.SentAt),
+		mlog.String("remote_id", rc.RemoteId),
+		mlog.String("plugin_id", rc.PluginID),
+		mlog.Int("sent_at", ping.SentAt),
+		mlog.Int("recv_at", ping.RecvAt),
+		mlog.Int("diff", ping.RecvAt-ping.SentAt),
 	)
 	return nil
 }

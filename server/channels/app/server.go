@@ -281,6 +281,7 @@ func NewServer(options ...Option) (*Server, error) {
 		{Name: model.SessionAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2},
 		{Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1},
 		{Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2},
+		{Name: model.PostAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2, SchemaVersion: model.PostAttributesPropertyGroupSchemaVersion},
 	}); err != nil {
 		return nil, errors.Wrap(err, "failed to register builtin property groups")
 	}
@@ -463,6 +464,7 @@ func NewServer(options ...Option) (*Server, error) {
 		TemplatesContainer: s.TemplatesContainer(),
 		UserService:        s.userService,
 		Store:              s.GetStore(),
+		Logger:             s.Log(),
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to initialize email service")
@@ -482,7 +484,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
+		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("is_leader", s.IsLeader()))
 		if s.Jobs != nil {
 			s.Jobs.HandleClusterLeaderChange(s.IsLeader())
 		}
@@ -522,6 +524,12 @@ func NewServer(options ...Option) (*Server, error) {
 		if err = s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
 			mlog.Error("Error configuring audit", mlog.Err(err))
 		}
+	}
+
+	if cfg := s.platform.Config(); cfg.AccessControlSettings.EnableAccessControlAuditLogging != nil &&
+		*cfg.AccessControlSettings.EnableAccessControlAuditLogging &&
+		!config.IsAuditLoggingActive(cfg.ExperimentalAuditSettings, allowAdvancedLogging) {
+		mlog.Warn("AccessControlSettings.EnableAccessControlAuditLogging is enabled but no active audit log target is configured; ABAC policy-decision audit logging will have no effect. Enable ExperimentalAuditSettings.FileEnabled or configure an advanced audit logging target bound to an audit level.")
 	}
 
 	s.platform.RemoveUnlicensedLogTargets(license)
@@ -590,9 +598,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// Dump the image cache if the proxy settings have changed. (need switch URLs to the correct proxy)
 	s.platform.AddConfigListener(func(oldCfg, newCfg *model.Config) {
 		if (oldCfg.ImageProxySettings.Enable != newCfg.ImageProxySettings.Enable) ||
-			(oldCfg.ImageProxySettings.ImageProxyType != newCfg.ImageProxySettings.ImageProxyType) ||
-			(oldCfg.ImageProxySettings.RemoteImageProxyURL != newCfg.ImageProxySettings.RemoteImageProxyURL) ||
-			(oldCfg.ImageProxySettings.RemoteImageProxyOptions != newCfg.ImageProxySettings.RemoteImageProxyOptions) {
+			(oldCfg.ImageProxySettings.ImageProxyType != newCfg.ImageProxySettings.ImageProxyType) {
 			if err = s.openGraphDataCache.Purge(); err != nil {
 				mlog.Error("Failed to purge Open Graph data cache after config change", mlog.Err(err))
 			}
@@ -1952,13 +1958,13 @@ func runDNDStatusExpireJob(a *App) {
 	}
 
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("is_leader", a.IsLeader()))
 		if a.IsLeader() {
 			withMut(&a.ch.dndTaskMut, func() {
 				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
 			})
 		} else {
-			mlog.Debug("This is no longer leader node. Cancelling the unset DND status task", mlog.Bool("isLeader", a.IsLeader()))
+			mlog.Debug("This is no longer leader node. Cancelling the unset DND status task", mlog.Bool("is_leader", a.IsLeader()))
 			cancelTask(&a.ch.dndTaskMut, &a.ch.dndTask)
 		}
 	})
@@ -1976,7 +1982,7 @@ func runPostReminderJob(a *App) {
 	}
 
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("is_leader", a.IsLeader()))
 		if a.IsLeader() {
 			rctx := request.EmptyContext(a.Log())
 			withMut(&a.ch.postReminderMut, func() {
@@ -1984,7 +1990,7 @@ func runPostReminderJob(a *App) {
 				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
 			})
 		} else {
-			mlog.Debug("This is no longer leader node. Cancelling the post reminder task", mlog.Bool("isLeader", a.IsLeader()))
+			mlog.Debug("This is no longer leader node. Cancelling the post reminder task", mlog.Bool("is_leader", a.IsLeader()))
 			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
 		}
 	})
@@ -1998,11 +2004,11 @@ func runScheduledPostJob(a *App) {
 	}
 
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if scheduled posts task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		mlog.Info("Cluster leader changed. Determining if scheduled posts task should be running", mlog.Bool("is_leader", a.IsLeader()))
 		if a.IsLeader() {
 			doRunScheduledPostJob(a)
 		} else {
-			mlog.Debug("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("isLeader", a.IsLeader()))
+			mlog.Debug("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("is_leader", a.IsLeader()))
 			cancelTask(&a.ch.scheduledPostMut, &a.ch.scheduledPostTask)
 		}
 	})

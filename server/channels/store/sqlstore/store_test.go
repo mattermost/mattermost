@@ -525,58 +525,57 @@ func TestGetDbVersion(t *testing.T) {
 	}
 }
 
-func TestEnsureMinimumDBVersion(t *testing.T) {
+func TestCheckVersion(t *testing.T) {
 	if enableFullyParallelTests {
 		t.Parallel()
 	}
 
 	tests := []struct {
-		driver string
-		ver    string
-		ok     bool
-		err    string
+		ver            string
+		wantErr        string
+		wantLog        string
+		wantVersion    string
+		wantMinVersion string
 	}{
 		{
-			driver: model.DatabaseDriverPostgres,
-			ver:    "110001",
-			ok:     false,
-			err:    "",
+			ver:            "110001",
+			wantLog:        "Unsupported Postgres version",
+			wantVersion:    "11.1",
+			wantMinVersion: "15.0",
 		},
 		{
-			driver: model.DatabaseDriverPostgres,
-			ver:    "130001",
-			ok:     false,
-			err:    "",
+			ver:            "130001",
+			wantLog:        "Unsupported Postgres version",
+			wantVersion:    "13.1",
+			wantMinVersion: "15.0",
 		},
 		{
-			driver: model.DatabaseDriverPostgres,
-			ver:    "140000",
-			ok:     true,
-			err:    "",
+			ver:            "140000",
+			wantLog:        "Unsupported Postgres version",
+			wantVersion:    "14.0",
+			wantMinVersion: "15.0",
 		},
 		{
-			driver: model.DatabaseDriverPostgres,
-			ver:    "141900",
-			ok:     true,
-			err:    "",
+			ver:            "140019",
+			wantLog:        "Unsupported Postgres version",
+			wantVersion:    "14.19",
+			wantMinVersion: "15.0",
 		},
 		{
-			driver: model.DatabaseDriverPostgres,
-			ver:    "150000",
-			ok:     true,
-			err:    "",
+			ver: "150000",
 		},
 		{
-			driver: model.DatabaseDriverPostgres,
-			ver:    "90603",
-			ok:     false,
-			err:    "minimum Postgres version requirements not met",
+			ver: "150019",
 		},
 		{
-			driver: model.DatabaseDriverPostgres,
-			ver:    "12.34.1",
-			ok:     false,
-			err:    "cannot parse DB version",
+			ver:            "90603",
+			wantLog:        "Unsupported Postgres version",
+			wantVersion:    "9.6.3",
+			wantMinVersion: "15.0",
+		},
+		{
+			ver:     "12.34.1",
+			wantErr: "cannot parse DB version",
 		},
 	}
 
@@ -585,13 +584,36 @@ func TestEnsureMinimumDBVersion(t *testing.T) {
 		DriverName: &pg,
 	}
 	for _, tc := range tests {
-		store := &SqlStore{}
-		store.settings = pgSettings
-		ok, err := store.ensureMinimumDBVersion(tc.ver)
-		assert.Equal(t, tc.ok, ok, "driver: %s, version: %s", tc.driver, tc.ver)
-		if tc.err != "" {
-			assert.Contains(t, err.Error(), tc.err)
-		}
+		t.Run(tc.ver, func(t *testing.T) {
+			logger := mlog.CreateConsoleTestLogger(t)
+			var buf mlog.Buffer
+			require.NoError(t, mlog.AddWriterTarget(logger, &buf, true, mlog.LvlError))
+
+			store := &SqlStore{}
+			store.settings = pgSettings
+			store.logger = logger
+
+			err := store.checkVersion(tc.ver)
+			require.NoError(t, logger.Flush())
+
+			if tc.wantErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.wantErr)
+				return
+			}
+			require.NoError(t, err)
+
+			if tc.wantLog == "" {
+				assert.Empty(t, buf.String())
+				return
+			}
+
+			assert.Contains(t, buf.String(), tc.wantLog)
+			assert.Contains(t, buf.String(), fmt.Sprintf(`"version":%q`, tc.wantVersion))
+			if tc.wantMinVersion != "" {
+				assert.Contains(t, buf.String(), fmt.Sprintf(`"min_version":%q`, tc.wantMinVersion))
+			}
+		})
 	}
 }
 
@@ -773,17 +795,38 @@ func TestVersionString(t *testing.T) {
 		},
 		{
 			input:  90603,
-			output: "9.603",
+			output: "9.6.3",
 		},
 		{
 			input:  120005,
 			output: "12.5",
 		},
+		// Examples given by the PQserverVersion documentation.
+		{
+			input:  100001,
+			output: "10.1",
+		},
+		{
+			input:  110000,
+			output: "11.0",
+		},
+		{
+			input:  90105,
+			output: "9.1.5",
+		},
+		{
+			input:  90200,
+			output: "9.2.0",
+		},
+		{
+			input:  140019,
+			output: "14.19",
+		},
 	}
 
 	for _, v := range versions {
 		out := versionString(v.input)
-		assert.Equal(t, v.output, out)
+		assert.Equal(t, v.output, out, "input: %d", v.input)
 	}
 }
 
