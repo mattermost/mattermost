@@ -5,6 +5,7 @@ package app
 
 import (
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -62,6 +63,9 @@ func (a *App) decidePropertyFieldPermission(rctx request.CTX, userID string, fie
 	if field.Permissions == nil {
 		basis.Legacy = true
 		basis.Allowed = a.legacyPropertyFieldPermission(rctx, userID, field, action, valueTargetID)
+		if !basis.Allowed {
+			logPropertyFieldPermissionDenied(rctx, basis, field)
+		}
 		return basis
 	}
 
@@ -78,7 +82,47 @@ func (a *App) decidePropertyFieldPermission(rctx request.CTX, userID string, fie
 		return basis
 	}
 
+	logPropertyFieldPermissionDenied(rctx, basis, field)
 	return basis
+}
+
+// logPropertyFieldPermissionDenied logs a denied decision at debug: an
+// ordinary field denies almost everyone almost every action by default (an
+// omitted restrictions leaf means none), so logging a denial any louder
+// would bury the signal that matters.
+func logPropertyFieldPermissionDenied(rctx request.CTX, basis PropertyPermissionBasis, field *model.PropertyField) {
+	rctx.Logger().Debug("Property field permission denied",
+		mlog.String("caller_id", basis.CallerID),
+		mlog.String("field_id", field.ID),
+		mlog.String("action", basis.Action),
+		mlog.String("required_tier", string(requiredPermissionTierFor(field, basis.Action))),
+		mlog.Bool("legacy", basis.Legacy),
+	)
+}
+
+// requiredPermissionTierFor reports the permission tier configured for
+// action on field, for the denial log: the restrictions ladder's tier when
+// the field carries permissions, else the equivalent legacy permission
+// column.
+func requiredPermissionTierFor(field *model.PropertyField, action string) model.PermissionLevel {
+	if field.Permissions != nil {
+		return field.Permissions.Restrictions.TierFor(action)
+	}
+	switch action {
+	case model.PropertyActionFieldWrite:
+		if field.PermissionField != nil {
+			return *field.PermissionField
+		}
+	case model.PropertyActionOptionWrite:
+		if field.PermissionOptions != nil {
+			return *field.PermissionOptions
+		}
+	case model.PropertyActionValueWrite:
+		if field.PermissionValues != nil {
+			return *field.PermissionValues
+		}
+	}
+	return model.PermissionLevelNone
 }
 
 // PropertyPermissionBasisFor derives the basis on which the caller named on
