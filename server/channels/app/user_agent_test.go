@@ -8,6 +8,9 @@ import (
 
 	"github.com/avct/uasurfer"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 type testUserAgent struct {
@@ -197,6 +200,14 @@ var testUserAgents = []testUserAgent{
 		ExpectedBrowserVersion: "129.0",
 	},
 	{
+		Name:                   "Chrome (Chrome OS)",
+		UserAgent:              "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+		ExpectedPlatformName:   "Linux",
+		ExpectedOSName:         "Chrome OS",
+		ExpectedBrowserName:    "Chrome",
+		ExpectedBrowserVersion: "129.0",
+	},
+	{
 		Name:                   "Firefox (Linux desktop)",
 		UserAgent:              "Mozilla/5.0 (X11; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0",
 		ExpectedPlatformName:   "Linux",
@@ -296,6 +307,37 @@ func TestGetPlatformName(t *testing.T) {
 			assert.Equal(t, tc.ExpectedPlatformName, actual)
 		})
 	}
+}
+
+// user_agent_platform is a select, so a platform name the server derives but the
+// schema does not offer can neither be stored on a session nor picked in an
+// access policy rule.
+func TestPlatformNamesAreSelectableSessionAttributeValues(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	derived := []string{platformNameAndroid}
+	for _, name := range platformNames {
+		derived = append(derived, name)
+	}
+
+	var field *model.PropertyField
+	for _, f := range model.SessionAttributeSystemFields(model.NewId()) {
+		if f.Name == model.SessionAttributesPropertyFieldUserAgentPlatform {
+			field = f
+			break
+		}
+	}
+	require.NotNil(t, field)
+
+	options, err := model.NewPropertyOptionsFromFieldAttrs[*model.PluginPropertyOption](field.Attrs[model.PropertyFieldAttributeOptions])
+	require.NoError(t, err)
+
+	offered := make([]string, 0, len(options))
+	for _, option := range options {
+		offered = append(offered, option.GetName())
+	}
+
+	assert.ElementsMatch(t, derived, offered)
 }
 
 func TestGetOSName(t *testing.T) {

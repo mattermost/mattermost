@@ -20,6 +20,7 @@ import (
 
 const testUserAgentChrome = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36"
 const testUserAgentDesktop = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Mattermost/3.7.1 Chrome/56.0.2924.87 Electron/1.6.11 Safari/537.36"
+const testUserAgentAndroid = "Mozilla/5.0 (Linux; Android 14; SM-F936W) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36"
 
 func enableSessionAttributesCollection(t *testing.T, th *TestHelper) {
 	t.Helper()
@@ -282,6 +283,25 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 		assert.Equal(t, "Chrome", valuesByName[model.SessionAttributesPropertyFieldUserAgentBrowserName])
 		assert.Equal(t, "60.0.3112", valuesByName[model.SessionAttributesPropertyFieldUserAgentBrowserVersion])
 		assert.Equal(t, "192.0.2.10", valuesByName[model.SessionAttributesPropertyFieldIPAddress])
+	})
+
+	t.Run("stores Android as the platform of an Android session", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+
+		r := newSessionAttributesRequest(t, testUserAgentAndroid, "192.0.2.10:1234")
+		th.App.ProcessSessionAttributesRequest(rctx, r)
+
+		// A platform name the user_agent_platform select does not offer is
+		// dropped as an invalid value, so this also proves the derived name and
+		// the schema options cannot drift apart.
+		valuesByName := sessionAttributeValuesByFieldName(t, th, session.Id)
+		assert.Equal(t, "Android", valuesByName[model.SessionAttributesPropertyFieldUserAgentPlatform])
+		assert.Equal(t, "Android", valuesByName[model.SessionAttributesPropertyFieldUserAgentOS])
 	})
 
 	t.Run("each call overwrites cached attributes with the latest request values", func(t *testing.T) {
