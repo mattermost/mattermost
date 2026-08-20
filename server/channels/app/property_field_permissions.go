@@ -163,26 +163,25 @@ func (a *App) PropertyPermissionBasisFor(rctx request.CTX, field *model.Property
 		return basis
 	}
 
-	// The LDAP and SAML sync services are well-known machine callers that
-	// resolve to a fixed service identity and carry no scope. A machine
-	// caller has no human role, so the ladder never applies to it and a
-	// grant is the whole answer.
-	switch callerID {
-	case model.CallerIDLDAPSync:
+	// Decide machine vs. human before matching any grant, mirroring
+	// AccessControlHook.isMachineCaller exactly (plugin, or LDAP sync, or
+	// SAML sync) so the audit basis and the enforcement gate cannot
+	// disagree about a caller. An installed plugin's ID could otherwise
+	// match a wildcard ("*") plugin grant even when the caller is actually
+	// a human, since Permissions.MatchingGrant honours the wildcard against
+	// any ID.
+	switch {
+	case a.IsInstalledPlugin(callerID):
+		scope := model.PropertyRequestOptionsFromContext(rctx.Context()).ActingAsScope
+		// A machine caller has no role, so the ladder never applies and a
+		// grant is the whole answer — never fall through to the human
+		// decision below, which would run a.GetUser against a manifest ID
+		// and log a spurious denial.
+		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypePlugin, callerID, scope, action)
+	case callerID == model.CallerIDLDAPSync:
 		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, model.PropertyFieldAttrLDAP, "", action)
-	case model.CallerIDSAMLSync:
+	case callerID == model.CallerIDSAMLSync:
 		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, model.PropertyFieldAttrSAML, "", action)
-	}
-
-	// Any other caller ID may be an installed plugin's manifest ID or a human
-	// user ID; the app package has no plugin checker to tell them apart.
-	// Match a plugin grant first — a plugin ID cannot collide with a user ID,
-	// since a plugin grant is only ever written with a manifest ID — and
-	// only fall through to the human decision when none matches, so a
-	// plugin write is never mislabeled as a denied human one.
-	scope := model.PropertyRequestOptionsFromContext(rctx.Context()).ActingAsScope
-	if pluginBasis := basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypePlugin, callerID, scope, action); pluginBasis.Allowed {
-		return pluginBasis
 	}
 
 	return a.decidePropertyFieldPermission(rctx, callerID, field, action, valueTargetID)

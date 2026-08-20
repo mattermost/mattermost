@@ -4,6 +4,9 @@
 package app
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,6 +14,17 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
+
+// registerTestPlugin writes a minimal manifest into the test server's plugin
+// directory so GetPluginStatus (and IsInstalledPlugin) finds pluginID as
+// installed, without compiling or activating a real plugin process.
+func registerTestPlugin(tb testing.TB, th *TestHelper, pluginID string) {
+	tb.Helper()
+	pluginDir := *th.App.Config().PluginSettings.Directory
+	require.NoError(tb, os.MkdirAll(filepath.Join(pluginDir, pluginID), 0755))
+	manifest := fmt.Sprintf(`{"id": "%s", "name": "%s", "version": "0.0.1"}`, pluginID, pluginID)
+	require.NoError(tb, os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(manifest), 0644))
+}
 
 func TestPropertyRestrictionsAllow(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -451,6 +465,8 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 	})
 
 	t.Run("a plugin caller allowed by a named plugin grant", func(t *testing.T) {
+		registerTestPlugin(t, th, "com.example.plugin")
+
 		field := &model.PropertyField{
 			GroupID:    groupID,
 			Name:       "plugin grant basis",
@@ -475,7 +491,9 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		assert.False(t, basis.GrantWildcard)
 	})
 
-	t.Run("the same plugin allowed by a wildcard plugin grant", func(t *testing.T) {
+	t.Run("an installed plugin allowed by a wildcard plugin grant", func(t *testing.T) {
+		registerTestPlugin(t, th, "com.example.other-plugin")
+
 		field := &model.PropertyField{
 			GroupID:    groupID,
 			Name:       "wildcard plugin grant basis",
@@ -495,8 +513,104 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		rctx := RequestContextWithCallerID(th.Context, "com.example.other-plugin")
 		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
 		assert.True(t, basis.Allowed)
+		assert.Equal(t, model.PropertyOwnerTypePlugin, basis.CallerType)
 		assert.True(t, basis.GrantWildcard)
 		assert.Equal(t, "*", basis.GrantID)
+	})
+
+	t.Run("a wildcard plugin grant does not capture a human caller allowed by a tier", func(t *testing.T) {
+		// Regression: MatchingGrant honours a wildcard ID against any caller,
+		// so a naive plugin-grant match (rather than an actual installed-plugin
+		// check) would mislabel this human's write as allowed by the plugin
+		// grant instead of the restrictions tier that actually allowed it.
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "wildcard plugin grant vs human tier",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelEveryone},
+				},
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "*"},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, th.BasicUser.Id)
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, th.BasicUser.Id)
+		assert.True(t, basis.Allowed)
+		assert.Equal(t, model.PermissionLevelEveryone, basis.Tier)
+		assert.Empty(t, basis.GrantID)
+		assert.False(t, basis.GrantWildcard)
+	})
+
+	t.Run("a plugin ID that is not installed is treated as a human", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "uninstalled plugin id basis",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelNone},
+				},
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "*"},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, "com.example.never-installed")
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
+		assert.False(t, basis.Allowed)
+		assert.Empty(t, basis.GrantID)
+		assert.False(t, basis.GrantWildcard)
+	})
+
+	t.Run("a plugin grant and a user grant on the same field do not cross-match", func(t *testing.T) {
+		registerTestPlugin(t, th, "com.example.field-owner-plugin")
+
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "plugin and user grant basis",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "com.example.field-owner-plugin"},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser2.Id},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		pluginRctx := RequestContextWithCallerID(th.Context, "com.example.field-owner-plugin")
+		pluginBasis := th.App.PropertyPermissionBasisFor(pluginRctx, field, model.PropertyActionValueWrite, "")
+		assert.True(t, pluginBasis.Allowed)
+		assert.Equal(t, model.PropertyOwnerTypePlugin, pluginBasis.CallerType)
+		assert.Equal(t, "com.example.field-owner-plugin", pluginBasis.GrantID)
+
+		userRctx := RequestContextWithCallerID(th.Context, th.BasicUser2.Id)
+		userBasis := th.App.PropertyPermissionBasisFor(userRctx, field, model.PropertyActionValueWrite, th.BasicUser2.Id)
+		assert.True(t, userBasis.Allowed)
+		assert.Equal(t, model.PropertyOwnerTypeUser, userBasis.CallerType)
+		assert.Equal(t, th.BasicUser2.Id, userBasis.GrantID)
 	})
 
 	t.Run("an LDAP sync caller allowed by a service grant on ldap", func(t *testing.T) {
@@ -521,6 +635,30 @@ func TestPropertyPermissionBasisFor(t *testing.T) {
 		assert.True(t, basis.Allowed)
 		assert.Equal(t, model.PropertyOwnerTypeService, basis.CallerType)
 		assert.Equal(t, model.PropertyFieldAttrLDAP, basis.GrantID)
+	})
+
+	t.Run("a SAML sync caller allowed by a service grant on saml", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "saml sync basis",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrSAML},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
+		assert.True(t, basis.Allowed)
+		assert.Equal(t, model.PropertyOwnerTypeService, basis.CallerType)
+		assert.Equal(t, model.PropertyFieldAttrSAML, basis.GrantID)
 	})
 
 	t.Run("a field with no permissions falls back to the legacy columns", func(t *testing.T) {

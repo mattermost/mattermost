@@ -324,10 +324,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}, cpaGroup.ID)
 	s.propertyService.AddHook(licenseCheckHook)
 
-	accessControlHook := properties.NewAccessControlHook(s.propertyService, func(pluginID string) bool {
-		_, err := s.ch.GetPluginStatus(pluginID)
-		return err == nil
-	}, func(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) bool {
+	accessControlHook := properties.NewAccessControlHook(s.propertyService, app.IsInstalledPlugin, func(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) bool {
 		// Local-mode (unrestricted) sessions are tagged with
 		// CallerIDLocalAdmin by the HTTP layer; grant them without a
 		// user lookup, as permChecker below does for its own case.
