@@ -108,13 +108,11 @@ func TestSessionAttributeSystemFieldsUserAgentPlatform(t *testing.T) {
 	for _, option := range options {
 		names = append(names, option.GetName())
 	}
-	// TestPlatformNamesAreSelectableSessionAttributeValues (channels/app) keeps
-	// this list in sync with the platform names the server derives from a user
-	// agent, which model cannot import.
+	// TestPlatformNamesAreSelectableSessionAttributeValues (channels/app) keeps this
+	// list in sync with the platform names the server derives from a user agent.
 	assert.Equal(t, []string{"Windows", "Macintosh", "Linux", "Android", "iPad", "iPhone", "iPod", "BlackBerry", "Windows Phone", "Unknown"}, names)
 
 	assert.True(t, IsValidSessionAttributeValue(field, "Android"))
-	// Unlike os_platform, which spells its values in lower case.
 	assert.False(t, IsValidSessionAttributeValue(field, "android"))
 }
 

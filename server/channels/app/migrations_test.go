@@ -532,9 +532,7 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Restore what an upgrading server finds: the field as it was seeded
-		// before "Android" joined the schema. Written with a nil request
-		// context so the update is treated as a system caller, the same way the
-		// seed itself is.
+		// before "Android" joined the schema.
 		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldUserAgentPlatform)
 		persisted := sessionAttributeOptions(t, field)
 		trimmed := make([]any, 0, len(persisted))

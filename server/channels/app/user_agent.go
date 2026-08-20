@@ -25,8 +25,7 @@ var platformNames = map[uasurfer.Platform]string{
 }
 
 // uasurfer has no Android platform of its own: it reports Android devices as
-// Linux, so the OS name is what tells them apart from desktop Linux. Kept out
-// of platformNames because no uasurfer.Platform maps to it.
+// PlatformLinux, so the OS name is what tells them apart from desktop Linux.
 const platformNameAndroid = "Android"
 
 func getPlatformName(ua *uasurfer.UserAgent, userAgentString string) string {

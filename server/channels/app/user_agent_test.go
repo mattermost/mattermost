@@ -338,6 +338,13 @@ func TestPlatformNamesAreSelectableSessionAttributeValues(t *testing.T) {
 	}
 
 	assert.ElementsMatch(t, derived, offered)
+
+	// derived only covers the names getPlatformName looks up, not the ones it
+	// returns directly.
+	for _, tc := range testUserAgents {
+		name := getPlatformName(uasurfer.Parse(tc.UserAgent), tc.UserAgent)
+		assert.True(t, model.IsValidSessionAttributeValue(field, name), "%q is not a selectable value", name)
+	}
 }
 
 func TestGetOSName(t *testing.T) {

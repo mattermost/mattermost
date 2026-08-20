@@ -296,9 +296,6 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 		r := newSessionAttributesRequest(t, testUserAgentAndroid, "192.0.2.10:1234")
 		th.App.ProcessSessionAttributesRequest(rctx, r)
 
-		// A platform name the user_agent_platform select does not offer is
-		// dropped as an invalid value, so this also proves the derived name and
-		// the schema options cannot drift apart.
 		valuesByName := sessionAttributeValuesByFieldName(t, th, session.Id)
 		assert.Equal(t, "Android", valuesByName[model.SessionAttributesPropertyFieldUserAgentPlatform])
 		assert.Equal(t, "Android", valuesByName[model.SessionAttributesPropertyFieldUserAgentOS])
