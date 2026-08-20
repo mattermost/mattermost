@@ -871,8 +871,8 @@ func (h *AccessControlHook) permissionsGrantAllows(field *model.PropertyField, c
 	return field.Permissions.MatchingGrant(ownerType, ownerID, effectiveScope, action) != nil
 }
 
-// permissionsAllows answers the §2.5 decision for a caller reading or writing
-// a field carrying a typed permissions object. A machine caller is judged by
+// permissionsAllows answers whether a caller may read or write a field
+// carrying a typed permissions object. A machine caller is judged by
 // its grants alone -- the restrictions ladder never applies to it. A human
 // caller is judged by the injected ladderChecker, which already answers the
 // union of the ladder and the caller's user/role grants as one bool, so this
