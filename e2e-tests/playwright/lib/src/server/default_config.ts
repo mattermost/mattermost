@@ -816,6 +816,7 @@ const defaultServerConfig: AdminConfig = {
         PropertyFieldRank: false,
         TeamMembershipAccessControl: true,
         MmBlocksEnabled: true,
+        EnableConcurrentReact: true,
     },
     ImportSettings: {
         Directory: './import',
