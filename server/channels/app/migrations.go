@@ -1064,7 +1064,7 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 
 	if data != nil {
 		if data.Value == managedCategoryMigrationVersion {
-			return s.cacheManagedCategoryIDs()
+			return s.cacheExistingManagedCategoryIDs()
 		}
 
 		if incrementErr := s.Store().PropertyGroup().IncrementVersion(model.ManagedCategoryPropertyGroupName); incrementErr != nil {
@@ -1075,7 +1075,7 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 			return fmt.Errorf("failed to save managed category setup done flag: %w", saveErr)
 		}
 
-		return s.cacheManagedCategoryIDs()
+		return s.cacheExistingManagedCategoryIDs()
 	}
 
 	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV2})
@@ -1083,9 +1083,9 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		return fmt.Errorf("failed to register managed category group: %w", err)
 	}
 
-	_, err = s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
+	field, err := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
 	if err != nil {
-		field := &model.PropertyField{
+		field, err = s.propertyService.CreatePropertyField(nil, &model.PropertyField{
 			GroupID:           group.ID,
 			Name:              model.ManagedCategoryPropertyFieldName,
 			Type:              model.PropertyFieldTypeText,
@@ -1096,12 +1096,13 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 			PermissionField:   model.NewPointer(model.PermissionLevelNone),
 			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
 			PermissionOptions: model.NewPointer(model.PermissionLevelMember),
-		}
-
-		if _, err := s.propertyService.CreatePropertyField(nil, field); err != nil {
-			if _, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", field.ObjectType, model.ManagedCategoryPropertyFieldName); retryErr != nil {
+		})
+		if err != nil {
+			existing, retryErr := s.propertyService.GetPropertyFieldByNameForObjectType(nil, group.ID, "", model.PropertyValueTargetTypeChannel, model.ManagedCategoryPropertyFieldName)
+			if retryErr != nil {
 				return fmt.Errorf("failed to create managed category field: %w", err)
 			}
+			field = existing
 		}
 	}
 
@@ -1109,7 +1110,10 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		return fmt.Errorf("failed to save managed category setup done flag: %w", err)
 	}
 
-	return s.cacheManagedCategoryIDs()
+	s.Channels().managedCategoryGroupID = group.ID
+	s.Channels().managedCategoryFieldID = field.ID
+
+	return nil
 }
 
 func (s *Server) doSetupCPADisplayNameBackfill(rctx request.CTX) error {
@@ -1149,7 +1153,7 @@ func (s *Server) doSetupCPADisplayNameBackfill(rctx request.CTX) error {
 	return nil
 }
 
-func (s *Server) cacheManagedCategoryIDs() error {
+func (s *Server) cacheExistingManagedCategoryIDs() error {
 	group, err := s.propertyService.GetPropertyGroup(model.ManagedCategoryPropertyGroupName)
 	if err != nil {
 		return fmt.Errorf("failed to get managed category group: %w", err)

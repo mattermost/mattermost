@@ -31,6 +31,36 @@ func TestDoSetupManagedCategoryProperties(t *testing.T) {
 		data, sysErr := th.Store.System().GetByName(managedCategorySetupDoneKey)
 		require.NoError(t, sysErr)
 		require.NotEmpty(t, data.Value)
+
+		// The fresh-install path must populate these from the rows it just
+		// wrote rather than reading them back, since the read-back routes to a
+		// replica that may not have the write yet.
+		require.Equal(t, group.ID, th.Server.Channels().managedCategoryGroupID)
+		require.Equal(t, propertyFields[0].ID, th.Server.Channels().managedCategoryFieldID)
+	})
+
+	t.Run("should cache the IDs of an already existing group and field", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.ManagedCategoryPropertyGroupName)
+		require.Nil(t, appErr)
+
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, propertyFields, 1)
+
+		// Drop the done flag so the migration runs the fresh-install path again
+		// while both rows are already present.
+		_, sysErr := th.Store.System().PermanentDeleteByName(managedCategorySetupDoneKey)
+		require.NoError(t, sysErr)
+
+		th.Server.Channels().managedCategoryGroupID = ""
+		th.Server.Channels().managedCategoryFieldID = ""
+
+		require.NoError(t, th.Server.doSetupManagedCategoryProperties())
+
+		require.Equal(t, group.ID, th.Server.Channels().managedCategoryGroupID)
+		require.Equal(t, propertyFields[0].ID, th.Server.Channels().managedCategoryFieldID)
 	})
 
 	t.Run("should upgrade from a pre-v2 setup by incrementing the group version and updating the system key", func(t *testing.T) {
