@@ -193,3 +193,205 @@ func TestPropertyRestrictionsAllow(t *testing.T) {
 		assert.Equal(t, model.PermissionLevelNone, tier)
 	})
 }
+
+func TestDecidePropertyFieldPermission(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	t.Run("restrictions allow and no grant matches", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "restrictions allow",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelEveryone},
+				},
+			},
+		}
+
+		basis := th.App.decidePropertyFieldPermission(th.Context, th.BasicUser.Id, field, model.PropertyActionFieldWrite, "")
+		assert.True(t, basis.Allowed)
+		assert.Equal(t, model.PermissionLevelEveryone, basis.Tier)
+		assert.Empty(t, basis.GrantID)
+		assert.False(t, basis.Legacy)
+	})
+
+	t.Run("restrictions deny and a matching user grant lists the action", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "restrictions deny grant allows",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelNone},
+				},
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser.Id},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		basis := th.App.decidePropertyFieldPermission(th.Context, th.BasicUser.Id, field, model.PropertyActionValueWrite, th.BasicUser.Id)
+		assert.True(t, basis.Allowed)
+		assert.Equal(t, th.BasicUser.Id, basis.GrantID)
+		assert.False(t, basis.GrantWildcard)
+		assert.Empty(t, basis.Tier)
+	})
+
+	t.Run("restrictions deny and the matching user grant lists only a different action", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "grant lists only read",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelNone},
+				},
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser.Id},
+						Allow:    []string{model.PropertyActionValueRead},
+					},
+				},
+			},
+		}
+
+		basis := th.App.decidePropertyFieldPermission(th.Context, th.BasicUser.Id, field, model.PropertyActionValueWrite, th.BasicUser.Id)
+		assert.False(t, basis.Allowed)
+	})
+
+	t.Run("a plugin grant naming the caller's user ID does not allow a human caller", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "plugin grant not human",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelNone},
+				},
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: th.BasicUser.Id},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		basis := th.App.decidePropertyFieldPermission(th.Context, th.BasicUser.Id, field, model.PropertyActionValueWrite, th.BasicUser.Id)
+		assert.False(t, basis.Allowed)
+	})
+
+	t.Run("a role grant matches a user holding that role and not a user without it", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "role grant",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelNone},
+				},
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeRole, ID: model.SystemAdminRoleId},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		basis := th.App.decidePropertyFieldPermission(th.Context, th.SystemAdminUser.Id, field, model.PropertyActionValueWrite, th.SystemAdminUser.Id)
+		assert.True(t, basis.Allowed)
+		assert.Equal(t, model.SystemAdminRoleId, basis.GrantID)
+
+		basis = th.App.decidePropertyFieldPermission(th.Context, th.BasicUser.Id, field, model.PropertyActionValueWrite, th.BasicUser.Id)
+		assert.False(t, basis.Allowed)
+	})
+
+	t.Run("a field with no role grants performs no user lookup", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "user grants only",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelNone},
+				},
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser.Id},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		// A user ID that does not exist would make a.GetUser fail; the
+		// decision must still return rather than erroring, proving no role
+		// lookup was attempted for a field with no role grant.
+		basis := th.App.decidePropertyFieldPermission(th.Context, model.NewId(), field, model.PropertyActionValueWrite, "")
+		assert.False(t, basis.Allowed)
+	})
+
+	t.Run("nil Permissions falls back to the legacy columns", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:     groupID,
+			Name:        "legacy protected",
+			Type:        model.PropertyFieldTypeText,
+			ObjectType:  model.PropertyFieldObjectTypeUser,
+			TargetType:  string(model.PropertyFieldTargetLevelSystem),
+			Protected:   true,
+			Permissions: nil,
+		}
+
+		basis := th.App.decidePropertyFieldPermission(th.Context, th.SystemAdminUser.Id, field, model.PropertyActionFieldWrite, "")
+		assert.False(t, basis.Allowed)
+		assert.True(t, basis.Legacy)
+
+		field.Protected = false
+		field.Permissions = &model.Permissions{
+			Restrictions: &model.Restrictions{
+				Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+			},
+		}
+		basis = th.App.decidePropertyFieldPermission(th.Context, th.SystemAdminUser.Id, field, model.PropertyActionFieldWrite, "")
+		assert.True(t, basis.Allowed)
+		assert.False(t, basis.Legacy)
+	})
+
+	t.Run("nil Permissions allows value.read and option.read", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "legacy reads",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+
+		basis := th.App.decidePropertyFieldPermission(th.Context, th.BasicUser.Id, field, model.PropertyActionValueRead, "")
+		assert.True(t, basis.Allowed)
+		assert.True(t, basis.Legacy)
+
+		basis = th.App.decidePropertyFieldPermission(th.Context, th.BasicUser.Id, field, model.PropertyActionOptionRead, "")
+		assert.True(t, basis.Allowed)
+		assert.True(t, basis.Legacy)
+	})
+}
