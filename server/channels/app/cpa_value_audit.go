@@ -57,11 +57,10 @@ func (a *App) buildCPAValueAuditRecord(rctx request.CTX, e properties.ValueAudit
 
 // addCPAValueAuditBasis records which rule allowed the write: the caller
 // identity is already on rec, so this fills in the matching grant or
-// satisfied restrictions tier that made it a value.write. This is the
-// security-sensitive path §10 calls out, so a field lookup that fails must
-// not drop the record it's called from — it just logs the lookup error and
-// leaves rec with no basis meta, since the write already happened and this
-// is a post-hook, not a gate.
+// satisfied restrictions tier that made it a value.write. A field lookup
+// that fails must not drop the record it's called from — it just logs the
+// lookup error and leaves rec with no basis meta, since the write already
+// happened and this is a post-hook, not a gate.
 func (a *App) addCPAValueAuditBasis(rctx request.CTX, rec *model.AuditRecord, e properties.ValueAuditEvent, callerID string) {
 	field, appErr := a.GetPropertyField(rctx, "", e.FieldID)
 	if appErr != nil {
