@@ -6,6 +6,7 @@ import React, {useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {ChevronDownIcon, MessageTextOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 
 import {resourceTypeLabels} from './attribute_applies_to_constants';
 import type {AttributeAppliesToItemProps} from './attribute_applies_to_constants';
@@ -34,8 +35,9 @@ function AttributeAppliesToPostItem({disabled = false, onRemove}: AttributeAppli
             data-testid='attributeAppliesToRow-post'
         >
             <div className='AttributeAppliesToItem__header'>
-                <button
+                <Button
                     type='button'
+                    emphasis='quaternary'
                     className='AttributeAppliesToItem__toggle'
                     onClick={() => setIsOpen((prev) => !prev)}
                     disabled={disabled}
@@ -50,17 +52,20 @@ function AttributeAppliesToPostItem({disabled = false, onRemove}: AttributeAppli
                     />
                     <MessageTextOutlineIcon size={18}/>
                     <span className='AttributeAppliesToItem__label'>{label}</span>
-                </button>
+                </Button>
                 {isOpen && (
-                    <button
+                    <Button
                         type='button'
+                        emphasis='tertiary'
+                        variant='destructive'
+                        size='sm'
                         className='AttributeAppliesToItem__remove'
                         onClick={onRemove}
                         disabled={disabled}
                         data-testid='attributeAppliesToRow-post-remove'
                     >
                         <FormattedMessage {...messages.removeLabel}/>
-                    </button>
+                    </Button>
                 )}
             </div>
             {isOpen && (
