@@ -24,6 +24,10 @@ var platformNames = map[uasurfer.Platform]string{
 	uasurfer.PlatformWindowsPhone: "Windows Phone",
 }
 
+// uasurfer has no Android platform of its own, so it reports Android devices as
+// Linux and only the OS name tells them apart from desktop Linux.
+const platformNameAndroid = "Android"
+
 func getPlatformName(ua *uasurfer.UserAgent, userAgentString string) string {
 	platform := ua.OS.Platform
 
@@ -33,8 +37,12 @@ func getPlatformName(ua *uasurfer.UserAgent, userAgentString string) string {
 		} else if strings.Contains(userAgentString, "iPad") {
 			platform = uasurfer.PlatformiPad
 		} else {
-			platform = uasurfer.PlatformLinux
+			return platformNameAndroid
 		}
+	}
+
+	if platform == uasurfer.PlatformLinux && ua.OS.Name == uasurfer.OSAndroid {
+		return platformNameAndroid
 	}
 
 	name, ok := platformNames[platform]

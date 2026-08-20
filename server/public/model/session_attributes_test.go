@@ -90,6 +90,34 @@ func TestSessionAttributeSystemFieldsOSPlatform(t *testing.T) {
 	assert.False(t, IsValidSessionAttributeValue(field, "darwin"))
 }
 
+func TestSessionAttributeSystemFieldsUserAgentPlatform(t *testing.T) {
+	var field *PropertyField
+	for _, f := range SessionAttributeSystemFields("group-id") {
+		if f.Name == SessionAttributesPropertyFieldUserAgentPlatform {
+			field = f
+			break
+		}
+	}
+	require.NotNil(t, field)
+	require.Equal(t, PropertyFieldTypeSelect, field.Type)
+
+	options, err := NewPropertyOptionsFromFieldAttrs[*PluginPropertyOption](field.Attrs[PropertyFieldAttributeOptions])
+	require.NoError(t, err)
+
+	names := make([]string, 0, len(options))
+	for _, option := range options {
+		names = append(names, option.GetName())
+	}
+	// Must stay in sync with the platform names the server derives from the user
+	// agent (platformNames and getPlatformName in server/channels/app/user_agent.go).
+	assert.Equal(t, []string{"Windows", "Macintosh", "Linux", "Android", "iPad", "iPhone", "iPod", "BlackBerry", "Windows Phone", "Unknown"}, names)
+
+	for _, name := range names {
+		assert.True(t, IsValidSessionAttributeValue(field, name), "%q must be an accepted value", name)
+	}
+	assert.False(t, IsValidSessionAttributeValue(field, "android"))
+}
+
 func TestSAFieldEnabledForPlatform(t *testing.T) {
 	field := &PropertyField{
 		Name: SessionAttributesPropertyFieldVPNActive,
