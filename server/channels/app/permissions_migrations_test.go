@@ -120,6 +120,114 @@ func TestAddManageAgentPermissionsMigration(t *testing.T) {
 	systemStore.AssertNumberOfCalls(t, "SaveOrUpdate", 1)
 }
 
+func TestAddAIRecapsPermissionsMigration(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupWithStoreMock(t)
+
+	migrationMap, err := th.App.getAddAIRecapsPermissionsMigration()
+	require.NoError(t, err)
+
+	systemAdminRole := &model.Role{
+		Name:        model.SystemAdminRoleId,
+		Permissions: []string{model.PermissionManageSystem.Id},
+	}
+	systemReadOnlyAdminRole := &model.Role{
+		Name:        model.SystemReadOnlyAdminRoleId,
+		Permissions: []string{model.PermissionSysconsoleReadSiteCustomization.Id},
+	}
+	systemUserRole := &model.Role{
+		Name:        model.SystemUserRoleId,
+		Permissions: []string{model.PermissionCreateDirectChannel.Id},
+	}
+	roles := []*model.Role{systemAdminRole, systemReadOnlyAdminRole, systemUserRole}
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	roleStore := mocks.RoleStore{}
+	systemStore := mocks.SystemStore{}
+
+	mockStore.On("Role").Return(&roleStore)
+	mockStore.On("System").Return(&systemStore)
+
+	systemStore.On("GetByName", model.MigrationKeyAddAIRecapsPermissions).
+		Return(nil, model.NewAppError("test", "missing", nil, "", 404)).Once()
+	systemStore.On("GetByName", model.MigrationKeyAddAIRecapsPermissions).
+		Return(&model.System{Name: model.MigrationKeyAddAIRecapsPermissions, Value: "true"}, nil).Once()
+	systemStore.On("SaveOrUpdate", mock.MatchedBy(func(system *model.System) bool {
+		return system.Name == model.MigrationKeyAddAIRecapsPermissions && system.Value == "true"
+	})).Return(nil).Once()
+
+	roleStore.On("SavePreservingUnknownPermissions", mock.AnythingOfType("*model.Role")).
+		Return(func(role *model.Role) *model.Role { return role }, nil)
+
+	appErr := th.App.Srv().doPermissionsMigration(model.MigrationKeyAddAIRecapsPermissions, migrationMap, roles)
+	require.Nil(t, appErr)
+	assert.Contains(t, systemAdminRole.Permissions, model.PermissionSysconsoleReadAiRecaps.Id)
+	assert.Contains(t, systemAdminRole.Permissions, model.PermissionSysconsoleWriteAiRecaps.Id)
+	assert.Len(t, systemAdminRole.Permissions, 3)
+
+	// The permissions are not part of the default permissions of any other role,
+	// so the migration must leave every other role untouched.
+	assert.Equal(t, []string{model.PermissionSysconsoleReadSiteCustomization.Id}, systemReadOnlyAdminRole.Permissions)
+	assert.Equal(t, []string{model.PermissionCreateDirectChannel.Id}, systemUserRole.Permissions)
+
+	appErr = th.App.Srv().doPermissionsMigration(model.MigrationKeyAddAIRecapsPermissions, migrationMap, roles)
+	require.Nil(t, appErr)
+	assert.Len(t, systemAdminRole.Permissions, 3, "system_admin should still have 3 permissions after idempotent run")
+
+	roleStore.AssertNumberOfCalls(t, "SavePreservingUnknownPermissions", len(roles))
+	systemStore.AssertNumberOfCalls(t, "SaveOrUpdate", 1)
+}
+
+// TestAIRecapsPermissionsMigrationIsRegistered guards against the MM-70274 root
+// cause: sysconsole permissions added to the SysconsoleRead/WritePermissions
+// slices are only applied to system_admin by the one-time
+// add_system_console_permissions migration, so a new sysconsole permission needs
+// its own registered migration to reach existing installs.
+func TestAIRecapsPermissionsMigrationIsRegistered(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupWithStoreMock(t)
+
+	systemAdminRole := &model.Role{
+		Name:        model.SystemAdminRoleId,
+		Permissions: []string{model.PermissionManageSystem.Id},
+	}
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	roleStore := mocks.RoleStore{}
+	systemStore := mocks.SystemStore{}
+	schemeStore := mocks.SchemeStore{}
+
+	mockStore.On("Role").Return(&roleStore)
+	mockStore.On("System").Return(&systemStore)
+	mockStore.On("Scheme").Return(&schemeStore)
+
+	schemeStore.On("GetAllPage", model.SchemeScopeTeam, mock.AnythingOfType("int"), mock.AnythingOfType("int")).
+		Return([]*model.Scheme{}, nil)
+	roleStore.On("GetAll").Return([]*model.Role{systemAdminRole}, nil)
+	roleStore.On("SavePreservingUnknownPermissions", mock.AnythingOfType("*model.Role")).
+		Return(func(role *model.Role) *model.Role { return role }, nil)
+	systemStore.On("SaveOrUpdate", mock.AnythingOfType("*model.System")).Return(nil)
+
+	// Every migration but the AI recaps one has already run on this install, which
+	// is the state of any server upgrading onto the release that introduced the
+	// AI recaps sysconsole permissions.
+	systemStore.On("GetByName", mock.MatchedBy(func(name string) bool {
+		return name != model.MigrationKeyAddAIRecapsPermissions
+	})).Return(func(name string) *model.System {
+		return &model.System{Name: name, Value: "true"}
+	}, nil)
+	systemStore.On("GetByName", model.MigrationKeyAddAIRecapsPermissions).
+		Return(nil, model.NewAppError("test", "missing", nil, "", 404)).Once()
+	systemStore.On("GetByName", model.MigrationKeyAddAIRecapsPermissions).
+		Return(&model.System{Name: model.MigrationKeyAddAIRecapsPermissions, Value: "true"}, nil)
+
+	require.NoError(t, th.App.Srv().doPermissionsMigrations())
+	assert.Contains(t, systemAdminRole.Permissions, model.PermissionSysconsoleReadAiRecaps.Id)
+	assert.Contains(t, systemAdminRole.Permissions, model.PermissionSysconsoleWriteAiRecaps.Id)
+}
+
 // TestPermissionsMigrationPreservesUnknownPermissions is the regression test for
 // MM-68830: a server downgraded from a newer release holds permissions the older
 // binary does not recognize. The permissions migration must not fail fatally, and
