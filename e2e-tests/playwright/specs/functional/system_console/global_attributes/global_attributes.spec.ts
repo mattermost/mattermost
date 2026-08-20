@@ -10,8 +10,6 @@
  * Professional-only licenses hide this admin route (React Router redirects away).
  */
 
-import type {PropertyField} from '@mattermost/types/properties';
-
 import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
 import {
@@ -31,7 +29,6 @@ import {
     requireGlobalAttributesEnabled,
     setGlobalAttributesFeatureFlag,
 } from './global_attributes_helpers';
-import type {ResourceObjectType} from './global_attributes_helpers';
 
 test.describe('System Console - Global Attributes', {tag: '@system_console'}, () => {
     // All tests here toggle the same server-wide GlobalAttributes config flag, so the whole
@@ -922,7 +919,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 // * A chip for AD/LDAP now appears on the Options line, prefixed by Synced with, and Type shows Text
                 await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toBeVisible();
                 await expect(systemConsolePage.page.getByTestId('attributeTypeMenuButton')).toContainText('Text');
-                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceSynced')).toContainText('Synced with');
+                await expect(systemConsolePage.page.getByTestId('attributeExternalSourceSynced')).toContainText(
+                    'Synced with',
+                );
 
                 await systemConsolePage.page.getByTestId('saveSetting').click();
 
