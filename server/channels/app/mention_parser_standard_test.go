@@ -551,7 +551,7 @@ func BenchmarkGetExplicitMentions(b *testing.B) {
 
 				b.ReportAllocs()
 				for b.Loop() {
-					getExplicitMentions(post, keywords, true)
+					getExplicitMentions(post, keywords)
 				}
 			})
 		}
