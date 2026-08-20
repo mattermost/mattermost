@@ -148,9 +148,9 @@ func (h *AccessControlHook) resolveFieldMasking(field *model.PropertyField) (fie
 }
 
 // exempt reports whether callerID, acting under scope, is named in except.
-// Exemption is explicit -- holding a grant confers none (§2.6) -- so this
-// only ever matches an identity except actually lists, and skips the masking
-// filter alone: the §2.5 permission gate still runs regardless of the answer.
+// Exemption is explicit -- holding a grant confers none -- so this only ever
+// matches an identity except actually lists, and skips the masking filter
+// alone: the permission gate still runs regardless of the answer.
 //
 // A machine caller matches the identity callerOwnerIdentity reports for it,
 // mirroring how permissionsGrantAllows resolves a machine's identity. A human
@@ -350,8 +350,8 @@ func (c maskingContext) visibleOptionIDs(h *AccessControlHook, rctx request.CTX,
 // for it. Mirrors filterSharedOnlyFieldOptions's shape and Attrs handling
 // (access_control.go), using copyPropertyField and extractOptionIDList the
 // same way -- but never applies the rank ladder that function keeps for a
-// field with no permissions (divergence 6): a masked rank field's options are
-// exact-option membership, the same rule select and multiselect use, so
+// field with no permissions: a masked rank field's options are exact-option
+// membership, the same rule select and multiselect use, so
 // filterSharedOnlyRankFieldOptions is never called from here.
 //
 // This runs only on the branch permissionsAllows already admitted for

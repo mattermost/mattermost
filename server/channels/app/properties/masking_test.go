@@ -342,7 +342,7 @@ func (c *countingPropertyValueStore) SearchPropertyValues(opts model.PropertyVal
 // under a typed permissions object with no restrictions and no grants --
 // value.read for a human caller is left to the injected ladder checker, which
 // TestMaskValueReads sets to always allow, isolating the masking filter under
-// test from the §2.5 gate it runs behind.
+// test from the permission gate it runs behind.
 func maskedField(groupID, name string, fieldType model.PropertyFieldType, masking *model.Masking) *model.PropertyField {
 	return &model.PropertyField{
 		GroupID:     groupID,
@@ -373,7 +373,7 @@ func writeValueDirect(t *testing.T, th *TestHelper, fieldID, targetType, targetI
 }
 
 // TestMaskValueReads covers the read filter itself: what a caller may see of
-// a value on a field carrying masking, once the §2.5 value.read gate has
+// a value on a field carrying masking, once the value.read permission gate has
 // already admitted them. The gate is stubbed to always allow, so every case
 // below isolates the filter's own answer.
 func TestMaskValueReads(t *testing.T) {
@@ -558,10 +558,10 @@ func TestMaskValueReads(t *testing.T) {
 			ObjectType: model.PropertyFieldObjectTypeChannel,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			// A linked field's own restrictions/grants are its own -- only
-			// masking is locked to the template (divergence 1) -- but it must
-			// still carry a (masking-empty) Permissions object of its own for
-			// the §2.5 gate this test's ladder-checker stub answers to run at
-			// all; a nil Permissions here would fall through to the legacy
+			// masking is locked to the template -- but it must still carry a
+			// (masking-empty) Permissions object of its own for the permission
+			// gate this test's ladder-checker stub answers to run at all; a
+			// nil Permissions here would fall through to the legacy
 			// access_mode path instead.
 			Permissions:   &model.Permissions{},
 			LinkedFieldID: &template.ID,
@@ -596,8 +596,8 @@ func TestMaskValueReads(t *testing.T) {
 		field := maskedField(th.CPAGroupID, "Mask-Except", model.PropertyFieldTypeText, &model.Masking{
 			Except: []model.Identity{{Type: model.PropertyOwnerTypePlugin, ID: "listed-plugin"}},
 		})
-		// Except only excuses a caller the §2.5 gate already admitted -- both
-		// plugins need a value.read grant to reach the filter at all.
+		// Except only excuses a caller the permission gate already admitted --
+		// both plugins need a value.read grant to reach the filter at all.
 		field.Permissions.Grants = []model.Grant{
 			{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "listed-plugin"}, Allow: []string{model.PropertyActionValueRead}},
 			{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "unlisted-plugin"}, Allow: []string{model.PropertyActionValueRead}},
@@ -763,7 +763,7 @@ func TestMaskFieldOptions(t *testing.T) {
 		require.NoError(t, err)
 		// TestRankSharedOnly_FieldOptions shows the whole ladder at or below
 		// opt_secret for the legacy path. Masking must show only the exact
-		// option -- divergence 6.
+		// option, never the ladder below it.
 		assert.Equal(t, []string{"opt_secret"}, optionIDsOf(t, retrieved),
 			"masking must never apply the rank ladder, only exact-option membership")
 	})
@@ -811,7 +811,7 @@ func TestMaskFieldOptions(t *testing.T) {
 			Except: []model.Identity{{Type: model.PropertyOwnerTypePlugin, ID: "listed-plugin"}},
 		})
 		// The plugin still needs option.read to reach the filter at all --
-		// except only excuses a caller the §2.5 gate already admitted.
+		// except only excuses a caller the permission gate already admitted.
 		field.Permissions.Grants = []model.Grant{
 			{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "listed-plugin"}, Allow: []string{model.PropertyActionOptionRead}},
 		}
@@ -995,7 +995,7 @@ func TestMaskOptionPage(t *testing.T) {
 			Except: []model.Identity{{Type: model.PropertyOwnerTypePlugin, ID: "listed-plugin"}},
 		})
 		// The plugin still needs option.read to reach the filter at all -- except
-		// only excuses a caller the §2.5 gate already admitted.
+		// only excuses a caller the permission gate already admitted.
 		field.Permissions.Grants = []model.Grant{
 			{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "listed-plugin"}, Allow: []string{model.PropertyActionOptionRead}},
 		}
@@ -1147,10 +1147,10 @@ func TestMaskOptionPage(t *testing.T) {
 			Type:       model.PropertyFieldTypeText,
 			ObjectType: model.PropertyFieldObjectTypeChannel,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			// A linked field's masking is locked to its template (divergence 1),
-			// but it still needs its own (masking-empty) Permissions object for
-			// the §2.5 gate to run at all -- a nil Permissions falls through to
-			// the legacy access_mode path instead.
+			// A linked field's masking is locked to its template, but it still
+			// needs its own (masking-empty) Permissions object for the
+			// permission gate to run at all -- a nil Permissions falls
+			// through to the legacy access_mode path instead.
 			Permissions:   &model.Permissions{},
 			LinkedFieldID: &template.ID,
 		})
