@@ -181,7 +181,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		_, _, err := client.UpdatePost(context.Background(), post.Id, post)
 		require.NoError(t, err)
 
-		editHistory, appErr := th.App.GetEditHistoryForPost(post.Id)
+		editHistory, appErr := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, editHistory)
 		editId := editHistory[0].Id

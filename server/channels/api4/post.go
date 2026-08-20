@@ -723,7 +723,7 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postsList, err := c.App.GetEditHistoryForPost(c.Params.PostId)
+	postsList, err := c.App.GetEditHistoryForPost(c.AppContext, c.Params.PostId)
 	if err != nil {
 		c.Err = err
 		return

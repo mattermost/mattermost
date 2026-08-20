@@ -2797,7 +2797,7 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 	return posts, firstInaccessiblePostTime, nil
 }
 
-func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError) {
+func (a *App) GetEditHistoryForPost(rctx request.CTX, postID string) ([]*model.Post, *model.AppError) {
 	posts, err := a.Srv().Store().Post().GetEditHistoryForPost(postID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -2809,14 +2809,14 @@ func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppErr
 		}
 	}
 
-	if appErr := a.populateEditHistoryFileMetadata(posts); appErr != nil {
+	if appErr := a.populateEditHistoryFileMetadata(rctx, posts); appErr != nil {
 		return nil, appErr
 	}
 
 	return posts, nil
 }
 
-func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *model.AppError {
+func (a *App) populateEditHistoryFileMetadata(rctx request.CTX, editHistoryPosts []*model.Post) *model.AppError {
 	for _, post := range editHistoryPosts {
 		fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, true, true, false)
 		if err != nil {
@@ -2827,6 +2827,20 @@ func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *m
 
 		if post.Metadata == nil {
 			post.Metadata = &model.PostMetadata{}
+		}
+
+		// Historical versions must redact the same attachments the live post does.
+		if len(fileInfos) > 0 && !a.hasFileAttachmentAccess(rctx, rctx.Session().UserId, post.ChannelId) {
+			rctx.Logger().Debug("Stripping file attachments from edit history due to ABAC permission policy",
+				mlog.String("user_id", rctx.Session().UserId),
+				mlog.String("post_id", post.Id),
+				mlog.String("channel_id", post.ChannelId),
+				mlog.Int("files_removed", len(fileInfos)),
+			)
+			post.Metadata.RedactedFileCount = len(fileInfos)
+			post.Metadata.Files = nil
+			post.FileIds = model.StringArray{}
+			continue
 		}
 
 		post.Metadata.Files = fileInfos

@@ -424,19 +424,51 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 	return post
 }
 
-// sanitizeFileAttachmentsForUser strips file metadata from the post and from any embedded
-// permalink preview posts if the user is denied the download_file_attachment action.
-func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post, userID string) {
+// fileAttachmentPoliciesActive reports whether ABAC file-download policies are in effect.
+func (a *App) fileAttachmentPoliciesActive() bool {
 	if a.Srv().Channels().AccessControl == nil {
-		return
+		return false
 	}
 
 	cfg := a.Config().AccessControlSettings.EnableAttributeBasedAccessControl
 	if cfg == nil || !*cfg {
-		return
+		return false
 	}
 
-	if !a.Config().FeatureFlags.PermissionPolicies {
+	return a.Config().FeatureFlags.PermissionPolicies
+}
+
+// hasFileAttachmentAccess reports whether the user may be served file metadata for a
+// channel, applying the same download_file_attachment check as
+// sanitizeFileAttachmentsForUser. Callers that build PostMetadata.Files themselves must
+// gate on this so every path serving file metadata enforces the policy.
+func (a *App) hasFileAttachmentAccess(rctx request.CTX, userID, channelID string) bool {
+	if !a.fileAttachmentPoliciesActive() {
+		return true
+	}
+
+	// No requesting user (e.g. a background job with no session). There is nobody to
+	// authorize, so skip; a genuine reader is checked with their own session id.
+	if userID == "" {
+		return true
+	}
+
+	user, err := a.GetUser(userID)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get user for file attachment authorization, denying access",
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+		return false
+	}
+
+	return a.HasPermissionToFileAction(rctx, userID, user.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment)
+}
+
+// sanitizeFileAttachmentsForUser strips file metadata from the post and from any embedded
+// permalink preview posts if the user is denied the download_file_attachment action.
+func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post, userID string) {
+	if !a.fileAttachmentPoliciesActive() {
 		return
 	}
 

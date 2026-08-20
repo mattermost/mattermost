@@ -4868,7 +4868,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	require.Nil(t, err2)
 
 	t.Run("should return the edit history", func(t *testing.T) {
-		edits, err := th.App.GetEditHistoryForPost(post.Id)
+		edits, err := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, err)
 
 		require.Len(t, edits, 2)
@@ -4877,7 +4877,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	})
 
 	t.Run("should return an error if the post is not found", func(t *testing.T) {
-		edits, err := th.App.GetEditHistoryForPost("invalid-post-id")
+		edits, err := th.App.GetEditHistoryForPost(th.Context, "invalid-post-id")
 		require.NotNil(t, err)
 		require.Empty(t, edits)
 	})
@@ -4915,7 +4915,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		_, _, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
 		require.Nil(t, appErr)
 
-		edits, err := th.App.GetEditHistoryForPost(post.Id)
+		edits, err := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, err)
 
 		require.Len(t, edits, 3)
@@ -4965,7 +4965,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		_, err := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
 		require.NoError(t, err)
 
-		edits, appErr := th.App.GetEditHistoryForPost(post.Id)
+		edits, appErr := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr)
 
 		require.Len(t, edits, 3)
@@ -5548,7 +5548,7 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 			post.FileIds = model.StringArray{fileInfo2.Id}
 		})
 
-		appErr := th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
+		appErr := th.App.populateEditHistoryFileMetadata(th.Context, []*model.Post{post1, post2})
 		require.Nil(t, appErr)
 
 		require.Len(t, post1.Metadata.Files, 1)
@@ -5587,7 +5587,7 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 		_, appErr = th.App.DeletePost(th.Context, post2.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		appErr = th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
+		appErr = th.App.populateEditHistoryFileMetadata(th.Context, []*model.Post{post1, post2})
 		require.Nil(t, appErr)
 
 		require.Len(t, post1.Metadata.Files, 1)
@@ -5626,7 +5626,7 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 		_, err = th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post2.Id)
 		require.NoError(t, err)
 
-		appErr := th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
+		appErr := th.App.populateEditHistoryFileMetadata(th.Context, []*model.Post{post1, post2})
 		require.Nil(t, appErr)
 
 		require.Len(t, post1.Metadata.Files, 1)
