@@ -92,6 +92,19 @@ func (h *AccessControlHook) setPluginCheckerForTests(pluginChecker PluginChecker
 	h.pluginChecker = pluginChecker
 }
 
+// setLadderCheckerForTests sets the ladder checker on the AccessControlHook for testing.
+func (ps *PropertyService) setLadderCheckerForTests(ladderChecker PropertyLadderChecker) {
+	for _, hook := range ps.hooks {
+		if ach, ok := hook.(*AccessControlHook); ok {
+			ach.setLadderCheckerForTests(ladderChecker)
+		}
+	}
+}
+
+func (h *AccessControlHook) setLadderCheckerForTests(ladderChecker PropertyLadderChecker) {
+	h.ladderChecker = ladderChecker
+}
+
 func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 	// Register the CPA group so requiresAccessControl can always look it up
 	group, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV2})
@@ -99,7 +112,7 @@ func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 	th.CPAGroupID = group.ID
 
 	// Create and register the access control hook now that the group ID is known
-	hook := NewAccessControlHook(th.service, nil, group.ID)
+	hook := NewAccessControlHook(th.service, nil, nil, group.ID)
 	th.service.AddHook(hook)
 
 	return th

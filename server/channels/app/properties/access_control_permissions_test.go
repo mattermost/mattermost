@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -174,5 +175,130 @@ func TestPermissionsGrantFieldWriteAndDeleteAccessControl(t *testing.T) {
 		delErr := th.service.DeletePropertyField(rctx, th.CPAGroupID, created.ID)
 		require.Error(t, delErr)
 		assert.ErrorIs(t, delErr, ErrAccessDenied)
+	})
+}
+
+func TestPermissionsReadAccessControl(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	t.Cleanup(func() { th.service.setLadderCheckerForTests(nil) })
+
+	t.Run("a value.read restriction is measured against the value's own object, not the field", func(t *testing.T) {
+		adminID := model.NewId()
+		memberID := model.NewId()
+		channelID := model.NewId()
+
+		th.service.setLadderCheckerForTests(func(_ request.CTX, userID string, _ *model.PropertyField, action, valueTargetID string) bool {
+			return userID == adminID && action == model.PropertyActionValueRead && valueTargetID == channelID
+		})
+
+		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "ChannelValueRead", nil))
+		require.NoError(t, err)
+
+		value, err := th.service.CreatePropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    created.ID,
+			TargetType: "channel",
+			TargetID:   channelID,
+			Value:      json.RawMessage(`"secret"`),
+		})
+		require.NoError(t, err)
+
+		retrieved, getErr := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, adminID), th.CPAGroupID, value.ID)
+		require.NoError(t, getErr)
+		require.NotNil(t, retrieved)
+
+		retrieved, getErr = th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, memberID), th.CPAGroupID, value.ID)
+		require.NoError(t, getErr)
+		assert.Nil(t, retrieved)
+	})
+
+	t.Run("a plugin's value.read grant serves the value where the legacy public access mode would have served every caller", func(t *testing.T) {
+		th.service.setLadderCheckerForTests(nil)
+		th.service.setPluginCheckerForTests(func(pluginID string) bool {
+			return pluginID == "plugin-owner" || pluginID == "plugin-other"
+		})
+
+		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "GrantValueRead", []model.Grant{
+			{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "plugin-owner"}, Allow: []string{model.PropertyActionValueRead}},
+		}))
+		require.NoError(t, err)
+
+		value, err := th.service.CreatePropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    created.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"v"`),
+		})
+		require.NoError(t, err)
+
+		retrieved, getErr := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, "plugin-owner"), th.CPAGroupID, value.ID)
+		require.NoError(t, getErr)
+		require.NotNil(t, retrieved)
+
+		retrieved, getErr = th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, "plugin-other"), th.CPAGroupID, value.ID)
+		require.NoError(t, getErr)
+		assert.Nil(t, retrieved)
+	})
+
+	t.Run("an option.read restriction gates the inline option list and the paged option listing, without hiding the field itself", func(t *testing.T) {
+		sysadminID := model.NewId()
+		memberID := model.NewId()
+
+		th.service.setLadderCheckerForTests(func(_ request.CTX, userID string, _ *model.PropertyField, action, valueTargetID string) bool {
+			return userID == sysadminID && action == model.PropertyActionOptionRead
+		})
+
+		field := grantsField(th.CPAGroupID, "OptionReadField", nil)
+		field.Type = model.PropertyFieldTypeSelect
+		field.Attrs = model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": "opt1", "value": "Option 1"},
+				map[string]any{"id": "opt2", "value": "Option 2"},
+			},
+		}
+		created, err := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, err)
+
+		sysadminRead, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, sysadminID), th.CPAGroupID, created.ID)
+		require.NoError(t, err)
+		assert.Len(t, sysadminRead.Attrs[model.PropertyFieldAttributeOptions].([]any), 2)
+
+		memberRead, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, memberID), th.CPAGroupID, created.ID)
+		require.NoError(t, err)
+		assert.Equal(t, created.Name, memberRead.Name)
+		assert.Equal(t, created.Type, memberRead.Type)
+		assert.Empty(t, memberRead.Attrs[model.PropertyFieldAttributeOptions])
+
+		_, err = th.service.CreateFieldOptions(th.Context, created, []*model.PropertyFieldOption{{Name: "Row Option"}})
+		require.NoError(t, err)
+
+		options, err := th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, memberID), created, 0, "", 100)
+		require.NoError(t, err)
+		assert.Empty(t, options)
+
+		options, err = th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, sysadminID), created, 0, "", 100)
+		require.NoError(t, err)
+		assert.Len(t, options, 3)
+	})
+
+	t.Run("a nil ladder checker denies a human read on a permissions field", func(t *testing.T) {
+		th.service.setLadderCheckerForTests(nil)
+
+		created, err := th.service.CreatePropertyField(th.Context, grantsField(th.CPAGroupID, "NilCheckerField", nil))
+		require.NoError(t, err)
+
+		value, err := th.service.CreatePropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    created.ID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"v"`),
+		})
+		require.NoError(t, err)
+
+		retrieved, getErr := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, model.NewId()), th.CPAGroupID, value.ID)
+		require.NoError(t, getErr)
+		assert.Nil(t, retrieved)
 	})
 }

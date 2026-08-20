@@ -49,6 +49,15 @@ const (
 // Returns true if the plugin exists and is installed, false otherwise.
 type PluginChecker func(pluginID string) bool
 
+// PropertyLadderChecker answers whether userID may perform action on field,
+// as the union of the human restrictions ladder with any grant naming the
+// caller as a user or one of their roles. The properties package cannot
+// import the app package to compute this itself -- resolving a role needs
+// channel/team membership -- so it arrives as an injected function pointed at
+// the app-layer decision. A nil checker means no ladder is available and
+// must deny rather than allow.
+type PropertyLadderChecker func(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) bool
+
 // AccessControlHook implements the PropertyHook interface to enforce access
 // control based on caller identity. It checks protected fields, plugin
 // ownership, and access modes (public, source-only, shared-only).
@@ -59,6 +68,7 @@ type AccessControlHook struct {
 	BasePropertyHook
 	propertyService *PropertyService
 	pluginChecker   PluginChecker
+	ladderChecker   PropertyLadderChecker
 	managedGroupIDs map[string]struct{}
 }
 
@@ -70,9 +80,12 @@ var _ PropertyHook = (*AccessControlHook)(nil)
 // needed during access control checks. The pluginChecker function is used to
 // verify plugin installation status when checking access to protected fields.
 // Pass nil for pluginChecker if plugin checking is not needed (e.g., in tests).
+// The ladderChecker function answers the human half of a permissions decision
+// (restrictions ladder plus user/role grants); pass nil where no permissions
+// fields are under test.
 // managedGroupIDs lists the property group IDs that this hook enforces access
 // control for. Operations on groups not in this list are passed through.
-func NewAccessControlHook(ps *PropertyService, pluginChecker PluginChecker, managedGroupIDs ...string) *AccessControlHook {
+func NewAccessControlHook(ps *PropertyService, pluginChecker PluginChecker, ladderChecker PropertyLadderChecker, managedGroupIDs ...string) *AccessControlHook {
 	ids := make(map[string]struct{}, len(managedGroupIDs))
 	for _, id := range managedGroupIDs {
 		ids[id] = struct{}{}
@@ -80,6 +93,7 @@ func NewAccessControlHook(ps *PropertyService, pluginChecker PluginChecker, mana
 	return &AccessControlHook{
 		propertyService: ps,
 		pluginChecker:   pluginChecker,
+		ladderChecker:   ladderChecker,
 		managedGroupIDs: ids,
 	}
 }
@@ -341,6 +355,12 @@ func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field 
 		return options, nil
 	}
 	callerID := h.extractCallerID(rctx)
+	if field.Permissions != nil {
+		if h.permissionsAllows(rctx, field, callerID, h.extractActingAsScope(rctx), model.PropertyActionOptionRead, "") {
+			return options, nil
+		}
+		return []*model.PropertyFieldOption{}, nil
+	}
 	if h.hasUnrestrictedFieldReadAccess(field, callerID) {
 		return options, nil
 	}
@@ -849,6 +869,25 @@ func (h *AccessControlHook) isListedOwner(field *model.PropertyField, callerID s
 func (h *AccessControlHook) permissionsGrantAllows(field *model.PropertyField, callerID, scope, action string) bool {
 	ownerID, ownerType, effectiveScope := h.callerOwnerIdentity(callerID, scope)
 	return field.Permissions.MatchingGrant(ownerType, ownerID, effectiveScope, action) != nil
+}
+
+// permissionsAllows answers the §2.5 decision for a caller reading or writing
+// a field carrying a typed permissions object. A machine caller is judged by
+// its grants alone -- the restrictions ladder never applies to it. A human
+// caller is judged by the injected ladderChecker, which already answers the
+// union of the ladder and the caller's user/role grants as one bool, so this
+// function's only job is splitting machine from human.
+func (h *AccessControlHook) permissionsAllows(rctx request.CTX, field *model.PropertyField, callerID, scope, action, valueTargetID string) bool {
+	if callerID == "" {
+		return false
+	}
+	if h.isMachineCaller(callerID) {
+		return h.permissionsGrantAllows(field, callerID, scope, action)
+	}
+	if h.ladderChecker == nil {
+		return false
+	}
+	return h.ladderChecker(rctx, callerID, field, action, valueTargetID)
 }
 
 // enforceFieldUpdateAccess gates a field-definition update.
@@ -1667,6 +1706,19 @@ func (h *AccessControlHook) filterSharedOnlyScalarValue(field *model.PropertyFie
 // - Shared-only fields: returned with options filtered using filterSharedOnlyFieldOptions
 // - Source-only or unknown access modes: returned with empty options (secure default)
 func (h *AccessControlHook) applyFieldReadAccessControl(rctx request.CTX, field *model.PropertyField, callerID string) *model.PropertyField {
+	if field.Permissions != nil {
+		if h.permissionsAllows(rctx, field, callerID, h.extractActingAsScope(rctx), model.PropertyActionOptionRead, "") {
+			return field
+		}
+		// Denied: the field itself is still returned -- field.read is left
+		// unenforced -- only its option list is hidden.
+		filteredField := h.copyPropertyField(field)
+		if field.Type.SupportsOptions() {
+			filteredField.HideOptions()
+		}
+		return filteredField
+	}
+
 	if h.hasUnrestrictedFieldReadAccess(field, callerID) {
 		return field
 	}
@@ -1744,11 +1796,21 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 		return nil, fmt.Errorf("applyValueReadAccessControl: %w", err)
 	}
 
+	scope := h.extractActingAsScope(rctx)
+
 	filtered := make([]*model.PropertyValue, 0, len(values))
 	for _, value := range values {
 		field, exists := fieldMap[value.FieldID]
 		if !exists {
 			return nil, fmt.Errorf("applyValueReadAccessControl: field not found for value %s", value.ID)
+		}
+
+		if field.Permissions != nil {
+			if h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueRead, value.TargetID) {
+				filtered = append(filtered, value)
+			}
+			// Denied: dropped silently, as for a source-only field below.
+			continue
 		}
 
 		accessMode := h.getAccessMode(field)
