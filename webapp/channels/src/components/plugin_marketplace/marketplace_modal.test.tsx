@@ -8,7 +8,7 @@ import {AuthorType, ReleaseStage} from '@mattermost/types/marketplace';
 
 import {fetchListing} from 'actions/marketplace';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -202,6 +202,45 @@ describe('components/marketplace/', () => {
         expect(document.querySelector('.WebMarketplaceBanner')).toBeInTheDocument();
 
         expect(baseElement).toMatchSnapshot();
+    });
+
+    test('keeps paging through listings with mixed description lengths', async () => {
+        const longDescription = 'This plugin description is intentionally very long so that it would expand the modal if nowrap text were allowed to contribute to min-content width. '.repeat(8);
+
+        mockState.views.marketplace.plugins = Array.from({length: 16}, (_, index) => {
+            const paddedIndex = String(index).padStart(2, '0');
+            return {
+                ...samplePlugin,
+                homepage_url: `https://example.com/plugin-${paddedIndex}`,
+                download_url: `https://example.com/plugin-${paddedIndex}.tar.gz`,
+                manifest: {
+                    ...samplePlugin.manifest,
+                    id: `com.mattermost.plugin-${paddedIndex}`,
+                    name: `Plugin ${paddedIndex}`,
+                    description: index === 0 ? longDescription : `Short description ${paddedIndex}`,
+                },
+            };
+        });
+
+        renderWithContext(
+            <MarketplaceModal/>,
+            mockState,
+        );
+
+        await waitForListingToLoad();
+
+        const dialog = document.querySelector('.marketplace-modal.modal-dialog');
+        expect(dialog).toBeInTheDocument();
+        expect(screen.getByText('Plugin 00')).toBeInTheDocument();
+        expect(screen.queryByText('Plugin 15')).not.toBeInTheDocument();
+        expect(screen.getByText('Showing 1-15 of 16')).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Next'}));
+
+        expect(dialog).toBeInTheDocument();
+        expect(screen.queryByText('Plugin 00')).not.toBeInTheDocument();
+        expect(screen.getByText('Plugin 15')).toBeInTheDocument();
+        expect(screen.getByText('Showing 16-16 of 16')).toBeInTheDocument();
     });
 
     test("doesn't show web marketplace banner for Cloud", async () => {

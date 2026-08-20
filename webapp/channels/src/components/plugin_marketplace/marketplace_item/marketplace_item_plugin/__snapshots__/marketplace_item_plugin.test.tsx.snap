@@ -33,7 +33,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render 1`] = `
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -92,7 +92,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render installe
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -155,7 +155,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with emp
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -210,7 +210,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
       </span>
       <span
         aria-label="Plugin\\\\'s website"
-        class="style--none"
+        class="style--none more-modal__description-link"
       >
         <p
           class="more-modal__description"
@@ -265,7 +265,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -354,7 +354,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with no 
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -431,7 +431,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with one
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -490,7 +490,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with plu
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -549,7 +549,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with ser
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -644,7 +644,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with two
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -703,7 +703,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -786,7 +786,7 @@ exports[`components/MarketplaceItemPlugin MarketplaceItem should render with upd
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"

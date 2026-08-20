@@ -4,6 +4,14 @@
 .marketplace-modal {
     width: 832px;
 
+    // GenericModal centers the dialog with display:flex. Default min-width:auto lets
+    // nowrap plugin descriptions expand .modal-content past 832px when paging.
+    .modal-content {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
     &.streamlined-marketplace {
         .modal-header {
             padding: 26px 32px 26px !important;
@@ -100,10 +108,13 @@
     .more-modal__list {
         height: 390px;
         margin: 0 6px 8px 12px;
+        overflow-x: hidden;
         overflow-y: scroll;
 
         .more-modal__row {
             overflow: hidden;
+            width: 100%;
+            min-width: 0;
             min-height: 80px;
             padding: 16px 20px;
             border-bottom: none;
@@ -121,6 +132,7 @@
             }
 
             .more-modal__details {
+                min-width: 0;
                 padding-left: 16px;
 
                 .more-modal__row--link {
@@ -130,12 +142,23 @@
                     line-height: 24px;
                 }
 
+                .more-modal__description-link {
+                    display: block;
+                    overflow: hidden;
+                    min-width: 0;
+                    max-width: 100%;
+                }
+
                 .more-modal__description {
+                    overflow: hidden;
+                    max-width: 100%;
                     margin: 2px 0 0;
                     color: var(--center-channel-color-rgb);
                     font-size: 14px;
                     font-weight: 400;
                     line-height: 20px;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
                 }
             }
 

@@ -157,7 +157,7 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
                     {labelComponents}
                     <ExternalLink
                         aria-label="Plugin's website"
-                        className='style--none more-modal__row--link'
+                        className='style--none more-modal__row--link more-modal__description-link'
                         href={this.props.homepageUrl}
                         location='marketplace_item'
                     >
@@ -177,7 +177,7 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
                     {labelComponents}
                     <span
                         aria-label="Plugin\'s website"
-                        className='style--none'
+                        className='style--none more-modal__description-link'
                     >
                         {description}
                     </span>

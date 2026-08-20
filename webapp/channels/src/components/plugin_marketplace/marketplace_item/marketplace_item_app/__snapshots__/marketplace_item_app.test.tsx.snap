@@ -60,7 +60,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render 1`] = `
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -146,7 +146,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render installed a
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -233,7 +233,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with empty 
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -287,7 +287,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with icon 1
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -369,7 +369,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no hom
       </span>
       <span
         aria-label="Plugin\\\\'s website"
-        class="style--none"
+        class="style--none more-modal__description-link"
       >
         <p
           class="more-modal__description"
@@ -451,7 +451,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with no plu
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -553,7 +553,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with one la
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -639,7 +639,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with server
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -761,7 +761,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem should render with two la
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"
@@ -847,7 +847,7 @@ exports[`components/MarketplaceItemApp MarketplaceItem when installing 1`] = `
       </a>
       <a
         aria-label="Plugin's website"
-        class="style--none more-modal__row--link"
+        class="style--none more-modal__row--link more-modal__description-link"
         href="http://example.com"
         location="marketplace_item"
         rel="noopener noreferrer"

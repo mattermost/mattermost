@@ -265,7 +265,7 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
                     </a>
                     <a
                       aria-label="Plugin's website"
-                      class="style--none more-modal__row--link"
+                      class="style--none more-modal__row--link more-modal__description-link"
                       href="https://github.com/mattermost/mattermost-test"
                       location="marketplace_item"
                       rel="noopener noreferrer"
@@ -355,7 +355,7 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
                     </a>
                     <a
                       aria-label="Plugin's website"
-                      class="style--none more-modal__row--link"
+                      class="style--none more-modal__row--link more-modal__description-link"
                       href="https://github.com/mattermost/mattermost-plugin-nps"
                       location="marketplace_item"
                       rel="noopener noreferrer"
@@ -1099,7 +1099,7 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
                     </a>
                     <a
                       aria-label="Plugin's website"
-                      class="style--none more-modal__row--link"
+                      class="style--none more-modal__row--link more-modal__description-link"
                       href="https://github.com/mattermost/mattermost-plugin-nps"
                       location="marketplace_item"
                       rel="noopener noreferrer"
@@ -1319,7 +1319,7 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
                     </a>
                     <a
                       aria-label="Plugin's website"
-                      class="style--none more-modal__row--link"
+                      class="style--none more-modal__row--link more-modal__description-link"
                       href="https://github.com/mattermost/mattermost-test"
                       location="marketplace_item"
                       rel="noopener noreferrer"
@@ -1409,7 +1409,7 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
                     </a>
                     <a
                       aria-label="Plugin's website"
-                      class="style--none more-modal__row--link"
+                      class="style--none more-modal__row--link more-modal__description-link"
                       href="https://github.com/mattermost/mattermost-plugin-nps"
                       location="marketplace_item"
                       rel="noopener noreferrer"
