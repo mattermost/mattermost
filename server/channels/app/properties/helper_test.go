@@ -105,6 +105,18 @@ func (h *AccessControlHook) setLadderCheckerForTests(ladderChecker PropertyLadde
 	h.ladderChecker = ladderChecker
 }
 
+// accessControlHookForTests returns the registered AccessControlHook, for
+// tests that need to call its unexported methods directly rather than
+// through a service call that routes to it.
+func (ps *PropertyService) accessControlHookForTests() *AccessControlHook {
+	for _, hook := range ps.hooks {
+		if ach, ok := hook.(*AccessControlHook); ok {
+			return ach
+		}
+	}
+	return nil
+}
+
 func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 	// Register the CPA group so requiresAccessControl can always look it up
 	group, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV2})
