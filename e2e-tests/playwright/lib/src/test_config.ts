@@ -153,7 +153,7 @@ export class TestConfig {
         this.smtpURL = process.env.PW_SMTP_URL || 'http://localhost:9001';
         this.postgresUrl =
             process.env.PW_POSTGRES_URL ||
-            'postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes';
+            'postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes';
         this.webhookBaseUrl = process.env.PW_WEBHOOK_BASE_URL || 'http://localhost:3000';
 
         // Testcontainers
