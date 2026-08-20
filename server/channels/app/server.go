@@ -367,6 +367,18 @@ func NewServer(options ...Option) (*Server, error) {
 		},
 		GlobalLimit: model.AccessControlGroupFieldLimit,
 	})
+
+	// Post attributes are capped per target (the system, one team, or one channel) rather
+	// than group-wide, so one busy channel cannot exhaust every other channel's allowance.
+	// This cap is also what bounds the post hydration value lookup, so the two cannot drift.
+	postAttrGroup, err := s.propertyService.Group(model.PostAttributesPropertyGroupName)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to look up post attributes property group")
+	}
+	fieldLimitHook.AddGroupLimit(postAttrGroup.ID, &properties.FieldLimitConfig{
+		PerTarget: model.PostAttributesMaxFieldsPerTarget,
+	})
+
 	s.propertyService.AddHook(fieldLimitHook)
 
 	// Session attributes schema guard — blocks deletion and restricts edits to the tunable Attrs.
