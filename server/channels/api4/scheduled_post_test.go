@@ -312,6 +312,142 @@ func TestCreateScheduledPost(t *testing.T) {
 	})
 }
 
+func TestCreateScheduledPostWithSystemPostType(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	testCases := []struct {
+		name     string
+		postType string
+		rejected bool
+	}{
+		{
+			name:     "generic system post type",
+			postType: model.PostTypeSystemGeneric,
+			rejected: true,
+		},
+		{
+			name:     "structured system post type",
+			postType: model.PostTypeAddToTeam,
+			rejected: true,
+		},
+		{
+			name:     "default post type",
+			postType: model.PostTypeDefault,
+			rejected: false,
+		},
+		{
+			name:     "attachment post type",
+			postType: model.PostTypeMessageAttachment,
+			rejected: false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			scheduledPost := &model.ScheduledPost{
+				Draft: model.Draft{
+					CreateAt:  model.GetMillis(),
+					UserId:    th.BasicUser.Id,
+					ChannelId: th.BasicChannel.Id,
+					Message:   "scheduled post of type " + testCase.postType,
+					Type:      testCase.postType,
+				},
+				ScheduledAt: model.GetMillis() + 100000,
+			}
+
+			created, resp, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+
+			if !testCase.rejected {
+				require.NoError(t, err)
+				require.NotNil(t, created)
+				return
+			}
+
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+			require.Nil(t, created)
+
+			storedScheduledPosts, storeErr := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+			require.NoError(t, storeErr)
+			for _, storedScheduledPost := range storedScheduledPosts {
+				require.NotEqual(t, testCase.postType, storedScheduledPost.Type, "a scheduled post with a reserved system post type must not be stored")
+			}
+		})
+	}
+}
+
+func TestUpdateScheduledPostWithSystemPostType(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	testCases := []struct {
+		name     string
+		postType string
+		rejected bool
+	}{
+		{
+			name:     "generic system post type",
+			postType: model.PostTypeSystemGeneric,
+			rejected: true,
+		},
+		{
+			name:     "structured system post type",
+			postType: model.PostTypeAddToTeam,
+			rejected: true,
+		},
+		{
+			name:     "default post type",
+			postType: model.PostTypeDefault,
+			rejected: false,
+		},
+		{
+			name:     "attachment post type",
+			postType: model.PostTypeMessageAttachment,
+			rejected: false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			scheduledPost := &model.ScheduledPost{
+				Draft: model.Draft{
+					CreateAt:  model.GetMillis(),
+					UserId:    th.BasicUser.Id,
+					ChannelId: th.BasicChannel.Id,
+					Message:   "this is a scheduled post",
+				},
+				ScheduledAt: model.GetMillis() + 100000,
+			}
+			created, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+			require.NoError(t, err)
+			require.NotNil(t, created)
+
+			created.Type = testCase.postType
+			created.ScheduledAt = model.GetMillis() + 200000
+
+			updated, resp, err := th.Client.UpdateScheduledPost(context.Background(), created)
+
+			if !testCase.rejected {
+				require.NoError(t, err)
+				require.NotNil(t, updated)
+				return
+			}
+
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+
+			fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
+			require.NoError(t, storeErr)
+			require.NotEqual(t, testCase.postType, fetched.Type, "a scheduled post must not keep a reserved system post type")
+		})
+	}
+}
+
 func TestScheduledPostRecurringFeatureFlag(t *testing.T) {
 	mainHelper.Parallel(t)
 	// SetupConfig also makes feature flags writable, so the subtests below can toggle the flag.

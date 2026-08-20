@@ -484,6 +484,86 @@ func TestProcessScheduledPosts(t *testing.T) {
 	})
 }
 
+func TestProcessScheduledPostsWithSystemPostType(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	testCases := []struct {
+		name      string
+		postType  string
+		published bool
+	}{
+		{
+			name:      "generic system post type",
+			postType:  model.PostTypeSystemGeneric,
+			published: false,
+		},
+		{
+			name:      "structured system post type",
+			postType:  model.PostTypeAddToTeam,
+			published: false,
+		},
+		{
+			name:      "default post type",
+			postType:  model.PostTypeDefault,
+			published: true,
+		},
+		{
+			name:      "attachment post type",
+			postType:  model.PostTypeMessageAttachment,
+			published: true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			th := Setup(t).InitBasic(t)
+
+			th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+
+			message := "scheduled post of type " + testCase.postType
+			scheduledPost := &model.ScheduledPost{
+				Draft: model.Draft{
+					CreateAt:  model.GetMillis(),
+					UserId:    th.BasicUser.Id,
+					ChannelId: th.BasicChannel.Id,
+					Message:   message,
+					Type:      testCase.postType,
+				},
+				ScheduledAt: model.GetMillis() - 1000,
+			}
+			created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost)
+			require.NoError(t, err)
+			require.NotNil(t, created)
+
+			th.App.ProcessScheduledPosts(th.Context)
+
+			posts, appErr := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 60)
+			require.Nil(t, appErr)
+
+			var publishedPost *model.Post
+			for _, post := range posts.Posts {
+				if post.Message == message {
+					publishedPost = post
+					break
+				}
+			}
+
+			if testCase.published {
+				require.NotNil(t, publishedPost, "scheduled post should have been published")
+				assert.Equal(t, testCase.postType, publishedPost.Type)
+				return
+			}
+
+			assert.Nil(t, publishedPost, "a scheduled post with a reserved system post type must not be published")
+
+			updated, err := th.Server.Store().ScheduledPost().Get(th.Context, created.Id)
+			if assert.NoError(t, err, "the scheduled post should have been kept with an error code instead of being published") {
+				assert.Equal(t, model.ScheduledPostErrorInvalidPost, updated.ErrorCode)
+			}
+		})
+	}
+}
+
 func TestHandleFailedScheduledPosts(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
