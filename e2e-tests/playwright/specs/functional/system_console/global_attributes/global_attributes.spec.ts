@@ -1533,9 +1533,7 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
          * @objective Opening Edit on a managed attribute prefills the Definition form and Save
          * PATCHes the existing template rather than creating a second one.
          */
-        test('opens an existing attribute, PATCHes a display-name change, and shows it in the list', async ({
-            pw,
-        }) => {
+        test('opens an existing attribute, PATCHes a display-name change, and shows it in the list', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             const timestamp = Date.now();
@@ -1565,7 +1563,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 await page.getByTestId('saveSetting').click();
 
                 await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
-                await expect(page.getByTestId('global-attribute-name').filter({hasText: updatedDisplayName})).toBeVisible();
+                await expect(
+                    page.getByTestId('global-attribute-name').filter({hasText: updatedDisplayName}),
+                ).toBeVisible();
             } finally {
                 await deleteGlobalAttributeFieldIfExists(adminClient, name);
             }
@@ -1609,9 +1609,15 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
 
                 const remaining = await fetchLinkedFieldsForTemplate(adminClient, field.id);
                 expect(remaining).toHaveLength(0);
-                const templates = await adminClient.getPropertyFields('access_control', 'template', 'system', undefined, {
-                    perPage: 200,
-                });
+                const templates = await adminClient.getPropertyFields(
+                    'access_control',
+                    'template',
+                    'system',
+                    undefined,
+                    {
+                        perPage: 200,
+                    },
+                );
                 expect(templates.some((template) => template.id === field.id && template.delete_at === 0)).toBe(true);
             } finally {
                 await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
