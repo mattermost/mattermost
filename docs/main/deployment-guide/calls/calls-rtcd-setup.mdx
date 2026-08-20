@@ -410,7 +410,7 @@ The Calls plugin opens its connection to RTCD when the plugin starts, and fails 
 Failures at startup and failures later on behave differently:
 
 - **During plugin activation**, an initial connection failure leaves Calls deactivated, and the server's plugin health check doesn't retry it, because it only monitors plugins that activated successfully. Once RTCD is reachable, restart the Calls plugin to bring it back.
-- **After a connection is established**, later disconnections are retried automatically, so a brief RTCD restart needs no action on the Mattermost side. The plugin makes up to 8 reconnection attempts for a host before dropping it, and a dropped host that's still advertised in DNS is picked up again by the 10 second host check.
+- **After a connection is established**, later disconnections are retried automatically, so a brief RTCD restart needs no action on the Mattermost side. The plugin makes up to 8 reconnection attempts for a host before dropping it, and a dropped host that's still advertised in DNS is picked up again by the 10-second host check.
 
 </Important>
 
@@ -436,7 +436,7 @@ Two things follow from this behavior:
 - The HTTP and WebSocket API listeners stay open while the service drains, so a draining server can still be assigned new calls. Remove the server from the DNS record *before* signalling the process; otherwise the plugin can keep sending new calls to it, and the drain may never complete.
 - Any process supervisor that force-kills the service after a timeout cuts off the calls still running on it, and the default timeouts are generally shorter than a call.
 
-`systemctl stop rtcd` sends `SIGTERM` to the service, and with the default `KillMode=control-group`, to every process in the unit's control group. systemd then waits for `TimeoutStopSec` before escalating to `SIGKILL`. When that value isn't set explicitly it inherits `DefaultTimeoutStopSec`, which is 90 seconds on a stock systemd installation, so calls still running 90 seconds after the stop command was issued are dropped.
+`systemctl stop rtcd` sends `SIGTERM` to the service, and with the default `KillMode=control-group`, to every process in the unit's control group. systemd then waits for `TimeoutStopSec` before escalating to `SIGKILL`. When that value isn't set explicitly it inherits `DefaultTimeoutStopSec`, which gives a 90-second timeout on a stock systemd installation, so calls still running when the timeout expires are dropped.
 
 The rolling upgrade below avoids this entirely by draining a server through DNS before stopping it, so the server is already idle by the time the service is stopped and the timeout never comes into play.
 

@@ -134,7 +134,7 @@ When the job finishes, open the stack's **Application information** tab to revie
 
 ![Application information tab showing deployment, Kubernetes, and Mattermost details](/images/oracle/application-information.png)
 
-- **Load Balancer IP Address:** The reserved OCI Public IP for the Mattermost load balancer. Create a DNS `A` record from your **Mattermost FQDN** to this IP; it stays stable across re-applies.
+- **Load Balancer IP Address**: Copy the IP shown beside this label and create a DNS `A` record from your **Mattermost FQDN** to it. This reserved OCI Public IP stays stable across re-applies.
 - **Mattermost URL** (top-right button): The public HTTPS URL, reachable once DNS propagates.
 - **OKE Cluster OCID** and **Deployed Kubernetes Version:** Identify the OKE cluster if you need to connect with `kubectl` or the OCI CLI.
 

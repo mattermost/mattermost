@@ -116,10 +116,10 @@ Starting in Mattermost v12.0 (October 2026), OpenSearch v1.x is no longer suppor
     sudo /usr/share/opensearch/bin/opensearch-plugin install analysis-icu
     ```
 
-    Restart OpenSearch on each node to load the newly installed plugin before verifying it; `_cat/plugins` only reports active plugins, so a restart is required first. For production clusters, restart nodes one at a time (rolling restart) rather than all at once. The OpenSearch Security plugin might need to be set to `plugins.security.disabled: true` in `opensearch.yml` (disables the auth plugin, for testing) for the following check to run over plain HTTP. Confirm the plugin is installed and active on every node before continuing, replacing `<your-opensearch-host>` with your cluster endpoint:
+    Restart OpenSearch on each node to load the newly installed plugin before verifying it; `_cat/plugins` only reports active plugins, so a restart is required first. For production clusters, restart nodes one at a time (rolling restart) rather than all at once. Confirm the plugin is installed and active on every node before continuing. Replace the host, admin password, and path to your cluster's CA certificate:
 
     ``` sh
-    curl --silent --show-error --fail-with-body 'http://<your-opensearch-host>:9200/_cat/plugins?v&h=name,component,version&s=name,component'
+    curl --silent --show-error --fail-with-body --cacert <path-to-root-ca.pem> --user 'admin:<password>' 'https://<your-opensearch-host>:9200/_cat/plugins?v&h=name,component,version&s=name,component'
     ```
 
     Running this command should show `analysis-icu` once per node in the cluster. If the `analysis-icu` line is missing for any node, the plugin is not installed there.

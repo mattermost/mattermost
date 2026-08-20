@@ -15,7 +15,7 @@ The migration is a multi-step process:
 2.  [Export your Rocket.Chat data](#2-export-your-rocketchat-data) — produce a `mongodump` of the Rocket.Chat database.
 3.  [Transform the export](#3-transform-the-export-for-mattermost) — validate with `mmetl check rocketchat` and convert with `mmetl transform rocketchat`.
 4.  [Import into Mattermost](#4-import-into-mattermost) — upload and process the archive with `mmctl`.
-5.  Validate, test, and go live.
+5.  [Validate, test, and go live](#5-validate-test-and-go-live) — verify the trial import before scheduling the production cutover.
 
 <Note>
 
@@ -124,7 +124,7 @@ If the run stops with an error instead — for example, `the RocketChat export c
 
 <Tip>
 
-**Iterate incrementally.** Run a small trial first: transform, import into a throwaway team, and confirm a few channels look right before committing to a full production import. Because `mmctl import` is idempotent, re-running an import with the same data will not create duplicate posts — so repeated trial runs are safe.
+**Iterate incrementally.** Run a small trial first: transform, import into a fresh or restored trial target, and confirm a few channels look right before committing to a full production import. Re-running the same import avoids duplicate posts only when the records' identity fields are unchanged; not every imported entity is deduplicated. Don't rely on re-importing into a modified trial target to reset it.
 
 </Tip>
 
@@ -191,7 +191,13 @@ This avoids re-uploading gigabytes through the API and is the recommended path f
 
 ### Fixing unread channels and threads
 
-After importing, messages may appear unread for all users. Run the following against the Mattermost database to resolve it:
+After importing, messages may appear unread for all users. The following fix is for PostgreSQL deployments only.
+
+<Important>
+
+Back up the Mattermost database before running these statements. Test the backup and the SQL in a non-production environment first.
+
+</Important>
 
 ``` sql
 begin;
@@ -209,15 +215,15 @@ SELECT
     cm.userid,
     'channel_approximate_view_time',
     cm.channelid,
-    cm.lastupdateat
+    cm.lastupdateat::text
 FROM
     channelmembers cm
 ON CONFLICT (userid, category, name)
 DO UPDATE SET
     Value = EXCLUDED.Value;
 
-update preferences set value = false where category = 'direct_channel_show';
-update preferences set value = false where category = 'group_channel_show';
+update preferences set value = 'false' where category = 'direct_channel_show';
+update preferences set value = 'false' where category = 'group_channel_show';
 
 commit;
 ```
@@ -232,6 +238,16 @@ Users activate their accounts through Mattermost's **Password Reset** screen usi
 - **Imports performed by a non-administrator**: users must verify their email address before resetting their password.
 
 See how to [migrate user authentication to LDAP or SAML](/administration-guide/manage/mmctl-command-line-tool#mmctl-user-migrate-auth) if you use SSO.
+
+## 5. Validate, test, and go live
+
+Before production cutover, validate a fresh or restored trial import end to end:
+
+1.  Compare the transform and import logs with source counts for users, channels, posts, and attachments, and investigate errors or unexpected omissions.
+2.  Sign in as representative users and verify public and private channels, direct and group messages, threads, reactions, files, mentions, permissions, and authentication.
+3.  Recreate integrations and custom emoji, then purge and rebuild the search index before testing search.
+4.  Back up the production Mattermost database and file store, schedule a maintenance window, stop writes in Rocket.Chat, create a final export, and repeat the validated process on a fresh or restored production target.
+5.  After final verification, update DNS or client configuration, invite users to activate their accounts, and keep the Rocket.Chat deployment read-only until the migration is accepted.
 
 ## What migrates and what doesn't
 
@@ -272,7 +288,7 @@ Because resolution happens at render time, you can add custom emoji to Mattermos
 
 **Do I need to create users before importing?** No. `mmetl` and the import process handle user creation and ordering automatically.
 
-**What happens if I run the same import twice?** Nothing harmful. `mmctl import` is idempotent — duplicate posts are not created — so incremental and repeated trial imports are safe.
+**What happens if I run the same import twice?** Re-running the same import avoids duplicate posts when identity fields are unchanged, but not every entity is deduplicated and edits to identifying fields can create additional records. Use a fresh or restored trial target for each test run.
 
 **Where do all my channels and DMs go?** Into the single team you specify with `--team`. Rocket.Chat has no multi-workspace concept, so there is no team-mapping step.
 

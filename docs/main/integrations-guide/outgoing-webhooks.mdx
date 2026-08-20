@@ -168,7 +168,7 @@ The JSON response can contain the following parameters:
 <tbody>
 <tr>
 <td><code>text</code></td>
-<td>(Required if <code>props.mm_blocks</code> is not set) <a href="/end-user-guide/collaborate/format-messages">Markdown-formatted</a> message.</td>
+<td>(Required unless <code>attachments</code> or <code>props.mm_blocks</code> is set) <a href="/end-user-guide/collaborate/format-messages">Markdown-formatted</a> message.</td>
 </tr>
 <tr>
 <td><code>response_type</code></td>
@@ -181,6 +181,10 @@ The JSON response can contain the following parameters:
 <tr>
 <td><code>icon_url</code></td>
 <td>Overrides the default profile picture. Requires <a href="/administration-guide/configure/integrations-configuration-settings#enable-integrations-to-override-profile-picture-icons">Enable integrations to override profile picture icons</a> to be enabled.</td>
+</tr>
+<tr>
+<td><code>attachments</code></td>
+<td>Legacy array of <a href="https://developers.mattermost.com/integrate/reference/message-attachments/">message attachment</a> objects. Use Mattermost Blocks for new integrations.</td>
 </tr>
 <tr>
 <td><code>type</code></td>
@@ -231,7 +235,7 @@ Turn keyword-triggered callbacks into guided, in-channel workflows by returning 
 
 <Note>
 
-- Outgoing webhook responses support Mattermost Blocks and interactive actions. When a user clicks an action, your integration receives a signed trigger ID and can open an interactive dialog via the dialog API. You can also control visibility with the response type (in-channel vs ephemeral).
+- Outgoing webhook responses support Mattermost Blocks and interactive actions. The outgoing webhook <code>response_type</code> accepts <code>post</code> or <code>comment</code>. When a user clicks an action, the callback payload includes a <code>trigger_id</code> field that can be used to open an interactive dialog; the trigger ID isn't a request signature. Return <code>ephemeral_text</code> in the action response when feedback should be visible only to the user who clicked the action.
 - Need a dedicated identity, permissions scoping, or need to post outside of webhook/command flows? Use a [bot account](https://developers.mattermost.com/integrate/reference/bot-accounts/) if you need a more permanent solution than using overrides for simple branding.
 - If your command backend needs to call Mattermost APIs (e.g., posting messages, ephemeral posts, opening interactive dialogs, etc.), authenticate with a bot user [personal access token](https://developers.mattermost.com/integrate/reference/personal-access-token/). We recommend avoiding human/System Admin personal access tokens for automations and rotating and storing tokens securely.
 - Looking to support private channels, direct messages, and autocomplete? Use a [built-in slash command](/integrations-guide/built-in-slash-commands), or create a [custom slash command](https://developers.mattermost.com/integrate/slash-commands/custom/). You can additionally integrate Mattermost with custom integrations hosted within your internal OAuth infrastructure [using the Client Credentials OAuth 2.0 grant type](https://developers.mattermost.com/integrate/slash-commands/outgoing-oauth-connections/). Mattermost also makes it easy to [migrate integrations written for Slack to Mattermost](https://developers.mattermost.com/integrate/slash-commands/slack/).

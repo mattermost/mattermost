@@ -23,7 +23,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
 #### Database Schema Changes
  - The following schema changes are included in the v11.10 release. No database downtime is expected for this upgrade. See the [Important Upgrade Notes](https://docs.mattermost.com/upgrade/important-upgrade-notes.html) for more details.
    - Added nullable ``bigint`` column ``lastnotifiedat`` to the ``useraccesstokens`` table to support token notification tracking; catalog-only change with negligible production impact.
-   - Adds composite index ``idx_propertyvalues_groupid_updateat_id`` on ``PropertyValues(GroupID, UpdateAt, ID)`` to improve Custom Attributes query performance with no downtime or DML impact.
+   - Adds composite index ``idx_propertyvalues_groupid_updateat_id`` on ``PropertyValues(GroupID, UpdateAt, ID)`` to improve Custom Attributes query performance. The index is created concurrently, so its creation does not block DML.
 
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
