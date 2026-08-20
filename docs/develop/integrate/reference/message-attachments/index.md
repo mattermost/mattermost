@@ -1,11 +1,17 @@
 ---
-title: "Message attachments"
+title: "Use message attachments"
+description: "Message attachments provide rich formatting options for integrations, including bold and italic text, headings, inline images, and tables."
+sidebar_label: "Message attachments"
 sidebar_position: 40
 ---
 
 For additional formatting options, and for compatibility with Slack non-markdown integrations, an `attachments` array can be sent by integrations and rendered by Mattermost.
 
-You can also add interactive message buttons as part of attachments. They help make your integrations richer by completing common tasks inside Mattermost conversations, increasing user engagement and productivity. For more information, see [documentation](/developers/integrate/plugins/interactive-messages).
+:::note Legacy interactive content
+For new integrations, prefer [Mattermost Blocks](/developers/integrate/reference/mm-blocks) over attachment `actions` for buttons and menus. Legacy attachments remain fully supported — Mattermost translates them into Mattermost Blocks at render time — but native Mattermost Blocks give you more layout control and a unified action registry in `props.mm_blocks_actions`.
+:::
+
+You can also add interactive message buttons as part of attachments. They help make your integrations richer by completing common tasks inside Mattermost conversations, increasing user engagement and productivity. For more information, see [interactive messages](/developers/integrate/plugins/interactive-messages) and [Mattermost Blocks](/developers/integrate/reference/mm-blocks).
 
 ## Attachment options
 
@@ -129,13 +135,29 @@ And here is how it renders in Mattermost:
 1. The footer timestamp field (`ts`) is not yet supported.
 2. Message Attachment contents do not show up in search.
 
+## Trigger AI agent responses
+
+To have Mattermost AI agents respond to a post created by a bot or plugin integration, set the `activate_ai` property to `"true"` in the post's `props` field.
+
+```json
+{
+    "channel_id": "qmd5oqtwoibz8cuzxzg5ekshgr",
+    "message": "Summarize the latest deployment status.",
+    "props": {
+        "activate_ai": "true"
+    }
+}
+```
+
 ## Frequently asked questions
 
 ### Can I send a message attachment via the API?
 
 Yes, you can use the [create post RESTful API](https://api.mattermost.com/#operation/CreatePost).
 
-You need to add an `attachments` key to the post’s `props` JSON field. The value is an array of message attachments you want attached to the post. See below for an example curl command.
+You need to add an `attachments` key to the post's `props` JSON field. The value is an array of message attachments you want attached to the post. See below for an example curl command.
+
+For new interactive content, prefer `props.mm_blocks` and `props.mm_blocks_actions` instead. See [Mattermost Blocks](/developers/integrate/reference/mm-blocks).
 
 `curl -i -X POST -H 'Content-Type: application/json' -d '{"channel_id":"qmd5oqtwoibz8cuzxzg5ekshgr", "message":"Test message #testing", "props":{"attachments": [{"pretext": "This is the attachment pretext.","text": "This is the attachment text."}]}}' https://{your-mattermost-site}/api/v4/posts`
 
