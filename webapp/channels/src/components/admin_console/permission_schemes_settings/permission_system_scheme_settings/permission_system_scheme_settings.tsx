@@ -325,41 +325,43 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
     };
 
     togglePermission = (roleId: string, permissions: Iterable<string>) => {
-        const roles = {...this.state.roles};
-        const role = {...roles[roleId as keyof RolesState]} as Role;
-        const newPermissions = [...role.permissions!];
-        for (const permission of permissions) {
-            if (newPermissions.indexOf(permission) === -1) {
-                newPermissions.push(permission);
-            } else {
-                newPermissions.splice(newPermissions.indexOf(permission), 1);
-            }
-        }
-        role.permissions = newPermissions;
-        roles[roleId as keyof RolesState] = role;
-
-        if (roleId === 'all_users') {
-            const channelAdminRole = {...roles.channel_admin} as Role;
-            const channelAdminPermissions = [...channelAdminRole.permissions!];
-            const teamAdminRole = {...roles.team_admin} as Role;
-            const teamAdminPermissions = [...teamAdminRole.permissions!];
+        this.setState((state) => {
+            const roles = {...state.roles};
+            const role = {...roles[roleId as keyof RolesState]} as Role;
+            const newPermissions = [...role.permissions!];
             for (const permission of permissions) {
-                if (ModeratedPermissions.indexOf(permission) !== -1 && role.permissions.indexOf(permission) !== -1) {
-                    if (channelAdminPermissions.indexOf(permission) === -1) {
-                        channelAdminPermissions.push(permission);
-                    }
-                    if (teamAdminPermissions.indexOf(permission) === -1) {
-                        teamAdminPermissions.push(permission);
-                    }
+                if (newPermissions.indexOf(permission) === -1) {
+                    newPermissions.push(permission);
+                } else {
+                    newPermissions.splice(newPermissions.indexOf(permission), 1);
                 }
             }
-            channelAdminRole.permissions = channelAdminPermissions;
-            roles.channel_admin = channelAdminRole;
-            teamAdminRole.permissions = teamAdminPermissions;
-            roles.team_admin = teamAdminRole;
-        }
+            role.permissions = newPermissions;
+            roles[roleId as keyof RolesState] = role;
 
-        this.setState({roles, saveNeeded: true});
+            if (roleId === 'all_users') {
+                const channelAdminRole = {...roles.channel_admin} as Role;
+                const channelAdminPermissions = [...channelAdminRole.permissions!];
+                const teamAdminRole = {...roles.team_admin} as Role;
+                const teamAdminPermissions = [...teamAdminRole.permissions!];
+                for (const permission of permissions) {
+                    if (ModeratedPermissions.indexOf(permission) !== -1 && role.permissions.indexOf(permission) !== -1) {
+                        if (channelAdminPermissions.indexOf(permission) === -1) {
+                            channelAdminPermissions.push(permission);
+                        }
+                        if (teamAdminPermissions.indexOf(permission) === -1) {
+                            teamAdminPermissions.push(permission);
+                        }
+                    }
+                }
+                channelAdminRole.permissions = channelAdminPermissions;
+                roles.channel_admin = channelAdminRole;
+                teamAdminRole.permissions = teamAdminPermissions;
+                roles.team_admin = teamAdminRole;
+            }
+
+            return {roles, saveNeeded: true};
+        });
         this.props.actions.setNavigationBlocked(true);
     };
 

@@ -2219,7 +2219,9 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	license := model.NewTestLicenseWithFalseDefaults("mhpns")
+	license.SkuShortName = model.LicenseShortSkuEnterprise
+	th.App.Srv().SetLicense(license)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
 		*cfg.TeamSettings.LockProfileFieldsForEmailUsers = model.TeamSettingsLockProfileFieldsNameAndUsername
@@ -2368,6 +2370,8 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 	t.Run("it returns error for deactivated user without sending email", func(t *testing.T) {
 		emailServiceMock := emailmocks.ServiceInterface{}
 		emailServiceMock.On("Stop").Once().Return()
+		// The teardown license reset saves a config change, whose listener re-inits email batching.
+		emailServiceMock.On("InitEmailBatching").Return().Maybe()
 		th.App.Srv().EmailService = &emailServiceMock
 
 		_, appErr := th.App.UpdateActive(th.Context, th.BasicUser2, false)
