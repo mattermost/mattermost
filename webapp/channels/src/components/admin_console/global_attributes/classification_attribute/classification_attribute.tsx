@@ -42,6 +42,15 @@ export const CLASSIFICATION_ATTRIBUTE_ROUTE = `${GLOBAL_ATTRIBUTES_LIST_ROUTE}/c
 
 type LoadState = 'loading' | 'ready' | 'missing' | 'failed';
 
+// The property routes answer 404 for a field that does not exist, which both of this
+// page's loads treat as absent rather than broken.
+function rethrowUnlessNotFound(error: unknown): undefined {
+    if ((error as ClientError | undefined)?.status_code === 404) {
+        return undefined;
+    }
+    throw error;
+}
+
 type Props = {
     disabled?: boolean;
 };
@@ -86,9 +95,13 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
     useEffect(() => {
         (async () => {
             try {
+                // 404 is how the property routes say "no such field", which is an
+                // ordinary state for both of these: classification may not be set up,
+                // and it may be set up without applying to channels. Only a real
+                // failure gets the error state.
                 const [templateField, existingChannelField] = await Promise.all([
-                    fetchClassificationField(),
-                    fetchChannelClassificationField(),
+                    fetchClassificationField().catch(rethrowUnlessNotFound),
+                    fetchChannelClassificationField().catch(rethrowUnlessNotFound),
                 ]);
                 if (!isMountedRef.current) {
                     return;
@@ -101,8 +114,11 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                 setChannelField(existingChannelField ?? null);
                 setChannelResource(existingChannelField ? parseChannelFieldConfig(existingChannelField) : null);
                 setLoadState('ready');
-            } catch {
+            } catch (error) {
+                // Logged as well as shown: the canned copy cannot say which call failed.
+                console.error('ClassificationAttribute-load: ', error); // eslint-disable-line no-console
                 if (isMountedRef.current) {
+                    setServerErrorMessage((error as ClientError | undefined)?.message ?? null);
                     setLoadState('failed');
                 }
             }
@@ -263,7 +279,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                             role='alert'
                             data-testid='classificationAttributeLoadError'
                         >
-                            <FormattedMessage {...messages.loadFailed}/>
+                            {serverErrorMessage ?? formatMessage(messages.loadFailed)}
                         </p>
                     )}
                     {loadState === 'ready' && template && (

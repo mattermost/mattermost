@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import {ClientError} from '@mattermost/client';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
@@ -101,6 +102,61 @@ describe('ClassificationAttribute', () => {
 
         expect(await screen.findByTestId('classificationAttributeMissing')).toBeInTheDocument();
         expect(screen.queryByTestId('classificationAttributeName')).not.toBeInTheDocument();
+    });
+
+    it('treats a 404 from the property routes as absent rather than broken', async () => {
+        // How those routes say "no such field", and both loads have legitimate reasons
+        // to hit it: classification may not be set up, or set up without applying to
+        // channels. Surfacing an error here told an admin the page was broken.
+        const notFound = new ClientError('https://example.com', {
+            message: 'Not found',
+            status_code: 404,
+            url: '/api/v4/properties/groups/access_control/template/fields',
+        });
+        jest.spyOn(Client4, 'getPropertyFields').mockRejectedValue(notFound);
+
+        render();
+
+        expect(await screen.findByTestId('classificationAttributeMissing')).toBeInTheDocument();
+        expect(screen.queryByTestId('classificationAttributeLoadError')).not.toBeInTheDocument();
+    });
+
+    it('shows the channel field as absent when only that lookup 404s', async () => {
+        const notFound = new ClientError('https://example.com', {
+            message: 'Not found',
+            status_code: 404,
+            url: '/api/v4/properties/groups/access_control/channel/fields',
+        });
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            if (objectType === 'template') {
+                return [TEMPLATE];
+            }
+            throw notFound;
+        });
+
+        render();
+
+        // Classification exists, it just does not apply to channels yet.
+        expect(await screen.findByTestId('appliesToAddResource')).toBeInTheDocument();
+        expect(screen.queryByTestId('classificationAttributeLoadError')).not.toBeInTheDocument();
+    });
+
+    it('surfaces the server message when a load genuinely fails', async () => {
+        // Suppress the expected console.error from the load failure this test triggers.
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        jest.spyOn(Client4, 'getPropertyFields').mockRejectedValue(new ClientError('https://example.com', {
+            message: 'Property group not found.',
+            status_code: 500,
+            url: '/api/v4/properties/groups/access_control/template/fields',
+        }));
+
+        render();
+
+        // The canned copy cannot say which call failed, so the reason is shown.
+        expect(await screen.findByTestId('classificationAttributeLoadError')).toHaveTextContent('Property group not found.');
+
+        consoleSpy.mockRestore();
     });
 
     it('reads an existing channel field back into the row', async () => {

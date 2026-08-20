@@ -147,15 +147,10 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             await purgeAttributes(adminClient);
             await assertNoForeignRequiredAttributes(adminClient);
 
-            const required = await createAttribute(adminClient, attributeName('unfilled', suffix), {
-                options: ['RECOVERED'],
-                actions: [DISPLAY_LABEL_INFO],
-                required: true,
-            });
-            created.push(required);
-
-            // The case the feature cannot prevent: a channel that exists without
-            // meeting its own requirement, because the write is a separate call.
+            // The channel comes first, because creating one that misses a required
+            // attribute is refused now. What remains reachable is an attribute that
+            // becomes required after the fact, which is how an existing channel ends up
+            // short of its own requirement.
             const channel = await adminClient.createChannel({
                 team_id: team.id,
                 name: `attr-unset-${suffix}`,
@@ -163,6 +158,13 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
                 type: 'O',
             } as Parameters<typeof adminClient.createChannel>[0]);
             await adminClient.addToChannel(user.id, channel.id);
+
+            const required = await createAttribute(adminClient, attributeName('unfilled', suffix), {
+                options: ['RECOVERED'],
+                actions: [DISPLAY_LABEL_INFO],
+                required: true,
+            });
+            created.push(required);
 
             const {page, channelsPage} = await pw.testBrowser.login(user);
             await channelsPage.goto(team.name, channel.name);

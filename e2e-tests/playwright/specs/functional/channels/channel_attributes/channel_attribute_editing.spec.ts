@@ -236,6 +236,13 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
         try {
             await purgeAttributes(adminClient);
 
+            // Channel first: the server refuses a channel that misses a required
+            // attribute, so the only way to reach a required-but-unset value is for the
+            // attribute to become required after the channel exists. That is also how a
+            // real server gets there, when an admin marks an attribute required later.
+            const channel = await createChannelForAttributes(adminClient, team, `edit-lock-${suffix}`);
+            await adminClient.addToChannel(user.id, channel.id);
+
             // The lock bites only once a value exists, so an empty one is still fillable.
             const marking = await createAttribute(adminClient, attributeName('locked_once', suffix), {
                 options: ['FINAL'],
@@ -244,9 +251,6 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
                 required: true,
             });
             created.push(marking);
-
-            const channel = await createChannelForAttributes(adminClient, team, `edit-lock-${suffix}`);
-            await adminClient.addToChannel(user.id, channel.id);
 
             const {channelsPage} = await pw.testBrowser.login(user);
             await channelsPage.goto(team.name, channel.name);
