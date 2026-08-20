@@ -2,16 +2,17 @@
 title: "Deploy Mattermost on Oracle Kubernetes Engine (OKE)"
 sidebar_label: "Deploy on OKE (Oracle)"
 ---
-You can use the supported [Oracle Cloud Marketplace listing](https://cloudmarketplace.oracle.com/marketplace/en_US/listing/188386963) to install Mattermost Enterprise Edition on Oracle Cloud Infrastructure (OCI) using Oracle Kubernetes Engine (OKE).
+You can use the supported [Oracle Cloud Marketplace listing](https://cloudmarketplace.oracle.com/marketplace/en_US/listing/188386963), **Mattermost - OCI-Native (Kubernetes-based)**, to deploy a high-availability Mattermost environment on Oracle Cloud Infrastructure (OCI). One guided stack provisions a new Oracle Kubernetes Engine (OKE) cluster, a managed OCI Database with PostgreSQL system, an Object Storage bucket for file attachments, the Mattermost Kubernetes Operator, and HTTPS ingress through the OCI Native Ingress Controller.
+
+## Before you begin
 
 Before deploying, make sure you have the following:
 
-- **Oracle Cloud Account** with appropriate permissions
-- **Permissions** to create/manage OKE, Compute, Networking, Database, Resource Manager, and Secrets
-- **Compartment** for deployment
-- **Domain Name and TLS Certificate** for secure access
-- **Mattermost License Key** (Trial or Enterprise)
-- **Node Capacity**: At least 2 OKE nodes for high availability when deploying for 100 users or more
+- **An Oracle Cloud tenancy and compartment** you have permission to create resources in (VCN, OKE, IAM policies, OCI Database with PostgreSQL, Object Storage, Resource Manager)
+- **Sufficient service limits** for a new OKE cluster and its default worker pool (3 nodes, `VM.Standard.E5.Flex` at 2 OCPUs/16GB each) and for an OCI Database with PostgreSQL system
+- **A registered domain name** you can create a DNS `A` record for, pointing to the Mattermost load balancer
+- **A TLS certificate for that domain, imported into OCI Certificate Service**, with its OCID ready before you deploy. The stack does not accept a raw PEM/private key, only a certificate OCID.
+- **A Mattermost Enterprise license** if you plan to deploy for more than 100 users. Larger sizes run Mattermost and PostgreSQL in high-availability mode, which requires a license.
 
 ## Installation steps
 
@@ -19,139 +20,169 @@ The installation process includes deploying Mattermost and configuring the neces
 
 ### Step 1: Start from Oracle Cloud Marketplace
 
-Go to the Mattermost listing and select **Launch Stack**.
+Go to the **Mattermost - OCI-Native (Kubernetes-based)** listing and select **Launch Stack**.
 
-![Oracle Cloud Marketplace listing for Mattermost](/images/oracle/marketplace-listing.png)
+![Oracle Cloud Marketplace listing for Mattermost - OCI-Native (Kubernetes-based)](/images/oracle/marketplace-listing.png)
 
 ### Step 2: Stack Information
 
-On the **Create stack** page, review the information, and then set the name, compartment, and Terraform version.
+On the **Create stack** page, review the information, and then set the stack name, description, compartment, and Terraform version.
 
-![Stack information page](/images/oracle/stack-info.png)
+![Create stack information page for Mattermost on OKE](/images/oracle/stack-info.png)
 
 ### Step 3: Configure Variables
 
-Set all the details for your Mattermost deployment. Each section is important for a successful and secure installation.
-
-#### OKE Cluster Configuration
-
-- **Create new OKE Cluster:**
-  - Check this if you want to create a new Kubernetes cluster.
-  - If you already have a cluster, you can uncheck and select your existing one.
-- **Kubernetes Version:**
-  - Choose the latest stable version unless you have a specific requirement.
-- **Node Pool Shape (Flex/Fixed):**
-  - Select a shape that fits your workload. For production, use at least 2 OCPUs and 16GB RAM per node.
-- **Number of Nodes:**
-  - Minimum 2 for high availability. For testing, 1 is enough. For production environments, always use at least 2 nodes and enable high availability.
-- **Operating System:**
-  - Oracle Linux 8 is recommended for best compatibility.
-
-#### OKE Network Configuration
-
-- **Worker Node Visibility:**
-  - Private is more secure for production. Public is easier for testing. For production environments, use private nodes and restrict access to the API endpoint.
-- **API Endpoint Visibility:**
-  - Public allows you to manage the cluster from anywhere. Private is more secure but requires VPN or bastion.
-- **Create new Virtual Cloud Network (VCN):**
-  - Check this to create a new network, or uncheck to use an existing one.
-- **VCN CIDR Block:**
-  - Set a unique network range (e.g., `10.20.0.0/16`). Avoid overlap with other networks.
-
-#### OKE Worker Nodes
-
-- **Enable Cluster Autoscaler:**
-  - Allows the cluster to automatically add or remove nodes based on usage.
-- **Initial/Min Number of Worker Nodes:**
-  - Set the minimum number of nodes. For high availability, use at least 2. Autoscaling helps manage costs and performance automatically.
-- **Node Shape:**
-  - Choose a shape (e.g., `VM.Standard.E4.Flex`) and set OCPUs and memory.
-- **Auto Generate SSH Key:**
-  - Enable this if you do not have your own SSH key for node access.
-- **Image OS and Version:**
-  - Oracle Linux 8 is recommended.
-
-#### PostgreSQL Configuration
-
-- **Admin Username:**
-  - The main user for your PostgreSQL database (e.g., `admin1`).
-- **Password Type:**
-  - `PLAIN_TEXT` for testing, `SECRET` for production (uses Oracle Vault). Always use Oracle Vault for production passwords.
-- **Password/Secret Name:**
-  - Enter a strong password or the name of a secret in Oracle Vault.
-- **Database Password:**
-  - Required if not using a secret.
+Set all the details for your Mattermost deployment. Variables are grouped by area; advanced groups are hidden behind a **Show advanced options** toggle so the default flow stays simple.
 
 #### General Configuration
 
+- **Compartment:**
+  - Target compartment for every resource the stack creates: the OKE cluster, VCN, PostgreSQL DB system, and Object Storage bucket.
 - **Cluster Name Prefix:**
-  - Used to identify all resources (e.g., `mm-oke`).
-- **Show Advanced Options:**
-  - Enable for more control (encryption keys, SSH keys, etc.). Use advanced options if you need custom encryption or want to manage your own SSH keys.
-- **PostgreSQL Deployment Strategy:**
-  - Use "Database For PostgreSQL" for managed service.
-- **Object Storage for File Storage:**
-  - Enable to use OCI Object Storage for Mattermost files.
+  - Used as a prefix on all OCI resources created by the stack (default: `mattermost`).
+- **Show Recovery Options:**
+  - Leave off for a normal deployment. Only enable this if a previous apply failed and left resources blocking re-apply; it reveals a **Deploy ID Revision** field that forces new resource names.
+
+#### Mattermost Installation
+
+- **Mattermost Installation Name:**
+  - Name for this installation (default: `mattermost-prod`).
+- **Mattermost Installation Size:**
+  - Choose the size that matches your expected active user count: `100users`, `1000users`, `5000users`, `10000users`, or `25000users` (default: `100users`). This drives both the Mattermost pod resources and the PostgreSQL topology (instance count, shape). It's a **create-time-only setting**: changing it later requires deploying a new stack because OCI can't modify PostgreSQL topology in place. Sizes above 100 users deploy Mattermost and PostgreSQL in high-availability mode and require an Enterprise license.
 - **Mattermost Version:**
-  - Use the latest stable version.
-- **Namespace:**
-  - Default is `mattermost`.
-- **License Key:**
-  - Upload or paste your Mattermost license.
-- **Helm Repository:**
-  - Default is `https://helm.mattermost.com`.
+  - The Mattermost server version to install.
+- **Mattermost License Key:**
+  - Upload your Enterprise license file. Optional at `100users`; leave empty to start unlicensed and add a license later from **System Console > Edition and License**. Required for every larger size.
+- **Mattermost FQDN:**
+  - The hostname end users will browse to (for example, `mattermost.domain.com`). You'll point its DNS `A` record at the stack's output load balancer IP after deployment.
+- **OCI Certificate Service OCID:**
+  - The OCID of the certificate you imported into OCI Certificate Service for that FQDN.
+- **Mattermost LB Allowed CIDR Blocks:**
+  - IP ranges allowed to reach Mattermost over HTTPS. Default (`0.0.0.0/0`) allows access from anywhere; restrict this for corporate or internal-only deployments.
+- **Show Advanced Mattermost Options:**
+  - Turn this on to reveal the following fields, all of which have sensible defaults for most deployments:
+    - **Kubernetes Namespace:** The namespace Mattermost is installed into (default: `mattermost`).
+    - **Helm Repository URL:** Source of the Mattermost Operator Helm chart (default: `https://helm.mattermost.com`).
+    - **Operator Helm Chart Version:** Choose the Mattermost Operator Helm chart version to install from the list (default: the newest version offered).
+    - **NIC Readiness Wait Timeout:** How long to wait for the Native Ingress Controller to become ready before failing the apply (default: 180 seconds).
+
+#### OKE Configuration
+
+- **Kubernetes Version:**
+  - Leave empty to auto-select the newest version OKE publishes.
+- **Worker OS Version:**
+  - Oracle Linux `8` or `9` (default: `8`).
+- **Worker Count:**
+  - Number of worker nodes in the cluster (default: 3, recommended for high availability). You can adjust this later by editing and re-applying the stack.
+- **Show Advanced OKE Options:**
+  - Turn this on to reveal the following fields, all of which have sensible defaults for most deployments:
+    - **Virtual Cloud Network (VCN) CIDR:** IP address range for the cluster's network (default: `10.20.0.0/16`). Only change this if it conflicts with an existing network you need to peer with.
+    - **API Endpoint Allowed CIDR Blocks:** IP ranges allowed to reach the Kubernetes API (default: `0.0.0.0/0`, i.e. anywhere). Restrict this to your corporate gateway or VPN range for tighter security. Make sure the range you choose covers your own admin access, since there's no bastion host as a fallback path.
+    - **Cluster CNI:** The pod networking mode: `OCI_VCN_IP_NATIVE` (default, recommended for better performance and tighter VCN integration) or `FLANNEL_OVERLAY`.
+    - **Worker Shape:** Compute shape for each worker node (default: `VM.Standard.E5.Flex` with 2 OCPUs/16 GB memory), suitable for most Mattermost deployments.
+    - **Worker Pool Name:** The name for the worker node pool as it appears in the OCI Console and CLI.
+
+#### Cluster Tools
+
+- **Install Metrics Server:**
+  - Enables `kubectl top` and the metrics API HPA relies on, if you add your own autoscaler later. On by default; recommended for all deployments.
+- **Create OKE IAM Policies:**
+  - Automatically creates the IAM policies OKE needs to manage cluster resources. On by default; disable only if these policies already exist in your compartment.
+
+#### PostgreSQL
+
+- **PostgreSQL Database Name / Description:**
+  - The display name and description for the OCI Database with PostgreSQL system (separate from the Mattermost application database name below).
+- **PostgreSQL Major Version:**
+  - `14`, `15`, `16`, or `17` (default: `16`).
+- **PostgreSQL Admin Username / Password:**
+  - Admin credentials for the DB system. Passwords must be 8–32 characters with at least one uppercase letter, one lowercase letter, one number, and one special character, and cannot contain single quotes, double quotes, backslashes, or semicolons.
+- **Mattermost Database Name / User / Password:**
+  - The database, user, and password Mattermost itself connects with inside PostgreSQL (defaults: `mattermost` / `mmuser`). The password follows the same rules as the PostgreSQL Admin Password above (8–32 characters, upper/lowercase, number, special character; no quotes, backslashes, or semicolons).
+- **Create a Subnet for the Mattermost Database:**
+  - On by default, to create a dedicated subnet for the DB system. Disable to select an existing subnet instead.
+- **PostgreSQL Backup Retention (Days):**
+  - Automatic-backup retention, 7–35 days (default: 30).
+- **Show Advanced PostgreSQL Options:**
+  - Turn this on to reveal the following fields, all of which have sensible defaults for most deployments:
+    - **PostgreSQL Port:** The port PostgreSQL listens on (default: `5432`).
+    - **Backup Window:** Daily UTC time window for automatic backups.
+    - **Maintenance Window:** Weekly UTC time window for maintenance operations.
+    - **Per-Tier Overrides:** Instance count, OCPUs, and memory overrides for each Mattermost Installation Size tier.
+
+#### Object Storage
+
+- **Bucket Compartment:**
+  - Compartment for the Object Storage bucket. Defaults to the main compartment.
+- **Object Storage Bucket Name:**
+  - Name of the bucket used to store Mattermost file attachments.
+
+#### Tagging
+
+- **Tag Resources:**
+  - Optionally apply OCI free-form or defined tags to every resource the stack creates.
 
 ### Step 4: Review and Apply
 
-Check all your settings and select **Create** to start the deployment. Monitor the Resource Manager job and logs.
+Check all your settings and select **Create** to start the deployment. Monitor the Resource Manager job and logs. The first apply takes about 30 minutes.
 
 ![Resource Manager job monitor](/images/oracle/job-monitor.png)
 
 ### Step 5: After Deployment
 
-When the job is finished, your OKE cluster, PostgreSQL database, and Mattermost will be ready. To find the Mattermost web address, run:
+When the job finishes, open the stack's **Application information** tab to review the deployment details:
 
-``` sh
-kubectl -n mattermost-operator get ingress
-```
+![Application information tab showing deployment, Kubernetes, and Mattermost details](/images/oracle/application-information.png)
 
-Copy the address and create a DNS record for your domain. Open your browser and go to your Mattermost URL.
+- **Load Balancer IP Address:** The reserved OCI Public IP for the Mattermost load balancer. Create a DNS `A` record from your **Mattermost FQDN** to this IP; it stays stable across re-applies.
+- **Mattermost URL** (top-right button): The public HTTPS URL, reachable once DNS propagates.
+- **OKE Cluster OCID** and **Deployed Kubernetes Version:** Identify the OKE cluster if you need to connect with `kubectl` or the OCI CLI.
+
+Once the `A` record resolves, open your browser and go to the Mattermost URL.
 
 ### Step 6: Upgrade Mattermost
 
 To upgrade your Mattermost installation:
 
-1.  Access your OKE cluster through the Oracle Cloud Console
-2.  Navigate to the Mattermost operator deployment
-3.  Update the Mattermost version in the configuration
-4.  Apply the changes and wait for the upgrade to complete
+1. Go to your Resource Manager stack and select **Edit**.
+2. Update the **Mattermost Version** variable to the target release.
+3. Save and run **Plan**, then **Apply**.
+
+The Native Ingress Controller uses Pod Readiness Gates to hold new pods out of rotation until their OCI load balancer backend reports healthy. On an HA-sized installation (above `100users`, multiple Mattermost replicas), this minimizes disruption during the rollout since other replicas keep serving traffic. On the default `100users` size, which runs a single replica, a brief interruption while that pod restarts is expected.
 
 <Tip>
 
 **Tips for Success**
 
 - Make sure you have all the permissions you need before you start.
-- Use Oracle Vault to store passwords and sensitive data.
-- Use private nodes and secure your network for production.
-- Always monitor logs from the Resource Manager and pods using `kubectl logs` for more specific error messages.
+- Import your TLS certificate into OCI Certificate Service and have its OCID ready before configuring variables. The stack won't accept a raw certificate/key pair.
+- Choose your **Mattermost Installation Size** carefully: it can't be changed on an existing stack without recreating the PostgreSQL system.
+- To run `kubectl` against the cluster (for example, from OCI Cloud Shell), pull a kubeconfig using the **OKE Cluster OCID** and **Deployment Region** from the Application Information tab: `oci ce cluster create-kubeconfig --cluster-id <oke_cluster_ocid> --region <deployment_region> --file $HOME/.kube/config --kube-endpoint PUBLIC_ENDPOINT --token-version 2.0.0`. Run `kubectl get nodes` to confirm access.
+- Always monitor logs from the Resource Manager job and from pods with `kubectl logs` for more specific error messages.
 - For more details, see the official [OCI Database with PostgreSQL documentation](https://www.oracle.com/cloud/postgresql/) and [OKE documentation](https://docs.oracle.com/en-us/iaas/Content/ContEng/Concepts/contengoverview.htm).
 
 </Tip>
 
 ## Common Errors and How to Avoid Them
 
-- **Error: Kubernetes API not reachable**
-  - *Cause:* API endpoint is private and you're not connected to the VCN via VPN or Bastion.
-  - *Solution:* Ensure you have access to the network or make the endpoint public for testing.
 - **Error: Stack creation fails with missing permissions**
-  - *Cause:* IAM policies are not set properly for the user or group.
-  - *Solution:* Ensure you have permissions for Resource Manager, OKE, Networking, and Secrets.
-- **Error: No ingress returned by kubectl**
-  - *Cause:* Mattermost Ingress might not be ready or was misconfigured.
-  - *Solution:* Check with `kubectl describe ingress` and validate DNS, TLS, and Helm values.
+  - *Cause:* IAM policies are not set properly for the user or group running the stack.
+  - *Solution:* Ensure you have permissions for Resource Manager, OKE, Networking, OCI Database with PostgreSQL, Object Storage, and Certificate Service.
+- **Error: Plan fails because a Mattermost license is required**
+  - *Cause:* **Mattermost Installation Size** is set above `100users` without a license uploaded; larger sizes deploy in high-availability mode, which is Enterprise-licensed.
+  - *Solution:* Upload a valid Mattermost Enterprise license, or choose `100users`.
+- **Error: Mattermost URL doesn't resolve after deployment**
+  - *Cause:* The DNS `A` record for your FQDN hasn't been created yet, or hasn't propagated.
+  - *Solution:* Create an `A` record from your **Mattermost FQDN** to the `mattermost_lb_ip` output, then wait for DNS propagation.
+- **Error: Certificate OCID rejected or ingress never becomes healthy**
+  - *Cause:* The **OCI Certificate Service OCID** doesn't exist, isn't in the same tenancy, or doesn't match the configured FQDN.
+  - *Solution:* Re-check the certificate in OCI Certificate Service and confirm the OCID was copied correctly.
 - **Error: PostgreSQL password rejected**
-  - *Cause:* Password not set or mismatched with Oracle Vault.
-  - *Solution:* Re-check the password value or Vault secret used during setup.
+  - *Cause:* The **PostgreSQL Admin Password** or **Mattermost Database Password** doesn't meet the required complexity rules (8–32 characters, upper/lowercase, number, special character; no quotes, backslashes, or semicolons).
+  - *Solution:* Re-enter a password that satisfies the pattern shown in the field description.
+- **Error: Terraform destroy fails on the PostgreSQL system or the bucket**
+  - *Cause:* The database system has destroy protection enabled by design, and OCI refuses to delete a non-empty Object Storage bucket.
+  - *Solution:* Empty the bucket first, then disable the database's lifecycle protection before destroying.
 
 <Important>
 
@@ -159,4 +190,4 @@ You are responsible for Oracle Cloud Infrastructure costs for the resources you 
 
 </Important>
 
-Learn more about managing your Mattermost server by visiting the [Administration Guide](/administration-guide/administration-guide-index).
+Learn more about managing your Mattermost server in the [Administration Guide](/administration-guide/administration-guide-index).

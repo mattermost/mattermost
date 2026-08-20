@@ -70,6 +70,12 @@ You can be a member of multiple teams at the same time. To join additional teams
 
 ![Select a team name to join another team.](/images/join-team.png)
 
+<Note>
+
+When your organization uses [team membership access policies](/administration-guide/manage/admin/abac-team-membership), the list of teams you can join depends on your user attributes. Public teams whose requirements you meet are marked **Recommended**, and private teams whose requirements you don't meet aren't listed at all.
+
+</Note>
+
 From Mattermost Mobile v2.40.0, you can join another team from the mobile app by tapping the team name in the channel list header, then tapping **Join Another Team**.
 
 ## Leave a team
@@ -86,7 +92,7 @@ Team admins can remove users from a team via **Team menu \> Manage Members \> Re
 
 When a user is removed from a team, the team will no longer be visible or accessible in their team sidebar. If they currently have the team open, they are redirected to the first team that appears in their team sidebar. If they didn't belong to any other teams, the user is sent to the team selection page.
 
-Removing a user from the team does not deactivate the account. The user will still be able to log in to the site, and join other teams. They will also be able to rejoin the team they were removed from if they receive another invite, or if the team is set to ["Allow anyone with an account on this server to join this team"](/end-user-guide/collaborate/team-settings#users-on-this-server). If the user does rejoin the team, they will no longer belong to the channels they were previously a part of, and they will lose all Admin privileges if they had them previously.
+Removing a user from the team does not deactivate the account. The user will still be able to log in to the site, and join other teams. They will also be able to rejoin the team they were removed from if they receive another invite, or if the team is set to [Public Team](/end-user-guide/collaborate/team-settings#discoverability) and they meet any other join restrictions, such as approved email domains. If the user does rejoin the team, they will no longer belong to the channels they were previously a part of, and they will lose all Admin privileges if they had them previously.
 
 A system admin can also remove users from teams via **System Console \> Users**, and selecting the dropdown beside a user entry and selecting **Manage Teams**. The list of teams an individual user belongs to can be viewed on the user's profile page via **System Console \> Users** and selecting the member's name from the list provided in the **User Configuration** screen.
 

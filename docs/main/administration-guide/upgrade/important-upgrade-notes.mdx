@@ -25,6 +25,20 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 <td><p>Mattermost v12.0 removes the deprecated interactive dialog date/datetime fields. Top-level <code>min_date</code>, <code>max_date</code>, and <code>time_interval</code> on dialog elements and app fields, and <code>datetime_config.allow_manual_time_entry</code>, are no longer accepted. Integrations must migrate to <code>datetime_config</code> (using <code>manual_time_entry</code> instead of <code>allow_manual_time_entry</code>) before upgrading to v12.0. Legacy keys are silently ignored, so date constraints and manual time entry will not apply until payloads are updated. See the <a href="https://developers.mattermost.com/integrate/plugins/interactive-dialogs/">interactive dialogs documentation</a> for details.</p></td>
 </tr>
 <tr>
+<td rowspan="2">v11.10</td>
+<td><p>This migration adds a new composite index, <code>idx_propertyvalues_groupid_updateat_id</code>, on the <code>PropertyValues</code> table covering the columns <code>GroupID</code>, <code>UpdateAt</code>, and <code>ID</code>. The <code>PropertyValues</code> table is part of the Properties/Custom Attributes feature introduced in recent Mattermost versions. This index improves query performance for lookups and range scans that filter or sort by <code>GroupID</code> and <code>UpdateAt</code>, which are common access patterns for this feature. The index is created using <code>CONCURRENTLY</code>, so the build process does not block concurrent reads or writes against the <code>PropertyValues</code> table. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- morph:nontransactional
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_propertyvalues_groupid_updateat_id
+    ON PropertyValues(GroupID, UpdateAt, ID);</code></pre><pre><code>-- morph:nontransactional
+DROP INDEX CONCURRENTLY IF EXISTS idx_propertyvalues_groupid_updateat_id;</code></pre></td>
+</tr>
+<tr>
+<td><p>This migration adds a new nullable <code>lastnotifiedat</code> column (<code>bigint</code>) to the <code>useraccesstokens</code> table. The column is intended to track the last time a notification was sent for a given user access token, enabling improved token-related notification logic. Because the column is nullable with no default value, PostgreSQL performs a catalog-only operation—no table rewrite occurs—and the lock is held for only a few milliseconds. Previous versions of Mattermost will simply ignore the new column, ensuring seamless compatibility across a rolling upgrade. The migrations are fully backwards-compatible and no database downtime is expected for this upgrade. The SQL queries included are:</p><pre><code>-- Up migration
+ALTER TABLE useraccesstokens ADD COLUMN IF NOT EXISTS lastnotifiedat bigint;
+
+-- Down migration
+ALTER TABLE useraccesstokens DROP COLUMN IF EXISTS lastnotifiedat;</code></pre></td>
+</tr>
+<tr>
 <td rowspan="13">v11.9</td>
 <td><p>Mattermost v11.9 changes how redirect URI allowlist patterns are matched for OAuth Dynamic Client Registration (DCR). Patterns are now evaluated per URL component (scheme, host, path, and query) rather than as a whole-string glob. As a result, a pattern such as <code>https://\*.example.com/\*\*</code> no longer matches redirect URIs that include a query string (for example, <code>https://app.example.com/callback?tenant=foo</code>); redirect URIs without a query string continue to match as expected.</p><p>Admins using DCR with redirect URIs that include query strings must update their allowlist. To allow redirect URIs both with and without a query string, add two separate entries:</p><ul><li><code>https://\*.example.com/\*\*</code> — matches redirect URIs with no query string.</li><li><code>https://\*.example.com/\*\*?\*\*</code> — matches redirect URIs with any query string.</li></ul><p>A pattern that includes a query component (such as <code>?\*\*</code>) only matches URIs that also carry a query string; it will not match URIs without one. Both entries are required to cover both cases.</p></td>
 </tr>
