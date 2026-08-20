@@ -35,6 +35,12 @@ type PropertyPermissionBasis struct {
 	Unrestricted bool
 
 	Allowed bool
+
+	// HoldingsChange is true when a write on a masked field changed the
+	// caller's own holdings, since that widens what the caller can
+	// subsequently read. Left false here; only the audit site that knows
+	// which object a value was written to can set it.
+	HoldingsChange bool
 }
 
 // decidePropertyFieldPermission answers whether userID may perform action on
@@ -72,6 +78,79 @@ func (a *App) decidePropertyFieldPermission(rctx request.CTX, userID string, fie
 		return basis
 	}
 
+	return basis
+}
+
+// PropertyPermissionBasisFor derives the basis on which the caller named on
+// rctx would be allowed action against field. It exists for an audit sink
+// that runs after the store write, in a separate hook call from the one that
+// made the original decision: the property service calls
+// ps.runPreCreatePropertyValue and then ps.runPostCreatePropertyValue with the
+// same rctx, so a value stashed in its context by the pre-hook does not
+// survive to the post-hook. Deriving instead of carrying is sound because the
+// decision is a pure function of the caller identity, the acting-as scope,
+// the stored field, and the action, none of which a value write changes.
+func (a *App) PropertyPermissionBasisFor(rctx request.CTX, field *model.PropertyField, action, valueTargetID string) PropertyPermissionBasis {
+	basis := PropertyPermissionBasis{Action: action}
+
+	callerID, _ := CallerIDFromRequestContext(rctx)
+	basis.CallerID = callerID
+	if callerID == "" {
+		// §10 fail closed: an unattributable write is recorded as
+		// unattributed, never as allowed by something.
+		return basis
+	}
+
+	if callerID == model.CallerIDLocalAdmin {
+		basis.Unrestricted = true
+		basis.Allowed = true
+		return basis
+	}
+
+	if field == nil || field.Permissions == nil {
+		basis.Legacy = true
+		basis.Allowed = a.legacyPropertyFieldPermission(rctx, callerID, field, action, valueTargetID)
+		return basis
+	}
+
+	// The LDAP and SAML sync services are well-known machine callers that
+	// resolve to a fixed service identity and carry no scope. §2.5 a machine
+	// caller has no human role, so the ladder never applies to it and a
+	// grant is the whole answer.
+	switch callerID {
+	case model.CallerIDLDAPSync:
+		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, model.PropertyFieldAttrLDAP, "", action)
+	case model.CallerIDSAMLSync:
+		return basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypeService, model.PropertyFieldAttrSAML, "", action)
+	}
+
+	// Any other caller ID may be an installed plugin's manifest ID or a human
+	// user ID; the app package has no plugin checker to tell them apart.
+	// Match a plugin grant first — a plugin ID cannot collide with a user ID,
+	// since a plugin grant is only ever written with a manifest ID — and
+	// only fall through to the human decision when none matches, so a
+	// plugin write is never mislabeled as a denied human one.
+	scope := model.PropertyRequestOptionsFromContext(rctx.Context()).ActingAsScope
+	if pluginBasis := basisFromMatchingGrant(basis, field.Permissions, model.PropertyOwnerTypePlugin, callerID, scope, action); pluginBasis.Allowed {
+		return pluginBasis
+	}
+
+	return a.decidePropertyFieldPermission(rctx, callerID, field, action, valueTargetID)
+}
+
+// basisFromMatchingGrant matches callerType/callerID/scope/action against
+// permissions' grants and, on a match, fills basis with it. It returns basis
+// unchanged (denied) when nothing matches.
+func basisFromMatchingGrant(basis PropertyPermissionBasis, permissions *model.Permissions, callerType, callerID, scope, action string) PropertyPermissionBasis {
+	grant := permissions.MatchingGrant(callerType, callerID, scope, action)
+	if grant == nil {
+		return basis
+	}
+	basis.CallerType = callerType
+	basis.GrantID = grant.ID
+	basis.GrantScope = scope
+	basis.GrantWildcard = grant.ID == "*"
+	basis.Allowed = true
 	return basis
 }
 

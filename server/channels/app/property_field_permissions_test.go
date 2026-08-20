@@ -395,3 +395,208 @@ func TestDecidePropertyFieldPermission(t *testing.T) {
 		assert.True(t, basis.Legacy)
 	})
 }
+
+func TestPropertyPermissionBasisFor(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	t.Run("a human caller allowed by a tier names the tier and no grant", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "tier basis",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelEveryone},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, th.BasicUser.Id)
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionFieldWrite, "")
+		assert.True(t, basis.Allowed)
+		assert.Equal(t, model.PermissionLevelEveryone, basis.Tier)
+		assert.Empty(t, basis.GrantID)
+	})
+
+	t.Run("a human caller allowed by a user grant names the grant and no tier", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "user grant basis",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelNone},
+				},
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser.Id},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, th.BasicUser.Id)
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, th.BasicUser.Id)
+		assert.True(t, basis.Allowed)
+		assert.Equal(t, th.BasicUser.Id, basis.GrantID)
+		assert.Empty(t, basis.Tier)
+	})
+
+	t.Run("a plugin caller allowed by a named plugin grant", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "plugin grant basis",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "com.example.plugin"},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, "com.example.plugin")
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
+		assert.True(t, basis.Allowed)
+		assert.Equal(t, model.PropertyOwnerTypePlugin, basis.CallerType)
+		assert.Equal(t, "com.example.plugin", basis.GrantID)
+		assert.False(t, basis.GrantWildcard)
+	})
+
+	t.Run("the same plugin allowed by a wildcard plugin grant", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "wildcard plugin grant basis",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "*"},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, "com.example.other-plugin")
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
+		assert.True(t, basis.Allowed)
+		assert.True(t, basis.GrantWildcard)
+		assert.Equal(t, "*", basis.GrantID)
+	})
+
+	t.Run("an LDAP sync caller allowed by a service grant on ldap", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "ldap sync basis",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueWrite, "")
+		assert.True(t, basis.Allowed)
+		assert.Equal(t, model.PropertyOwnerTypeService, basis.CallerType)
+		assert.Equal(t, model.PropertyFieldAttrLDAP, basis.GrantID)
+	})
+
+	t.Run("a field with no permissions falls back to the legacy columns", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "legacy basis",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, th.BasicUser.Id)
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionValueRead, "")
+		assert.True(t, basis.Legacy)
+		assert.True(t, basis.Allowed)
+	})
+
+	t.Run("a local-mode caller is unrestricted", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "local admin basis",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelSysadmin},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, model.CallerIDLocalAdmin)
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionFieldWrite, "")
+		assert.True(t, basis.Unrestricted)
+		assert.True(t, basis.Allowed)
+		assert.Empty(t, basis.Tier)
+		assert.Empty(t, basis.GrantID)
+	})
+
+	t.Run("an empty caller ID is denied", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "no caller basis",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelEveryone},
+				},
+			},
+		}
+
+		basis := th.App.PropertyPermissionBasisFor(th.Context, field, model.PropertyActionFieldWrite, "")
+		assert.False(t, basis.Allowed)
+	})
+
+	t.Run("no matching grant and no satisfied tier names nothing", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "nothing named basis",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelNone},
+				},
+			},
+		}
+
+		rctx := RequestContextWithCallerID(th.Context, th.BasicUser.Id)
+		basis := th.App.PropertyPermissionBasisFor(rctx, field, model.PropertyActionFieldWrite, "")
+		assert.False(t, basis.Allowed)
+		assert.Empty(t, basis.Tier)
+		assert.Empty(t, basis.GrantID)
+		assert.False(t, basis.Legacy)
+	})
+}
