@@ -6,6 +6,7 @@ package properties
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"maps"
 	"slices"
 
@@ -413,6 +414,50 @@ func (h *AccessControlHook) maskFieldOptions(rctx request.CTX, c maskingContext,
 	filteredField := h.copyPropertyField(field)
 	filteredField.Attrs[model.PropertyFieldAttributeOptions] = filteredOptions
 	return filteredField
+}
+
+// filterMaskedOptionPage keeps the options in one page of a masked field's
+// paged option listing that callerID may see, and strips each kept option's
+// parents. Generalizes filterSharedOnlyGraphOptionPage (access_control.go)
+// off graph-only and access_mode onto every option-supporting type and
+// masking, via visibleOptionIDs -- same page-not-reach framing (judging the
+// page bounds the work to the page size, where building the caller's full
+// reach walks the whole hierarchy), same parent-stripping reasoning (an
+// option's parent is by definition above it, so reporting it would hand a
+// caller who holds an option exactly the name masking withholds).
+//
+// A resolution failure is returned as an error rather than answered with an
+// empty page: every other masking path hides because it has nowhere to put a
+// failure, but a listing does, and an empty page here would be
+// indistinguishable from a field with no options -- exactly the confusion
+// the option rows exist to prevent.
+func (h *AccessControlHook) filterMaskedOptionPage(rctx request.CTX, c maskingContext, field *model.PropertyField, fm fieldMasking, options []*model.PropertyFieldOption, callerID string) ([]*model.PropertyFieldOption, error) {
+	if len(options) == 0 {
+		return []*model.PropertyFieldOption{}, nil
+	}
+
+	pageIDs := make([]string, 0, len(options))
+	for _, option := range options {
+		pageIDs = append(pageIDs, option.ID)
+	}
+
+	visible, err := c.visibleOptionIDs(h, rctx, field, fm, pageIDs, callerID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to establish which of field %s's options the caller may see: %w", field.ID, err)
+	}
+
+	shown := []*model.PropertyFieldOption{}
+	for _, option := range options {
+		if !visible[option.ID] {
+			continue
+		}
+		// See filterSharedOnlyGraphOptionPage for why parents come off: an absent
+		// parents key means "not reported", not "this is a root".
+		copied := *option
+		copied.Parents = nil
+		shown = append(shown, &copied)
+	}
+	return shown, nil
 }
 
 // maskScalarValue applies binary masking to a non-option field's value: the

@@ -370,10 +370,20 @@ func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field 
 	}
 	callerID := h.extractCallerID(rctx)
 	if field.Permissions != nil {
-		if h.permissionsAllows(rctx, field, callerID, h.extractActingAsScope(rctx), model.PropertyActionOptionRead, "") {
+		scope := h.extractActingAsScope(rctx)
+		if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionOptionRead, "") {
+			return []*model.PropertyFieldOption{}, nil
+		}
+
+		c := newMaskingContext()
+		fm, err := c.resolve(h, field)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve field %s's masking: %w", field.ID, err)
+		}
+		if fm.masking == nil || h.exempt(fm.masking.Except, callerID, scope) {
 			return options, nil
 		}
-		return []*model.PropertyFieldOption{}, nil
+		return h.filterMaskedOptionPage(rctx, c, field, fm, options, callerID)
 	}
 	if h.hasUnrestrictedFieldReadAccess(field, callerID) {
 		return options, nil

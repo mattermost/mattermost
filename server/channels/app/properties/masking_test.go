@@ -905,3 +905,275 @@ func TestMaskFieldOptions(t *testing.T) {
 		assert.ElementsMatch(t, []string{"opt_a", "opt_b"}, optionIDsOf(t, retrieved))
 	})
 }
+
+// TestMaskOptionPage covers the paged option listing on a field carrying
+// masking: option.read (stubbed here to always allow a human caller) still
+// gates whether the caller may enumerate at all, and masking decides which
+// options on the page come back. This is a separate gate from
+// TestMaskFieldOptions because the paged listing reads options straight from
+// their own rows and reaches none of the inline-list filtering -- so this
+// generalizes filterSharedOnlyGraphOptionPage off graph-only and access_mode
+// onto every option-supporting type and masking.
+func TestMaskOptionPage(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	alwaysAllow := func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool {
+		return true
+	}
+	th.service.setLadderCheckerForTests(alwaysAllow)
+	t.Cleanup(func() {
+		th.service.setLadderCheckerForTests(nil)
+		th.service.setPluginCheckerForTests(nil)
+	})
+
+	t.Run("graph: the page keeps the options the caller covers, and none of them report parents", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Mask-Page-Graph",
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air Program"},
+					map[string]any{"name": "Fighter Jet Program", "parents": []string{"Air Program"}},
+					map[string]any{"name": "Sea Program"},
+				},
+			},
+			Permissions: &model.Permissions{Masking: &model.Masking{}},
+		})
+		require.NoError(t, err)
+		ids := optionIDsByName(t, field)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, []string{ids["Air Program"]})
+
+		page, err := th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, caller), field, 0, "", 100)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"Air Program", "Fighter Jet Program"}, listedNames(page),
+			"the caller covers Air Program and, through it, Fighter Jet Program -- but not the unrelated Sea Program")
+		for _, option := range page {
+			assert.Nil(t, option.Parents, "a page option must never report what sits above it")
+		}
+	})
+
+	t.Run("select or multiselect: the page keeps only the options the caller holds exactly", func(t *testing.T) {
+		for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeSelect, model.PropertyFieldTypeMultiselect} {
+			t.Run(string(fieldType), func(t *testing.T) {
+				options := []any{
+					map[string]any{"id": "opt_a", "name": "A"},
+					map[string]any{"id": "opt_b", "name": "B"},
+					map[string]any{"id": "opt_c", "name": "C"},
+				}
+				field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "Mask-Page-"+string(fieldType), fieldType, options, &model.Masking{}))
+				require.NoError(t, err)
+
+				caller := model.NewId()
+				var held any = "opt_a"
+				want := []string{"A"}
+				if fieldType == model.PropertyFieldTypeMultiselect {
+					held = []string{"opt_a", "opt_c"}
+					want = []string{"A", "C"}
+				}
+				writeValueDirect(t, th, field.ID, "user", caller, held)
+
+				page, err := th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, caller), field, 0, "", 100)
+				require.NoError(t, err)
+				assert.ElementsMatch(t, want, listedNames(page))
+			})
+		}
+	})
+
+	t.Run("a caller who holds nothing gets an empty page; a plugin listed in except gets the whole page", func(t *testing.T) {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "listed-plugin" })
+		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+
+		options := []any{
+			map[string]any{"id": "opt_a", "name": "A"},
+			map[string]any{"id": "opt_b", "name": "B"},
+		}
+		field := maskedOptionField(th.CPAGroupID, "Mask-Page-Except", model.PropertyFieldTypeSelect, options, &model.Masking{
+			Except: []model.Identity{{Type: model.PropertyOwnerTypePlugin, ID: "listed-plugin"}},
+		})
+		// The plugin still needs option.read to reach the filter at all -- except
+		// only excuses a caller the §2.5 gate already admitted.
+		field.Permissions.Grants = []model.Grant{
+			{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "listed-plugin"}, Allow: []string{model.PropertyActionOptionRead}},
+		}
+		created, err := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, err)
+		field = created
+
+		noHoldingsCaller := model.NewId()
+		page, err := th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, noHoldingsCaller), field, 0, "", 100)
+		require.NoError(t, err)
+		assert.Empty(t, page, "a caller holding nothing for the field is shown no options")
+
+		page, err = th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, "listed-plugin"), field, 0, "", 100)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"A", "B"}, listedNames(page), "an except entry receives the page unfiltered")
+	})
+
+	t.Run("two consecutive pages of one listing are filtered against the same holdings", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Mask-Page-Paged",
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air Program"},
+					map[string]any{"name": "Fighter Jet Program", "parents": []string{"Air Program"}},
+					map[string]any{"name": "F-18 Program", "parents": []string{"Fighter Jet Program"}},
+					map[string]any{"name": "Sea Program"},
+				},
+			},
+			Permissions: &model.Permissions{Masking: &model.Masking{}},
+		})
+		require.NoError(t, err)
+		ids := optionIDsByName(t, field)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, []string{ids["Fighter Jet Program"]})
+
+		full, err := th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, caller), field, 0, "", 100)
+		require.NoError(t, err)
+
+		var pagedNames []string
+		var cursorCreateAt int64
+		var cursorID string
+		for {
+			page, err := th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, caller), field, cursorCreateAt, cursorID, 1)
+			require.NoError(t, err)
+			if len(page) == 0 {
+				break
+			}
+			require.Len(t, page, 1, "a page never holds more than the size asked for")
+			pagedNames = append(pagedNames, page[0].Name)
+			cursorCreateAt, cursorID = page[0].CreateAt, page[0].ID
+			require.LessOrEqual(t, len(pagedNames), 4, "the listing has to end")
+		}
+
+		assert.ElementsMatch(t, listedNames(full), pagedNames,
+			"paging one option at a time reaches exactly what one big page does, filtered against the same holdings each time")
+	})
+
+	t.Run("a resolution failure returns an error rather than an empty page", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Mask-Page-Failure",
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air Program"},
+				},
+			},
+			Permissions: &model.Permissions{Masking: &model.Masking{}},
+		})
+		require.NoError(t, err)
+		ids := optionIDsByName(t, field)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, []string{ids["Air Program"]})
+
+		original := th.service.fieldStore
+		th.service.fieldStore = &erroringAncestorsFieldStore{PropertyFieldStore: original}
+		t.Cleanup(func() { th.service.fieldStore = original })
+
+		_, err = th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, caller), field, 0, "", 100)
+		require.Error(t, err, "a listing has somewhere to put a resolution failure, unlike every other masking path")
+	})
+
+	t.Run("the option.read gate refusing the caller still serves no options, and masking is never consulted", func(t *testing.T) {
+		th.service.setLadderCheckerForTests(func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool {
+			return false
+		})
+		t.Cleanup(func() { th.service.setLadderCheckerForTests(alwaysAllow) })
+
+		options := []any{map[string]any{"id": "opt_a", "name": "A"}}
+		field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "Mask-Page-Denied", model.PropertyFieldTypeSelect, options, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, "opt_a")
+
+		page, err := th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, caller), field, 0, "", 100)
+		require.NoError(t, err)
+		assert.Empty(t, page)
+	})
+
+	t.Run("acceptance: on a linked graph channel field, the options a channel admin may page from match the values they may read", func(t *testing.T) {
+		template, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Mask-Picker-Template",
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air Program"},
+					map[string]any{"name": "Fighter Jet Program", "parents": []string{"Air Program"}},
+					map[string]any{"name": "F-18 Program", "parents": []string{"Fighter Jet Program"}},
+					map[string]any{"name": "Sea Program"},
+				},
+			},
+		})
+		require.NoError(t, err)
+		ids := optionIDsByName(t, template)
+
+		// holdings is a user-object field linked to the same template, so its
+		// option IDs are the template's -- what an admin holds here and what the
+		// linked channel field's values name are the same identifiers.
+		holdings, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Mask-Picker-Holdings",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+		})
+		require.NoError(t, err)
+
+		template.Permissions = &model.Permissions{Masking: &model.Masking{MaskByFieldID: holdings.ID}}
+		updated, err := th.dbStore.PropertyField().Update(template.GroupID, []*model.PropertyField{template}, nil)
+		require.NoError(t, err)
+		template = updated[0]
+
+		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Mask-Picker-Linked",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			// A linked field's masking is locked to its template (divergence 1),
+			// but it still needs its own (masking-empty) Permissions object for
+			// the §2.5 gate to run at all -- a nil Permissions falls through to
+			// the legacy access_mode path instead.
+			Permissions:   &model.Permissions{},
+			LinkedFieldID: &template.ID,
+		})
+		require.NoError(t, err)
+
+		admin := model.NewId()
+		writeValueDirect(t, th, holdings.ID, "user", admin, []string{ids["Fighter Jet Program"]})
+
+		channelID := model.NewId()
+		covered := writeValueDirect(t, th, linked.ID, "channel", channelID, []string{ids["F-18 Program"]})
+		uncovered := writeValueDirect(t, th, linked.ID, "channel", model.NewId(), []string{ids["Sea Program"]})
+
+		page, err := th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, admin), linked, 0, "", 100)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"Fighter Jet Program", "F-18 Program"}, listedNames(page),
+			"the picker offers exactly the programs the admin's own holdings cover")
+
+		retrieved, err := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, admin), th.CPAGroupID, covered.ID)
+		require.NoError(t, err)
+		assert.NotNil(t, retrieved, "a value naming an option the picker offered must itself be readable")
+
+		retrieved, err = th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, admin), th.CPAGroupID, uncovered.ID)
+		require.NoError(t, err)
+		assert.Nil(t, retrieved, "the picker withheld Sea Program, so a value naming it must be withheld too")
+	})
+}
