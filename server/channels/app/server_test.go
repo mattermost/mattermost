@@ -566,3 +566,48 @@ func TestOriginChecker(t *testing.T) {
 		require.Equalf(t, tc.Pass, res, "Test case (%d)", i)
 	}
 }
+
+func TestEmailBatchingSettingChanged(t *testing.T) {
+	t.Parallel()
+
+	cfg := func(enabled bool) *model.Config {
+		c := &model.Config{}
+		c.EmailSettings.EnableEmailBatching = model.NewPointer(enabled)
+		return c
+	}
+
+	tests := []struct {
+		name     string
+		oldCfg   *model.Config
+		newCfg   *model.Config
+		expected bool
+	}{
+		{name: "nil old config", oldCfg: nil, newCfg: cfg(true), expected: true},
+		{name: "nil new config", oldCfg: cfg(true), newCfg: nil, expected: true},
+		{name: "unchanged disabled", oldCfg: cfg(false), newCfg: cfg(false), expected: false},
+		{name: "unchanged enabled", oldCfg: cfg(true), newCfg: cfg(true), expected: false},
+		{name: "enabled", oldCfg: cfg(false), newCfg: cfg(true), expected: true},
+		{name: "disabled", oldCfg: cfg(true), newCfg: cfg(false), expected: true},
+		{
+			name: "push notification server change is ignored",
+			oldCfg: func() *model.Config {
+				c := cfg(false)
+				c.EmailSettings.PushNotificationServer = model.NewPointer(model.MHPNSGlobal)
+				return c
+			}(),
+			newCfg: func() *model.Config {
+				c := cfg(false)
+				c.EmailSettings.PushNotificationServer = model.NewPointer(model.GenericNotificationServer)
+				return c
+			}(),
+			expected: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tc.expected, emailBatchingSettingChanged(tc.oldCfg, tc.newCfg))
+		})
+	}
+}
