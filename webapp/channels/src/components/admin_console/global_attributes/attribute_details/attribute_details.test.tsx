@@ -628,9 +628,10 @@ describe('AttributeDetails', () => {
 
     it('does not navigate or update state if the save resolves after the component has unmounted', async () => {
         let resolveCreate: (value: PropertyField) => void = () => {};
-        jest.spyOn(Client4, 'createPropertyField').mockReturnValue(new Promise((resolve) => {
+        const createPromise = new Promise<PropertyField>((resolve) => {
             resolveCreate = resolve;
-        }));
+        });
+        jest.spyOn(Client4, 'createPropertyField').mockReturnValue(createPromise);
 
         const {unmount} = renderComponent();
         await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
@@ -639,9 +640,11 @@ describe('AttributeDetails', () => {
         unmount();
         resolveCreate({} as PropertyField);
 
-        // Flush the resolved promise's continuation without triggering an
-        // act() warning or a post-unmount navigation/dispatch.
-        await waitFor(() => Promise.resolve());
+        // Await the hanging create, then one extra tick so handleSave's
+        // await resumes and finalizeSave runs -- waitFor(() => Promise.resolve())
+        // returns on the first check and can pass before the mount guard.
+        await createPromise;
+        await Promise.resolve();
         expect(mockHistoryPush).not.toHaveBeenCalled();
         expect(mockSetNavigationBlocked).not.toHaveBeenCalledWith(false);
     });
@@ -1060,11 +1063,12 @@ describe('AttributeDetails', () => {
             // load-bearing: without the guard in finalizeSave, both WOULD be
             // called once the pending create resolves post-unmount.
             let resolveUserCreate: (value: PropertyField) => void = () => {};
+            const userCreatePromise = new Promise<PropertyField>((resolve) => {
+                resolveUserCreate = resolve;
+            });
             jest.spyOn(Client4, 'createPropertyField').
                 mockResolvedValueOnce({id: 'template-id'} as PropertyField).
-                mockReturnValueOnce(new Promise((resolve) => {
-                    resolveUserCreate = resolve;
-                }));
+                mockReturnValueOnce(userCreatePromise);
 
             const {unmount} = renderComponent();
             await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
@@ -1074,9 +1078,11 @@ describe('AttributeDetails', () => {
             unmount();
             resolveUserCreate({id: 'user-field-id'} as PropertyField);
 
-            // Flush the resolved promise's continuation without triggering an
-            // act() warning or a post-unmount navigation/dispatch.
-            await waitFor(() => Promise.resolve());
+            // Await the hanging create, then one extra tick so handleSave's
+            // await resumes and finalizeSave runs -- waitFor(() => Promise.resolve())
+            // returns on the first check and can pass before the mount guard.
+            await userCreatePromise;
+            await Promise.resolve();
             expect(mockHistoryPush).not.toHaveBeenCalled();
             expect(mockSetNavigationBlocked).not.toHaveBeenCalledWith(false);
         });
