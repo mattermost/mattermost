@@ -37,7 +37,7 @@ RUN mkdir -p /var/tmp \
   && chmod 755 /var/tmp
 
 # Final stage using FIPS runtime image
-FROM cgr.dev/mattermost.com/glibc-openssl-fips:15@sha256:7947eecc0d82fa3bc661aaca039bcd86d55fdf3ee581c8ecdef1b3c6f63fa83a
+FROM cgr.dev/mattermost.com/glibc-openssl-fips:16@sha256:a636adba740bb6a53e55c14f7deb979802bcff2203f4aaecfe6f1d159cdfe3a1
 
 # Some ENV variables
 ENV PATH="/mattermost/bin:${PATH}"
