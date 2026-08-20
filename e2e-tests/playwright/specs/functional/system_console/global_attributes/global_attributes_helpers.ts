@@ -87,6 +87,28 @@ export async function deleteGlobalAttributeFieldIfExists(adminClient: Client4, n
 }
 
 /**
+ * Best-effort cleanup for an Applies-to save: delete linked fields first
+ * (looked up from the live template, not from the test's success-path locals)
+ * so the template delete is not 409'd by leftover dependents.
+ */
+export async function deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient: Client4, name: string) {
+    try {
+        const templates = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, TARGET_TYPE, undefined, {
+            perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
+        });
+        for (const template of templates.filter((field) => field.name === name && field.delete_at === 0)) {
+            const linked = await fetchLinkedFieldsForTemplate(adminClient, template.id);
+            for (const field of linked) {
+                await deleteLinkedDependentField(adminClient, field.id, field.object_type as ResourceObjectType);
+            }
+        }
+    } catch {
+        // Listing may fail if the flag is off; still try the template delete below.
+    }
+    await deleteGlobalAttributeFieldIfExists(adminClient, name);
+}
+
+/**
  * Creates an access_control/template property field (the same group/object type/target
  * this ticket's table lists) for E2E seeding. Ensures a clean slate first so reruns don't
  * collide with a field left over from a prior failed run.

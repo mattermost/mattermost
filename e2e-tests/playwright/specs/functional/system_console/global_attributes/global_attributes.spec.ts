@@ -24,6 +24,7 @@ import {
     GLOBAL_ATTRIBUTES_ADMIN_PATH,
     createGlobalAttributeField,
     createLinkedDependentField,
+    deleteAppliesToAttributeAndLinkedFieldsIfExists,
     deleteGlobalAttributeFieldIfExists,
     deleteLinkedDependentField,
     fetchLinkedFieldsForTemplate,
@@ -1226,7 +1227,6 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             const displayName = `Playwright Applies To ${timestamp}`;
             const expectedName = `playwright_applies_to_${timestamp}`;
 
-            let linkedFields: PropertyField[] = [];
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
                 await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
@@ -1256,7 +1256,7 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 const templateField = templateFields.find((f) => f.name === expectedName && f.delete_at === 0);
                 expect(templateField).toBeDefined();
 
-                linkedFields = await fetchLinkedFieldsForTemplate(adminClient, templateField!.id);
+                const linkedFields = await fetchLinkedFieldsForTemplate(adminClient, templateField!.id);
                 expect(linkedFields).toHaveLength(2);
 
                 const userField = linkedFields.find((f) => f.object_type === 'user');
@@ -1269,10 +1269,7 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                     expect(field.attrs?.display_name).toBe(displayName);
                 }
             } finally {
-                for (const field of linkedFields) {
-                    await deleteLinkedDependentField(adminClient, field.id, field.object_type as ResourceObjectType);
-                }
-                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, expectedName);
             }
         });
 
@@ -1287,7 +1284,6 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             const displayName = `Playwright Applies To Retry ${timestamp}`;
             const expectedName = `playwright_applies_to_retry_${timestamp}`;
 
-            let linkedFields: PropertyField[] = [];
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
                 await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
@@ -1367,13 +1363,10 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 );
                 expect(templateField).toBeDefined();
 
-                linkedFields = await fetchLinkedFieldsForTemplate(adminClient, templateField!.id);
+                const linkedFields = await fetchLinkedFieldsForTemplate(adminClient, templateField!.id);
                 expect(linkedFields).toHaveLength(3);
             } finally {
-                for (const field of linkedFields) {
-                    await deleteLinkedDependentField(adminClient, field.id, field.object_type as ResourceObjectType);
-                }
-                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, expectedName);
             }
         });
     });

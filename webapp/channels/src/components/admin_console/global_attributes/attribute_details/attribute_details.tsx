@@ -185,18 +185,24 @@ async function rollbackLinkedFields(
     try {
         await deleteAttributeField(templateFieldId);
     } catch (deleteTemplateError) {
-        // Every linked field was rolled back, but the template itself
-        // couldn't be deleted -- nothing more can be done client-side, and
-        // there's no dedicated banner for this narrower case (see the plan's
-        // Decisions table), so it falls through to the same outcome as a
-        // clean rollback below. Logged so this isn't a fully silent failure:
-        // a retry will surface the leftover template as a name_conflict,
-        // which this log at least gives a paper trail for.
+        // Linked fields are gone, but the template is still on the server.
+        // A retry under the same Unique name will conflict with it, so this
+        // is the same class of leftover as a linked-field that wouldn't
+        // delete -- not "nothing was saved".
         // eslint-disable-next-line no-console
         console.error('Failed to delete orphaned attribute template after rolling back its linked fields', deleteTemplateError);
+        return {
+            success: false,
+            errorKind: 'applies_to_rollback_failed',
+            serverErrorMessage: null,
+            failedResourceTypes: [],
+        };
     }
 
-    const cpaErrorKind = appliesToErrorKindFromError(creationError);
+    // CPA name-conflict / cap banners only make sense for a Users-linked
+    // field (that namespace is shared with Custom Profile Attributes).
+    // Channels/Posts use the generic applies-to-failed copy.
+    const cpaErrorKind = failedType === 'user' ? appliesToErrorKindFromError(creationError) : null;
     return {
         success: false,
         errorKind: cpaErrorKind ?? 'applies_to_failed',
@@ -591,10 +597,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     if (errorKind === 'applies_to_failed') {
         errorContent = formatMessage(errorMessages.applies_to_failed, {resources: resourceTypeListLabel(failedResourceTypes ?? [], formatMessage)});
     } else if (errorKind === 'applies_to_rollback_failed') {
-        errorContent = formatMessage(errorMessages.applies_to_rollback_failed, {
+        const resources = resourceTypeListLabel(failedResourceTypes ?? [], formatMessage);
+        errorContent = resources ? formatMessage(errorMessages.applies_to_rollback_failed, {
             name: displayName,
-            resources: resourceTypeListLabel(failedResourceTypes ?? [], formatMessage),
-        });
+            resources,
+        }) : formatMessage(errorMessages.applies_to_template_rollback_failed, {name: displayName});
     } else if (errorKind === 'name_conflict' && serverErrorMessage) {
         errorContent = serverErrorMessage;
     } else if (errorKind) {
@@ -986,6 +993,10 @@ const errorMessages = defineMessages({
     applies_to_rollback_failed: {
         id: 'admin.global_attributes.attribute_details.save_error.applies_to_rollback_failed',
         defaultMessage: '"{name}" may have been partially created for {resources}. A retry under the same name will likely fail until those are cleaned up.',
+    },
+    applies_to_template_rollback_failed: {
+        id: 'admin.global_attributes.attribute_details.save_error.applies_to_template_rollback_failed',
+        defaultMessage: '"{name}" was created but could not be cleaned up after a failed apply. A retry under the same name will likely fail until it is deleted.',
     },
     applies_to_name_conflict: {
         id: 'admin.global_attributes.attribute_details.save_error.applies_to_name_conflict',

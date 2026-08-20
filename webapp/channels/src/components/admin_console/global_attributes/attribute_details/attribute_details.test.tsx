@@ -922,6 +922,44 @@ describe('AttributeDetails', () => {
             expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'template-id');
         });
 
+        it('renders the generic applies-to banner for a Channels-linked-field name conflict, not the CPA copy', async () => {
+            const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+            jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockRejectedValueOnce(makeClientError('app.property_field.create.name_conflict.app_error', 'server message'));
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Channels', 'channel');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            const banner = await screen.findByTestId('attributeSaveError');
+            expect(banner).toHaveTextContent('Channels');
+            expect(banner).toHaveTextContent('Nothing was saved');
+            expect(banner).not.toHaveTextContent('User Attribute');
+            expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'template-id');
+        });
+
+        it('reports the leftover template when linked-field rollback succeeds but the template delete fails', async () => {
+            jest.spyOn(console, 'error').mockImplementation(() => {});
+            jest.spyOn(Client4, 'deletePropertyField').mockRejectedValue(new Error('template delete failed'));
+            jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockRejectedValueOnce(new Error('boom'));
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Channels', 'channel');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            const banner = await screen.findByTestId('attributeSaveError');
+            expect(banner).toHaveTextContent('My Attribute');
+            expect(banner).toHaveTextContent('could not be cleaned up');
+            expect(banner).not.toHaveTextContent('Nothing was saved');
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+        });
+
         it('leaves Save enabled with zero Applies-to resources selected (unchanged from current behavior)', async () => {
             jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({id: 'template-id'} as PropertyField);
 

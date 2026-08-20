@@ -1491,6 +1491,7 @@
   "admin.global_attributes.attribute_details.save_error.applies_to_limit_reached": "The maximum number of User Attributes has been reached. Delete an existing one before applying this attribute to Users.",
   "admin.global_attributes.attribute_details.save_error.applies_to_name_conflict": "This name is already used by a User Attribute. Please choose a different name.",
   "admin.global_attributes.attribute_details.save_error.applies_to_rollback_failed": "\"{name}\" may have been partially created for {resources}. A retry under the same name will likely fail until those are cleaned up.",
+  "admin.global_attributes.attribute_details.save_error.applies_to_template_rollback_failed": "\"{name}\" was created but could not be cleaned up after a failed apply. A retry under the same name will likely fail until it is deleted.",
   "admin.global_attributes.attribute_details.save_error.generic": "Something went wrong while saving this attribute. Please try again.",
   "admin.global_attributes.attribute_details.save_error.invalid_charset": "Name must start with a letter or underscore, and contain only letters, numbers, and underscores.",
   "admin.global_attributes.attribute_details.save_error.invalid_options": "There's a problem with one or more options — check for a duplicate or overly long name, or a missing/duplicate rank, then try again.",
