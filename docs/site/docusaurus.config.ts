@@ -172,8 +172,8 @@ const config: Config = {
     [
       '@docusaurus/plugin-client-redirects',
       {
-        // Legacy URL → migrated MDX path. Pre-filtered to entries whose
-        // target exists, so the build never breaks on a missing target.
+        // Legacy URL → migrated MDX path. Only activeRedirects.redirects is
+        // pre-filtered to entries whose targets exist.
         redirects: [...activeRedirects.redirects, ...developerRedirects],
       },
     ],
