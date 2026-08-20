@@ -1527,4 +1527,139 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             }
         });
     });
+
+    test.describe('edit attribute', () => {
+        /**
+         * @objective Opening Edit on a managed attribute prefills the Definition form and Save
+         * PATCHes the existing template rather than creating a second one.
+         */
+        test('opens an existing attribute, PATCHes a display-name change, and shows it in the list', async ({
+            pw,
+        }) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_edit_${timestamp}`;
+            const displayName = `Playwright Edit ${timestamp}`;
+            const updatedDisplayName = `${displayName} Updated`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+
+                await expect(page).toHaveURL(new RegExp(`attribute_details/${field.id}$`));
+                await expect(page.getByRole('heading', {name: 'Edit attribute'})).toBeVisible();
+                await expect(page.getByTestId('attributeDisplayNameInput')).toHaveValue(displayName);
+                await expect(page.getByTestId('attributeUniqueNameValue')).toHaveText(name);
+
+                await page.getByTestId('attributeDisplayNameInput').fill(updatedDisplayName);
+                await page.getByTestId('saveSetting').click();
+
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+                await expect(page.getByTestId('global-attribute-name').filter({hasText: updatedDisplayName})).toBeVisible();
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Type is locked while a persisted Applies-to resource is on the form.
+         * Remove is local until Save, which DELETEs the linked field and leaves the template.
+         */
+        test('locks Type while a resource is applied, and Save deletes a removed linked field', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_edit_remove_${timestamp}`;
+            const displayName = `Playwright Remove ${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+                await createLinkedDependentField(adminClient, name, field.id, 'text', 'user');
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+
+                await expect(page.getByTestId('attributeAppliesToRow-user')).toBeVisible();
+                await expect(page.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+
+                await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+                await page.getByTestId('attributeAppliesToRow-user-remove').click();
+                await expect(page.getByTestId('attributeAppliesToRow-user')).toHaveCount(0);
+                await expect(page.getByTestId('attributeTypeMenuButton')).toBeEnabled();
+
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                const remaining = await fetchLinkedFieldsForTemplate(adminClient, field.id);
+                expect(remaining).toHaveLength(0);
+                const templates = await adminClient.getPropertyFields('access_control', 'template', 'system', undefined, {
+                    perPage: 200,
+                });
+                expect(templates.some((template) => template.id === field.id && template.delete_at === 0)).toBe(true);
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Removing then re-adding the same resource before Save must not delete the
+         * persisted linked field (and therefore must not wipe stored values).
+         */
+        test('does not delete a linked field that is removed then re-added before Save', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_edit_readd_${timestamp}`;
+            const displayName = `Playwright Readd ${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+                const linked = await createLinkedDependentField(adminClient, name, field.id, 'text', 'user');
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+
+                await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+                await page.getByTestId('attributeAppliesToRow-user-remove').click();
+                await expect(page.getByTestId('attributeAppliesToRow-user')).toHaveCount(0);
+
+                await page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+                await page.getByRole('menuitem', {name: 'Users'}).click();
+                await expect(page.getByTestId('attributeAppliesToRow-user')).toBeVisible();
+
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                const remaining = await fetchLinkedFieldsForTemplate(adminClient, field.id);
+                expect(remaining).toHaveLength(1);
+                expect(remaining[0].id).toBe(linked.id);
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+    });
 });

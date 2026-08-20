@@ -5,7 +5,16 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {createAttributeField, createLinkedAttributeField, deleteAttributeField, deleteLinkedAttributeField} from './utils';
+import {
+    createAttributeField,
+    createLinkedAttributeField,
+    deleteAttributeField,
+    deleteLinkedAttributeField,
+    fetchAttributeField,
+    fetchLinkedFieldsForTemplate,
+    linkedFieldsByResourceType,
+    updateAttributeField,
+} from './utils';
 
 describe('global_attributes/utils', () => {
     describe('createAttributeField', () => {
@@ -241,6 +250,124 @@ describe('global_attributes/utils', () => {
             await deleteLinkedAttributeField('post', 'field-id');
 
             expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'post', 'field-id');
+        });
+    });
+
+    describe('updateAttributeField', () => {
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('PATCHes the template and keeps option ids, sending null ldap/saml to unlink', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('field-id', {
+                name: 'renamed',
+                type: 'select',
+                displayName: 'Renamed',
+                options: [{id: 'opt-1', name: 'Engineering'}, {id: '', name: 'Sales'}],
+                ldapAttr: '',
+                samlAttr: '',
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id', {
+                name: 'renamed',
+                type: 'select',
+                attrs: {
+                    display_name: 'Renamed',
+                    options: [{id: 'opt-1', name: 'Engineering'}, {id: '', name: 'Sales'}],
+                    ldap: null,
+                    saml: null,
+                },
+            });
+        });
+
+        it('omits name when it is not in the patch, and sends options: null for text', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('field-id', {
+                type: 'text',
+                displayName: 'Cost center',
+                options: [{id: 'opt-1', name: ' leftover '}],
+                ldapAttr: 'department',
+                samlAttr: '',
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id', {
+                type: 'text',
+                attrs: {
+                    display_name: 'Cost center',
+                    options: null,
+                    ldap: 'department',
+                    saml: null,
+                },
+            });
+        });
+    });
+
+    describe('fetchAttributeField', () => {
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('returns the matching live template field and ignores deleted ones', async () => {
+            const live = {id: 'field-1', delete_at: 0} as PropertyField;
+            jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([
+                {id: 'field-1', delete_at: 1} as PropertyField,
+                live,
+            ]);
+
+            await expect(fetchAttributeField('field-1')).resolves.toBe(live);
+        });
+
+        it('returns undefined when the id is not in the page', async () => {
+            jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([{id: 'other', delete_at: 0} as PropertyField]);
+
+            await expect(fetchAttributeField('field-1')).resolves.toBeUndefined();
+        });
+    });
+
+    describe('fetchLinkedFieldsForTemplate', () => {
+        beforeEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('queries user, channel, and post and keeps fields pointing at the template', async () => {
+            const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'user') {
+                    return Promise.resolve([
+                        {id: 'u1', object_type: 'user', linked_field_id: 'template-id', delete_at: 0} as PropertyField,
+                        {id: 'u2', object_type: 'user', linked_field_id: 'other', delete_at: 0} as PropertyField,
+                    ]);
+                }
+                if (objectType === 'channel') {
+                    return Promise.resolve([
+                        {id: 'c1', object_type: 'channel', linked_field_id: 'template-id', delete_at: 0} as PropertyField,
+                    ]);
+                }
+                return Promise.resolve([]);
+            });
+
+            const fields = await fetchLinkedFieldsForTemplate('template-id');
+
+            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', 'system', undefined, expect.objectContaining({perPage: 200}));
+            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', 'system', undefined, expect.objectContaining({perPage: 200}));
+            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'post', 'system', undefined, expect.objectContaining({perPage: 200}));
+            expect(fields.map((field) => field.id)).toEqual(['u1', 'c1']);
+        });
+    });
+
+    describe('linkedFieldsByResourceType', () => {
+        it('indexes the first live field per resource object type', () => {
+            const byType = linkedFieldsByResourceType([
+                {id: 'u1', object_type: 'user'} as PropertyField,
+                {id: 'u2', object_type: 'user'} as PropertyField,
+                {id: 'c1', object_type: 'channel'} as PropertyField,
+            ]);
+
+            expect(byType.user?.id).toBe('u1');
+            expect(byType.channel?.id).toBe('c1');
+            expect(byType.post).toBeUndefined();
         });
     });
 });

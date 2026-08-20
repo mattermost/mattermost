@@ -25,6 +25,13 @@ import type {GlobalState} from 'types/store';
 
 import GlobalAttributesTable, {getDisplayName, getSourceIcon, getSourceKind, getTypeIcon, isClassificationMarkingsField} from './global_attributes_table';
 
+const mockHistoryPush = jest.fn();
+jest.mock('utils/browser_history', () => ({
+    getHistory: () => ({
+        push: mockHistoryPush,
+    }),
+}));
+
 // The server keys every field under a real group UUID that differs from the
 // group name ('access_control'); fixtures mirror that so the resolve-by-name
 // path is exercised, matching the pattern used by the session_attributes tests.
@@ -112,6 +119,7 @@ describe('GlobalAttributesTable', () => {
 
     beforeEach(() => {
         getPropertyFields.mockReset();
+        mockHistoryPush.mockReset();
     });
 
     it('shows the loading state before fields resolve', async () => {
@@ -457,7 +465,7 @@ describe('GlobalAttributesTable', () => {
     });
 
     describe('Actions column', () => {
-        it('opens the menu with Edit/Duplicate still visibly disabled and Delete enabled', async () => {
+        it('opens the menu with Edit enabled for a managed field, Duplicate still stubbed, and Delete enabled', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField()]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
@@ -479,16 +487,36 @@ describe('GlobalAttributesTable', () => {
             expect(duplicate).toBeDefined();
             expect(del).toBeDefined();
 
-            expect(edit!).toHaveAttribute('aria-disabled', 'true');
+            expect(edit!).not.toHaveAttribute('aria-disabled', 'true');
+            expect(edit!).not.toHaveTextContent('Coming soon');
             expect(duplicate!).toHaveAttribute('aria-disabled', 'true');
-
-            // * Each still-stubbed item explains why, rather than silently doing nothing
-            expect(edit!).toHaveTextContent('Coming soon');
             expect(duplicate!).toHaveTextContent('Coming soon');
 
             // * Delete is live now, so it carries neither the disabled state nor the stub label
             expect(del!).not.toHaveAttribute('aria-disabled', 'true');
             expect(del!).not.toHaveTextContent('Coming soon');
+
+            await userEvent.click(edit!);
+            expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details/field-1');
+        });
+
+        it('keeps Edit as Coming soon on a plugin-owned row', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField({
+                attrs: {source_plugin_id: 'com.example.plugin', protected: true},
+            })]).mockResolvedValue([]);
+
+            const state = getBaseState();
+            state.entities!.admin = {
+                pluginStatuses: {'com.example.plugin': {id: 'com.example.plugin'}},
+            } as EntitiesPartial['admin'];
+
+            renderWithContext(<GlobalAttributesTable/>, state);
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+
+            const edit = screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Edit attribute'));
+            expect(edit).toHaveAttribute('aria-disabled', 'true');
+            expect(edit).toHaveTextContent('Coming soon');
         });
     });
 
