@@ -510,96 +510,93 @@ func (a *App) HasPermissionToChannelMemberCount(rctx request.CTX, userID string,
 }
 
 // SessionHasPermissionToEditPropertyField checks if the session has permission to edit the field definition.
-// Returns false if the field is nil, protected, or if PermissionField is nil (legacy fields).
+// Returns false if the field is nil, protected on an unmigrated field, or if the field carries no permission
+// configuration at all (an unmigrated field with neither Permissions nor PermissionField set).
 func (a *App) SessionHasPermissionToEditPropertyField(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
 	if field == nil {
 		return false
 	}
-	if field.Protected {
+	// Protected denies unconditionally only on an unmigrated field: once
+	// converted, the cutover mapping has already encoded an equivalent
+	// restriction, and Protected's bool value on that field is inert.
+	if field.Protected && field.Permissions == nil {
 		return false
 	}
-	if field.PermissionField == nil {
+	if field.Permissions == nil && field.PermissionField == nil {
 		return false
 	}
 	if session.IsUnrestricted() {
+		// Bypasses the decision itself: a local-mode session has no user
+		// identity to resolve a tier or grant against.
 		return true
 	}
-	return a.hasPropertyFieldPermissionLevel(rctx, session.UserId, field, *field.PermissionField)
+	return a.decidePropertyFieldPermission(rctx, session.UserId, field, model.PropertyActionFieldWrite, "").Allowed
 }
 
 // SessionHasPermissionToSetPropertyFieldValues checks if the session has
 // permission to set the given value on the field. The valueTargetID is the
 // specific object the value is attached to (the channel/post/user/team ID
 // for that ObjectType); admin and member levels are evaluated against it.
-// Returns false if the field is nil or if PermissionValues is nil (legacy fields).
+// Returns false if the field is nil or if the field carries no permission
+// configuration at all (an unmigrated field with neither Permissions nor
+// PermissionValues set).
 func (a *App) SessionHasPermissionToSetPropertyFieldValues(rctx request.CTX, session model.Session, field *model.PropertyField, valueTargetID string) bool {
 	if field == nil {
 		return false
 	}
-	if field.PermissionValues == nil {
+	if field.Permissions == nil && field.PermissionValues == nil {
 		return false
 	}
 	if session.IsUnrestricted() {
 		return true
 	}
-	return a.hasPropertyFieldValuePermissionLevel(rctx, session.UserId, field, valueTargetID, *field.PermissionValues)
+	return a.decidePropertyFieldPermission(rctx, session.UserId, field, model.PropertyActionValueWrite, valueTargetID).Allowed
 }
 
 // SessionHasPermissionToManagePropertyFieldOptions checks if the session has permission to manage field options.
-// Returns false if the field is nil or if PermissionOptions is nil (legacy fields).
+// Returns false if the field is nil or if the field carries no permission configuration at all (an unmigrated
+// field with neither Permissions nor PermissionOptions set).
 func (a *App) SessionHasPermissionToManagePropertyFieldOptions(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
 	if field == nil {
 		return false
 	}
-	if field.PermissionOptions == nil {
+	if field.Permissions == nil && field.PermissionOptions == nil {
 		return false
 	}
 	if session.IsUnrestricted() {
 		return true
 	}
-	return a.hasPropertyFieldPermissionLevel(rctx, session.UserId, field, *field.PermissionOptions)
+	return a.decidePropertyFieldPermission(rctx, session.UserId, field, model.PropertyActionOptionWrite, "").Allowed
 }
 
 // HasPermissionToEditPropertyField checks if the user has permission to edit the field definition.
-// Returns false if the field is nil, protected, userID is empty, or if PermissionField is nil (legacy fields).
+// Returns false if the field is nil or userID is empty.
 func (a *App) HasPermissionToEditPropertyField(rctx request.CTX, userID string, field *model.PropertyField) bool {
 	if field == nil || userID == "" {
 		return false
 	}
-	if field.Protected {
-		return false
-	}
-	if field.PermissionField == nil {
-		return false
-	}
-	return a.hasPropertyFieldPermissionLevel(rctx, userID, field, *field.PermissionField)
+	return a.decidePropertyFieldPermission(rctx, userID, field, model.PropertyActionFieldWrite, "").Allowed
 }
 
 // HasPermissionToSetPropertyFieldValues checks if the user has permission to
 // set the given value on the field. The valueTargetID is the specific object
 // the value is attached to (the channel/post/user/team ID for that
 // ObjectType); admin and member levels are evaluated against it.
-// Returns false if the field is nil, userID is empty, or if PermissionValues is nil (legacy fields).
+// Returns false if the field is nil or userID is empty.
 func (a *App) HasPermissionToSetPropertyFieldValues(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
 	if field == nil || userID == "" {
 		return false
 	}
-	if field.PermissionValues == nil {
-		return false
-	}
-	return a.hasPropertyFieldValuePermissionLevel(rctx, userID, field, valueTargetID, *field.PermissionValues)
+	return a.decidePropertyFieldPermission(rctx, userID, field, model.PropertyActionValueWrite, valueTargetID).Allowed
 }
 
 // HasPermissionToManagePropertyFieldOptions checks if the user has permission to manage field options.
-// Returns false if the field is nil, userID is empty, or if PermissionOptions is nil (legacy fields).
+// Returns false if the field is nil or userID is empty.
 func (a *App) HasPermissionToManagePropertyFieldOptions(rctx request.CTX, userID string, field *model.PropertyField) bool {
 	if field == nil || userID == "" {
 		return false
 	}
-	if field.PermissionOptions == nil {
-		return false
-	}
-	return a.hasPropertyFieldPermissionLevel(rctx, userID, field, *field.PermissionOptions)
+	return a.decidePropertyFieldPermission(rctx, userID, field, model.PropertyActionOptionWrite, "").Allowed
 }
 
 // hasPropertyFieldPermissionLevel checks if the user has the specified permission level for the field.

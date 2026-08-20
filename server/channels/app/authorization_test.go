@@ -2594,3 +2594,117 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostMember(t *testing.T) {
 	// Non-author who is also a channel member can set the value.
 	assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, nonAuthorSession, field, post.Id))
 }
+
+// TestPropertyFieldPermissionEntryPointsUseDecision covers the migrated
+// (Permissions-populated) path through the six entry points, one case per
+// action rather than one per function — the legacy path is already covered
+// by every other case in this file, none of which sets Permissions.
+func TestPropertyFieldPermissionEntryPointsUseDecision(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	t.Run("field.write admin tier allows a channel admin and denies a plain member, with PermissionField left nil", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "migrated field write admin",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   th.BasicChannel.Id,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelAdmin},
+				},
+			},
+		}
+
+		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
+			model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, _ = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
+		})
+
+		channelAdmin := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+		channelMember := model.Session{UserId: th.BasicUser2.Id, Roles: model.SystemUserRoleId}
+
+		assert.True(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, channelAdmin, field))
+		assert.False(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, channelMember, field))
+	})
+
+	t.Run("Protected no longer denies once Permissions is populated", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "migrated protected field",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   th.BasicChannel.Id,
+			Protected:  true,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field: model.WriteOnly{Write: model.PermissionLevelAdmin},
+				},
+			},
+		}
+
+		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
+			model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, _ = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
+		})
+
+		channelAdmin := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+		assert.True(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, channelAdmin, field))
+	})
+
+	t.Run("value.write denied by restrictions but allowed by a matching user grant, for that user only", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "migrated field value grant",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value: model.ReadWrite{Write: model.PermissionLevelNone},
+				},
+				Grants: []model.Grant{
+					{
+						Identity: model.Identity{Type: model.PropertyOwnerTypeUser, ID: th.BasicUser.Id},
+						Allow:    []string{model.PropertyActionValueWrite},
+					},
+				},
+			},
+		}
+
+		grantedUser := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
+		otherUser := model.Session{UserId: th.BasicUser2.Id, Roles: model.SystemUserRoleId}
+
+		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, grantedUser, field, th.BasicUser.Id))
+		assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, otherUser, field, th.BasicUser2.Id))
+	})
+
+	t.Run("unrestricted session is allowed even when restrictions deny everything and grants are empty", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "migrated field deny all",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field:  model.WriteOnly{Write: model.PermissionLevelNone},
+					Value:  model.ReadWrite{Write: model.PermissionLevelNone},
+					Option: model.ReadWrite{Write: model.PermissionLevelNone},
+				},
+			},
+		}
+
+		local := model.Session{UserId: th.BasicUser.Id, Local: true}
+		assert.True(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, local, field))
+	})
+}
