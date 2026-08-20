@@ -2017,7 +2017,7 @@ func TestConfigSanitize(t *testing.T) {
 	t.Run("partially sanitize DataSource", func(t *testing.T) {
 		c := Config{}
 		c.SetDefaults()
-		*c.SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable"
+		*c.SqlSettings.DataSource = "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable"
 		c.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
 
 		expectedURL := "postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost:5432/mattermost_test?sslmode=disable"
@@ -2299,15 +2299,15 @@ func TestSanitizeDataSource(t *testing.T) {
 				"",
 			},
 			{
-				"postgres://mmuser:mostest@localhost",
+				"postgres://mmuser:mostest_password@localhost",
 				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost",
 			},
 			{
-				"postgres://mmuser:mostest@localhost/dummy?sslmode=disable",
+				"postgres://mmuser:mostest_password@localhost/dummy?sslmode=disable",
 				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost/dummy?sslmode=disable",
 			},
 			{
-				"postgres://localhost/dummy?sslmode=disable&user=mmuser&password=mostest",
+				"postgres://localhost/dummy?sslmode=disable&user=mmuser&password=mostest_password",
 				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost/dummy?sslmode=disable",
 			},
 		}
