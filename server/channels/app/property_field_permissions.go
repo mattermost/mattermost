@@ -10,7 +10,7 @@ import (
 
 // PropertyPermissionBasis records how a property field permission decision
 // was reached, so a value or definition write can log the basis it was
-// allowed on (§10): the caller identity, and either the matching grant or the
+// allowed on: the caller identity, and either the matching grant or the
 // satisfied restrictions tier.
 type PropertyPermissionBasis struct {
 	Action     string
