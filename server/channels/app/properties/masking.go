@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -312,6 +313,106 @@ func (h *AccessControlHook) maskGraphValue(rctx request.CTX, c maskingContext, f
 	filtered := *value
 	filtered.Value = jsonValue
 	return &filtered
+}
+
+// visibleOptionIDs answers, for a field already known to carry masking, which
+// of candidateOptionIDs callerID may see: a graph field asks coveredBy -- one
+// of the caller's own held options is at-or-above the candidate -- and every
+// other option-supporting type asks exact membership in what the caller
+// holds, the same holdings maskOptionValue and maskGraphValue check a value
+// against. A caller holding nothing sees nothing, without asking coveredBy at
+// all.
+func (c maskingContext) visibleOptionIDs(h *AccessControlHook, rctx request.CTX, field *model.PropertyField, fm fieldMasking, candidateOptionIDs []string, callerID string) (map[string]bool, error) {
+	callerOptionIDs, err := c.callerOptionIDsForHoldings(h, field.GroupID, fm.holdingsFieldID, callerID, field.Type)
+	if err != nil {
+		return nil, err
+	}
+	if len(callerOptionIDs) == 0 {
+		return map[string]bool{}, nil
+	}
+
+	if field.Type == model.PropertyFieldTypeGraph {
+		return h.propertyService.coveredBy(rctx, field, candidateOptionIDs, slices.Collect(maps.Keys(callerOptionIDs)))
+	}
+
+	visible := make(map[string]bool, len(candidateOptionIDs))
+	for _, id := range candidateOptionIDs {
+		if _, ok := callerOptionIDs[id]; ok {
+			visible[id] = true
+		}
+	}
+	return visible, nil
+}
+
+// maskFieldOptions returns a copy of field whose inline option list is
+// filtered to what callerID may see, given the masking fm already resolved
+// for it. Mirrors filterSharedOnlyFieldOptions's shape and Attrs handling
+// (access_control.go), using copyPropertyField and extractOptionIDList the
+// same way -- but never applies the rank ladder that function keeps for a
+// field with no permissions (divergence 6): a masked rank field's options are
+// exact-option membership, the same rule select and multiselect use, so
+// filterSharedOnlyRankFieldOptions is never called from here.
+//
+// This runs only on the branch permissionsAllows already admitted for
+// option.read; a caller the gate refused never reaches it.
+func (h *AccessControlHook) maskFieldOptions(rctx request.CTX, c maskingContext, field *model.PropertyField, fm fieldMasking, callerID string) *model.PropertyField {
+	if !field.Type.SupportsOptions() {
+		return field
+	}
+
+	// Options withheld: the read left the list out because the field has more
+	// than model.PropertyFieldMaxHydratedOptions of them, so there is nothing
+	// to intersect the caller's holdings against. Hide the lot — returning the
+	// field as-is would hand an unentitled caller the option count, which on a
+	// masked field is itself controlled information.
+	if model.PropertyFieldOptionsOmitted(field.Attrs) {
+		filteredField := h.copyPropertyField(field)
+		filteredField.HideOptions()
+		return filteredField
+	}
+
+	if field.Attrs == nil {
+		return field
+	}
+	optionsArr, ok := field.Attrs[model.PropertyFieldAttributeOptions]
+	if !ok {
+		return field
+	}
+	optionsSlice, ok := optionsArr.([]any)
+	if !ok {
+		return field
+	}
+
+	visible, err := c.visibleOptionIDs(h, rctx, field, fm, extractOptionIDList(optionsSlice), callerID)
+	if err != nil {
+		rctx.Logger().Error(
+			"Hiding a masked property field's options because which of them the caller may see could not be established",
+			mlog.String("field_id", field.ID),
+			mlog.Err(err),
+		)
+		filteredField := h.copyPropertyField(field)
+		filteredField.HideOptions()
+		return filteredField
+	}
+
+	filteredOptions := []any{}
+	for _, opt := range optionsSlice {
+		optMap, ok := opt.(map[string]any)
+		if !ok {
+			continue
+		}
+		optID, ok := optMap["id"].(string)
+		if !ok {
+			continue
+		}
+		if visible[optID] {
+			filteredOptions = append(filteredOptions, opt)
+		}
+	}
+
+	filteredField := h.copyPropertyField(field)
+	filteredField.Attrs[model.PropertyFieldAttributeOptions] = filteredOptions
+	return filteredField
 }
 
 // maskScalarValue applies binary masking to a non-option field's value: the

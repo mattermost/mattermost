@@ -6,6 +6,7 @@ package properties
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -668,5 +669,239 @@ func TestMaskValueReads(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, retrieved)
 		assert.Equal(t, value.Value, retrieved.Value)
+	})
+}
+
+// maskedOptionField builds a standalone (no LinkedFieldID) option-supporting
+// field carrying masking, with options inlined -- the option-list analogue of
+// maskedField, which carries none because value masking never needs one.
+func maskedOptionField(groupID, name string, fieldType model.PropertyFieldType, options []any, masking *model.Masking) *model.PropertyField {
+	return &model.PropertyField{
+		GroupID:    groupID,
+		Name:       name,
+		Type:       fieldType,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: options,
+		},
+		Permissions: &model.Permissions{Masking: masking},
+	}
+}
+
+// erroringAncestorsFieldStore wraps a store.PropertyFieldStore and forces
+// GetOptionAncestorsOrSelf to fail, so a test can exercise the fail-closed
+// path a graph resolution failure takes without needing a real broken
+// hierarchy to provoke it.
+type erroringAncestorsFieldStore struct {
+	store.PropertyFieldStore
+}
+
+func (e *erroringAncestorsFieldStore) GetOptionAncestorsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+	return nil, errors.New("forced failure for test")
+}
+
+// TestMaskFieldOptions covers the option list a field read carries inline, on
+// a field carrying masking: option.read (stubbed here to always allow a human
+// caller) stays the coarse "may the caller enumerate this field's options at
+// all" gate, and masking decides which of the field's options come back once
+// that gate is passed.
+func TestMaskFieldOptions(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	alwaysAllow := func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool {
+		return true
+	}
+	th.service.setLadderCheckerForTests(alwaysAllow)
+	t.Cleanup(func() {
+		th.service.setLadderCheckerForTests(nil)
+		th.service.setPluginCheckerForTests(nil)
+	})
+
+	t.Run("select: the returned list is exactly what the caller holds, and the field's name and type stay intact", func(t *testing.T) {
+		options := []any{
+			map[string]any{"id": "opt_a", "name": "A"},
+			map[string]any{"id": "opt_b", "name": "B"},
+		}
+		field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "Mask-Select-Options", model.PropertyFieldTypeSelect, options, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, "opt_a")
+
+		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		assert.Equal(t, []string{"opt_a"}, optionIDsOf(t, retrieved))
+		assert.Equal(t, "Mask-Select-Options", retrieved.Name)
+		assert.Equal(t, model.PropertyFieldTypeSelect, retrieved.Type)
+	})
+
+	t.Run("multiselect: the returned list is exactly what the caller holds", func(t *testing.T) {
+		options := []any{
+			map[string]any{"id": "opt_a", "name": "A"},
+			map[string]any{"id": "opt_b", "name": "B"},
+			map[string]any{"id": "opt_c", "name": "C"},
+		}
+		field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "Mask-Multiselect-Options", model.PropertyFieldTypeMultiselect, options, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, []string{"opt_a", "opt_c"})
+
+		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"opt_a", "opt_c"}, optionIDsOf(t, retrieved))
+	})
+
+	t.Run("rank: only the option the caller holds exactly comes back, not the options below it", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "Mask-Rank-Options", model.PropertyFieldTypeRank, rankOptions(), &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, "opt_secret") // rank 3 of 4, not the top
+
+		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		// TestRankSharedOnly_FieldOptions shows the whole ladder at or below
+		// opt_secret for the legacy path. Masking must show only the exact
+		// option -- divergence 6.
+		assert.Equal(t, []string{"opt_secret"}, optionIDsOf(t, retrieved),
+			"masking must never apply the rank ladder, only exact-option membership")
+	})
+
+	t.Run("graph: a caller holding an ancestor receives that option and the ones below it that they cover, and no unrelated branch", func(t *testing.T) {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "graph-options-source" })
+		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+
+		field, err := th.service.CreatePropertyField(RequestContextWithCallerID(th.Context, "graph-options-source"), &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Mask-Graph-Options",
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air Program"},
+					map[string]any{"name": "Fighter Jet Program", "parents": []string{"Air Program"}},
+					map[string]any{"name": "Sea Program"},
+				},
+			},
+			Permissions: &model.Permissions{Masking: &model.Masking{}},
+		})
+		require.NoError(t, err)
+		ids := optionIDsByName(t, field)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, []string{ids["Air Program"]})
+
+		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"Air Program", "Fighter Jet Program"}, inlineOptionNames(t, retrieved),
+			"the caller covers Air Program and, through it, Fighter Jet Program -- but not the unrelated Sea Program")
+	})
+
+	t.Run("a caller who holds nothing receives no options; a plugin in except receives all of them", func(t *testing.T) {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "listed-plugin" })
+		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+
+		options := []any{
+			map[string]any{"id": "opt_a", "name": "A"},
+			map[string]any{"id": "opt_b", "name": "B"},
+		}
+		field := maskedOptionField(th.CPAGroupID, "Mask-Options-Except", model.PropertyFieldTypeSelect, options, &model.Masking{
+			Except: []model.Identity{{Type: model.PropertyOwnerTypePlugin, ID: "listed-plugin"}},
+		})
+		// The plugin still needs option.read to reach the filter at all --
+		// except only excuses a caller the §2.5 gate already admitted.
+		field.Permissions.Grants = []model.Grant{
+			{Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "listed-plugin"}, Allow: []string{model.PropertyActionOptionRead}},
+		}
+		created, err := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, err)
+		field = created
+
+		noHoldingsCaller := model.NewId()
+		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, noHoldingsCaller), th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		assert.Empty(t, optionIDsOf(t, retrieved), "a caller holding nothing for the field sees no options")
+
+		retrieved, err = th.service.GetPropertyField(RequestContextWithCallerID(th.Context, "listed-plugin"), th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"opt_a", "opt_b"}, optionIDsOf(t, retrieved), "an except entry receives the option list unfiltered")
+	})
+
+	t.Run("a masked field whose options were omitted from the read returns no options and no option count", func(t *testing.T) {
+		options := oversizedOptions(false)
+		field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "Mask-Options-Omitted", model.PropertyFieldTypeSelect, options, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, optionIDAt(t, options, 7))
+
+		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		requireOptionsHidden(t, retrieved)
+	})
+
+	t.Run("a graph resolution failure hides the options and logs, never falling through to the unfiltered list", func(t *testing.T) {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "graph-options-failure-source" })
+		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+
+		field, err := th.service.CreatePropertyField(RequestContextWithCallerID(th.Context, "graph-options-failure-source"), &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Mask-Graph-Options-Failure",
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air Program"},
+				},
+			},
+			Permissions: &model.Permissions{Masking: &model.Masking{}},
+		})
+		require.NoError(t, err)
+		ids := optionIDsByName(t, field)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, []string{ids["Air Program"]})
+
+		original := th.service.fieldStore
+		th.service.fieldStore = &erroringAncestorsFieldStore{PropertyFieldStore: original}
+		t.Cleanup(func() { th.service.fieldStore = original })
+
+		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		requireOptionsHidden(t, retrieved)
+	})
+
+	t.Run("the option.read gate refusing the caller still hides the options, and masking is never consulted", func(t *testing.T) {
+		th.service.setLadderCheckerForTests(func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool {
+			return false
+		})
+		t.Cleanup(func() { th.service.setLadderCheckerForTests(alwaysAllow) })
+
+		options := []any{map[string]any{"id": "opt_a", "name": "A"}}
+		field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "Mask-Options-Denied", model.PropertyFieldTypeSelect, options, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, "opt_a")
+
+		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		requireOptionsHidden(t, retrieved)
+	})
+
+	t.Run("a field with permissions but no masking returns its full option list", func(t *testing.T) {
+		options := []any{
+			map[string]any{"id": "opt_a", "name": "A"},
+			map[string]any{"id": "opt_b", "name": "B"},
+		}
+		field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "Mask-Options-None", model.PropertyFieldTypeSelect, options, nil))
+		require.NoError(t, err)
+
+		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, model.NewId()), th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"opt_a", "opt_b"}, optionIDsOf(t, retrieved))
 	})
 }

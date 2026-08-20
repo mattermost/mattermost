@@ -454,7 +454,7 @@ func (h *AccessControlHook) PostGetPropertyField(rctx request.CTX, field *model.
 	}
 
 	callerID := h.extractCallerID(rctx)
-	return h.applyFieldReadAccessControl(rctx, field, callerID), nil
+	return h.applyFieldReadAccessControl(rctx, newMaskingContext(), field, callerID), nil
 }
 
 // PostGetPropertyFields applies read access control to a list of fields.
@@ -1762,10 +1762,31 @@ func (h *AccessControlHook) filterSharedOnlyScalarValue(field *model.PropertyFie
 // - Any access mode when the caller is the field's source plugin: returned as-is
 // - Shared-only fields: returned with options filtered using filterSharedOnlyFieldOptions
 // - Source-only or unknown access modes: returned with empty options (secure default)
-func (h *AccessControlHook) applyFieldReadAccessControl(rctx request.CTX, field *model.PropertyField, callerID string) *model.PropertyField {
+//
+// c is the masking context for the batch this field read is part of --
+// callers that read one field at a time still build one, of one field, so
+// there is a single path through the masking resolution.
+func (h *AccessControlHook) applyFieldReadAccessControl(rctx request.CTX, c maskingContext, field *model.PropertyField, callerID string) *model.PropertyField {
 	if field.Permissions != nil {
-		if h.permissionsAllows(rctx, field, callerID, h.extractActingAsScope(rctx), model.PropertyActionOptionRead, "") {
-			return field
+		scope := h.extractActingAsScope(rctx)
+		if h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionOptionRead, "") {
+			fm, err := c.resolve(h, field)
+			if err != nil {
+				rctx.Logger().Error(
+					"Hiding a property field's options because its masking could not be resolved",
+					mlog.String("field_id", field.ID),
+					mlog.Err(err),
+				)
+				filteredField := h.copyPropertyField(field)
+				if field.Type.SupportsOptions() {
+					filteredField.HideOptions()
+				}
+				return filteredField
+			}
+			if fm.masking == nil || h.exempt(fm.masking.Except, callerID, scope) {
+				return field
+			}
+			return h.maskFieldOptions(rctx, c, field, fm, callerID)
 		}
 		// Denied: the field itself is still returned -- field.read is left
 		// unenforced -- only its option list is hidden.
@@ -1794,15 +1815,19 @@ func (h *AccessControlHook) applyFieldReadAccessControl(rctx request.CTX, field 
 	return filteredField
 }
 
-// applyFieldReadAccessControlToList applies read access control to a list of fields.
+// applyFieldReadAccessControlToList applies read access control to a list of
+// fields, sharing one masking context across the batch so a template lookup
+// or a holdings search a field's masking needs runs once for every field that
+// shares it, not once per field.
 func (h *AccessControlHook) applyFieldReadAccessControlToList(rctx request.CTX, fields []*model.PropertyField, callerID string) []*model.PropertyField {
 	if len(fields) == 0 {
 		return fields
 	}
 
+	c := newMaskingContext()
 	filtered := make([]*model.PropertyField, 0, len(fields))
 	for _, field := range fields {
-		filtered = append(filtered, h.applyFieldReadAccessControl(rctx, field, callerID))
+		filtered = append(filtered, h.applyFieldReadAccessControl(rctx, c, field, callerID))
 	}
 
 	return filtered
