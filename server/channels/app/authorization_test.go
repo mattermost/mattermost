@@ -3085,7 +3085,7 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostCreator(t *testing.T) 
 			allowed: true,
 		},
 		{
-			name:    "team admin can set values without being a channel member",
+			name:    "team admin passes the values check without channel membership",
 			session: session(teamAdmin),
 			postID:  post.Id,
 			allowed: true,
@@ -3145,6 +3145,177 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostCreator(t *testing.T) 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.allowed, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, tc.session, field, tc.postID))
+		})
+	}
+}
+
+func TestSessionHasPermissionToSetPropertyFieldValues_ChannelCreator(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	// System-target field so the dispatch is driven purely by ObjectType plus
+	// the value's target: one field, per-channel values.
+	field := &model.PropertyField{
+		ID:                model.NewId(),
+		GroupID:           groupID,
+		Name:              "channel values creator",
+		Type:              model.PropertyFieldTypeText,
+		ObjectType:        model.PropertyFieldObjectTypeChannel,
+		TargetType:        string(model.PropertyFieldTargetLevelSystem),
+		PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
+		PermissionValues:  model.NewPointer(model.PermissionLevelCreator),
+		PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+	}
+
+	require.Equal(t, th.BasicUser.Id, th.BasicChannel.CreatorId, "BasicChannel is expected to be created by BasicUser")
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	channelAdmin := th.CreateUser(t)
+	th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+	th.AddUserToChannel(t, channelAdmin, th.BasicChannel)
+	_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, channelAdmin.Id,
+		model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+	require.Nil(t, appErr)
+
+	// Not a channel member: this helper is the inner check only, so the team
+	// fallback in HasPermissionToChannel is enough. The HTTP layer additionally
+	// requires channel membership — see TestPatchPropertyValuesPostCreator.
+	teamAdmin := th.CreateUser(t)
+	th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+	_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id,
+		model.TeamUserRoleId+" "+model.TeamAdminRoleId)
+	require.Nil(t, appErr)
+
+	outsider := th.CreateUser(t)
+	th.LinkUserToTeam(t, outsider, th.BasicTeam)
+
+	// A channel BasicUser created and has since left. CreatorId survives the
+	// departure, so the inner check still passes; membership is the outer
+	// gate's concern.
+	leftChannel := th.CreateChannel(t, th.BasicTeam)
+	require.Equal(t, th.BasicUser.Id, leftChannel.CreatorId)
+	appErr = th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", leftChannel)
+	require.Nil(t, appErr)
+
+	// A DM does carry a CreatorId: the store stamps the initiating user
+	// (channel_store.go, createDirectChannel). So the initiator is the DM's
+	// creator and the other participant is not.
+	dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+	require.Equal(t, th.BasicUser.Id, dmChannel.CreatorId, "a direct channel is expected to be created by the initiating user")
+
+	// A group channel does NOT: createGroupChannel builds the model.Channel
+	// without a CreatorId and nothing fills it in. This is the one place an
+	// empty creator occurs in practice, and what the empty guard in
+	// hasPropertyFieldValueCreator exists for.
+	gmChannel := th.CreateGroupChannel(t, th.BasicUser2, outsider)
+	require.Empty(t, gmChannel.CreatorId, "a group channel is expected to have no creator")
+
+	session := func(u *model.User) model.Session {
+		return model.Session{UserId: u.Id, Roles: model.SystemUserRoleId}
+	}
+
+	testCases := []struct {
+		name      string
+		session   model.Session
+		channelID string
+		allowed   bool
+	}{
+		{
+			name:      "channel creator can set values on their own channel",
+			session:   session(th.BasicUser),
+			channelID: th.BasicChannel.Id,
+			allowed:   true,
+		},
+		{
+			name:      "channel member who did not create the channel cannot",
+			session:   session(th.BasicUser2),
+			channelID: th.BasicChannel.Id,
+			allowed:   false,
+		},
+		{
+			name:      "channel admin can set values on someone else's channel",
+			session:   session(channelAdmin),
+			channelID: th.BasicChannel.Id,
+			allowed:   true,
+		},
+		{
+			name:      "team admin passes the values check without channel membership",
+			session:   session(teamAdmin),
+			channelID: th.BasicChannel.Id,
+			allowed:   true,
+		},
+		{
+			name:      "system admin can set values",
+			session:   session(th.SystemAdminUser),
+			channelID: th.BasicChannel.Id,
+			allowed:   true,
+		},
+		{
+			name:      "team member outside the channel cannot",
+			session:   session(outsider),
+			channelID: th.BasicChannel.Id,
+			allowed:   false,
+		},
+		{
+			name:      "unknown channel denies",
+			session:   session(th.BasicUser),
+			channelID: model.NewId(),
+			allowed:   false,
+		},
+		{
+			name:      "creator who left the channel still passes the values check",
+			session:   session(th.BasicUser),
+			channelID: leftChannel.Id,
+			allowed:   true,
+		},
+		{
+			name:      "initiator of a direct channel is its creator",
+			session:   session(th.BasicUser),
+			channelID: dmChannel.Id,
+			allowed:   true,
+		},
+		{
+			name:      "the other participant in a direct channel is not its creator",
+			session:   session(th.BasicUser2),
+			channelID: dmChannel.Id,
+			allowed:   false,
+		},
+		{
+			name:      "system admin can set values on a direct channel",
+			session:   session(th.SystemAdminUser),
+			channelID: dmChannel.Id,
+			allowed:   true,
+		},
+		{
+			name:      "a group channel has no creator, so no participant qualifies",
+			session:   session(th.BasicUser),
+			channelID: gmChannel.Id,
+			allowed:   false,
+		},
+		{
+			name:      "empty caller denies",
+			session:   model.Session{},
+			channelID: th.BasicChannel.Id,
+			allowed:   false,
+		},
+		{
+			// The empty-creator guard: a group channel has CreatorId "" and this
+			// caller has UserId "". Comparing the two with bare equality would
+			// match and grant access, so the guard must reject an empty creator
+			// before comparing.
+			name:      "empty caller does not match a channel with no creator",
+			session:   model.Session{},
+			channelID: gmChannel.Id,
+			allowed:   false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.allowed, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, tc.session, field, tc.channelID))
 		})
 	}
 }

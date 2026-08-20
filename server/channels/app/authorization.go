@@ -768,8 +768,9 @@ func (a *App) hasPropertyFieldValueCreator(rctx request.CTX, userID string, fiel
 			)
 			return false
 		}
-		// CreatorId is empty for DM/GM and system-created channels, so an empty
-		// userID must never match it.
+		// Group channels carry no CreatorId, so an empty userID must never
+		// match it. Direct channels DO have one: the store stamps the
+		// initiating user.
 		if channel.CreatorId != "" && channel.CreatorId == userID {
 			return true
 		}
