@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
 	clustermocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -169,5 +170,23 @@ func TestSyncPushNotificationServerWithLicense(t *testing.T) {
 
 		clusterMock.AssertNotCalled(t, "ConfigChanged", mock.Anything, mock.Anything, mock.Anything)
 		assert.Equal(t, model.GenericNotificationServer, *envTh.App.Config().EmailSettings.PushNotificationServer)
+	})
+
+	t.Run("reverting hosted endpoint does not re-init email batching", func(t *testing.T) {
+		originalEmailService := th.App.Srv().EmailService
+		t.Cleanup(func() {
+			th.App.Srv().EmailService = originalEmailService
+		})
+
+		emailServiceMock := emailmocks.ServiceInterface{}
+		th.App.Srv().EmailService = &emailServiceMock
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.PushNotificationServer = model.MHPNSGlobal
+		})
+		th.App.Srv().SetLicense(nil)
+
+		emailServiceMock.AssertNotCalled(t, "InitEmailBatching")
+		assert.Equal(t, model.GenericNotificationServer, *th.App.Config().EmailSettings.PushNotificationServer)
 	})
 }
