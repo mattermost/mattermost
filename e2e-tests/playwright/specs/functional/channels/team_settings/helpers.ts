@@ -361,6 +361,17 @@ export async function getTeamAccessControlPolicy(client: Client4, teamId: string
     return (client as any).doFetch(`${client.getBaseRoute()}/teams/${teamId}/access_control/policy`, {method: 'GET'});
 }
 
+/**
+ * Reads the auto-add mode off the team child policy's membership rule, which is
+ * where the setting lives. Returns undefined when auto-add is off, since the key
+ * is absent rather than empty once stored.
+ */
+export async function getTeamAutoAddMode(client: Client4, teamId: string): Promise<string | undefined> {
+    const response: any = await getTeamAccessControlPolicy(client, teamId);
+    const membershipRule = response?.policy?.rules?.find((rule: any) => rule.actions?.includes('membership') && !rule.name);
+    return membershipRule?.metadata?.auto_add;
+}
+
 export async function createPublicTeam(client: Client4, suffix: string) {
     return client.createTeam({
         name: `pub-team-${suffix}`,
