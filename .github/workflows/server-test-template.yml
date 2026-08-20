@@ -156,6 +156,7 @@ jobs:
           ELASTICSEARCH_VERSION: ${{ inputs.elasticsearch-version }}
           OPENSEARCH_VERSION: ${{ inputs.opensearch-version }}
           POSTGRES_PASSWORD: 'mostest_password'
+          LDAP_ADMIN_PASSWORD: 'mostest_password'
         run: |
           cd server/build
           docker compose --ansi never run --rm start_dependencies
