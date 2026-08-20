@@ -497,7 +497,9 @@ describe('GlobalAttributesTable', () => {
             expect(del!).not.toHaveTextContent('Coming soon');
 
             await userEvent.click(edit!);
-            expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details/field-1');
+            await waitFor(() => {
+                expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details/field-1');
+            });
         });
 
         it('keeps Edit as Coming soon on a plugin-owned row', async () => {

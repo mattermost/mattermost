@@ -161,7 +161,7 @@ export function updateAttributeField(
     patch: UpdateAttributeFieldPatch,
 ): Promise<PropertyField> {
     return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, fieldId, {
-        ...(patch.name !== undefined ? {name: patch.name} : {}),
+        ...(patch.name === undefined ? {} : {name: patch.name}),
         type: patch.type as PropertyField['type'],
         attrs: {
             display_name: patch.displayName.trim() || undefined,
