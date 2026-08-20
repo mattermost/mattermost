@@ -840,7 +840,25 @@ func (h *AccessControlHook) isListedOwner(field *model.PropertyField, callerID s
 	return false
 }
 
+// permissionsGrantAllows reports whether a machine caller may perform action
+// on field under its typed permissions object. A machine caller has no human
+// role, so the restrictions ladder never applies to it: the decision is
+// grant-only, with nothing to fall back on when no grant matches. Callers
+// must confirm isMachineCaller first -- callerOwnerIdentity's default branch
+// assumes a plugin, and a human's user ID would otherwise be resolved as one.
+func (h *AccessControlHook) permissionsGrantAllows(field *model.PropertyField, callerID, scope, action string) bool {
+	ownerID, ownerType, effectiveScope := h.callerOwnerIdentity(callerID, scope)
+	return field.Permissions.MatchingGrant(ownerType, ownerID, effectiveScope, action) != nil
+}
+
 // enforceFieldUpdateAccess gates a field-definition update.
+//
+// A field carrying a typed permissions object is judged by it alone: a
+// machine caller needs a field.write grant on the stored (existing) field --
+// so it cannot grant itself the write in the same patch that uses it -- and a
+// human caller passes through, already decided at the app layer. The
+// owners/protected/sync-lock paths below are not consulted once a field has
+// converted to permissions.
 //
 // Owner-managed fields allow a machine caller only if it is a listed owner
 // (checked against the stored owners, so a non-owner cannot add itself). A
@@ -850,6 +868,16 @@ func (h *AccessControlHook) isListedOwner(field *model.PropertyField, callerID s
 // For non-owner-managed fields, machine callers may not add owners, and legacy
 // protected / source_plugin_id rules continue to apply.
 func (h *AccessControlHook) enforceFieldUpdateAccess(existing, updated *model.PropertyField, callerID string) error {
+	if existing.Permissions != nil {
+		if !h.isMachineCaller(callerID) {
+			return nil
+		}
+		if h.permissionsGrantAllows(existing, callerID, "", model.PropertyActionFieldWrite) {
+			return nil
+		}
+		return fmt.Errorf("field %s carries permissions and caller %q matches no field.write grant: %w", existing.ID, callerID, ErrAccessDenied)
+	}
+
 	if model.HasPropertyFieldOwners(existing) {
 		if h.isMachineCaller(callerID) && !h.isListedOwner(existing, callerID) {
 			return fmt.Errorf("field %s is owner-managed and can only be modified by an administrator or a listed owner: %w", existing.ID, ErrAccessDenied)
@@ -954,8 +982,22 @@ func (h *AccessControlHook) checkLegacyFieldWriteAccess(field *model.PropertyFie
 }
 
 // checkFieldDeleteAccess checks if the given caller can delete a PropertyField.
+// A field carrying a typed permissions object is judged by it alone -- there
+// is no separate delete action, so deleting a definition is judged as a
+// field.write -- and the owners/protected paths below are not consulted once
+// a field has converted.
 // IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
 func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, callerID string) error {
+	if field.Permissions != nil {
+		if !h.isMachineCaller(callerID) {
+			return nil
+		}
+		if h.permissionsGrantAllows(field, callerID, "", model.PropertyActionFieldWrite) {
+			return nil
+		}
+		return fmt.Errorf("field %s carries permissions and caller %q matches no field.write grant: %w", field.ID, callerID, ErrAccessDenied)
+	}
+
 	if model.HasPropertyFieldOwners(field) {
 		if h.isMachineCaller(callerID) && !h.isListedOwner(field, callerID) {
 			return fmt.Errorf("field %s is owner-managed and can only be deleted by an administrator or a listed owner: %w", field.ID, ErrAccessDenied)
@@ -1011,11 +1053,24 @@ func (h *AccessControlHook) checkSyncLock(field *model.PropertyField, callerID s
 	return nil
 }
 
-// checkValueWriteAccess gates a value write. When the field declares an owners
-// list, the owner check (with scope matching) supersedes the legacy
-// protected-field and sync-lock checks. Otherwise it falls back to today's
-// behaviour.
+// checkValueWriteAccess gates a value write. A field carrying a typed
+// permissions object supersedes every legacy path below: a machine caller is
+// allowed only by a matching value.write grant, and a human caller passes
+// through, since restrictions are decided at the app layer, not here. Absent
+// permissions, a field declaring an owners list has the owner check (with
+// scope matching) supersede the legacy protected-field and sync-lock checks;
+// otherwise it falls back to today's behaviour.
 func (h *AccessControlHook) checkValueWriteAccess(field *model.PropertyField, callerID, scope string) error {
+	if field.Permissions != nil {
+		if !h.isMachineCaller(callerID) {
+			return nil
+		}
+		if h.permissionsGrantAllows(field, callerID, scope, model.PropertyActionValueWrite) {
+			return nil
+		}
+		return fmt.Errorf("field %s carries permissions and caller %q acting as scope %q matches no value.write grant: %w", field.ID, callerID, scope, ErrAccessDenied)
+	}
+
 	if model.HasPropertyFieldOwners(field) {
 		return h.checkOwnerValueWriteAccess(field, callerID, scope)
 	}
