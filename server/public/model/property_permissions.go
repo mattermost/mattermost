@@ -237,6 +237,95 @@ func (g *Grant) isValid() error {
 	return nil
 }
 
+// TierFor returns the ladder tier Restrictions assigns to action, or none for
+// a nil receiver, an unrecognized action, or a leaf that was never set. Nil
+// happens for real: all three parts of Permissions are optional, so a field
+// can carry grants with no restrictions at all, and then it must grant no
+// human anything.
+func (r *Restrictions) TierFor(action string) PermissionLevel {
+	if r == nil {
+		return PermissionLevelNone
+	}
+	var leaf PermissionLevel
+	switch action {
+	case PropertyActionFieldWrite:
+		leaf = r.Field.Write
+	case PropertyActionOptionRead:
+		leaf = r.Option.Read
+	case PropertyActionOptionWrite:
+		leaf = r.Option.Write
+	case PropertyActionValueRead:
+		leaf = r.Value.Read
+	case PropertyActionValueWrite:
+		leaf = r.Value.Write
+	default:
+		return PermissionLevelNone
+	}
+	if leaf == "" {
+		return PermissionLevelNone
+	}
+	return leaf
+}
+
+// PropertyActionMeasuredAgainstValueObject reports whether action is measured
+// against the object a value is attached to (found through the field's
+// ObjectType) rather than against the field's own definition
+// (TargetType/TargetID).
+//
+// value.read and value.write are measured against the value's object; a
+// system-targeted field whose values attach to posts takes a system
+// administrator to redefine but only membership of the post's channel to set
+// a value on. field.write, option.read and option.write are measured against
+// the field's target instead, because the definition exists once — measuring
+// value writes against the field's target would make "member" mean "every
+// user on the install".
+func PropertyActionMeasuredAgainstValueObject(action string) bool {
+	switch action {
+	case PropertyActionValueRead, PropertyActionValueWrite:
+		return true
+	default:
+		return false
+	}
+}
+
+// MatchingGrant returns the first grant that lets (callerType, callerID),
+// acting under scope, perform action — or nil if none does. The grant itself
+// is returned rather than a bool because an audit record must name the grant
+// that allowed a write, including whether it matched by wildcard (grant.ID ==
+// "*").
+//
+// A caller matches a grant only by an identity it cannot forge: callerID
+// must be non-empty and not itself "*", since the wildcard is a property of
+// the grant, never of the actor. Scope is consulted only after that identity
+// match, so a scope can narrow what a listed identity may do and can never
+// get it onto a field it was not listed on. There is no "*" action: a grant
+// listing value.write does not confer value.read.
+func (p *Permissions) MatchingGrant(callerType, callerID, scope, action string) *Grant {
+	if p == nil || callerID == "" || callerID == "*" || !IsValidPropertyOwnerType(callerType) {
+		return nil
+	}
+	for i := range p.Grants {
+		g := &p.Grants[i]
+		if g.Type != callerType {
+			continue
+		}
+		if g.ID != callerID {
+			isWildcardEligible := callerType == PropertyOwnerTypePlugin || callerType == PropertyOwnerTypeService
+			if !(g.ID == "*" && isWildcardEligible) {
+				continue
+			}
+		}
+		if len(g.Scopes) > 0 && !slices.Contains(g.Scopes, scope) {
+			continue
+		}
+		if !slices.Contains(g.Allow, action) {
+			continue
+		}
+		return g
+	}
+	return nil
+}
+
 // restrictionsLeaves returns pointers to the five enforced leaves in a stable
 // order, so normalization and validation walk exactly the set of enforced leaves —
 // field.read is absent by construction.

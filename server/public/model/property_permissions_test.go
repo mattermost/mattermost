@@ -229,6 +229,100 @@ func TestWorkedExamplesValidate(t *testing.T) {
 	}
 }
 
+func TestRestrictionsTierFor(t *testing.T) {
+	r := &Restrictions{
+		Value:  ReadWrite{Read: PermissionLevelEveryone, Write: PermissionLevelAdmin},
+		Option: ReadWrite{Read: PermissionLevelMember, Write: PermissionLevelSysadmin},
+		Field:  WriteOnly{Write: PermissionLevelSysadmin},
+	}
+	assert.Equal(t, PermissionLevelSysadmin, r.TierFor(PropertyActionFieldWrite))
+	assert.Equal(t, PermissionLevelMember, r.TierFor(PropertyActionOptionRead))
+	assert.Equal(t, PermissionLevelSysadmin, r.TierFor(PropertyActionOptionWrite))
+	assert.Equal(t, PermissionLevelEveryone, r.TierFor(PropertyActionValueRead))
+	assert.Equal(t, PermissionLevelAdmin, r.TierFor(PropertyActionValueWrite))
+
+	// field.read is not an enforced action and resolves like any unknown one.
+	assert.Equal(t, PermissionLevelNone, r.TierFor("field.read"))
+	assert.Equal(t, PermissionLevelNone, r.TierFor("bogus"))
+
+	// A leaf that was never set (empty string) resolves to none too.
+	assert.Equal(t, PermissionLevelNone, (&Restrictions{}).TierFor(PropertyActionValueRead))
+
+	// A nil receiver grants no human anything.
+	var nilRestrictions *Restrictions
+	assert.Equal(t, PermissionLevelNone, nilRestrictions.TierFor(PropertyActionValueRead))
+}
+
+func TestPropertyActionMeasuredAgainstValueObject(t *testing.T) {
+	assert.True(t, PropertyActionMeasuredAgainstValueObject(PropertyActionValueRead))
+	assert.True(t, PropertyActionMeasuredAgainstValueObject(PropertyActionValueWrite))
+	assert.False(t, PropertyActionMeasuredAgainstValueObject(PropertyActionFieldWrite))
+	assert.False(t, PropertyActionMeasuredAgainstValueObject(PropertyActionOptionRead))
+	assert.False(t, PropertyActionMeasuredAgainstValueObject(PropertyActionOptionWrite))
+}
+
+func TestPermissionsMatchingGrant(t *testing.T) {
+	grant := func(g Grant) *Permissions { return &Permissions{Grants: []Grant{g}} }
+
+	t.Run("exact id match", func(t *testing.T) {
+		p := grant(Grant{Identity: Identity{Type: PropertyOwnerTypeUser, ID: "u1"}, Allow: []string{PropertyActionValueWrite}})
+		g := p.MatchingGrant(PropertyOwnerTypeUser, "u1", "", PropertyActionValueWrite)
+		require.NotNil(t, g)
+		assert.Equal(t, "u1", g.ID)
+	})
+
+	t.Run("wildcard matches plugin and service", func(t *testing.T) {
+		p := grant(Grant{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"}, Allow: []string{PropertyActionValueWrite}})
+		require.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "com.example", "", PropertyActionValueWrite))
+
+		p2 := grant(Grant{Identity: Identity{Type: PropertyOwnerTypeService, ID: "*"}, Allow: []string{PropertyActionValueWrite}})
+		require.NotNil(t, p2.MatchingGrant(PropertyOwnerTypeService, "ldap", "", PropertyActionValueWrite))
+	})
+
+	t.Run("wildcard rejected for user and role", func(t *testing.T) {
+		p := grant(Grant{Identity: Identity{Type: PropertyOwnerTypeUser, ID: "*"}, Allow: []string{PropertyActionValueWrite}})
+		assert.Nil(t, p.MatchingGrant(PropertyOwnerTypeUser, "u1", "", PropertyActionValueWrite))
+
+		p2 := grant(Grant{Identity: Identity{Type: PropertyOwnerTypeRole, ID: "*"}, Allow: []string{PropertyActionValueWrite}})
+		assert.Nil(t, p2.MatchingGrant(PropertyOwnerTypeRole, "finance_admin", "", PropertyActionValueWrite))
+	})
+
+	t.Run("wrong type does not match", func(t *testing.T) {
+		p := grant(Grant{Identity: Identity{Type: PropertyOwnerTypeUser, ID: "u1"}, Allow: []string{PropertyActionValueWrite}})
+		assert.Nil(t, p.MatchingGrant(PropertyOwnerTypeRole, "u1", "", PropertyActionValueWrite))
+	})
+
+	t.Run("unscoped grant matches scoped and unscoped caller", func(t *testing.T) {
+		p := grant(Grant{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "com.example"}, Allow: []string{PropertyActionValueWrite}})
+		require.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "com.example", "entra", PropertyActionValueWrite))
+		require.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "com.example", "", PropertyActionValueWrite))
+	})
+
+	t.Run("scoped grant matches only the listed scope, not empty", func(t *testing.T) {
+		p := grant(Grant{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "com.example"}, Scopes: []string{"entra"}, Allow: []string{PropertyActionValueWrite}})
+		require.NotNil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "com.example", "entra", PropertyActionValueWrite))
+		assert.Nil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "com.example", "", PropertyActionValueWrite))
+		assert.Nil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "com.example", "other", PropertyActionValueWrite))
+	})
+
+	t.Run("action absent from allow does not match", func(t *testing.T) {
+		p := grant(Grant{Identity: Identity{Type: PropertyOwnerTypeUser, ID: "u1"}, Allow: []string{PropertyActionValueWrite}})
+		assert.Nil(t, p.MatchingGrant(PropertyOwnerTypeUser, "u1", "", PropertyActionValueRead))
+	})
+
+	t.Run("fail-closed cases", func(t *testing.T) {
+		p := grant(Grant{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"}, Allow: []string{PropertyActionValueWrite}})
+		assert.Nil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "", "", PropertyActionValueWrite), "empty caller id")
+		assert.Nil(t, p.MatchingGrant(PropertyOwnerTypePlugin, "*", "", PropertyActionValueWrite), "wildcard caller id")
+		assert.Nil(t, p.MatchingGrant("bogus", "com.example", "", PropertyActionValueWrite), "unrecognized caller type")
+
+		var nilPermissions *Permissions
+		assert.Nil(t, nilPermissions.MatchingGrant(PropertyOwnerTypePlugin, "com.example", "", PropertyActionValueWrite), "nil receiver")
+
+		assert.Nil(t, (&Permissions{}).MatchingGrant(PropertyOwnerTypePlugin, "com.example", "", PropertyActionValueWrite), "empty grants")
+	})
+}
+
 func TestPropertyFieldPermissionsWiring(t *testing.T) {
 	base := func(objectType string) *PropertyField {
 		pf := &PropertyField{
