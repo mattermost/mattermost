@@ -56,7 +56,7 @@ sudo -u mattermost bin/mattermost version
 - When running CLI commands on a Mattermost installation that has the configuration stored in the database, you might need to pass the database connection string as:
 
   ``` sh
-  bin/mattermost --config="postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable\u0026connect_timeout=10"
+  bin/mattermost --config="postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable\u0026connect_timeout=10"
   ```
 
 </Note>
