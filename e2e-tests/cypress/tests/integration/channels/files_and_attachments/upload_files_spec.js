@@ -27,6 +27,9 @@ describe('Upload Files', () => {
         // # Login as sysadmin
         cy.apiAdminLogin();
 
+        // # Ensure standard message display (download aria-label is omitted in compact)
+        cy.apiSaveMessageDisplayPreference('clean');
+
         // # Init setup
         cy.apiInitSetup().then((out) => {
             channelUrl = out.channelUrl;
