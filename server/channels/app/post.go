@@ -47,9 +47,8 @@ func (a *App) CreatePostAsUserWithFlags(rctx request.CTX, post *model.Post, curr
 		return nil, false, err
 	}
 
-	if strings.HasPrefix(post.Type, model.PostSystemMessagePrefix) {
-		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]any{"Name": "post.type"}, "", http.StatusBadRequest)
-		return nil, false, err
+	if appErr := PostSystemTypeCheck("CreatePostAsUser", post.Type); appErr != nil {
+		return nil, false, appErr
 	}
 
 	if channel.DeleteAt != 0 {

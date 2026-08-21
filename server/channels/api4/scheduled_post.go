@@ -35,6 +35,11 @@ func scheduledPostChecks(where string, c *Context, scheduledPost *model.Schedule
 		return
 	}
 
+	postSystemTypeCheckWithContext(where, c, scheduledPost.Type)
+	if c.Err != nil {
+		return
+	}
+
 	postHardenedModeCheckWithContext(where, c, scheduledPost.GetProps())
 	if c.Err != nil {
 		return

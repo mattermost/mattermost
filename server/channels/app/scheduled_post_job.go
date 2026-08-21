@@ -341,6 +341,18 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 		return model.ScheduledPostErrorCodeNoChannelPermission, nil
 	}
 
+	if appErr := PostSystemTypeCheck("ScheduledPostJob.postChecks", scheduledPost.Type); appErr != nil {
+		rctx.Logger().Debug(
+			"canPostScheduledPost post type is reserved for system messages",
+			mlog.String("scheduled_post_id", scheduledPost.Id),
+			mlog.String("user_id", scheduledPost.UserId),
+			mlog.String("channel_id", scheduledPost.ChannelId),
+			mlog.String("error_code", model.ScheduledPostErrorInvalidPost),
+			mlog.Err(appErr),
+		)
+		return model.ScheduledPostErrorInvalidPost, nil
+	}
+
 	if appErr := PostHardenedModeCheckWithApp(a, false, scheduledPost.GetProps()); appErr != nil {
 		rctx.Logger().Debug(
 			"canPostScheduledPost hardened mode enabled: post contains props prohibited in hardened mode",
