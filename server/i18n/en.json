@@ -11952,7 +11952,7 @@
   },
   {
     "id": "model.config.is_valid.dcr_redirect_uri_allowlist.app_error",
-    "translation": "DCR redirect URI allowlist contains an invalid pattern. Patterns must start with http:// or https:// and cannot be empty or whitespace."
+    "translation": "DCR redirect URI allowlist contains an invalid pattern. Each pattern must be a valid URI with a scheme and host (for example https://example.com/** or cursor://app/callback) and cannot be empty or whitespace."
   },
   {
     "id": "model.config.is_valid.directory.app_error",
