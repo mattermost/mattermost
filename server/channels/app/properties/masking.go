@@ -222,12 +222,30 @@ func (h *AccessControlHook) exempt(except []model.Identity, callerID, scope stri
 func (h *AccessControlHook) maskValue(rctx request.CTX, c maskingContext, field *model.PropertyField, fm fieldMasking, value *model.PropertyValue, callerID string) *model.PropertyValue {
 	switch field.Type {
 	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeMultiselect, model.PropertyFieldTypeRank:
-		return h.maskOptionValue(c, field, fm, value, callerID)
+		return h.maskOptionValue(rctx, c, field, fm, value, callerID)
 	case model.PropertyFieldTypeGraph:
 		return h.maskGraphValue(rctx, c, field, fm, value, callerID)
 	default:
-		return h.maskScalarValue(c, field, fm, value, callerID)
+		return h.maskScalarValue(rctx, c, field, fm, value, callerID)
 	}
+}
+
+// logMaskingFailure records that a masking filter could not establish what a
+// caller may see of value, so the nil it returns is read in the log as "we
+// don't know" rather than as the ordinary, expected "the caller holds
+// nothing" -- the two look identical to the caller but must not look
+// identical to whoever reads the log. Never logs the value itself or the
+// caller's holdings; that is exactly what masking exists to withhold. Shared
+// by every masking filter regardless of field type, unlike the legacy path's
+// logHiddenGraphValue, which is graph-specific and belongs to code that gets
+// deleted with the rest of the shim.
+func logMaskingFailure(rctx request.CTX, field *model.PropertyField, value *model.PropertyValue, err error) {
+	rctx.Logger().Error(
+		"Hiding a masked property value because what the caller may see of it could not be established",
+		mlog.String("field_id", field.ID),
+		mlog.String("value_id", value.ID),
+		mlog.Err(err),
+	)
 }
 
 // maskOptionValue answers select, multiselect and rank alike: the value the
@@ -236,14 +254,22 @@ func (h *AccessControlHook) maskValue(rctx request.CTX, c maskingContext, field 
 // rule with no ordering to it. select and rank hold at most one option, so
 // their intersection has at most one element; multiselect's may have several.
 // A caller holding nothing, or an intersection of none, sees nothing.
-func (h *AccessControlHook) maskOptionValue(c maskingContext, field *model.PropertyField, fm fieldMasking, value *model.PropertyValue, callerID string) *model.PropertyValue {
+func (h *AccessControlHook) maskOptionValue(rctx request.CTX, c maskingContext, field *model.PropertyField, fm fieldMasking, value *model.PropertyValue, callerID string) *model.PropertyValue {
 	callerOptionIDs, err := c.callerOptionIDsForHoldings(h, field.GroupID, fm.holdingsFieldID, callerID, field.Type)
-	if err != nil || len(callerOptionIDs) == 0 {
+	if err != nil {
+		logMaskingFailure(rctx, field, value, err)
+		return nil
+	}
+	if len(callerOptionIDs) == 0 {
 		return nil
 	}
 
 	targetOptionIDs, err := h.extractOptionIDsFromValue(field.Type, value.Value)
-	if err != nil || len(targetOptionIDs) == 0 {
+	if err != nil {
+		logMaskingFailure(rctx, field, value, err)
+		return nil
+	}
+	if len(targetOptionIDs) == 0 {
 		return nil
 	}
 
@@ -256,6 +282,9 @@ func (h *AccessControlHook) maskOptionValue(c maskingContext, field *model.Prope
 	if len(intersection) == 0 {
 		return nil
 	}
+	// Sorted so a multiselect value's options come back in the same order on
+	// every read -- they are built by ranging over a map, which promises none.
+	slices.Sort(intersection)
 
 	// select and rank are select-shaped: exactly one option, so intersection
 	// has at most one element and it is marshaled bare; multiselect's may
@@ -267,6 +296,7 @@ func (h *AccessControlHook) maskOptionValue(c maskingContext, field *model.Prope
 
 	jsonValue, marshalErr := json.Marshal(toMarshal)
 	if marshalErr != nil {
+		logMaskingFailure(rctx, field, value, marshalErr)
 		return nil
 	}
 	filtered := *value
@@ -274,17 +304,22 @@ func (h *AccessControlHook) maskOptionValue(c maskingContext, field *model.Prope
 	return &filtered
 }
 
-// maskGraphValue answers a graph field's value the way filterSharedOnlyGraphValue
-// does for the legacy shared_only path -- covered options stand as they are and an
-// uncovered one is replaced by the covered options below it -- but reading the
-// caller's holdings from fm.holdingsFieldID rather than always from field itself,
-// since a linked field's holdings can live on the template's mask_by_field_id.
-// Any failure to resolve coverage fails closed and is logged, never falls
-// through to the unfiltered value.
+// maskGraphValue answers a graph field's value with exact coverage: an option
+// the caller covers (holds it or an ancestor of it) stands as it is, and one
+// they do not is dropped outright, never replaced by the covered options
+// below it -- that replacement is the legacy shared_only path's clamp
+// (filterSharedOnlyGraphValue), and handing back a narrower option than the
+// one actually stored would tell a masked caller the object carries a marking
+// weaker than the one it does, which is telling them something false rather
+// than just less than the truth. Reads the caller's holdings from
+// fm.holdingsFieldID rather than always from field itself, since a linked
+// field's holdings can live on the template's mask_by_field_id. Any failure
+// to resolve coverage fails closed and is logged, never falls through to the
+// unfiltered value.
 func (h *AccessControlHook) maskGraphValue(rctx request.CTX, c maskingContext, field *model.PropertyField, fm fieldMasking, value *model.PropertyValue, callerID string) *model.PropertyValue {
 	callerOptionIDs, err := c.callerOptionIDsForHoldings(h, field.GroupID, fm.holdingsFieldID, callerID, field.Type)
 	if err != nil {
-		logHiddenGraphValue(rctx, field, value, err)
+		logMaskingFailure(rctx, field, value, err)
 		return nil
 	}
 	if len(callerOptionIDs) == 0 {
@@ -293,26 +328,36 @@ func (h *AccessControlHook) maskGraphValue(rctx request.CTX, c maskingContext, f
 
 	targetOptionIDs, err := h.extractOptionIDsFromValue(field.Type, value.Value)
 	if err != nil {
-		logHiddenGraphValue(rctx, field, value, err)
+		logMaskingFailure(rctx, field, value, err)
 		return nil
 	}
 	if len(targetOptionIDs) == 0 {
 		return nil
 	}
 
-	visible, err := h.propertyService.clampToCoverage(rctx, field,
-		slices.Collect(maps.Keys(targetOptionIDs)), slices.Collect(maps.Keys(callerOptionIDs)))
+	targetIDs := slices.Collect(maps.Keys(targetOptionIDs))
+	covered, err := h.propertyService.coveredBy(rctx, field, targetIDs, slices.Collect(maps.Keys(callerOptionIDs)))
 	if err != nil {
-		logHiddenGraphValue(rctx, field, value, err)
+		logMaskingFailure(rctx, field, value, err)
 		return nil
+	}
+
+	visible := make([]string, 0, len(targetIDs))
+	for _, id := range targetIDs {
+		if covered[id] {
+			visible = append(visible, id)
+		}
 	}
 	if len(visible) == 0 {
 		return nil
 	}
+	// Sorted for the same reason the option-value path is: two reads of an
+	// unchanged value must come back in the same order.
+	slices.Sort(visible)
 
 	jsonValue, err := json.Marshal(visible)
 	if err != nil {
-		logHiddenGraphValue(rctx, field, value, err)
+		logMaskingFailure(rctx, field, value, err)
 		return nil
 	}
 
@@ -469,13 +514,17 @@ func (h *AccessControlHook) filterMaskedOptionPage(rctx request.CTX, c maskingCo
 // value as stored when it equals one of the caller's own stored values on the
 // holdings field (compared as stored bytes), nil otherwise. Caller and target
 // may legitimately store nothing, in which case the value is hidden.
-func (h *AccessControlHook) maskScalarValue(c maskingContext, field *model.PropertyField, fm fieldMasking, value *model.PropertyValue, callerID string) *model.PropertyValue {
+func (h *AccessControlHook) maskScalarValue(rctx request.CTX, c maskingContext, field *model.PropertyField, fm fieldMasking, value *model.PropertyValue, callerID string) *model.PropertyValue {
 	if value == nil || len(value.Value) == 0 {
 		return nil
 	}
 
 	callerValues, err := c.callerValuesForHoldings(h, field.GroupID, fm.holdingsFieldID, callerID)
-	if err != nil || len(callerValues) == 0 {
+	if err != nil {
+		logMaskingFailure(rctx, field, value, err)
+		return nil
+	}
+	if len(callerValues) == 0 {
 		return nil
 	}
 

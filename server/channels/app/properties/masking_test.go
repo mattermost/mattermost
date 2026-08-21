@@ -526,6 +526,128 @@ func TestMaskValueReads(t *testing.T) {
 		assert.Nil(t, retrieved, "a value that cannot be read as a set of options is hidden, never handed over whole")
 	})
 
+	t.Run("graph: an object marked with an option the caller only covers from below is dropped, not narrowed to what the caller holds", func(t *testing.T) {
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "graph-uncovered-source" })
+		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+
+		field, err := th.service.CreatePropertyField(RequestContextWithCallerID(th.Context, "graph-uncovered-source"), &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Mask-Graph-Uncovered",
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air Program"},
+					map[string]any{"name": "Fighter Jet Program", "parents": []string{"Air Program"}},
+					map[string]any{"name": "F-18 Program", "parents": []string{"Fighter Jet Program"}},
+					map[string]any{"name": "Sea Program"},
+				},
+			},
+			Permissions: &model.Permissions{Masking: &model.Masking{}},
+		})
+		require.NoError(t, err)
+		ids := optionIDsByName(t, field)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, []string{ids["F-18 Program"]})
+		single := writeValueDirect(t, th, field.ID, "user", model.NewId(), []string{ids["Air Program"]})
+		mixed := writeValueDirect(t, th, field.ID, "user", model.NewId(), []string{ids["Air Program"], ids["Sea Program"]})
+
+		retrieved, err := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, single.ID)
+		require.NoError(t, err)
+		assert.Nil(t, retrieved, "the caller holds a descendant of Air Program, not Air Program itself, so the marking must be dropped rather than reported as the narrower F-18 Program")
+
+		retrieved, err = th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, mixed.ID)
+		require.NoError(t, err)
+		assert.Nil(t, retrieved, "neither Air Program nor the unrelated Sea Program is covered, so nothing about the mixed marking may be reported")
+	})
+
+	t.Run("multiselect and graph values return their overlapping options in the same order on two consecutive reads", func(t *testing.T) {
+		selectField, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Mask-Multiselect-Order", model.PropertyFieldTypeMultiselect, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, selectField.ID, "user", caller, []string{"opt_a", "opt_b", "opt_c", "opt_d"})
+		value := writeValueDirect(t, th, selectField.ID, "user", model.NewId(), []string{"opt_a", "opt_b", "opt_c", "opt_d"})
+
+		first, err := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, value.ID)
+		require.NoError(t, err)
+		require.NotNil(t, first)
+		second, err := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, value.ID)
+		require.NoError(t, err)
+		require.NotNil(t, second)
+		assert.Equal(t, first.Value, second.Value, "a multiselect value's options must marshal in the same order every read")
+
+		th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "graph-order-source" })
+		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+
+		graphField, err := th.service.CreatePropertyField(RequestContextWithCallerID(th.Context, "graph-order-source"), &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Mask-Graph-Order",
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air Program"},
+					map[string]any{"name": "Sea Program"},
+				},
+			},
+			Permissions: &model.Permissions{Masking: &model.Masking{}},
+		})
+		require.NoError(t, err)
+		ids := optionIDsByName(t, graphField)
+
+		graphCaller := model.NewId()
+		writeValueDirect(t, th, graphField.ID, "user", graphCaller, []string{ids["Air Program"], ids["Sea Program"]})
+		graphValue := writeValueDirect(t, th, graphField.ID, "user", model.NewId(), []string{ids["Air Program"], ids["Sea Program"]})
+
+		firstGraph, err := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, graphCaller), th.CPAGroupID, graphValue.ID)
+		require.NoError(t, err)
+		require.NotNil(t, firstGraph)
+		secondGraph, err := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, graphCaller), th.CPAGroupID, graphValue.ID)
+		require.NoError(t, err)
+		require.NotNil(t, secondGraph)
+		assert.Equal(t, firstGraph.Value, secondGraph.Value, "a graph value covering two options must marshal in the same order every read")
+	})
+
+	t.Run("a holdings lookup that fails hides the value and logs, on a select field and a text field, not only on a graph field", func(t *testing.T) {
+		selectField, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Mask-Select-Failure", model.PropertyFieldTypeSelect, &model.Masking{}))
+		require.NoError(t, err)
+		textField, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Mask-Text-Failure", model.PropertyFieldTypeText, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		selectValue := writeValueDirect(t, th, selectField.ID, "user", model.NewId(), "opt_a")
+		textValue := writeValueDirect(t, th, textField.ID, "user", model.NewId(), "codename-orca")
+
+		original := th.service.valueStore
+		th.service.valueStore = &erroringSearchValueStore{PropertyValueStore: original}
+		t.Cleanup(func() { th.service.valueStore = original })
+
+		retrieved, err := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, selectValue.ID)
+		require.NoError(t, err)
+		assert.Nil(t, retrieved, "a select field's value must hide when the caller's holdings cannot be resolved")
+
+		retrieved, err = th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, textValue.ID)
+		require.NoError(t, err)
+		assert.Nil(t, retrieved, "a text field's value must hide when the caller's holdings cannot be resolved")
+	})
+
+	t.Run("a stored value that cannot be parsed as options hides and logs", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Mask-Select-Malformed", model.PropertyFieldTypeSelect, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, "opt_a")
+		malformed := writeValueDirect(t, th, field.ID, "user", model.NewId(), 42)
+
+		retrieved, err := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, malformed.ID)
+		require.NoError(t, err)
+		assert.Nil(t, retrieved, "a stored value that will not parse as an option ID is hidden rather than handed over whole")
+	})
+
 	t.Run("holdings from another field: a linked field's masking reads holdings off its template's mask_by_field_id", func(t *testing.T) {
 		template, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
 			GroupID:    th.CPAGroupID,
@@ -826,6 +948,18 @@ type erroringAncestorsFieldStore struct {
 }
 
 func (e *erroringAncestorsFieldStore) GetOptionAncestorsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
+	return nil, errors.New("forced failure for test")
+}
+
+// erroringSearchValueStore wraps a store.PropertyValueStore and forces
+// SearchPropertyValues to fail, so a test can exercise a masking filter's
+// holdings-lookup failure path -- the one every field type shares, not just
+// graph's ancestor walk -- without needing a real broken store.
+type erroringSearchValueStore struct {
+	store.PropertyValueStore
+}
+
+func (e *erroringSearchValueStore) SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 	return nil, errors.New("forced failure for test")
 }
 
