@@ -4,8 +4,13 @@
 package opensearch
 
 import (
+	"context"
+	"os"
+	"strings"
 	"testing"
+	"time"
 
+	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 

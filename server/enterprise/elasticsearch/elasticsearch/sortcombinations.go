@@ -7,7 +7,11 @@ package elasticsearch
 // This API is meant to be part of 9.0, but it got added to as part of 8.18.
 // That's why we need to copy it locally for now.
 
-import "github.com/elastic/go-elasticsearch/v8/typedapi/types"
+import (
+	"encoding/json"
+
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+)
 
 type _sortOptions struct {
 	v *types.SortOptions
@@ -17,23 +21,23 @@ func NewSortOptions() *_sortOptions {
 	return &_sortOptions{v: types.NewSortOptions()}
 }
 
-func (s *_sortOptions) Doc_(doc_ types.ScoreSortVariant) *_sortOptions {
-	s.v.Doc_ = doc_.ScoreSortCaster()
+func (s *_sortOptions) Doc_(doc_ *types.ScoreSort) *_sortOptions {
+	s.v.Doc_ = doc_
 	return s
 }
 
-func (s *_sortOptions) GeoDistance_(geodistance_ types.GeoDistanceSortVariant) *_sortOptions {
-	s.v.GeoDistance_ = geodistance_.GeoDistanceSortCaster()
+func (s *_sortOptions) GeoDistance_(geodistance_ *types.GeoDistanceSort) *_sortOptions {
+	s.v.GeoDistance_ = geodistance_
 	return s
 }
 
-func (s *_sortOptions) Score_(score_ types.ScoreSortVariant) *_sortOptions {
-	s.v.Score_ = score_.ScoreSortCaster()
+func (s *_sortOptions) Score_(score_ *types.ScoreSort) *_sortOptions {
+	s.v.Score_ = score_
 	return s
 }
 
-func (s *_sortOptions) Script_(script_ types.ScriptSortVariant) *_sortOptions {
-	s.v.Script_ = script_.ScriptSortCaster()
+func (s *_sortOptions) Script_(script_ *types.ScriptSort) *_sortOptions {
+	s.v.Script_ = script_
 	return s
 }
 
@@ -42,15 +46,13 @@ func (s *_sortOptions) SortOptions(sortoptions map[string]types.FieldSort) *_sor
 	return s
 }
 
-func (s *_sortOptions) AddSortOption(key string, value types.FieldSortVariant) *_sortOptions {
-	var tmp map[string]types.FieldSort
+func (s *_sortOptions) AddSortOption(key string, value *types.FieldSort) *_sortOptions {
+	tmp := s.v.SortOptions
 	if s.v.SortOptions == nil {
-		s.v.SortOptions = make(map[string]types.FieldSort)
-	} else {
-		tmp = s.v.SortOptions
+		tmp = make(map[string]types.FieldSort)
 	}
 
-	tmp[key] = *value.FieldSortCaster()
+	tmp[key] = *value
 
 	s.v.SortOptions = tmp
 	return s
@@ -58,6 +60,10 @@ func (s *_sortOptions) AddSortOption(key string, value types.FieldSortVariant) *
 
 func (s *_sortOptions) SortOptionsCaster() *types.SortOptions {
 	return s.v
+}
+
+func (s *_sortOptions) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.v)
 }
 
 // Interface implementation for SortOptions in SortCombinations union
