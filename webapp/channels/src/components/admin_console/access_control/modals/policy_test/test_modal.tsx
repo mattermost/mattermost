@@ -141,8 +141,9 @@ function TestResultsModal({
         />
     );
 
-    // The back arrow appears only when the picker preceded the members list;
-    // a members-only modal looks exactly as it did before this step existed.
+    // The back arrow shows only when requireChannel is true, so the admin can
+    // return to the channel picker; a modal invoked with a channel already
+    // fixed renders no back arrow.
     const modalTitle = showPicker ? pickerTitle : (
         <span className='TestResultsModal__title'>
             {requireChannel && (
