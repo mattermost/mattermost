@@ -85,6 +85,17 @@
         cursor: grab;
     }
 
+    .attribute-options-graph-values__drag-handle--disabled {
+        cursor: default;
+    }
+
+    .attribute-options-graph-values__drop-alert {
+        margin: 0;
+        color: var(--error-text);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
     .attribute-options-graph-values__name {
         flex: 1 1 auto;
         min-width: 0;

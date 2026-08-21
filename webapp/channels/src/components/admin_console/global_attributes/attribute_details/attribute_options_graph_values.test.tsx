@@ -136,6 +136,7 @@ describe('AttributeOptionsGraphValues', () => {
         expect(row).toHaveAttribute('data-depth', '0');
         const handle = within(row).getByTestId('attributeOptionsGraphRow__dragHandle');
         expect(handle).toHaveAttribute('aria-hidden', 'true');
+        expect(handle).toHaveAttribute('tabindex', '-1');
         expect(handle).not.toHaveAttribute('tabindex', '0');
         expect(handle.tagName).toBe('SPAN');
     });

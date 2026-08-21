@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/border';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {DotsVerticalIcon, DragVerticalIcon, PlusIcon, SitemapIcon} from '@mattermost/compass-icons/components';
@@ -16,17 +17,21 @@ import Constants from 'utils/constants';
 import {useGraphNodeDelete} from './attribute_graph_delete_modal';
 import {useGrantConfirm} from './attribute_graph_grant_confirm_modal';
 import AttributeGraphParentsPane from './attribute_graph_parents_pane';
-import type {ConfirmGrant} from './graph_parent_ops';
+import type {ConfirmGrant, ProposeParentResult} from './graph_parent_ops';
 import {
     addChildOption,
     addTopLevelOption,
+    cycleErrorValues,
+    depthErrorValues,
     getChildren,
     getRoots,
     isNameUnique,
     renameOption,
     wouldExceedMaxEdges,
     wouldExceedMaxOptions,
+    type CheckParentEdgeResult,
 } from './graph_utils';
+import {useGraphRowDnd} from './use_graph_dnd';
 
 import './attribute_options_graph_values.scss';
 
@@ -82,7 +87,16 @@ type GraphRowProps = {
     options: PropertyFieldOption[];
     onOptionsChange: (options: PropertyFieldOption[]) => void;
     confirmGrant?: ConfirmGrant;
+    onDropResult: (result: ProposeParentResult, names: {childName: string; parentName: string}) => void;
 };
+
+type DropAlert = {
+    check: Extract<CheckParentEdgeResult, {ok: false}>;
+    childName: string;
+    parentName: string;
+};
+
+const DROP_ALERT_TIMEOUT_MS = 4000;
 
 type ChildDraftRowProps = {
     depth: number;
@@ -273,13 +287,29 @@ const GraphRow = React.memo(function GraphRow({
     options,
     onOptionsChange,
     confirmGrant,
+    onDropResult,
 }: GraphRowProps) {
     const {formatMessage} = useIntl();
     const skipBlurCommitRef = useRef(false);
     const parentCount = (occurrence.option.parents ?? []).length;
+    const [rowElement, setRowElement] = useState<HTMLLIElement | null>(null);
+    const [handleElement, setHandleElement] = useState<HTMLSpanElement | null>(null);
+
+    const {isOver} = useGraphRowDnd({
+        rowElement,
+        handleElement,
+        optionName: occurrence.option.name,
+        parentName: occurrence.parentName,
+        options,
+        onOptionsChange,
+        confirmGrant,
+        disabled,
+        onDropResult,
+    });
 
     return (
         <li
+            ref={setRowElement}
             className='attribute-options-graph-values__row'
             style={{['--attribute-options-graph-values-indent' as string]: occurrence.depth}}
             data-testid='attributeOptionsGraphRow'
@@ -289,7 +319,8 @@ const GraphRow = React.memo(function GraphRow({
             tabIndex={-1}
         >
             <span
-                className='attribute-options-graph-values__drag-handle'
+                ref={setHandleElement}
+                className={'attribute-options-graph-values__drag-handle' + (disabled ? ' attribute-options-graph-values__drag-handle--disabled' : '')}
                 tabIndex={-1}
                 aria-hidden={true}
                 data-testid='attributeOptionsGraphRow__dragHandle'
@@ -426,9 +457,46 @@ const GraphRow = React.memo(function GraphRow({
                     />
                 </Menu.Container>
             )}
+            {isOver && (
+                <DropIndicator/>
+            )}
         </li>
     );
 });
+
+function dropAlertMessage(check: Extract<CheckParentEdgeResult, {ok: false}>) {
+    switch (check.error) {
+    case 'cycle':
+        return messages.cycleError;
+    case 'depth':
+        return messages.depthError;
+    case 'max-parents':
+        return messages.maxParentsError;
+    case 'self':
+        return messages.cycleError; // unreachable; caller skips self
+    default: {
+        const exhaustive: never = check;
+        return exhaustive;
+    }
+    }
+}
+
+function dropAlertValues(alert: DropAlert): Record<string, string | number> {
+    switch (alert.check.error) {
+    case 'cycle':
+        return cycleErrorValues(alert.parentName, alert.childName);
+    case 'depth':
+        return depthErrorValues(alert.childName, alert.check.depth);
+    case 'max-parents':
+        return {};
+    case 'self':
+        return {};
+    default: {
+        const exhaustive: never = alert.check;
+        return exhaustive;
+    }
+    }
+}
 
 const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false}: Props) => {
     const confirmGrant = useGrantConfirm();
@@ -438,6 +506,54 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
     const [renameDraft, setRenameDraft] = useState('');
     const [childDraft, setChildDraft] = useState<ChildDraft | null>(null);
     const [childDraftName, setChildDraftName] = useState('');
+    const [dropAlert, setDropAlert] = useState<DropAlert | null>(null);
+    const dropAlertTimeoutRef = useRef<number | null>(null);
+
+    const clearDropAlert = useCallback(() => {
+        if (dropAlertTimeoutRef.current !== null) {
+            window.clearTimeout(dropAlertTimeoutRef.current);
+            dropAlertTimeoutRef.current = null;
+        }
+        setDropAlert(null);
+    }, []);
+
+    const handleDropResult = useCallback((
+        result: ProposeParentResult,
+        names: {childName: string; parentName: string},
+    ) => {
+        switch (result.status) {
+        case 'applied':
+        case 'noOp':
+        case 'cancelled':
+        case 'fail-closed':
+            clearDropAlert();
+            break;
+        case 'invalid':
+            if (result.check.error === 'self') {
+                clearDropAlert();
+                break;
+            }
+            setDropAlert({check: result.check, childName: names.childName, parentName: names.parentName});
+            if (dropAlertTimeoutRef.current !== null) {
+                window.clearTimeout(dropAlertTimeoutRef.current);
+            }
+            dropAlertTimeoutRef.current = window.setTimeout(() => {
+                setDropAlert(null);
+                dropAlertTimeoutRef.current = null;
+            }, DROP_ALERT_TIMEOUT_MS);
+            break;
+        default: {
+            const exhaustive: never = result;
+            return exhaustive;
+        }
+        }
+    }, [clearDropAlert]);
+
+    useEffect(() => {
+        return () => {
+            clearDropAlert();
+        };
+    }, [clearDropAlert]);
 
     const occurrences = useMemo(() => flattenOccurrences(options), [options]);
 
@@ -584,6 +700,7 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
                 options={options}
                 onOptionsChange={onOptionsChange}
                 confirmGrant={confirmGrant}
+                onDropResult={handleDropResult}
             />,
         );
         if (childDraft && childDraft.insertAfterIndex === index) {
@@ -612,6 +729,18 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
             <p className='attribute-options-graph-values__helper'>
                 <FormattedMessage {...messages.helper}/>
             </p>
+            {dropAlert && dropAlert.check.error !== 'self' && (
+                <div
+                    className='attribute-options-graph-values__drop-alert'
+                    role='alert'
+                    data-testid='attributeOptionsGraphValues__dropAlert'
+                >
+                    <FormattedMessage
+                        {...dropAlertMessage(dropAlert.check)}
+                        values={dropAlertValues(dropAlert)}
+                    />
+                </div>
+            )}
             {options.length === 0 ? (
                 <div
                     className='attribute-options-graph-values__empty-canvas'
@@ -707,5 +836,17 @@ const messages = defineMessages({
     deleteThisValue: {
         id: 'admin.global_attributes.attribute_details.options.graph.delete_this_value',
         defaultMessage: 'Delete this value',
+    },
+    cycleError: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parent_edge.cycle',
+        defaultMessage: '{parent} can\'t be a parent of {child} — {child} already grants {parent}, so this would loop back on itself.',
+    },
+    depthError: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parent_edge.depth',
+        defaultMessage: 'Adding this parent pushes "{name}" to depth {n}; the limit is 100.',
+    },
+    maxParentsError: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parent_edge.max_parents',
+        defaultMessage: 'An option can have at most 100 parents.',
     },
 });
