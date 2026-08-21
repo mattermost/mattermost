@@ -3,6 +3,7 @@
 
 import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/border';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {flushSync} from 'react-dom';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {DotsVerticalIcon, DragVerticalIcon, PlusIcon, SitemapIcon} from '@mattermost/compass-icons/components';
@@ -76,7 +77,10 @@ type GraphRowProps = {
     renameDraft: string;
     renameIsDuplicate: boolean;
     parentsOpen: boolean;
+    menuOpen: boolean;
     onOpenMenuAddChild: (occurrence: GraphOccurrence) => void;
+    onOpenMenu: (occurrenceKey: string) => void;
+    onCloseMenu: (occurrenceKey: string) => void;
     onOpenParents: (occurrenceKey: string) => void;
     onCloseParents: () => void;
     onStartRename: (occurrenceKey: string, currentName: string) => void;
@@ -276,7 +280,10 @@ const GraphRow = React.memo(({
     renameDraft,
     renameIsDuplicate,
     parentsOpen,
+    menuOpen,
     onOpenMenuAddChild,
+    onOpenMenu,
+    onCloseMenu,
     onOpenParents,
     onCloseParents,
     onStartRename,
@@ -393,10 +400,19 @@ const GraphRow = React.memo(({
                     dataTestId: 'attributeOptionsGraphRow__menu',
                     children: <DotsVerticalIcon size={18}/>,
                     disabled,
+                    onMouseDown: () => onOpenMenu(occurrence.occurrenceKey),
                 }}
                 menu={{
                     id: `attribute-options-graph-row-menu-list-${index}`,
                     'aria-label': formatMessage(messages.rowMenuAria),
+                    isMenuOpen: menuOpen,
+                    onToggle: (open) => {
+                        if (open) {
+                            onOpenMenu(occurrence.occurrenceKey);
+                        } else {
+                            onCloseMenu(occurrence.occurrenceKey);
+                        }
+                    },
                 }}
             >
                 <Menu.Item
@@ -501,7 +517,8 @@ function dropAlertValues(alert: DropAlert): Record<string, string | number> {
 const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false}: Props) => {
     const confirmGrant = useGrantConfirm();
     const [draftName, setDraftName] = useState('');
-    const [parentsOccurrenceKey, setParentsOccurrenceKey] = useState<string | null>(null);
+    const [openParentsFor, setOpenParentsFor] = useState<string | null>(null);
+    const [openMenuFor, setOpenMenuFor] = useState<string | null>(null);
     const [renamingKey, setRenamingKey] = useState<string | null>(null);
     const [renameDraft, setRenameDraft] = useState('');
     const [childDraft, setChildDraft] = useState<ChildDraft | null>(null);
@@ -581,6 +598,13 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
     }, [draftName, options, onOptionsChange, disabled]);
 
     const handleGoToOrphan = useCallback((optionName: string) => {
+        // Close overlays first so a Parents pane restoreFocus cannot steal
+        // after we move to the orphan. Focus still runs from modal onExited
+        // (5.2); doing it on confirm loses to GenericModal restoreFocus.
+        flushSync(() => {
+            setOpenParentsFor(null);
+            setOpenMenuFor(null);
+        });
         const el = document.querySelector(
             `[data-testid="attributeOptionsGraphRow"][data-option-name="${CSS.escape(optionName)}"]`,
         );
@@ -608,12 +632,22 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
         setRenamingKey(null);
     }, [options]);
 
+    const handleOpenMenu = useCallback((occurrenceKey: string) => {
+        setOpenParentsFor(null);
+        setOpenMenuFor(occurrenceKey);
+    }, []);
+
+    const handleCloseMenu = useCallback((occurrenceKey: string) => {
+        setOpenMenuFor((current) => (current === occurrenceKey ? null : current));
+    }, []);
+
     const handleOpenParents = useCallback((occurrenceKey: string) => {
-        setParentsOccurrenceKey(occurrenceKey);
+        setOpenMenuFor(null);
+        setOpenParentsFor(occurrenceKey);
     }, []);
 
     const handleCloseParents = useCallback(() => {
-        setParentsOccurrenceKey(null);
+        setOpenParentsFor(null);
     }, []);
 
     const handleStartRename = useCallback((occurrenceKey: string, currentName: string) => {
@@ -688,8 +722,11 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
                 isRenaming={renamingKey === occurrence.occurrenceKey}
                 renameDraft={renameDraft}
                 renameIsDuplicate={renamingKey === occurrence.occurrenceKey && Boolean(renameDraft.trim()) && !isNameUnique(options, renameDraft.trim(), occurrence.option.name)}
-                parentsOpen={parentsOccurrenceKey === occurrence.occurrenceKey}
+                parentsOpen={openParentsFor === occurrence.occurrenceKey}
+                menuOpen={openMenuFor === occurrence.occurrenceKey}
                 onOpenMenuAddChild={handleOpenMenuAddChild}
+                onOpenMenu={handleOpenMenu}
+                onCloseMenu={handleCloseMenu}
                 onOpenParents={handleOpenParents}
                 onCloseParents={handleCloseParents}
                 onStartRename={handleStartRename}

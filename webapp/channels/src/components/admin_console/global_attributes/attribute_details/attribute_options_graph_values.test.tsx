@@ -7,7 +7,7 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
 
-import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import AttributeGraphDeleteModal from './attribute_graph_delete_modal';
@@ -434,5 +434,55 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
         dialogProps().onExited();
         expect(orphanRow).toHaveFocus();
         expect(orphanRow.scrollIntoView).toHaveBeenCalledWith({block: 'nearest'});
+    });
+
+    it('closes the Parents pane when Go-to focuses the orphan after the modal exits', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={blockedOptions()}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await openRowMenu('X');
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Parents'}));
+        expect(await screen.findByTestId('attributeGraphParentsPane__name')).toHaveTextContent('X');
+
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Delete this value'}));
+        await waitFor(() => {
+            expect(openModal).toHaveBeenCalled();
+        });
+
+        const orphanRow = getRow('Orphan', 'X');
+        act(() => {
+            dialogProps().onConfirm();
+        });
+        expect(document.activeElement).not.toBe(orphanRow);
+        expect(screen.getByTestId('attributeGraphParentsPane__name')).toBeInTheDocument();
+
+        act(() => {
+            dialogProps().onExited();
+        });
+        expect(orphanRow).toHaveFocus();
+        expect(screen.queryByTestId('attributeGraphParentsPane__name')).not.toBeInTheDocument();
+    });
+
+    it('closes the Parents pane when another row overflow menu opens', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={blockedOptions()}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await openRowMenu('X');
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Parents'}));
+        expect(await screen.findByTestId('attributeGraphParentsPane__name')).toHaveTextContent('X');
+
+        await openRowMenu('Orphan', 'X');
+
+        expect(screen.queryByTestId('attributeGraphParentsPane__name')).not.toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: 'Delete this value'})).not.toBeDisabled();
+        expect(screen.getByRole('menuitem', {name: 'Add child'})).toBeInTheDocument();
     });
 });
