@@ -3506,6 +3506,77 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 		require.True(t, ok)
 		assert.NotNil(t, previewData.Post.Metadata.Files, "embed files should not be stripped without ABAC")
 	})
+
+	// newPostWithPreview builds a post whose permalink embed previews a post in BasicChannel
+	// carrying the given channel mentions.
+	newPostWithPreview := func(mentions map[string]any) (*model.Post, *model.PreviewPost) {
+		previewedPost := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+		}
+		previewedPost.AddProp(model.PostPropsChannelMentions, mentions)
+
+		previewPost := model.NewPreviewPost(previewedPost, th.BasicTeam, th.BasicChannel)
+
+		return &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{Type: model.PostEmbedPermalink, Data: previewPost},
+				},
+			},
+		}, previewPost
+	}
+
+	t.Run("strips private channel mention from a permalink preview for a non-member", func(t *testing.T) {
+		// BasicUser2 is not a member of a channel created by BasicUser.
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+
+		post, previewPost := newPostWithPreview(map[string]any{
+			privateChannel.Name: map[string]any{
+				"display_name": privateChannel.DisplayName,
+				"team_name":    th.BasicTeam.Name,
+			},
+		})
+
+		sanitizedPost, _, appErr := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.Len(t, sanitizedPost.Metadata.Embeds, 1)
+
+		sanitizedPreview, ok := sanitizedPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
+		require.True(t, ok)
+		assert.Nil(t, sanitizedPreview.Post.GetProp(model.PostPropsChannelMentions), "private channel mention should not leak through the preview")
+
+		// The preview post is shared through the link metadata cache, so it must not be mutated.
+		assert.NotNil(t, previewPost.Post.GetProp(model.PostPropsChannelMentions))
+	})
+
+	t.Run("keeps resolvable channel mention in a permalink preview", func(t *testing.T) {
+		post, _ := newPostWithPreview(map[string]any{
+			th.BasicChannel.Name: map[string]any{
+				"display_name": "Stale Display Name",
+				"team_name":    th.BasicTeam.Name,
+			},
+		})
+
+		sanitizedPost, _, appErr := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.Len(t, sanitizedPost.Metadata.Embeds, 1)
+
+		sanitizedPreview, ok := sanitizedPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
+		require.True(t, ok)
+
+		mentions, ok := sanitizedPreview.Post.GetProp(model.PostPropsChannelMentions).(map[string]any)
+		require.True(t, ok)
+		require.Contains(t, mentions, th.BasicChannel.Name)
+
+		channelData, ok := mentions[th.BasicChannel.Name].(map[string]any)
+		require.True(t, ok)
+		assert.Equal(t, th.BasicChannel.DisplayName, channelData["display_name"])
+	})
 }
 
 func TestPreparePostForClient_BurnOnReadSenderExpireAt(t *testing.T) {
