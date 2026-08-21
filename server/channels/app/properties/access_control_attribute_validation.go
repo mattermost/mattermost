@@ -930,7 +930,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		}
 	}
 
-	return h.validateChangePolicy(groupID, values, fieldMap)
+	return h.validateChangePolicy(rctx, groupID, values, fieldMap)
 }
 
 // validateChangePolicy enforces attrs.change_policy: a value may be set once,
@@ -945,7 +945,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 // This is a read-then-write with no transaction around it, so two concurrent
 // first writes can both pass. That is the window the rest of the property system
 // already lives with, and the loser overwrites a value set milliseconds earlier.
-func (h *AccessControlAttributeValidationHook) validateChangePolicy(groupID string, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
+func (h *AccessControlAttributeValidationHook) validateChangePolicy(rctx request.CTX, groupID string, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
 	// Grouped by target so one search covers every governed field on a channel:
 	// PropertyValueSearchOpts carries a single FieldID, so a per-field lookup
 	// would cost a round trip each. "any" is the default and the common case,
@@ -963,7 +963,7 @@ func (h *AccessControlAttributeValidationHook) validateChangePolicy(groupID stri
 	}
 
 	for targetID, pending := range governed {
-		existing, err := h.getValuesForTarget(groupID, model.PropertyValueTargetTypeChannel, targetID)
+		existing, err := h.getValuesForTarget(rctx, groupID, model.PropertyValueTargetTypeChannel, targetID)
 		if err != nil {
 			return err
 		}
@@ -1083,7 +1083,7 @@ func newRequiredValueError(field *model.PropertyField) error {
 
 // getValuesForTarget loads every value stored against one target, paging with
 // the same bounds as the access-control lookups.
-func (h *AccessControlAttributeValidationHook) getValuesForTarget(groupID, targetType, targetID string) ([]*model.PropertyValue, error) {
+func (h *AccessControlAttributeValidationHook) getValuesForTarget(rctx request.CTX, groupID, targetType, targetID string) ([]*model.PropertyValue, error) {
 	allValues := []*model.PropertyValue{}
 	var cursor model.PropertyValueSearchCursor
 
@@ -1101,7 +1101,7 @@ func (h *AccessControlAttributeValidationHook) getValuesForTarget(groupID, targe
 			opts.Cursor = cursor
 		}
 
-		values, err := h.propertyService.searchPropertyValues(groupID, opts)
+		values, err := h.propertyService.searchPropertyValues(rctx, groupID, opts)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load existing values for target %s: %w", targetID, err)
 		}
@@ -1202,7 +1202,7 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(
 	}}); err != nil {
 		return err
 	}
-	values, err := h.getValuesForTarget(groupID, targetType, targetID)
+	values, err := h.getValuesForTarget(rctx, groupID, targetType, targetID)
 	if err != nil {
 		return err
 	}
