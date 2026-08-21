@@ -6,6 +6,8 @@ import {MemoryRouter} from 'react-router-dom';
 
 import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 
+import {RHSStates} from 'utils/constants';
+
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import Recaps from './recaps';
@@ -16,6 +18,7 @@ const mockGetRecaps = jest.fn((page: number, perPage: number) => ({type: 'GET_RE
 const mockGetScheduledRecaps = jest.fn((page: number, perPage: number) => ({type: 'GET_SCHEDULED_RECAPS', meta: {page, perPage}}));
 const mockFetchRecapLimitStatus = jest.fn(() => ({type: 'GET_RECAP_LIMIT_STATUS'}));
 const mockMarkRecapsAsViewed = jest.fn(() => ({type: 'MARK_RECAPS_VIEWED'}));
+const mockGetRhsState = jest.fn(() => null);
 const mockSelectLhsItem = jest.fn((type: string, id?: string) => {
     return {type: 'SELECT_LHS_ITEM', meta: {lhsType: type, id}};
 });
@@ -49,6 +52,10 @@ jest.mock('actions/views/lhs', () => ({
     selectLhsItem: (type: string, id?: string) => mockSelectLhsItem(type, id),
 }));
 
+jest.mock('selectors/rhs', () => ({
+    getRhsState: () => mockGetRhsState(),
+}));
+
 jest.mock('actions/views/rhs', () => ({
     suppressRHS: {type: 'SUPPRESS_RHS'},
     unsuppressRHS: {type: 'UNSUPPRESS_RHS'},
@@ -71,6 +78,8 @@ describe('components/recaps/Recaps', () => {
         mockGetScheduledRecaps.mockClear();
         mockFetchRecapLimitStatus.mockClear();
         mockMarkRecapsAsViewed.mockClear();
+        mockGetRhsState.mockClear();
+        mockGetRhsState.mockReturnValue(null);
         mockSelectLhsItem.mockClear();
     });
 
@@ -104,6 +113,27 @@ describe('components/recaps/Recaps', () => {
                 <Recaps/>
             </MemoryRouter>,
         );
+
+        await waitFor(() => expect(mockMarkRecapsAsViewed).toHaveBeenCalled());
+        unmount();
+
+        expect(mockDispatch).toHaveBeenCalledWith({type: 'UNSUPPRESS_RHS'});
+    });
+
+    test.each([
+        ['mentions', RHSStates.MENTION],
+        ['search', RHSStates.SEARCH],
+        ['saved posts', RHSStates.FLAG],
+    ])('does not suppress the RHS when %s is open', async (_label, rhsState) => {
+        mockGetRhsState.mockReturnValue(rhsState);
+
+        const {unmount} = renderWithContext(
+            <MemoryRouter>
+                <Recaps/>
+            </MemoryRouter>,
+        );
+
+        expect(mockDispatch).not.toHaveBeenCalledWith({type: 'SUPPRESS_RHS'});
 
         await waitFor(() => expect(mockMarkRecapsAsViewed).toHaveBeenCalled());
         unmount();

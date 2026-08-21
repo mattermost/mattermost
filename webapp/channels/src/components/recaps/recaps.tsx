@@ -16,12 +16,13 @@ import {getAllRecaps, getUnreadRecaps, getReadRecaps, getAllScheduledRecaps} fro
 import {selectLhsItem} from 'actions/views/lhs';
 import {openModal} from 'actions/views/modals';
 import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
+import {getRhsState} from 'selectors/rhs';
 
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import CreateRecapModal from 'components/create_recap_modal';
 
-import {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers, RHSStates} from 'utils/constants';
 import {useQuery} from 'utils/http_utils';
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';
@@ -75,6 +76,7 @@ const Recaps = () => {
     const unreadRecaps = useSelector(getUnreadRecaps);
     const readRecaps = useSelector(getReadRecaps);
     const scheduledRecaps = useSelector(getAllScheduledRecaps);
+    const rhsState = useSelector(getRhsState);
     const hasNoRecaps = !isLoading && allRecaps.length === 0;
 
     // Sync activeTab with URL query parameter changes (e.g., when navigating via history.push)
@@ -86,7 +88,15 @@ const Recaps = () => {
     // Recaps is a full-width static page; suppress channel-scoped RHS while open.
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Recaps));
-        dispatch(suppressRHS);
+
+        // Keep global RHS views (mentions, search, saved posts) visible, matching Threads.
+        if (!(
+            rhsState === RHSStates.MENTION ||
+            rhsState === RHSStates.SEARCH ||
+            rhsState === RHSStates.FLAG)
+        ) {
+            dispatch(suppressRHS);
+        }
 
         return () => {
             dispatch(unsuppressRHS);
