@@ -151,7 +151,7 @@ func GetImageOrientation(input io.Reader, format string) (int, error) {
 		ImageFormat: imgFormat,
 	}
 
-	if err := imagemeta.Decode(opts); err != nil && !errors.Is(err, errStopDecoding) {
+	if _, err := imagemeta.Decode(opts); err != nil && !errors.Is(err, errStopDecoding) {
 		return Upright, fmt.Errorf("failed to decode exif data: %w", err)
 	}
 
