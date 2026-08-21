@@ -725,6 +725,19 @@ func (p protectedCPAAttributes) isEmpty() bool {
 	return len(p.user) == 0 && len(p.resource) == 0
 }
 
+// set returns the protected-name set for a CPA object type, or nil for an
+// object type that never surfaces in a simulation trace.
+func (p protectedCPAAttributes) set(objectType string) map[string]struct{} {
+	switch objectType {
+	case model.PropertyFieldObjectTypeUser:
+		return p.user
+	case model.PropertyFieldObjectTypeChannel:
+		return p.resource
+	default:
+		return nil
+	}
+}
+
 // RedactSimulationAttributesForCaller strips attribute values from a
 // PolicySimulationResponse on every surface the picker exposes
 // (top-level user/session Attributes maps AND the per-leaf
@@ -798,14 +811,16 @@ func (a *App) RedactSimulationAttributesForCaller(rctx request.CTX, resp *model.
 	redactProtectedEvaluationTreeActualValues(resp, protected)
 }
 
-// protectedCPAFieldNamesForCaller returns the set of CPA field names
-// whose contents must be hidden from a non-system-admin caller. The
-// set includes both `visibility: hidden` fields and any field whose
-// `access_mode` is not public (source_only / shared_only). The
+// protectedCPAFieldNamesForCaller returns, per attribute root, the set of
+// CPA field names whose contents must be hidden from a non-system-admin
+// caller. The set includes both `visibility: hidden` fields and any field
+// whose `access_mode` is not public (source_only / shared_only). The
 // simulator's UserAttributeView populates its per-user map keyed by
 // `pf.Name` (see db/migrations/postgres/000216_split_attribute_view_by_object_type.up.sql),
 // and the evaluation-tree walker likewise records `user.attributes.<name>`
-// on each leaf — so matching by name is correct for both.
+// on each leaf — so matching by name is correct for the user set. Channel
+// fields are matched the same way, by name, against their own set: the
+// walker records those as `resource.attributes.<name>`.
 func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAttributes, error) {
 	protected := protectedCPAAttributes{
 		user:     map[string]struct{}{},
@@ -819,30 +834,17 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAtt
 
 	propertyFields, appErr := a.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
 		ObjectTypes: []string{model.PropertyFieldObjectTypeUser, model.PropertyFieldObjectTypeChannel},
-		PerPage:     2*model.AccessControlGroupFieldLimit + 5,
+		PerPage:     model.AccessControlGroupFieldLimit + 5,
 	})
 	if appErr != nil {
 		return protected, appErr
-	}
-
-	// setFor returns the protected-name set for a field's object type, or
-	// nil for object types that never surface in a simulation trace.
-	setFor := func(objectType string) map[string]struct{} {
-		switch objectType {
-		case model.PropertyFieldObjectTypeUser:
-			return protected.user
-		case model.PropertyFieldObjectTypeChannel:
-			return protected.resource
-		default:
-			return nil
-		}
 	}
 
 	for _, pf := range propertyFields {
 		if pf == nil {
 			continue
 		}
-		set := setFor(pf.ObjectType)
+		set := protected.set(pf.ObjectType)
 		if set == nil {
 			continue
 		}
@@ -965,16 +967,18 @@ func stripProtectedAttributes(resp *model.PolicySimulationResponse, protected ma
 // EvaluationTree (and the per-rule subtrees attached under
 // MergedRules) on every result and session decision in `resp`. For
 // each leaf node whose `Attribute` references a protected CPA field
-// (path format `user.attributes.<name>`), the leaf's `ActualValue`
-// is blanked.
+// (path format `user.attributes.<name>` or `resource.attributes.<name>`),
+// the leaf's `ActualValue` is blanked.
 //
 // Why ActualValue and nothing else:
 //   - `Attribute` is the path; it already appears in the rule's
 //     `Expression`, which the channel admin can see.
 //   - `ExpectedValue` is the literal from the rule (e.g. `"il5"`),
-//     not the user's data — also already in `Expression`.
-//   - `ActualValue` is the only field that records the target user's
-//     concrete attribute value. That's the one we must redact.
+//     not the user's or channel's data — also already in `Expression`.
+//   - `ActualValue` is the only field that records the target's
+//     concrete attribute value — the user's for a `user.attributes.*`
+//     leaf, the accessed channel's for a `resource.attributes.*` leaf.
+//     That's the one we must redact.
 func redactProtectedEvaluationTreeActualValues(resp *model.PolicySimulationResponse, protected protectedCPAAttributes) {
 	if resp == nil || protected.isEmpty() {
 		return
@@ -1035,21 +1039,12 @@ func isProtectedAttributePath(path string, protected protectedCPAAttributes) boo
 	if path == "" || protected.isEmpty() {
 		return false
 	}
-	if name, ok := strings.CutPrefix(path, userAttributesPathPrefix); ok {
-		if name == "" {
-			return false
-		}
-		_, found := protected.user[name]
-		return found
+	objectType, name, ok := splitCPAAttribute(path)
+	if !ok {
+		return false
 	}
-	if name, ok := strings.CutPrefix(path, resourceAttributesPathPrefix); ok {
-		if name == "" {
-			return false
-		}
-		_, found := protected.resource[name]
-		return found
-	}
-	return false
+	_, found := protected.set(objectType)[name]
+	return found
 }
 
 // clearAllSimulationAttributes wipes every top-level user-level and
