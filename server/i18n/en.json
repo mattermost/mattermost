@@ -7765,6 +7765,14 @@
     "translation": "Unable to send notification post."
   },
   {
+    "id": "app.notify_expiring_access_tokens.bot_dm",
+    "translation": "The personal access token \"{{.Description}}\" for bot account @{{.BotUsername}} will expire in {{.Days}} days or less. Open **Integrations > Bot Accounts** to regenerate it before it stops working."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.bot_dm_final",
+    "translation": "The personal access token \"{{.Description}}\" for bot account @{{.BotUsername}} will expire within 24 hours. Open **Integrations > Bot Accounts** to regenerate it before it stops working."
+  },
+  {
     "id": "app.notify_expiring_access_tokens.dm",
     "translation": "Your personal access token \"{{.Description}}\" will expire in {{.Days}} days or less. Open **Profile > Security** to regenerate it before it stops working."
   },
@@ -9909,6 +9917,10 @@
   {
     "id": "app.user.verify_email.app_error",
     "translation": "Unable to update verify email field."
+  },
+  {
+    "id": "app.user_access_token.bot_expired_deleted_notification",
+    "translation": "The personal access token \"{{.Description}}\" for bot account @{{.BotUsername}} has expired and been removed. Open **Integrations > Bot Accounts** to create a new token."
   },
   {
     "id": "app.user_access_token.count_non_compliant.app_error",

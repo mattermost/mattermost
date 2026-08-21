@@ -26,10 +26,12 @@ type fakeStore struct {
 	deleteCnt  int64
 	deleteErr  error
 	deletedIDs [][]string
+	includeAll []bool
 }
 
-func (f *fakeStore) GetExpiredBefore(_ int64, _ int) ([]*model.UserAccessToken, error) {
+func (f *fakeStore) GetExpiredBefore(_ int64, _ int, includeAllTokens bool) ([]*model.UserAccessToken, error) {
 	f.getCalls++
+	f.includeAll = append(f.includeAll, includeAllTokens)
 	if f.getErrAt != 0 && f.getCalls == f.getErrAt {
 		return nil, f.getErr
 	}
@@ -76,7 +78,7 @@ func TestCleanupExpired(t *testing.T) {
 		tokens := makeTokens(3, 1000)
 		store := &fakeStore{batches: [][]*model.UserAccessToken{tokens}}
 
-		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, 9999, 1000, 10)
+		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, true, 9999, 1000, 10)
 		require.NoError(t, err)
 
 		// Exactly one DeleteByIds call with the three token ids. A partial first
@@ -90,7 +92,7 @@ func TestCleanupExpired(t *testing.T) {
 	t.Run("empty result is no-op", func(t *testing.T) {
 		store := &fakeStore{} // no batches, no errors
 
-		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, 9999, 1000, 10)
+		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, true, 9999, 1000, 10)
 		require.NoError(t, err)
 
 		require.Equal(t, 1, store.getCalls)
@@ -103,7 +105,7 @@ func TestCleanupExpired(t *testing.T) {
 		second := makeTokens(2, 2000)    // partial batch -> loop stops
 		store := &fakeStore{batches: [][]*model.UserAccessToken{first, second}}
 
-		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, 9999, limit, 10)
+		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, true, 9999, limit, 10)
 		require.NoError(t, err)
 
 		require.Equal(t, 2, store.getCalls)
@@ -121,7 +123,7 @@ func TestCleanupExpired(t *testing.T) {
 			makeTokens(limit, 3000), // never reached
 		}}
 
-		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, 9999, limit, maxIter)
+		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, true, 9999, limit, maxIter)
 		require.NoError(t, err)
 
 		require.Equal(t, maxIter, store.getCalls, "loop must cap at maxIter")
@@ -136,7 +138,7 @@ func TestCleanupExpired(t *testing.T) {
 			getErr:   wantErr,
 		}
 
-		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, 9999, 1000, 10)
+		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, true, 9999, 1000, 10)
 		require.ErrorIs(t, err, wantErr)
 		require.Empty(t, store.deletedIDs, "delete must not run when get fails")
 	})
@@ -148,7 +150,7 @@ func TestCleanupExpired(t *testing.T) {
 			deleteErr: wantErr,
 		}
 
-		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, 9999, 1000, 10)
+		err := cleanupExpired(rctx, store, nopClearSession, nopNotify, true, 9999, 1000, 10)
 		require.ErrorIs(t, err, wantErr)
 		require.Len(t, store.deletedIDs, 1, "DeleteByIds was called once before failing")
 	})
@@ -163,7 +165,7 @@ func TestCleanupExpired(t *testing.T) {
 		store := &fakeStore{batches: [][]*model.UserAccessToken{tokens}}
 
 		cleared := map[string]int{}
-		err := cleanupExpired(rctx, store, func(userID string) { cleared[userID]++ }, nopNotify, 9999, 1000, 10)
+		err := cleanupExpired(rctx, store, func(userID string) { cleared[userID]++ }, nopNotify, true, 9999, 1000, 10)
 		require.NoError(t, err)
 
 		require.Len(t, cleared, 2, "cache must be cleared for each unique user")
@@ -184,7 +186,7 @@ func TestCleanupExpired(t *testing.T) {
 			notified = append(notified, tokens)
 		}
 
-		err := cleanupExpired(rctx, store, nopClearSession, notify, 9999, limit, 10)
+		err := cleanupExpired(rctx, store, nopClearSession, notify, true, 9999, limit, 10)
 		require.NoError(t, err)
 
 		require.Len(t, notified, 2, "notify called once per batch")
@@ -195,8 +197,16 @@ func TestCleanupExpired(t *testing.T) {
 	t.Run("nil notify is tolerated", func(t *testing.T) {
 		store := &fakeStore{batches: [][]*model.UserAccessToken{makeTokens(2, 1000)}}
 
-		err := cleanupExpired(rctx, store, nopClearSession, nil, 9999, 1000, 10)
+		err := cleanupExpired(rctx, store, nopClearSession, nil, true, 9999, 1000, 10)
 		require.NoError(t, err)
 		require.Len(t, store.deletedIDs, 1)
+	})
+
+	t.Run("token scope is forwarded to the store", func(t *testing.T) {
+		store := &fakeStore{}
+
+		err := cleanupExpired(rctx, store, nopClearSession, nil, false, 9999, 1000, 10)
+		require.NoError(t, err)
+		require.Equal(t, []bool{false}, store.includeAll)
 	})
 }

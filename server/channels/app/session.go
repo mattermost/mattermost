@@ -550,6 +550,86 @@ func (a *App) validateUserAccessTokenExpiry(token *model.UserAccessToken) *model
 	return nil
 }
 
+// resolveBotOwner returns the bot and its owning user for a bot's user id.
+// owner is nil (with no error) when the bot is the system-owned bot or its
+// owner no longer exists (e.g. a plugin-owned bot, whose OwnerId is a plugin
+// ID rather than a user ID) — both cases mean there's no PAT-policy-relevant
+// human owner behind the bot.
+func (a *App) resolveBotOwner(rctx request.CTX, botUserId string) (owner *model.User, bot *model.Bot, appErr *model.AppError) {
+	bot, appErr = a.GetBot(rctx, botUserId, true)
+	if appErr != nil {
+		return nil, nil, appErr
+	}
+	if bot.Username == model.BotSystemBotUsername {
+		return nil, bot, nil
+	}
+
+	owner, err := a.Srv().Store().User().Get(rctx, bot.OwnerId)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil, bot, nil
+		}
+		return nil, nil, model.NewAppError("resolveBotOwner", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return owner, bot, nil
+}
+
+// userAccessTokenExpiryPolicyApplies reports whether the PAT expiry policy
+// applies to tokens owned by user. It applies to every non-bot user and to
+// user-owned bots; plugin-owned and system bots are exempt.
+func (a *App) userAccessTokenExpiryPolicyApplies(rctx request.CTX, user *model.User) (bool, *model.AppError) {
+	if !user.IsBot {
+		return true, nil
+	}
+
+	owner, _, appErr := a.resolveBotOwner(rctx, user.Id)
+	if appErr != nil {
+		return false, appErr
+	}
+
+	return owner != nil, nil
+}
+
+// enforceUserAccessTokenExpiryPolicy validates candidate against the maximum
+// lifetime policy when it applies to user, a no-op otherwise (e.g. for
+// plugin-owned bots).
+func (a *App) enforceUserAccessTokenExpiryPolicy(rctx request.CTX, user *model.User, candidate *model.UserAccessToken) *model.AppError {
+	policyApplies, appErr := a.userAccessTokenExpiryPolicyApplies(rctx, user)
+	if appErr != nil || !policyApplies {
+		return appErr
+	}
+
+	return a.validateUserAccessTokenExpiry(candidate)
+}
+
+// resolveAccessTokenNotificationRecipient returns the user who should be
+// notified about a personal access token's expiry: the token owner directly
+// for non-bot tokens, or the bot's active owner for user-owned bot tokens.
+// recipient is nil (with no error) when there's no one to notify — the token
+// owner is deactivated, the bot is plugin-owned or the system bot, or the
+// bot's owner is deactivated or no longer exists.
+func (a *App) resolveAccessTokenNotificationRecipient(rctx request.CTX, token *model.UserAccessToken) (recipient *model.User, bot *model.Bot, appErr *model.AppError) {
+	tokenUser, appErr := a.GetUser(token.UserId)
+	if appErr != nil {
+		return nil, nil, appErr
+	}
+	if !tokenUser.IsBot {
+		if tokenUser.DeleteAt != 0 {
+			return nil, nil, nil
+		}
+		return tokenUser, nil, nil
+	}
+
+	owner, bot, appErr := a.resolveBotOwner(rctx, token.UserId)
+	if appErr != nil || owner == nil || owner.DeleteAt != 0 {
+		return nil, nil, appErr
+	}
+
+	return owner, bot, nil
+}
+
 func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
 	user, nErr := a.ch.srv.userService.GetUser(rctx, token.UserId)
 	if nErr != nil {
@@ -566,14 +646,8 @@ func (a *App) CreateUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 		return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	// Bot accounts are exempt from the PAT expiry policy, matching the existing
-	// EnableUserAccessTokens bypass above: bots are programmatic clients that
-	// typically need long-lived credentials, and integrations that provision
-	// them would otherwise break the moment an admin enables enforcement.
-	if !user.IsBot {
-		if err := a.validateUserAccessTokenExpiry(token); err != nil {
-			return nil, err
-		}
+	if appErr := a.enforceUserAccessTokenExpiryPolicy(rctx, user, token); appErr != nil {
+		return nil, appErr
 	}
 
 	token.Token = model.NewId()
@@ -728,10 +802,9 @@ func (a *App) maxUserAccessTokenExpiry() (maxExpiresAt int64, enabled bool) {
 	return model.GetMillis() + maxDays*24*60*60*1000, true
 }
 
-// CountNonCompliantUserAccessTokens returns the number of active, non-bot
-// personal access tokens that violate the current maximum lifetime policy. It
-// lets an admin preview the blast radius before revoking. When no policy is in
-// effect it returns 0 — nothing is non-compliant.
+// CountNonCompliantUserAccessTokens returns the number of active user and
+// user-owned bot personal access tokens that violate the current maximum
+// lifetime policy. Plugin-owned bot tokens are exempt.
 func (a *App) CountNonCompliantUserAccessTokens() (int64, *model.AppError) {
 	maxExpiresAt, enabled := a.maxUserAccessTokenExpiry()
 	if !enabled {
@@ -746,9 +819,10 @@ func (a *App) CountNonCompliantUserAccessTokens() (int64, *model.AppError) {
 	return count, nil
 }
 
-// RevokeNonCompliantUserAccessTokens hard-deletes every active, non-bot personal
-// access token that violates the current maximum lifetime policy, along with any
-// sessions minted from them. It returns the number of tokens actually deleted.
+// RevokeNonCompliantUserAccessTokens hard-deletes every active user and
+// user-owned bot personal access token that violates the current maximum
+// lifetime policy, along with any sessions minted from them. Plugin-owned bot
+// tokens are exempt. It returns the number of tokens actually deleted.
 // Work is done in bounded batches to keep transactions small, and the per-user
 // session cache is cleared so stale sessions aren't served from memory. When no
 // policy is in effect the call is refused — there is nothing to revoke and a
@@ -837,17 +911,15 @@ func (a *App) RotateUserAccessToken(rctx request.CTX, token *model.UserAccessTok
 		return nil, model.NewAppError("RotateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	if !user.IsBot {
-		// Validate against the proposed expiry using a throwaway copy so token
-		// isn't mutated unless the rotation actually succeeds.
-		rotated := &model.UserAccessToken{
-			Id:        token.Id,
-			UserId:    token.UserId,
-			ExpiresAt: expiresAt,
-		}
-		if err := a.validateUserAccessTokenExpiry(rotated); err != nil {
-			return nil, err
-		}
+	// Validate against the proposed expiry using a throwaway copy so token
+	// isn't mutated unless the rotation actually succeeds.
+	rotated := &model.UserAccessToken{
+		Id:        token.Id,
+		UserId:    token.UserId,
+		ExpiresAt: expiresAt,
+	}
+	if appErr := a.enforceUserAccessTokenExpiryPolicy(rctx, user, rotated); appErr != nil {
+		return nil, appErr
 	}
 
 	// Capture the old session before the store update so we can evict it from
