@@ -91,22 +91,26 @@ func testTeamStorePolicyEnforced(t *testing.T, rctx request.CTX, ss store.Store)
 	}
 
 	// savePolicy persists a policy whose ID matches the target resource. team-type
-	// policies validate only from v0.3 onward.
-	savePolicy := func(id, policyType string, active bool) {
+	// policies validate only from v0.3 onward. autoAdd is stored on the membership
+	// rule, which is what PolicyAutoAdd is derived from; Active is set to the
+	// opposite value to prove the reserved column has no bearing on it.
+	savePolicy := func(id, policyType string, autoAdd bool) {
 		version := model.AccessControlPolicyVersionV0_2
 		if policyType == model.AccessControlPolicyTypeTeam {
 			version = model.AccessControlPolicyVersionV0_3
 		}
-		_, err := ss.AccessControlPolicy().Save(rctx, &model.AccessControlPolicy{
+		policy := &model.AccessControlPolicy{
 			ID:      id,
 			Type:    policyType,
-			Active:  active,
+			Active:  !autoAdd,
 			Version: version,
 			Rules: []model.AccessControlPolicyRule{{
 				Actions:    []string{model.AccessControlPolicyActionMembership},
 				Expression: "user.properties.program == \"engineering\"",
 			}},
-		})
+		}
+		policy.SetAutoAddMode(autoAddMode(autoAdd))
+		_, err := ss.AccessControlPolicy().Save(rctx, policy)
 		require.NoError(t, err)
 		t.Cleanup(func() { ss.AccessControlPolicy().Delete(rctx, id) })
 	}
@@ -116,25 +120,27 @@ func testTeamStorePolicyEnforced(t *testing.T, rctx request.CTX, ss store.Store)
 		got, err := ss.Team().Get(team.Id)
 		require.NoError(t, err)
 		require.False(t, got.PolicyEnforced)
-		require.False(t, got.PolicyIsActive)
+		require.False(t, got.PolicyAutoAdd)
 	})
 
-	t.Run("active team policy", func(t *testing.T) {
+	t.Run("team policy that auto-adds members", func(t *testing.T) {
 		team := saveTeam()
 		savePolicy(team.Id, model.AccessControlPolicyTypeTeam, true)
 		got, err := ss.Team().Get(team.Id)
 		require.NoError(t, err)
 		require.True(t, got.PolicyEnforced)
-		require.True(t, got.PolicyIsActive)
+		require.True(t, got.PolicyAutoAdd)
+		require.True(t, got.PolicyIsActive, "the deprecated alias must mirror PolicyAutoAdd")
 	})
 
-	t.Run("inactive team policy", func(t *testing.T) {
+	t.Run("team policy that does not auto-add members", func(t *testing.T) {
 		team := saveTeam()
 		savePolicy(team.Id, model.AccessControlPolicyTypeTeam, false)
 		got, err := ss.Team().Get(team.Id)
 		require.NoError(t, err)
 		require.True(t, got.PolicyEnforced)
-		require.False(t, got.PolicyIsActive)
+		require.False(t, got.PolicyAutoAdd)
+		require.False(t, got.PolicyIsActive, "the deprecated alias must mirror PolicyAutoAdd")
 	})
 
 	t.Run("type guard ignores non-team policy with same id", func(t *testing.T) {
@@ -143,7 +149,7 @@ func testTeamStorePolicyEnforced(t *testing.T, rctx request.CTX, ss store.Store)
 		got, err := ss.Team().Get(team.Id)
 		require.NoError(t, err)
 		require.False(t, got.PolicyEnforced)
-		require.False(t, got.PolicyIsActive)
+		require.False(t, got.PolicyAutoAdd)
 	})
 
 	t.Run("channel retrofit ignores team policy with same id", func(t *testing.T) {
@@ -161,7 +167,7 @@ func testTeamStorePolicyEnforced(t *testing.T, rctx request.CTX, ss store.Store)
 		got, err := ss.Channel().Get(ch.Id, false)
 		require.NoError(t, err)
 		require.False(t, got.PolicyEnforced)
-		require.False(t, got.PolicyIsActive)
+		require.False(t, got.PolicyAutoAdd)
 	})
 
 	// GetAllPage feeds the team directory listing; the directory visibility filter
@@ -180,8 +186,8 @@ func testTeamStorePolicyEnforced(t *testing.T, rctx request.CTX, ss store.Store)
 		}
 
 		require.Contains(t, byID, enforced.Id)
-		require.True(t, byID[enforced.Id].PolicyEnforced, "team with an active team policy must report PolicyEnforced from GetAllPage")
-		require.True(t, byID[enforced.Id].PolicyIsActive)
+		require.True(t, byID[enforced.Id].PolicyEnforced, "team with a team policy must report PolicyEnforced from GetAllPage")
+		require.True(t, byID[enforced.Id].PolicyAutoAdd)
 		require.Contains(t, byID, plain.Id)
 		require.False(t, byID[plain.Id].PolicyEnforced)
 	})

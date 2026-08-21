@@ -252,12 +252,10 @@ class ChannelList extends React.PureComponent<Props, State> {
             return change.active;
         }
 
-        // Find the channel to get its current policy_is_active status
         const allChannels = [...channels, ...Object.values(channelsToAdd)];
         const channel = allChannels.find((ch) => ch.id === channelId);
 
-        // Use the channel's policy_is_active value, defaulting to false if undefined
-        return channel?.policy_is_active ?? false;
+        return channel?.policy_auto_add ?? false;
     };
 
     private getAllChannelsAutoAddStatus = (): {allActive: boolean; allInactive: boolean; mixed: boolean} => {

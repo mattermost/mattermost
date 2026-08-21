@@ -425,3 +425,9 @@ channels/db/migrations/postgres/000214_drop_channelmembers_autotranslation.down.
 channels/db/migrations/postgres/000214_drop_channelmembers_autotranslation.up.sql
 channels/db/migrations/postgres/000215_drop_channelmembers_autotranslation_column.down.sql
 channels/db/migrations/postgres/000215_drop_channelmembers_autotranslation_column.up.sql
+channels/db/migrations/postgres/000216_move_auto_add_to_membership_rule.down.sql
+channels/db/migrations/postgres/000216_move_auto_add_to_membership_rule.up.sql
+channels/db/migrations/postgres/000217_add_access_control_policies_rules_index.down.sql
+channels/db/migrations/postgres/000217_add_access_control_policies_rules_index.up.sql
+channels/db/migrations/postgres/000218_add_access_control_policies_imports_index.down.sql
+channels/db/migrations/postgres/000218_add_access_control_policies_imports_index.up.sql

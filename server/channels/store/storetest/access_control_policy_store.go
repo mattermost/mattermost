@@ -24,8 +24,7 @@ func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("Save", func(t *testing.T) { testAccessControlPolicyStoreSaveAndGet(t, rctx, ss) })
 	t.Run("SaveDuplicateName", func(t *testing.T) { testAccessControlPolicyStoreSaveDuplicateName(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testAccessControlPolicyStoreDelete(t, rctx, ss) })
-	t.Run("SetActive", func(t *testing.T) { testAccessControlPolicyStoreSetActive(t, rctx, ss) })
-	t.Run("SetActiveMultiple", func(t *testing.T) { testAccessControlPolicyStoreSetActiveMultiple(t, rctx, ss) })
+	t.Run("SetMembershipAutoAdd", func(t *testing.T) { testAccessControlPolicyStoreSetMembershipAutoAdd(t, rctx, ss) })
 	t.Run("GetAll", func(t *testing.T) { testAccessControlPolicyStoreGetAll(t, rctx, ss) })
 	t.Run("Search", func(t *testing.T) { testAccessControlPolicyStoreSearch(t, rctx, ss) })
 	t.Run("SearchChildCounts", func(t *testing.T) { testAccessControlPolicyStoreSearchChildCounts(t, rctx, ss) })
@@ -145,6 +144,16 @@ func testAccessControlPolicyStorePluginPolicy(t *testing.T, rctx request.CTX, ss
 		var nfErr *store.ErrNotFound
 		require.True(t, errors.As(err, &nfErr))
 	})
+}
+
+// autoAddMode maps a table-driven on/off case onto an auto-add mode, so the
+// off case clears the setting rather than leaving whatever a shared rule
+// fixture happens to carry.
+func autoAddMode(on bool) string {
+	if !on {
+		return ""
+	}
+	return model.AccessControlAutoAddAlways
 }
 
 func testAccessControlPolicyStoreSaveAndGet(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -560,48 +569,173 @@ func testAccessControlPolicyStoreDelete(t *testing.T, rctx request.CTX, ss store
 	})
 }
 
-func testAccessControlPolicyStoreSetActive(t *testing.T, rctx request.CTX, ss store.Store) {
-	t.Run("Save policy", func(t *testing.T) {
-		id := model.NewId()
-		policy := &model.AccessControlPolicy{
-			ID:       id,
-			Name:     "Name",
+func testAccessControlPolicyStoreSetMembershipAutoAdd(t *testing.T, rctx request.CTX, ss store.Store) {
+	savePolicy := func(t *testing.T, policy *model.AccessControlPolicy) *model.AccessControlPolicy {
+		t.Helper()
+		saved, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+		t.Cleanup(func() {
+			require.NoError(t, ss.AccessControlPolicy().Delete(rctx, saved.ID))
+		})
+		return saved
+	}
+
+	t.Run("sets the mode on an existing membership rule", func(t *testing.T) {
+		policy := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "AutoAdd " + model.NewId(),
 			Type:     model.AccessControlPolicyTypeChannel,
-			Active:   false,
 			Revision: 1,
-			Version:  model.AccessControlPolicyVersionV0_2,
+			Version:  model.AccessControlPolicyVersionV0_3,
 			Imports:  []string{},
 			Rules: []model.AccessControlPolicyRule{
 				{
-					Actions:    []string{"action"},
-					Expression: "user.properties.program == \"engineering\"",
+					Actions:    []string{model.AccessControlPolicyActionMembership},
+					Expression: "user.attributes.program == \"engineering\"",
 				},
 			},
-		}
+		})
+		require.False(t, policy.AutoAddMembers())
 
-		policy, err := ss.AccessControlPolicy().Save(rctx, policy)
+		updated, err := ss.AccessControlPolicy().SetMembershipAutoAdd(rctx, []model.AccessControlPolicyAutoAddUpdate{
+			{ID: policy.ID, AutoAdd: model.AccessControlAutoAddAlways},
+		})
 		require.NoError(t, err)
-		require.NotNil(t, policy)
+		require.Len(t, updated, 1)
+		require.True(t, updated[0].AutoAddMembers())
 
-		t.Cleanup(func() {
-			err = ss.AccessControlPolicy().Delete(rctx, id)
-			require.NoError(t, err)
+		stored, err := ss.AccessControlPolicy().Get(rctx, policy.ID)
+		require.NoError(t, err)
+		require.Equal(t, model.AccessControlAutoAddAlways, stored.AutoAddMode())
+		require.Len(t, stored.Rules, 1, "the mode rides on the existing rule")
+		require.Equal(t, "user.attributes.program == \"engineering\"", stored.Rules[0].Expression)
+
+		updated, err = ss.AccessControlPolicy().SetMembershipAutoAdd(rctx, []model.AccessControlPolicyAutoAddUpdate{
+			{ID: policy.ID, AutoAdd: ""},
+		})
+		require.NoError(t, err)
+		require.Len(t, updated, 1)
+		require.False(t, updated[0].AutoAddMembers())
+
+		stored, err = ss.AccessControlPolicy().Get(rctx, policy.ID)
+		require.NoError(t, err)
+		require.False(t, stored.AutoAddMembers())
+		require.Nil(t, stored.Rules[0].Metadata, "clearing the mode must leave no residue")
+	})
+
+	t.Run("leaves the reserved Active column alone", func(t *testing.T) {
+		policy := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Reserved " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeChannel,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{model.AccessControlPolicyActionMembership},
+					Expression: "user.attributes.program == \"engineering\"",
+				},
+			},
 		})
 
-		policy, err = ss.AccessControlPolicy().Get(rctx, policy.ID)
+		_, err := ss.AccessControlPolicy().SetMembershipAutoAdd(rctx, []model.AccessControlPolicyAutoAddUpdate{
+			{ID: policy.ID, AutoAdd: ""},
+		})
 		require.NoError(t, err)
-		require.NotNil(t, policy)
-		require.False(t, policy.Active)
 
-		policy, err = ss.AccessControlPolicy().SetActiveStatus(rctx, policy.ID, true)
+		stored, err := ss.AccessControlPolicy().Get(rctx, policy.ID)
 		require.NoError(t, err)
-		require.NotNil(t, policy)
-		require.True(t, policy.Active)
+		require.True(t, stored.Active)
+		require.False(t, stored.AutoAddMembers())
+	})
 
-		policy, err = ss.AccessControlPolicy().Get(rctx, policy.ID)
+	t.Run("adds a carrier rule to an import-only policy", func(t *testing.T) {
+		parent := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Parent " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeParent,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{model.AccessControlPolicyActionMembership},
+					Expression: "user.attributes.program == \"engineering\"",
+				},
+			},
+		})
+		child := savePolicy(t, &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Child " + model.NewId(),
+			Type:     model.AccessControlPolicyTypeChannel,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Imports:  []string{parent.ID},
+		})
+
+		_, err := ss.AccessControlPolicy().SetMembershipAutoAdd(rctx, []model.AccessControlPolicyAutoAddUpdate{
+			{ID: child.ID, AutoAdd: model.AccessControlAutoAddAlways},
+		})
 		require.NoError(t, err)
-		require.NotNil(t, policy)
-		require.True(t, policy.Active)
+
+		stored, err := ss.AccessControlPolicy().Get(rctx, child.ID)
+		require.NoError(t, err)
+		require.True(t, stored.AutoAddMembers())
+		require.Len(t, stored.Rules, 1)
+		require.Empty(t, stored.Rules[0].Expression)
+		require.False(t, stored.HasEffectiveRules(), "a carrier rule governs nothing")
+
+		storedParent, err := ss.AccessControlPolicy().Get(rctx, parent.ID)
+		require.NoError(t, err)
+		require.False(t, storedParent.AutoAddMembers(), "the parent is not touched")
+	})
+
+	t.Run("applies mixed values in one call and skips unknown ids", func(t *testing.T) {
+		makePolicy := func(t *testing.T, autoAdd bool) *model.AccessControlPolicy {
+			policy := &model.AccessControlPolicy{
+				ID:       model.NewId(),
+				Name:     "Mixed " + model.NewId(),
+				Type:     model.AccessControlPolicyTypeChannel,
+				Revision: 1,
+				Version:  model.AccessControlPolicyVersionV0_3,
+				Imports:  []string{},
+				Rules: []model.AccessControlPolicyRule{
+					{
+						Actions:    []string{model.AccessControlPolicyActionMembership},
+						Expression: "user.attributes.program == \"engineering\"",
+					},
+				},
+			}
+			policy.SetAutoAddMode(autoAddMode(autoAdd))
+			return savePolicy(t, policy)
+		}
+
+		turningOn := makePolicy(t, false)
+		turningOff := makePolicy(t, true)
+
+		updated, err := ss.AccessControlPolicy().SetMembershipAutoAdd(rctx, []model.AccessControlPolicyAutoAddUpdate{
+			{ID: turningOn.ID, AutoAdd: model.AccessControlAutoAddAlways},
+			{ID: turningOff.ID, AutoAdd: ""},
+			{ID: model.NewId(), AutoAdd: model.AccessControlAutoAddAlways},
+		})
+		require.NoError(t, err)
+		require.Len(t, updated, 2, "a missing policy is skipped rather than failing the batch")
+
+		byID := make(map[string]*model.AccessControlPolicy, len(updated))
+		for _, p := range updated {
+			byID[p.ID] = p
+		}
+		require.True(t, byID[turningOn.ID].AutoAddMembers())
+		require.False(t, byID[turningOff.ID].AutoAddMembers())
+	})
+
+	t.Run("no updates is a no-op", func(t *testing.T) {
+		updated, err := ss.AccessControlPolicy().SetMembershipAutoAdd(rctx, nil)
+		require.NoError(t, err)
+		require.Empty(t, updated)
 	})
 }
 
@@ -947,6 +1081,63 @@ func testAccessControlPolicyStoreSearch(t *testing.T, rctx request.CTX, ss store
 			require.Equal(t, policy.ID, results[0].ID)
 		}
 	})
+
+	// The AutoAdd filter is a jsonb containment on the membership rule so the
+	// rules index can serve it. Active is stored inverted throughout to prove the
+	// filter no longer reads the reserved column.
+	t.Run("filter by auto-add", func(t *testing.T) {
+		save := func(name string, autoAdd bool, rules []model.AccessControlPolicyRule) *model.AccessControlPolicy {
+			policy := &model.AccessControlPolicy{
+				ID:       model.NewId(),
+				Name:     name + " " + model.NewId(),
+				Type:     model.AccessControlPolicyTypeChannel,
+				Active:   !autoAdd,
+				Revision: 1,
+				Version:  model.AccessControlPolicyVersionV0_3,
+				Imports:  []string{},
+				Rules:    rules,
+			}
+			policy.SetAutoAddMode(autoAddMode(autoAdd))
+
+			saved, err := ss.AccessControlPolicy().Save(rctx, policy)
+			require.NoError(t, err)
+			t.Cleanup(func() { _ = ss.AccessControlPolicy().Delete(rctx, saved.ID) })
+			return saved
+		}
+
+		membershipRules := []model.AccessControlPolicyRule{{
+			Actions:    []string{model.AccessControlPolicyActionMembership},
+			Expression: `user.properties.program == "engineering"`,
+		}}
+
+		on := save("AutoAddOn", true, membershipRules)
+		off := save("AutoAddOff", false, membershipRules)
+		carrier := save("AutoAddCarrier", true, []model.AccessControlPolicyRule{{
+			Actions:    []string{model.AccessControlPolicyActionMembership},
+			Expression: "",
+		}})
+
+		ids := []string{on.ID, off.ID, carrier.ID}
+
+		search := func(autoAdd *bool) []string {
+			results, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+				IDs:     ids,
+				AutoAdd: autoAdd,
+				Limit:   10,
+			})
+			require.NoError(t, err)
+
+			found := make([]string, 0, len(results))
+			for _, p := range results {
+				found = append(found, p.ID)
+			}
+			return found
+		}
+
+		require.ElementsMatch(t, []string{on.ID, carrier.ID}, search(model.NewPointer(true)))
+		require.ElementsMatch(t, []string{off.ID}, search(model.NewPointer(false)))
+		require.ElementsMatch(t, ids, search(nil), "an unset filter must not narrow the results")
+	})
 }
 
 func testAccessControlPolicyStoreSearchByActions(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -1074,80 +1265,6 @@ func testAccessControlPolicyStoreSearchByActions(t *testing.T, rctx request.CTX,
 		})
 		require.NoError(t, err)
 		require.Len(t, policies, 0)
-	})
-}
-
-func testAccessControlPolicyStoreSetActiveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
-	t.Run("Set active status for multiple policies", func(t *testing.T) {
-		policy1 := &model.AccessControlPolicy{
-			ID:       model.NewId(),
-			Name:     "Policy1",
-			Type:     model.AccessControlPolicyTypeChannel,
-			Active:   false,
-			Revision: 1,
-			Version:  model.AccessControlPolicyVersionV0_2,
-			Imports:  []string{},
-			Rules: []model.AccessControlPolicyRule{
-				{
-					Actions:    []string{"action1"},
-					Expression: "user.properties.program == \"engineering\"",
-				},
-			},
-		}
-
-		policy2 := &model.AccessControlPolicy{
-			ID:       model.NewId(),
-			Name:     "Policy2",
-			Type:     model.AccessControlPolicyTypeParent,
-			Active:   false,
-			Revision: 1,
-			Version:  model.AccessControlPolicyVersionV0_2,
-			Imports:  []string{},
-			Rules: []model.AccessControlPolicyRule{
-				{
-					Actions:    []string{"action2"},
-					Expression: "user.properties.department == \"sales\"",
-				},
-			},
-		}
-
-		policy1, err := ss.AccessControlPolicy().Save(rctx, policy1)
-		require.NoError(t, err)
-		require.NotNil(t, policy1)
-
-		policy2, err = ss.AccessControlPolicy().Save(rctx, policy2)
-		require.NoError(t, err)
-		require.NotNil(t, policy2)
-
-		t.Cleanup(func() {
-			err = ss.AccessControlPolicy().Delete(rctx, policy1.ID)
-			require.NoError(t, err)
-			err = ss.AccessControlPolicy().Delete(rctx, policy2.ID)
-			require.NoError(t, err)
-		})
-
-		updates := []model.AccessControlPolicyActiveUpdate{
-			{ID: policy1.ID, Active: true},
-			{ID: policy2.ID, Active: true},
-		}
-
-		updatedPolicies, err := ss.AccessControlPolicy().SetActiveStatusMultiple(rctx, updates)
-		require.NoError(t, err)
-		require.Len(t, updatedPolicies, 2)
-
-		for _, p := range updatedPolicies {
-			require.True(t, p.Active)
-		}
-
-		p1, err := ss.AccessControlPolicy().Get(rctx, policy1.ID)
-		require.NoError(t, err)
-		require.NotNil(t, p1)
-		require.True(t, p1.Active)
-
-		p2, err := ss.AccessControlPolicy().Get(rctx, policy2.ID)
-		require.NoError(t, err)
-		require.NotNil(t, p2)
-		require.True(t, p2.Active)
 	})
 }
 

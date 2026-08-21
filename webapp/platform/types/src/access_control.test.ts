@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getMembershipRule, buildRulesWithMembership, combineMembershipExpressions} from './access_control';
+import {getMembershipRule, buildRulesWithMembership, combineMembershipExpressions, getAutoAddFromRules, getAutoAddModeFromRules, autoAddModeForToggle, hasEffectiveRules} from './access_control';
 import type {AccessControlPolicyRule} from './access_control';
 
 describe('combineMembershipExpressions', () => {
@@ -112,5 +112,105 @@ describe('buildRulesWithMembership', () => {
         expect(result).toEqual([
             {actions: ['membership'], expression: 'expr'},
         ]);
+    });
+
+    test('omitting autoAdd carries the stored metadata through unchanged', () => {
+        const existing: AccessControlPolicyRule[] = [
+            {actions: ['membership'], expression: 'old_expr', metadata: {auto_add: 'always'}},
+        ];
+        expect(buildRulesWithMembership(existing, 'new_expr')).toEqual([
+            {actions: ['membership'], expression: 'new_expr', metadata: {auto_add: 'always'}},
+        ]);
+    });
+
+    test('an explicit autoAdd overrides the stored metadata', () => {
+        const existing: AccessControlPolicyRule[] = [
+            {actions: ['membership'], expression: 'old_expr', metadata: {auto_add: 'always'}},
+        ];
+        expect(buildRulesWithMembership(existing, 'new_expr', null)).toEqual([
+            {actions: ['membership'], expression: 'new_expr', metadata: {auto_add: ''}},
+        ]);
+    });
+
+    test('keeps an expression-less membership rule alive to carry auto-add', () => {
+        expect(buildRulesWithMembership([], '', 'always')).toEqual([
+            {actions: ['membership'], expression: '', metadata: {auto_add: 'always'}},
+        ]);
+    });
+
+    test('keeps an expression-less rule for an explicit off so the server can act on it', () => {
+        const existing: AccessControlPolicyRule[] = [
+            {actions: ['membership'], expression: 'old_expr', metadata: {auto_add: 'always'}},
+        ];
+        expect(buildRulesWithMembership(existing, '', null)).toEqual([
+            {actions: ['membership'], expression: '', metadata: {auto_add: ''}},
+        ]);
+    });
+
+    test('drops the membership rule when there is no expression and nothing to carry', () => {
+        const existing: AccessControlPolicyRule[] = [
+            {actions: ['membership'], expression: 'old_expr'},
+            {actions: ['file_upload'], expression: 'upload_expr'},
+        ];
+        expect(buildRulesWithMembership(existing, '')).toEqual([
+            {actions: ['file_upload'], expression: 'upload_expr'},
+        ]);
+    });
+});
+
+describe('getAutoAddFromRules', () => {
+    test('reads the mode off the membership rule', () => {
+        const rules: AccessControlPolicyRule[] = [
+            {actions: ['file_upload'], expression: 'upload_expr', metadata: {auto_add: 'always'}},
+            {actions: ['membership'], expression: 'expr', metadata: {auto_add: 'always'}},
+        ];
+        expect(getAutoAddFromRules(rules)).toBe(true);
+        expect(getAutoAddModeFromRules(rules)).toBe('always');
+    });
+
+    test('is false when the membership rule carries no mode', () => {
+        expect(getAutoAddFromRules([{actions: ['membership'], expression: 'expr'}])).toBe(false);
+        expect(getAutoAddFromRules([{actions: ['membership'], expression: 'expr', metadata: {}}])).toBe(false);
+        expect(getAutoAddFromRules([{actions: ['membership'], expression: 'expr', metadata: {auto_add: ''}}])).toBe(false);
+    });
+
+    test('is false for a mode this client does not know', () => {
+        const rules = [{actions: ['membership'], expression: 'expr', metadata: {auto_add: 'only_once'}}] as AccessControlPolicyRule[];
+        expect(getAutoAddFromRules(rules)).toBe(false);
+        expect(getAutoAddModeFromRules(rules)).toBeUndefined();
+    });
+
+    test('is false when there is no membership rule at all', () => {
+        expect(getAutoAddFromRules([])).toBe(false);
+        expect(getAutoAddFromRules(undefined)).toBe(false);
+    });
+});
+
+describe('autoAddModeForToggle', () => {
+    test('an enabled toggle asks for the always mode', () => {
+        expect(autoAddModeForToggle(true)).toBe('always');
+    });
+
+    test('a disabled toggle asks for off rather than for preserve', () => {
+        expect(autoAddModeForToggle(false)).toBeNull();
+    });
+});
+
+describe('hasEffectiveRules', () => {
+    test('ignores a membership rule that only carries metadata', () => {
+        expect(hasEffectiveRules([{actions: ['membership'], expression: '', metadata: {auto_add: 'always'}}])).toBe(false);
+        expect(hasEffectiveRules([{actions: ['membership'], expression: '   '}])).toBe(false);
+    });
+
+    test('is true once any rule has an expression', () => {
+        expect(hasEffectiveRules([
+            {actions: ['membership'], expression: '', metadata: {auto_add: 'always'}},
+            {actions: ['file_upload'], expression: 'upload_expr'},
+        ])).toBe(true);
+    });
+
+    test('is false for an empty or missing rules array', () => {
+        expect(hasEffectiveRules([])).toBe(false);
+        expect(hasEffectiveRules(undefined)).toBe(false);
     });
 });

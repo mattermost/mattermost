@@ -6,7 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
-import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
+import {getMembershipRule, buildRulesWithMembership, getAutoAddFromRules, hasEffectiveRules, autoAddModeForToggle} from '@mattermost/types/access_control';
 import type {JobType} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team} from '@mattermost/types/teams';
@@ -205,7 +205,7 @@ function TeamMembershipTab({
                 const policy = result.data?.policy ?? null;
                 if (policy) {
                     const existingExpression = getMembershipRule(policy.rules)?.expression || '';
-                    const existingAutoAdd = policy.active || false;
+                    const existingAutoAdd = getAutoAddFromRules(policy.rules);
                     const imports = policy.imports || [];
 
                     setExpression(existingExpression);
@@ -348,8 +348,8 @@ function TeamMembershipTab({
         try {
             setIsProcessingSave(true);
 
-            const builtRules = buildRulesWithMembership(existingRules, expression);
-            const isEmptyPolicy = builtRules.length === 0 && existingImports.length === 0;
+            const builtRules = buildRulesWithMembership(existingRules, expression, autoAddModeForToggle(autoAddMembers));
+            const isEmptyPolicy = !hasEffectiveRules(builtRules) && existingImports.length === 0;
 
             if (isEmptyPolicy) {
                 // Clearing all rules — delete the policy if one existed, otherwise nothing to do.
@@ -375,7 +375,6 @@ function TeamMembershipTab({
                 id: team.id,
                 name: team.display_name,
                 type: 'team',
-                active: false,
                 rules: builtRules,
                 imports: existingImports,
             };
@@ -383,14 +382,6 @@ function TeamMembershipTab({
             const result = await actions.saveChannelPolicy(policy);
             if (result.error) {
                 throw new Error((result.error as Error).message || 'Failed to save policy');
-            }
-
-            // The active flag is the auto-add toggle; if it fails to persist the
-            // save must not report success, or the UI would show auto-add on while
-            // the backend has it off and no sync would run.
-            const activeResult = await actions.updateAccessControlPoliciesActive([{id: team.id, active: autoAddMembers}]);
-            if (activeResult.error) {
-                throw new Error((activeResult.error as Error).message || 'Failed to update auto-add status');
             }
 
             const rulesChanged = expression !== originalExpression;
