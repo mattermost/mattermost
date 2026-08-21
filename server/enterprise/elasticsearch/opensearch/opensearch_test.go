@@ -74,7 +74,7 @@ func (s *OpensearchInterfaceTestSuite) SetupSuite() {
 			return nil, err
 		}
 		var names []string
-		for name := range res.Indices {
+		for name := range *res.IndicesGetRespData {
 			names = append(names, name)
 		}
 		return names, nil
