@@ -5,7 +5,7 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {createAttributeField} from './utils';
+import {buildOptionsAttr, createAttributeField} from './utils';
 
 describe('global_attributes/utils', () => {
     describe('createAttributeField', () => {
@@ -92,6 +92,46 @@ describe('global_attributes/utils', () => {
             }));
         });
 
+        it('sends {id, name, parents} options for graph, stripping local ids and always setting parents', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createAttributeField('Org chart', 'org_chart', 'graph', [
+                {id: 'local-1', name: 'Root', parents: []},
+                {id: 'local-2', name: 'Child', parents: ['Root']},
+            ]);
+
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                type: 'graph',
+                attrs: expect.objectContaining({
+                    options: [
+                        {id: '', name: 'Root', parents: []},
+                        {id: '', name: 'Child', parents: ['Root']},
+                    ],
+                }),
+            }));
+
+            const attrs = createPropertyField.mock.calls[0][2].attrs as {options: Array<Record<string, unknown>>};
+            expect(attrs.options[0]).not.toHaveProperty('rank');
+            expect(attrs.options[0]).not.toHaveProperty('color');
+            expect(attrs.options[1]).not.toHaveProperty('rank');
+            expect(attrs.options[1]).not.toHaveProperty('color');
+            expect(JSON.stringify(attrs.options[0])).toContain('"parents":[]');
+        });
+
+        it('coalesces missing parents on a graph root to [] rather than omitting the key', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createAttributeField('Org chart', 'org_chart', 'graph', [
+                {id: 'local-1', name: 'Root'},
+            ]);
+
+            const attrs = createPropertyField.mock.calls[0][2].attrs as {options: Array<Record<string, unknown>>};
+            expect(attrs.options).toEqual([{id: '', name: 'Root', parents: []}]);
+            expect(attrs.options[0]).toHaveProperty('parents');
+            expect(JSON.stringify(attrs.options[0])).toContain('"parents":[]');
+            expect(JSON.stringify(attrs.options[0])).not.toEqual(expect.stringMatching(/^{"id":"","name":"Root"}$/));
+        });
+
         it('sends no options key at all for text', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
@@ -164,6 +204,24 @@ describe('global_attributes/utils', () => {
             expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
                 attrs: {display_name: 'My Attribute', ldap: 'department', saml: 'dept'},
             }));
+        });
+    });
+
+    describe('buildOptionsAttr', () => {
+        // Helper contract only. Manage Attributes Save is disabled at 0 graph
+        // options (Phase 3/8 / D2). Do not treat this as a Save happy path.
+        it('returns [] for graph with no options', () => {
+            expect(buildOptionsAttr('graph', [])).toEqual([]);
+        });
+
+        it('always sets parents, coalescing missing parents to []', () => {
+            expect(buildOptionsAttr('graph', [
+                {id: 'local-1', name: 'Root'},
+                {id: 'local-2', name: 'Child', parents: ['Root']},
+            ])).toEqual([
+                {id: '', name: 'Root', parents: []},
+                {id: '', name: 'Child', parents: ['Root']},
+            ]);
         });
     });
 });

@@ -133,6 +133,7 @@ export type ClientConfig = {
     FeatureFlagContentFlagging: string;
     FeatureFlagClassificationMarkings: string;
     FeatureFlagPropertyFieldRank: string;
+    FeatureFlagPropertyFieldGraph: string;
     FeatureFlagManagedChannelCategories: string;
     FeatureFlagSessionAttributes: string;
     FeatureFlagPostAttributes: string;

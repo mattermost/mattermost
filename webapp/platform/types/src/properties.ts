@@ -12,9 +12,9 @@ export type FieldType = (
     'multiuser' |
     'rank' |
 
-    // A multi-valued select whose options form a hierarchy. The options and
-    // their parent edges are created through the REST and plugin APIs only, so
-    // no editor here writes them.
+    // A multi-valued select whose options form a hierarchy. Manage Attributes
+    // create may write options (and parent edges) when PropertyFieldGraph is on.
+    // Other editors (CPA, board attributes) still do not author them.
     'graph'
 );
 
@@ -79,6 +79,11 @@ export type PropertyFieldOption = {
     // Optional explicit ordering. When unset, consumers fall back to the
     // position of the option within `attrs.options`.
     rank?: number;
+
+    // Names of parent options. Graph-only. Empty array marks a root. Omitting
+    // the key on a graph write is a server no-op (leaves existing parents
+    // unchanged); create must therefore send [] for roots.
+    parents?: string[];
 };
 
 export type SelectPropertyField = PropertyField & {
@@ -108,6 +113,8 @@ export type SelectPropertyField = PropertyField & {
 export const supportsOptions = (field: PropertyField) => {
     return field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
 };
+
+export const supportsHierarchy = (field: PropertyField): boolean => field.type === 'graph';
 
 // PSA v2 state types
 

@@ -502,6 +502,8 @@ export const ModalIdentifiers = {
     SESSION_ATTRIBUTE_DISABLE: 'session_attribute_disable',
     BOARD_ATTRIBUTE_FIELD_DELETE: 'board_attribute_field_delete',
     GLOBAL_ATTRIBUTE_FIELD_DELETE: 'global_attribute_field_delete',
+    GRAPH_NODE_DELETE: 'graph_node_delete',
+    GRAPH_GRANT_CONFIRM: 'graph_grant_confirm',
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
     RANKED_SCHEMA_MODAL: 'ranked_schema_modal',
