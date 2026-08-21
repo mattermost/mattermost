@@ -121,6 +121,11 @@ export type ViewsState = {
                 };
             };
         };
+        suppressOutOfChannelEphemeral: {
+            [key: string]: {
+                expireAt: number;
+            };
+        };
     };
 
     modals: {
