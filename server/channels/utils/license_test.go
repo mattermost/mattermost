@@ -14,11 +14,9 @@ import (
 	"encoding/pem"
 	"fmt"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -245,14 +243,6 @@ func marshalPublicKeyPEM(t *testing.T, pub *rsa.PublicKey) []byte {
 	return pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: der})
 }
 
-func TestGetLicenseFileLocation(t *testing.T) {
-	fileName := GetLicenseFileLocation("")
-	require.NotEmpty(t, fileName, "invalid default file name")
-
-	fileName = GetLicenseFileLocation("mattermost.mattermost-license")
-	require.Equal(t, fileName, "mattermost.mattermost-license", "invalid file name")
-}
-
 func TestGetClientLicense(t *testing.T) {
 	license := &model.License{
 		Customer: &model.Customer{},
@@ -270,25 +260,4 @@ func TestGetClientLicense(t *testing.T) {
 	// The flag must survive sanitization so all users can see the non-production banner.
 	sanitized := GetSanitizedClientLicense(props)
 	require.Equal(t, "true", sanitized["IsNonProduction"])
-}
-
-func TestGetLicenseFileFromDisk(t *testing.T) {
-	t.Run("missing file", func(t *testing.T) {
-		fileBytes := GetLicenseFileFromDisk("thisfileshouldnotexist.mattermost-license")
-		assert.Empty(t, fileBytes, "invalid bytes")
-	})
-
-	t.Run("not a license file", func(t *testing.T) {
-		f, err := os.CreateTemp("", "TestGetLicenseFileFromDisk")
-		require.NoError(t, err)
-		defer os.Remove(f.Name())
-		err = os.WriteFile(f.Name(), []byte("not a license"), 0777)
-		require.NoError(t, err)
-
-		fileBytes := GetLicenseFileFromDisk(f.Name())
-		require.NotEmpty(t, fileBytes, "should have read the file")
-
-		_, err = LicenseValidator.ValidateLicense(fileBytes)
-		assert.Error(t, err, "should have been an invalid file")
-	})
 }

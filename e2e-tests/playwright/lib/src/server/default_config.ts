@@ -104,7 +104,6 @@ const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
         WebsocketURL: '',
-        LicenseFileLocation: '',
         ListenAddress: ':8065',
         ConnectionSecurity: '',
         TLSCertFile: '',

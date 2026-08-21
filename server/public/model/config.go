@@ -361,8 +361,11 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 }
 
 type ServiceSettings struct {
-	SiteURL             *string `access:"environment_web_server,authentication_saml,write_restrictable"`
-	WebsocketURL        *string `access:"write_restrictable,cloud_restrictable"`
+	SiteURL      *string `access:"environment_web_server,authentication_saml,write_restrictable"`
+	WebsocketURL *string `access:"write_restrictable,cloud_restrictable"`
+	// Deprecated: LicenseFileLocation is no longer supported. Use the MM_LICENSE environment
+	// variable or upload the license via the System Console instead. Setting this to a non-empty
+	// value will prevent the server from starting.
 	LicenseFileLocation *string `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
 	ListenAddress       *string `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
 	ConnectionSecurity  *string `access:"environment_web_server,write_restrictable,cloud_restrictable"`
@@ -4931,6 +4934,10 @@ func (s *ServiceSettings) isValid() *AppError {
 		} else if _, err := os.Stat(*s.TLSKeyFile); os.IsNotExist(err) {
 			return appErr
 		}
+	}
+
+	if *s.LicenseFileLocation != "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.license_file_location_removed.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(s.TLSOverwriteCiphers) > 0 {

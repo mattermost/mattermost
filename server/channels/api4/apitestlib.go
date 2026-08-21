@@ -94,7 +94,6 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 		SqlSettings: model.SafeDereference(sqlSettings),
 	}
 	memoryConfig.SetDefaults()
-	*memoryConfig.ServiceSettings.LicenseFileLocation = filepath.Join(tempWorkspace, "license.json")
 	*memoryConfig.FileSettings.Directory = filepath.Join(tempWorkspace, "data")
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")

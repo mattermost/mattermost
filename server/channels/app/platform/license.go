@@ -46,6 +46,13 @@ func (ps *PlatformService) License() *model.License {
 	return ps.licenseValue.Load()
 }
 
+// IsLicenseSetFromEnvironment reports whether the license is being provided through the
+// MM_LICENSE environment variable, in which case it acts as the external source of truth
+// and the license cannot be changed through the System Console.
+func (ps *PlatformService) IsLicenseSetFromEnvironment() bool {
+	return os.Getenv(LicenseEnv) != ""
+}
+
 func (ps *PlatformService) LoadLicense() {
 	c := request.EmptyContext(ps.logger)
 
@@ -86,20 +93,6 @@ func (ps *PlatformService) LoadLicense() {
 	activeLicense, nErr := ps.Store.System().GetByNameWithContext(sqlstore.RequestContextWithMaster(c), model.SystemActiveLicenseId)
 	if nErr == nil {
 		licenseId = activeLicense.Value
-	}
-
-	if !model.IsValidId(licenseId) {
-		// Lets attempt to load the file from disk since it was missing from the DB
-		license, licenseBytes, err := utils.GetAndValidateLicenseFileFromDisk(*ps.Config().ServiceSettings.LicenseFileLocation)
-		if err != nil {
-			ps.logger.Warn("Failed to get license from disk", mlog.Err(err))
-		} else {
-			if _, err := ps.SaveLicense(licenseBytes); err != nil {
-				ps.logger.Error("Failed to save license key loaded from disk.", mlog.Err(err))
-			} else {
-				licenseId = license.Id
-			}
-		}
 	}
 
 	record, nErr := ps.Store.License().Get(sqlstore.RequestContextWithMaster(c), licenseId)

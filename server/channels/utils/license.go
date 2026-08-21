@@ -13,16 +13,11 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io"
 	"maps"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 // ErrLicenseProductionInTestEnvironment indicates the license signature is valid against
@@ -169,55 +164,6 @@ func NewLicenseValidationAppError(where string, err error) *model.AppError {
 		return model.NewAppError(where, model.WrongEnvironmentTestLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	return model.NewAppError(where, model.InvalidLicenseError, nil, "", http.StatusBadRequest).Wrap(err)
-}
-
-func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte, error) {
-	fileName := GetLicenseFileLocation(location)
-
-	mlog.Info("License key has not been uploaded. Loading license key from disk.", mlog.String("filename", fileName))
-
-	if _, err := os.Stat(fileName); err != nil {
-		return nil, nil, fmt.Errorf("We could not find the license key on disk at %s: %w", fileName, err)
-	}
-
-	licenseBytes := GetLicenseFileFromDisk(fileName)
-
-	licenseStr, err := LicenseValidator.ValidateLicense(licenseBytes)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Found license key at %s but it appears to be invalid: %w", fileName, err)
-	}
-
-	var license model.License
-	if jsonErr := json.Unmarshal([]byte(licenseStr), &license); jsonErr != nil {
-		return nil, nil, fmt.Errorf("Found license key at %s but it appears to be invalid: %w", fileName, jsonErr)
-	}
-
-	return &license, licenseBytes, nil
-}
-
-func GetLicenseFileFromDisk(fileName string) []byte {
-	file, err := os.Open(fileName)
-	if err != nil {
-		mlog.Error("Failed to open license key from disk at", mlog.String("filename", fileName), mlog.Err(err))
-		return nil
-	}
-	defer file.Close()
-
-	licenseBytes, err := io.ReadAll(file)
-	if err != nil {
-		mlog.Error("Failed to read license key from disk at", mlog.String("filename", fileName), mlog.Err(err))
-		return nil
-	}
-
-	return licenseBytes
-}
-
-func GetLicenseFileLocation(fileLocation string) string {
-	if fileLocation == "" {
-		configDir, _ := fileutils.FindDir("config")
-		return filepath.Join(configDir, "mattermost.mattermost-license")
-	}
-	return fileLocation
 }
 
 func GetClientLicense(l *model.License) map[string]string {

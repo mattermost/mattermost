@@ -2745,6 +2745,10 @@
     "translation": "We were unable to process the request due to limitations for embargoed countries. [Learn more in our documentation](https://mattermost.com/pl/limitations-for-embargoed-countries), or reach out to legal@mattermost.com for questions around export limitations."
   },
   {
+    "id": "api.license.set_by_environment.app_error",
+    "translation": "The license is managed by the MM_LICENSE environment variable and cannot be changed through the System Console."
+  },
+  {
     "id": "api.license.upgrade_needed.app_error",
     "translation": "Feature requires an upgrade to Enterprise Edition."
   },
@@ -12193,6 +12197,10 @@
   {
     "id": "model.config.is_valid.ldap_username",
     "translation": "AD/LDAP field \"Username Attribute\" is required."
+  },
+  {
+    "id": "model.config.is_valid.license_file_location_removed.app_error",
+    "translation": "ServiceSettings.LicenseFileLocation is no longer supported. Remove this setting and use the MM_LICENSE environment variable or upload the license via the System Console instead."
   },
   {
     "id": "model.config.is_valid.link_metadata_timeout.app_error",

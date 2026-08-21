@@ -3,9 +3,10 @@
 
 import React from 'react';
 import type {RefObject} from 'react';
-import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
@@ -18,6 +19,7 @@ export interface StarterEditionProps {
     upgradedFromTE: boolean;
     fileInputRef: RefObject<HTMLInputElement>;
     handleChange: () => void;
+    isLicenseSetByEnvVar: boolean;
 }
 
 export const messages = defineMessages({
@@ -30,6 +32,7 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
     upgradedFromTE,
     fileInputRef,
     handleChange,
+    isLicenseSetByEnvVar,
 }: StarterEditionProps) => {
     const {openPricingModal, isAirGapped} = useOpenPricingModal();
     const intl = useIntl();
@@ -92,16 +95,25 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
                     <FormattedMessage {...messages.key}/>
                 </div>
                 <div className='uploadButtons'>
-                    <Button
-                        emphasis='primary'
-                        onClick={() => fileInputRef.current?.click()}
-                        id='open-modal'
+                    <WithTooltip
+                        title={defineMessage({
+                            id: 'admin.license.setByEnvVar',
+                            defaultMessage: 'License location is set by environment variable',
+                        })}
+                        disabled={!isLicenseSetByEnvVar}
                     >
-                        <FormattedMessage
-                            id='admin.license.uploadFile'
-                            defaultMessage='Upload File'
-                        />
-                    </Button>
+                        <Button
+                            emphasis='primary'
+                            onClick={() => fileInputRef.current?.click()}
+                            id='open-modal'
+                            disabled={isLicenseSetByEnvVar}
+                        >
+                            <FormattedMessage
+                                id='admin.license.uploadFile'
+                                defaultMessage='Upload File'
+                            />
+                        </Button>
+                    </WithTooltip>
                     <input
                         ref={fileInputRef}
                         type='file'

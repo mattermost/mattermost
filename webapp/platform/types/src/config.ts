@@ -323,7 +323,6 @@ export type DataRetentionPolicy = {
 export type ServiceSettings = {
     SiteURL: string;
     WebsocketURL: string;
-    LicenseFileLocation: string;
     ListenAddress: string;
     ConnectionSecurity: string;
     TLSCertFile: string;
@@ -1168,6 +1167,12 @@ export type EnvironmentConfigSettings<T> = {
 
 export type EnvironmentConfig = {
     [P in keyof AdminConfig]: EnvironmentConfigSettings<AdminConfig[P]>;
+} & {
+
+    // License is not a config field; it is surfaced as a top-level flag to indicate that the
+    // license is managed by the MM_LICENSE environment variable and cannot be changed in the
+    // System Console.
+    License?: boolean;
 };
 
 export enum CollapsedThreads {

@@ -263,6 +263,18 @@ func TestServiceSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: true,
 		},
+		"LicenseFileLocation empty is accepted": {
+			ServiceSettings: ServiceSettings{
+				LicenseFileLocation: new(""),
+			},
+			ExpectError: false,
+		},
+		"LicenseFileLocation set is rejected": {
+			ServiceSettings: ServiceSettings{
+				LicenseFileLocation: new("/opt/mattermost/config/mattermost.mattermost-license"),
+			},
+			ExpectError: true,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			test.ServiceSettings.SetDefaults(false)

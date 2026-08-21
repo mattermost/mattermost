@@ -270,6 +270,18 @@ func getEnvironmentConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return readFilter(c, structField)
 	})
 
+	// The license may be provided through the MM_LICENSE environment variable. The license is
+	// not a config field, so it does not surface through the reflection-based environment
+	// overrides above. Signal it as a top-level override so the System Console can reflect that
+	// the license is managed externally. Gate it on the same read permission as the license
+	// console section, mirroring how readFilter restricts the reflected overrides.
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadAboutEditionAndLicense) && c.App.Srv().Platform().IsLicenseSetFromEnvironment() {
+		if envConfig == nil {
+			envConfig = make(map[string]any)
+		}
+		envConfig["License"] = true
+	}
+
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	if _, err := w.Write([]byte(model.StringInterfaceToJSON(envConfig))); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
