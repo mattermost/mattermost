@@ -49,6 +49,11 @@ jest.mock('actions/views/lhs', () => ({
     selectLhsItem: (type: string, id?: string) => mockSelectLhsItem(type, id),
 }));
 
+jest.mock('actions/views/rhs', () => ({
+    suppressRHS: {type: 'SUPPRESS_RHS'},
+    unsuppressRHS: {type: 'UNSUPPRESS_RHS'},
+}));
+
 jest.mock('actions/views/modals', () => ({
     openModal: jest.fn(() => ({type: 'OPEN_MODAL'})),
 }));
@@ -82,6 +87,7 @@ describe('components/recaps/Recaps', () => {
         expect(mockGetAgents).toHaveBeenCalled();
         expect(mockFetchRecapLimitStatus).toHaveBeenCalled();
         expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'SELECT_LHS_ITEM'}));
+        expect(mockDispatch).toHaveBeenCalledWith({type: 'SUPPRESS_RHS'});
         expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'GET_RECAPS'}));
         expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'GET_SCHEDULED_RECAPS'}));
         expect(mockDispatch).toHaveBeenCalledWith({type: 'GET_AGENTS'});
@@ -90,5 +96,18 @@ describe('components/recaps/Recaps', () => {
         // markRecapsAsViewed runs asynchronously after getRecaps resolves.
         await waitFor(() => expect(mockMarkRecapsAsViewed).toHaveBeenCalled());
         expect(mockDispatch).toHaveBeenCalledWith({type: 'MARK_RECAPS_VIEWED'});
+    });
+
+    test('restores the RHS when Recaps unmounts', async () => {
+        const {unmount} = renderWithContext(
+            <MemoryRouter>
+                <Recaps/>
+            </MemoryRouter>,
+        );
+
+        await waitFor(() => expect(mockMarkRecapsAsViewed).toHaveBeenCalled());
+        unmount();
+
+        expect(mockDispatch).toHaveBeenCalledWith({type: 'UNSUPPRESS_RHS'});
     });
 });

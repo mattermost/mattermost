@@ -15,6 +15,7 @@ import {getAllRecaps, getUnreadRecaps, getReadRecaps, getAllScheduledRecaps} fro
 
 import {selectLhsItem} from 'actions/views/lhs';
 import {openModal} from 'actions/views/modals';
+import {suppressRHS, unsuppressRHS} from 'actions/views/rhs';
 
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
@@ -82,8 +83,17 @@ const Recaps = () => {
         setActiveTab(urlTab);
     }, [tabParam]);
 
+    // Recaps is a full-width static page; suppress channel-scoped RHS while open.
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Recaps));
+        dispatch(suppressRHS);
+
+        return () => {
+            dispatch(unsuppressRHS);
+        };
+    }, [dispatch]);
+
+    useEffect(() => {
         const fetchData = async () => {
             try {
                 const result = await dispatch(getRecaps(0, 60));
