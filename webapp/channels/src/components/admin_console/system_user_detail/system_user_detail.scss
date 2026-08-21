@@ -1,4 +1,12 @@
 .SystemUserDetail {
+    .SystemUserDetail__pictureError {
+        margin-top: 12px;
+
+        .has-error .control-label {
+            margin: 0;
+        }
+    }
+
     .AdminUserCard__body {
         .two-column-layout {
             .field-row {
