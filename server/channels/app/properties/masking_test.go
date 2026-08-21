@@ -7,14 +7,57 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// maskingFailureLogMessage is logMaskingFailure's message in masking.go --
+// duplicated here rather than exported, since a test asserting the exact
+// wording is what would catch that message silently drifting from what an
+// operator actually sees in the log.
+const maskingFailureLogMessage = "Hiding a masked property value because what the caller may see of it could not be established"
+
+// captureMaskingFailureLog attaches a buffer to th's logger so a test can
+// prove logMaskingFailure actually ran, rather than only observing the value
+// it hides -- a broken filter and a caller who holds nothing both hide the
+// value, and only the log line tells them apart.
+func captureMaskingFailureLog(t *testing.T, th *TestHelper) *mlog.Buffer {
+	t.Helper()
+	logger, ok := th.Context.Logger().(*mlog.Logger)
+	require.True(t, ok, "test context logger must be a concrete *mlog.Logger to attach a capture target")
+	buffer := &mlog.Buffer{}
+	require.NoError(t, mlog.AddWriterTarget(logger, buffer, true, mlog.StdAll...))
+	return buffer
+}
+
+// requireMaskingFailureLogged flushes th's logger and asserts buffer holds
+// exactly one masking-failure log entry naming fieldID and valueID.
+func requireMaskingFailureLogged(t *testing.T, th *TestHelper, buffer *mlog.Buffer, fieldID, valueID string) {
+	t.Helper()
+	logger, ok := th.Context.Logger().(*mlog.Logger)
+	require.True(t, ok)
+	require.NoError(t, logger.Flush())
+
+	logOutput := buffer.String()
+	found := false
+	for _, e := range testlib.ParseLogEntries(t, strings.NewReader(logOutput)) {
+		if e.Msg == maskingFailureLogMessage {
+			found = true
+			break
+		}
+	}
+	assert.True(t, found, "expected a masking-failure log entry with message %q, got: %s", maskingFailureLogMessage, logOutput)
+	assert.Contains(t, logOutput, fieldID)
+	assert.Contains(t, logOutput, valueID)
+}
 
 // countingPropertyFieldStore wraps a store.PropertyFieldStore and counts
 // calls to Get, so a test can assert a batch resolution loaded a template
@@ -626,13 +669,17 @@ func TestMaskValueReads(t *testing.T) {
 		th.service.valueStore = &erroringSearchValueStore{PropertyValueStore: original}
 		t.Cleanup(func() { th.service.valueStore = original })
 
+		buffer := captureMaskingFailureLog(t, th)
+
 		retrieved, err := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, selectValue.ID)
 		require.NoError(t, err)
 		assert.Nil(t, retrieved, "a select field's value must hide when the caller's holdings cannot be resolved")
+		requireMaskingFailureLogged(t, th, buffer, selectField.ID, selectValue.ID)
 
 		retrieved, err = th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, textValue.ID)
 		require.NoError(t, err)
 		assert.Nil(t, retrieved, "a text field's value must hide when the caller's holdings cannot be resolved")
+		requireMaskingFailureLogged(t, th, buffer, textField.ID, textValue.ID)
 	})
 
 	t.Run("a stored value that cannot be parsed as options hides and logs", func(t *testing.T) {
@@ -643,9 +690,12 @@ func TestMaskValueReads(t *testing.T) {
 		writeValueDirect(t, th, field.ID, "user", caller, "opt_a")
 		malformed := writeValueDirect(t, th, field.ID, "user", model.NewId(), 42)
 
+		buffer := captureMaskingFailureLog(t, th)
+
 		retrieved, err := th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, malformed.ID)
 		require.NoError(t, err)
 		assert.Nil(t, retrieved, "a stored value that will not parse as an option ID is hidden rather than handed over whole")
+		requireMaskingFailureLogged(t, th, buffer, field.ID, malformed.ID)
 	})
 
 	t.Run("holdings from another field: a linked field's masking reads holdings off its template's mask_by_field_id", func(t *testing.T) {
