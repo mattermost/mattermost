@@ -875,6 +875,16 @@ func TestImportImportUser(t *testing.T) {
 		userCount++ // Increment the user count.
 		assert.Equal(t, userCount, userCountCurrent, "Unexpected number of users")
 
+		// Get the user created above and open a session for them prior to
+		// changing their auth data below.
+		existingUser, err3 := th.App.GetUserByUsername(username)
+		require.Nil(t, err3, "Failed to get user from database.")
+		session, sessErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId: existingUser.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, sessErr)
+
 		// Alter all the fields of that user.
 		data.Email = new(model.NewId() + "@example.com")
 		data.ProfileImage = new(filepath.Join(testsDir, "testgif.gif"))
@@ -889,6 +899,11 @@ func TestImportImportUser(t *testing.T) {
 
 		appErr = th.App.importUser(th.Context, &data, false)
 		require.Nil(t, appErr, "Should have succeeded to update valid user %v", err)
+
+		// The pre-existing session should have been revoked since the user's
+		// auth data changed as part of the import.
+		_, sessErr = th.App.GetSession(session.Token)
+		require.NotNil(t, sessErr, "session should have been revoked after auth data changed during import")
 
 		// Check user count the same.
 		userCountCurrent, err = th.App.Srv().Store().User().Count(model.UserCountOptions{
@@ -5420,6 +5435,15 @@ func TestImportImportBot(t *testing.T) {
 		})
 		require.NoError(t, err, "Failed to create user.")
 
+		// Create a session for that user prior to the import. Once the user is
+		// converted into a bot account by the import, any pre-existing session
+		// should be revoked, mirroring ConvertUserToBot.
+		session, sessErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId: user.Id,
+			Roles:  model.SystemUserRoleId,
+		})
+		require.Nil(t, sessErr)
+
 		// Now import a bot with the same username. The user exists but has no
 		// bot record, so Bot().GetByUsername returns not-found and CreateBot
 		// will fail with username-exists. The fix should recover gracefully.
@@ -5437,6 +5461,11 @@ func TestImportImportBot(t *testing.T) {
 		require.NoError(t, botErr, "Bot record should have been created.")
 		assert.Equal(t, user.Id, bot.UserId)
 		assert.Equal(t, "Recovered bot", bot.Description)
+
+		// The pre-existing session should have been revoked as part of the
+		// user-to-bot recovery path.
+		_, sessErr = th.App.GetSession(session.Token)
+		require.NotNil(t, sessErr, "session should have been revoked after bot import recovery")
 	})
 
 	t.Run("re-import bot when both user and bot record already exist", func(t *testing.T) {
