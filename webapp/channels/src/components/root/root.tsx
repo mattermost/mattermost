@@ -280,7 +280,6 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
-        // Cleanup burn-on-read expiration scheduler
         expirationScheduler.cleanup();
 
         window.removeEventListener('storage', this.handleLogoutLoginSignal);

@@ -5,6 +5,7 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Preferences} from 'mattermost-redux/constants';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import ExternalLink from 'components/external_link';
@@ -13,6 +14,7 @@ import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {Constants} from 'utils/constants';
+import {isLightTheme, isSystemInDarkMode} from 'utils/theme_utils';
 import {applyTheme} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
@@ -23,6 +25,8 @@ import PremadeThemeChooser from './premade_theme_chooser';
 type Props = {
     currentTeamId: string;
     theme: Theme;
+    darkTheme?: Theme;
+    themeAutoSwitch: boolean;
     selected: boolean;
     areAllSectionsInactive: boolean;
     updateSection: (section: string) => void;
@@ -31,7 +35,7 @@ type Props = {
     showAllTeamsCheckbox: boolean;
     applyToAllTeams: boolean;
     actions: {
-        saveTheme: (teamId: string, theme: Theme) => void;
+        saveThemePreferences: (teamId: string, theme: Theme, themeAutoSwitch: boolean, darkTheme?: Theme) => void;
         deleteTeamSpecificThemes: () => void;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
@@ -40,15 +44,21 @@ type Props = {
 type State = {
     isSaving: boolean;
     type: string;
+    darkType: string;
     showAllTeamsCheckbox: boolean;
     applyToAllTeams: boolean;
     serverError: string;
     theme: Theme;
+    darkTheme: Theme;
+    themeAutoSwitch: boolean;
 };
 
 export default class ThemeSetting extends React.PureComponent<Props, State> {
     minRef: RefObject<SettingItemMinComponent>;
     originalTheme: Theme;
+    originalDarkTheme: Theme;
+    originalThemeAutoSwitch: boolean;
+
     constructor(props: Props) {
         super(props);
 
@@ -59,6 +69,8 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         };
 
         this.originalTheme = Object.assign({}, this.state.theme);
+        this.originalDarkTheme = Object.assign({}, this.state.darkTheme);
+        this.originalThemeAutoSwitch = this.state.themeAutoSwitch;
         this.minRef = React.createRef();
     }
 
@@ -73,7 +85,8 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
     componentWillUnmount() {
         if (this.props.selected) {
-            applyTheme(this.props.theme);
+            const useDark = this.props.themeAutoSwitch && isSystemInDarkMode();
+            this.applyPreview(useDark ? this.props.darkTheme : this.props.theme, this.props.themeAutoSwitch);
         }
     }
 
@@ -83,15 +96,30 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
             theme.codeTheme = Constants.DEFAULT_CODE_THEME;
         }
 
+        const darkTheme = props.darkTheme ? {...props.darkTheme} : {...theme};
+        if (!darkTheme.codeTheme) {
+            darkTheme.codeTheme = Constants.DEFAULT_CODE_THEME;
+        }
+
         return {
             theme,
+            darkTheme,
             type: theme.type || 'premade',
+            darkType: darkTheme.type || 'premade',
             showAllTeamsCheckbox: props.showAllTeamsCheckbox,
             applyToAllTeams: props.applyToAllTeams,
+            themeAutoSwitch: props.themeAutoSwitch,
             serverError: '',
             isSaving: false,
         };
     }
+
+    applyPreview = (theme: Theme | undefined, isUsingSystemTheme: boolean) => {
+        if (!theme) {
+            return;
+        }
+        applyTheme(theme, {isUsingSystemTheme});
+    };
 
     focusEditButton(): void {
         this.minRef.current?.focus();
@@ -102,7 +130,19 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
         this.setState({isSaving: true});
 
-        await this.props.actions.saveTheme(teamId, this.state.theme);
+        await this.props.actions.saveThemePreferences(
+            teamId,
+            this.state.theme,
+            this.state.themeAutoSwitch,
+            this.state.themeAutoSwitch ? this.state.darkTheme : undefined,
+        );
+
+        // Apply the appropriate theme based on system preference when auto-switch is enabled
+        if (isSystemInDarkMode() && this.state.themeAutoSwitch) {
+            this.applyPreview(this.state.darkTheme, this.state.themeAutoSwitch);
+        } else {
+            this.applyPreview(this.state.theme, this.state.themeAutoSwitch);
+        }
 
         if (this.state.applyToAllTeams) {
             await this.props.actions.deleteTeamSpecificThemes();
@@ -110,37 +150,89 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
 
         this.props.setRequireConfirm?.(false);
         this.originalTheme = Object.assign({}, this.state.theme);
+        this.originalDarkTheme = Object.assign({}, this.state.darkTheme);
+        this.originalThemeAutoSwitch = this.state.themeAutoSwitch;
         this.props.updateSection('');
         this.setState({isSaving: false});
     };
 
-    updateTheme = (theme: Theme): void => {
-        let themeChanged = this.state.theme.length === theme.length;
-        if (!themeChanged) {
-            for (const field in theme) {
-                if (Object.hasOwn(theme, field)) {
-                    if (this.state.theme[field] !== theme[field]) {
-                        themeChanged = true;
-                        break;
-                    }
-                }
+    hasUnsavedChanges = (
+        theme = this.state.theme,
+        darkTheme = this.state.darkTheme,
+        themeAutoSwitch = this.state.themeAutoSwitch,
+    ): boolean => {
+        if (this.originalThemeAutoSwitch !== themeAutoSwitch) {
+            return true;
+        }
+        for (const field in theme) {
+            if (Object.hasOwn(theme, field) && this.originalTheme[field] !== theme[field]) {
+                return true;
             }
         }
+        for (const field in darkTheme) {
+            if (Object.hasOwn(darkTheme, field) && this.originalDarkTheme[field] !== darkTheme[field]) {
+                return true;
+            }
+        }
+        return false;
+    };
 
-        this.props.setRequireConfirm?.(themeChanged);
+    updateTheme = (theme: Theme): void => {
+        this.props.setRequireConfirm?.(this.hasUnsavedChanges(theme));
 
         this.setState({theme});
-        applyTheme(theme);
+
+        if (!this.state.themeAutoSwitch) {
+            this.applyPreview(theme, false);
+        } else if (!isSystemInDarkMode() && isLightTheme(theme)) {
+            this.applyPreview(theme, true);
+        }
+    };
+
+    updateDarkTheme = (darkTheme: Theme): void => {
+        this.props.setRequireConfirm?.(this.hasUnsavedChanges(undefined, darkTheme));
+
+        this.setState({darkTheme});
+
+        if (this.state.themeAutoSwitch && isSystemInDarkMode() && !isLightTheme(darkTheme)) {
+            this.applyPreview(darkTheme, this.state.themeAutoSwitch);
+        }
     };
 
     updateType = (type: string): void => this.setState({type});
+
+    updateDarkType = (darkType: string): void => this.setState({darkType});
+
+    toggleThemeAutoSwitch = (): void => {
+        const themeAutoSwitch = !this.state.themeAutoSwitch;
+        let darkTheme = this.state.darkTheme;
+        let darkType = this.state.darkType;
+
+        // Default the dark slot to Onyx when it still holds a light theme (first-time auto-switch).
+        if (themeAutoSwitch && isLightTheme(darkTheme)) {
+            darkTheme = {...Preferences.THEMES.onyx};
+            darkType = darkTheme.type || 'premade';
+        }
+
+        this.setState({themeAutoSwitch, darkTheme, darkType});
+        this.props.setRequireConfirm?.(this.hasUnsavedChanges(undefined, darkTheme, themeAutoSwitch));
+
+        if (themeAutoSwitch && isSystemInDarkMode()) {
+            this.applyPreview(darkTheme, true);
+        } else {
+            this.applyPreview(this.state.theme, themeAutoSwitch);
+        }
+    };
 
     resetFields = (): void => {
         const state = this.getStateFromProps();
         state.serverError = '';
         this.setState(state);
 
-        applyTheme(state.theme);
+        this.applyPreview(
+            (state.themeAutoSwitch && isSystemInDarkMode()) ? state.darkTheme : state.theme,
+            state.themeAutoSwitch,
+        );
 
         this.props.setRequireConfirm?.(false);
     };
@@ -154,6 +246,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         }
 
         const displayCustom = this.state.type === 'custom';
+        const displayDarkCustom = this.state.darkType === 'custom';
 
         let custom;
         let premade;
@@ -173,6 +266,32 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                     <PremadeThemeChooser
                         theme={this.state.theme}
                         updateTheme={this.updateTheme}
+                        variant={this.state.themeAutoSwitch ? 'light' : undefined}
+                    />
+                </div>
+            );
+        }
+
+        // Dark theme components
+        let darkCustom;
+        let darkPremade;
+        if (displayDarkCustom && this.props.allowCustomThemes) {
+            darkCustom = (
+                <div key='customDarkThemeChooser'>
+                    <CustomThemeChooser
+                        theme={this.state.darkTheme}
+                        updateTheme={this.updateDarkTheme}
+                    />
+                </div>
+            );
+        } else {
+            darkPremade = (
+                <div key='premadeDarkThemeChooser'>
+                    <br/>
+                    <PremadeThemeChooser
+                        theme={this.state.darkTheme}
+                        updateTheme={this.updateDarkTheme}
+                        variant={this.state.themeAutoSwitch ? 'dark' : undefined}
                     />
                 </div>
             );
@@ -181,6 +300,48 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         let themeUI;
         if (this.props.selected) {
             const inputs = [];
+
+            // Auto-switch toggle
+            inputs.push(
+                <div
+                    className='checkbox'
+                    key='themeAutoSwitchCheckbox'
+                >
+                    <label>
+                        <input
+                            id='themeAutoSwitch'
+                            type='checkbox'
+                            checked={this.state.themeAutoSwitch}
+                            onChange={this.toggleThemeAutoSwitch}
+                        />
+                        <FormattedMessage
+                            id='user.settings.display.theme.autoSwitch'
+                            defaultMessage='Automatically switch between light and dark themes'
+                        />
+                    </label>
+                    <br/>
+                    <br/>
+                </div>,
+            );
+
+            // Light theme section header
+            inputs.push(
+                <div key='lightThemeHeader'>
+                    <h4>
+                        {this.state.themeAutoSwitch ? (
+                            <FormattedMessage
+                                id='user.settings.display.theme.lightTheme'
+                                defaultMessage='Light Theme'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='user.settings.display.theme.title'
+                                defaultMessage='Theme'
+                            />
+                        )}
+                    </h4>
+                </div>,
+            );
 
             if (this.props.allowCustomThemes) {
                 inputs.push(
@@ -222,7 +383,74 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                 );
 
                 inputs.push(premade, custom);
+            }
 
+            // Dark theme section (only shown when auto-switch is enabled)
+            if (this.state.themeAutoSwitch) {
+                inputs.push(
+                    <div key='darkThemeHeader'>
+                        <h4>
+                            <FormattedMessage
+                                id='user.settings.display.theme.darkTheme'
+                                defaultMessage='Dark Theme'
+                            />
+                        </h4>
+                    </div>,
+                );
+
+                if (this.props.allowCustomThemes) {
+                    inputs.push(
+                        <div
+                            className='radio radio-inline'
+                            key='premadeDarkThemeColorLabel'
+                        >
+                            <label>
+                                <input
+                                    id='standardDarkThemes'
+                                    type='radio'
+                                    name='darkTheme'
+                                    checked={!displayDarkCustom}
+                                    onChange={this.updateDarkType.bind(this, 'premade')}
+                                    aria-controls='premadeDarkThemesSection'
+                                />
+                                <FormattedMessage
+                                    id='user.settings.display.theme.premadeThemes'
+                                    defaultMessage='Premade Themes'
+                                />
+                            </label>
+                        </div>,
+                    );
+                }
+
+                if (this.props.allowCustomThemes) {
+                    inputs.push(
+                        <div
+                            className='radio radio-inline'
+                            key='customDarkThemeColorLabel'
+                        >
+                            <label>
+                                <input
+                                    id='customDarkThemes'
+                                    type='radio'
+                                    name='darkTheme'
+                                    checked={displayDarkCustom}
+                                    onChange={this.updateDarkType.bind(this, 'custom')}
+                                    aria-controls='customDarkThemesSection'
+                                />
+                                <FormattedMessage
+                                    id='user.settings.display.theme.customTheme'
+                                    defaultMessage='Custom Theme'
+                                />
+                            </label>
+                        </div>,
+                    );
+
+                    inputs.push(darkPremade, darkCustom);
+                }
+            }
+
+            // Add "See other themes" link after both light and dark theme sections
+            if (this.props.allowCustomThemes) {
                 inputs.push(
                     <div key='otherThemes'>
                         <br/>
