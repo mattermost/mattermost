@@ -93,10 +93,10 @@ const validateDateFieldValue = (fieldName: string, valueType: string, value: str
 const validateAppField = (field: AppField): string[] => {
     const errors: string[] = [];
 
-    // Resolve effective datetime values (datetime_config takes precedence over deprecated top-level fields)
-    const effectiveTimeInterval = field.datetime_config?.time_interval ?? field.time_interval;
-    const effectiveMinDate = field.datetime_config?.min_date ?? field.min_date;
-    const effectiveMaxDate = field.datetime_config?.max_date ?? field.max_date;
+    // Resolve effective datetime values
+    const effectiveTimeInterval = field.datetime_config?.time_interval;
+    const effectiveMinDate = field.datetime_config?.min_date;
+    const effectiveMaxDate = field.datetime_config?.max_date;
 
     // Validate time_interval for datetime fields (no mutation)
     if (field.type === AppFieldTypes.DATETIME && effectiveTimeInterval !== undefined) {
@@ -167,10 +167,10 @@ const getSafeDateValue = (dateString: string): string => {
 const createSanitizedField = (field: AppField): AppField => {
     const sanitized = {...field};
 
-    // Resolve effective datetime values (datetime_config takes precedence over deprecated top-level fields)
-    const effectiveInterval = field.datetime_config?.time_interval ?? field.time_interval;
-    const effectiveMin = field.datetime_config?.min_date ?? field.min_date;
-    const effectiveMax = field.datetime_config?.max_date ?? field.max_date;
+    // Resolve effective datetime values
+    const effectiveInterval = field.datetime_config?.time_interval;
+    const effectiveMin = field.datetime_config?.min_date;
+    const effectiveMax = field.datetime_config?.max_date;
 
     // Sanitize time_interval for datetime fields
     if (field.type === AppFieldTypes.DATETIME && effectiveInterval !== undefined) {
@@ -179,7 +179,6 @@ const createSanitizedField = (field: AppField): AppField => {
         if (sanitized.datetime_config) {
             sanitized.datetime_config = {...sanitized.datetime_config, time_interval: sanitizedInterval};
         }
-        sanitized.time_interval = sanitizedInterval;
     }
 
     // Sanitize date values for date fields only — datetime fields need the full pattern preserved
@@ -189,14 +188,12 @@ const createSanitizedField = (field: AppField): AppField => {
             if (sanitized.datetime_config) {
                 sanitized.datetime_config = {...sanitized.datetime_config, min_date: safeMin};
             }
-            sanitized.min_date = safeMin;
         }
         if (effectiveMax) {
             const safeMax = getSafeDateValue(effectiveMax);
             if (sanitized.datetime_config) {
                 sanitized.datetime_config = {...sanitized.datetime_config, max_date: safeMax};
             }
-            sanitized.max_date = safeMax;
         }
         if (field.type === AppFieldTypes.DATE && field.value && typeof field.value === 'string') {
             sanitized.value = getSafeDateValue(field.value);
@@ -236,8 +233,8 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
                 // Set default to current time for required datetime fields
                 const currentTime = timezone ? moment.tz(timezone) : moment();
 
-                // Use sanitized time_interval (guaranteed to be valid; datetime_config takes precedence)
-                const timePickerInterval = field.datetime_config?.time_interval ?? field.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
+                // Use sanitized time_interval (guaranteed to be valid)
+                const timePickerInterval = field.datetime_config?.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
 
                 // Round up to next time interval
                 const minutesMod = currentTime.minutes() % timePickerInterval;
@@ -245,9 +242,9 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
                     currentTime.clone().seconds(0).milliseconds(0) :
                     currentTime.clone().add(timePickerInterval - minutesMod, 'minutes').seconds(0).milliseconds(0);
 
-                // Clamp default to min_date/max_date bounds (datetime_config takes precedence)
-                const effectiveMin = field.datetime_config?.min_date ?? field.min_date;
-                const effectiveMax = field.datetime_config?.max_date ?? field.max_date;
+                // Clamp default to min_date/max_date bounds
+                const effectiveMin = field.datetime_config?.min_date;
+                const effectiveMax = field.datetime_config?.max_date;
                 const minMoment = effectiveMin ? stringToMoment(effectiveMin, timezone) : null;
                 const maxMoment = effectiveMax ? stringToMoment(effectiveMax, timezone) : null;
                 if (minMoment && defaultMoment.isBefore(minMoment)) {
@@ -857,9 +854,6 @@ function fieldsAsElements(fields?: AppField[]): DialogElement[] {
         subtype: f.subtype,
         optional: !f.is_required,
         datetime_config: f.datetime_config,
-        min_date: f.datetime_config?.min_date ?? f.min_date,
-        max_date: f.datetime_config?.max_date ?? f.max_date,
-        time_interval: f.datetime_config?.time_interval ?? f.time_interval,
     })) as DialogElement[];
 }
 

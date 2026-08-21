@@ -401,7 +401,7 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
 			if totalBroadcasts >= maxBroadcasts {
 				a.Log().Error("sendUpdatedRoleEvent: hit broadcast limit for team scheme",
 					mlog.String("scheme_id", scheme.Id),
-					mlog.Int("totalBroadcasts", totalBroadcasts))
+					mlog.Int("total_broadcasts", totalBroadcasts))
 				break
 			}
 			offset += pageSize
@@ -439,7 +439,7 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
 			if totalBroadcasts >= maxBroadcasts {
 				a.Log().Error("sendUpdatedRoleEvent: hit broadcast limit for channel scheme",
 					mlog.String("scheme_id", scheme.Id),
-					mlog.Int("totalBroadcasts", totalBroadcasts))
+					mlog.Int("total_broadcasts", totalBroadcasts))
 				break
 			}
 			offset += pageSize

@@ -72,7 +72,7 @@ func testGetEverMembersInChannel(t *testing.T, rctx request.CTX, ss store.Store)
 	const baseTime int64 = 1700000000000
 	// user1 has historical rows (joined, left, and rejoined) and should be returned once.
 	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user1, channel.Id, baseTime))
-	require.NoError(t, ss.ChannelMemberHistory().LogLeaveEvent(user1, channel.Id, baseTime+100))
+	require.NoError(t, ss.ChannelMemberHistory().LogLeaveEvent(rctx, user1, channel.Id, baseTime+100))
 	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user1, channel.Id, baseTime+200))
 	// other users are simple joins.
 	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user2, channel.Id, baseTime))
@@ -144,7 +144,7 @@ func testLogLeaveEvent(t *testing.T, rctx request.CTX, ss store.Store) {
 	err = ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis())
 	assert.NoError(t, err)
 
-	err = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
+	err = ss.ChannelMemberHistory().LogLeaveEvent(rctx, user.Id, channel.Id, model.GetMillis())
 	assert.NoError(t, err)
 }
 
@@ -212,7 +212,7 @@ func testGetChannelsWithActivityDuring(t *testing.T, rctx request.CTX, ss store.
 	assert.Empty(t, channelIds)
 
 	// case 2: user1 leaves, shows activity
-	err = ss.ChannelMemberHistory().LogLeaveEvent(user1.Id, channel1.Id, now+1)
+	err = ss.ChannelMemberHistory().LogLeaveEvent(rctx, user1.Id, channel1.Id, now+1)
 	require.NoError(t, err)
 
 	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(now, now+1000)
@@ -282,9 +282,9 @@ func testGetChannelsWithActivityDuring(t *testing.T, rctx request.CTX, ss store.
 	}
 	_, err = ss.Post().Save(rctx, post2)
 	require.NoError(t, err)
-	err = ss.ChannelMemberHistory().LogLeaveEvent(user1.Id, channel1.Id, now+12)
+	err = ss.ChannelMemberHistory().LogLeaveEvent(rctx, user1.Id, channel1.Id, now+12)
 	require.NoError(t, err)
-	err = ss.ChannelMemberHistory().LogLeaveEvent(user2.Id, channel2.Id, now+13)
+	err = ss.ChannelMemberHistory().LogLeaveEvent(rctx, user2.Id, channel2.Id, now+13)
 	require.NoError(t, err)
 
 	channelIds, err = ss.ChannelMemberHistory().GetChannelsWithActivityDuring(now+10, now+1000)
@@ -330,7 +330,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, rctx request.CTX,
 	joinTime := leaveTime - 10000
 	err = ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, joinTime)
 	require.NoError(t, err)
-	err = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, leaveTime)
+	err = ss.ChannelMemberHistory().LogLeaveEvent(rctx, user.Id, channel.Id, leaveTime)
 	require.NoError(t, err)
 
 	// log a join event
@@ -367,7 +367,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, rctx request.CTX,
 	assert.Nil(t, channelMembers[0].LeaveTime)
 
 	// add a leave time for the user
-	err = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, leaveTime)
+	err = ss.ChannelMemberHistory().LogLeaveEvent(rctx, user.Id, channel.Id, leaveTime)
 	require.NoError(t, err)
 
 	// case 4: user joins the channel before the export period begins, but has not yet left the channel when the export period ends
@@ -548,7 +548,7 @@ func testPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
 	joinTime := leaveTime - 10000
 	err = ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, joinTime)
 	require.NoError(t, err)
-	err = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, leaveTime)
+	err = ss.ChannelMemberHistory().LogLeaveEvent(rctx, user.Id, channel.Id, leaveTime)
 	require.NoError(t, err)
 
 	// user2 joins the channel but never leaves
@@ -598,7 +598,7 @@ func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx request.CTX
 	leaveTime := int64(1500)
 	err = ss.ChannelMemberHistory().LogJoinEvent(userID, channel.Id, joinTime)
 	require.NoError(t, err)
-	err = ss.ChannelMemberHistory().LogLeaveEvent(userID, channel.Id, leaveTime)
+	err = ss.ChannelMemberHistory().LogLeaveEvent(rctx, userID, channel.Id, leaveTime)
 	require.NoError(t, err)
 
 	channelPolicy, err := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
@@ -653,7 +653,7 @@ func testGetChannelsLeftSince(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Empty(t, ids)
 
 	// left
-	err = ss.ChannelMemberHistory().LogLeaveEvent(userID, channel.Id, joinTime+100)
+	err = ss.ChannelMemberHistory().LogLeaveEvent(rctx, userID, channel.Id, joinTime+100)
 	require.NoError(t, err)
 	ids, err = ss.ChannelMemberHistory().GetChannelsLeftSince(userID, joinTime+100)
 	require.NoError(t, err)
@@ -665,7 +665,7 @@ func testGetChannelsLeftSince(t *testing.T, rctx request.CTX, ss store.Store) {
 	// joined and left again.
 	err = ss.ChannelMemberHistory().LogJoinEvent(userID, channel.Id, joinTime+200)
 	require.NoError(t, err)
-	err = ss.ChannelMemberHistory().LogLeaveEvent(userID, channel.Id, joinTime+300)
+	err = ss.ChannelMemberHistory().LogLeaveEvent(rctx, userID, channel.Id, joinTime+300)
 	require.NoError(t, err)
 	// should be same for both time stamps
 	ids, err = ss.ChannelMemberHistory().GetChannelsLeftSince(userID, joinTime+100)
@@ -778,8 +778,8 @@ func testGetMembershipChanges(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user1, channel.Id, 1000))
 	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user2, channel.Id, 2000))
 	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user3, channel.Id, 3000))
-	require.NoError(t, ss.ChannelMemberHistory().LogLeaveEvent(user1, channel.Id, 4000))
-	require.NoError(t, ss.ChannelMemberHistory().LogLeaveEvent(user2, channel.Id, 5000))
+	require.NoError(t, ss.ChannelMemberHistory().LogLeaveEvent(rctx, user1, channel.Id, 4000))
+	require.NoError(t, ss.ChannelMemberHistory().LogLeaveEvent(rctx, user2, channel.Id, 5000))
 
 	t.Run("returns all events since timestamp zero", func(t *testing.T) {
 		results, err := ss.ChannelMemberHistory().GetMembershipChanges(channel.Id, 0, 100)

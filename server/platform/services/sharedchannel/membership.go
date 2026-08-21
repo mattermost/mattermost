@@ -45,7 +45,7 @@ func (scs *Service) ForceMembershipSyncForRemote(rc *model.RemoteCluster) {
 	if err != nil {
 		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to fetch shared channel remotes for membership sync",
 			mlog.String("remote", rc.DisplayName),
-			mlog.String("remoteId", rc.RemoteId),
+			mlog.String("remote_id", rc.RemoteId),
 			mlog.Err(err),
 		)
 		return

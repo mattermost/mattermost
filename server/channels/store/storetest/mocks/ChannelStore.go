@@ -1950,6 +1950,36 @@ func (_m *ChannelStore) GetMembersInfoByChannelIds(channelIDs []string) (map[str
 	return r0, r1
 }
 
+// GetMembersWithLastViewedAtSince provides a mock function with given fields: rctx, channelID, since, afterUserID, limit
+func (_m *ChannelStore) GetMembersWithLastViewedAtSince(rctx request.CTX, channelID string, since int64, afterUserID string, limit int) ([]*model.ChannelMemberLastViewed, error) {
+	ret := _m.Called(rctx, channelID, since, afterUserID, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMembersWithLastViewedAtSince")
+	}
+
+	var r0 []*model.ChannelMemberLastViewed
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, int64, string, int) ([]*model.ChannelMemberLastViewed, error)); ok {
+		return rf(rctx, channelID, since, afterUserID, limit)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, int64, string, int) []*model.ChannelMemberLastViewed); ok {
+		r0 = rf(rctx, channelID, since, afterUserID, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMemberLastViewed)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, int64, string, int) error); ok {
+		r1 = rf(rctx, channelID, since, afterUserID, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMoreChannels provides a mock function with given fields: teamID, userID, offset, limit
 func (_m *ChannelStore) GetMoreChannels(teamID string, userID string, offset int, limit int) (model.ChannelList, error) {
 	ret := _m.Called(teamID, userID, offset, limit)
