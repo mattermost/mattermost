@@ -5,6 +5,8 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -182,6 +184,116 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 		_, resp, err := client.GetUsersStatusesByIds(context.Background(), usersIds)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
+	})
+}
+
+func TestGetUserStatusActiveChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	privateChannel := th.CreatePrivateChannel(t)
+
+	_, _, err := th.Client.ViewChannel(context.Background(), th.BasicUser.Id, &model.ChannelView{ChannelId: privateChannel.Id})
+	require.NoError(t, err)
+
+	status, appErr := th.App.GetStatus(th.BasicUser.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, privateChannel.Id, status.ActiveChannel, "precondition: the target user must have an active channel set")
+
+	getRawStatus := func(t *testing.T, client *model.Client4, userID string) map[string]any {
+		t.Helper()
+		resp, err := client.DoAPIGet(context.Background(), "/users/"+userID+"/status", "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var raw map[string]any
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&raw))
+		return raw
+	}
+
+	getRawStatusesByIds := func(t *testing.T, client *model.Client4, userIDs []string) []map[string]any {
+		t.Helper()
+		body, jsonErr := json.Marshal(userIDs)
+		require.NoError(t, jsonErr)
+
+		resp, err := client.DoAPIPost(context.Background(), "/users/status/ids", string(body))
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var raw []map[string]any
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&raw))
+		return raw
+	}
+
+	t.Run("get status of a user active in a channel the caller is not a member of", func(t *testing.T) {
+		th.LoginBasic2(t)
+
+		_, resp, err := th.Client.GetChannel(context.Background(), privateChannel.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		raw := getRawStatus(t, th.Client, th.BasicUser.Id)
+		assert.NotContains(t, raw, "active_channel")
+		assert.Equal(t, th.BasicUser.Id, raw["user_id"])
+		assert.Equal(t, model.StatusOnline, raw["status"])
+	})
+
+	t.Run("get statuses by ids of a user active in a channel the caller is not a member of", func(t *testing.T) {
+		th.LoginBasic2(t)
+
+		raw := getRawStatusesByIds(t, th.Client, []string{th.BasicUser.Id, th.BasicUser2.Id})
+		require.Len(t, raw, 2)
+		for _, status := range raw {
+			assert.NotContains(t, status, "active_channel")
+			assert.NotEmpty(t, status["user_id"])
+			assert.NotEmpty(t, status["status"])
+		}
+	})
+
+	t.Run("get own status", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		raw := getRawStatus(t, th.Client, th.BasicUser.Id)
+		assert.NotContains(t, raw, "active_channel")
+
+		rawList := getRawStatusesByIds(t, th.Client, []string{th.BasicUser.Id})
+		require.Len(t, rawList, 1)
+		assert.NotContains(t, rawList[0], "active_channel")
+	})
+
+	t.Run("get status as system admin", func(t *testing.T) {
+		raw := getRawStatus(t, th.SystemAdminClient, th.BasicUser.Id)
+		assert.NotContains(t, raw, "active_channel")
+
+		rawList := getRawStatusesByIds(t, th.SystemAdminClient, []string{th.BasicUser.Id})
+		require.Len(t, rawList, 1)
+		assert.NotContains(t, rawList[0], "active_channel")
+	})
+
+	t.Run("update own status", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		toUpdate := &model.Status{UserId: th.BasicUser.Id, Status: model.StatusDnd, Manual: true}
+		body, jsonErr := json.Marshal(toUpdate)
+		require.NoError(t, jsonErr)
+
+		resp, err := th.Client.DoAPIPut(context.Background(), "/users/"+th.BasicUser.Id+"/status", string(body))
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var raw map[string]any
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&raw))
+		assert.NotContains(t, raw, "active_channel")
+		assert.Equal(t, model.StatusDnd, raw["status"])
+	})
+
+	t.Run("the active channel is still tracked server side", func(t *testing.T) {
+		status, appErr := th.App.GetStatus(th.BasicUser.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, privateChannel.Id, status.ActiveChannel)
 	})
 }
 
