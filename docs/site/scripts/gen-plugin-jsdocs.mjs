@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Generates docs/site/data/plugin-jsdocs.json, the data source consumed by the <PluginJsDocs />
 // component that renders the web app plugin SDK reference
-// (docs/develop/integrate/reference/webapp/webapp-reference.md).
+// (docs/develop/integrate/reference/webapp/index.md).
 //
 // Reads webapp/channels/src/plugins/registry.ts directly from this monorepo instead of fetching it
 // from GitHub over HTTP.

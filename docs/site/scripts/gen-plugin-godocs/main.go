@@ -1,6 +1,6 @@
 // Command gen-plugin-godocs generates docs/site/data/plugin-godocs.json, the data source consumed
 // by the <PluginGoDocs /> and <PluginGoExample /> React components that render the server plugin
-// SDK reference (docs/develop/integrate/reference/server/server-reference.md).
+// SDK reference (docs/develop/integrate/reference/server/index.md).
 //
 // It reads the server/public/plugin package directly from this monorepo. It deliberately parses
 // the package with go/parser + go/doc rather than type-checking it via golang.org/x/tools/go/packages,

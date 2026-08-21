@@ -149,8 +149,8 @@ rather than hand-written prose, each backed by a gitignored JSON file under `dat
 
 | Page | Generator | Reads |
 |---|---|---|
-| [Server plugin SDK reference](/developers/integrate/reference/server/server-reference) | `scripts/gen-plugin-godocs` (Go) | `server/public/plugin` |
-| [Web app plugin SDK reference](/developers/integrate/reference/webapp/webapp-reference) | `scripts/gen-plugin-jsdocs.mjs` (Node) | `webapp/channels/src/plugins/registry.ts` |
+| [Server plugin SDK reference](/developers/integrate/reference/server) | `scripts/gen-plugin-godocs` (Go) | `server/public/plugin` |
+| [Web app plugin SDK reference](/developers/integrate/reference/webapp) | `scripts/gen-plugin-jsdocs.mjs` (Node) | `webapp/channels/src/plugins/registry.ts` |
 | [Manifest reference](/developers/integrate/plugins/manifest-reference) | `scripts/gen-plugin-manifest-docs` (Go) | `server/public/model`'s `Manifest` struct |
 
 They're consumed by the `<PluginGoDocs />`, `<PluginGoExample />`, `<PluginJsDocs />`, and
