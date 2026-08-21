@@ -4,18 +4,15 @@
 import {expect, Page} from '@playwright/test';
 import {waitUntil} from 'async-wait-until';
 
-import {
-    BrowseChannelsModal,
+import type {
+    ChannelNotificationPreferencesModal,
     ChannelsPost,
-    ChannelSettingsModal,
-    CreateTeamForm,
-    NewChannelModal,
     SettingsModal,
     TeamSettingsModal,
-    components,
     InvitePeopleModal,
     MembersInvitedModal,
 } from '@/ui/components';
+import {BrowseChannelsModal, ChannelSettingsModal, CreateTeamForm, NewChannelModal, components} from '@/ui/components';
 import {duration} from '@/util';
 export default class ChannelsPage {
     readonly channels = 'Channels';
@@ -33,11 +30,14 @@ export default class ChannelsPage {
     readonly messagePriority;
 
     readonly channelSettingsModal;
+    readonly channelNotificationPreferencesModal;
     readonly createTeamForm;
     readonly deletePostModal;
     readonly findChannelsModal;
     readonly newChannelModal;
     readonly browseChannelsModal;
+    readonly directChannelsModal;
+    readonly keyboardShortcutsModal;
     public invitePeopleModal: InvitePeopleModal | undefined;
     public membersInvitedModal: MembersInvitedModal | undefined;
     readonly profileModal;
@@ -57,6 +57,9 @@ export default class ChannelsPage {
     readonly emojiGifPickerPopup;
     readonly scheduleMessageMenu;
 
+    readonly searchResultsContainer;
+    readonly searchResultItems;
+
     constructor(page: Page) {
         this.page = page;
 
@@ -72,11 +75,18 @@ export default class ChannelsPage {
 
         // Modals
         this.channelSettingsModal = new ChannelSettingsModal(page.getByRole('dialog', {name: 'Channel Settings'}));
-        this.createTeamForm = new CreateTeamForm(page.locator('.signup-team__container'));
+        this.channelNotificationPreferencesModal = new components.ChannelNotificationPreferencesModal(
+            page.getByRole('dialog', {name: 'Notification Preferences'}),
+        );
+        this.keyboardShortcutsModal = page.getByRole('dialog', {name: /Keyboard shortcuts/});
+        this.createTeamForm = new CreateTeamForm(page.getByTestId('create-team-form'));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
         this.newChannelModal = new NewChannelModal(page.getByRole('dialog', {name: 'Create a new channel'}));
         this.browseChannelsModal = new BrowseChannelsModal(page.getByRole('dialog', {name: 'Browse Channels'}));
+        this.directChannelsModal = new components.DirectChannelsModal(
+            page.getByRole('dialog', {name: 'Direct Messages'}),
+        );
         this.profileModal = new components.ProfileModal(page.getByRole('dialog', {name: 'Profile'}));
         this.settingsModal = new components.SettingsModal(page.getByRole('dialog', {name: 'Settings'}));
         this.teamSettingsModal = new components.TeamSettingsModal(page.getByRole('dialog', {name: 'Team Settings'}));
@@ -103,7 +113,17 @@ export default class ChannelsPage {
         this.postContainer = page.locator('div.post-message__text');
         this.archivedChannelMessage = page.locator('#channelArchivedMessage');
 
-        page.locator('#channelHeaderDropdownMenu');
+        // Search results
+        this.searchResultsContainer = page.locator('#search-items-container');
+        this.searchResultItems = page.getByTestId('search-item-container');
+    }
+
+    /**
+     * Locates a search result item containing the given text.
+     * @param text
+     */
+    getSearchResultItem(text: string) {
+        return this.page.getByTestId('search-item-container').filter({hasText: text});
     }
 
     async toBeVisible() {
@@ -207,6 +227,19 @@ export default class ChannelsPage {
         return this.channelSettingsModal;
     }
 
+    async openChannelNotificationPreferences(): Promise<ChannelNotificationPreferencesModal> {
+        await this.centerView.header.openChannelMenu();
+        await this.page.getByRole('menuitem', {name: 'Notification Preferences'}).click();
+        await this.channelNotificationPreferencesModal.toBeVisible();
+
+        return this.channelNotificationPreferencesModal;
+    }
+
+    async closeGroupMessage() {
+        await this.centerView.header.openChannelMenu();
+        await this.page.getByRole('menuitem', {name: 'Close Group Message'}).click();
+    }
+
     async openSettings(): Promise<SettingsModal> {
         await this.globalHeader.openSettings();
         await this.settingsModal.toBeVisible();
@@ -227,6 +260,13 @@ export default class ChannelsPage {
         await this.browseChannelsModal.toBeVisible();
 
         return this.browseChannelsModal;
+    }
+
+    async openDirectChannelsModal() {
+        await this.sidebarLeft.openDirectMessageButton.click();
+        await this.directChannelsModal.toBeVisible();
+
+        return this.directChannelsModal;
     }
 
     async openCreateTeamForm(): Promise<CreateTeamForm> {

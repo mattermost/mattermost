@@ -14,6 +14,8 @@ export default class ChannelsPost {
 
     readonly body;
     readonly profileIcon;
+    readonly emoticon;
+    readonly messageText;
 
     readonly removePostButton;
 
@@ -30,7 +32,9 @@ export default class ChannelsPost {
 
         this.body = container.locator('.post__body');
 
-        this.profileIcon = container.locator('.profile-icon');
+        this.profileIcon = container.getByTestId('profile-icon');
+        this.emoticon = container.locator('.emoticon');
+        this.messageText = container.locator('.post-message__text p');
 
         this.removePostButton = container.locator('.post__remove');
 
@@ -67,6 +71,14 @@ export default class ChannelsPost {
 
     async getProfileImage(username: string) {
         return this.profileIcon.getByAltText(`${username} profile image`);
+    }
+
+    /**
+     * Locates a rendered link with the given accessible name inside the post body.
+     * @param name
+     */
+    getLink(name: string): Locator {
+        return this.container.getByRole('link', {name});
     }
 
     async openAThread() {
