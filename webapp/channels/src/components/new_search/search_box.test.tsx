@@ -6,6 +6,7 @@ import React from 'react';
 import type {Team} from '@mattermost/types/teams';
 
 import {
+    fireEvent,
     renderWithContext,
     screen,
     userEvent,
@@ -59,11 +60,23 @@ describe('components/new_search/SearchBox', () => {
     });
 
     test('should call search on enter keydown', async () => {
-        renderWithContext(<SearchBox {...baseProps}/>);
+        renderWithContext(<SearchBox {...{...baseProps, initialSearchTerms: 'test'}}/>);
         const input = screen.getByPlaceholderText('Search messages');
         input.focus();
         await userEvent.keyboard('{Enter}');
         expect(baseProps.onSearch).toHaveBeenCalledTimes(1);
+    });
+
+    test('should not call search if search terms is empty', () => {
+        renderWithContext(<SearchBox {...baseProps}/>);
+        fireEvent.keyDown(screen.getByPlaceholderText('Search messages'), {key: 'Enter', code: 'Enter'});
+        expect(baseProps.onSearch).not.toBeCalled();
+    });
+
+    test('should not call search if search terms contain only spaces', () => {
+        renderWithContext(<SearchBox {...{...baseProps, initialSearchTerms: '        '}}/>);
+        fireEvent.keyDown(screen.getByPlaceholderText('Search messages'), {key: 'Enter', code: 'Enter'});
+        expect(baseProps.onSearch).not.toBeCalled();
     });
 
     test('should be able to select with the up and down arrows', async () => {
