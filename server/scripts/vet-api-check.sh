@@ -13,9 +13,31 @@ echo "All output, some ignored"
 echo "========================"
 echo "$OUTPUT"
 
-OUTPUT_EXCLUDING_IGNORED=$(echo "$OUTPUT" | grep -Fv \
+# Go 1.26+ go vet emits JSON diagnostics. Reduce that (or classic text output)
+# to diagnostic message strings so the ignore list below still matches.
+NORMALIZED=$(echo "$OUTPUT" | python3 -c '
+import json, re, sys
+
+raw = sys.stdin.read()
+seen = []
+for match in re.finditer(r"\"message\"\s*:\s*\"((?:\\.|[^\"\\])*)\"", raw):
+    try:
+        msg = json.loads("\"" + match.group(1) + "\"")
+    except json.JSONDecodeError:
+        msg = match.group(1)
+    if msg.strip() and msg not in seen:
+        seen.append(msg)
+        print(msg)
+if seen:
+    sys.exit(0)
+for line in raw.splitlines():
+    stripped = line.strip()
+    if stripped.startswith("Cannot find ") or stripped.startswith("Handler "):
+        print(line)
+')
+
+OUTPUT_EXCLUDING_IGNORED=$(echo "$NORMALIZED" | grep -Fv \
     -e 'go: downloading' \
-    -e 'github.com/mattermost/mattermost/server/v8/channels/api4' \
     -e 'Cannot find /api/v4/channels/members/{user_id}/mark_read method: POST in OpenAPI 3 spec.' \
     -e 'Cannot find /api/v4/channels/members/{user_id}/mark_read method: POST in OpenAPI 3 spec.' \
     -e 'Cannot find /api/v4/channels/stats/member_count method: POST in OpenAPI 3 spec.' \
