@@ -2,14 +2,12 @@
 // source consumed by the <PluginManifestDocs /> component that renders the plugin manifest
 // reference (docs/develop/integrate/plugins/manifest-reference.md).
 //
-// Port of the old mattermost-developer-documentation repo's
-// cmd/plugin-manifest-docs/plugin-manifest-docs.go, adapted to read server/public/model directly
-// from this monorepo instead of importing it as an external Go module, and to walk the AST with
-// go/parser + go/doc instead of type-checking with golang.org/x/tools/go/packages (see
-// gen-plugin-godocs for why: it avoids requiring a Go toolchain matching server/public/go.mod's
-// declared version). Because of that, type resolution only follows types declared inside the
-// model package's own source (which is all model.Manifest ever references) — it doesn't resolve
-// identifiers to types from other packages.
+// It reads server/public/model directly from this monorepo, walking the AST with go/parser +
+// go/doc instead of type-checking with golang.org/x/tools/go/packages (see gen-plugin-godocs for
+// why: it avoids requiring a Go toolchain matching server/public/go.mod's declared version).
+// Because of that, type resolution only follows types declared inside the model package's own
+// source (which is all model.Manifest ever references) — it doesn't resolve identifiers to types
+// from other packages.
 package main
 
 import (

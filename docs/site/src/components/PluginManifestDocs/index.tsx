@@ -86,8 +86,7 @@ function Docs({schema, prefix}: {schema?: TypeDocs; prefix: string}) {
 
 /**
  * Renders the plugin.json/plugin.yaml manifest field reference, generated from
- * `model.Manifest`'s Go doc comments by `gen-plugin-manifest-docs`. Port of the old
- * mattermost-developer-documentation Hugo `pluginmanifestdocs` shortcode.
+ * `model.Manifest`'s Go doc comments by `gen-plugin-manifest-docs`.
  */
 export default function PluginManifestDocs() {
   if (!docs) {

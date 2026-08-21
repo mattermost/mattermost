@@ -123,13 +123,11 @@ function displayName(name: string): string {
 
 /**
  * Renders the full server plugin SDK reference (API / Hooks interfaces, plus runnable examples)
- * generated from `server/public/plugin`'s Go doc comments by `gen-plugin-godocs`. Port of the old
- * mattermost-developer-documentation Hugo `plugingodocs` shortcode.
+ * generated from `server/public/plugin`'s Go doc comments by `gen-plugin-godocs`.
  *
- * Unlike the old shortcode, method signatures are rendered as plain, syntax-highlighted Go code
- * (via the site's standard `CodeBlock`) rather than HTML with inline pkg.go.dev links baked into
- * the signature — trading the old inline type links for consistent theming (including dark mode)
- * and real Prism highlighting.
+ * Method signatures are rendered as plain, syntax-highlighted Go code (via the site's standard
+ * `CodeBlock`) rather than HTML with inline pkg.go.dev links baked into the signature, for
+ * consistent theming (including dark mode) and real Prism highlighting.
  */
 export default function PluginGoDocs() {
   if (!docs) {

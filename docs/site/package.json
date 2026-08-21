@@ -45,6 +45,7 @@
     "@docusaurus/tsconfig": "3.10.1",
     "@docusaurus/types": "3.10.1",
     "@types/react": "^19.0.0",
+    "@typescript-eslint/typescript-estree": "^8.67.0",
     "typescript": "~6.0.2"
   },
   "browserslist": {

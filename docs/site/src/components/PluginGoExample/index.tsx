@@ -9,8 +9,8 @@ const docs: GoDocs | undefined = rawDocs && Object.keys(rawDocs).length > 0 ? (r
 
 /**
  * Renders a single Go example's source code, sourced from the same generated data as
- * `<PluginGoDocs />`. Port of the old Hugo `plugingoexamplecode` shortcode, e.g.
- * `<PluginGoExample name="_helloWorld" />` renders the body of `Example_helloWorld`.
+ * `<PluginGoDocs />`, e.g. `<PluginGoExample name="_helloWorld" />` renders the body of
+ * `Example_helloWorld`.
  */
 export default function PluginGoExample({name}: {name: string}) {
   const example = docs?.Examples?.[name];

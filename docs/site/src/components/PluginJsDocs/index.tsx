@@ -26,8 +26,7 @@ function signature(method: JsMethodDocs): string {
 /**
  * Renders the web app plugin registry method reference, generated from the JSDoc comments above
  * each `PluginRegistry` method/property in `webapp/channels/src/plugins/registry.ts` by
- * `gen-plugin-jsdocs`. Port of the old mattermost-developer-documentation Hugo `pluginjsdocs`
- * shortcode.
+ * `gen-plugin-jsdocs`.
  */
 export default function PluginJsDocs() {
   if (!docs) {

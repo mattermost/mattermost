@@ -2,12 +2,10 @@
 // by the <PluginGoDocs /> and <PluginGoExample /> React components that render the server plugin
 // SDK reference (docs/develop/integrate/reference/server/server-reference.md).
 //
-// This is a from-scratch port of the old mattermost-developer-documentation repo's Hugo pipeline
-// (cmd/plugin-godocs/plugin-godocs.go + site/layouts/shortcodes/plugingodocs.html), adapted to read
-// the server/public/plugin package directly from this monorepo instead of importing it as an
-// external Go module. It deliberately parses the package with go/parser + go/doc rather than
-// type-checking it via golang.org/x/tools/go/packages, so it has no dependency on the Go toolchain
-// version required by server/public/go.mod (the docs site's build environment may lag behind it).
+// It reads the server/public/plugin package directly from this monorepo. It deliberately parses
+// the package with go/parser + go/doc rather than type-checking it via golang.org/x/tools/go/packages,
+// so it has no dependency on the Go toolchain version required by server/public/go.mod (the docs
+// site's build environment may lag behind it).
 package main
 
 import (
@@ -100,7 +98,7 @@ func tags(text string) []string {
 	return removeDuplicates(out)
 }
 
-// builtinTypes mirrors the list the Hugo shortcode links to https://pkg.go.dev/builtin.
+// builtinTypes is the set of predeclared Go types documented at https://pkg.go.dev/builtin.
 var builtinTypes = map[string]bool{
 	"bool": true, "byte": true, "complex128": true, "complex64": true, "error": true,
 	"float32": true, "float64": true, "int": true, "int16": true, "int32": true, "int64": true,
