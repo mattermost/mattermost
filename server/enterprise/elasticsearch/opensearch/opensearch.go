@@ -412,7 +412,7 @@ func (os *OpensearchInterfaceImpl) getPostIndexNames() ([]string, error) {
 		return nil, err
 	}
 	postIndexes := make([]string, 0)
-	for name := range indexes.Indices {
+	for name := range *indexes.IndicesGetRespData {
 		if strings.HasPrefix(name, *os.Platform.Config().ElasticsearchSettings.IndexPrefix+common.IndexBasePosts) {
 			postIndexes = append(postIndexes, name)
 		}
@@ -801,7 +801,7 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 	}
 
 	var searchResult searchResp
-	_, err = os.client.Client.Do(ctx, &opensearchapi.SearchReq{
+	_, err = os.client.Client.Do(ctx, http.MethodPost, &opensearchapi.SearchReq{
 		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBasePosts+"*")},
 		Body:    bytes.NewReader(searchBuf),
 		Params: opensearchapi.SearchParams{
@@ -1880,7 +1880,7 @@ func (os *OpensearchInterfaceImpl) DataRetentionDeleteIndexes(rctx request.CTX, 
 	if err != nil {
 		return model.NewAppError("Opensearch.DataRetentionDeleteIndexes", "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
-	for index := range postIndexesResult.Indices {
+	for index := range *postIndexesResult.IndicesGetRespData {
 		if indexDate, err := time.Parse(dateFormat, index); err != nil {
 			rctx.Logger().Warn("Failed to parse date from posts index. Ignoring index.", mlog.String("index", index))
 		} else {
