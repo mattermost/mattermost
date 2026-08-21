@@ -54,14 +54,8 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 		var importFile filestore.ReadCloseSeeker
 		if job.Data["local_mode"] == "true" {
 			// We simply read the file from the local filesystem.
-			info, err := os.Stat(importFileName)
-			if errors.Is(err, os.ErrNotExist) {
-				return fmt.Errorf("file %s doesn't exist.", importFileName)
-			}
-
-			importFileSize = info.Size()
-
-			importFile, err = os.Open(importFileName)
+			var err error
+			importFile, importFileSize, err = resolveLocalImportFile(importFileName)
 			if err != nil {
 				return err
 			}
@@ -150,4 +144,29 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 	}
 	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
+}
+
+// resolveLocalImportFile stats and opens the import archive directly from
+// the local filesystem. It is used when the import job is run in local mode
+// (e.g. `mmctl --local import process ... --bypass-upload`), bypassing the
+// upload/FileBackend path entirely.
+func resolveLocalImportFile(importFileName string) (filestore.ReadCloseSeeker, int64, error) {
+	info, err := os.Stat(importFileName)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, 0, fmt.Errorf("file %s doesn't exist.", importFileName)
+		}
+		// Any other Stat error (e.g. permission denied, or a path
+		// component that isn't a directory) is not "file doesn't exist",
+		// and info is nil here, so it must be returned instead of
+		// falling through to a nil-pointer dereference on info.Size().
+		return nil, 0, fmt.Errorf("unable to stat file %s: %w", importFileName, err)
+	}
+
+	file, err := os.Open(importFileName)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return file, info.Size(), nil
 }
