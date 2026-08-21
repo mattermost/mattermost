@@ -846,9 +846,9 @@ func TestMaskValueReads(t *testing.T) {
 
 // TestValueWriteVisibility covers checkValueWriteVisibility: on a masked
 // field, a write must not be allowed to replace a stored value the caller
-// cannot see in full. The §2.5 gate is stubbed to always allow, so every
-// case below isolates the write-time visibility rule from the permission
-// decision it runs behind.
+// cannot see in full. The permission decision is stubbed to always allow, so
+// every case below isolates the write-time visibility rule from the
+// permission check it runs behind.
 func TestValueWriteVisibility(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	alwaysAllow := func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool {
