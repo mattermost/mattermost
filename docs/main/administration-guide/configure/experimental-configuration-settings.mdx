@@ -101,23 +101,6 @@ Specify the maximum frequency, in seconds, which the batching job checks for new
 </tbody>
 </table>
 
-### Enable account deactivation
-
-**True**: Ability for users to deactivate their own account from **Settings \> Advanced \> Deactivate Account**. If a user deactivates their own account, they will get an email notification confirming they were deactivated. Available only when authentication is set to use email/password. Not available when authentication uses SAML or AD/LDAP.
-
-**False**: Ability for users to deactivate their own account is disabled.
-
-<table style={{width: '98%'}}>
-<colgroup>
-<col style={{width: '97%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"EnableUserDeactivation": false</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
 ### Enable automatic replies
 
 **True**: Users can enable Automatic Replies in **Settings \> Notifications**. Users set a custom message that will be automatically sent in response to Direct Messages.
@@ -257,21 +240,6 @@ If the team URL of the primary team is `https://example.mattermost.com/myteam/`,
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>"UseChannelInEmailNotifications": false</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### User status away timeout
-
-This setting defines the number of seconds after which the user's status indicator changes to "Away", when they are away from Mattermost.
-
-<table style={{width: '82%'}}>
-<colgroup>
-<col style={{width: '82%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"UserStatusAwayTimeout": 300</code> with numerical input.</td>
 </tr>
 </tbody>
 </table>
