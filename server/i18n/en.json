@@ -6367,6 +6367,14 @@
     "translation": "Failed to update flagged post status when permanently deleting flagged post."
   },
   {
+    "id": "app.data_spillage.report.attachments_omitted.file_text",
+    "translation": "The attachments on this message were omitted from this report because they do not comply with the channel's file download policy."
+  },
+  {
+    "id": "app.data_spillage.report.attachments_omitted.notification",
+    "translation": "The report you generated did not include the quarantined message's file attachments, because they do not comply with the channel's file download policy."
+  },
+  {
     "id": "app.data_spillage.report.cleared",
     "translation": "Cleared"
   },
@@ -6531,6 +6539,10 @@
   {
     "id": "app.data_spillage.report.total_steps",
     "translation": "Total Steps:"
+  },
+  {
+    "id": "app.data_spillage.report.write_attachments_omitted.app_error",
+    "translation": "Failed to write the omitted attachments notice to the flagged post report."
   },
   {
     "id": "app.data_spillage.report.write_edit_yaml.app_error",
