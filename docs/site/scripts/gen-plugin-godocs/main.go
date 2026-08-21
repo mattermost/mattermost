@@ -13,6 +13,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"go/ast"
 	"go/doc"
 	"go/parser"
@@ -218,8 +219,19 @@ func generateDocs() (*Docs, error) {
 	}
 
 	for _, example := range doc.Examples(allFiles...) {
+		// Play is a synthesized, standalone runnable program and is preferred when available;
+		// it's nil when go/doc can't build one (e.g. the example can't be wrapped as a whole
+		// program), in which case Code — the example function's body, always non-nil — is used
+		// instead.
+		var node ast.Node = example.Play
+		if example.Play == nil {
+			node = example.Code
+		}
+
 		buf := &bytes.Buffer{}
-		_ = printer.Fprint(buf, fset, example.Play)
+		if err := printer.Fprint(buf, fset, node); err != nil {
+			return nil, fmt.Errorf("failed to print example %q: %w", example.Name, err)
+		}
 		docs.Examples[example.Name] = &ExampleDocs{
 			HTML: docHTML(example.Doc),
 			Code: buf.String(),
