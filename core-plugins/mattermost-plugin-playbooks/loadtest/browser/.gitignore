@@ -1,0 +1,10 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+pack/*
+!pack/.gitkeep
+
+# TypeScript cache
+*.tsbuildinfo

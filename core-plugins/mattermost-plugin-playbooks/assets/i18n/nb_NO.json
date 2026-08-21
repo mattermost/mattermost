@@ -1,0 +1,210 @@
+[
+    {
+        "id": "app.command.execute.error",
+        "translation": "Kunne ikke utføre kommandoen."
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.heading",
+        "translation": "Forfalte statusoppdateringer"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.num_overdue",
+        "translation": {
+            "one": "Du har {{.Count}} overskredet fristen for en statusoppdatering:",
+            "other": "Du har {{.Count}} kjøringer som er forsinket for en statusoppdatering:"
+        }
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.zero_overdue",
+        "translation": "Du har 0 kjøringer som er forsinket."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.zero_in_progress",
+        "translation": "Du har 0 kjøringer som pågår for øyeblikket."
+    },
+    {
+        "id": "app.user.digest.tasks.all_tasks_command",
+        "translation": "Bruk `/playbook todo` for å se alle oppgavene dine."
+    },
+    {
+        "id": "app.user.digest.tasks.due_today",
+        "translation": "Forfall i dag"
+    },
+    {
+        "id": "app.user.digest.tasks.due_x_days_ago",
+        "translation": "Forfall {{.Count}} dager siden"
+    },
+    {
+        "id": "app.user.digest.tasks.due_yesterday",
+        "translation": "Forfall i går"
+    },
+    {
+        "id": "app.user.digest.tasks.heading",
+        "translation": "Dine tildelte oppgaver"
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned",
+        "translation": {
+            "one": "Du har {{.Count}} tildelt en oppgave:",
+            "other": "Du har {{.Count}} totalt tildelte oppgaver:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.zero_assigned",
+        "translation": "Du har 0 tildelte oppgaver."
+    },
+    {
+        "id": "app.user.new_run.intro",
+        "translation": "**Eier** {{.Username}}"
+    },
+    {
+        "id": "app.user.new_run.playbook",
+        "translation": "Playbook"
+    },
+    {
+        "id": "app.user.new_run.run_name",
+        "translation": "Kjør navn"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.description",
+        "translation": "Beskrivelse"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.name",
+        "translation": "Navn"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.submit_label",
+        "translation": "Legg til oppgave"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.title",
+        "translation": "Legg til ny oppgave"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.submit_label",
+        "translation": "Legg til i tidslinjen for kjøring"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary",
+        "translation": "Sammendrag"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.help",
+        "translation": "Maks 64 tegn"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.title",
+        "translation": "Legg til i tidslinjen for kjøring"
+    },
+    {
+        "id": "app.user.run.confirm_finish.submit_label",
+        "translation": "Fullfør løpet"
+    },
+    {
+        "id": "app.user.run.confirm_finish.title",
+        "translation": "Bekreft målkjøring"
+    },
+    {
+        "id": "app.user.run.request_join_channel",
+        "translation": "@{{.Name}} er en løpsdeltaker og ønsker å bli med i denne kanalen. Alle medlemmer av kanalen kan invitere dem.\n"
+    },
+    {
+        "id": "app.user.run.request_update",
+        "translation": "@here - @{{.Name}} ba om en statusoppdatering for [{{.RunName}}]({{.RunURL}}). \n"
+    },
+    {
+        "id": "app.user.run.status_disable",
+        "translation": "@{{.Username}} deaktiverte statusoppdateringene for [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.run.update_status.change_since_last_update",
+        "translation": "Endring siden forrige oppdatering"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run",
+        "translation": "Fullfør løpet"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run.placeholder",
+        "translation": "Merk også kjøringen som fullført"
+    },
+    {
+        "id": "app.user.run.update_status.reminder_for_next_update",
+        "translation": "Påminnelse om neste oppdatering"
+    },
+    {
+        "id": "app.user.run.update_status.submit_label",
+        "translation": "Oppdater status"
+    },
+    {
+        "id": "app.user.run.update_status.title",
+        "translation": "Statusoppdatering"
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.num_in_progress",
+        "translation": {
+            "one": "Du har {{.Count}} kjøring som pågår for øyeblikket:",
+            "other": "Du har {{.Count}} kjøringer som pågår for øyeblikket:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_in_x_days",
+        "translation": {
+            "one": "Forfall om {{.Count}} dag",
+            "other": "Forfall om {{.Count}} dager"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned_due_until_today",
+        "translation": {
+            "one": "Du har {{.Count}} tildelt en oppgave som nå forfaller:",
+            "other": "Du har {{.Count}} tildelte oppgaver som nå forfaller:"
+        }
+    },
+    {
+        "id": "app.user.run.confirm_finish.num_outstanding",
+        "translation": {
+            "one": "Det er **{{.Count}} utestående oppgave**. Er du sikker på at du vil fullføre løpet *{{.RunName}}* for alle deltakerne?",
+            "other": "Det er **{{.Count}} utestående oppgaver**. Er du sikker på at du vil fullføre løpet *{{.RunName}}* for alle deltakerne?"
+        }
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.heading",
+        "translation": "Pågående løp"
+    },
+    {
+        "id": "app.user.digest.tasks.due_after_today",
+        "translation": {
+            "one": "Du har **{{.Count}} tildelte oppgaver som forfaller etter i dag**.",
+            "other": "Du har **{{.Count}} tildelte oppgaver som forfaller etter i dag**."
+        }
+    },
+    {
+        "id": "app.user.new_run.submit_label",
+        "translation": "Start kjøring"
+    },
+    {
+        "id": "app.user.new_run.title",
+        "translation": "Kjør Playbook"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.playbook_run",
+        "translation": "Playbook Run"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.placeholder",
+        "translation": "Kort sammendrag vist i tidslinjen"
+    },
+    {
+        "id": "app.user.run.status_enable",
+        "translation": "@{{.Username}} aktiverte statusoppdateringene for [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.run.update_status.num_channel",
+        "translation": {
+            "one": "Gi en oppdatering til interessentene. Dette innlegget vil bli sendt til kanalen {{.Count}}.",
+            "other": "Gi en oppdatering til interessentene. Dette innlegget vil bli sendt til {{.Count}} kanaler."
+        }
+    }
+]
