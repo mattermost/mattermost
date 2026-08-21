@@ -6371,10 +6371,6 @@
     "translation": "The attachments on this message were omitted from this report because they do not comply with the channel's file download policy."
   },
   {
-    "id": "app.data_spillage.report.attachments_omitted.notification",
-    "translation": "The report you generated did not include the quarantined message's file attachments, because they do not comply with the channel's file download policy."
-  },
-  {
     "id": "app.data_spillage.report.cleared",
     "translation": "Cleared"
   },
