@@ -1,0 +1,95 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.attribute-options-graph-values {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+
+    .attribute-options-graph-values__helper {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .attribute-options-graph-values__empty-canvas {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 32px 24px;
+        border: 1px dashed rgba(var(--center-channel-color-rgb), 0.32);
+        border-radius: 8px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        text-align: center;
+    }
+
+    .attribute-options-graph-values__empty-icon {
+        margin-bottom: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    .attribute-options-graph-values__empty-heading {
+        margin: 0 0 8px;
+        color: var(--center-channel-color);
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+    }
+
+    .attribute-options-graph-values__empty-body {
+        margin: 0 0 16px;
+        max-width: 420px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+    }
+
+    .attribute-options-graph-values__empty-form {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 8px;
+        text-align: left;
+
+        .Input_container {
+            width: auto;
+            min-width: 240px;
+        }
+    }
+
+    .attribute-options-graph-values__list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .attribute-options-graph-values__row {
+        padding: 8px 0;
+        color: var(--center-channel-color);
+        font-size: 14px;
+    }
+
+    .attribute-options-graph-values__add-top {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 8px;
+        margin-top: 8px;
+
+        .Input_container {
+            width: auto;
+            min-width: 240px;
+        }
+    }
+
+    .attribute-options-graph-values__footer {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        line-height: 16px;
+    }
+}

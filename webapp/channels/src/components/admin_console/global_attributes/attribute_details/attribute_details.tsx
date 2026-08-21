@@ -10,13 +10,14 @@ import {useDispatch} from 'react-redux';
 import type {ClientError} from '@mattermost/client';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
-import {supportsOptions} from '@mattermost/types/properties';
+import {supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import {findRankCollision, isValidRank} from 'components/admin_console/system_properties/rank_utils';
 import Card from 'components/card/card';
+import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import * as Menu from 'components/menu';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
@@ -29,6 +30,7 @@ import type {CPAFieldNameValidationError} from 'utils/properties';
 
 import AttributeExternalSource from './attribute_external_source';
 import type {ExternalSource} from './attribute_external_source';
+import AttributeOptionsGraphValues from './attribute_options_graph_values';
 import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
 
@@ -38,7 +40,6 @@ import {createAttributeField} from '../utils';
 
 import './attribute_details.scss';
 
-const ALL_TYPES: AttributeFieldType[] = ['text', 'select', 'multiselect', 'rank'];
 const LIST_ROUTE = '/admin_console/system_attributes/manage_attributes';
 
 // Whether any option in `options` has a name equal to another option's name.
@@ -119,6 +120,14 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
 
+    const isGraphEnabled = useGetFeatureFlagValue('PropertyFieldGraph') === 'true';
+    const ALL_TYPES = useMemo<AttributeFieldType[]>(
+        () => (isGraphEnabled
+            ? ['text', 'select', 'multiselect', 'rank', 'graph']
+            : ['text', 'select', 'multiselect', 'rank']),
+        [isGraphEnabled],
+    );
+
     const [displayName, setDisplayName] = useState('');
     const [manualName, setManualName] = useState('');
 
@@ -142,9 +151,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // committed override (see handleDoneClick).
     const previousManualNameRef = useRef('');
 
-    // Type and Options are independent state -- switching type never clears
-    // options (see Design Decision 3 in the plan): a Text -> Select -> Text ->
-    // Select round-trip must restore whatever the admin already entered.
+    // Type and Options are independent for text/select/multiselect/rank — a
+    // Text -> Select -> Text -> Select round-trip must restore names already
+    // entered. Switching to or from graph clears options (D4): DAG parents are
+    // incompatible with a flat chip list.
     const [fieldType, setFieldType] = useState<AttributeFieldType>('text');
     const [options, setOptions] = useState<PropertyFieldOption[]>([]);
 
@@ -222,6 +232,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             return;
         }
         markDirty();
+
+        // D4: clear when crossing the graph boundary. Must run before the rank
+        // reassignment so graph -> rank does not rank leftover DAG options.
+        if ((newType === 'graph') !== (fieldType === 'graph')) {
+            setOptions([]);
+        }
         if (newType === 'rank' && fieldType !== 'rank') {
             setOptions((prevOptions) => (prevOptions.length > 0 ? prevOptions.map((option, index) => ({...option, rank: index + 1})) : prevOptions));
         }
@@ -347,7 +363,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return null;
     }, [typeSupportsOptions, options, fieldType]);
 
-    const canSave = !disabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null;
+    const isHierarchical = supportsHierarchy({type: fieldType} as PropertyField);
+    const graphEmpty = isHierarchical && options.length === 0;
+    const canSave = !disabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null && !graphEmpty;
 
     const handleSave = useCallback(async () => {
         if (!canSave) {
@@ -375,6 +393,53 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     }, [canSave, displayName, currentName, fieldType, options, ldapAttr, samlAttr, dispatch]);
 
     const TypeIcon = getTypeIcon(fieldType);
+
+    let optionsEditor: JSX.Element;
+    if (isHierarchical) {
+        optionsEditor = (
+            <AttributeOptionsGraphValues
+                options={options}
+                onOptionsChange={handleOptionsChange}
+                disabled={saving || disabled}
+            />
+        );
+    } else if (typeSupportsOptions) {
+        optionsEditor = (
+            <>
+                {fieldType === 'rank' ? (
+                    <AttributeOptionsRankValues
+                        options={options}
+                        onOptionsChange={handleOptionsChange}
+                        disabled={saving || disabled}
+                    />
+                ) : (
+                    <AttributeOptionsValues
+                        options={options}
+                        onOptionsChange={handleOptionsChange}
+                        disabled={saving || disabled}
+                    />
+                )}
+                {optionsIssue && (
+                    <div
+                        className='AttributeDetails__uniqueNameError'
+                        role='alert'
+                        data-testid='attributeOptionsRequiredError'
+                    >
+                        <FormattedMessage {...(optionsIssue === 'required' ? messages.optionsRequired : messages.optionsInvalid)}/>
+                    </div>
+                )}
+            </>
+        );
+    } else {
+        optionsEditor = (
+            <p
+                className='AttributeDetails__optionsHelp'
+                data-testid='attributeOptionsHelp'
+            >
+                <FormattedMessage {...messages.optionsHelp}/>
+            </p>
+        );
+    }
 
     return (
         <div
@@ -576,46 +641,16 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                     <FormattedMessage {...messages.optionsLabel}/>
                                 </span>
                                 <div className='AttributeDetails__fieldControl'>
-                                    {typeSupportsOptions ? (
-                                        <>
-                                            {fieldType === 'rank' ? (
-                                                <AttributeOptionsRankValues
-                                                    options={options}
-                                                    onOptionsChange={handleOptionsChange}
-                                                    disabled={saving || disabled}
-                                                />
-                                            ) : (
-                                                <AttributeOptionsValues
-                                                    options={options}
-                                                    onOptionsChange={handleOptionsChange}
-                                                    disabled={saving || disabled}
-                                                />
-                                            )}
-                                            {optionsIssue && (
-                                                <div
-                                                    className='AttributeDetails__uniqueNameError'
-                                                    role='alert'
-                                                    data-testid='attributeOptionsRequiredError'
-                                                >
-                                                    <FormattedMessage {...(optionsIssue === 'required' ? messages.optionsRequired : messages.optionsInvalid)}/>
-                                                </div>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <p
-                                            className='AttributeDetails__optionsHelp'
-                                            data-testid='attributeOptionsHelp'
-                                        >
-                                            <FormattedMessage {...messages.optionsHelp}/>
-                                        </p>
+                                    {optionsEditor}
+                                    {fieldType !== 'graph' && (
+                                        <AttributeExternalSource
+                                            ldapAttr={ldapAttr}
+                                            samlAttr={samlAttr}
+                                            fieldType={fieldType}
+                                            onLink={handleLink}
+                                            disabled={saving || disabled}
+                                        />
                                     )}
-                                    <AttributeExternalSource
-                                        ldapAttr={ldapAttr}
-                                        samlAttr={samlAttr}
-                                        fieldType={fieldType}
-                                        onLink={handleLink}
-                                        disabled={saving || disabled}
-                                    />
                                 </div>
                             </div>
                         </Card.Body>

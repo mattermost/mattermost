@@ -44,11 +44,20 @@ describe('AttributeDetails', () => {
         jest.restoreAllMocks();
     });
 
-    const renderComponent = () => renderWithContext(
+    const renderComponent = (graphEnabled = false) => renderWithContext(
         <div>
             <AttributeDetails/>
             <ModalController/>
         </div>,
+        {
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagPropertyFieldGraph: graphEnabled ? 'true' : 'false',
+                    },
+                },
+            },
+        },
     );
 
     it('renders the empty auto-slug caption as a dash, not the _copy sentinel', () => {
@@ -725,6 +734,80 @@ describe('AttributeDetails', () => {
             }));
             const attrs = createPropertyField.mock.calls[0][2].attrs as Record<string, unknown>;
             expect(attrs).not.toHaveProperty('saml');
+        });
+    });
+
+    describe('hierarchical type', () => {
+        it('hides Hierarchical in the type menu when PropertyFieldGraph is off', async () => {
+            renderComponent(false);
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            expect(screen.queryByRole('menuitemradio', {name: 'Hierarchical'})).not.toBeInTheDocument();
+            for (const label of ['Text', 'Select', 'Multiselect', 'Ranked']) {
+                expect(screen.getByRole('menuitemradio', {name: new RegExp(label)})).toBeInTheDocument();
+            }
+        });
+
+        it('shows Hierarchical in the type menu when PropertyFieldGraph is on', async () => {
+            renderComponent(true);
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            expect(screen.getByRole('menuitemradio', {name: 'Hierarchical'})).toBeInTheDocument();
+        });
+
+        it('selecting Hierarchical shows the empty graph canvas, hides External source, and does not show optionsRequired', async () => {
+            renderComponent(true);
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Hierarchical'}));
+
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Hierarchical');
+            expect(screen.getByTestId('attributeOptionsGraphEmpty')).toBeInTheDocument();
+            expect(screen.queryByTestId('attributeOptionsValues')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('attributeOptionsHelp')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('attributeExternalSource')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('attributeOptionsRequiredError')).not.toBeInTheDocument();
+            expect(screen.queryByText('At least one option is required')).not.toBeInTheDocument();
+            expect(screen.queryByText('List settings')).not.toBeInTheDocument();
+            expect(screen.queryByText('Applies to')).not.toBeInTheDocument();
+        });
+
+        it('clears select options when switching to Hierarchical, and clears graph options when switching away', async () => {
+            renderComponent(true);
+
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+            await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering{Enter}');
+            expect(screen.getByText('Engineering')).toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Hierarchical'}));
+            expect(screen.queryByText('Engineering')).not.toBeInTheDocument();
+            expect(screen.getByTestId('attributeOptionsGraphEmpty')).toBeInTheDocument();
+
+            await userEvent.type(screen.getByTestId('attributeOptionsGraphEmpty__nameInput'), 'Root');
+            await userEvent.click(screen.getByTestId('attributeOptionsGraphEmpty__addButton'));
+            expect(screen.queryByTestId('attributeOptionsGraphEmpty')).not.toBeInTheDocument();
+            expect(screen.getByText('Root')).toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+            expect(screen.queryByText('Root')).not.toBeInTheDocument();
+            expect(screen.queryAllByTestId('attributeOptionsValues__chip')).toHaveLength(0);
+        });
+
+        it('disables Save at 0 graph options with no extra copy, and enables Save after the first value', async () => {
+            renderComponent(true);
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Hierarchical'}));
+
+            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            expect(screen.queryByTestId('attributeOptionsRequiredError')).not.toBeInTheDocument();
+            expect(screen.queryByText('At least one option is required')).not.toBeInTheDocument();
+
+            await userEvent.type(screen.getByTestId('attributeOptionsGraphEmpty__nameInput'), 'Root');
+            await userEvent.click(screen.getByTestId('attributeOptionsGraphEmpty__addButton'));
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
         });
     });
 });
