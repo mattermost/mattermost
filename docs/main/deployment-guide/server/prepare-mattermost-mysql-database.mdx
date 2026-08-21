@@ -177,7 +177,7 @@ If you're running Mattermost in a High Availability cluster-based deployment, th
 Create the file `/opt/mattermost/config/mattermost.environment` to set the `MM_CONFIG` environment variable to the database connection string. For example:
 
 ``` text
-MM_CONFIG='mysql://mmuser:mostest@tcp(127.0.0.1:3306)/mattermost?charset=utf8mb4,utf8&writeTimeout=30s'
+MM_CONFIG='mysql://mmuser:mostest_password@tcp(127.0.0.1:3306)/mattermost?charset=utf8mb4,utf8&writeTimeout=30s'
 ```
 
 <Note>
