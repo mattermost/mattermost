@@ -35,6 +35,9 @@ func (c *Context) LogAuditRec(rec *model.AuditRecord) {
 	if rec.Actor.SessionId == "" {
 		rec.Actor.SessionId = c.AppContext.Session().Id
 	}
+	if _, exists := rec.Meta[model.SessionPropUserAccessTokenId]; !exists && c.AppContext.Session().IsUserAccessToken() {
+		rec.Meta[model.SessionPropUserAccessTokenId] = c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]
+	}
 
 	c.LogAuditRecWithLevel(rec, app.LevelAPI)
 }
@@ -59,6 +62,14 @@ func (c *Context) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
 
 // MakeAuditRecord creates an audit record pre-populated with data from this context.
 func (c *Context) MakeAuditRecord(event string, initialStatus string) *model.AuditRecord {
+	meta := map[string]any{
+		model.AuditKeyAPIPath:   c.AppContext.Path(),
+		model.AuditKeyClusterID: c.App.GetClusterId(),
+	}
+	if c.AppContext.Session().IsUserAccessToken() {
+		meta[model.SessionPropUserAccessTokenId] = c.AppContext.Session().Props[model.SessionPropUserAccessTokenId]
+	}
+
 	rec := &model.AuditRecord{
 		EventName: event,
 		Status:    initialStatus,
@@ -69,10 +80,7 @@ func (c *Context) MakeAuditRecord(event string, initialStatus string) *model.Aud
 			IpAddress:     c.AppContext.IPAddress(),
 			XForwardedFor: c.AppContext.XForwardedFor(),
 		},
-		Meta: map[string]any{
-			model.AuditKeyAPIPath:   c.AppContext.Path(),
-			model.AuditKeyClusterID: c.App.GetClusterId(),
-		},
+		Meta: meta,
 		EventData: model.AuditEventData{
 			Parameters:  map[string]any{},
 			PriorState:  map[string]any{},
@@ -819,6 +827,17 @@ func (c *Context) RequireRecapId() *Context {
 
 	if !model.IsValidId(c.Params.RecapId) {
 		c.SetInvalidURLParam("recap_id")
+	}
+	return c
+}
+
+func (c *Context) RequireScheduledRecapId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.ScheduledRecapId) {
+		c.SetInvalidURLParam("scheduled_recap_id")
 	}
 	return c
 }

@@ -65,7 +65,7 @@ If you leave the channel field blank, the webhook will respond to trigger words 
 2. Add a configurable *MATTERMOST_TOKEN* variable to your application and set it to the **Token** value from step 7. This value will be used by your application to confirm the HTTP POST request came from Mattermost.
 3. To have your application post a message back to `town-square`, it can respond to the HTTP POST request with a JSON response such as:
 
-    ```json
+    ```text
     {"text": "
     | Component  | Tests Run | Tests Failed                                   |
     |:-----------|:----------|:-----------------------------------------------|
@@ -75,11 +75,9 @@ If you leave the channel field blank, the webhook will respond to trigger words 
     "}
     ```
 
-```text
 which would render in Mattermost as:
 
-![Test results for Server, Web Client and iOS client](/integrate/faq/images/webhooksTable.png)
-```
+![Test results for Server, Web Client and iOS client](/images/webhooksTable.png)
 
 You're all set!
 
@@ -96,8 +94,8 @@ Outgoing webhooks support more than just the `text` field. Here is a full list o
 | `icon_url`      | Overrides the profile picture the message posts with.<br/>Defaults to the URL set during webhook creation; if no icon was set during creation, the standard webhook icon (<CompassIcon name="webhook" />) is displayed.<br/>The [Enable integrations to override profile picture icons](https://docs.mattermost.com/configure/configuration-settings.html#enable-integrations-to-override-profile-picture-icons) configuration setting must be enabled for the icon override to take effect. | No                               |
 | `attachments`   | [Message attachments](/developers/integrate/reference/message-attachments) used for richer formatting options.                                                                                                                                                                                                                                                                                                                                                                                                           | If `text` is not set, yes        |
 | `type`          | Sets the post `type`, mainly for use by plugins.<br/>If not blank, must begin with "`custom_`".<br/>Specifying a value for the `attachments` property will cause this field to be ignored, and the `type` value set to `slack_attachment`.                                                                                                                                                                                                                                                                                | No                               |
-| `props`         | Sets the post `props`, a JSON property bag for storing extra or meta data on the post.<br/>Mainly used by other integrations accessing posts through the REST API.<br/>The following keys are reserved: `from_webhook`, `override_username`, `override_icon_url`, `webhook_display_name`, and `attachments`.                                                                                                                                                                                                              | No                               |
-| `priority`      | Set the priority of the message. See [Message Priority](/integrate/reference/message-priority/)                                                                                                                                                                                                                                                                                                                                                                                                                           | No                               |
+| `props`         | Sets the post `props`, a JSON property bag for storing extra or meta data on the post.<br/>Mainly used by other integrations accessing posts through the REST API.<br/>The following keys are reserved: `from_webhook`, `override_username`, `override_icon_url`, `webhook_display_name`, and `attachments`.<br/>Use `props.mm_blocks` and `props.mm_blocks_actions` for [Mattermost Blocks](/developers/integrate/reference/mm-blocks) interactive content. | No                               |
+| `priority`      | Set the priority of the message. See [Message Priority](/developers/integrate/reference/message-priority)                                                                                                                                                                                                                                                                                                                                                                                                                   | No                               |
 
 An example response using more parameters would look like this:
 
@@ -125,4 +123,4 @@ The response would produce a message like the following:
 
 ![`test-automation` bot showing test results](outgoing_webhooks_full_example.png)
 
-Messages with advanced formatting can be created by including an [attachment array](/developers/integrate/reference/message-attachments) and [interactive message buttons](/developers/integrate/plugins/interactive-messages) in the JSON payload.
+Messages with advanced formatting can be created by including [Mattermost Blocks](/developers/integrate/reference/mm-blocks), an [attachment array](/developers/integrate/reference/message-attachments), or [interactive message buttons](/developers/integrate/plugins/interactive-messages) in the JSON payload.

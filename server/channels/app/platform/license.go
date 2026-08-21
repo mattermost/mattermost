@@ -412,6 +412,7 @@ func (ps *PlatformService) logLicense(message string, license *model.License) {
 		mlog.String("sku_short_name", license.SkuShortName),
 		mlog.Bool("is_trial", license.IsTrial),
 		mlog.Bool("is_gov_sku", license.IsGovSku),
+		mlog.Bool("is_non_production", license.IsNonProduction),
 	)
 
 	if license.Customer != nil {
@@ -420,7 +421,7 @@ func (ps *PlatformService) logLicense(message string, license *model.License) {
 
 	if license.Features != nil {
 		logger = logger.With(
-			mlog.Int("features.users", *license.Features.Users),
+			mlog.Int("features_users", *license.Features.Users),
 			mlog.Map("features", license.Features.ToMap()),
 		)
 	}

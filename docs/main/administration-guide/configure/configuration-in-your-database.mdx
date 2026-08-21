@@ -3,7 +3,7 @@ title: "Store configuration in your database"
 ---
 <PlanAvailability slug="all-commercial" />
 
-If you have a self-hosted Mattermost deployment, you can use your database as the single source of truth for the active configuration of your Mattermost installation. This changes the Mattermost binary from reading the default `config.json` file to reading the configuration settings stored within a configuration table in the database. Mattermost has been running our [community server](https://community.mattermost.com) on this option since the feature was released, and recommends its use for those on [High Availability deployments](/administration-guide/scale/high-availability-cluster-based-deployment).
+If you have a self-hosted Mattermost deployment, you can use your database as the single source of truth for the active configuration of your Mattermost installation. This changes the Mattermost binary from reading the default `config.json` file to reading the configuration settings stored within a configuration table in the database. Mattermost has been running our [community server](https://community.mattermost.com) on this option since the feature was released, and recommends its use for those on [High Availability deployments](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment).
 
 Benefits to using this option:
 
@@ -46,7 +46,7 @@ The first step is to get your master database connection string. We recommend ac
 Create the file `/opt/mattermost/config/mattermost.environment` to set the `MM_CONFIG` environment variable to the database connection string. For example:
 
 ``` text
-MM_CONFIG='postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10'
+MM_CONFIG='postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10'
 ```
 
 Run this command to verify the permissions on your Mattermost directory:
@@ -72,7 +72,7 @@ sudo systemctl restart mattermost
 You can use the [mmctl config migrate](/administration-guide/manage/mmctl-command-line-tool#mmctl-config-migrate) command to migrate the configuration by running the following command:
 
 ``` sh
-./bin/mmctl config migrate path/to/config.json "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10" --local
+./bin/mmctl config migrate path/to/config.json "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10" --local
 ```
 
 <Important>

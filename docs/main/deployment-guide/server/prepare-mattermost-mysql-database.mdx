@@ -1,6 +1,7 @@
 ---
 title: "Set up the Mattermost MySQL database"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -177,7 +178,7 @@ If you're running Mattermost in a High Availability cluster-based deployment, th
 Create the file `/opt/mattermost/config/mattermost.environment` to set the `MM_CONFIG` environment variable to the database connection string. For example:
 
 ``` text
-MM_CONFIG='mysql://mmuser:mostest@tcp(127.0.0.1:3306)/mattermost?charset=utf8mb4,utf8&writeTimeout=30s'
+MM_CONFIG='mysql://mmuser:mostest_password@tcp(127.0.0.1:3306)/mattermost?charset=utf8mb4,utf8&writeTimeout=30s'
 ```
 
 <Note>
@@ -244,7 +245,7 @@ WantedBy=mysql.service
 
 # Technical notes about searching
 
-By default, Mattermost uses full text search support included in MySQL. Select the **product menu** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> then select **About Mattermost** to see which database you’re using.
+By default, Mattermost uses full text search support included in MySQL. Select the **product menu** <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> then select **About Mattermost** to see which database you’re using.
 
 - Stop words are filtered out of search results. See [MySQL](https://dev.mysql.com/doc/refman/5.7/en/fulltext-stopwords.html) database documentation for a full list of applicable stop words.
 - Hashtags or recent mentions of usernames containing a dot don't return results.

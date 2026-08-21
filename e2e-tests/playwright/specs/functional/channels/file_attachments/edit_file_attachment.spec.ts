@@ -13,7 +13,7 @@ test('MM-T5654_1 should be able to add attachments while editing a post', {tag: 
 
     // # Initialize user and login
     const {user} = await pw.initSetup();
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {channelsPage, page} = await pw.testBrowser.login(user);
 
     // # Navigate to channels page and post a message
     await channelsPage.goto();
@@ -28,6 +28,7 @@ test('MM-T5654_1 should be able to add attachments while editing a post', {tag: 
 
     // # Open the dot menu and click edit
     await post.postMenu.dotMenuButton.click();
+    await moveMouseAway(page);
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
 
@@ -59,6 +60,7 @@ test('MM-T5654_2 should be able to add attachments while editing a threaded post
 
     // open the dot menu
     await post.postMenu.dotMenuButton.click();
+    await moveMouseAway(page);
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.replyMenuItem.click();
     await channelsPage.sidebarRight.toBeVisible();
@@ -71,6 +73,7 @@ test('MM-T5654_2 should be able to add attachments while editing a threaded post
     await replyPost.hover();
     await replyPost.postMenu.toBeVisible();
     await replyPost.postMenu.dotMenuButton.click();
+    await moveMouseAway(page);
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
     await channelsPage.sidebarRight.postEdit.toBeVisible();
@@ -85,6 +88,7 @@ test('MM-T5654_2 should be able to add attachments while editing a threaded post
     await updatedReplyPost.hover();
     await updatedReplyPost.postMenu.toBeVisible();
     await updatedReplyPost.postMenu.dotMenuButton.click();
+    await moveMouseAway(page);
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
     await channelsPage.sidebarRight.postEdit.toBeVisible();
@@ -103,7 +107,7 @@ test('MM-T5654_2 should be able to add attachments while editing a threaded post
     await updatedReplyPost.hover();
     await updatedReplyPost.postMenu.toBeVisible();
     await updatedReplyPost.postMenu.clickOnDotMenu();
-    await moveMouseToCenter(page);
+    await moveMouseAway(page);
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
     await channelsPage.sidebarRight.postEdit.toBeVisible();
@@ -124,7 +128,7 @@ test('MM-T5654_3 should be able to edit post message originally containing files
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {channelsPage, page} = await pw.testBrowser.login(user);
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
@@ -137,6 +141,7 @@ test('MM-T5654_3 should be able to edit post message originally containing files
 
     // open the dot menu
     await post.postMenu.dotMenuButton.click();
+    await moveMouseAway(page);
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
     await channelsPage.centerView.postEdit.toBeVisible();
@@ -152,7 +157,7 @@ test('MM-T5654_4 should be able to add files when editing a post', async ({pw}) 
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {channelsPage, page} = await pw.testBrowser.login(user);
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
@@ -165,6 +170,7 @@ test('MM-T5654_4 should be able to add files when editing a post', async ({pw}) 
 
     // open the dot menu
     await post.postMenu.dotMenuButton.click();
+    await moveMouseAway(page);
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
     await channelsPage.centerView.postEdit.toBeVisible();
@@ -179,6 +185,7 @@ test('MM-T5654_4 should be able to add files when editing a post', async ({pw}) 
 
     // now we'll add multiple files
     await post.postMenu.dotMenuButton.click();
+    await moveMouseAway(page);
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
     await channelsPage.centerView.postEdit.toBeVisible();
@@ -213,7 +220,7 @@ test('MM-5654_5 should be able to remove attachments while editing a post', asyn
     await post.hover();
     await post.postMenu.toBeVisible();
     await post.postMenu.clickOnDotMenu();
-    await moveMouseToCenter(page);
+    await moveMouseAway(page);
 
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
@@ -233,7 +240,7 @@ test('MM-T5655_1 removing message content and files should delete the post', asy
     const originalMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit';
 
     const {user} = await pw.initSetup();
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {channelsPage, page} = await pw.testBrowser.login(user);
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
@@ -247,6 +254,7 @@ test('MM-T5655_1 removing message content and files should delete the post', asy
     await post.hover();
     await post.postMenu.toBeVisible();
     await post.postMenu.dotMenuButton.click();
+    await moveMouseAway(page);
 
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
@@ -283,7 +291,7 @@ test('MM-T5655_2 should be able to remove all files when editing a post', async 
     await post.hover();
     await post.postMenu.toBeVisible();
     await post.postMenu.clickOnDotMenu();
-    await moveMouseToCenter(page);
+    await moveMouseAway(page);
 
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
@@ -306,7 +314,7 @@ test('MM-T5656_1 should be able to restore previously edited post version that c
     const newMessage = 'New Message';
 
     const {user} = await pw.initSetup();
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {channelsPage, page} = await pw.testBrowser.login(user);
 
     await channelsPage.goto();
     await channelsPage.toBeVisible();
@@ -320,6 +328,7 @@ test('MM-T5656_1 should be able to restore previously edited post version that c
     await post.hover();
     await post.postMenu.toBeVisible();
     await post.postMenu.dotMenuButton.click();
+    await moveMouseAway(page);
 
     await channelsPage.postDotMenu.toBeVisible();
     await channelsPage.postDotMenu.editMenuItem.click();
@@ -350,6 +359,11 @@ test('MM-T5656_1 should be able to restore previously edited post version that c
     await restoredPost.toContainText('sample_text_file.txt');
 });
 
-async function moveMouseToCenter(page: Page) {
+/**
+ * Parks the cursor away from the post so it does not hover whatever menu item happens to render
+ * under it. A hovered submenu item (e.g. "Remind") opens a nested MUI popover, which marks the
+ * parent menu aria-hidden and makes getByRole('menu') unresolvable.
+ */
+async function moveMouseAway(page: Page) {
     await page.mouse.move(0, 0);
 }

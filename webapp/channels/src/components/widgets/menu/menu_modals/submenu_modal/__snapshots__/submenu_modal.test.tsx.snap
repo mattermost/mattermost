@@ -9,145 +9,142 @@ exports[`components/submenu_modal should match snapshot 1`] = `
     aria-hidden="true"
   />
   <div
-    role="none"
+    class="fade modal-backdrop in"
+  />
+  <div
+    aria-modal="true"
+    class="fade in modal"
+    id="submenuModal"
+    role="dialog"
+    style="display: block; padding-right: 0px;"
+    tabindex="-1"
   >
     <div
-      class="fade modal-backdrop in"
-    />
-    <div
-      class="fade in modal"
-      id="submenuModal"
-      role="dialog"
-      style="display: block; padding-right: 0px;"
-      tabindex="-1"
+      class="SubMenuModal a11y__modal mobile-sub-menu modal-dialog"
     >
       <div
-        class="SubMenuModal a11y__modal mobile-sub-menu modal-dialog"
+        class="modal-content"
+        role="document"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-body"
+          data-testid="SubMenuModalBody"
         >
           <div
-            class="modal-body"
-            data-testid="SubMenuModalBody"
+            class="MenuWrapper "
           >
             <div
-              class="MenuWrapper "
+              aria-label="mobile submenu"
+              class="a11y__popup Menu"
             >
-              <div
-                aria-label="mobile submenu"
-                class="a11y__popup Menu"
+              <ul
+                class="Menu__content dropdown-menu openLeft"
+                role="menu"
               >
-                <ul
-                  class="Menu__content dropdown-menu openLeft"
-                  role="menu"
+                <li
+                  class="SubMenuItem MenuItem"
+                  id="A_menuitem"
+                  role="menuitem"
                 >
-                  <li
-                    class="SubMenuItem MenuItem"
-                    id="A_menuitem"
-                    role="menuitem"
+                  <div
+                    class=""
+                    id="A"
+                    role="button"
+                    tabindex="0"
                   >
                     <div
-                      class=""
-                      id="A"
-                      role="button"
-                      tabindex="0"
+                      class="flex"
                     >
-                      <div
-                        class="flex"
-                      >
-                        Text A
-                        <span
-                          class="selected"
-                        />
-                        <span
-                          aria-label="submenu icon"
-                          class="fa fa-angle-right SubMenu__icon-right-empty"
-                          id="channelHeaderDropdownIconRight_A"
-                        />
-                      </div>
-                      <ul
-                        class="a11y__popup Menu dropdown-menu SubMenu"
-                        id="A_submenu"
-                        style="visibility: hidden; top: unset; right: 100%;"
+                      Text A
+                      <span
+                        class="selected"
+                      />
+                      <span
+                        aria-label="submenu icon"
+                        class="fa fa-angle-right SubMenu__icon-right-empty"
+                        id="channelHeaderDropdownIconRight_A"
                       />
                     </div>
-                  </li>
-                  <li
-                    aria-controls="B_submenu"
-                    aria-expanded="false"
-                    aria-haspopup="menu"
-                    class="SubMenuItem MenuItem"
-                    id="B_menuitem"
-                    role="menuitem"
+                    <ul
+                      class="a11y__popup Menu dropdown-menu SubMenu"
+                      id="A_submenu"
+                      style="visibility: hidden; top: unset; right: 100%;"
+                    />
+                  </div>
+                </li>
+                <li
+                  aria-controls="B_submenu"
+                  aria-expanded="false"
+                  aria-haspopup="menu"
+                  class="SubMenuItem MenuItem"
+                  id="B_menuitem"
+                  role="menuitem"
+                >
+                  <div
+                    class=""
+                    id="B"
+                    role="button"
+                    tabindex="0"
                   >
                     <div
-                      class=""
-                      id="B"
-                      role="button"
-                      tabindex="0"
+                      class="flex"
                     >
-                      <div
-                        class="flex"
+                      Text B
+                      <span
+                        class="selected"
+                      />
+                      <span
+                        aria-label="submenu icon"
+                        class="fa fa-angle-right SubMenu__icon-right"
+                        id="channelHeaderDropdownIconRight_B"
+                      />
+                    </div>
+                    <ul
+                      class="a11y__popup Menu dropdown-menu SubMenu"
+                      id="B_submenu"
+                      style="visibility: hidden; top: unset; right: 100%;"
+                    >
+                      <span
+                        class="SubMenuItemContainer"
+                        tabindex="0"
                       >
-                        Text B
-                        <span
-                          class="selected"
-                        />
-                        <span
-                          aria-label="submenu icon"
-                          class="fa fa-angle-right SubMenu__icon-right"
-                          id="channelHeaderDropdownIconRight_B"
-                        />
-                      </div>
-                      <ul
-                        class="a11y__popup Menu dropdown-menu SubMenu"
-                        id="B_submenu"
-                        style="visibility: hidden; top: unset; right: 100%;"
-                      >
-                        <span
-                          class="SubMenuItemContainer"
-                          tabindex="0"
+                        <li
+                          class="SubMenuItem MenuItem"
+                          id="C_menuitem"
+                          role="menuitem"
                         >
-                          <li
-                            class="SubMenuItem MenuItem"
-                            id="C_menuitem"
-                            role="menuitem"
+                          <div
+                            aria-label="Text C not selected"
+                            class=""
+                            id="C"
+                            role="button"
+                            tabindex="1"
                           >
                             <div
-                              aria-label="Text C not selected"
-                              class=""
-                              id="C"
-                              role="button"
-                              tabindex="1"
+                              class="flex"
                             >
-                              <div
-                                class="flex"
-                              >
-                                Text C
-                                <span
-                                  class="selected"
-                                />
-                                <span
-                                  aria-label="submenu icon"
-                                  class="fa fa-angle-right SubMenu__icon-right-empty"
-                                  id="channelHeaderDropdownIconRight_C"
-                                />
-                              </div>
-                              <ul
-                                class="a11y__popup Menu dropdown-menu SubMenu"
-                                id="C_submenu"
-                                style="visibility: hidden; top: unset; right: 100%;"
+                              Text C
+                              <span
+                                class="selected"
+                              />
+                              <span
+                                aria-label="submenu icon"
+                                class="fa fa-angle-right SubMenu__icon-right-empty"
+                                id="channelHeaderDropdownIconRight_C"
                               />
                             </div>
-                          </li>
-                        </span>
-                      </ul>
-                    </div>
-                  </li>
-                </ul>
-              </div>
+                            <ul
+                              class="a11y__popup Menu dropdown-menu SubMenu"
+                              id="C_submenu"
+                              style="visibility: hidden; top: unset; right: 100%;"
+                            />
+                          </div>
+                        </li>
+                      </span>
+                    </ul>
+                  </div>
+                </li>
+              </ul>
             </div>
           </div>
         </div>

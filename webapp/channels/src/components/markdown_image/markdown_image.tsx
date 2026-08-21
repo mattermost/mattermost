@@ -183,7 +183,7 @@ export default class MarkdownImage extends PureComponent<Props, State> {
 
                     let className = '';
                     if (this.state.loaded) {
-                        className = imageIsLink || !extension ? `${this.props.className} markdown-inline-img--hover markdown-inline-img--no-border` : `${this.props.className} markdown-inline-img--hover cursor--pointer a11y--active`;
+                        className = imageIsLink || !extension ? `${this.props.className} markdown-inline-img--hover` : `${this.props.className} markdown-inline-img--hover cursor--pointer a11y--active`;
 
                         if (this.isHeaderChangeMessage()) {
                             className += ' markdown-inline-img--scaled-down';

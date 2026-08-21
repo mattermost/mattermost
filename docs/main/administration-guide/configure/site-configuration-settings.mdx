@@ -1,9 +1,11 @@
 ---
 title: "Site configuration settings"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="all-commercial" />
 
-Review and manage the following site configuration options in the System Console by selecting the **Product** <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Site Configuration**:
+Review and manage the following site configuration options in the System Console by selecting the **Product** <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" /> menu, selecting **System Console**, and then selecting **Site Configuration**:
 
 - [Customization](#customization)
 - [Localization](#localization)
@@ -102,7 +104,75 @@ Access the following configuration settings in the System Console by going to **
 </colgroup>
 <tbody>
 <tr>
-<td>Text that will be shown below the <strong>Custom brand image</strong> on the login page. | - System Config path: <strong>Site Configuration &gt; Customization</strong> | You can format this text using the same <a href="mm-doc:%2Fend-user-guide%2Fcollaborate%2Fformat-messages">Markdown formatting</a> | - <code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>CustomBrandText</code> as in Mattermost messages. | - Environment variable: <code>MM_TEAMSETTINGS_CUSTOMBRANDTEXT</code> | | | String input. Maximum 500 characters. <a href="#enable-custom-branding">Enable custom branding</a> | | must be set to <strong>true</strong> to display the text. | |</td>
+<td>Text that will be shown below the <strong>Custom brand image</strong> on the login page. | - System Config path: <strong>Site Configuration &gt; Customization</strong> | You can format this text using the same <a href="/end-user-guide/collaborate/format-messages">Markdown formatting</a> | - <code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>CustomBrandText</code> as in Mattermost messages. | - Environment variable: <code>MM_TEAMSETTINGS_CUSTOMBRANDTEXT</code> | | | String input. Maximum 500 characters. <a href="#enable-custom-branding">Enable custom branding</a> | | must be set to <strong>true</strong> to display the text. | |</td>
+</tr>
+</tbody>
+</table>
+
+### Enable theme selection
+
+<PlanAvailability slug="pro-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables the <strong>Display &gt; Theme</strong> tab in <strong>Settings</strong> so users can select their theme.</li><li><strong>false</strong>: Users can't select a different theme. The <strong>Display &gt; Theme</strong> tab is hidden in <strong>Settings</strong>.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ThemeSettings</code> &gt; <code>EnableThemeSelection</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_THEMESETTINGS_ENABLETHEMESELECTION</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Allow custom themes
+
+<PlanAvailability slug="pro-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Enables the <strong>Display &gt; Theme &gt; Custom Theme</strong> section in <strong>Settings</strong>.</li><li><strong>false</strong>: Users can't use a custom theme. The <strong>Display &gt; Theme &gt; Custom Theme</strong> section is hidden in <strong>Settings</strong>.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ThemeSettings</code> &gt; <code>AllowCustomThemes</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_THEMESETTINGS_ALLOWCUSTOMTHEMES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Allowed themes
+
+<PlanAvailability slug="pro-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Restrict the themes users can select in <strong>Display &gt; Theme</strong> to a comma-separated list of theme names. Requires <a href="#enable-theme-selection">Enable theme selection</a> to be set to <strong>true</strong>.</p><p>String array input consisting of the options <code>denim</code>, <code>sapphire</code>, <code>quartz</code>, <code>indigo</code>, and <code>onyx</code>. Default is an empty array, which allows all themes.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ThemeSettings</code> &gt; <code>AllowedThemes</code> &gt; <code>[]</code></li><li>Environment variable: <code>MM_THEMESETTINGS_ALLOWEDTHEMES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Default theme
+
+<PlanAvailability slug="pro-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Set a default theme that applies to all new users on the system.</p><p>String input. One of <code>denim</code>, <code>sapphire</code>, <code>quartz</code>, <code>indigo</code>, or <code>onyx</code>. Default is <code>default</code>, which resolves to the Denim theme.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ThemeSettings</code> &gt; <code>DefaultTheme</code> &gt; <code>default</code></li><li>Environment variable: <code>MM_THEMESETTINGS_DEFAULTTHEME</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -362,6 +432,36 @@ This setting is applicable to self-hosted deployments only.
 
 </Note>
 
+### Enable tutorial
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Users are prompted with a tutorial when they open Mattermost for the first time after account creation.</li><li><strong>false</strong>: The tutorial is disabled. Users are placed in Town Square when they open Mattermost for the first time after account creation.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableTutorial</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLETUTORIAL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Enable onboarding
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> New users are shown key tasks to complete as part of initial onboarding.</li><li><strong>false</strong>: User onboarding tasks are disabled.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Customization</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableOnboardingFlow</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ### Enable desktop app landing page
 
 <table>
@@ -385,7 +485,7 @@ This setting is applicable to self-hosted deployments only.
 </colgroup>
 <tbody>
 <tr>
-<td>Specify the minimum version of the Mattermost Desktop App required to connect to this server | - System Config path: <strong>Site Configuration &gt; Customization</strong> | (e.g., <code>5.10.0</code>). Users connecting with a Desktop App version below this minimum are shown | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>MinimumDesktopAppVersion</code> | an update required screen and cannot use the application until they update. | - Environment variable: <code>MM_SERVICESETTINGS_MINIMUMDESKTOPAPPVERSION</code> | | | The update screen includes a download link configured via the | | <a href="mm-ref:configure%2Fsite-configuration-settings%3Amattermost%20apps%20%20%20%7C%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7C%0A%7C%20download%20page%20link">Mattermost apps download page link</a> setting. | | | Must be a valid semantic version (e.g., <code>5.0.0</code>). Leave blank to allow all Desktop App | | versions to connect. | | | | String input. Default is empty (no minimum enforced). | |</td>
+<td>Specify the minimum version of the Mattermost Desktop App required to connect to this server | - System Config path: <strong>Site Configuration &gt; Customization</strong> | (e.g., <code>5.10.0</code>). Users connecting with a Desktop App version below this minimum are shown | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>MinimumDesktopAppVersion</code> | an update required screen and cannot use the application until they update. | - Environment variable: <code>MM_SERVICESETTINGS_MINIMUMDESKTOPAPPVERSION</code> | | | The update screen includes a download link configured via the | | <a href="/administration-guide/configure/site-configuration-settings#mattermost-apps-download-page-link">Mattermost apps download page link</a> setting. | | | Must be a valid semantic version (e.g., <code>5.0.0</code>). Leave blank to allow all Desktop App | | versions to connect. | | | | String input. Default is empty (no minimum enforced). | |</td>
 </tr>
 </tbody>
 </table>
@@ -680,7 +780,7 @@ Access the following configuration settings in the System Console by going to **
 </colgroup>
 <tbody>
 <tr>
-<td>The <strong>Max users per team</strong> is the maximum total number of users per team, | - System Config path: <strong>Site Configuration &gt; Users and Teams</strong> | including activated and deactivated users. | - <code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>MaxUsersPerTeam</code> &gt; <code>50</code> | | - Environment variable: <code>MM_TEAMSETTINGS_MAXUSERSPERTEAM</code> | In Mattermost, a team of people should be a small organization with a | | specific goal. In the physical world, a team could sit around a single | | table. The default maximum (50) should be enough for most teams, but | | with appropriate <a href="https://docs.mattermost.com/install/             |                                                                             |software-hardware-requirements.html">hardware</a>, this limit can be increased to | | thousands of users. | | | | <a href="mm-doc:%2Fend-user-guide%2Fcollaborate%2Fcollaborate-within-channels">Channels</a> | are another way of organizing communications within teams on various topics. | | | | Numerical input. Default is <strong>50</strong> self-hosted deployments, and <strong>10000</strong> | | for Cloud deployments. | |</td>
+<td>The <strong>Max users per team</strong> is the maximum total number of users per team, | - System Config path: <strong>Site Configuration &gt; Users and Teams</strong> | including activated and deactivated users. | - <code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>MaxUsersPerTeam</code> &gt; <code>50</code> | | - Environment variable: <code>MM_TEAMSETTINGS_MAXUSERSPERTEAM</code> | In Mattermost, a team of people should be a small organization with a | | specific goal. In the physical world, a team could sit around a single | | table. The default maximum (50) should be enough for most teams, but | | with appropriate <a href="https://docs.mattermost.com/install/             |                                                                             |software-hardware-requirements.html">hardware</a>, this limit can be increased to | | thousands of users. | | | | <a href="/end-user-guide/collaborate/collaborate-within-channels">Channels</a> | are another way of organizing communications within teams on various topics. | | | | Numerical input. Default is <strong>50</strong> self-hosted deployments, and <strong>10000</strong> | | for Cloud deployments. | |</td>
 </tr>
 </tbody>
 </table>
@@ -736,7 +836,7 @@ Access the following configuration settings in the System Console by going to **
 </colgroup>
 <tbody>
 <tr>
-<td>This setting determines how names appear in posts and under the <strong>Direct Messages</strong> list. | - System Config path: <strong>Site Configuration &gt; Users and Teams</strong> | Users can change this setting in their interface under <strong>Settings &gt; Display &gt; | - ``config.json`` setting: ``TeamSettings`` &gt; ``TeammateNameDisplay`` &gt; ``username`` | Teammate Name Display</strong>, unless this setting is locked by a system admin | - Environment variable: <code>MM_TEAMSETTINGS_TEAMMATENAMEDISPLAY</code> | via the <strong>Lock teammate name display for all users</strong> configuration setting. | | | | - <strong>Show username</strong>: <strong>(Default for self-hosted deployments)</strong> Displays usernames. | | <code>config.json</code> option: <code>"username"</code>. | | - <strong>Show nickname if one exists...</strong>: Displays the user's nickname. If the user doesn't have a | | nickname, their full name is displayed. If the user doesn't have a full name, their username | | is displayed. <code>config.json</code> option: <code>"nickname_full_name"</code>. | | - <strong>Show first and last name</strong>: <strong>(Default for Cloud deployments)</strong> Displays user's full name. | | If the user doesn't have a full name, their username is displayed. Recommended when using | | <a href="mm-doc:%2Fadministration-guide%2Fonboard%2Fsso-saml">SAML</a> or | <a href="mm-doc:%2Fadministration-guide%2Fonboard%2Fad-ldap">LDAP</a> if first name and last name | attributes are configured. <code>config.json</code> option: <code>"full_name"</code>. | |</td>
+<td>This setting determines how names appear in posts and under the <strong>Direct Messages</strong> list. | - System Config path: <strong>Site Configuration &gt; Users and Teams</strong> | Users can change this setting in their interface under <strong>Settings &gt; Display &gt; | - ``config.json`` setting: ``TeamSettings`` &gt; ``TeammateNameDisplay`` &gt; ``username`` | Teammate Name Display</strong>, unless this setting is locked by a system admin | - Environment variable: <code>MM_TEAMSETTINGS_TEAMMATENAMEDISPLAY</code> | via the <strong>Lock teammate name display for all users</strong> configuration setting. | | | | - <strong>Show username</strong>: <strong>(Default for self-hosted deployments)</strong> Displays usernames. | | <code>config.json</code> option: <code>"username"</code>. | | - <strong>Show nickname if one exists...</strong>: Displays the user's nickname. If the user doesn't have a | | nickname, their full name is displayed. If the user doesn't have a full name, their username | | is displayed. <code>config.json</code> option: <code>"nickname_full_name"</code>. | | - <strong>Show first and last name</strong>: <strong>(Default for Cloud deployments)</strong> Displays user's full name. | | If the user doesn't have a full name, their username is displayed. Recommended when using | | <a href="/administration-guide/onboard/sso-saml">SAML</a> or | <a href="/administration-guide/onboard/ad-ldap">LDAP</a> if first name and last name | attributes are configured. <code>config.json</code> option: <code>"full_name"</code>. | |</td>
 </tr>
 </tbody>
 </table>
@@ -754,6 +854,23 @@ Access the following configuration settings in the System Console by going to **
 <tr>
 <td><p>This setting controls whether users can change settings under <strong>Settings &gt; Display &gt; Teammate Name Display</strong>.</p><ul><li><strong>true</strong>: Users <strong>cannot</strong> change the Teammate Name Display.</li><li><strong>false</strong>: <strong>(Default)</strong> Users can change the Teammate Name Display setting.</li></ul></td>
 <td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>LockTeammateNameDisplay</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_LOCKTEAMMATENAMEDISPLAY</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Lock profile fields for email users
+
+<PlanAvailability slug="ent-plus" />
+
+<table>
+<colgroup>
+<col style={{width: '56%'}} />
+<col style={{width: '44%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting controls whether users who sign in with email and password can change their own profile fields under <strong>Settings &gt; Profile</strong>. System admins are always exempt and can edit any user's profile through the System Console or the API. Users authenticating through an external provider (AD/LDAP, SAML, or OAuth) aren't affected; their fields remain governed by the provider's attribute settings.</p><ul><li><strong>Don't lock profile fields</strong>: <strong>(Default)</strong> Users can change all of their profile fields. <code>config.json</code> option: <code>"none"</code>.</li><li><strong>Lock name and username</strong>: Users cannot change their first name, last name, or username. <code>config.json</code> option: <code>"name_and_username"</code>.</li><li><strong>Lock entire profile</strong>: Additionally locks the nickname, position, and profile picture. Email stays editable because it's the sign-in credential, protected by password re-entry and verification. <code>config.json</code> option: <code>"all"</code>.</li></ul><p>Empty first and last names can be filled in once by the user, so people who join through a team invite link or open server signup aren't left without a name. Once set, the name is locked.</p><p>When this setting is enabled, anyone with the <strong>Invite Users</strong> permission can pre-set the first name, last name, and username for each email invitation they send. The invited person sees the pre-set username on the account creation page and cannot change it. We recommend restricting the <strong>Invite Users</strong> permission through <a href="/administration-guide/onboard/advanced-permissions">advanced permissions</a> to people trusted to enter this information correctly.</p><p>For a display name convention of "First Last" across the workspace, combine this setting with <strong>Teammate Name Display</strong> set to <strong>Show first and last name</strong> and <strong>Lock Teammate Name Display</strong> set to <strong>true</strong>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Users and Teams</strong></li><li><code>config.json</code> setting: <code>TeamSettings</code> &gt; <code>LockProfileFieldsForEmailUsers</code> &gt; <code>none</code></li><li>Environment variable: <code>MM_TEAMSETTINGS_LOCKPROFILEFIELDSFOREMAILUSERS</code></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1300,7 +1417,7 @@ Customers upgrading from a legacy Mattermost release prior to v7.0 must review t
 </colgroup>
 <tbody>
 <tr>
-<td><dl><dt>- <strong>Always On</strong>: <strong>(Default)</strong> Enables <a href="mm-doc:%2Fend-user-guide%2Fcollaborate%2Forganize-conversations">threaded discussions | - System Config path: **Site Configuration &gt; Posts** |</a> | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>CollapsedThreads</code></dt><dd><p>on the server and for all users. This is the recommended configuration for optimal user experience | - Environment variable: <code>MM_SERVICESETTINGS_COLLAPSEDTHREADS</code> | and to ensure consistency in how users read and respond to threaded conversations. | | <code>config.json</code> setting: <code>"always_on"</code> | |</p></dd></dl><ul><li><strong>Default On</strong>: Enables threaded discussions on the server and for all users. | |</li><li><strong>Default Off</strong>: Enables threaded discussions on the server but <strong>not</strong> for users. | |</li><li><strong>Disabled</strong>: Users cannot enable threaded discussions. <code>config.json</code> setting: <code>"disabled"</code> | |</li></ul></td>
+<td><dl><dt>- <strong>Always On</strong>: <strong>(Default)</strong> Enables <a href="/end-user-guide/collaborate/organize-conversations">threaded discussions</a> | - System Config path: **Site Configuration &gt; Posts** | | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>CollapsedThreads</code></dt><dd><p>on the server and for all users. This is the recommended configuration for optimal user experience | - Environment variable: <code>MM_SERVICESETTINGS_COLLAPSEDTHREADS</code> | and to ensure consistency in how users read and respond to threaded conversations. | | <code>config.json</code> setting: <code>"always_on"</code> | |</p></dd></dl><ul><li><strong>Default On</strong>: Enables threaded discussions on the server and for all users. | |</li><li><strong>Default Off</strong>: Enables threaded discussions on the server but <strong>not</strong> for users. | |</li><li><strong>Disabled</strong>: Users cannot enable threaded discussions. <code>config.json</code> setting: <code>"disabled"</code> | |</li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1517,7 +1634,7 @@ Disabling this configuration setting in larger deployments may improve server pe
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: <strong>(Default)</strong> <a href="mm-doc:%2Fend-user-guide%2Fcollaborate%2Fshare-links">Share links to Mattermost messages</a> | - System Config path: <strong>Site Configuration &gt; Posts</strong> will generate a preview for any users that have access to the original message. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnablePermalinkPreviews</code> &gt; <code>true</code> |</li><li><strong>false</strong>: Share links do not generate a preview. | - Environment variable: <code>MM_SERVICESETTINGS_ENABLEPERMALINKPREVIEWS</code> |</li></ul></td>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> <a href="/end-user-guide/collaborate/share-links">Share links to Mattermost messages</a> | - System Config path: <strong>Site Configuration &gt; Posts</strong> will generate a preview for any users that have access to the original message. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnablePermalinkPreviews</code> &gt; <code>true</code> |</li><li><strong>false</strong>: Share links do not generate a preview. | - Environment variable: <code>MM_SERVICESETTINGS_ENABLEPERMALINKPREVIEWS</code> |</li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1564,7 +1681,7 @@ Enabling SVGs is not recommended in environments where not all users are trusted
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Enables rendering of <a href="mm-ref:end-user-guide%2Fcollaborate%2Fformat-messages%3Amath%20formulas">LaTeX in code blocks</a>. | - System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><dl><dt><strong>false</strong>: <strong>(Default)</strong> Disables rendering in blocks. Instead, LaTeX code is highlighted. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableLatex</code> &gt; <code>false</code>|</dt><dd><div class="line-block">- Environment variable: <code>MM_SERVICESETTINGS_ENABLELATEX</code> |</div></dd></dl></li></ul></td>
+<td><ul><li><strong>true</strong>: Enables rendering of <a href="/end-user-guide/collaborate/format-messages#math-formulas">LaTeX in code blocks</a>. | - System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><dl><dt><strong>false</strong>: <strong>(Default)</strong> Disables rendering in blocks. Instead, LaTeX code is highlighted. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableLatex</code> &gt; <code>false</code>|</dt><dd><div class="line-block">- Environment variable: <code>MM_SERVICESETTINGS_ENABLELATEX</code> |</div></dd></dl></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1583,7 +1700,7 @@ Enabling LaTeX rendering is not recommended in environments where not all users 
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Enables rendering of | - System Config path: <strong>Site Configuration &gt; Posts</strong> | <a href="mm-ref:end-user-guide%2Fcollaborate%2Fformat-messages%3Amath%20formulas">LaTeX in message text</a>. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableInlineLatex</code> &gt; <code>false</code></li><li><strong>false</strong>: <strong>(Default)</strong> Disables inline rendering of LaTeX. Instead, LaTeX in message text is highlighted. | - Environment variable: <code>MM_SERVICESETTINGS_ENABLEINLINELATEX</code> | LaTeX can also be rendered in a code block, if that feature is enabled. See <strong>Enable LaTeX code block rendering</strong>. | |</li></ul></td>
+<td><ul><li><strong>true</strong>: Enables rendering of | - System Config path: <strong>Site Configuration &gt; Posts</strong> | <a href="/end-user-guide/collaborate/format-messages#math-formulas">LaTeX in message text</a>. | - <code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableInlineLatex</code> &gt; <code>false</code></li><li><strong>false</strong>: <strong>(Default)</strong> Disables inline rendering of LaTeX. Instead, LaTeX in message text is highlighted. | - Environment variable: <code>MM_SERVICESETTINGS_ENABLEINLINELATEX</code> | LaTeX can also be rendered in a code block, if that feature is enabled. See <strong>Enable LaTeX code block rendering</strong>. | |</li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1694,6 +1811,52 @@ While drafts can be very useful for maintaining work continuity, especially in c
 </tr>
 </tbody>
 </table>
+
+### Enable user typing messages
+
+<table>
+<colgroup>
+<col style={{width: '43%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>This setting determines whether "user is typing..." messages are displayed below the message box.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> "User is typing..." messages are displayed below the message box.</li><li><strong>false</strong>: "User is typing..." messages are not displayed.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>EnableUserTypingMessages</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_ENABLEUSERTYPINGMESSAGES</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Disabling this configuration setting in larger deployments may improve server performance in the following areas:
+
+- Reduced Server Load: Typing events generate additional websocket traffic. Disabling them can reduce the amount of data that needs to be handled by the server, improving the overall response time and decreasing server load.
+- Lower Network Traffic: When typing events are enabled, every keystroke generates a network event. This can lead to a significant amount of network traffic, particularly in busy channels. Disabling these events reduces the amount of information transmitted over the network.
+- Client Performance: On the client side, processing typing events requires resources. By not having to handle these events, the client can be more responsive and use less memory and CPU.
+
+</Note>
+
+### User typing timeout
+
+<table>
+<colgroup>
+<col style={{width: '43%'}} />
+<col style={{width: '56%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The number of milliseconds to wait between emitting user typing websocket events, which determines how frequently "user is typing..." messages are updated.</p><p>Numerical input in milliseconds. Default is <strong>5000</strong>. Minimum is 1000.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Posts</strong></li><li><code>config.json</code> setting: <code>ServiceSettings</code> &gt; <code>TimeBetweenUserTypingUpdatesMilliseconds</code> &gt; <code>5000</code></li><li>Environment variable: <code>MM_SERVICESETTINGS_TIMEBETWEENUSERTYPINGUPDATESMILLISECONDS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+This setting only applies when **Enable user typing messages** is set to **true**.
+
+</Note>
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -1903,7 +2066,7 @@ This setting improves an organization's mobile security posture by restricting f
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Prevents file downloads, previews, and sharing for most file types, | - System Config path: <strong>Site Configuration &gt; File sharing and downloads</strong> | even when the | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>MobileEnableSecureFilePreview</code> &gt; <code>false</code> | <a href="mm-ref:administration-guide%2Fconfigure%2Fsite-configuration-settings%3Aallow%20file%20downloads%20on%20mobile">Allow file downloads on mobile</a> | - Environment variable: <code>MM_FILESETTINGS_MOBILEENABLESECUREFILEPREVIEW</code> configuration setting is enabled. Allows in-app previews for PDFs, | | videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared. | |</li><li><strong>false</strong>: <strong>(Default)</strong> Secure file preview mode is disabled. | |</li></ul></td>
+<td><ul><li><strong>true</strong>: Prevents file downloads, previews, and sharing for most file types, | - System Config path: <strong>Site Configuration &gt; File sharing and downloads</strong> | even when the | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>MobileEnableSecureFilePreview</code> &gt; <code>false</code> | <a href="/administration-guide/configure/site-configuration-settings#allow-file-downloads-on-mobile">Allow file downloads on mobile</a> | - Environment variable: <code>MM_FILESETTINGS_MOBILEENABLESECUREFILEPREVIEW</code> configuration setting is enabled. Allows in-app previews for PDFs, | | videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared. | |</li><li><strong>false</strong>: <strong>(Default)</strong> Secure file preview mode is disabled. | |</li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1945,7 +2108,7 @@ With self-hosted deployments, you can access the following configuration setting
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Allows users to create <a href="mm-doc:%2Fend-user-guide%2Fcollaborate%2Fshare-files-in-messages">public links</a> to files attached to Mattermost messages. | - System Config path: <strong>Site Configuration &gt; Public Links</strong></li><li><dl><dt><strong>false</strong>: <strong>(Default)</strong> Prevents users from creating public links to files and disables all previously created links. | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>EnablePublicLink</code> &gt; <code>false</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_FILESETTINGS_ENABLEPUBLICLINK</code> |</div></dd></dl></li></ul></td>
+<td><ul><li><strong>true</strong>: Allows users to create <a href="/end-user-guide/collaborate/share-files-in-messages">public links</a> to files attached to Mattermost messages. | - System Config path: <strong>Site Configuration &gt; Public Links</strong></li><li><dl><dt><strong>false</strong>: <strong>(Default)</strong> Prevents users from creating public links to files and disables all previously created links. | - <code>config.json</code> setting: <code>FileSettings</code> &gt; <code>EnablePublicLink</code> &gt; <code>false</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_FILESETTINGS_ENABLEPUBLICLINK</code> |</div></dd></dl></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1985,7 +2148,7 @@ Access the following configuration settings in the System Console by going to **
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: <strong>(Default)</strong> System admins will receive <a href="mm-doc:%2Fadministration-guide%2Fmanage%2Fin-product-notices">in-product notices</a> about server upgrades and administration features. | - System Config path: <strong>Site Configuration &gt; Notices</strong> - | - <code>config.json</code> setting: <code>AnnouncementSettings</code> &gt; <code>AdminNoticesEnabled</code> &gt; <code>true</code> |</li><li><strong>false</strong>: System admins will not receive specific notices. Admins will still receive notices for all users (see <strong>Enable end user notices</strong>) | - Environment variable: <code>MM_ANNOUNCEMENTSETTINGS_ADMINNOTICESENABLED</code> |</li></ul></td>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> System admins will receive <a href="/administration-guide/manage/in-product-notices">in-product notices</a> about server upgrades and administration features. | - System Config path: <strong>Site Configuration &gt; Notices</strong> - | - <code>config.json</code> setting: <code>AnnouncementSettings</code> &gt; <code>AdminNoticesEnabled</code> &gt; <code>true</code> |</li><li><strong>false</strong>: System admins will not receive specific notices. Admins will still receive notices for all users (see <strong>Enable end user notices</strong>) | - Environment variable: <code>MM_ANNOUNCEMENTSETTINGS_ADMINNOTICESENABLED</code> |</li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -1998,7 +2161,7 @@ Access the following configuration settings in the System Console by going to **
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: <strong>(Default)</strong> All users receive <a href="mm-doc:%2Fadministration-guide%2Fmanage%2Fin-product-notices">in-product notices</a> about client upgrades and end user features. | - System Config path: <strong>Site Configuration &gt; Notices</strong></li><li><dl><dt><strong>false</strong>: Users will not receive in-product notices. | - <code>config.json</code> setting: <code>AnnouncementSettings</code> &gt; <code>UserNoticesEnabled</code> &gt; <code>true</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_ANNOUNCEMENTSETTINGS_USERNOTICESENABLED</code> |</div></dd></dl></li></ul></td>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> All users receive <a href="/administration-guide/manage/in-product-notices">in-product notices</a> about client upgrades and end user features. | - System Config path: <strong>Site Configuration &gt; Notices</strong></li><li><dl><dt><strong>false</strong>: Users will not receive in-product notices. | - <code>config.json</code> setting: <code>AnnouncementSettings</code> &gt; <code>UserNoticesEnabled</code> &gt; <code>true</code> |</dt><dd><div class="line-block">- Environment variable: <code>MM_ANNOUNCEMENTSETTINGS_USERNOTICESENABLED</code> |</div></dd></dl></li></ul></td>
 </tr>
 </tbody>
 </table>
@@ -2141,7 +2304,7 @@ Enabling these features can increase the load on your Mattermost server’s CPU,
 
 From Mattermost v11.8, system admins can configure classification markings in the System Console by going to **Site Configuration \> Classification Markings**.
 
-Classification markings define reusable classification levels that can be displayed as global or channel-level banners in the web and desktop apps. Each classification level includes a name, color, and rank order. You can select a preset, such as US DoD, NATO, UK GSCP, Canada, or Australia PSPF, or define custom classification levels.
+Classification markings define reusable classification levels that can be displayed as global or channel-level banners in the web and desktop apps. Each classification level includes a name, color, and rank order. You can select a preset, such as US DoD, NATO, UK GSCP, Canada, or Australia PSPF, or define custom classification levels. Levels are ordered using the same **Ranked** attribute type available for [user attributes](/administration-guide/manage/admin/user-attributes), so each level sits at a defined position from lowest to highest.
 
 <Note>
 

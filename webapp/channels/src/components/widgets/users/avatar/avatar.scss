@@ -1,5 +1,22 @@
 @use "sass:color";
 
+img.Avatar {
+    // Hide alt text that deforms the circled shape of the avatars in the thread footer.
+    // font-size: 0 prevents alt text from expanding the box on broken images.
+    // min-width: 0 lets width follow the browser's natural broken-image icon size
+    //              so it matches height and border-radius: 50% stays circular.
+    &.Avatar-xxs,
+    &.Avatar-xs,
+    &.Avatar-sm,
+    &.Avatar-md,
+    &.Avatar-lg,
+    &.Avatar-xl,
+    &.Avatar-xxl {
+        min-width: 0;
+        font-size: 0;
+    }
+}
+
 .Avatar {
     &,
     &:focus,

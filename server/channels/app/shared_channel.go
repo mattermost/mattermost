@@ -364,7 +364,7 @@ func (a *App) ReceiveSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID, 
 	}
 
 	// Validate the file creator belongs to this remote
-	creator, creatorErr := a.Srv().Store().User().Get(rctx.Context(), fi.CreatorId)
+	creator, creatorErr := a.Srv().Store().User().Get(rctx, fi.CreatorId)
 	if creatorErr != nil {
 		if isNotFoundError(creatorErr) {
 			return nil, fmt.Errorf("creator %s not found: %w", fi.CreatorId, creatorErr)
@@ -497,7 +497,7 @@ func (a *App) ReceiveSharedChannelProfileImageSyncMsg(rctx request.CTX, pluginID
 	}
 
 	// Validate user exists and belongs to this remote
-	user, userErr := a.Srv().Store().User().Get(rctx.Context(), userID)
+	user, userErr := a.Srv().Store().User().Get(rctx, userID)
 	if userErr != nil {
 		if isNotFoundError(userErr) {
 			return fmt.Errorf("user %s not found: %w", userID, userErr)
