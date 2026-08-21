@@ -62,9 +62,8 @@ const (
 	// at hasPropertyFieldPermissionLevel in the app package.
 	PermissionLevelAdmin PermissionLevel = "admin"
 	// PermissionLevelEveryone is the most permissive tier: any caller satisfies
-	// it (§2.2). It still sits under the object-level check (§2.5), so it is not
-	// the same as open access. Added for the permissions model; the legacy
-	// permission columns accept it too.
+	// it. It still sits behind hasTargetAccess's object-level check, so it is
+	// not the same as open access. The legacy permission columns accept it too.
 	PermissionLevelEveryone PermissionLevel = "everyone"
 
 	PropertyFieldObjectTypePost     = "post"
@@ -507,9 +506,6 @@ func (pf *PropertyField) IsValid() error {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_field", "Reason": "non-protected fields cannot have field permission set to none"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
-	// The typed permissions object validates (and normalizes) itself against the
-	// field's object type. Nothing reads it yet — it rides here unenforced until
-	// the decision engine is switched on.
 	if pf.Permissions != nil {
 		if err := pf.Permissions.IsValid(pf.ObjectType); err != nil {
 			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions", "Reason": err.Error()}, "id="+pf.ID, http.StatusBadRequest)

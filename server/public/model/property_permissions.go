@@ -168,7 +168,8 @@ func (p *Permissions) IsValid(objectType string) error {
 // id; mask_by_field_id is only ever set on a template; and a masked field that
 // isn't object_type:user must set it, since object_type:user is the only place
 // holdings can be read from today. Whether mask_by_field_id actually names a
-// live, linked field is checked separately, once a store is reachable.
+// live, linked field is checked separately, by the store's
+// ValidateMaskByFieldID.
 func (m *Masking) isValid(objectType string) error {
 	for _, id := range m.Except {
 		if !IsValidPropertyOwnerType(id.Type) {

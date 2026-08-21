@@ -12,8 +12,8 @@ import (
 )
 
 func TestPermissionsJSONRoundTrip(t *testing.T) {
-	// The Department field from §3.1: the JSON tags must match the spec wire
-	// shape, and the three parts must decode into their typed fields.
+	// The JSON tags must match the wire shape clients send, and the three
+	// parts must decode into their typed fields.
 	raw := []byte(`{
 		"restrictions": {
 			"value":  { "read": "everyone", "write": "none" },
@@ -187,8 +187,8 @@ func TestMaskingValidation(t *testing.T) {
 	})
 }
 
-// TestWorkedExamplesValidate parses the §3 permissions blocks as written and
-// confirms each validates against its field's object type.
+// TestWorkedExamplesValidate parses each worked-example permissions block and
+// confirms it validates against its field's object type.
 func TestWorkedExamplesValidate(t *testing.T) {
 	cases := []struct {
 		name       string
