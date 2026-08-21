@@ -5,10 +5,18 @@ import React from 'react';
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
-import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
+import {openModal} from 'actions/views/modals';
 
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
+import {ModalIdentifiers} from 'utils/constants';
+
+import AttributeGraphDeleteModal from './attribute_graph_delete_modal';
 import AttributeOptionsGraphValues from './attribute_options_graph_values';
 import {addChildOption, renameOption} from './graph_utils';
+
+jest.mock('actions/views/modals', () => ({
+    openModal: jest.fn(() => ({type: 'MOCK_OPEN_MODAL'})),
+}));
 
 function getRow(optionName: string, parentName = '') {
     const row = screen.getAllByTestId('attributeOptionsGraphRow').find(
@@ -321,5 +329,109 @@ describe('AttributeOptionsGraphValues', () => {
         const list = screen.getByTestId('attributeOptionsGraphList');
         expect(within(list).queryByRole('list')).toBeNull();
         expect(list.querySelectorAll(':scope > li')).toHaveLength(screen.getAllByTestId('attributeOptionsGraphRow').length);
+    });
+});
+
+describe('AttributeOptionsGraphValues delete wiring', () => {
+    const blockedOptions = (): PropertyFieldOption[] => [
+        {id: '', name: 'X', parents: []},
+        {id: '', name: 'Keep', parents: []},
+        {id: '', name: 'Orphan', parents: ['X']},
+        {id: '', name: 'Shared', parents: ['X', 'Keep']},
+    ];
+
+    const dialogProps = () => (openModal as jest.Mock).mock.calls[0][0].dialogProps;
+
+    beforeEach(() => {
+        (openModal as jest.Mock).mockClear();
+        HTMLElement.prototype.scrollIntoView = jest.fn();
+    });
+
+    it('keeps overflow Delete this value enabled on a node with an exclusive child', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={blockedOptions()}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await openRowMenu('X');
+        expect(screen.getByRole('menuitem', {name: 'Delete this value'})).not.toBeDisabled();
+    });
+
+    it('opens GRAPH_NODE_DELETE from overflow Delete this value', async () => {
+        const options = blockedOptions();
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={options}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await openRowMenu('X');
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Delete this value'}));
+
+        await waitFor(() => {
+            expect(openModal).toHaveBeenCalledWith({
+                modalId: ModalIdentifiers.GRAPH_NODE_DELETE,
+                dialogType: AttributeGraphDeleteModal,
+                dialogProps: {
+                    optionName: 'X',
+                    options,
+                    onConfirm: expect.any(Function),
+                    onExited: expect.any(Function),
+                },
+            });
+        });
+    });
+
+    it('opens GRAPH_NODE_DELETE from the Parents pane Delete this value', async () => {
+        const options = blockedOptions();
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={options}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await openRowMenu('X');
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Parents'}));
+        const paneDelete = await screen.findByRole('menuitem', {name: 'Delete this value'});
+        await userEvent.click(paneDelete);
+
+        expect(openModal).toHaveBeenCalledTimes(1);
+        expect(openModal).toHaveBeenCalledWith({
+            modalId: ModalIdentifiers.GRAPH_NODE_DELETE,
+            dialogType: AttributeGraphDeleteModal,
+            dialogProps: {
+                optionName: 'X',
+                options,
+                onConfirm: expect.any(Function),
+                onExited: expect.any(Function),
+            },
+        });
+    });
+
+    it('focuses the first orphan row on Go-to after the modal exits, not on confirm', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={blockedOptions()}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await openRowMenu('X');
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Delete this value'}));
+        await waitFor(() => {
+            expect(openModal).toHaveBeenCalled();
+        });
+
+        const orphanRow = getRow('Orphan', 'X');
+        dialogProps().onConfirm();
+        expect(document.activeElement).not.toBe(orphanRow);
+
+        dialogProps().onExited();
+        expect(orphanRow).toHaveFocus();
+        expect(orphanRow.scrollIntoView).toHaveBeenCalledWith({block: 'nearest'});
     });
 });

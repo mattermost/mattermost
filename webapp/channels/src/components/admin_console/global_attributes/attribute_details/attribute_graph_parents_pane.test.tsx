@@ -166,6 +166,11 @@ describe('AttributeGraphParentsPane', () => {
         expect(onDelete).toHaveBeenCalledWith('C');
         expect(onOptionsChange).not.toHaveBeenCalled();
     });
+
+    it('keeps Delete this value enabled when the value has an exclusive child', () => {
+        renderPane([opt('X'), opt('Orphan', ['X'])], 'X');
+        expect(screen.getByRole('menuitem', {name: 'Delete this value'})).not.toBeDisabled();
+    });
 });
 
 describe('GraphParentEdgeAlert', () => {

@@ -13,6 +13,7 @@ import Input from 'components/widgets/inputs/input/input';
 
 import Constants from 'utils/constants';
 
+import {useGraphNodeDelete} from './attribute_graph_delete_modal';
 import AttributeGraphParentsPane, {type ConfirmGrant} from './attribute_graph_parents_pane';
 import {
     addChildOption,
@@ -284,6 +285,7 @@ const GraphRow = React.memo(function GraphRow({
             data-option-name={occurrence.option.name}
             data-parent-name={occurrence.parentName ?? ''}
             data-depth={String(occurrence.depth)}
+            tabIndex={-1}
         >
             <span
                 className='attribute-options-graph-values__drag-handle'
@@ -460,9 +462,18 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
         setDraftName('');
     }, [draftName, options, onOptionsChange, disabled]);
 
-    const handleDeleteValue = useCallback((_optionName: string) => {
-        // Phase 5 wires useGraphNodeDelete. Do not call removeOption.
+    const handleGoToOrphan = useCallback((optionName: string) => {
+        const el = document.querySelector(
+            `[data-testid="attributeOptionsGraphRow"][data-option-name="${CSS.escape(optionName)}"]`,
+        );
+        if (!(el instanceof HTMLElement)) {
+            return;
+        }
+        el.scrollIntoView({block: 'nearest'});
+        el.focus();
     }, []);
+
+    const promptDelete = useGraphNodeDelete(options, onOptionsChange, handleGoToOrphan);
 
     const handleOpenMenuAddChild = useCallback((occurrence: GraphOccurrence) => {
         const nextOccurrences = flattenOccurrences(options);
@@ -567,7 +578,7 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
                 onRenameDraftChange={setRenameDraft}
                 onCommitRename={handleCommitRename}
                 onCancelRename={handleCancelRename}
-                onDelete={handleDeleteValue}
+                onDelete={promptDelete}
                 options={options}
                 onOptionsChange={onOptionsChange}
                 confirmGrant={confirmGrant}
