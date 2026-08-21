@@ -679,6 +679,15 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 		case string(model.PropertyFieldTargetLevelChannel):
 			return a.hasChannelPropertyAdmin(rctx, userID, field.TargetID)
 		}
+	case model.PermissionLevelCreator:
+		// The entity gated here is the field definition itself, so its creator
+		// is CreatedBy — not the creator of whatever the field is scoped to.
+		if field.CreatedBy != "" && field.CreatedBy == userID {
+			return true
+		}
+		// Falls back to the admin arm above rather than restating the
+		// per-TargetType cascade. Terminates: the admin case never recurses.
+		return a.hasPropertyFieldPermissionLevel(rctx, userID, field, model.PermissionLevelAdmin)
 	}
 	return false
 }

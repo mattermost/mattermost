@@ -3019,7 +3019,15 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostCreator(t *testing.T) 
 		PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 	}
 
-	post := th.CreatePost(t, th.BasicChannel) // authored by BasicUser
+	// The author must hold no admin role in the post's channel, or this test
+	// would pass through the admin arm and prove nothing about the creator arm.
+	// th.BasicUser is unsuitable: CreateChannel grants SchemeAdmin to whoever
+	// creates a channel, so BasicUser is a channel admin of BasicChannel.
+	author := th.CreateUser(t)
+	th.LinkUserToTeam(t, author, th.BasicTeam)
+	th.AddUserToChannel(t, author, th.BasicChannel)
+
+	post := th.CreatePost(t, th.BasicChannel, func(p *model.Post) { p.UserId = author.Id })
 
 	// BasicUser2 is a team member but not a channel member out of InitBasic, so
 	// add them: denials should land on "in the channel but not the author"
@@ -3066,7 +3074,7 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostCreator(t *testing.T) 
 	}{
 		{
 			name:    "author can set values on their own post",
-			session: session(th.BasicUser),
+			session: session(author),
 			postID:  post.Id,
 			allowed: true,
 		},
@@ -3104,7 +3112,7 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostCreator(t *testing.T) 
 		},
 		{
 			name:    "unknown post denies",
-			session: session(th.BasicUser),
+			session: session(author),
 			postID:  model.NewId(),
 			allowed: false,
 		},
@@ -3171,12 +3179,19 @@ func TestSessionHasPermissionToSetPropertyFieldValues_ChannelCreator(t *testing.
 
 	require.Equal(t, th.BasicUser.Id, th.BasicChannel.CreatorId, "BasicChannel is expected to be created by BasicUser")
 
+	// CreateChannel grants SchemeAdmin to whoever creates a channel, so
+	// BasicUser starts out a channel admin of BasicChannel — which would let
+	// the creator rows below pass through the admin arm and prove nothing.
+	// Demote to a plain member so CreatorId is the only thing that can grant.
+	_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
+	require.Nil(t, appErr)
+
 	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	channelAdmin := th.CreateUser(t)
 	th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
 	th.AddUserToChannel(t, channelAdmin, th.BasicChannel)
-	_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, channelAdmin.Id,
+	_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, channelAdmin.Id,
 		model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
 	require.Nil(t, appErr)
 
@@ -3278,10 +3293,12 @@ func TestSessionHasPermissionToSetPropertyFieldValues_ChannelCreator(t *testing.
 			allowed:   true,
 		},
 		{
-			name:      "the other participant in a direct channel is not its creator",
+			// Not the DM's creator, but DM participants administer their own
+			// DM (hasChannelPropertyAdmin), so this passes the admin arm.
+			name:      "the other participant in a direct channel passes via the admin arm",
 			session:   session(th.BasicUser2),
 			channelID: dmChannel.Id,
-			allowed:   false,
+			allowed:   true,
 		},
 		{
 			name:      "system admin can set values on a direct channel",
@@ -3290,10 +3307,14 @@ func TestSessionHasPermissionToSetPropertyFieldValues_ChannelCreator(t *testing.
 			allowed:   true,
 		},
 		{
-			name:      "a group channel has no creator, so no participant qualifies",
+			// A group channel genuinely has no CreatorId, so nobody can pass
+			// the creator arm here — but its participants administer it, so a
+			// member still passes the admin arm. The creator arm is isolated
+			// by the empty-caller row below, which is not a member.
+			name:      "a group channel has no creator, so a participant passes only via the admin arm",
 			session:   session(th.BasicUser),
 			channelID: gmChannel.Id,
-			allowed:   false,
+			allowed:   true,
 		},
 		{
 			name:      "empty caller denies",
@@ -3320,37 +3341,179 @@ func TestSessionHasPermissionToSetPropertyFieldValues_ChannelCreator(t *testing.
 	}
 }
 
-// TestPropertyFieldCreatorLevelIsFailClosed pins the intermediate state while
-// the creator level is being landed. The values slot now resolves (see
-// TestSessionHasPermissionToSetPropertyFieldValues_PostCreator), but the field
-// and options dispatcher has no creator case yet, so a field gating its own
-// definition on creator grants nothing.
-//
-// Flip these expectations to true when the field/options resolver lands. Until
-// then this also catches a permissive `default:` branch being added to
-// hasPropertyFieldPermissionLevel.
-func TestPropertyFieldCreatorLevelIsFailClosed(t *testing.T) {
+func TestPropertyFieldCreatorLevel_FieldAndOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	groupID := registerTestPropertyGroup(t, th)
 
-	authorSession := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
-
-	field := &model.PropertyField{
-		ID:                model.NewId(),
-		GroupID:           groupID,
-		Name:              "post field creator",
-		Type:              model.PropertyFieldTypeText,
-		ObjectType:        model.PropertyFieldObjectTypePost,
-		TargetType:        string(model.PropertyFieldTargetLevelChannel),
-		TargetID:          th.BasicChannel.Id,
-		CreatedBy:         th.BasicUser.Id,
-		PermissionField:   model.NewPointer(model.PermissionLevelCreator),
-		PermissionValues:  model.NewPointer(model.PermissionLevelSysadmin),
-		PermissionOptions: model.NewPointer(model.PermissionLevelCreator),
+	// For the field and options slots the entity is the field itself, so the
+	// creator is its CreatedBy — not the creator of whatever the field is
+	// scoped to. ObjectType stays post because validation only permits the
+	// creator level on post- and channel-object fields.
+	fieldFor := func(target model.PropertyFieldTargetLevel, targetID, createdBy string) *model.PropertyField {
+		return &model.PropertyField{
+			ID:                model.NewId(),
+			GroupID:           groupID,
+			Name:              "creator field " + string(target),
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypePost,
+			TargetType:        string(target),
+			TargetID:          targetID,
+			CreatedBy:         createdBy,
+			PermissionField:   model.NewPointer(model.PermissionLevelCreator),
+			PermissionValues:  model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionOptions: model.NewPointer(model.PermissionLevelCreator),
+		}
 	}
 
-	assert.False(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, authorSession, field))
-	assert.False(t, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, authorSession, field))
+	// The creator must hold no admin role in any of the three scopes, or the
+	// creator rows below would also pass through the admin arm and prove
+	// nothing. th.BasicUser is unsuitable: CreateChannel grants SchemeAdmin to
+	// whoever creates a channel, so BasicUser is a channel admin of
+	// BasicChannel.
+	fieldCreator := th.CreateUser(t)
+	th.LinkUserToTeam(t, fieldCreator, th.BasicTeam)
+	th.AddUserToChannel(t, fieldCreator, th.BasicChannel)
+
+	channelField := fieldFor(model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id, fieldCreator.Id)
+	teamField := fieldFor(model.PropertyFieldTargetLevelTeam, th.BasicTeam.Id, fieldCreator.Id)
+	systemField := fieldFor(model.PropertyFieldTargetLevelSystem, "", fieldCreator.Id)
+
+	// Plugin-created, migration-created and mmctl --local fields all carry an
+	// empty CreatedBy, so such a field must fall back to admin-only rather
+	// than matching anybody.
+	orphanField := fieldFor(model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id, "")
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	channelAdmin := th.CreateUser(t)
+	th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+	th.AddUserToChannel(t, channelAdmin, th.BasicChannel)
+	_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, channelAdmin.Id,
+		model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+	require.Nil(t, appErr)
+
+	teamAdmin := th.CreateUser(t)
+	th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+	_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id,
+		model.TeamUserRoleId+" "+model.TeamAdminRoleId)
+	require.Nil(t, appErr)
+
+	session := func(u *model.User) model.Session {
+		return model.Session{UserId: u.Id, Roles: model.SystemUserRoleId}
+	}
+
+	testCases := []struct {
+		name    string
+		session model.Session
+		field   *model.PropertyField
+		allowed bool
+	}{
+		{
+			name:    "field creator can edit their own channel-scoped field",
+			session: session(fieldCreator),
+			field:   channelField,
+			allowed: true,
+		},
+		{
+			name:    "another channel member cannot",
+			session: session(th.BasicUser2),
+			field:   channelField,
+			allowed: false,
+		},
+		{
+			name:    "channel admin can edit a field they did not create",
+			session: session(channelAdmin),
+			field:   channelField,
+			allowed: true,
+		},
+		{
+			name:    "team admin can edit a channel-scoped field",
+			session: session(teamAdmin),
+			field:   channelField,
+			allowed: true,
+		},
+		{
+			name:    "system admin can edit a channel-scoped field",
+			session: session(th.SystemAdminUser),
+			field:   channelField,
+			allowed: true,
+		},
+		{
+			name:    "field creator can edit their own team-scoped field",
+			session: session(fieldCreator),
+			field:   teamField,
+			allowed: true,
+		},
+		{
+			name:    "plain team member cannot edit a team-scoped field",
+			session: session(th.BasicUser2),
+			field:   teamField,
+			allowed: false,
+		},
+		{
+			name:    "team admin can edit a team-scoped field they did not create",
+			session: session(teamAdmin),
+			field:   teamField,
+			allowed: true,
+		},
+		{
+			// HasPermissionToTeam falls back to the system check, so a sysadmin
+			// passes without being a team member at all.
+			name:    "system admin can edit a team-scoped field",
+			session: session(th.SystemAdminUser),
+			field:   teamField,
+			allowed: true,
+		},
+		{
+			name:    "field creator can edit their own system-scoped field",
+			session: session(fieldCreator),
+			field:   systemField,
+			allowed: true,
+		},
+		{
+			name:    "non-admin cannot edit a system-scoped field they did not create",
+			session: session(th.BasicUser2),
+			field:   systemField,
+			allowed: false,
+		},
+		{
+			name:    "system admin can edit a system-scoped field they did not create",
+			session: session(th.SystemAdminUser),
+			field:   systemField,
+			allowed: true,
+		},
+		{
+			name:    "a field with no recorded creator falls back to admin only",
+			session: session(fieldCreator),
+			field:   orphanField,
+			allowed: false,
+		},
+		{
+			name:    "channel admin can still edit a field with no recorded creator",
+			session: session(channelAdmin),
+			field:   orphanField,
+			allowed: true,
+		},
+		{
+			// The empty-creator guard: the field has CreatedBy "" and this
+			// caller has UserId "". Comparing them with bare equality would
+			// match and grant access, so the guard must reject an empty creator
+			// before comparing.
+			name:    "empty caller does not match a field with no recorded creator",
+			session: model.Session{},
+			field:   orphanField,
+			allowed: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Both slots are pinned to creator, so edit and manage-options must
+			// resolve identically; they share the same dispatcher.
+			assert.Equal(t, tc.allowed, th.App.SessionHasPermissionToEditPropertyField(th.Context, tc.session, tc.field), "edit")
+			assert.Equal(t, tc.allowed, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, tc.session, tc.field), "manage options")
+		})
+	}
 }
