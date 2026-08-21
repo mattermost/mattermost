@@ -14,7 +14,9 @@ import Input from 'components/widgets/inputs/input/input';
 import Constants from 'utils/constants';
 
 import {useGraphNodeDelete} from './attribute_graph_delete_modal';
-import AttributeGraphParentsPane, {type ConfirmGrant} from './attribute_graph_parents_pane';
+import {useGrantConfirm} from './attribute_graph_grant_confirm_modal';
+import AttributeGraphParentsPane from './attribute_graph_parents_pane';
+import type {ConfirmGrant} from './graph_parent_ops';
 import {
     addChildOption,
     addTopLevelOption,
@@ -32,7 +34,6 @@ type Props = {
     options: PropertyFieldOption[];
     onOptionsChange: (options: PropertyFieldOption[]) => void;
     disabled?: boolean;
-    confirmGrant?: ConfirmGrant;
 };
 
 type GraphOccurrence = {
@@ -429,7 +430,8 @@ const GraphRow = React.memo(function GraphRow({
     );
 });
 
-const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false, confirmGrant}: Props) => {
+const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false}: Props) => {
+    const confirmGrant = useGrantConfirm();
     const [draftName, setDraftName] = useState('');
     const [parentsOccurrenceKey, setParentsOccurrenceKey] = useState<string | null>(null);
     const [renamingKey, setRenamingKey] = useState<string | null>(null);

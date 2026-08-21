@@ -10,26 +10,19 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
 
-import type {CheckParentEdgeResult} from './graph_utils';
+import {proposeAddParent, type ConfirmGrant} from './graph_parent_ops';
 import {
-    addParentEdge,
     checkParentEdge,
     cycleErrorValues,
     depthErrorValues,
     getChildren,
     removeParentEdge,
+    type CheckParentEdgeResult,
 } from './graph_utils';
 
 import './attribute_graph_parents_pane.scss';
 
-export type ConfirmGrantRequest = {
-    parentName: string;
-    childName: string;
-    newlyReachable: string[];
-    ancestorsOfParent: string[];
-};
-
-export type ConfirmGrant = (req: ConfirmGrantRequest) => Promise<boolean>;
+export type {ConfirmGrant};
 
 export type AttributeGraphParentsPaneProps = {
     options: PropertyFieldOption[];
@@ -79,38 +72,6 @@ export function classifyParentCandidate(
         }
     }
     return {kind: 'enabled'};
-}
-
-export async function tryAddParent(args: {
-    options: PropertyFieldOption[];
-    childName: string;
-    parentName: string;
-    confirmGrant?: ConfirmGrant;
-    onOptionsChange: (options: PropertyFieldOption[]) => void;
-}): Promise<'applied' | 'no-op' | 'blocked' | 'grant-needed-blocked'> {
-    const result = checkParentEdge(args.options, args.childName, args.parentName);
-    if (result.ok && result.noOp) {
-        return 'no-op';
-    }
-    if (!result.ok) {
-        return 'blocked';
-    }
-    if (result.newlyReachable.length > 0) {
-        if (!args.confirmGrant) {
-            return 'grant-needed-blocked';
-        }
-        const allowed = await args.confirmGrant({
-            parentName: args.parentName,
-            childName: args.childName,
-            newlyReachable: result.newlyReachable,
-            ancestorsOfParent: result.ancestorsOfParent,
-        });
-        if (!allowed) {
-            return 'grant-needed-blocked';
-        }
-    }
-    args.onOptionsChange(addParentEdge(args.options, args.childName, args.parentName));
-    return 'applied';
 }
 
 export function GraphParentEdgeAlert({result, childName, parentName}: {
@@ -203,30 +164,30 @@ function AttributeGraphParentsPane({
     }, [options, optionName, query]);
 
     const handleAdd = useCallback(async (parentName: string) => {
-        const result = checkParentEdge(options, optionName, parentName);
-        const status = await tryAddParent({
-            options,
-            childName: optionName,
-            parentName,
-            confirmGrant,
-            onOptionsChange,
-        });
-        if (status === 'no-op') {
+        const result = await proposeAddParent(options, optionName, parentName, confirmGrant);
+        switch (result.status) {
+        case 'applied':
+            onOptionsChange(result.options);
             setEdgeAlert(null);
             setQuery('');
-            return;
-        }
-        if (status === 'blocked') {
-            setEdgeAlert(result.ok ? null : result);
-            setAlertParentName(parentName);
-            return;
-        }
-        if (status === 'grant-needed-blocked') {
+            break;
+        case 'noOp':
             setEdgeAlert(null);
-            return;
+            setQuery('');
+            break;
+        case 'cancelled':
+        case 'fail-closed':
+            setEdgeAlert(null);
+            break;
+        case 'invalid':
+            setEdgeAlert(result.check);
+            setAlertParentName(parentName);
+            break;
+        default: {
+            const exhaustive: never = result;
+            return exhaustive;
         }
-        setEdgeAlert(null);
-        setQuery('');
+        }
     }, [options, optionName, confirmGrant, onOptionsChange]);
 
     const handleSearchKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {

@@ -10,7 +10,6 @@ import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing
 import AttributeGraphParentsPane, {
     GraphParentEdgeAlert,
     classifyParentCandidate,
-    tryAddParent,
 } from './attribute_graph_parents_pane';
 import {addParentEdge, removeParentEdge} from './graph_utils';
 
@@ -52,21 +51,6 @@ describe('classifyParentCandidate', () => {
         expect(classifyParentCandidate(chain, 'A', 'A')).toEqual({kind: 'disabled', reason: 'self'});
         expect(classifyParentCandidate(chain, 'C', 'B')).toEqual({kind: 'omit'});
         expect(classifyParentCandidate(chain, 'C', 'A')).toEqual({kind: 'enabled'});
-    });
-});
-
-describe('tryAddParent', () => {
-    it('returns no-op for an already-listed parent without calling onOptionsChange', async () => {
-        const options = [opt('A'), opt('B', ['A'])];
-        const onOptionsChange = jest.fn();
-        const status = await tryAddParent({
-            options,
-            childName: 'B',
-            parentName: 'A',
-            onOptionsChange,
-        });
-        expect(status).toBe('no-op');
-        expect(onOptionsChange).not.toHaveBeenCalled();
     });
 });
 
