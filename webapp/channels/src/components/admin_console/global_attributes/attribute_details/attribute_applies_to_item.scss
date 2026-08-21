@@ -1,0 +1,95 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.AttributeAppliesToItem {
+    overflow: hidden;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+}
+
+.AttributeAppliesToItem__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px 0 12px;
+    background: transparent;
+    gap: 8px;
+    transition: background 0.15s ease-in-out;
+}
+
+.AttributeAppliesToItem--open .AttributeAppliesToItem__header {
+    background: rgba(var(--center-channel-color-rgb), 0.03);
+}
+
+// Header already uses gap; Compass .btn + .btn would add a second 8px.
+.AttributeAppliesToItem__header .btn + .btn {
+    margin-left: 0;
+}
+
+// Compass Button always applies .btn.btn-quaternary (blue text, 40px height,
+// hover tint). Repeat those classes here so this accordion chrome wins on
+// specificity regardless of stylesheet order.
+.btn.btn-quaternary.AttributeAppliesToItem__toggle {
+    min-width: 0;
+    height: auto;
+    flex: 1;
+    justify-content: flex-start;
+    padding: 10px 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--center-channel-color);
+
+    &:hover:not(:disabled),
+    &:active:not(:disabled) {
+        background: transparent;
+        color: var(--center-channel-color);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+}
+
+.AttributeAppliesToItem__chevron {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    transition: transform 150ms ease-in-out;
+}
+
+.AttributeAppliesToItem__chevron--open {
+    transform: rotate(-180deg);
+}
+
+.AttributeAppliesToItem__label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn.AttributeAppliesToItem__remove {
+    flex-shrink: 0;
+    margin-right: 12px;
+}
+
+.AttributeAppliesToItem__body {
+    padding: 0 12px 12px;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+}
+
+.AttributeAppliesToItem__row {
+    display: grid;
+    align-items: start;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    column-gap: 12px;
+    grid-template-columns: 176px 1fr;
+
+    &:last-child {
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    > :only-child {
+        grid-column: 1 / -1;
+    }
+}
