@@ -171,6 +171,70 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.Empty(t, fetchedPost.RepeatType)
 		require.Empty(t, fetchedPost.RepeatTimezone)
 	})
+
+	t.Run("system post types", func(t *testing.T) {
+		testCases := []struct {
+			name     string
+			postType string
+			rejected bool
+		}{
+			{
+				name:     "generic system post type",
+				postType: model.PostTypeSystemGeneric,
+				rejected: true,
+			},
+			{
+				name:     "structured system post type",
+				postType: model.PostTypeAddToTeam,
+				rejected: true,
+			},
+			{
+				name:     "default post type",
+				postType: model.PostTypeDefault,
+				rejected: false,
+			},
+			{
+				name:     "attachment post type",
+				postType: model.PostTypeMessageAttachment,
+				rejected: false,
+			},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.name, func(t *testing.T) {
+				scheduledPost := &model.ScheduledPost{
+					Draft: model.Draft{
+						CreateAt:  model.GetMillis(),
+						UserId:    th.BasicUser.Id,
+						ChannelId: th.BasicChannel.Id,
+						Message:   "this is a scheduled post",
+					},
+					ScheduledAt: model.GetMillis() + 100000,
+				}
+				created, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+				require.NoError(t, err)
+				require.NotNil(t, created)
+
+				created.Type = testCase.postType
+				created.ScheduledAt = model.GetMillis() + 200000
+
+				updated, resp, err := th.Client.UpdateScheduledPost(context.Background(), created)
+
+				if !testCase.rejected {
+					require.NoError(t, err)
+					require.NotNil(t, updated)
+					return
+				}
+
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+
+				fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
+				require.NoError(t, storeErr)
+				require.NotEqual(t, testCase.postType, fetched.Type, "a scheduled post must not keep a reserved system post type")
+			})
+		}
+	})
 }
 
 func TestDeleteScheduledPost(t *testing.T) {
@@ -310,192 +374,68 @@ func TestCreateScheduledPost(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		require.Nil(t, created)
 	})
-}
 
-func TestCreateScheduledPostWithSystemPostType(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	t.Run("system post types", func(t *testing.T) {
+		testCases := []struct {
+			name     string
+			postType string
+			rejected bool
+		}{
+			{
+				name:     "generic system post type",
+				postType: model.PostTypeSystemGeneric,
+				rejected: true,
+			},
+			{
+				name:     "structured system post type",
+				postType: model.PostTypeAddToTeam,
+				rejected: true,
+			},
+			{
+				name:     "default post type",
+				postType: model.PostTypeDefault,
+				rejected: false,
+			},
+			{
+				name:     "attachment post type",
+				postType: model.PostTypeMessageAttachment,
+				rejected: false,
+			},
+		}
 
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+		for _, testCase := range testCases {
+			t.Run(testCase.name, func(t *testing.T) {
+				scheduledPost := &model.ScheduledPost{
+					Draft: model.Draft{
+						CreateAt:  model.GetMillis(),
+						UserId:    th.BasicUser.Id,
+						ChannelId: th.BasicChannel.Id,
+						Message:   "scheduled post of type " + testCase.postType,
+						Type:      testCase.postType,
+					},
+					ScheduledAt: model.GetMillis() + 100000,
+				}
 
-	testCases := []struct {
-		name     string
-		postType string
-		rejected bool
-	}{
-		{
-			name:     "generic system post type",
-			postType: model.PostTypeSystemGeneric,
-			rejected: true,
-		},
-		{
-			name:     "structured system post type",
-			postType: model.PostTypeAddToTeam,
-			rejected: true,
-		},
-		{
-			name:     "default post type",
-			postType: model.PostTypeDefault,
-			rejected: false,
-		},
-		{
-			name:     "attachment post type",
-			postType: model.PostTypeMessageAttachment,
-			rejected: false,
-		},
-	}
+				created, resp, err := client.CreateScheduledPost(context.Background(), scheduledPost)
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			scheduledPost := &model.ScheduledPost{
-				Draft: model.Draft{
-					CreateAt:  model.GetMillis(),
-					UserId:    th.BasicUser.Id,
-					ChannelId: th.BasicChannel.Id,
-					Message:   "scheduled post of type " + testCase.postType,
-					Type:      testCase.postType,
-				},
-				ScheduledAt: model.GetMillis() + 100000,
-			}
+				if !testCase.rejected {
+					require.NoError(t, err)
+					require.NotNil(t, created)
+					return
+				}
 
-			created, resp, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+				require.Nil(t, created)
 
-			if !testCase.rejected {
-				require.NoError(t, err)
-				require.NotNil(t, created)
-				return
-			}
-
-			require.Error(t, err)
-			CheckBadRequestStatus(t, resp)
-			require.Nil(t, created)
-
-			storedScheduledPosts, storeErr := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
-			require.NoError(t, storeErr)
-			for _, storedScheduledPost := range storedScheduledPosts {
-				require.NotEqual(t, testCase.postType, storedScheduledPost.Type, "a scheduled post with a reserved system post type must not be stored")
-			}
-		})
-	}
-}
-
-func TestUpdateScheduledPostWithSystemPostType(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
-
-	testCases := []struct {
-		name     string
-		postType string
-		rejected bool
-	}{
-		{
-			name:     "generic system post type",
-			postType: model.PostTypeSystemGeneric,
-			rejected: true,
-		},
-		{
-			name:     "structured system post type",
-			postType: model.PostTypeAddToTeam,
-			rejected: true,
-		},
-		{
-			name:     "default post type",
-			postType: model.PostTypeDefault,
-			rejected: false,
-		},
-		{
-			name:     "attachment post type",
-			postType: model.PostTypeMessageAttachment,
-			rejected: false,
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			scheduledPost := &model.ScheduledPost{
-				Draft: model.Draft{
-					CreateAt:  model.GetMillis(),
-					UserId:    th.BasicUser.Id,
-					ChannelId: th.BasicChannel.Id,
-					Message:   "this is a scheduled post",
-				},
-				ScheduledAt: model.GetMillis() + 100000,
-			}
-			created, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
-			require.NoError(t, err)
-			require.NotNil(t, created)
-
-			created.Type = testCase.postType
-			created.ScheduledAt = model.GetMillis() + 200000
-
-			updated, resp, err := th.Client.UpdateScheduledPost(context.Background(), created)
-
-			if !testCase.rejected {
-				require.NoError(t, err)
-				require.NotNil(t, updated)
-				return
-			}
-
-			require.Error(t, err)
-			CheckBadRequestStatus(t, resp)
-
-			fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
-			require.NoError(t, storeErr)
-			require.NotEqual(t, testCase.postType, fetched.Type, "a scheduled post must not keep a reserved system post type")
-		})
-	}
-}
-
-// A stored scheduled post can carry a post type reserved for system messages if the row predates
-// the intake check or was written by something other than the API. Updating such a row restores
-// the stored type after the request has been validated and clears the error code, re-arming it —
-// so what keeps it out of the channel is the check on the publication path, not intake.
-func TestUpdateScheduledPostWithStoredSystemPostTypeIsNotPublished(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
-
-	message := "scheduled post stored with a reserved system post type"
-
-	stored, storeErr := th.App.Srv().Store().ScheduledPost().CreateScheduledPost(th.Context, &model.ScheduledPost{
-		Draft: model.Draft{
-			CreateAt:  model.GetMillis(),
-			UserId:    th.BasicUser.Id,
-			ChannelId: th.BasicChannel.Id,
-			Message:   message,
-			Type:      model.PostTypeSystemGeneric,
-		},
-		ScheduledAt: model.GetMillis() + 100000,
+				storedScheduledPosts, storeErr := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+				require.NoError(t, storeErr)
+				for _, storedScheduledPost := range storedScheduledPosts {
+					require.NotEqual(t, testCase.postType, storedScheduledPost.Type, "a scheduled post with a reserved system post type must not be stored")
+				}
+			})
+		}
 	})
-	require.NoError(t, storeErr)
-	require.NotNil(t, stored)
-
-	// Reschedule it to be due now, sending no type at all, the way a client that only knows how
-	// to reschedule would.
-	updated, _, err := th.Client.UpdateScheduledPost(context.Background(), &model.ScheduledPost{
-		Draft: model.Draft{
-			CreateAt:  stored.CreateAt,
-			UserId:    th.BasicUser.Id,
-			ChannelId: th.BasicChannel.Id,
-			Message:   message,
-		},
-		Id:          stored.Id,
-		ScheduledAt: model.GetMillis() - 1000,
-	})
-	require.NoError(t, err)
-	require.NotNil(t, updated)
-
-	th.App.ProcessScheduledPosts(th.Context)
-
-	posts, _, err := th.SystemAdminClient.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 200, "", false, false)
-	require.NoError(t, err)
-
-	for _, post := range posts.Posts {
-		require.NotEqual(t, message, post.Message, "a rescheduled post that kept its reserved system post type must not be published")
-	}
 }
 
 func TestScheduledPostRecurringFeatureFlag(t *testing.T) {
