@@ -2,8 +2,6 @@
 @use "utils/mixins";
 @use "utils/variables";
 
-@use 'sass:color';
-
 .admin-console__wrapper {
     overflow: auto;
 }
@@ -628,49 +626,70 @@
     z-index: 10;
     display: flex;
     overflow: clip;
-    width: 220px;
+    width: var(--admin-sidebar-width);
+    height: 100%;
     min-height: 0;
     flex-direction: column;
-    background: #111;
+    background: var(--sys-sidebar-bg);
+    color: var(--sys-sidebar-text);
     grid-area: lhs;
 
     .filter-container {
         position: relative;
+        z-index: 1;
+        flex-shrink: 0;
+        padding: 0px 12px;
+        margin-top: 8px;
+        box-shadow: 0px 8px 8px 0px rgba(var(--sys-sidebar-bg-rgb), 0.75);
 
         .search__icon {
             position: absolute;
-            top: 16px;
-            left: 21px;
+            top: 7px;
+            left: 22px;
             width: 16px;
             height: 16px;
-            fill: rgba(var(--sys-sidebar-text-rgb), 0.75);
-            stroke: #999;
+            fill: rgba(var(--sys-sidebar-text-rgb), 0.64);
         }
 
-        .filter {
-            width: 204px;
-            padding: 5px 36px;
-            border: 1px solid #666;
-            border-radius: 20px;
-            margin: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            color: variables.$white;
-            font-size: 14px;
-            outline: none;
+        .input-wrapper {
+            display: flex;
+    
+            .filter {
+                flex-grow: 1;
+                padding: 6px 12px 6px 32px;
+                border: none;
+                border-radius: var(--radius-s);
+                background: rgba(var(--sys-sidebar-text-rgb), 0.08);
+                color: var(--sys-sidebar-text);
+                font-size: 14px;
+                outline: none;
+                transition: background-color 0.2s ease-in-out;
 
-            &:focus,
-            &.active {
-                border: 2px solid variables.$primary-color;
-                margin: 7px;
+                &::placeholder {
+                    color: rgba(var(--sys-sidebar-text-rgb), 0.64);
+                    opacity: 1;
+                }
+
+                &:hover {
+                    background: rgba(var(--sys-sidebar-text-rgb), 0.12);
+                }
+    
+                &:focus,
+                &:focus:hover,
+                &.active {
+                    background: rgba(var(--sys-sidebar-text-rgb), 0.08);
+                    outline: 2px solid var(--sys-button-bg);
+                }
             }
-        }
-
-        .input-clear {
-            .input-clear-x {
-                position: absolute;
-                right: 16px;
-                color: variables.$white;
-                font-weight: bold;
+    
+            .input-clear {
+                .input-clear-x {
+                    position: absolute;
+                    top: 5px;
+                    right: 13px;
+                    color: rgba(var(--sys-sidebar-text-rgb), 0.56);
+                    font-weight: bold;
+                }
             }
         }
     }
@@ -707,18 +726,19 @@
         background: transparent;
     }
 
-    .nav-pills__container {
-        @include mixins.font-smoothing(initial);
+    [data-simplebar] {
+        min-height: 0;
+        flex: 1;
+    }
 
+    .nav-pills__container {
         position: relative;
-        height: calc(100% - 68px);
+        padding-top: 16px;
         padding-bottom: 20px;
-        margin-top: 1px;
         overflow-x: hidden;
 
         ul {
             padding-bottom: 20px;
-            margin-top: 1px;
 
             &.nav-stacked.task-list-shown {
                 padding-bottom: 72px;
@@ -727,19 +747,39 @@
     }
 
     .sidebar-category {
-        margin-top: 0;
+        & + .sidebar-category {
+            position: relative;
+            padding-top: 12px;
+            margin-top: 8px;
+
+            &::before {
+                position: absolute;
+                top: 0;
+                right: 12px;
+                left: 12px;
+                border-top: 1px solid rgba(var(--sys-sidebar-text-rgb), 0.08);
+                content: "";
+            }
+
+            .category-title {
+                margin-top: 0;
+            }
+        }
 
         .category-title {
-            padding: 10px 12px;
-            background: functions.alpha-color(variables.$white, 0.15);
-            color: variables.$white;
-            line-height: 15.4px;
+            padding: 4px 12px 4px 22px;
+            color: var(--sys-sidebar-text);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            line-height: 16px;
             text-transform: uppercase;
 
             .category-icon {
-                top: 6px;
+                position: relative;
+                top: -1px;
                 overflow: hidden;
-                width: 16px;
+                width: 14px;
                 margin-right: 6px;
                 text-align: center;
                 vertical-align: bottom;
@@ -755,7 +795,7 @@
         }
 
         .sections {
-            padding: 5px 0;
+            padding: 0;
         }
     }
 
@@ -773,23 +813,6 @@
         }
     }
 
-    .sections {
-        &.sections--settings {
-            .sidebar-section-title {
-                text-transform: uppercase;
-
-                &:hover,
-                &:focus {
-                    color: functions.alpha-color(variables.$white, 0.5);
-                }
-            }
-        }
-    }
-
-    .sidebar-section-title {
-        padding: 6px 35px 6px 12px;
-    }
-
     .sidebar-section-tag {
         position: relative;
         top: -1px;
@@ -797,8 +820,8 @@
         padding: 0 4px 0 4px;
         border-radius: 4px;
         margin-left: 8px;
-        background-color: rgba(255, 255, 255, 0.75);
-        color: rgba(61, 60, 64, 1);
+        background-color: rgba(var(--sys-sidebar-text-rgb), 0.75);
+        color: var(--sys-sidebar-bg);
         font-size: 10px;
         font-weight: 600;
         text-transform: uppercase;
@@ -812,19 +835,9 @@
         height: 100%;
 
         i {
-            color: functions.alpha-color(variables.$white, 0.5);
+            color: rgba(var(--sys-sidebar-text-rgb), 0.64);
             font-size: 14px;
             line-height: 14px;
-        }
-    }
-
-    .sidebar-subsection-title {
-        padding: 6px 35px 6px 30px;
-
-        &--active {
-            &::after {
-                top: 4px;
-            }
         }
     }
 
@@ -832,53 +845,48 @@
     .sidebar-subsection-title {
         position: relative;
         display: block;
-        color: functions.alpha-color(variables.$white, 0.5);
-        font-size: 13px;
+        padding: 6px 24px 6px 10px;
+        border-radius: var(--radius-s);
+        margin: 0 12px;
+        color: rgba(var(--sys-sidebar-text-rgb), 0.75);
+        letter-spacing: 0.01em;
+        transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 
         &:focus {
             text-decoration: none;
         }
 
         &:hover {
-            color: color.adjust(variables.$primary-color, $lightness: 10%);
+            background-color: rgba(var(--sys-sidebar-text-rgb), 0.08);
+            color: var(--sys-sidebar-text);
             text-decoration: none;
-
-            i {
-                color: color.adjust(variables.$primary-color, $lightness: 10%);
-            }
         }
 
         &--active {
-            background: functions.alpha-color(variables.$white, 0.1);
-            color: variables.$white;
+            padding-left: 8px;
+            border-left: 2px solid var(--sys-sidebar-text-active-border);
+            background: rgba(var(--sys-sidebar-text-rgb), 0.12);
+            color: var(--sys-sidebar-text);
+            font-weight: 600;
 
             i {
-                color: variables.$white;
+                color: var(--sys-sidebar-text);
             }
 
             &:hover,
             &:focus {
-                background: functions.alpha-color(variables.$white, 0.1);
-                color: variables.$white;
+                background: rgba(var(--sys-sidebar-text-rgb), 0.16);
+                color: var(--sys-sidebar-text);
 
                 i {
-                    color: variables.$white;
+                    color: var(--sys-sidebar-text);
                 }
             }
-
-            &::after {
-                position: absolute;
-                top: 2px;
-                right: -1px;
-                display: inline-block;
-                color: whitesmoke;
-                content: "\f0d9";
-                font: normal normal normal 26px/1 FontAwesome;
-                -moz-osx-font-smoothing: grayscale;
-                -webkit-font-smoothing: antialiased;
-                text-rendering: auto;
-            }
         }
+    }
+
+    .sidebar-subsection-title {
+        padding: 6px 24px 6px 20px;
     }
 
     .menu-icon--right {
@@ -895,7 +903,7 @@
         .fa {
             position: relative;
             right: -2px;
-            color: variables.$white;
+            color: var(--sys-sidebar-text);
             font-size: 13px;
         }
 

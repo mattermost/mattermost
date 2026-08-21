@@ -31,11 +31,11 @@ import {isKeyPressed} from 'utils/keyboard';
 
 import {SubMenuContext, useMenuContextValue} from './menu_context';
 import {MenuItem} from './menu_item';
-import type {Props as MenuItemProps} from './menu_item';
+import type {FirstMenuItemProps, Props as MenuItemProps} from './menu_item';
 
 import './menu.scss';
 
-interface Props {
+interface Props extends FirstMenuItemProps {
     id: MenuItemProps['id'];
     leadingElement?: MenuItemProps['leadingElement'];
     labels: MenuItemProps['labels'];
