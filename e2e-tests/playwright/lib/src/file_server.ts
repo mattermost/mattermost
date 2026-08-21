@@ -6,6 +6,11 @@ import path from 'node:path';
 
 import {test} from './test_fixture';
 
+import {testConfig} from '@/test_config';
+
+/** Hostname that Docker Desktop resolves to the host from inside containers. */
+export const DOCKER_HOST_INTERNAL = 'host.docker.internal';
+
 /**
  * Starts a server that serves files from ./asset. When run from the monorepo, this will serve files from
  * e2e-tests/playwright/asset.
@@ -48,7 +53,7 @@ export function setupFileServer(): Promise<string> {
                 fileServer.once('message', (message: {type?: string; port?: number}) => {
                     if (message?.type === 'listening' && message.port) {
                         clearTimeout(timeout);
-                        resolve(`http://localhost:${message.port}`);
+                        resolve(`http://${fileServerHost()}:${message.port}`);
                     }
                 });
 
@@ -59,4 +64,23 @@ export function setupFileServer(): Promise<string> {
             });
         }
     });
+}
+
+/**
+ * Host used in file-server URLs embedded in posts. Must be reachable from both the host-side
+ * browser (Markdown images load directly) and the Mattermost container (link previews / metadata).
+ *
+ * - Docker Desktop (macOS/Windows): the bridge gateway does not forward to host listeners; use
+ *   host.docker.internal (resolves to loopback on the host, and to the host from containers).
+ * - Linux CI: the bridge gateway IP is the host and works from both sides; host.docker.internal
+ *   is often absent from host DNS.
+ */
+export function fileServerHost(): string {
+    if (!testConfig.useTestContainers) {
+        return 'localhost';
+    }
+    if (process.platform === 'darwin' || process.platform === 'win32') {
+        return DOCKER_HOST_INTERNAL;
+    }
+    return testConfig.testcontainersNetworkGatewayIp || DOCKER_HOST_INTERNAL;
 }
