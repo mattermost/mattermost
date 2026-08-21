@@ -123,6 +123,16 @@ func TestFeatureFlagsIsValid(t *testing.T) {
 		require.Nil(t, f.isValid())
 	})
 
+	t.Run("AppsEnabled is rejected", func(t *testing.T) {
+		f := &FeatureFlags{}
+		f.SetDefaults()
+		f.AppsEnabled = true
+
+		appErr := f.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.feature_flags.apps_enabled.app_error", appErr.Id)
+	})
+
 	t.Run("MoveThreadsEnabled is rejected", func(t *testing.T) {
 		f := &FeatureFlags{}
 		f.SetDefaults()
@@ -132,6 +142,21 @@ func TestFeatureFlagsIsValid(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.feature_flags.move_threads_enabled.app_error", appErr.Id)
 	})
+}
+
+func TestConfigIsValidAppsEnabled(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+	require.Nil(t, c.IsValid())
+
+	c.FeatureFlags.AppsEnabled = true
+	appErr := c.IsValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.feature_flags.apps_enabled.app_error", appErr.Id)
+
+	// A nil FeatureFlags must not panic the validation chain.
+	c.FeatureFlags = nil
+	require.Nil(t, c.IsValid())
 }
 
 func TestConfigIsValidMoveThreadsEnabled(t *testing.T) {
@@ -2197,7 +2222,7 @@ func TestConfigSanitize(t *testing.T) {
 	t.Run("partially sanitize DataSource", func(t *testing.T) {
 		c := Config{}
 		c.SetDefaults()
-		*c.SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable"
+		*c.SqlSettings.DataSource = "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable"
 		c.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
 
 		expectedURL := "postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost:5432/mattermost_test?sslmode=disable"
@@ -2479,15 +2504,15 @@ func TestSanitizeDataSource(t *testing.T) {
 				"",
 			},
 			{
-				"postgres://mmuser:mostest@localhost",
+				"postgres://mmuser:mostest_password@localhost",
 				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost",
 			},
 			{
-				"postgres://mmuser:mostest@localhost/dummy?sslmode=disable",
+				"postgres://mmuser:mostest_password@localhost/dummy?sslmode=disable",
 				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost/dummy?sslmode=disable",
 			},
 			{
-				"postgres://localhost/dummy?sslmode=disable&user=mmuser&password=mostest",
+				"postgres://localhost/dummy?sslmode=disable&user=mmuser&password=mostest_password",
 				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost/dummy?sslmode=disable",
 			},
 		}

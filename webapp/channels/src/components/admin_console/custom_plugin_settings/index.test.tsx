@@ -103,6 +103,154 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByText('This is the footer')).toBeInTheDocument();
     });
 
+    it('renders top-level settings together with sections', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: {
+                            ...plugin,
+                            settings_schema: {
+                                ...plugin.settings_schema,
+                                settings: [{
+                                    key: 'topLevelSetting',
+                                    display_name: 'Top-level Setting',
+                                    type: 'text' as const,
+                                    help_text: 'Top-level setting help text',
+                                    placeholder: '',
+                                    default: '',
+                                }],
+                                sections: [{
+                                    key: 'section1',
+                                    title: 'Section 1',
+                                    settings: [{
+                                        key: 'sectionSetting',
+                                        display_name: 'Section Setting',
+                                        type: 'text' as const,
+                                        help_text: 'Section setting help text',
+                                        placeholder: '',
+                                        default: '',
+                                    }],
+                                }],
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                patchConfig={jest.fn()}
+            />,
+            state,
+        );
+
+        expect(screen.getByText('Top-level Setting')).toBeInTheDocument();
+        expect(screen.getByText('Section 1')).toBeInTheDocument();
+        expect(screen.getByText('Section Setting')).toBeInTheDocument();
+    });
+
+    it('renders warnings for top-level custom settings when plugin activation failed', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: {
+                            ...plugin,
+                            active: false,
+                            settings_schema: {
+                                ...plugin.settings_schema,
+                                settings: [
+                                    {
+                                        key: 'customSetting1',
+                                        display_name: 'Custom Setting 1',
+                                        type: 'custom' as const,
+                                        help_text: '',
+                                    },
+                                    {
+                                        key: 'customSetting2',
+                                        display_name: 'Custom Setting 2',
+                                        type: 'custom' as const,
+                                        help_text: '',
+                                    },
+                                ],
+                                sections: [{
+                                    key: 'section1',
+                                    title: 'Section 1',
+                                    settings: [],
+                                }],
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                config={{
+                    PluginSettings: {
+                        PluginStates: {
+                            testplugin: {
+                                Enable: true,
+                            },
+                        },
+                        Plugins: {
+                            testplugin: {},
+                        },
+                    } as unknown as PluginSettings,
+                }}
+                patchConfig={jest.fn()}
+            />,
+            state,
+        );
+
+        expect(screen.getAllByText('In order to view this setting, enable the plugin and click Save.')).toHaveLength(2);
+        expect(screen.getByText('Section 1')).toBeInTheDocument();
+    });
+
+    it('renders top-level settings when sections is empty', () => {
+        const state = {
+            ...baseState,
+            entities: {
+                admin: {
+                    plugins: {
+                        testplugin: {
+                            ...plugin,
+                            settings_schema: {
+                                ...plugin.settings_schema,
+                                settings: [{
+                                    key: 'topLevelSetting',
+                                    display_name: 'Top-level Setting',
+                                    type: 'text' as const,
+                                    help_text: 'Top-level setting help text',
+                                    placeholder: '',
+                                    default: '',
+                                }],
+                                sections: [],
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <CustomPluginSettings
+                {...baseProps}
+                patchConfig={jest.fn()}
+            />,
+            state,
+        );
+
+        expect(screen.getByText('Top-level Setting')).toBeInTheDocument();
+    });
+
     it('renders plugin metadata with distinct display name and id', () => {
         const pluginId = 'com.mattermost.fl3xx';
         const pluginName = 'FL3XX';
