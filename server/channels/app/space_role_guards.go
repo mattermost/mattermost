@@ -165,7 +165,7 @@ func rejectSpaceCapabilityRoleOutsideSpace(rctx request.CTX, where, roleName str
 func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *model.AppError {
 	// Ahead of the add diff, because a capability role is frozen in both
 	// directions. Diffing first would accept a write that only *removes* a page
-	// permission — dropping read_page from docs_space_page_editor degrades every
+	// permission — dropping read_page from docs_pg_edit degrades every
 	// member holding it on every space, and the seeding migration does not repair
 	// it: its existence check short-circuits on the first read and only compares
 	// permission sets on the lost-insert-race path.

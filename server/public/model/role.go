@@ -409,11 +409,11 @@ const (
 	// a space's backing channel in any subset. Deliberately NOT listed in
 	// BuiltInSchemeManagedRoleIDs: membership there would make
 	// UpdateChannelMemberRoles reject every ExplicitRoles assignment of them.
-	SpacePageCreatorRoleId    = "docs_space_page_creator"
-	SpacePageCommenterRoleId  = "docs_space_page_commenter"
-	SpacePageEditorRoleId     = "docs_space_page_editor"
-	SpacePageDeleterOwnRoleId = "docs_space_page_deleter_own"
-	SpacePageDeleterRoleId    = "docs_space_page_deleter"
+	SpacePageCreatorRoleId    = "docs_pg_create"
+	SpacePageCommenterRoleId  = "docs_pg_cmt"
+	SpacePageEditorRoleId     = "docs_pg_edit"
+	SpacePageDeleterOwnRoleId = "docs_pg_del_own"
+	SpacePageDeleterRoleId    = "docs_pg_del"
 
 	CustomGroupUserRoleId = "custom_group_user"
 
