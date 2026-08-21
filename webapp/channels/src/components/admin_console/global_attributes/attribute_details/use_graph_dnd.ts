@@ -97,6 +97,105 @@ export function canDropOnGraphRow(
     return true;
 }
 
+export type GraphDropAlert = {
+    check: Extract<ProposeParentResult, {status: 'invalid'}>['check'];
+    childName: string;
+    parentName: string;
+};
+
+/** Canvas alert payload. `null` means clear (applied / noOp / cancel / self). */
+export function dropAlertFromProposeResult(
+    result: ProposeParentResult,
+    names: {childName: string; parentName: string},
+): GraphDropAlert | null {
+    switch (result.status) {
+    case 'applied':
+    case 'noOp':
+    case 'cancelled':
+    case 'fail-closed':
+        return null;
+    case 'invalid':
+        if (result.check.error === 'self') {
+            return null;
+        }
+        return {check: result.check, childName: names.childName, parentName: names.parentName};
+    default: {
+        const exhaustive: never = result;
+        return exhaustive;
+    }
+    }
+}
+
+const GRAPH_ROW_TEST_ID = 'attributeOptionsGraphRow';
+const HONEY_POT_ATTR = 'data-pdnd-honey-pot';
+
+/**
+ * Innermost graph row under the pointer. Skips the PDND honey-pot so a
+ * dragend-without-drop can still resolve the hovered occurrence.
+ */
+export function graphRowDragDataAtPoint(clientX: number, clientY: number): GraphRowDragData | null {
+    const stack = typeof document.elementsFromPoint === 'function' ?
+        document.elementsFromPoint(clientX, clientY) :
+        [];
+    for (const node of stack) {
+        if (!(node instanceof Element) || node.hasAttribute(HONEY_POT_ATTR)) {
+            continue;
+        }
+        const row = node.closest(`[data-testid="${GRAPH_ROW_TEST_ID}"]`);
+        if (!(row instanceof HTMLElement)) {
+            continue;
+        }
+        const optionName = row.getAttribute('data-option-name');
+        if (!optionName) {
+            return null;
+        }
+        const parentAttr = row.getAttribute('data-parent-name');
+        return {
+            kind: GRAPH_ROW_DRAG_KIND,
+            optionName,
+            parentName: parentAttr ? parentAttr : null,
+        };
+    }
+    return null;
+}
+
+/**
+ * PDND `cancel()` clears dropTargets before `onDrop` when the browser never
+ * fires native `drop` (dragend only). Hit-test the row under the pointer and
+ * synthesize the cycle path only — never apply a legal reparent here, so
+ * Escape / cancel cannot mutate.
+ */
+export async function handleMissedNativeGraphRowDrop(args: {
+    sourceData: Record<string | symbol, unknown>;
+    input: {clientX: number; clientY: number};
+    options: PropertyFieldOption[];
+    confirmGrant: ConfirmGrant | undefined;
+    onOptionsChange: (options: PropertyFieldOption[]) => void;
+    onDropResult: (result: ProposeParentResult, names: {childName: string; parentName: string}) => void;
+}): Promise<void> {
+    const target = graphRowDragDataAtPoint(args.input.clientX, args.input.clientY);
+    if (!target) {
+        return;
+    }
+    if (!isGraphRowDragData(args.sourceData)) {
+        return;
+    }
+    if (!canDropOnGraphRow(args.sourceData, target, args.options)) {
+        return;
+    }
+    if (canReparentGraphRow(args.sourceData, target, args.options)) {
+        return;
+    }
+    await handleGraphRowDrop({
+        sourceData: args.sourceData,
+        target,
+        options: args.options,
+        confirmGrant: args.confirmGrant,
+        onOptionsChange: args.onOptionsChange,
+        onDropResult: args.onDropResult,
+    });
+}
+
 export type UseGraphRowDndOptions = {
     rowElement: HTMLElement | null;
     handleElement: HTMLElement | null;
@@ -152,6 +251,21 @@ export function useGraphRowDnd({
                     optionName,
                     parentName,
                 }),
+                onDrop: ({source, location}) => {
+                    // Native `drop` notifies the row target. dragend-without-drop
+                    // goes through PDND cancel() which has already cleared dropTargets.
+                    if (location.current.dropTargets.length > 0) {
+                        return;
+                    }
+                    void handleMissedNativeGraphRowDrop({
+                        sourceData: source.data,
+                        input: location.current.input,
+                        options: optionsRef.current,
+                        confirmGrant: confirmGrantRef.current,
+                        onOptionsChange: onOptionsChangeRef.current,
+                        onDropResult: onDropResultRef.current,
+                    });
+                },
             }),
             dropTargetForElements({
                 element: rowElement,
@@ -167,7 +281,7 @@ export function useGraphRowDnd({
                 onDragLeave: () => setIsOver(false),
                 onDrop: ({source}) => {
                     setIsOver(false);
-                    handleGraphRowDrop({
+                    void handleGraphRowDrop({
                         sourceData: source.data,
                         target,
                         options: optionsRef.current,

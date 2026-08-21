@@ -7,9 +7,12 @@ import * as graphUtils from './graph_utils';
 import {
     canDropOnGraphRow,
     canReparentGraphRow,
+    dropAlertFromProposeResult,
     dropWouldAddNetNewEdge,
     GRAPH_ROW_DRAG_KIND,
+    graphRowDragDataAtPoint,
     handleGraphRowDrop,
+    handleMissedNativeGraphRowDrop,
     isGraphRowDragData,
     isSameGraphOccurrence,
     type GraphRowDragData,
@@ -224,5 +227,88 @@ describe('handleGraphRowDrop', () => {
         expect(onDropResult).toHaveBeenCalledWith(expect.objectContaining({status: 'applied'}), {childName: 'C', parentName: 'P'});
         const next = onOptionsChange.mock.calls[0][0] as PropertyFieldOption[];
         expect(next.find((option) => option.name === 'C')?.parents).toEqual(['P']);
+    });
+});
+
+describe('dropAlertFromProposeResult', () => {
+    test('cycle invalid maps parent D child C; self and noOp clear', () => {
+        expect(dropAlertFromProposeResult(
+            {status: 'invalid', check: {ok: false, error: 'cycle'}},
+            {childName: 'C', parentName: 'D'},
+        )).toEqual({
+            check: {ok: false, error: 'cycle'},
+            childName: 'C',
+            parentName: 'D',
+        });
+        expect(dropAlertFromProposeResult(
+            {status: 'invalid', check: {ok: false, error: 'self'}},
+            {childName: 'D', parentName: 'D'},
+        )).toBeNull();
+        expect(dropAlertFromProposeResult({status: 'noOp'}, {childName: 'C', parentName: 'R'})).toBeNull();
+    });
+});
+
+function graphRowEl(optionName: string, parentName: string) {
+    const li = document.createElement('li');
+    li.setAttribute('data-testid', 'attributeOptionsGraphRow');
+    li.setAttribute('data-option-name', optionName);
+    li.setAttribute('data-parent-name', parentName);
+    return li;
+}
+
+describe('handleMissedNativeGraphRowDrop', () => {
+    afterEach(() => {
+        Reflect.deleteProperty(document, 'elementsFromPoint');
+    });
+
+    function stubElementsFromPoint(stack: Element[]) {
+        Object.defineProperty(document, 'elementsFromPoint', {
+            configurable: true,
+            value: () => stack,
+        });
+    }
+
+    test('descendant under the pointer synthesizes cycle invalid without mutating', async () => {
+        const dRow = graphRowEl('D', 'S');
+        const honey = document.createElement('div');
+        honey.setAttribute('data-pdnd-honey-pot', 'true');
+        stubElementsFromPoint([honey, dRow]);
+
+        expect(graphRowDragDataAtPoint(0, 0)).toEqual(dAtS);
+
+        const onOptionsChange = jest.fn();
+        const onDropResult = jest.fn();
+        await handleMissedNativeGraphRowDrop({
+            sourceData: cAtR,
+            input: {clientX: 0, clientY: 0},
+            options: g6,
+            confirmGrant: jest.fn(),
+            onOptionsChange,
+            onDropResult,
+        });
+
+        expect(onOptionsChange).not.toHaveBeenCalled();
+        expect(onDropResult).toHaveBeenCalledWith(
+            {status: 'invalid', check: {ok: false, error: 'cycle'}},
+            {childName: 'C', parentName: 'D'},
+        );
+    });
+
+    test('legal row under the pointer does not apply on a missed native drop', async () => {
+        stubElementsFromPoint([graphRowEl('S', '')]);
+
+        const onOptionsChange = jest.fn();
+        const onDropResult = jest.fn();
+        await handleMissedNativeGraphRowDrop({
+            sourceData: cAtR,
+            input: {clientX: 0, clientY: 0},
+            options: g6,
+            confirmGrant: jest.fn(),
+            onOptionsChange,
+            onDropResult,
+        });
+
+        expect(onOptionsChange).not.toHaveBeenCalled();
+        expect(onDropResult).not.toHaveBeenCalled();
     });
 });

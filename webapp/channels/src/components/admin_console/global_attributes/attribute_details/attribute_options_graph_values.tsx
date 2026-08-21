@@ -32,7 +32,7 @@ import {
     wouldExceedMaxOptions,
     type CheckParentEdgeResult,
 } from './graph_utils';
-import {useGraphRowDnd} from './use_graph_dnd';
+import {dropAlertFromProposeResult, useGraphRowDnd} from './use_graph_dnd';
 
 import './attribute_options_graph_values.scss';
 
@@ -538,32 +538,19 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
         result: ProposeParentResult,
         names: {childName: string; parentName: string},
     ) => {
-        switch (result.status) {
-        case 'applied':
-        case 'noOp':
-        case 'cancelled':
-        case 'fail-closed':
+        const nextAlert = dropAlertFromProposeResult(result, names);
+        if (!nextAlert) {
             clearDropAlert();
-            break;
-        case 'invalid':
-            if (result.check.error === 'self') {
-                clearDropAlert();
-                break;
-            }
-            setDropAlert({check: result.check, childName: names.childName, parentName: names.parentName});
-            if (dropAlertTimeoutRef.current !== null) {
-                window.clearTimeout(dropAlertTimeoutRef.current);
-            }
-            dropAlertTimeoutRef.current = window.setTimeout(() => {
-                setDropAlert(null);
-                dropAlertTimeoutRef.current = null;
-            }, DROP_ALERT_TIMEOUT_MS);
-            break;
-        default: {
-            const exhaustive: never = result;
-            throw exhaustive;
+            return;
         }
+        setDropAlert(nextAlert);
+        if (dropAlertTimeoutRef.current !== null) {
+            window.clearTimeout(dropAlertTimeoutRef.current);
         }
+        dropAlertTimeoutRef.current = window.setTimeout(() => {
+            setDropAlert(null);
+            dropAlertTimeoutRef.current = null;
+        }, DROP_ALERT_TIMEOUT_MS);
     }, [clearDropAlert]);
 
     useEffect(() => {
