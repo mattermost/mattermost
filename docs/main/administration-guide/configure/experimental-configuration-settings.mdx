@@ -13,10 +13,10 @@ Review and manage the following [experimental](/administration-guide/manage/feat
 
 <Tip>
 
-System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, the `EmailBatchingBufferSize` value is under `EmailSettings`.
+System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, the `LinkMetadataTimeoutMilliseconds` value is under `ExperimentalSettings`.
 
-- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.EmailSettings.EmailBatchingBufferSize'`
-- When working with the `config.json` file manually, look for an object such as `EmailSettings`, then within that object, find the key `EmailBatchingBufferSize`.
+- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.ExperimentalSettings.LinkMetadataTimeoutMilliseconds'`
+- When working with the `config.json` file manually, look for an object such as `ExperimentalSettings`, then within that object, find the key `LinkMetadataTimeoutMilliseconds`.
 
 </Tip>
 
@@ -52,51 +52,6 @@ Adds a configurable timeout for requests made to return link metadata. If the me
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>"LinkMetadataTimeoutMilliseconds</code>: 5000`` with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
-### Email batching buffer size
-
-Specify the maximum number of notifications batched into a single email.
-
-<Note>
-
-- We recommend increasing the buffer size from the default value if you see the following error in the Mattermost logs: `Email batching job's receiving buffer was full. Please increase the EmailBatchingBufferSize. Falling back to sending immediate mail.` Increasing this value will ensure emails are queued up, without impacting server performance.
-- Notifications will be sent instantly if the queue of emails exceeds the [email batching interval](#email-batching-interval) configured.
-
-</Note>
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>EmailBatchingBufferSize</code>: 256`` with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
-### Email batching interval
-
-Specify the maximum frequency, in seconds, which the batching job checks for new notifications.
-
-<Note>
-
-- We recommend decreasing the email batching interval from the default value if you see the following error in the Mattermost logs: `Email batching job's receiving buffer was full. Please increase the EmailBatchingBufferSize. Falling back to sending immediate mail.`.
-- Longer batching intervals may increase performance.
-- Notifications will be sent instantly if the [queue of emails](#email-batching-buffer-size) exceeds the email batching interval configured.
-
-</Note>
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>EmailBatchingInterval": 30</code> with numerical input.</td>
 </tr>
 </tbody>
 </table>
@@ -240,23 +195,6 @@ If the team URL of the primary team is `https://example.mattermost.com/myteam/`,
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>"ExperimentalPrimaryTeam": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### Use channel name in email notifications
-
-**True**: Channel and team name appears in email notification subject lines. Useful for servers using only one team.
-
-**False**: Only team name appears in email notification subject line.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"UseChannelInEmailNotifications": false</code> with options <code>true</code> and <code>false</code>.</td>
 </tr>
 </tbody>
 </table>

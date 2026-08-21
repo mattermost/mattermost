@@ -1115,6 +1115,54 @@ Cloud admins can't modify this configuration setting.
 
 </Note>
 
+### Email batching buffer size
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Specify the maximum number of notifications batched into a single email.</p><p>Numerical input. Default is <code>256</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>EmailBatchingBufferSize</code> &gt; <code>256</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_EMAILBATCHINGBUFFERSIZE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- Cloud admins can't modify this configuration setting.
+- This setting only applies when [email batching](#enable-email-batching) is enabled.
+- We recommend increasing the buffer size from the default value if you see the following error in the Mattermost logs: `Email batching job's receiving buffer was full. Please increase the EmailBatchingBufferSize. Falling back to sending immediate mail.` Increasing this value will ensure emails are queued up, without impacting server performance.
+- Notifications are sent immediately when the receiving buffer is full.
+
+</Note>
+
+### Email batching interval
+
+<table>
+<colgroup>
+<col style={{width: '49%'}} />
+<col style={{width: '50%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>Specify the maximum frequency, in seconds, which the batching job checks for new notifications.</p><p>Numerical input in seconds. Default is <code>30</code>.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>EmailBatchingInterval</code> &gt; <code>30</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_EMAILBATCHINGINTERVAL</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+- Cloud admins can't modify this configuration setting.
+- This setting only applies when [email batching](#enable-email-batching) is enabled.
+- Longer batching intervals may increase performance.
+- Notifications are sent immediately when the receiving buffer is full. If that occurs, increase [Email batching buffer size](#email-batching-buffer-size).
+
+</Note>
+
 ### Email notification contents
 
 <PlanAvailability slug="ent-plus" />
@@ -1128,6 +1176,21 @@ Cloud admins can't modify this configuration setting.
 <tr>
 <td><ul><li><strong>Send full message contents</strong>: <strong>(Default)</strong> Email notifications include the full message contents, along with the name of the sender and the channel. <code>config.json</code> setting: <code>"full"</code></li><li><strong>Send generic description with only sender name</strong>: Only the name of the sender and team name are included in email notifications. Use this option if Mattermost contains confidential information and policy dictates it cannot be stored in email. <code>config.json</code> setting: <code>"generic"</code></li></ul></td>
 <td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>EmailNotificationContentsType</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_EMAILNOTIFICATIONCONTENTSTYPE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+### Use channel name in email notifications
+
+<table>
+<colgroup>
+<col style={{width: '66%'}} />
+<col style={{width: '33%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: Channel and team name appears in email notification subject lines. Useful for servers using only one team.</li><li><strong>false</strong>: <strong>(Default)</strong> Only team name appears in email notification subject line.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Notifications</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>UseChannelInEmailNotifications</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_USECHANNELINEMAILNOTIFICATIONS</code></li></ul></td>
 </tr>
 </tbody>
 </table>
