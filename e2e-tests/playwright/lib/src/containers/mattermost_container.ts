@@ -38,15 +38,15 @@ function structuralEnv(): Record<string, string> {
         MM_EMAILSETTINGS_SMTPSERVER: INBUCKET_ALIAS,
         MM_EMAILSETTINGS_SMTPPORT: String(INBUCKET_SMTP_PORT),
         ...(process.env.MM_LICENSE ? {MM_LICENSE: process.env.MM_LICENSE} : {}),
-        // Overrides (not merges) SERVER_ENV_BASELINE's own value for this same key — appends the
-        // network's gateway IP so the SSRF guard also allows fetching from file_server.ts's mock
-        // file server, reachable at that address (see test_config.ts). Only known once the
-        // network is up (testConfig.testcontainersNetworkGatewayIp is set by stack.ts's
-        // startStack() before this container ever starts), so falls back to the baseline's own
-        // value verbatim on the off chance this ever runs without it.
-        MM_SERVICESETTINGS_ALLOWEDUNTRUSTEDINTERNALCONNECTIONS: testConfig.testcontainersNetworkGatewayIp
-            ? `${SERVER_ENV_BASELINE.MM_SERVICESETTINGS_ALLOWEDUNTRUSTEDINTERNALCONNECTIONS} ${testConfig.testcontainersNetworkGatewayIp}`
-            : SERVER_ENV_BASELINE.MM_SERVICESETTINGS_ALLOWEDUNTRUSTEDINTERNALCONNECTIONS,
+        // Replaces the baseline for this key: appends mock file-server hosts (host.docker.internal
+        // and the bridge gateway IP, set by startStack() once the network is up).
+        MM_SERVICESETTINGS_ALLOWEDUNTRUSTEDINTERNALCONNECTIONS: [
+            SERVER_ENV_BASELINE.MM_SERVICESETTINGS_ALLOWEDUNTRUSTEDINTERNALCONNECTIONS,
+            'host.docker.internal',
+            testConfig.testcontainersNetworkGatewayIp,
+        ]
+            .filter(Boolean)
+            .join(' '),
     };
 }
 
@@ -80,6 +80,8 @@ export async function startMattermostContainer(
             .withPlatform('linux/amd64') // The published server images are amd64-only.
             .withNetworkMode(networkName)
             .withNetworkAliases(MATTERMOST_ALIAS)
+            // Ensures host.docker.internal resolves to the Docker host (via host-gateway).
+            .withExtraHosts([{host: 'host.docker.internal', ipAddress: 'host-gateway'}])
             .withLabels(TESTCONTAINERS_LABELS)
             .withExposedPorts(MATTERMOST_PORT)
             .withEnvironment(env)
