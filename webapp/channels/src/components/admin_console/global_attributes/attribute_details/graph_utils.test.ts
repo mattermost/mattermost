@@ -27,6 +27,8 @@ import {
     findOrphansAfterDelete,
     getChildren,
     getRoots,
+    hasBlankTrimmedOptionName,
+    hasCaseInsensitiveDuplicateNames,
     isNameUnique,
     oxfordJoinNames,
     removeOption,
@@ -267,6 +269,54 @@ describe('isNameUnique', () => {
 
     test('empty list is unique', () => {
         expect(isNameUnique([], 'Alpha')).toBe(true);
+    });
+});
+
+describe('hasCaseInsensitiveDuplicateNames', () => {
+    test('empty list has no duplicates', () => {
+        expect(hasCaseInsensitiveDuplicateNames([])).toBe(false);
+    });
+
+    test('distinct names are not duplicates', () => {
+        expect(hasCaseInsensitiveDuplicateNames([opt('A'), opt('B')])).toBe(false);
+    });
+
+    test('exact duplicate names', () => {
+        expect(hasCaseInsensitiveDuplicateNames([opt('A'), opt('A')])).toBe(true);
+    });
+
+    test('case-insensitive duplicates', () => {
+        expect(hasCaseInsensitiveDuplicateNames([opt('Alpha'), opt('alpha')])).toBe(true);
+    });
+
+    test('trimmed names are duplicates', () => {
+        expect(hasCaseInsensitiveDuplicateNames([opt('  Bravo  '), opt('Bravo')])).toBe(true);
+    });
+
+    test('single option is not a duplicate', () => {
+        expect(hasCaseInsensitiveDuplicateNames([opt('A')])).toBe(false);
+    });
+});
+
+describe('hasBlankTrimmedOptionName', () => {
+    test('empty list has no blank names', () => {
+        expect(hasBlankTrimmedOptionName([])).toBe(false);
+    });
+
+    test('named option is not blank', () => {
+        expect(hasBlankTrimmedOptionName([opt('A')])).toBe(false);
+    });
+
+    test('empty string is blank', () => {
+        expect(hasBlankTrimmedOptionName([opt('')])).toBe(true);
+    });
+
+    test('whitespace-only name is blank', () => {
+        expect(hasBlankTrimmedOptionName([opt('   ')])).toBe(true);
+    });
+
+    test('blank among named options', () => {
+        expect(hasBlankTrimmedOptionName([opt('A'), opt('  ')])).toBe(true);
     });
 });
 

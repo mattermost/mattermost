@@ -152,6 +152,19 @@ export function isNameUnique(
     return true;
 }
 
+export function hasCaseInsensitiveDuplicateNames(options: PropertyFieldOption[]): boolean {
+    return options.some((option, index) =>
+        !isNameUnique(
+            options.filter((_, i) => i !== index),
+            option.name,
+        ),
+    );
+}
+
+export function hasBlankTrimmedOptionName(options: PropertyFieldOption[]): boolean {
+    return options.some((option) => option.name.trim() === '');
+}
+
 export function getChildren(options: PropertyFieldOption[], parentName: string): PropertyFieldOption[] {
     return options.filter((option) => parentsOf(option).includes(parentName));
 }

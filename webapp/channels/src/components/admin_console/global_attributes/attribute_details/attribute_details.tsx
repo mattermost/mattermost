@@ -33,6 +33,7 @@ import type {ExternalSource} from './attribute_external_source';
 import AttributeOptionsGraphValues from './attribute_options_graph_values';
 import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
+import {hasBlankTrimmedOptionName, hasCaseInsensitiveDuplicateNames} from './graph_utils';
 
 import {getTypeIcon, getTypeLabel, typeLabels} from '../global_attributes_table';
 import type {AttributeFieldType} from '../utils';
@@ -365,7 +366,20 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     const isHierarchical = supportsHierarchy({type: fieldType} as PropertyField);
     const graphEmpty = isHierarchical && options.length === 0;
-    const canSave = !disabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null && !graphEmpty;
+    const graphOptionsIssue = useMemo(() => {
+        if (!isHierarchical) {
+            return null;
+        }
+        // D2: 0 options is graphEmpty, not optionsIssue/graphOptionsIssue 'required'.
+        if (hasBlankTrimmedOptionName(options)) {
+            return 'empty' as const;
+        }
+        if (hasCaseInsensitiveDuplicateNames(options)) {
+            return 'duplicate' as const;
+        }
+        return null;
+    }, [isHierarchical, options]);
+    const canSave = !disabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null && !graphEmpty && graphOptionsIssue === null;
 
     const handleSave = useCallback(async () => {
         if (!canSave) {
