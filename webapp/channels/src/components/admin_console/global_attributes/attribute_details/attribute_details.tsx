@@ -123,9 +123,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     const isGraphEnabled = useGetFeatureFlagValue('PropertyFieldGraph') === 'true';
     const ALL_TYPES = useMemo<AttributeFieldType[]>(
-        () => (isGraphEnabled
-            ? ['text', 'select', 'multiselect', 'rank', 'graph']
-            : ['text', 'select', 'multiselect', 'rank']),
+        () => (isGraphEnabled ?
+            ['text', 'select', 'multiselect', 'rank', 'graph'] :
+            ['text', 'select', 'multiselect', 'rank']),
         [isGraphEnabled],
     );
 
@@ -370,6 +370,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         if (!isHierarchical) {
             return null;
         }
+
         // D2: 0 options is graphEmpty, not optionsIssue/graphOptionsIssue 'required'.
         if (hasBlankTrimmedOptionName(options)) {
             return 'empty' as const;

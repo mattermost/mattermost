@@ -4,12 +4,6 @@
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {
-    GRAPH_MAX_EDGES,
-    GRAPH_MAX_OPTIONS,
-    GRAPH_MAX_PARENTS_PER_VALUE,
-} from '../constants';
-
-import {
     GRAPH_CYCLE_ERROR_DEFAULT,
     GRAPH_DEPTH_ERROR_DEFAULT,
     GRAPH_MAX_PARENTS_ERROR_DEFAULT,
@@ -42,6 +36,12 @@ import {
     wouldExceedMaxParents,
 } from './graph_utils';
 
+import {
+    GRAPH_MAX_EDGES,
+    GRAPH_MAX_OPTIONS,
+    GRAPH_MAX_PARENTS_PER_VALUE,
+} from '../constants';
+
 const opt = (name: string, parents: string[] = []): PropertyFieldOption => ({id: '', name, parents});
 
 const names = (options: PropertyFieldOption[]) => options.map((o) => o.name);
@@ -52,7 +52,7 @@ const freezeGraph = (options: PropertyFieldOption[]): PropertyFieldOption[] => {
     return Object.freeze(options.map((option) => Object.freeze({
         ...option,
         parents: option.parents ? Object.freeze([...option.parents]) : option.parents,
-    })));
+    }))) as PropertyFieldOption[];
 };
 
 // Spike fixture table (required assertions):

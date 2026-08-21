@@ -167,7 +167,7 @@ export function useGraphRowDnd({
                 onDragLeave: () => setIsOver(false),
                 onDrop: ({source}) => {
                     setIsOver(false);
-                    void handleGraphRowDrop({
+                    handleGraphRowDrop({
                         sourceData: source.data,
                         target,
                         options: optionsRef.current,

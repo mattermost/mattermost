@@ -11,7 +11,7 @@ const freezeGraph = (options: PropertyFieldOption[]): PropertyFieldOption[] => {
     return Object.freeze(options.map((option) => Object.freeze({
         ...option,
         parents: option.parents ? Object.freeze([...option.parents]) : option.parents,
-    })));
+    }))) as PropertyFieldOption[];
 };
 
 describe('proposeAddParent', () => {

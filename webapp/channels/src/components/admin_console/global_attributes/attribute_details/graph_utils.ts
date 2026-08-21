@@ -299,12 +299,12 @@ export function findNewlyReachableDescendants(
 }
 
 export type CheckParentEdgeResult =
-    | {ok: false; error: 'self'}
-    | {ok: false; error: 'cycle'}
-    | {ok: false; error: 'depth'; depth: number}
-    | {ok: false; error: 'max-parents'}
-    | {ok: true; noOp: true}
-    | {ok: true; noOp?: false; newlyReachable: string[]; ancestorsOfParent: string[]};
+    | {ok: false; error: 'self'} |
+    {ok: false; error: 'cycle'} |
+    {ok: false; error: 'depth'; depth: number} |
+    {ok: false; error: 'max-parents'} |
+    {ok: true; noOp: true} |
+    {ok: true; noOp?: false; newlyReachable: string[]; ancestorsOfParent: string[]};
 
 export function checkParentEdge(
     options: PropertyFieldOption[],

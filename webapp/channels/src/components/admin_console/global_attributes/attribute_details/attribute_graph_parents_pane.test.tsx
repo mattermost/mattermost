@@ -62,9 +62,9 @@ describe('AttributeGraphParentsPane', () => {
 
         expect(screen.queryByTestId('attributeGraphParentsPane__candidate-B')).not.toBeInTheDocument();
         expect(screen.queryByTestId('attributeGraphParentsPane__candidate-C')).not.toBeInTheDocument();
-        const self = screen.getByTestId('attributeGraphParentsPane__candidate-A');
-        expect(self).toHaveAttribute('aria-disabled', 'true');
-        expect(self).toHaveTextContent('same value — an option can\'t be its own parent');
+        const selfCandidate = screen.getByTestId('attributeGraphParentsPane__candidate-A');
+        expect(selfCandidate).toHaveAttribute('aria-disabled', 'true');
+        expect(selfCandidate).toHaveTextContent('same value — an option can\'t be its own parent');
         expect(screen.getByTestId('attributeGraphParentsPane__helper')).toHaveTextContent(
             'Options below this one aren\'t listed — a parent can\'t be one of its own descendants.',
         );

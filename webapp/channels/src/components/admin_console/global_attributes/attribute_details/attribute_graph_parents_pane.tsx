@@ -35,15 +35,15 @@ export type AttributeGraphParentsPaneProps = {
 };
 
 export type ParentCandidateClass =
-    | {kind: 'omit'}
-    | {kind: 'disabled'; reason: 'self' | 'depth' | 'max-parents'}
-    | {kind: 'enabled'};
+    | {kind: 'omit'} |
+    {kind: 'disabled'; reason: 'self' | 'depth' | 'max-parents'} |
+    {kind: 'enabled'};
 
 type EdgeAlert = Extract<CheckParentEdgeResult, {ok: false}>;
 
 type PickerRow =
-    | {option: PropertyFieldOption; kind: 'enabled'}
-    | {option: PropertyFieldOption; kind: 'disabled'; reason: 'self' | 'depth' | 'max-parents'};
+    | {option: PropertyFieldOption; kind: 'enabled'} |
+    {option: PropertyFieldOption; kind: 'disabled'; reason: 'self' | 'depth' | 'max-parents'};
 
 export function classifyParentCandidate(
     options: PropertyFieldOption[],
@@ -185,7 +185,7 @@ function AttributeGraphParentsPane({
             break;
         default: {
             const exhaustive: never = result;
-            return exhaustive;
+            throw exhaustive;
         }
         }
     }, [options, optionName, confirmGrant, onOptionsChange]);
@@ -201,7 +201,7 @@ function AttributeGraphParentsPane({
         }
         const enabled = pickerRows.filter((row) => row.kind === 'enabled');
         if (enabled.length === 1) {
-            void handleAdd(enabled[0].option.name);
+            handleAdd(enabled[0].option.name);
         }
     }, [atMax, disabled, handleAdd, pickerRows]);
 
@@ -276,7 +276,7 @@ function AttributeGraphParentsPane({
                             disabled={disabled || atMax}
                             disableCloseOnSelect={true}
                             onClick={() => {
-                                void handleAdd(row.option.name);
+                                handleAdd(row.option.name);
                             }}
                             labels={<span>{row.option.name}</span>}
                         />

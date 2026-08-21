@@ -28,8 +28,8 @@ export type GraphNodeDeleteViewModel =
         orphans: string[];
         notAffected: Array<{name: string; remainingParents: string[]}>;
         firstOrphan: string;
-    }
-    | {
+    } |
+    {
         variant: 'safe';
         optionName: string;
         descendantCount: number;

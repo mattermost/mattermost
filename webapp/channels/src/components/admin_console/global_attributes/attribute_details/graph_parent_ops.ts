@@ -14,11 +14,11 @@ import {
 export type ConfirmGrant = (req: GrantConfirmRequest) => Promise<boolean>;
 
 export type ProposeParentResult =
-    | {status: 'applied'; options: PropertyFieldOption[]}
-    | {status: 'noOp'}
-    | {status: 'cancelled'}
-    | {status: 'fail-closed'}
-    | {status: 'invalid'; check: Extract<CheckParentEdgeResult, {ok: false}>};
+    | {status: 'applied'; options: PropertyFieldOption[]} |
+    {status: 'noOp'} |
+    {status: 'cancelled'} |
+    {status: 'fail-closed'} |
+    {status: 'invalid'; check: Extract<CheckParentEdgeResult, {ok: false}>};
 
 function toGrantReq(
     childName: string,

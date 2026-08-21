@@ -383,6 +383,7 @@ describe('GlobalAttributesTable', () => {
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
             const cell = await screen.findByTestId('global-attribute-options');
+
             // ICU formats 1500 as 1,500; exact text so "0 options" is not a substring false-positive.
             expect(cell.textContent).toBe('1,500 options');
             expect(cell).not.toHaveTextContent('Free Text');

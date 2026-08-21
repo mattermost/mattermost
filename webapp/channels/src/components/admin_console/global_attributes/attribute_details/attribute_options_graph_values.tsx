@@ -190,9 +190,9 @@ const AddTopLevelForm = ({
                 disabled={disabled || atMax}
                 maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                 hasError={isDuplicate}
-                customMessage={isDuplicate
-                    ? {type: 'error', value: formatMessage(messages.duplicateName, {name: trimmed})}
-                    : null}
+                customMessage={isDuplicate ?
+                    {type: 'error', value: formatMessage(messages.duplicateName, {name: trimmed})} :
+                    null}
                 data-testid={`${testIdPrefix}__nameInput`}
             />
             <Button
@@ -247,9 +247,9 @@ function ChildDraftRow({
                 disabled={disabled || atMax}
                 maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                 hasError={isDuplicate}
-                customMessage={isDuplicate
-                    ? {type: 'error', value: formatMessage(messages.duplicateName, {name: trimmed})}
-                    : null}
+                customMessage={isDuplicate ?
+                    {type: 'error', value: formatMessage(messages.duplicateName, {name: trimmed})} :
+                    null}
                 data-testid='attributeOptionsGraphRow__childNameInput'
                 autoFocus={true}
             />
@@ -267,7 +267,7 @@ function ChildDraftRow({
     );
 }
 
-const GraphRow = React.memo(function GraphRow({
+const GraphRow = React.memo(({
     occurrence,
     index,
     disabled,
@@ -288,7 +288,7 @@ const GraphRow = React.memo(function GraphRow({
     onOptionsChange,
     confirmGrant,
     onDropResult,
-}: GraphRowProps) {
+}: GraphRowProps) => {
     const {formatMessage} = useIntl();
     const skipBlurCommitRef = useRef(false);
     const parentCount = (occurrence.option.parents ?? []).length;
@@ -358,9 +358,9 @@ const GraphRow = React.memo(function GraphRow({
                     disabled={disabled}
                     maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                     hasError={renameIsDuplicate}
-                    customMessage={renameIsDuplicate
-                        ? {type: 'error', value: formatMessage(messages.duplicateName, {name: renameDraft.trim()})}
-                        : null}
+                    customMessage={renameIsDuplicate ?
+                        {type: 'error', value: formatMessage(messages.duplicateName, {name: renameDraft.trim()})} :
+                        null}
                     data-testid='attributeOptionsGraphRow__renameInput'
                     autoFocus={true}
                 />
@@ -544,7 +544,7 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
             break;
         default: {
             const exhaustive: never = result;
-            return exhaustive;
+            throw exhaustive;
         }
         }
     }, [clearDropAlert]);

@@ -176,9 +176,9 @@ function OptionsCell({field}: {field: PropertyField}) {
 
     if (supportsHierarchy(field)) {
         const omitted = Boolean(attrs?.options_omitted);
-        const count = omitted
-            ? ((attrs?.options_count as number | undefined) ?? 0)
-            : ((attrs?.options as PropertyFieldOption[] | undefined)?.length ?? 0);
+        const count = omitted ?
+            ((attrs?.options_count as number | undefined) ?? 0) :
+            ((attrs?.options as PropertyFieldOption[] | undefined)?.length ?? 0);
 
         return (
             <FormattedMessage

@@ -31,7 +31,6 @@
     .attribute-graph-parents-pane__back {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
         padding: 8px 16px;
         border: none;
         background: transparent;
@@ -39,6 +38,7 @@
         cursor: pointer;
         font-size: 14px;
         font-weight: 600;
+        gap: 4px;
         line-height: 20px;
     }
 
@@ -46,8 +46,8 @@
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 6px;
         padding: 8px 16px;
+        gap: 6px;
     }
 
     .attribute-graph-parents-pane__chip {
@@ -86,8 +86,8 @@
     }
 
     .attribute-graph-parents-pane__helper {
-        margin: 0;
         padding: 8px 16px 12px;
+        margin: 0;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-size: 12px;
         line-height: 16px;
