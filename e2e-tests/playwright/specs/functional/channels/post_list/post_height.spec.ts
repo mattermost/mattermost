@@ -206,6 +206,9 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a message attachment',
+            // For some reason, the font size of the attachment title changes slightly on Firefox with MM Blocks
+            // and concurrent React enabled at the same time.
+            skipProjects: ['firefox'],
             makePost: () =>
                 seedPost({
                     message: 'post with a message attachment',
@@ -298,8 +301,8 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with an SVG Markdown image',
-            // Either Chrome preloads the SVG's dimensions early or Firefox doesn't allocate the height properly
-            skipProjects: ['firefox'],
+            // As of MM-67372, the server no longer provides dimensions for external SVGs
+            skipProjects: ['chrome', 'firefox', 'ipad'],
             makePost: ({fileServerUrl}) =>
                 seedPost({
                     message: `![icon](${fileServerUrl}/icon.svg)`,
