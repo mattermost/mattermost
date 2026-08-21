@@ -10,8 +10,10 @@
 sidebars/documentation.generated.json
 sidebars/developers.generated.json
 data/plugin-godocs.json
+data/plugin-godocs.json.tmp
 data/plugin-jsdocs.json
 data/plugin-manifest-docs.json
+data/plugin-manifest-docs.json.tmp
 
 # Misc
 .DS_Store
