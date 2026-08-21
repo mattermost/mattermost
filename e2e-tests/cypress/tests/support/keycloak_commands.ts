@@ -36,7 +36,7 @@ function keycloakGetAccessTokenAPI(): ChainableT<string> {
         path: '',
         method: 'post',
         headers: {'Content-type': 'application/x-www-form-urlencoded'},
-        data: 'grant_type=password&username=mmuser&password=mostest&client_id=admin-cli',
+        data: 'grant_type=password&username=mmuser&password=mostest_password&client_id=admin-cli',
     }).then((response: any) => {
         expect(response.status).to.equal(200);
         const token: string = response.data.access_token;

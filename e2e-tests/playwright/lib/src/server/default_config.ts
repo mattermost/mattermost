@@ -254,7 +254,7 @@ const defaultServerConfig: AdminConfig = {
     SqlSettings: {
         DriverName: 'postgres',
         DataSource:
-            'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes',
+            'postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes',
         DataSourceReplicas: [],
         DataSourceSearchReplicas: [],
         MaxIdleConns: 50,

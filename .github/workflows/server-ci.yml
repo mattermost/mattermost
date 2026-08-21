@@ -112,7 +112,7 @@ jobs:
     secrets: inherit
     with:
       name: Postgres with binary parameters
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
       drivername: postgres
       logsartifact: postgres-binary-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
@@ -130,7 +130,7 @@ jobs:
     secrets: inherit
     with:
       name: "Postgres (shard ${{ matrix.shard }})"
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       # Each shard gets a unique artifact name so they don't collide
       logsartifact: "postgres-server-test-logs-shard-${{ matrix.shard }}"
@@ -157,7 +157,7 @@ jobs:
     secrets: inherit
     with:
       name: Elasticsearch v8 Compatibility
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: elasticsearch-v8-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
@@ -179,7 +179,7 @@ jobs:
     secrets: inherit
     with:
       name: "Postgres FIPS (shard ${{ matrix.shard }})"
-      datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: "postgres-server-fips-test-logs-shard-${{ matrix.shard }}"
       go-version: ${{ needs.go.outputs.version }}
@@ -207,7 +207,7 @@ jobs:
     secrets: inherit
     with:
       name: "Coverage (shard ${{ matrix.shard }})"
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: "coverage-server-test-logs-shard-${{ matrix.shard }}"
       fullyparallel: true
@@ -224,7 +224,7 @@ jobs:
     secrets: inherit
     with:
       name: mmctl
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: mmctl-test-logs
       go-version: ${{ needs.go.outputs.version }}
@@ -238,7 +238,7 @@ jobs:
     secrets: inherit
     with:
       name: mmctl
-      datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: mmctl-test-logs
       go-version: ${{ needs.go.outputs.version }}
