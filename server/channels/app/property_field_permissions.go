@@ -254,8 +254,10 @@ func (a *App) propertyCallerRoles(userID string) []string {
 }
 
 // legacyPropertyFieldPermission is the pre-Permissions behaviour, expressed
-// per action so callers can ask by action either way. It exists to be
-// deleted once every field is converted.
+// per action so callers can ask by action either way. decidePropertyFieldPermission
+// runs this only for a field with no Permissions set; a field carrying
+// Permissions is decided by the restrictions ladder and grants instead, never
+// by this function.
 func (a *App) legacyPropertyFieldPermission(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) bool {
 	switch action {
 	case model.PropertyActionFieldWrite:
