@@ -40,6 +40,10 @@ $mm-blocks-container-max-heights: (
     margin-bottom: 8px;
     gap: 12px;
 
+    &:has(.markdown__table) {
+        max-width: none;
+    }
+
     // Reset the margin on the first paragraph of a text block.
     // Removes the style added by bootstrap.
     p {
@@ -321,6 +325,14 @@ $mm-blocks-container-max-heights: (
         font-size: 14px;
         line-height: 20px;
         word-break: break-word;
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .markdown__table {
+            word-break: normal;
+        }
 
         p:first-child {
             margin-top: 0;
