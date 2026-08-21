@@ -1927,7 +1927,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if appErr := c.App.MFARequired(c.AppContext); !c.AppContext.Session().Local && c.AppContext.Session().UserId != c.Params.UserId && appErr != nil {
+	if appErr := c.App.MFARequired(c.AppContext, r.Method); !c.AppContext.Session().Local && c.AppContext.Session().UserId != c.Params.UserId && appErr != nil {
 		c.Err = appErr
 		return
 	}

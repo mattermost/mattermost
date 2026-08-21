@@ -343,7 +343,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err == nil && h.RequireMfa {
-		c.MfaRequired()
+		c.MfaRequired(r.Method)
 	}
 
 	if c.Err == nil && h.DisableWhenBusy && c.App.Srv().Platform().Busy.IsBusy() {
