@@ -366,16 +366,12 @@ func (a *App) SendTeamAccessControlRemovalNotification(rctx request.CTX, systemB
 	return a.sendTeamAccessControlMembershipDM(rctx, systemBot, userID, team, model.PostTypeAccessControlTeamRemoval, message)
 }
 
-// SendTeamAccessControlAdditionNotification audits the auto-add and DMs the
-// user, from the system bot, that they were added to the team because they meet
-// its membership policy. Like the removal DM, it leaks no policy detail. The
-// audit record is always written; only the DM depends on the system bot.
+// SendTeamAccessControlAdditionNotification DMs the user, from the system bot,
+// that they were added to the team because they meet its membership policy. Like
+// the removal DM, it leaks no policy detail. The membership audit record is
+// emitted by AddTeamMemberByAccessPolicy, not here, so the two Send* helpers stay
+// DM-only.
 func (a *App) SendTeamAccessControlAdditionNotification(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team) *model.AppError {
-	rec := a.MakeAuditRecord(rctx, model.AuditEventTeamMembershipAdded, model.AuditStatusSuccess)
-	model.AddEventParameterToAuditRec(rec, "user_id", userID)
-	model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
-	a.LogAuditRec(rctx, rec, nil)
-
 	locale := ""
 	if user, err := a.GetUser(userID); err == nil {
 		locale = user.Locale
