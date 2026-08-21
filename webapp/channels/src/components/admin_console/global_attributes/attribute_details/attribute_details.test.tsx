@@ -10,7 +10,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import ModalController from 'components/modal_controller';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import AttributeDetails from './attribute_details';
 
@@ -738,6 +738,16 @@ describe('AttributeDetails', () => {
     });
 
     describe('hierarchical type', () => {
+        function getGraphRow(optionName: string, parentName = '') {
+            const row = screen.getAllByTestId('attributeOptionsGraphRow').find(
+                (el) => el.getAttribute('data-option-name') === optionName && el.getAttribute('data-parent-name') === parentName,
+            );
+            if (!row) {
+                throw new Error(`row not found: ${optionName} @ ${parentName || 'root'}`);
+            }
+            return row;
+        }
+
         it('hides Hierarchical in the type menu when PropertyFieldGraph is off', async () => {
             renderComponent(false);
             await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
@@ -794,6 +804,8 @@ describe('AttributeDetails', () => {
         });
 
         it('disables Save at 0 graph options with no extra copy, and enables Save after the first value', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
             renderComponent(true);
             await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
             expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
@@ -805,9 +817,53 @@ describe('AttributeDetails', () => {
             expect(screen.queryByTestId('attributeOptionsRequiredError')).not.toBeInTheDocument();
             expect(screen.queryByText('At least one option is required')).not.toBeInTheDocument();
 
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            expect(createPropertyField).not.toHaveBeenCalled();
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+
             await userEvent.type(screen.getByTestId('attributeOptionsGraphEmpty__nameInput'), 'Root');
             await userEvent.click(screen.getByTestId('attributeOptionsGraphEmpty__addButton'));
             expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+            expect(createPropertyField).not.toHaveBeenCalled();
+        });
+
+        it('saves a Hierarchical attribute with root parents [] and child parents [Root]', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            renderComponent(true);
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Org chart');
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Hierarchical'}));
+
+            await userEvent.type(screen.getByTestId('attributeOptionsGraphEmpty__nameInput'), 'Root');
+            await userEvent.click(screen.getByTestId('attributeOptionsGraphEmpty__addButton'));
+
+            await userEvent.click(within(getGraphRow('Root')).getByTestId('attributeOptionsGraphRow__menu'));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Add child'}));
+            await userEvent.type(await screen.findByTestId('attributeOptionsGraphRow__childNameInput'), 'Child');
+            await userEvent.click(screen.getByTestId('attributeOptionsGraphRow__childAddButton'));
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
+
+            expect(createPropertyField).toHaveBeenCalledTimes(1);
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                name: 'org_chart',
+                type: 'graph',
+                attrs: expect.objectContaining({
+                    display_name: 'Org chart',
+                    options: [
+                        {id: '', name: 'Root', parents: []},
+                        {id: '', name: 'Child', parents: ['Root']},
+                    ],
+                }),
+            }));
+
+            const attrs = createPropertyField.mock.calls[0][2].attrs as {options: Array<Record<string, unknown>>};
+            expect(attrs.options[0]).toHaveProperty('parents');
+            expect(JSON.stringify(attrs.options[0])).toContain('"parents":[]');
+            expect(JSON.stringify(attrs.options[1])).toContain('"parents":["Root"]');
         });
     });
 });
