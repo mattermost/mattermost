@@ -64,6 +64,12 @@ type OpensearchInterfaceImpl struct {
 	Platform          *platform.PlatformService
 }
 
+type serverInfo struct {
+	version     int
+	fullVersion string
+	plugins     []string
+}
+
 func getJSONOrErrorStr(obj any) string {
 	b, err := json.Marshal(obj)
 	if err != nil {
@@ -116,15 +122,17 @@ func (os *OpensearchInterfaceImpl) IsIndexingSync() bool {
 	return *os.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize <= 1
 }
 
-// fetchServerInfo retrieves and stores the server version and plugins from the given client.
-func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *opensearchapi.Client) *model.AppError {
+// fetchServerInfo retrieves the server version and plugins from the given client.
+func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *opensearchapi.Client) (serverInfo, *model.AppError) {
 	version, major, appErr := checkVersion(ctx, client, os.Platform.Log())
 	if appErr != nil {
-		return appErr
+		return serverInfo{}, appErr
 	}
 
-	os.version = major
-	os.fullVersion = version
+	info := serverInfo{
+		version:     major,
+		fullVersion: version,
+	}
 
 	// Query every node because the CAT plugins API omits nodes with no plugins. Plugin information is
 	// also included in Support Packets. If it cannot be retrieved, preserve the existing best-effort
@@ -132,19 +140,20 @@ func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *
 	resp, err := client.Nodes.Info(ctx, &opensearchapi.NodesInfoReq{Metrics: []string{"plugins"}})
 	if err != nil {
 		os.Platform.Log().Warn("Error retrieving opensearch node plugins", mlog.Err(err))
-		return nil
+		return info, nil
 	}
 	if resp.NodesInfo.Failed > 0 {
 		os.Platform.Log().Warn("Some opensearch nodes failed to return plugin information", mlog.Int("failed_nodes", resp.NodesInfo.Failed))
-		return nil
+		return info, nil
 	}
 
-	os.plugins = nil
+	// A non-nil slice means plugin discovery succeeded, even if no plugins were found.
+	info.plugins = []string{}
 	analysisICUInstalledOnEveryNode := true
 	for _, node := range resp.Nodes {
 		nodeHasAnalysisICU := false
 		for _, plugin := range node.Plugins {
-			os.plugins = append(os.plugins, plugin.Name)
+			info.plugins = append(info.plugins, plugin.Name)
 			if plugin.Name == "analysis-icu" {
 				nodeHasAnalysisICU = true
 			}
@@ -153,10 +162,10 @@ func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *
 	}
 
 	if len(resp.Nodes) > 0 && !analysisICUInstalledOnEveryNode {
-		return model.NewAppError("Opensearch.fetchServerInfo", "ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}, "", http.StatusInternalServerError)
+		return info, model.NewAppError("Opensearch.fetchServerInfo", "ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}, "", http.StatusInternalServerError)
 	}
 
-	return nil
+	return info, nil
 }
 
 func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
@@ -169,8 +178,7 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 
 	if os.ready.Load() != 0 {
 		// Elasticsearch is already started. We don't return an error
-		// because "Test Connection" already re-initializes the client. So this
-		// can be a valid scenario.
+		// because a repeated start can be a valid scenario.
 		return nil
 	}
 
@@ -179,7 +187,15 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 		return appErr
 	}
 
-	if appErr = os.fetchServerInfo(ctx, os.client); appErr != nil {
+	info, appErr := os.fetchServerInfo(ctx, os.client)
+	if info.fullVersion != "" {
+		os.version = info.version
+		os.fullVersion = info.fullVersion
+	}
+	if info.plugins != nil {
+		os.plugins = info.plugins
+	}
+	if appErr != nil {
 		return appErr
 	}
 
@@ -1725,21 +1741,8 @@ func (os *OpensearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Confi
 		return appErr
 	}
 
-	if appErr = os.fetchServerInfo(context.Background(), client); appErr != nil {
-		return appErr
-	}
-
-	// Resetting the state.
-	if os.ready.CompareAndSwap(0, 1) {
-		// Re-assign the client.
-		// This is necessary in case opensearch was started
-		// after server start.
-		os.mutex.Lock()
-		os.client = client
-		os.mutex.Unlock()
-	}
-
-	return nil
+	_, appErr = os.fetchServerInfo(rctx.Context(), client)
+	return appErr
 }
 
 func (os *OpensearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppError {
