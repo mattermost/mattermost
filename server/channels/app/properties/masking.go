@@ -177,10 +177,12 @@ func (h *AccessControlHook) resolveFieldMasking(field *model.PropertyField) (fie
 	return fieldMasking{masking: masking, holdingsFieldID: holdingsFieldID}, nil
 }
 
-// exempt reports whether callerID, acting under scope, is named in except.
-// Exemption is explicit -- holding a grant confers none -- so this only ever
-// matches an identity except actually lists, and skips the masking filter
-// alone: the permission gate still runs regardless of the answer.
+// exempt reports whether callerID is named in except. Exemption is explicit
+// -- holding a grant confers none -- so this only ever matches an identity
+// except actually lists, and skips the masking filter alone: the permission
+// gate still runs regardless of the answer. It is also scope-blind: an
+// except entry (model.Identity) names an identity and nothing else, so
+// there is no scope to compare it against.
 //
 // A machine caller matches the identity callerOwnerIdentity reports for it,
 // mirroring how permissionsGrantAllows resolves a machine's identity. A human
@@ -194,13 +196,13 @@ func (h *AccessControlHook) resolveFieldMasking(field *model.PropertyField) (fie
 // machine and not a real user ID, so it is only exempt when except names it
 // explicitly as a user entry -- masking does not inherit the ladder's
 // local-admin bypass.
-func (h *AccessControlHook) exempt(except []model.Identity, callerID, scope string) bool {
+func (h *AccessControlHook) exempt(except []model.Identity, callerID string) bool {
 	if callerID == "" || len(except) == 0 {
 		return false
 	}
 
 	if h.isMachineCaller(callerID) {
-		ownerID, ownerType, _ := h.callerOwnerIdentity(callerID, scope)
+		ownerID, ownerType, _ := h.callerOwnerIdentity(callerID, "")
 		for _, id := range except {
 			if id.Type == ownerType && id.ID == ownerID {
 				return true
@@ -615,12 +617,12 @@ func (c maskingContext) primeStoredValue(fieldID, targetID string, value *model.
 // Runs only once the permission decision has already admitted the write; it
 // can only refuse a write the gate would otherwise allow, never grant one it
 // denied.
-func (h *AccessControlHook) checkValueWriteVisibility(rctx request.CTX, mc maskingContext, field *model.PropertyField, callerID, scope, valueTargetID string) error {
+func (h *AccessControlHook) checkValueWriteVisibility(rctx request.CTX, mc maskingContext, field *model.PropertyField, callerID, valueTargetID string) error {
 	fm, err := mc.resolve(h, field)
 	if err != nil {
 		return err
 	}
-	if fm.masking == nil || h.exempt(fm.masking.Except, callerID, scope) {
+	if fm.masking == nil || h.exempt(fm.masking.Except, callerID) {
 		return nil
 	}
 

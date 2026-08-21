@@ -256,8 +256,8 @@ func TestExempt(t *testing.T) {
 		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
 
 		except := []model.Identity{{Type: model.PropertyOwnerTypePlugin, ID: "plugin-a"}}
-		assert.True(t, h.exempt(except, "plugin-a", ""))
-		assert.False(t, h.exempt(except, "plugin-b", ""))
+		assert.True(t, h.exempt(except, "plugin-a"))
+		assert.False(t, h.exempt(except, "plugin-b"))
 	})
 
 	t.Run("the LDAP sync caller matches a service/ldap entry, the SAML sync caller a service/saml entry", func(t *testing.T) {
@@ -265,15 +265,15 @@ func TestExempt(t *testing.T) {
 			{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP},
 			{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrSAML},
 		}
-		assert.True(t, h.exempt(except, model.CallerIDLDAPSync, ""))
-		assert.True(t, h.exempt(except, model.CallerIDSAMLSync, ""))
+		assert.True(t, h.exempt(except, model.CallerIDLDAPSync))
+		assert.True(t, h.exempt(except, model.CallerIDSAMLSync))
 	})
 
 	t.Run("a user entry exempts that user id and nobody else", func(t *testing.T) {
 		userID := model.NewId()
 		except := []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: userID}}
-		assert.True(t, h.exempt(except, userID, ""))
-		assert.False(t, h.exempt(except, model.NewId(), ""))
+		assert.True(t, h.exempt(except, userID))
+		assert.False(t, h.exempt(except, model.NewId()))
 	})
 
 	t.Run("a role entry exempts a caller holding that role and not a caller without it", func(t *testing.T) {
@@ -288,21 +288,21 @@ func TestExempt(t *testing.T) {
 		t.Cleanup(func() { th.service.setRoleListerForTests(nil) })
 
 		except := []model.Identity{{Type: model.PropertyOwnerTypeRole, ID: "content_reviewer"}}
-		assert.True(t, h.exempt(except, holder, ""))
-		assert.False(t, h.exempt(except, other, ""))
+		assert.True(t, h.exempt(except, holder))
+		assert.False(t, h.exempt(except, other))
 	})
 
 	t.Run("a nil role lister exempts nobody by role; neither does a failing lookup", func(t *testing.T) {
 		except := []model.Identity{{Type: model.PropertyOwnerTypeRole, ID: "content_reviewer"}}
 
 		th.service.setRoleListerForTests(nil)
-		assert.False(t, h.exempt(except, model.NewId(), ""))
+		assert.False(t, h.exempt(except, model.NewId()))
 
 		// A failing lookup surfaces to the hook as an empty role list, the
 		// same shape propertyCallerRoles returns for a.GetUser erroring.
 		th.service.setRoleListerForTests(func(userID string) []string { return nil })
 		t.Cleanup(func() { th.service.setRoleListerForTests(nil) })
-		assert.False(t, h.exempt(except, model.NewId(), ""))
+		assert.False(t, h.exempt(except, model.NewId()))
 	})
 
 	t.Run("an except list carrying no role entry never calls the lister", func(t *testing.T) {
@@ -314,7 +314,7 @@ func TestExempt(t *testing.T) {
 		t.Cleanup(func() { th.service.setRoleListerForTests(nil) })
 
 		except := []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}}
-		assert.False(t, h.exempt(except, model.NewId(), ""))
+		assert.False(t, h.exempt(except, model.NewId()))
 		assert.Equal(t, 0, calls)
 	})
 
@@ -323,9 +323,9 @@ func TestExempt(t *testing.T) {
 		t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
 
 		except := []model.Identity{{Type: model.PropertyOwnerTypePlugin, ID: "*"}}
-		assert.False(t, h.exempt(except, "any-plugin", ""))
-		assert.False(t, h.exempt(except, "", ""))
-		assert.False(t, h.exempt(except, model.CallerIDLocalAdmin, ""))
+		assert.False(t, h.exempt(except, "any-plugin"))
+		assert.False(t, h.exempt(except, ""))
+		assert.False(t, h.exempt(except, model.CallerIDLocalAdmin))
 	})
 
 	t.Run("a linked field's own except exempts nobody when its masked template lists nobody", func(t *testing.T) {
@@ -364,7 +364,7 @@ func TestExempt(t *testing.T) {
 		fm, err := h.resolveFieldMasking(linked)
 		require.NoError(t, err)
 		require.NotNil(t, fm.masking)
-		assert.False(t, h.exempt(fm.masking.Except, attacker, ""))
+		assert.False(t, h.exempt(fm.masking.Except, attacker))
 	})
 }
 

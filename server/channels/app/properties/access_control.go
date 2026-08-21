@@ -346,16 +346,21 @@ func (h *AccessControlHook) PreChangePropertyFieldOptions(rctx request.CTX, fiel
 	return h.enforceFieldUpdateAccess(rctx, field, field, h.extractCallerID(rctx))
 }
 
-// PostGetPropertyFieldOptions applies the field's read access mode to a page of
-// its options, which are otherwise read straight from their own rows and so
-// reach none of the filtering a field read applies to the option list it carries
+// PostGetPropertyFieldOptions applies the field's read access to a page of its
+// options, which are otherwise read straight from their own rows and so reach
+// none of the filtering a field read applies to the option list it carries
 // inline.
 //
-// A shared_only graph field's page is filtered to the options the caller covers,
-// which is the same rule filterSharedOnlyGraphValue applies to that field's
-// values. It is the one type whose options this can be answered for from the rows
-// alone: covering is a relation between options, so a page of them can be judged
-// without knowing anything about the caller beyond what they hold.
+// A field carrying permissions is gated on option.read, then -- when it is also
+// masked -- the page is filtered to what the caller may see via
+// filterMaskedOptionPage, the same overlap rule a value read applies.
+//
+// For a field on the legacy access-mode path: a shared_only graph field's page
+// is filtered to the options the caller covers, which is the same rule
+// filterSharedOnlyGraphValue applies to that field's values. It is the one type
+// whose options this can be answered for from the rows alone: covering is a
+// relation between options, so a page of them can be judged without knowing
+// anything about the caller beyond what they hold.
 //
 // Every other caller without unrestricted read access is served nothing. For a
 // source_only field that is the same answer the field read gives -- its option
@@ -380,7 +385,7 @@ func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field 
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve field %s's masking: %w", field.ID, err)
 		}
-		if fm.masking == nil || h.exempt(fm.masking.Except, callerID, scope) {
+		if fm.masking == nil || h.exempt(fm.masking.Except, callerID) {
 			return options, nil
 		}
 		return h.filterMaskedOptionPage(rctx, c, field, fm, options, callerID)
@@ -1189,7 +1194,7 @@ func (h *AccessControlHook) checkValueWriteAccess(rctx request.CTX, mc maskingCo
 		} else if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueWrite, valueTargetID) {
 			return fmt.Errorf("field %s refuses caller %q a value write on target %q: %w", field.ID, callerID, valueTargetID, ErrAccessDenied)
 		}
-		return h.checkValueWriteVisibility(rctx, mc, field, callerID, scope, valueTargetID)
+		return h.checkValueWriteVisibility(rctx, mc, field, callerID, valueTargetID)
 	}
 
 	if model.HasPropertyFieldOwners(field) {
@@ -1808,7 +1813,7 @@ func (h *AccessControlHook) applyFieldReadAccessControl(rctx request.CTX, c mask
 				}
 				return filteredField
 			}
-			if fm.masking == nil || h.exempt(fm.masking.Except, callerID, scope) {
+			if fm.masking == nil || h.exempt(fm.masking.Except, callerID) {
 				return field
 			}
 			return h.maskFieldOptions(rctx, c, field, fm, callerID)
@@ -1841,9 +1846,12 @@ func (h *AccessControlHook) applyFieldReadAccessControl(rctx request.CTX, c mask
 }
 
 // applyFieldReadAccessControlToList applies read access control to a list of
-// fields, sharing one masking context across the batch so a template lookup
-// or a holdings search a field's masking needs runs once for every field that
-// shares it, not once per field.
+// fields, sharing one masking context across the batch: a holdings search a
+// field's masking needs runs once for every field that shares the same
+// holdings field, and each field's masking is resolved once rather than once
+// per call into it. The template lookup a linked field's resolution makes is
+// not shared -- maskingContext has no template cache -- so fields linked to
+// the same template each pay their own template read.
 func (h *AccessControlHook) applyFieldReadAccessControlToList(rctx request.CTX, fields []*model.PropertyField, callerID string) []*model.PropertyField {
 	if len(fields) == 0 {
 		return fields
@@ -1923,7 +1931,7 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 			if err != nil {
 				return nil, fmt.Errorf("applyValueReadAccessControl: %w", err)
 			}
-			if fm.masking == nil || h.exempt(fm.masking.Except, callerID, scope) {
+			if fm.masking == nil || h.exempt(fm.masking.Except, callerID) {
 				filtered = append(filtered, value)
 				continue
 			}
