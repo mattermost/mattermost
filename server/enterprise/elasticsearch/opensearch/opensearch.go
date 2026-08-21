@@ -962,7 +962,7 @@ func (os *OpensearchInterfaceImpl) UpdatePostsChannelTypeByChannelId(rctx reques
 		rctx.Logger().Warn("UpdatePostsChannelTypeByChannelId had partial failures; consider a full bulk reindex to prevent missing posts",
 			mlog.String("channel_id", channelID),
 			mlog.Int("failure_count", len(response.Failures)),
-			mlog.Err(fmt.Errorf("first failure: %s", response.Failures[0])))
+			mlog.Err(fmt.Errorf("first failure: %v", response.Failures[0])))
 	}
 	rctx.Logger().Info("Posts channel_type updated", mlog.String("channel_id", channelID), mlog.String("channel_type", channelType), mlog.Int("updated", response.Updated))
 
@@ -1036,7 +1036,7 @@ func (os *OpensearchInterfaceImpl) BackfillPostsChannelType(rctx request.CTX, ch
 		rctx.Logger().Warn("BackfillPostsChannelType had partial failures; consider a full bulk reindex to prevent missing posts",
 			mlog.String("channel_type", channelType),
 			mlog.Int("failure_count", len(response.Failures)),
-			mlog.Err(fmt.Errorf("first failure: %s", response.Failures[0])))
+			mlog.Err(fmt.Errorf("first failure: %v", response.Failures[0])))
 	}
 	rctx.Logger().Info("Backfilled channel_type on posts", mlog.Int("updated", response.Updated), mlog.String("channel_type", channelType), mlog.Int("channel_count", len(channelIDs)))
 
