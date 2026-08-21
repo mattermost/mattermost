@@ -375,7 +375,7 @@ func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field 
 			return []*model.PropertyFieldOption{}, nil
 		}
 
-		c := newMaskingContext()
+		c := maskingContextFromRequest(rctx)
 		fm, err := c.resolve(h, field)
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve field %s's masking: %w", field.ID, err)

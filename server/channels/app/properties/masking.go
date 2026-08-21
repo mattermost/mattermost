@@ -5,6 +5,7 @@ package properties
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"maps"
@@ -71,6 +72,30 @@ func newMaskingContext() maskingContext {
 		holdingsOptionIDs: make(map[string]map[string]struct{}),
 		existingValues:    make(map[[2]string]*model.PropertyValue),
 	}
+}
+
+// maskingContextKey is the request-context key a maskingContext travels
+// under. Unexported so nothing outside this file can plant or read one.
+type maskingContextKey struct{}
+
+// withMaskingContext returns rctx carrying c, so every hook call made through
+// it -- however many, across however many pages of a listing -- shares the
+// one resolution rather than each building its own. The one caller of this is
+// GetFieldOptions, which is the one read path where a single logical read
+// invokes the hook more than once.
+func withMaskingContext(rctx request.CTX, c maskingContext) request.CTX {
+	return rctx.WithContext(context.WithValue(rctx.Context(), maskingContextKey{}, c))
+}
+
+// maskingContextFromRequest returns the maskingContext carried on rctx, or a
+// fresh standalone one when none is attached. Every hook call outside
+// GetFieldOptions's listing loop takes this fallback, and behaves exactly as
+// it would if this mechanism did not exist.
+func maskingContextFromRequest(rctx request.CTX) maskingContext {
+	if c, ok := rctx.Context().Value(maskingContextKey{}).(maskingContext); ok {
+		return c
+	}
+	return newMaskingContext()
 }
 
 // resolve returns the masking that applies to field and where its holdings

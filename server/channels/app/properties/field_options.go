@@ -272,6 +272,11 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 	// by appending returns nil when it keeps nothing, and nil serializes as null
 	// rather than [], which a caller looping over the page cannot read. Starting
 	// from an empty slice settles it for every path out of here.
+	//
+	// One masking context is shared across every page of rows this loop reads,
+	// so a caller's holdings and the field's masking template resolve once for
+	// the whole listing rather than once per page scanned.
+	rctx = withMaskingContext(rctx, newMaskingContext())
 	options := []*model.PropertyFieldOption{}
 	for {
 		page, err := ps.fieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage)

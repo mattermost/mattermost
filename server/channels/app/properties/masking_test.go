@@ -1488,4 +1488,93 @@ func TestMaskOptionPage(t *testing.T) {
 		require.NoError(t, err)
 		assert.Nil(t, retrieved, "the picker withheld Sea Program, so a value naming it must be withheld too")
 	})
+
+	t.Run("a listing scanning several pages of rows resolves the caller's holdings and the field's masking template once", func(t *testing.T) {
+		template, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Mask-Listing-Once-Template",
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Program A"},
+					map[string]any{"name": "Program B"},
+					map[string]any{"name": "Program C"},
+					map[string]any{"name": "Program D"},
+				},
+			},
+		})
+		require.NoError(t, err)
+		ids := optionIDsByName(t, template)
+
+		// holdings is a user-object field linked to the same template, so its
+		// option IDs are the ones a value on the linked field below names.
+		holdings, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Mask-Listing-Once-Holdings",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &template.ID,
+		})
+		require.NoError(t, err)
+
+		template.Permissions = &model.Permissions{Masking: &model.Masking{MaskByFieldID: holdings.ID}}
+		updated, err := th.dbStore.PropertyField().Update(template.GroupID, []*model.PropertyField{template}, nil)
+		require.NoError(t, err)
+		template = updated[0]
+
+		linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			Name:          "Mask-Listing-Once-Linked",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Permissions:   &model.Permissions{},
+			LinkedFieldID: &template.ID,
+		})
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		// The caller holds only the option created last, so a page size of 1
+		// forces the listing to scan past three pages of rows it may not see
+		// before reaching the one it can.
+		writeValueDirect(t, th, holdings.ID, "user", caller, []string{ids["Program D"]})
+
+		fieldCounter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = fieldCounter
+		t.Cleanup(func() { th.service.fieldStore = fieldCounter.PropertyFieldStore })
+
+		valueCounter := &countingPropertyValueStore{PropertyValueStore: th.service.valueStore}
+		th.service.valueStore = valueCounter
+		t.Cleanup(func() { th.service.valueStore = valueCounter.PropertyValueStore })
+
+		page, err := th.service.GetFieldOptions(RequestContextWithCallerID(th.Context, caller), linked, 0, "", 1)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"Program D"}, listedNames(page))
+		assert.Equal(t, 1, fieldCounter.gets, "the masking template is resolved once for the whole listing, not once per page of rows scanned")
+		assert.Equal(t, 1, valueCounter.searches, "the caller's holdings are searched once for the whole listing, not once per page of rows scanned")
+	})
+
+	t.Run("a page read through the hook with no masking context attached still filters correctly", func(t *testing.T) {
+		options := []any{
+			map[string]any{"id": "opt_a", "name": "A"},
+			map[string]any{"id": "opt_b", "name": "B"},
+		}
+		field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "Mask-Page-NoContext", model.PropertyFieldTypeSelect, options, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, "opt_a")
+
+		h := th.service.accessControlHookForTests()
+		require.NotNil(t, h)
+		page, err := h.PostGetPropertyFieldOptions(RequestContextWithCallerID(th.Context, caller), field, []*model.PropertyFieldOption{
+			{ID: "opt_a", Name: "A"},
+			{ID: "opt_b", Name: "B"},
+		})
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"A"}, listedNames(page), "the fallback context still filters to what the caller holds")
+	})
 }
