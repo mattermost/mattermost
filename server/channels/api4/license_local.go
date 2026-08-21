@@ -103,18 +103,6 @@ func localRemoveLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localGetClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
-	format := r.URL.Query().Get("format")
-
-	if format == "" {
-		c.Err = model.NewAppError("localGetClientLicense", "api.license.client.old_format.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if format != "old" {
-		c.SetInvalidParam("format")
-		return
-	}
-
 	clientLicense := c.App.Srv().ClientLicense()
 
 	if _, err := w.Write([]byte(model.MapToJSON(clientLicense))); err != nil {
