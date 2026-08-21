@@ -619,7 +619,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		request.Dialog.Elements[0].MaxLength = 9
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "field is not valid")
-		assert.ErrorContains(t, err, "min length should be less then max length")
+		assert.ErrorContains(t, err, "min length should be less than max length")
 	})
 
 	t.Run("should fail on wrong element type", func(t *testing.T) {
@@ -2499,6 +2499,73 @@ func TestMmBlocksContextMap(t *testing.T) {
 		got := MmBlocksContextMap(`{"unclosed":`)
 		require.NotNil(t, got)
 		assert.Equal(t, `{"unclosed":`, got["context"])
+	})
+}
+
+// TestDialogElement_Collapsible_IsValid covers the "collapsible" element type and
+// the recursive depth/child validation added in validateCollapsible.
+func TestDialogElement_Collapsible_IsValid(t *testing.T) {
+	// validText returns a minimal valid leaf element usable as a collapsible child.
+	validText := func(name string) DialogElement {
+		return DialogElement{
+			DisplayName: "Text " + name,
+			Name:        name,
+			Type:        "text",
+		}
+	}
+
+	// collapsible builds a collapsible element wrapping the given children.
+	collapsible := func(name string, children ...DialogElement) DialogElement {
+		return DialogElement{
+			DisplayName: "Section " + name,
+			Name:        name,
+			Type:        "collapsible",
+			Elements:    children,
+		}
+	}
+
+	t.Run("valid collapsible with one child passes", func(t *testing.T) {
+		oneChildEx := collapsible("s1", validText("a"))
+		assert.NoError(t, oneChildEx.IsValid(), "collapsible with one child should be valid")
+	})
+
+	t.Run("collapsible with no children fails", func(t *testing.T) {
+		noElementsEx := collapsible("s1")
+		err := noElementsEx.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "at least one child element")
+	})
+
+	t.Run("nesting at max depth (3) passes", func(t *testing.T) {
+		threeLevels := collapsible("d1", collapsible("d2", collapsible("d3", validText("a"))))
+		assert.NoError(t, threeLevels.IsValid(), "collapsible at max depth should be valid")
+	})
+
+	t.Run("nesting beyond max depth (4) fails", func(t *testing.T) {
+		exceedDepth := collapsible("d1", collapsible("d2", collapsible("d3", collapsible("d4", validText("a")))))
+		err := exceedDepth.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "d4")
+	})
+
+	t.Run("invalid child propagates wrapped error", func(t *testing.T) {
+		invalidChild := collapsible("s1", collapsible("s2", DialogElement{DisplayName: "Bogus", Name: "b1", Type: "bogus"}))
+		err := invalidChild.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "child element is not valid")
+	})
+
+	t.Run("collapsed/borderless default and explicit values validate", func(t *testing.T) {
+		defaults := collapsible("s1", validText("a"))
+		assert.NoError(t, defaults.IsValid(), "collapsible with default Collapsed/Borderless should be valid")
+
+		collapsed := collapsible("s2", validText("b"))
+		collapsed.Collapsed = true
+		assert.NoError(t, collapsed.IsValid(), "collapsible with Collapsed=true should be valid")
+
+		borderless := collapsible("s3", validText("c"))
+		borderless.Borderless = true
+		assert.NoError(t, borderless.IsValid(), "collapsible with Borderless=true should be valid")
 	})
 }
 
