@@ -16,6 +16,7 @@ import (
 	"github.com/goccy/go-yaml"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
@@ -29,15 +30,17 @@ const (
 	flaggedPostReportMetadataFile      = "report_metadata.yaml"
 	flaggedPostReportExposureFile      = "exposure_report.csv"
 	flaggedPostReportTempPattern       = "mm-flag-report-*.zip"
+
+	flaggedPostReportAttachmentsOmittedFile = "ATTACHMENTS_OMITTED.txt"
 )
 
 // GenerateFlaggedPostReport builds a ZIP archive of a flagged post's data into a
 // temporary file and returns the file path. The caller is responsible for
 // removing the file when the response has been served.
-func (a *App) GenerateFlaggedPostReport(rctx request.CTX, postID, generatedByUserID, comment, action string) (string, *model.AppError) {
+func (a *App) GenerateFlaggedPostReport(rctx request.CTX, postID, generatedByUserID, comment, action string, includeAttachments bool) (string, int, *model.AppError) {
 	tmp, err := os.CreateTemp("", flaggedPostReportTempPattern)
 	if err != nil {
-		return "", model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.tempfile.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", 0, model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.tempfile.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	tmpPath := tmp.Name()
 
@@ -48,54 +51,74 @@ func (a *App) GenerateFlaggedPostReport(rctx request.CTX, postID, generatedByUse
 
 	zw := zip.NewWriter(tmp)
 
-	if appErr := a.writeFlaggedPostReport(rctx, zw, postID, generatedByUserID, comment, action); appErr != nil {
+	omittedAttachments, appErr := a.writeFlaggedPostReport(rctx, zw, postID, generatedByUserID, comment, action, includeAttachments)
+	if appErr != nil {
 		_ = zw.Close()
 		cleanup()
-		return "", appErr
+		return "", 0, appErr
 	}
 
 	if err := zw.Close(); err != nil {
 		cleanup()
-		return "", model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.zip_close.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", 0, model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.zip_close.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if err := tmp.Sync(); err != nil {
 		cleanup()
-		return "", model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.sync.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", 0, model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.sync.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if err := tmp.Close(); err != nil {
 		_ = os.Remove(tmpPath)
-		return "", model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.close.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", 0, model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.close.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return tmpPath, nil
+	return tmpPath, omittedAttachments, nil
 }
 
-func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, generatedByUserID, comment, action string) *model.AppError {
+func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, generatedByUserID, comment, action string, includeAttachments bool) (int, *model.AppError) {
 	rc, appErr := a.loadFlaggedPostReportContext(rctx, postID)
 	if appErr != nil {
-		return appErr
+		return 0, appErr
 	}
 
-	// Track FileInfo.Id seen anywhere in the archive so each unique attachment is
-	// included exactly once across the base post and all edit history entries.
+	// Track FileInfo.Id seen anywhere in the archive so each unique attachment is handled
+	// exactly once across the base post and all edit history entries. When attachments are
+	// excluded none of them are written, so its size is the omitted count.
 	seenFiles := map[string]bool{}
 
-	if appErr := a.writeBasePostSection(rctx, zw, rc, seenFiles); appErr != nil {
-		return appErr
+	if appErr := a.writeBasePostSection(rctx, zw, rc, seenFiles, includeAttachments); appErr != nil {
+		return 0, appErr
 	}
-	if appErr := a.writeEditHistorySection(rctx, zw, rc, seenFiles); appErr != nil {
-		return appErr
+	if appErr := a.writeEditHistorySection(rctx, zw, rc, seenFiles, includeAttachments); appErr != nil {
+		return 0, appErr
 	}
 	if appErr := a.writeContentReviewEntry(rctx, zw, rc.Post, generatedByUserID, comment, action); appErr != nil {
-		return appErr
+		return 0, appErr
 	}
 	if appErr := a.writeExposureReportEntry(rctx, zw, rc.Post.Id); appErr != nil {
-		return appErr
+		return 0, appErr
 	}
 	if appErr := a.writeReportMetadataEntry(zw, generatedByUserID); appErr != nil {
-		return appErr
+		return 0, appErr
 	}
 
+	if includeAttachments || len(seenFiles) == 0 {
+		return 0, nil
+	}
+
+	if appErr := writeAttachmentsOmittedEntry(zw, rctx.GetT()); appErr != nil {
+		return 0, appErr
+	}
+	return len(seenFiles), nil
+}
+
+func writeAttachmentsOmittedEntry(zw *zip.Writer, T i18n.TranslateFunc) *model.AppError {
+	w, err := zw.Create(flaggedPostReportAttachmentsOmittedFile)
+	if err != nil {
+		return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.zip_create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if _, err := io.WriteString(w, T("app.data_spillage.report.attachments_omitted.file_text")); err != nil {
+		return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.write_attachments_omitted.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 	return nil
 }
 
@@ -158,10 +181,14 @@ func (a *App) loadFlaggedPostReportContext(rctx request.CTX, postID string) (*mo
 	}, nil
 }
 
-func (a *App) writeBasePostSection(rctx request.CTX, zw *zip.Writer, rc *model.FlaggedPostReportContext, seen map[string]bool) *model.AppError {
+func (a *App) writeBasePostSection(rctx request.CTX, zw *zip.Writer, rc *model.FlaggedPostReportContext, seen map[string]bool, includeAttachments bool) *model.AppError {
 	editOrder := make([]string, 0, len(rc.EditHistory))
 	for _, e := range rc.EditHistory {
 		editOrder = append(editOrder, e.Id)
+	}
+
+	if !includeAttachments && rc.Post.Metadata != nil {
+		rc.Post.Metadata.Files = nil
 	}
 
 	yamlPayload := buildPostYAML(rc.Post, rc.Channel, rc.Team, rc.Author, editOrder)
@@ -175,26 +202,29 @@ func (a *App) writeBasePostSection(rctx request.CTX, zw *zip.Writer, rc *model.F
 		return appErr
 	}
 	attachmentsDir := path.Join(flaggedPostReportPostDir, flaggedPostReportAttachmentsDir)
-	return a.writeAttachments(rctx, zw, attachmentsDir, baseFiles, seen)
+	return a.writeAttachments(rctx, zw, attachmentsDir, baseFiles, seen, includeAttachments)
 }
 
-func (a *App) writeEditHistorySection(rctx request.CTX, zw *zip.Writer, rc *model.FlaggedPostReportContext, seen map[string]bool) *model.AppError {
+func (a *App) writeEditHistorySection(rctx request.CTX, zw *zip.Writer, rc *model.FlaggedPostReportContext, seen map[string]bool, includeAttachments bool) *model.AppError {
 	for _, edit := range rc.EditHistory {
+		// FileInfos for an edit-history Post are populated on Post.Metadata.Files
+		// by populateEditHistoryFileMetadata. See app.GetEditHistoryForPost.
+		var editFiles []*model.FileInfo
+		if edit.Metadata != nil {
+			editFiles = edit.Metadata.Files
+			if !includeAttachments {
+				edit.Metadata.Files = nil
+			}
+		}
+
 		yamlPayload := buildPostYAML(edit, rc.Channel, rc.Team, rc.Author, nil)
 		entryPath := path.Join(flaggedPostReportEditHistoryDir, edit.Id, flaggedPostReportPostYAMLFile)
 		if err := writeYAMLEntry(zw, entryPath, yamlPayload); err != nil {
 			return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.write_edit_yaml.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		// FileInfos for an edit-history Post are populated on Post.Metadata.Files
-		// by populateEditHistoryFileMetadata. See app.GetEditHistoryForPost.
-		var editFiles []*model.FileInfo
-		if edit.Metadata != nil {
-			editFiles = edit.Metadata.Files
-		}
-
 		dir := path.Join(flaggedPostReportEditHistoryDir, edit.Id, flaggedPostReportAttachmentsDir)
-		if appErr := a.writeAttachments(rctx, zw, dir, editFiles, seen); appErr != nil {
+		if appErr := a.writeAttachments(rctx, zw, dir, editFiles, seen, includeAttachments); appErr != nil {
 			return appErr
 		}
 	}
@@ -355,12 +385,17 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generat
 	return out, nil
 }
 
-func (a *App) writeAttachments(rctx request.CTX, zw *zip.Writer, dirPrefix string, files []*model.FileInfo, seen map[string]bool) *model.AppError {
+func (a *App) writeAttachments(rctx request.CTX, zw *zip.Writer, dirPrefix string, files []*model.FileInfo, seen map[string]bool, includeAttachments bool) *model.AppError {
 	for _, fi := range files {
 		if fi == nil || seen[fi.Id] {
 			continue
 		}
+		// Marked even when excluded, because the caller counts omissions from seen.
 		seen[fi.Id] = true
+
+		if !includeAttachments {
+			continue
+		}
 
 		reader, appErr := a.FileReader(fi.Path)
 		if appErr != nil {
@@ -371,6 +406,7 @@ func (a *App) writeAttachments(rctx request.CTX, zw *zip.Writer, dirPrefix strin
 
 		w, err := zw.Create(entryName)
 		if err != nil {
+			_ = reader.Close()
 			return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.zip_create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
@@ -471,7 +507,35 @@ func (a *App) notifyReviewersOfReportGeneration(rctx request.CTX, flaggedPostID,
 	}
 
 	message := fmt.Sprintf(messageFormat, generator.Username)
-	if _, appErr := a.postReviewerMessage(rctx, message, groupID, flaggedPostID, nil, ""); appErr != nil {
+	if _, appErr := a.postReviewerMessage(rctx, message, groupID, flaggedPostID, nil, "", ""); appErr != nil {
 		rctx.Logger().Warn("Failed to post report generation notification to reviewers", mlog.String("flagged_post_id", flaggedPostID), mlog.Err(appErr))
+	}
+}
+
+func (a *App) NotifyRequestingReviewerOfSkippedAttachments(rctx request.CTX, flaggedPostID, requestingUserID string) {
+	groupID, err := a.ContentFlaggingGroupId()
+	if err != nil {
+		rctx.Logger().Warn("Failed to get content flagging group id for skipped attachments notification", mlog.Err(err))
+		return
+	}
+
+	var locale string
+	if reviewer, appErr := a.GetUser(requestingUserID); appErr != nil {
+		rctx.Logger().Warn("Failed to fetch requesting reviewer, using default locale", mlog.String("user_id", requestingUserID), mlog.Err(appErr))
+	} else {
+		locale = reviewer.Locale
+	}
+
+	message := i18n.GetUserTranslations(locale)("app.data_spillage.report.attachments_omitted.notification")
+	posts, appErr := a.postReviewerMessage(rctx, message, groupID, flaggedPostID, nil, "", requestingUserID)
+	if appErr != nil {
+		rctx.Logger().Warn("Failed to notify the requesting reviewer of skipped attachments", mlog.String("flagged_post_id", flaggedPostID), mlog.String("user_id", requestingUserID), mlog.Err(appErr))
+		return
+	}
+
+	// Reviewer eligibility is resolved dynamically, so a legitimate reviewer can pass the
+	// API's reviewer check yet have no thread for a post flagged before they became one.
+	if len(posts) == 0 {
+		rctx.Logger().Warn("No content review thread for the requesting reviewer; skipped attachments notification not delivered", mlog.String("flagged_post_id", flaggedPostID), mlog.String("user_id", requestingUserID))
 	}
 }

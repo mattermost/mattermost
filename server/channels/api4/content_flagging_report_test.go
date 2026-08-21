@@ -10,11 +10,15 @@ import (
 	"encoding/csv"
 	"io"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/goccy/go-yaml"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/require"
 )
 
@@ -436,5 +440,227 @@ func TestGeneratePostExposureReport(t *testing.T) {
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 		require.Empty(t, report)
+	})
+}
+
+func readReportArchive(t *testing.T, report []byte) map[string][]byte {
+	t.Helper()
+
+	zr, err := zip.NewReader(bytes.NewReader(report), int64(len(report)))
+	require.NoError(t, err)
+
+	out := map[string][]byte{}
+	for _, f := range zr.File {
+		rc, err := f.Open()
+		require.NoError(t, err)
+		b, err := io.ReadAll(rc)
+		require.NoError(t, err)
+		_ = rc.Close()
+		out[f.Name] = b
+	}
+	return out
+}
+
+func TestGenerateFlaggedPostReportFileDownloadPolicy(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
+
+	client := th.Client
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	defer th.RemoveLicense(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	withDownloadDecision := func(t *testing.T, channelID string, allowed bool) {
+		t.Helper()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == channelID && req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+
+		// Only the decision under test is pinned; unrelated evaluations must not trip the mock.
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Maybe()
+	}
+
+	t.Run("Should include attachments when the download policy allows the reviewer", func(t *testing.T) {
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post, fileInfo := uploadFileAndCreatePost(t, th, client)
+		flagPostViaAPI(t, client, post.Id)
+		withDownloadDecision(t, post.ChannelId, true)
+
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		entries := readReportArchive(t, report)
+		require.Contains(t, entries, "post/attachments/"+fileInfo.Id+"_"+fileInfo.Name)
+		require.NotContains(t, entries, "ATTACHMENTS_OMITTED.txt")
+	})
+
+	t.Run("Should omit attachments without failing the request when the download policy denies the reviewer", func(t *testing.T) {
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post, fileInfo := uploadFileAndCreatePost(t, th, client)
+		flagPostViaAPI(t, client, post.Id)
+		withDownloadDecision(t, post.ChannelId, false)
+
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		entries := readReportArchive(t, report)
+		for name := range entries {
+			require.NotContains(t, name, fileInfo.Id, "no archive entry should be named after an omitted attachment")
+		}
+		require.Contains(t, entries, "ATTACHMENTS_OMITTED.txt")
+		require.Contains(t, entries, "post/post.yaml")
+		require.Contains(t, entries, "content_review.yaml")
+		require.Contains(t, entries, "report_metadata.yaml")
+		require.Contains(t, entries, "exposure_report.csv")
+	})
+}
+
+func TestGenerateFlaggedPostReportAttachmentsOmittedAudit(t *testing.T) {
+	logFile, err := os.CreateTemp(t.TempDir(), "audit.log")
+	require.NoError(t, err)
+	defer logFile.Close()
+
+	options := []app.Option{app.WithLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced, "advanced_logging"))}
+	th := SetupWithServerOptionsAndConfig(t, options, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		cfg.ExperimentalAuditSettings.FileName = model.NewPointer(logFile.Name())
+	}).InitBasic(t)
+
+	client := th.Client
+
+	// WithLicense seeds the license early enough for the audit sink to come up; the
+	// test helper clears it again during setup, so re-apply it for content flagging.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced, "advanced_logging"))
+	defer th.RemoveLicense(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	appErr := setBasicCommonReviewerConfig(th)
+	require.Nil(t, appErr)
+
+	post, _ := uploadFileAndCreatePost(t, th, client)
+	flagPostViaAPI(t, client, post.Id)
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	original := th.App.Srv().Channels().AccessControl
+	th.App.Srv().Channels().AccessControl = mockACS
+	defer func() { th.App.Srv().Channels().AccessControl = original }()
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+	_, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{})
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	require.NoError(t, th.Server.Audit.Flush())
+	require.NoError(t, logFile.Sync())
+
+	data, err := io.ReadAll(logFile)
+	require.NoError(t, err)
+	require.NotEmpty(t, data)
+
+	entry := FindAuditEntry(string(data), "generateFlaggedPostReport", th.BasicUser.Id)
+	require.NotNil(t, entry, "should find a generateFlaggedPostReport audit entry")
+	require.Equal(t, "success", entry.Status)
+	require.Equal(t, true, entry.Parameters["attachments_omitted"])
+	require.EqualValues(t, 1, entry.Parameters["omitted_attachment_count"])
+}
+
+func TestGenerateFlaggedPostReportEvaluatesSessionAttributes(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.SessionAttributes = true
+	}).InitBasic(t)
+
+	client := th.Client
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	defer th.RemoveLicense(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	appErr := setBasicCommonReviewerConfig(th)
+	require.Nil(t, appErr)
+
+	session, appErr := th.App.GetSession(client.AuthToken)
+	require.Nil(t, appErr)
+
+	setVPNActive := func(t *testing.T, value string) {
+		t.Helper()
+		require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(session.Id, map[string]any{
+			model.SessionAttributesPropertyFieldVPNActive: value,
+		}, model.GetMillis()))
+	}
+
+	// Stands in for a policy that grants the download only while the reviewer's session
+	// reports an active VPN. Anything the PDP cannot match falls through to a denial, so
+	// a subject built without session attributes shows up as stripped attachments.
+	requireVPNActive := func(t *testing.T, channelID string) {
+		t.Helper()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment &&
+				req.Resource.ID == channelID &&
+				req.Subject.Session[model.SessionAttributesPropertyFieldVPNActive] == "true"
+		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil)).Maybe()
+	}
+
+	t.Run("Should include attachments when the session attribute satisfies the policy", func(t *testing.T) {
+		post, fileInfo := uploadFileAndCreatePost(t, th, client)
+		flagPostViaAPI(t, client, post.Id)
+		setVPNActive(t, "true")
+		requireVPNActive(t, post.ChannelId)
+
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		entries := readReportArchive(t, report)
+		require.Contains(t, entries, "post/attachments/"+fileInfo.Id+"_"+fileInfo.Name)
+		require.NotContains(t, entries, "ATTACHMENTS_OMITTED.txt")
+	})
+
+	t.Run("Should omit attachments when the session attribute fails the policy", func(t *testing.T) {
+		post, fileInfo := uploadFileAndCreatePost(t, th, client)
+		flagPostViaAPI(t, client, post.Id)
+		setVPNActive(t, "false")
+		requireVPNActive(t, post.ChannelId)
+
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		entries := readReportArchive(t, report)
+		require.NotContains(t, entries, "post/attachments/"+fileInfo.Id+"_"+fileInfo.Name)
+		require.Contains(t, entries, "ATTACHMENTS_OMITTED.txt")
 	})
 }
