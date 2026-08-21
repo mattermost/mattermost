@@ -162,7 +162,7 @@ func TestOpenSearchIndexerBulkWriteFailures(t *testing.T) {
 	settingsResp, err := client.Indices.Settings.Get(context.Background(), &opensearchapi.SettingsGetReq{})
 	require.NoError(t, err)
 	var indexNames []string
-	for name := range settingsResp.Indices {
+	for name := range settingsResp.GetIndices() {
 		if !strings.HasPrefix(name, ".") {
 			indexNames = append(indexNames, name)
 		}
