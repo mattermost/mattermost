@@ -45,26 +45,31 @@ type fieldMasking struct {
 	holdingsFieldID string
 }
 
-// maskingContext memoizes, within one hook call that reads several values on
-// one field, everything this phase needs more than once: the fieldMasking
-// resolution above, and the caller's holdings on whatever field
-// mask_by_field_id names -- the same "resolve once per batch, not once per
-// item" problem valueWriteAccessCache already solves for writes. A batch read
-// of 50 values on one field must not load the template, or search the
-// caller's holdings, 50 times.
+// maskingContext memoizes, within one hook call that reads or writes several
+// values on one field, everything this phase needs more than once: the
+// fieldMasking resolution above, the caller's holdings on whatever field
+// mask_by_field_id names, and -- for a write -- the value already stored at
+// a (field, target) a write is about to replace. Same "resolve once per
+// batch, not once per item" problem valueWriteAccessCache already solves for
+// the write decision itself. A batch read or write of 50 values on one field
+// must not load the template, or search the caller's holdings, or fetch the
+// stored row, 50 times.
 type maskingContext struct {
 	fieldMasking      map[string]fieldMasking
 	holdingsValues    map[string][]*model.PropertyValue
 	holdingsOptionIDs map[string]map[string]struct{}
+	existingValues    map[[2]string]*model.PropertyValue
 }
 
 // newMaskingContext returns an empty maskingContext, built once per hook call
-// that reads values or options through the masking filter.
+// that reads values or options through the masking filter, or writes to a
+// field masking may refuse.
 func newMaskingContext() maskingContext {
 	return maskingContext{
 		fieldMasking:      make(map[string]fieldMasking),
 		holdingsValues:    make(map[string][]*model.PropertyValue),
 		holdingsOptionIDs: make(map[string]map[string]struct{}),
+		existingValues:    make(map[[2]string]*model.PropertyValue),
 	}
 }
 
@@ -481,4 +486,112 @@ func (h *AccessControlHook) maskScalarValue(c maskingContext, field *model.Prope
 		}
 	}
 	return nil
+}
+
+// storedValue returns the value currently stored at (fieldID, targetID), nil
+// when there is none, memoized per (fieldID, targetID) for the lifetime of
+// the maskingContext -- the same pair valueWriteAccessCache already batches
+// the write decision itself under, so a batch write on one field and target
+// loads the row it is about to replace once. An empty targetID never has a
+// single row to load (PreDeletePropertyValuesForField's exception passes one
+// in to mean "no single object"), so it short-circuits to nothing stored.
+func (c maskingContext) storedValue(h *AccessControlHook, groupID, fieldID, targetID string) (*model.PropertyValue, error) {
+	if targetID == "" {
+		return nil, nil
+	}
+	key := [2]string{fieldID, targetID}
+	if v, ok := c.existingValues[key]; ok {
+		return v, nil
+	}
+	values, err := h.propertyService.searchPropertyValues(groupID, model.PropertyValueSearchOpts{
+		FieldID:   fieldID,
+		TargetIDs: []string{targetID},
+		PerPage:   1,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var v *model.PropertyValue
+	if len(values) > 0 {
+		v = values[0]
+	}
+	c.existingValues[key] = v
+	return v, nil
+}
+
+// primeStoredValue seeds storedValue's cache with a row the caller already
+// has in hand, so a delete path that loaded the value to find its field does
+// not pay a second read for the same lookup.
+func (c maskingContext) primeStoredValue(fieldID, targetID string, value *model.PropertyValue) {
+	if targetID == "" {
+		return
+	}
+	c.existingValues[[2]string{fieldID, targetID}] = value
+}
+
+// checkValueWriteVisibility refuses a write to a masked field when the
+// caller cannot see the whole of what is already stored at valueTargetID.
+// Masking narrows what a read returns without touching what a write
+// replaces, so without this a caller shown only part of a value could
+// destroy the rest of it by editing and saving back what little they were
+// shown. Reuses maskValue itself rather than a second set of per-type
+// overlap rules, so the rule holds for every field type the same way the
+// read filter already does.
+//
+// Runs only once the permission decision has already admitted the write; it
+// can only refuse a write the gate would otherwise allow, never grant one it
+// denied.
+func (h *AccessControlHook) checkValueWriteVisibility(rctx request.CTX, mc maskingContext, field *model.PropertyField, callerID, scope, valueTargetID string) error {
+	fm, err := mc.resolve(h, field)
+	if err != nil {
+		return err
+	}
+	if fm.masking == nil || h.exempt(fm.masking.Except, callerID, scope) {
+		return nil
+	}
+
+	existing, err := mc.storedValue(h, field.GroupID, field.ID, valueTargetID)
+	if err != nil {
+		return err
+	}
+	if existing == nil {
+		// Nothing stored yet to hide any of -- this is what lets a caller tag
+		// an object they cannot fully see.
+		return nil
+	}
+
+	masked := h.maskValue(rctx, mc, field, fm, existing, callerID)
+	visible, err := h.valueFullyVisible(field, existing, masked)
+	if err != nil {
+		return err
+	}
+	if !visible {
+		return fmt.Errorf("field %s refuses caller %q a write on target %q: the stored value contains data the caller may not read: %w", field.ID, callerID, valueTargetID, ErrAccessDenied)
+	}
+	return nil
+}
+
+// valueFullyVisible reports whether masked -- maskValue's answer for
+// existing -- is the whole of existing rather than part of it. A scalar
+// field's mask is exact-or-nothing already (maskScalarValue never returns a
+// partial value), so any non-nil answer is the whole thing. An
+// option-supporting field's mask can be a subset, so full visibility means
+// the masked answer names exactly as many options as the stored value does
+// -- it can only ever be a subset of them, so equal counts mean equal sets.
+func (h *AccessControlHook) valueFullyVisible(field *model.PropertyField, existing, masked *model.PropertyValue) (bool, error) {
+	if masked == nil {
+		return false, nil
+	}
+	if !field.Type.SupportsOptions() {
+		return true, nil
+	}
+	originalIDs, err := h.extractOptionIDsFromValue(field.Type, existing.Value)
+	if err != nil {
+		return false, err
+	}
+	maskedIDs, err := h.extractOptionIDsFromValue(field.Type, masked.Value)
+	if err != nil {
+		return false, err
+	}
+	return len(maskedIDs) == len(originalIDs), nil
 }

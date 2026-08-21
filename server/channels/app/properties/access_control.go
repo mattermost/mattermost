@@ -497,7 +497,7 @@ func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *mode
 		return nil, err
 	}
 
-	if err := h.checkValueWriteAccess(rctx, field, callerID, h.extractActingAsScope(rctx), value.TargetID); err != nil {
+	if err := h.checkValueWriteAccess(rctx, newMaskingContext(), field, callerID, h.extractActingAsScope(rctx), value.TargetID); err != nil {
 		return nil, err
 	}
 
@@ -520,12 +520,13 @@ func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*
 	}
 
 	cache := make(valueWriteAccessCache)
+	mc := newMaskingContext()
 	for _, value := range values {
 		field, exists := fieldMap[value.FieldID]
 		if !exists {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
-		if err := cache.check(h, rctx, field, callerID, scope, value.TargetID); err != nil {
+		if err := cache.check(h, rctx, mc, field, callerID, scope, value.TargetID); err != nil {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
 		}
 	}
@@ -546,7 +547,7 @@ func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID str
 		return nil, err
 	}
 
-	if err := h.checkValueWriteAccess(rctx, field, callerID, h.extractActingAsScope(rctx), value.TargetID); err != nil {
+	if err := h.checkValueWriteAccess(rctx, newMaskingContext(), field, callerID, h.extractActingAsScope(rctx), value.TargetID); err != nil {
 		return nil, err
 	}
 
@@ -569,12 +570,13 @@ func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID st
 	}
 
 	cache := make(valueWriteAccessCache)
+	mc := newMaskingContext()
 	for _, value := range values {
 		field, exists := fieldMap[value.FieldID]
 		if !exists {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
-		if err := cache.check(h, rctx, field, callerID, scope, value.TargetID); err != nil {
+		if err := cache.check(h, rctx, mc, field, callerID, scope, value.TargetID); err != nil {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
 		}
 	}
@@ -595,7 +597,7 @@ func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *mode
 		return nil, err
 	}
 
-	if err := h.checkValueWriteAccess(rctx, field, callerID, h.extractActingAsScope(rctx), value.TargetID); err != nil {
+	if err := h.checkValueWriteAccess(rctx, newMaskingContext(), field, callerID, h.extractActingAsScope(rctx), value.TargetID); err != nil {
 		return nil, err
 	}
 
@@ -618,12 +620,13 @@ func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*
 	}
 
 	cache := make(valueWriteAccessCache)
+	mc := newMaskingContext()
 	for _, value := range values {
 		field, exists := fieldMap[value.FieldID]
 		if !exists {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
-		if err := cache.check(h, rctx, field, callerID, scope, value.TargetID); err != nil {
+		if err := cache.check(h, rctx, mc, field, callerID, scope, value.TargetID); err != nil {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
 		}
 	}
@@ -649,7 +652,12 @@ func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID str
 		return err
 	}
 
-	return h.checkValueWriteAccess(rctx, field, callerID, h.extractActingAsScope(rctx), value.TargetID)
+	// value is already loaded, so hand it to the visibility check directly
+	// rather than paying a second read for the same row.
+	mc := newMaskingContext()
+	mc.primeStoredValue(field.ID, value.TargetID, value)
+
+	return h.checkValueWriteAccess(rctx, mc, field, callerID, h.extractActingAsScope(rctx), value.TargetID)
 }
 
 // PreDeletePropertyValuesForTarget enforces write access for all affected fields
@@ -661,8 +669,10 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 
 	callerID := h.extractCallerID(rctx)
 
-	// Collect unique field IDs across all values without loading all values into memory
-	fieldIDs := make(map[string]struct{})
+	// Collect one value per field for targetID -- the deletion this hook is
+	// gating -- so checkValueWriteVisibility can judge each field's write
+	// without a second read for the row already in hand.
+	fieldValues := make(map[string]*model.PropertyValue)
 	var cursor model.PropertyValueSearchCursor
 	iterations := 0
 
@@ -688,7 +698,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 		}
 
 		for _, value := range values {
-			fieldIDs[value.FieldID] = struct{}{}
+			fieldValues[value.FieldID] = value
 		}
 
 		if len(values) < propertyAccessPaginationPageSize {
@@ -702,12 +712,12 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 		}
 	}
 
-	if len(fieldIDs) == 0 {
+	if len(fieldValues) == 0 {
 		return nil
 	}
 
-	fieldIDSlice := make([]string, 0, len(fieldIDs))
-	for fieldID := range fieldIDs {
+	fieldIDSlice := make([]string, 0, len(fieldValues))
+	for fieldID := range fieldValues {
 		fieldIDSlice = append(fieldIDSlice, fieldID)
 	}
 
@@ -716,10 +726,15 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 		return err
 	}
 
+	mc := newMaskingContext()
+	for fieldID, value := range fieldValues {
+		mc.primeStoredValue(fieldID, targetID, value)
+	}
+
 	cache := make(valueWriteAccessCache)
 	scope := h.extractActingAsScope(rctx)
 	for _, field := range fields {
-		if err := cache.check(h, rctx, field, callerID, scope, targetID); err != nil {
+		if err := cache.check(h, rctx, mc, field, callerID, scope, targetID); err != nil {
 			return fmt.Errorf("field %s: %w", field.ID, err)
 		}
 	}
@@ -750,7 +765,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, gr
 		return nil
 	}
 
-	return h.checkValueWriteAccess(rctx, field, callerID, h.extractActingAsScope(rctx), "")
+	return h.checkValueWriteAccess(rctx, newMaskingContext(), field, callerID, h.extractActingAsScope(rctx), "")
 }
 
 // Value Post-Hooks
@@ -1146,12 +1161,12 @@ func (h *AccessControlHook) checkSyncLock(field *model.PropertyField, callerID s
 // on one field and target would repeat that resolution once per value.
 type valueWriteAccessCache map[[2]string]error
 
-func (c valueWriteAccessCache) check(h *AccessControlHook, rctx request.CTX, field *model.PropertyField, callerID, scope, valueTargetID string) error {
+func (c valueWriteAccessCache) check(h *AccessControlHook, rctx request.CTX, mc maskingContext, field *model.PropertyField, callerID, scope, valueTargetID string) error {
 	key := [2]string{field.ID, valueTargetID}
 	if err, ok := c[key]; ok {
 		return err
 	}
-	err := h.checkValueWriteAccess(rctx, field, callerID, scope, valueTargetID)
+	err := h.checkValueWriteAccess(rctx, mc, field, callerID, scope, valueTargetID)
 	c[key] = err
 	return err
 }
@@ -1159,22 +1174,22 @@ func (c valueWriteAccessCache) check(h *AccessControlHook, rctx request.CTX, fie
 // checkValueWriteAccess gates a value write. A field carrying a typed
 // permissions object supersedes every legacy path below: a machine caller is
 // allowed only by a matching value.write grant, and a human caller is judged
-// against valueTargetID, the object the value hangs off. Absent permissions,
-// a field declaring an owners list has the owner check (with scope matching)
-// supersede the legacy protected-field and sync-lock checks; otherwise it
-// falls back to today's behaviour.
-func (h *AccessControlHook) checkValueWriteAccess(rctx request.CTX, field *model.PropertyField, callerID, scope, valueTargetID string) error {
+// against valueTargetID, the object the value hangs off. Once either has
+// admitted the write, a masked field still gets a say: checkValueWriteVisibility
+// refuses it if the caller cannot see the whole of what is already stored
+// there. Absent permissions, a field declaring an owners list has the owner
+// check (with scope matching) supersede the legacy protected-field and
+// sync-lock checks; otherwise it falls back to today's behaviour.
+func (h *AccessControlHook) checkValueWriteAccess(rctx request.CTX, mc maskingContext, field *model.PropertyField, callerID, scope, valueTargetID string) error {
 	if field.Permissions != nil {
 		if h.isMachineCaller(callerID) {
-			if h.permissionsGrantAllows(field, callerID, scope, model.PropertyActionValueWrite) {
-				return nil
+			if !h.permissionsGrantAllows(field, callerID, scope, model.PropertyActionValueWrite) {
+				return fmt.Errorf("field %s carries permissions and caller %q acting as scope %q matches no value.write grant: %w", field.ID, callerID, scope, ErrAccessDenied)
 			}
-			return fmt.Errorf("field %s carries permissions and caller %q acting as scope %q matches no value.write grant: %w", field.ID, callerID, scope, ErrAccessDenied)
+		} else if !h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueWrite, valueTargetID) {
+			return fmt.Errorf("field %s refuses caller %q a value write on target %q: %w", field.ID, callerID, valueTargetID, ErrAccessDenied)
 		}
-		if h.permissionsAllows(rctx, field, callerID, scope, model.PropertyActionValueWrite, valueTargetID) {
-			return nil
-		}
-		return fmt.Errorf("field %s refuses caller %q a value write on target %q: %w", field.ID, callerID, valueTargetID, ErrAccessDenied)
+		return h.checkValueWriteVisibility(rctx, mc, field, callerID, scope, valueTargetID)
 	}
 
 	if model.HasPropertyFieldOwners(field) {

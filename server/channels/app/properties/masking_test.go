@@ -672,6 +672,134 @@ func TestMaskValueReads(t *testing.T) {
 	})
 }
 
+// TestValueWriteVisibility covers checkValueWriteVisibility: on a masked
+// field, a write must not be allowed to replace a stored value the caller
+// cannot see in full. The §2.5 gate is stubbed to always allow, so every
+// case below isolates the write-time visibility rule from the permission
+// decision it runs behind.
+func TestValueWriteVisibility(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	alwaysAllow := func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool {
+		return true
+	}
+	th.service.setLadderCheckerForTests(alwaysAllow)
+	t.Cleanup(func() {
+		th.service.setLadderCheckerForTests(nil)
+		th.service.setPluginCheckerForTests(nil)
+	})
+
+	t.Run("a caller who sees the whole stored value may update it", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Write-FullView", model.PropertyFieldTypeSelect, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, "opt_a")
+		value := writeValueDirect(t, th, field.ID, "channel", model.NewId(), "opt_a")
+
+		value.Value = json.RawMessage(`"opt_a"`)
+		_, upErr := th.service.UpdatePropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, value)
+		require.NoError(t, upErr)
+	})
+
+	t.Run("a caller who sees only part of a multiselect value is refused", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Write-PartialView", model.PropertyFieldTypeMultiselect, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, []string{"opt_a"})
+		value := writeValueDirect(t, th, field.ID, "channel", model.NewId(), []string{"opt_a", "opt_b"})
+
+		value.Value = json.RawMessage(`["opt_a"]`)
+		_, upErr := th.service.UpdatePropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, value)
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
+	})
+
+	t.Run("a caller who sees none of an existing value is refused on it, but may still write a new one", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Write-NoView", model.PropertyFieldTypeText, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		existing := writeValueDirect(t, th, field.ID, "channel", model.NewId(), "secret")
+
+		existing.Value = json.RawMessage(`"changed"`)
+		_, upErr := th.service.UpdatePropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, existing)
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
+
+		_, createErr := th.service.CreatePropertyValue(RequestContextWithCallerID(th.Context, caller), &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    field.ID,
+			TargetType: "channel",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"first-secret"`),
+		})
+		require.NoError(t, createErr, "no stored value yet means nothing is hidden, so a caller who holds nothing may still tag an untagged object")
+	})
+
+	t.Run("a caller listed in except is never refused", func(t *testing.T) {
+		exemptCaller := model.NewId()
+		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Write-Exempt", model.PropertyFieldTypeText, &model.Masking{
+			Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: exemptCaller}},
+		}))
+		require.NoError(t, err)
+
+		existing := writeValueDirect(t, th, field.ID, "channel", model.NewId(), "secret")
+
+		existing.Value = json.RawMessage(`"changed"`)
+		_, upErr := th.service.UpdatePropertyValue(RequestContextWithCallerID(th.Context, exemptCaller), th.CPAGroupID, existing)
+		require.NoError(t, upErr)
+	})
+
+	t.Run("an unmasked field is unaffected", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Write-Unmasked", model.PropertyFieldTypeText, nil))
+		require.NoError(t, err)
+
+		existing := writeValueDirect(t, th, field.ID, "channel", model.NewId(), "secret")
+
+		existing.Value = json.RawMessage(`"changed"`)
+		_, upErr := th.service.UpdatePropertyValue(RequestContextWithCallerID(th.Context, model.NewId()), th.CPAGroupID, existing)
+		require.NoError(t, upErr)
+	})
+
+	t.Run("a delete is refused on the same terms as an update, and admitted once the caller holds the value", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Write-DeleteRefused", model.PropertyFieldTypeText, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		existing := writeValueDirect(t, th, field.ID, "channel", model.NewId(), "secret")
+
+		delErr := th.service.DeletePropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, existing.ID)
+		require.Error(t, delErr)
+		assert.ErrorIs(t, delErr, ErrAccessDenied)
+
+		writeValueDirect(t, th, field.ID, "user", caller, "secret")
+		delErr = th.service.DeletePropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, existing.ID)
+		require.NoError(t, delErr)
+	})
+
+	t.Run("a batch write on one field and target loads the stored value and the caller's holdings once each", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Write-BatchLoad", model.PropertyFieldTypeText, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, "secret")
+		target := model.NewId()
+		writeValueDirect(t, th, field.ID, "channel", target, "secret")
+
+		counter := &countingPropertyValueStore{PropertyValueStore: th.service.valueStore}
+		th.service.valueStore = counter
+		t.Cleanup(func() { th.service.valueStore = counter.PropertyValueStore })
+
+		_, upErr := th.service.UpsertPropertyValues(RequestContextWithCallerID(th.Context, caller), []*model.PropertyValue{
+			{GroupID: th.CPAGroupID, FieldID: field.ID, TargetType: "channel", TargetID: target, Value: json.RawMessage(`"secret"`)},
+			{GroupID: th.CPAGroupID, FieldID: field.ID, TargetType: "channel", TargetID: target, Value: json.RawMessage(`"secret"`)},
+		})
+		require.NoError(t, upErr)
+		assert.Equal(t, 2, counter.searches, "one search for the stored value at (field, target) and one for the caller's own holdings, memoized across the batch rather than repeated per item")
+	})
+}
+
 // maskedOptionField builds a standalone (no LinkedFieldID) option-supporting
 // field carrying masking, with options inlined -- the option-list analogue of
 // maskedField, which carries none because value masking never needs one.
