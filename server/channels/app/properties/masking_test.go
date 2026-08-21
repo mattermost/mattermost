@@ -121,9 +121,10 @@ func TestResolveFieldMasking(t *testing.T) {
 	}
 
 	// setMasking persists masking directly through the store rather than the
-	// service, since PropertyField.IsValid (which both routes run) is the
-	// only gate this step depends on -- the save-time lock rejecting a linked
-	// field's own masking belongs to a later step and must not gate this one.
+	// service; both routes run the same PropertyField.IsValid, which does not
+	// reject a linked field's own masking, so this can set one to prove
+	// resolution ignores it on read regardless of what a linked field is
+	// actually allowed to save.
 	setMasking := func(field *model.PropertyField, masking *model.Masking) *model.PropertyField {
 		field.Permissions = &model.Permissions{Masking: masking}
 		updated, err := th.dbStore.PropertyField().Update(field.GroupID, []*model.PropertyField{field}, nil)
