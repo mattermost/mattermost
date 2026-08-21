@@ -1531,8 +1531,8 @@ func TestAppMaskingResolver_ChannelFieldProtectedSiblingPublic(t *testing.T) {
 	})
 	require.NoError(t, sErr)
 
-	// User sibling: PUBLIC (access mode unset) — the misconfiguration the fix
-	// must not trust.
+	// User sibling: PUBLIC (access mode unset) — the misconfiguration the
+	// resolver must not trust for access mode.
 	_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
 		GroupID:       groupID,
 		Name:          celSafeName(),
