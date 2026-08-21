@@ -1,0 +1,102 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.attribute-graph-parents-pane {
+    .attribute-graph-parents-pane__name {
+        padding: 12px 16px 8px;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    .attribute-graph-parents-pane__children {
+        padding: 8px 16px;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .attribute-graph-parents-pane__children-label {
+        margin-bottom: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .attribute-graph-parents-pane__child {
+        padding: 2px 0;
+    }
+
+    .attribute-graph-parents-pane__back {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 16px;
+        border: none;
+        background: transparent;
+        color: var(--center-channel-color);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    .attribute-graph-parents-pane__chips {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+    }
+
+    .attribute-graph-parents-pane__chip {
+        display: inline-flex;
+        overflow: hidden;
+        height: 24px;
+        align-items: stretch;
+        border-radius: 12px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .attribute-graph-parents-pane__chip-label {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 8px;
+        line-height: 16px;
+    }
+
+    .attribute-graph-parents-pane__chip-remove {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        border: none;
+        background: transparent;
+        color: var(--center-channel-color);
+        cursor: pointer;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+    }
+
+    .attribute-graph-parents-pane__helper {
+        margin: 0;
+        padding: 8px 16px 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    .attribute-graph-parents-pane__alert {
+        padding: 0 16px 12px;
+        color: var(--error-text);
+        font-size: 12px;
+        line-height: 16px;
+    }
+}

@@ -68,9 +68,59 @@
     }
 
     .attribute-options-graph-values__row {
-        padding: 8px 0;
+        display: flex;
+        position: relative;
+        align-items: center;
+        gap: 8px;
+        padding-block: 8px;
+        padding-inline-start: calc(var(--attribute-options-graph-values-indent, 0) * 24px);
         color: var(--center-channel-color);
         font-size: 14px;
+    }
+
+    .attribute-options-graph-values__drag-handle {
+        display: inline-flex;
+        flex-shrink: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+        cursor: grab;
+    }
+
+    .attribute-options-graph-values__name {
+        flex: 1 1 auto;
+        min-width: 0;
+        font-weight: 600;
+    }
+
+    .attribute-options-graph-values__parents-badge {
+        flex-shrink: 0;
+        padding: 0 8px;
+        border-radius: 10px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 20px;
+    }
+
+    .attribute-options-graph-values__menu-button {
+        flex-shrink: 0;
+        margin-inline-start: auto;
+    }
+
+    .attribute-options-graph-values__parents-anchor {
+        position: absolute;
+        overflow: hidden;
+        width: 0;
+        height: 0;
+        inset-inline-end: 36px;
+    }
+
+    .attribute-options-graph-values__row--draft {
+        .Input_container {
+            width: auto;
+            min-width: 240px;
+            flex: 1 1 auto;
+        }
     }
 
     .attribute-options-graph-values__add-top {

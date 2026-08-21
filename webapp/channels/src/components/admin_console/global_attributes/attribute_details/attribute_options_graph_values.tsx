@@ -1,20 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
-import {PlusIcon, SitemapIcon} from '@mattermost/compass-icons/components';
+import {DotsVerticalIcon, DragVerticalIcon, PlusIcon, SitemapIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
+import * as Menu from 'components/menu';
 import Input from 'components/widgets/inputs/input/input';
 
 import Constants from 'utils/constants';
 
+import AttributeGraphParentsPane, {type ConfirmGrant} from './attribute_graph_parents_pane';
 import {
+    addChildOption,
     addTopLevelOption,
+    getChildren,
+    getRoots,
     isNameUnique,
+    renameOption,
     wouldExceedMaxEdges,
     wouldExceedMaxOptions,
 } from './graph_utils';
@@ -25,6 +31,21 @@ type Props = {
     options: PropertyFieldOption[];
     onOptionsChange: (options: PropertyFieldOption[]) => void;
     disabled?: boolean;
+    confirmGrant?: ConfirmGrant;
+};
+
+type GraphOccurrence = {
+    option: PropertyFieldOption;
+    parentName: string | null;
+    depth: number;
+    path: string[];
+    occurrenceKey: string;
+};
+
+type ChildDraft = {
+    parentName: string;
+    insertAfterIndex: number;
+    depth: number;
 };
 
 type AddTopLevelFormProps = {
@@ -38,6 +59,85 @@ type AddTopLevelFormProps = {
     disabled: boolean;
     onCommit: () => void;
 };
+
+type GraphRowProps = {
+    occurrence: GraphOccurrence;
+    index: number;
+    disabled: boolean;
+    atMax: boolean;
+    isRenaming: boolean;
+    renameDraft: string;
+    renameIsDuplicate: boolean;
+    parentsOpen: boolean;
+    onOpenMenuAddChild: (occurrence: GraphOccurrence) => void;
+    onOpenParents: (occurrenceKey: string) => void;
+    onCloseParents: () => void;
+    onStartRename: (occurrenceKey: string, currentName: string) => void;
+    onRenameDraftChange: (value: string) => void;
+    onCommitRename: () => void;
+    onCancelRename: () => void;
+    onDelete: (optionName: string) => void;
+    options: PropertyFieldOption[];
+    onOptionsChange: (options: PropertyFieldOption[]) => void;
+    confirmGrant?: ConfirmGrant;
+};
+
+type ChildDraftRowProps = {
+    depth: number;
+    draftName: string;
+    onDraftNameChange: (value: string) => void;
+    isDuplicate: boolean;
+    trimmed: string;
+    canAdd: boolean;
+    disabled: boolean;
+    atMax: boolean;
+    onCommit: () => void;
+};
+
+function flattenOccurrences(options: PropertyFieldOption[]): GraphOccurrence[] {
+    const occurrences: GraphOccurrence[] = [];
+
+    const walk = (option: PropertyFieldOption, path: string[]) => {
+        occurrences.push({
+            option,
+            parentName: path.length === 1 ? null : path[path.length - 2],
+            depth: path.length - 1,
+            path,
+            occurrenceKey: path.join('\0'),
+        });
+        for (const child of getChildren(options, option.name)) {
+            if (path.includes(child.name)) {
+                continue;
+            }
+            walk(child, [...path, child.name]);
+        }
+    };
+
+    for (const root of getRoots(options)) {
+        walk(root, [root.name]);
+    }
+
+    return occurrences;
+}
+
+function pathStartsWith(path: string[], prefix: string[]): boolean {
+    if (path.length < prefix.length) {
+        return false;
+    }
+    return prefix.every((name, i) => path[i] === name);
+}
+
+function subtreeInsertAfterIndex(occurrences: GraphOccurrence[], occurrence: GraphOccurrence, index: number): number {
+    let insertAfterIndex = index;
+    for (let j = index; j < occurrences.length; j++) {
+        if (pathStartsWith(occurrences[j].path, occurrence.path)) {
+            insertAfterIndex = j;
+        } else if (j > index) {
+            break;
+        }
+    }
+    return insertAfterIndex;
+}
 
 const AddTopLevelForm = ({
     testIdPrefix,
@@ -94,8 +194,248 @@ const AddTopLevelForm = ({
     );
 };
 
-const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false}: Props) => {
+function ChildDraftRow({
+    depth,
+    draftName,
+    onDraftNameChange,
+    isDuplicate,
+    trimmed,
+    canAdd,
+    disabled,
+    atMax,
+    onCommit,
+}: ChildDraftRowProps) {
+    const {formatMessage} = useIntl();
+
+    return (
+        <li
+            className='attribute-options-graph-values__row attribute-options-graph-values__row--draft'
+            style={{['--attribute-options-graph-values-indent' as string]: depth}}
+            data-testid='attributeOptionsGraphRow__childDraft'
+        >
+            <Input
+                name='graph_child_option_name'
+                type='text'
+                useLegend={false}
+                placeholder={formatMessage(messages.namePlaceholder)}
+                value={draftName}
+                onChange={(e) => onDraftNameChange(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (canAdd) {
+                            onCommit();
+                        }
+                    }
+                }}
+                disabled={disabled || atMax}
+                maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                hasError={isDuplicate}
+                customMessage={isDuplicate
+                    ? {type: 'error', value: formatMessage(messages.duplicateName, {name: trimmed})}
+                    : null}
+                data-testid='attributeOptionsGraphRow__childNameInput'
+                autoFocus={true}
+            />
+            <Button
+                type='button'
+                emphasis='primary'
+                onClick={onCommit}
+                disabled={!canAdd}
+                data-testid='attributeOptionsGraphRow__childAddButton'
+            >
+                <PlusIcon size={16}/>
+                <FormattedMessage {...messages.addValue}/>
+            </Button>
+        </li>
+    );
+}
+
+const GraphRow = React.memo(function GraphRow({
+    occurrence,
+    index,
+    disabled,
+    atMax,
+    isRenaming,
+    renameDraft,
+    renameIsDuplicate,
+    parentsOpen,
+    onOpenMenuAddChild,
+    onOpenParents,
+    onCloseParents,
+    onStartRename,
+    onRenameDraftChange,
+    onCommitRename,
+    onCancelRename,
+    onDelete,
+    options,
+    onOptionsChange,
+    confirmGrant,
+}: GraphRowProps) {
+    const {formatMessage} = useIntl();
+    const skipBlurCommitRef = useRef(false);
+    const parentCount = (occurrence.option.parents ?? []).length;
+
+    return (
+        <li
+            className='attribute-options-graph-values__row'
+            style={{['--attribute-options-graph-values-indent' as string]: occurrence.depth}}
+            data-testid='attributeOptionsGraphRow'
+            data-option-name={occurrence.option.name}
+            data-parent-name={occurrence.parentName ?? ''}
+            data-depth={String(occurrence.depth)}
+        >
+            <span
+                className='attribute-options-graph-values__drag-handle'
+                tabIndex={-1}
+                aria-hidden={true}
+                data-testid='attributeOptionsGraphRow__dragHandle'
+            >
+                <DragVerticalIcon size={18}/>
+            </span>
+
+            {isRenaming ? (
+                <Input
+                    name={`graph_rename_${index}`}
+                    type='text'
+                    useLegend={false}
+                    value={renameDraft}
+                    onChange={(e) => onRenameDraftChange(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Escape') {
+                            e.preventDefault();
+                            skipBlurCommitRef.current = true;
+                            onCancelRename();
+                            return;
+                        }
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            skipBlurCommitRef.current = true;
+                            onCommitRename();
+                        }
+                    }}
+                    onBlur={() => {
+                        if (skipBlurCommitRef.current) {
+                            skipBlurCommitRef.current = false;
+                            return;
+                        }
+                        onCommitRename();
+                    }}
+                    disabled={disabled}
+                    maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
+                    hasError={renameIsDuplicate}
+                    customMessage={renameIsDuplicate
+                        ? {type: 'error', value: formatMessage(messages.duplicateName, {name: renameDraft.trim()})}
+                        : null}
+                    data-testid='attributeOptionsGraphRow__renameInput'
+                    autoFocus={true}
+                />
+            ) : (
+                <span
+                    className='attribute-options-graph-values__name'
+                    data-testid='attributeOptionsGraphRow__name'
+                >
+                    {occurrence.option.name}
+                </span>
+            )}
+
+            {parentCount >= 2 && (
+                <span
+                    className='attribute-options-graph-values__parents-badge'
+                    data-testid='attributeOptionsGraphRow__parentsBadge'
+                >
+                    <FormattedMessage
+                        {...messages.parentsBadge}
+                        values={{n: parentCount}}
+                    />
+                </span>
+            )}
+
+            <Menu.Container
+                menuButton={{
+                    id: `attribute-options-graph-row-menu-${index}`,
+                    class: 'btn btn-transparent attribute-options-graph-values__menu-button',
+                    'aria-label': formatMessage(messages.rowMenuAria),
+                    dataTestId: 'attributeOptionsGraphRow__menu',
+                    children: <DotsVerticalIcon size={18}/>,
+                    disabled,
+                }}
+                menu={{
+                    id: `attribute-options-graph-row-menu-list-${index}`,
+                    'aria-label': formatMessage(messages.rowMenuAria),
+                }}
+            >
+                <Menu.Item
+                    disabled={disabled || atMax}
+                    onClick={() => onOpenMenuAddChild(occurrence)}
+                    labels={<span><FormattedMessage {...messages.addChild}/></span>}
+                />
+                <Menu.Item
+                    onClick={() => onOpenParents(occurrence.occurrenceKey)}
+                    labels={<span><FormattedMessage {...messages.parents}/></span>}
+                />
+                <Menu.Item
+                    disabled={disabled}
+                    onClick={() => onStartRename(occurrence.occurrenceKey, occurrence.option.name)}
+                    labels={<span><FormattedMessage {...messages.rename}/></span>}
+                />
+                <Menu.Separator/>
+                <Menu.Item
+                    isDestructive={true}
+                    disabled={disabled}
+                    onClick={() => onDelete(occurrence.option.name)}
+                    labels={<span><FormattedMessage {...messages.deleteThisValue}/></span>}
+                />
+            </Menu.Container>
+
+            {parentsOpen && (
+                <Menu.Container
+                    menuButton={{
+                        id: `attribute-options-graph-row-parents-${index}`,
+                        class: 'attribute-options-graph-values__parents-anchor',
+                        'aria-label': formatMessage(messages.parents),
+                        dataTestId: 'attributeOptionsGraphRow__parentsAnchor',
+                        children: <span className='sr-only'>{formatMessage(messages.parents)}</span>,
+                    }}
+                    menu={{
+                        id: `attribute-options-graph-row-parents-menu-${index}`,
+                        className: 'attribute-graph-parents-pane',
+                        width: '368px',
+                        'aria-label': formatMessage(messages.parents),
+                        isMenuOpen: true,
+                        onToggle: (open) => {
+                            if (!open) {
+                                onCloseParents();
+                            }
+                        },
+                    }}
+                    anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+                    transformOrigin={{vertical: 'top', horizontal: 'right'}}
+                >
+                    <AttributeGraphParentsPane
+                        options={options}
+                        optionName={occurrence.option.name}
+                        onOptionsChange={onOptionsChange}
+                        onDelete={onDelete}
+                        disabled={disabled}
+                        atMax={atMax}
+                        confirmGrant={confirmGrant}
+                    />
+                </Menu.Container>
+            )}
+        </li>
+    );
+});
+
+const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false, confirmGrant}: Props) => {
     const [draftName, setDraftName] = useState('');
+    const [parentsOccurrenceKey, setParentsOccurrenceKey] = useState<string | null>(null);
+    const [renamingKey, setRenamingKey] = useState<string | null>(null);
+    const [renameDraft, setRenameDraft] = useState('');
+    const [childDraft, setChildDraft] = useState<ChildDraft | null>(null);
+    const [childDraftName, setChildDraftName] = useState('');
+
+    const occurrences = useMemo(() => flattenOccurrences(options), [options]);
 
     const trimmed = draftName.trim();
     const nameIsUnique = useMemo(() => isNameUnique(options, trimmed), [options, trimmed]);
@@ -106,6 +446,11 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
     );
     const canAdd = Boolean(trimmed) && nameIsUnique && !atMax && !disabled;
 
+    const childTrimmed = childDraftName.trim();
+    const childNameIsUnique = useMemo(() => isNameUnique(options, childTrimmed), [options, childTrimmed]);
+    const childIsDuplicate = Boolean(childTrimmed) && !childNameIsUnique;
+    const canAddChild = Boolean(childTrimmed) && childNameIsUnique && !atMax && !disabled && childDraft !== null;
+
     const commitTopLevel = useCallback(() => {
         const name = draftName.trim();
         if (!name || !isNameUnique(options, name) || wouldExceedMaxOptions(options) || wouldExceedMaxEdges(options) || disabled) {
@@ -114,6 +459,79 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
         onOptionsChange(addTopLevelOption(options, name));
         setDraftName('');
     }, [draftName, options, onOptionsChange, disabled]);
+
+    const handleDeleteValue = useCallback((_optionName: string) => {
+        // Phase 5 wires useGraphNodeDelete. Do not call removeOption.
+    }, []);
+
+    const handleOpenMenuAddChild = useCallback((occurrence: GraphOccurrence) => {
+        const nextOccurrences = flattenOccurrences(options);
+        const i = nextOccurrences.findIndex((item) => item.occurrenceKey === occurrence.occurrenceKey);
+        if (i < 0) {
+            return;
+        }
+        setChildDraft({
+            parentName: occurrence.option.name,
+            insertAfterIndex: subtreeInsertAfterIndex(nextOccurrences, occurrence, i),
+            depth: occurrence.depth + 1,
+        });
+        setChildDraftName('');
+        setRenamingKey(null);
+    }, [options]);
+
+    const handleOpenParents = useCallback((occurrenceKey: string) => {
+        setParentsOccurrenceKey(occurrenceKey);
+    }, []);
+
+    const handleCloseParents = useCallback(() => {
+        setParentsOccurrenceKey(null);
+    }, []);
+
+    const handleStartRename = useCallback((occurrenceKey: string, currentName: string) => {
+        setRenamingKey(occurrenceKey);
+        setRenameDraft(currentName);
+        setChildDraft(null);
+    }, []);
+
+    const handleCancelRename = useCallback(() => {
+        setRenamingKey(null);
+        setRenameDraft('');
+    }, []);
+
+    const handleCommitRename = useCallback(() => {
+        if (renamingKey === null) {
+            return;
+        }
+        const occurrence = occurrences.find((item) => item.occurrenceKey === renamingKey);
+        if (!occurrence) {
+            handleCancelRename();
+            return;
+        }
+        const currentName = occurrence.option.name;
+        const nextName = renameDraft.trim();
+        if (nextName === '' || nextName === currentName) {
+            handleCancelRename();
+            return;
+        }
+        if (!isNameUnique(options, nextName, currentName)) {
+            return;
+        }
+        onOptionsChange(renameOption(options, currentName, nextName));
+        handleCancelRename();
+    }, [handleCancelRename, occurrences, options, onOptionsChange, renameDraft, renamingKey]);
+
+    const commitChild = useCallback(() => {
+        if (!childDraft) {
+            return;
+        }
+        const name = childDraftName.trim();
+        if (!name || !isNameUnique(options, name) || atMax || disabled) {
+            return;
+        }
+        onOptionsChange(addChildOption(options, name, childDraft.parentName));
+        setChildDraft(null);
+        setChildDraftName('');
+    }, [atMax, childDraft, childDraftName, disabled, onOptionsChange, options]);
 
     const addForm = (
         <AddTopLevelForm
@@ -128,6 +546,50 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
             onCommit={commitTopLevel}
         />
     );
+
+    const listItems: React.ReactNode[] = [];
+    occurrences.forEach((occurrence, index) => {
+        listItems.push(
+            <GraphRow
+                key={occurrence.occurrenceKey}
+                occurrence={occurrence}
+                index={index}
+                disabled={disabled}
+                atMax={atMax}
+                isRenaming={renamingKey === occurrence.occurrenceKey}
+                renameDraft={renameDraft}
+                renameIsDuplicate={renamingKey === occurrence.occurrenceKey && Boolean(renameDraft.trim()) && !isNameUnique(options, renameDraft.trim(), occurrence.option.name)}
+                parentsOpen={parentsOccurrenceKey === occurrence.occurrenceKey}
+                onOpenMenuAddChild={handleOpenMenuAddChild}
+                onOpenParents={handleOpenParents}
+                onCloseParents={handleCloseParents}
+                onStartRename={handleStartRename}
+                onRenameDraftChange={setRenameDraft}
+                onCommitRename={handleCommitRename}
+                onCancelRename={handleCancelRename}
+                onDelete={handleDeleteValue}
+                options={options}
+                onOptionsChange={onOptionsChange}
+                confirmGrant={confirmGrant}
+            />,
+        );
+        if (childDraft && childDraft.insertAfterIndex === index) {
+            listItems.push(
+                <ChildDraftRow
+                    key='attribute-options-graph-child-draft'
+                    depth={childDraft.depth}
+                    draftName={childDraftName}
+                    onDraftNameChange={setChildDraftName}
+                    isDuplicate={childIsDuplicate}
+                    trimmed={childTrimmed}
+                    canAdd={canAddChild}
+                    disabled={disabled}
+                    atMax={atMax}
+                    onCommit={commitChild}
+                />,
+            );
+        }
+    });
 
     return (
         <div
@@ -162,14 +624,7 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
                         className='attribute-options-graph-values__list'
                         data-testid='attributeOptionsGraphList'
                     >
-                        {options.map((option) => (
-                            <li
-                                key={option.id || option.name}
-                                className='attribute-options-graph-values__row'
-                            >
-                                {option.name}
-                            </li>
-                        ))}
+                        {listItems}
                     </ul>
                     {addForm}
                 </>
@@ -215,5 +670,29 @@ const messages = defineMessages({
     duplicateName: {
         id: 'admin.global_attributes.attribute_details.options.graph.duplicate_name',
         defaultMessage: '"{name}" already exists in this field.',
+    },
+    parentsBadge: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_badge',
+        defaultMessage: '{n} parents',
+    },
+    rowMenuAria: {
+        id: 'admin.global_attributes.attribute_details.options.graph.row_menu',
+        defaultMessage: 'Row actions',
+    },
+    addChild: {
+        id: 'admin.global_attributes.attribute_details.options.graph.add_child',
+        defaultMessage: 'Add child',
+    },
+    parents: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents',
+        defaultMessage: 'Parents',
+    },
+    rename: {
+        id: 'admin.global_attributes.attribute_details.options.graph.rename',
+        defaultMessage: 'Rename',
+    },
+    deleteThisValue: {
+        id: 'admin.global_attributes.attribute_details.options.graph.delete_this_value',
+        defaultMessage: 'Delete this value',
     },
 });
