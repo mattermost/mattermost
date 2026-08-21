@@ -70,7 +70,8 @@ func TestOpenSearchIndexerJobIsEnabled(t *testing.T) {
 //
 // Requires a running OpenSearch instance (skipped otherwise).
 func TestOpenSearchDeleteNonExistentDocument(t *testing.T) {
-	th := api4.SetupEnterprise(t).InitBasic(t)
+	th := api4.SetupEnterprise(t).InitBasic()
+	defer th.TearDown()
 
 	connURL := "http://localhost:9201"
 	if os.Getenv("IS_CI") == "true" {
@@ -120,7 +121,8 @@ func TestOpenSearchDeleteNonExistentDocument(t *testing.T) {
 //
 // Requires a running OpenSearch instance (skipped otherwise).
 func TestOpenSearchIndexerBulkWriteFailures(t *testing.T) {
-	th := api4.SetupEnterprise(t).InitBasic(t)
+	th := api4.SetupEnterprise(t).InitBasic()
+	defer th.TearDown()
 
 	connURL := "http://localhost:9201"
 	if os.Getenv("IS_CI") == "true" {
