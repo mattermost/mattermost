@@ -21,7 +21,25 @@ import (
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
-	role, err := a.Srv().Store().Role().Get(id)
+	return a.getRole(id, false)
+}
+
+// GetRoleFromMaster is GetRole on the primary, for a caller reading back a role
+// core generated moments earlier: on a lagging replica that role reads as
+// absent. Unlike GetRoleByName, the primary request is honoured rather than
+// narrowed — no cache layer serves the by-id read, as storedRoleForSpaceGuard
+// records.
+func (a *App) GetRoleFromMaster(id string) (*model.Role, *model.AppError) {
+	return a.getRole(id, true)
+}
+
+func (a *App) getRole(id string, fromMaster bool) (*model.Role, *model.AppError) {
+	get := a.Srv().Store().Role().Get
+	if fromMaster {
+		get = a.Srv().Store().Role().GetFromMaster
+	}
+
+	role, err := get(id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -144,9 +162,30 @@ func (a *App) mergeChannelHigherScopedPermissions(roles []*model.Role) *model.Ap
 }
 
 func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
+	// Ahead of the no-op short-circuit below, so the answer to "may I write this
+	// role?" does not depend on whether the caller happened to send the
+	// permissions it already has. checkSpacePermissionScope refuses these roles
+	// on the write path regardless; deciding it here too keeps a caller testing
+	// what the API allows from reading a short-circuited 200 as permission.
+	if model.IsSpaceCapabilityRole(role.Name) {
+		return nil, model.NewAppError("PatchRole", "app.role.save.space_capability_role.app_error",
+			map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
+	}
+
 	// If patch is a no-op then short-circuit the store.
 	if patch.Permissions != nil && reflect.DeepEqual(*patch.Permissions, role.Permissions) {
 		return role, nil
+	}
+
+	// In PatchRole rather than only in the REST handler, so every entry point
+	// applies the blocklist — including the plugin API, which calls PatchRole
+	// directly.
+	if patch.Permissions != nil {
+		for _, permission := range model.PermissionsChangedByPatch(role, patch) {
+			if slices.Contains(model.RolePatchDeniedPermissionIDs, permission) {
+				return nil, model.NewAppError("PatchRole", "api.roles.patch_roles.not_allowed_permission.error", nil, "Cannot add or remove permission: "+permission, http.StatusNotImplemented)
+			}
+		}
 	}
 
 	role.Patch(patch)
@@ -169,6 +208,16 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 	role.DeleteAt = 0
 	role.BuiltIn = false
 	role.SchemeManaged = false
+	// Resetting SchemeId closes the guard's scheme-based bypass: a
+	// caller-supplied id pointing at a space preset would otherwise let a
+	// created role borrow that scheme's scope and pass unrejected.
+	role.SchemeId = nil
+
+	// On the create path there is no stored role, so every guarded permission
+	// in the incoming set counts as an add.
+	if appErr := a.checkSpacePermissionScope(role, nil); appErr != nil {
+		return nil, appErr
+	}
 
 	var err error
 	role, err = a.Srv().Store().Role().Save(role)
@@ -186,6 +235,28 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 }
 
 func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
+	// UpdateRole receives no prior permission set, so re-read the stored role to diff
+	// against before saving: only an *add* of a guarded permission is rejected,
+	// never a removal.
+	//
+	// Only a write carrying one of the guarded permissions needs a baseline at
+	// all: with none of them incoming there is no add to find, whatever the
+	// stored row says. Skipping the read there keeps every ordinary role write —
+	// which is nearly all of them — at its previous cost.
+	var storedPermissions []string
+	if hasSpaceChannelScopedPermission(role.Permissions) {
+		storedRole, appErr := a.storedRoleForSpaceGuard(role)
+		if appErr != nil {
+			return nil, appErr
+		}
+		if storedRole != nil {
+			storedPermissions = storedRole.Permissions
+		}
+	}
+	if appErr := a.checkSpacePermissionScope(role, storedPermissions); appErr != nil {
+		return nil, appErr
+	}
+
 	savedRole, err := a.Srv().Store().Role().Save(role)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -336,6 +407,21 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
 			offset += pageSize
 		}
 	case model.SchemeScopeChannel:
+		// Space backing channels are excluded from GetChannelsByScheme, so a scheme
+		// that governs one has no channel to address and the loop below would
+		// broadcast to nobody, leaving every client's cached permissions stale. A
+		// scheme carrying space permissions is always in this position: the scope
+		// guard only accepts the grant when no ordinary channel shares the scheme.
+		// Broadcast globally instead, the way the playbook and run scopes do.
+		spaceCount, sErr := a.Srv().Store().Channel().CountSpaceChannelsByScheme(scheme.Id)
+		if sErr != nil {
+			return model.NewAppError("sendUpdatedRoleEvent", "app.channel.count_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
+		}
+		if spaceCount > 0 {
+			publishEvent("", "")
+			return nil
+		}
+
 		totalBroadcasts := 0
 		offset := 0
 		for {

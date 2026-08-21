@@ -425,6 +425,72 @@ var PermissionManageOwnAgent *Permission
 var PermissionManageOthersAgent *Permission
 var ModeratedBookmarkPermissions []*Permission
 
+// Space (docs) permissions. The page-operation permissions and admin_space are
+// channel-scoped and resolve on a space's backing channel; the space-lifecycle
+// permissions are team-scoped.
+var PermissionCreatePage *Permission
+var PermissionReadPage *Permission
+var PermissionEditPage *Permission
+var PermissionDeleteOwnPage *Permission
+var PermissionDeletePage *Permission
+var PermissionCommentPage *Permission
+var PermissionAdminSpace *Permission
+var PermissionReadSpace *Permission
+var PermissionCreateSpace *Permission
+var PermissionManageSpace *Permission
+var PermissionDeleteSpace *Permission
+
+// SpaceChannelScopedPermissions is the canonical membership set of the seven
+// channel-scoped space permissions. The role-write scope guard and the
+// higher-scope merge exemption decide "is this a space permission" through it,
+// and the permissions migration enumerates it to grant the whole set to
+// system_admin.
+//
+// The capability slices below enumerate their own subsets rather than deriving
+// from it, so that each role's grant reads literally. TestSpaceCapabilitySlicesMatchCanonicalSet
+// pins them against this set so a new permission cannot be added here and
+// silently missed there.
+var SpaceChannelScopedPermissions []*Permission
+
+var spaceChannelScopedPermissionIDs map[string]bool
+
+// IsSpaceChannelScopedPermissionID reports whether id is one of the seven
+// channel-scoped space permissions in SpaceChannelScopedPermissions.
+func IsSpaceChannelScopedPermissionID(id string) bool {
+	return spaceChannelScopedPermissionIDs[id]
+}
+
+// PermissionIDs returns the ids of the given permissions, preserving order.
+func PermissionIDs(permissions []*Permission) []string {
+	ids := make([]string, len(permissions))
+	for i, p := range permissions {
+		ids[i] = p.Id
+	}
+	return ids
+}
+
+// Canonical capability→permission slices for the space capability model.
+// Each space capability role is self-contained: read_page plus its single
+// capability. The default-preset slices are the all-members baselines the
+// seeded schemes grant, and the admin slice is the full authority SchemeAdmin
+// resolves to.
+var SpacePageCreatorRolePermissions []*Permission
+var SpacePageCommenterRolePermissions []*Permission
+var SpacePageEditorRolePermissions []*Permission
+var SpacePageDeleterOwnRolePermissions []*Permission
+var SpacePageDeleterRolePermissions []*Permission
+var SpaceAdminRolePermissions []*Permission
+var SpaceDefaultContributePermissions []*Permission
+var SpaceDefaultCommentPermissions []*Permission
+var SpaceDefaultReadOnlyPermissions []*Permission
+
+// RolePatchDeniedPermissionIDs are refused on any role patch regardless of the
+// caller's own authority: granting one hands the permission to every account
+// holding that role at once, invisible from the per-user views where role
+// membership is normally audited. Enforced by both the REST handler and
+// App.PatchRole so every entry point, including the plugin API, applies it.
+var RolePatchDeniedPermissionIDs []string
+
 func initializePermissions() {
 	PermissionInviteUser = &Permission{
 		"invite_user",
@@ -2380,6 +2446,139 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PermissionCreatePage = &Permission{
+		"create_page",
+		"authentication.permissions.create_page.name",
+		"authentication.permissions.create_page.description",
+		PermissionScopeChannel,
+	}
+	PermissionReadPage = &Permission{
+		"read_page",
+		"authentication.permissions.read_page.name",
+		"authentication.permissions.read_page.description",
+		PermissionScopeChannel,
+	}
+	PermissionEditPage = &Permission{
+		"edit_page",
+		"authentication.permissions.edit_page.name",
+		"authentication.permissions.edit_page.description",
+		PermissionScopeChannel,
+	}
+	PermissionDeleteOwnPage = &Permission{
+		"delete_own_page",
+		"authentication.permissions.delete_own_page.name",
+		"authentication.permissions.delete_own_page.description",
+		PermissionScopeChannel,
+	}
+	PermissionDeletePage = &Permission{
+		"delete_page",
+		"authentication.permissions.delete_page.name",
+		"authentication.permissions.delete_page.description",
+		PermissionScopeChannel,
+	}
+	PermissionCommentPage = &Permission{
+		"comment_page",
+		"authentication.permissions.comment_page.name",
+		"authentication.permissions.comment_page.description",
+		PermissionScopeChannel,
+	}
+	PermissionAdminSpace = &Permission{
+		"admin_space",
+		"authentication.permissions.admin_space.name",
+		"authentication.permissions.admin_space.description",
+		PermissionScopeChannel,
+	}
+	PermissionReadSpace = &Permission{
+		"read_space",
+		"authentication.permissions.read_space.name",
+		"authentication.permissions.read_space.description",
+		PermissionScopeTeam,
+	}
+	PermissionCreateSpace = &Permission{
+		"create_space",
+		"authentication.permissions.create_space.name",
+		"authentication.permissions.create_space.description",
+		PermissionScopeTeam,
+	}
+	PermissionManageSpace = &Permission{
+		"manage_space",
+		"authentication.permissions.manage_space.name",
+		"authentication.permissions.manage_space.description",
+		PermissionScopeTeam,
+	}
+	PermissionDeleteSpace = &Permission{
+		"delete_space",
+		"authentication.permissions.delete_space.name",
+		"authentication.permissions.delete_space.description",
+		PermissionScopeTeam,
+	}
+
+	SpaceChannelScopedPermissions = []*Permission{
+		PermissionReadPage,
+		PermissionCreatePage,
+		PermissionCommentPage,
+		PermissionEditPage,
+		PermissionDeleteOwnPage,
+		PermissionDeletePage,
+		PermissionAdminSpace,
+	}
+
+	spaceChannelScopedPermissionIDs = make(map[string]bool, len(SpaceChannelScopedPermissions))
+	for _, p := range SpaceChannelScopedPermissions {
+		spaceChannelScopedPermissionIDs[p.Id] = true
+	}
+
+	RolePatchDeniedPermissionIDs = []string{
+		PermissionSysconsoleWriteUserManagementSystemRoles.Id,
+		PermissionSysconsoleReadUserManagementSystemRoles.Id,
+		PermissionManageRoles.Id,
+		PermissionManageSystem.Id,
+	}
+
+	SpacePageCreatorRolePermissions = []*Permission{
+		PermissionReadPage,
+		PermissionCreatePage,
+	}
+	SpacePageCommenterRolePermissions = []*Permission{
+		PermissionReadPage,
+		PermissionCommentPage,
+	}
+	SpacePageEditorRolePermissions = []*Permission{
+		PermissionReadPage,
+		PermissionEditPage,
+	}
+	SpacePageDeleterOwnRolePermissions = []*Permission{
+		PermissionReadPage,
+		PermissionDeleteOwnPage,
+	}
+	SpacePageDeleterRolePermissions = []*Permission{
+		PermissionReadPage,
+		PermissionDeletePage,
+	}
+	SpaceAdminRolePermissions = []*Permission{
+		PermissionReadPage,
+		PermissionCommentPage,
+		PermissionCreatePage,
+		PermissionEditPage,
+		PermissionDeleteOwnPage,
+		PermissionDeletePage,
+		PermissionAdminSpace,
+	}
+	SpaceDefaultContributePermissions = []*Permission{
+		PermissionReadPage,
+		PermissionCommentPage,
+		PermissionCreatePage,
+		PermissionEditPage,
+		PermissionDeleteOwnPage,
+	}
+	SpaceDefaultCommentPermissions = []*Permission{
+		PermissionReadPage,
+		PermissionCommentPage,
+	}
+	SpaceDefaultReadOnlyPermissions = []*Permission{
+		PermissionReadPage,
+	}
+
 	SysconsoleReadPermissions = []*Permission{
 		PermissionSysconsoleReadAboutEditionAndLicense,
 		PermissionSysconsoleReadBilling,
@@ -2609,6 +2808,10 @@ func initializePermissions() {
 		PermissionInviteGuest,
 		PermissionPublicPlaybookCreate,
 		PermissionPrivatePlaybookCreate,
+		PermissionReadSpace,
+		PermissionCreateSpace,
+		PermissionManageSpace,
+		PermissionDeleteSpace,
 	}
 
 	ChannelScopedPermissions := []*Permission{
@@ -2656,6 +2859,13 @@ func initializePermissions() {
 		PermissionEditFileAttachment,
 		PermissionManagePrivateChannelDiscoverability,
 		PermissionManageChannelJoinRequests,
+		PermissionReadPage,
+		PermissionCreatePage,
+		PermissionCommentPage,
+		PermissionEditPage,
+		PermissionDeleteOwnPage,
+		PermissionDeletePage,
+		PermissionAdminSpace,
 	}
 
 	GroupScopedPermissions := []*Permission{

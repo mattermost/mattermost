@@ -2068,6 +2068,17 @@ func (a *App) UpdateUserRolesWithUser(rctx request.CTX, user *model.User, newRol
 		return nil, err
 	}
 
+	// The space capability roles are excluded from
+	// BuiltInSchemeManagedRoleIDs so they can ride in ExplicitRoles on a space's
+	// backing channel, which also means CheckRolesExist accepts them here. A
+	// system role is consulted as the fallback for every channel on the server,
+	// so one assigned here would resolve its page permissions everywhere.
+	for roleName := range strings.FieldsSeq(newRoles) {
+		if rejectSpaceCapabilityRoleOutsideSpace(rctx, "UpdateUserRoles", roleName, false) {
+			return nil, model.NewAppError("UpdateUserRoles", "api.user.update_user_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+		}
+	}
+
 	if user.IsSystemAdmin() && !strings.Contains(newRoles, model.SystemAdminRoleId) {
 		// if user being updated is SysAdmin, make sure its not the last one.
 		options := model.UserCountOptions{
@@ -2871,6 +2882,21 @@ func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppEr
 	for _, member := range teamMembers {
 		if appErr := a.sendUpdatedTeamMemberEvent(member); appErr != nil {
 			rctx.Logger().Warn("Error while sending updated team member event", mlog.Err(appErr))
+		}
+
+		// Space backing channels are excluded from GetChannelMembersForUser, and
+		// the demotion itself resets only the member's scheme flags, so a space
+		// capability role held as an explicit member role would survive and keep
+		// granting page access to the new guest. Strip it from every space
+		// membership explicitly.
+		spaceChannels, sErr := a.Srv().Store().Channel().GetTeamSpaceChannelsForUser(member.TeamId, user.Id)
+		if sErr != nil {
+			rctx.Logger().Warn("Failed to get space channels for user on demote user to guest", mlog.Err(sErr))
+		}
+		for _, spaceChannel := range spaceChannels {
+			if appErr := a.stripSpaceCapabilityRolesFromMember(rctx, spaceChannel.Id, user.Id); appErr != nil {
+				rctx.Logger().Warn("Failed to strip space capability roles on demote user to guest", mlog.String("channel_id", spaceChannel.Id), mlog.Err(appErr))
+			}
 		}
 
 		channelMembers, appErr := a.GetChannelMembersForUser(rctx, member.TeamId, user.Id)

@@ -68,6 +68,24 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Remove the "System" table entry that marks the space roles creation migration as done.
+	if _, err := a.Srv().Store().System().PermanentDeleteByName(SpaceRolesCreationMigrationKey); err != nil {
+		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Remove the "System" table entry that marks the space schemes creation
+	// migration as done. Reseeding is the only way the purged presets come back:
+	// unlike the roles, they are not rebuilt from MakeDefaultRoles.
+	//
+	// The presets return with new ids, but the spaces that pointed at them do
+	// not: the scheme reset above blanks SchemeId on space backing channels too,
+	// so every space falls back to the global channel roles, which carry no page
+	// permissions. Page access is lost rather than widened, and this function has
+	// no production caller, so it is recorded here rather than guarded against.
+	if _, err := a.Srv().Store().System().PermanentDeleteByName(SpaceSchemesCreationMigrationKey); err != nil {
+		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	// Now that the permissions system has been reset, re-run the migration to reinitialise it.
 	a.DoAppMigrations()
 

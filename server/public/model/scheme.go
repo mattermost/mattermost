@@ -18,7 +18,53 @@ const (
 	SchemeScopeChannel         = "channel"
 	SchemeScopePlaybook        = "playbook"
 	SchemeScopeRun             = "run"
+
+	// Seeded space default-capability preset schemes. Channel-scoped schemes
+	// attached to space backing channels; the namespaced names make a collision
+	// with a pre-existing customer scheme unlikely, and the seeding migration
+	// refuses to adopt one that governs ordinary channels.
+	SchemeNameSpaceContribute = "docs_space_contribute"
+	SchemeNameSpaceComment    = "docs_space_comment"
+	SchemeNameSpaceReadOnly   = "docs_space_readonly"
+
+	SchemeDisplayNameSpaceContribute = "Space Contribute Scheme"
+	SchemeDisplayNameSpaceComment    = "Space Comment Scheme"
+	SchemeDisplayNameSpaceReadOnly   = "Space Read-Only Scheme"
 )
+
+// SpaceSchemeNames lists the three seeded space preset scheme names. It is the
+// enumeration source; membership tests go through IsSpaceSchemeName, which reads
+// a set frozen at init so a later mutation of this slice cannot widen them.
+var SpaceSchemeNames = []string{
+	SchemeNameSpaceContribute,
+	SchemeNameSpaceComment,
+	SchemeNameSpaceReadOnly,
+}
+
+var spaceSchemeNameSet map[string]bool
+
+func init() {
+	spaceSchemeNameSet = make(map[string]bool, len(SpaceSchemeNames))
+	for _, name := range SpaceSchemeNames {
+		spaceSchemeNameSet[name] = true
+	}
+}
+
+// IsSpaceSchemeName reports whether name is one of the three seeded space preset
+// scheme names. It serves both as the reservation predicate — these names may
+// not be created or renamed into — and as proof that a scheme is a preset: the
+// boot seeding runs unconditionally and the Schemes.Name column is unique, so by
+// the time any request runs the name resolves to exactly one row, and that row
+// either was created by the seeding or passed its adoption checks.
+//
+// The answer comes from a set frozen at init rather than from SpaceSchemeNames
+// itself: checkSpacePermissionScope, checkChannelSchemeAssignment and
+// checkSpaceSchemeDelete read this as proof of space authority, so the accepted
+// names must not be widenable by mutating an exported slice. This
+// matches IsSpaceChannelScopedPermissionID and IsSpaceCapabilityRole.
+func IsSpaceSchemeName(name string) bool {
+	return spaceSchemeNameSet[name]
+}
 
 type Scheme struct {
 	Id                        string `json:"id"`

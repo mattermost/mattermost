@@ -39,6 +39,15 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 		return err
 	}
 
+	// An import file naming a scheme after a space preset would match the seeded
+	// scheme below, update it in place, and overwrite its roles with the file's
+	// permission lists, changing what every space on that preset grants.
+	// UpdateScheme only checks the name when it changes, so it does not catch
+	// this. Checked ahead of the dry-run return so a dry run reports it too.
+	if appErr := a.checkSpaceSchemeName("BulkImport", *data.Name); appErr != nil {
+		return appErr
+	}
+
 	// If this is a Dry Run, do not continue any further.
 	if dryRun {
 		return nil
@@ -343,6 +352,26 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		return err
 	}
 
+	// The existing-user branch below routes role changes through UpdateUserRoles,
+	// which refuses a space capability role on a system role. Creating a user
+	// does not: it writes Roles straight through on the FromImport path, skipping
+	// CreateUser's usual role defaulting and validation. A
+	// system role is consulted as the fallback for every channel on the server,
+	// so one landed here would resolve its page permissions everywhere.
+	//
+	// Checked ahead of the dry-run return so a dry run reports it too: bulk
+	// import is not atomic, so a rejection found only on the apply run leaves
+	// every line before it already written. Judged on the file's own roles
+	// rather than the diff against the stored user, because a file naming a
+	// capability role is wrong whether or not it changes anything.
+	if data.Roles != nil {
+		for roleName := range strings.FieldsSeq(*data.Roles) {
+			if rejectSpaceCapabilityRoleOutsideSpace(rctx, "BulkImport", roleName, false) {
+				return model.NewAppError("BulkImport", "api.user.update_user_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+			}
+		}
+	}
+
 	// If this is a Dry Run, do not continue any further.
 	if dryRun {
 		return nil
@@ -478,6 +507,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			hasUserRolesChanged = true
 		}
 	}
+
 	user.Roles = roles
 
 	if data.NotifyProps != nil {

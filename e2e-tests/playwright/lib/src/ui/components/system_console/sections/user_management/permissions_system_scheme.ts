@@ -72,4 +72,68 @@ export default class PermissionsSystemScheme {
             await expect(row.getByTestId('permissionCheckbox-checked')).not.toBeVisible();
         }
     }
+
+    /**
+     * The checkbox for one Docs space permission in a role's tree. Permission rows compose their
+     * test id from the role name down through the enclosing group, so the space rows live under
+     * the `spaces` group this epic adds — e.g. `all_users-spaces-create_space-checkbox`.
+     */
+    getSpacePermissionCheckbox(roleName: string, permission: string): Locator {
+        return this.container.getByTestId(`${roleName}-spaces-${permission}-checkbox`);
+    }
+
+    /**
+     * Asserts the Spaces group renders each of the given permissions for the given role.
+     * Rendering is what makes them administrable at all; whether each is checked is the scheme's
+     * current state, which the caller asserts separately. The permissions come from the caller so
+     * the list a spec asserts against and the list looked for here cannot drift apart.
+     */
+    async toHaveSpacePermissionRows(roleName: string, permissions: string[]) {
+        for (const permission of permissions) {
+            await expect(this.getSpacePermissionCheckbox(roleName, permission)).toBeVisible();
+        }
+    }
+
+    /**
+     * A permission checkbox by its full test id, e.g. `all_users-posts-use_channel_mentions-checkbox`.
+     * Clicking one toggles it and enables Save, which stays enabled even if the toggle is reverted:
+     * the editor latches "unsaved changes" on any interaction rather than diffing.
+     */
+    getPermissionCheckbox(testId: string): Locator {
+        return this.container.getByTestId(testId);
+    }
+
+    /**
+     * Whether the given permission checkbox is currently checked (ON). The checkbox only renders
+     * the `permissionCheckbox-checked` child when its value is `checked`, so its visibility is the
+     * checked state itself.
+     */
+    async isChecked(checkbox: Locator): Promise<boolean> {
+        return checkbox.getByTestId('permissionCheckbox-checked').isVisible();
+    }
+
+    /**
+     * Asserts the given permission checkbox's checked (ON) state matches `checked`.
+     */
+    async expectCheckedState(checkbox: Locator, checked: boolean) {
+        if (checked) {
+            await expect(checkbox.getByTestId('permissionCheckbox-checked')).toBeVisible();
+        } else {
+            await expect(checkbox.getByTestId('permissionCheckbox-checked')).not.toBeVisible();
+        }
+    }
+
+    /**
+     * Saves the scheme and waits for the save to settle. The button is disabled until the form is
+     * dirty, so it is asserted enabled first: without an edit the click would otherwise wait out
+     * its timeout on a permanently disabled button, and the settle assertion below would pass on
+     * the initial state rather than on a completed save. It returns to disabled only once the role
+     * writes have come back, so waiting on that is what makes a later API read see the result.
+     */
+    async save() {
+        const saveButton = this.container.page().getByTestId('saveSetting');
+        await expect(saveButton).toBeEnabled();
+        await saveButton.click();
+        await expect(saveButton).toBeDisabled();
+    }
 }
