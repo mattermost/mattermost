@@ -8,7 +8,7 @@ import {test} from './test_fixture';
 
 import {testConfig} from '@/test_config';
 
-/** Hostname that Docker Desktop resolves to the host from inside containers. */
+/** Hostname containers use to reach the Docker host. */
 export const DOCKER_HOST_INTERNAL = 'host.docker.internal';
 
 /**
@@ -69,11 +69,8 @@ export function setupFileServer(): Promise<string> {
 /**
  * Host used in file-server URLs embedded in posts. Must be reachable from both the host-side
  * browser (Markdown images load directly) and the Mattermost container (link previews / metadata).
- *
- * - Docker Desktop (macOS/Windows): the bridge gateway does not forward to host listeners; use
- *   host.docker.internal (resolves to loopback on the host, and to the host from containers).
- * - Linux CI: the bridge gateway IP is the host and works from both sides; host.docker.internal
- *   is often absent from host DNS.
+ * On macOS/Windows the bridge gateway does not reach host listeners, so use host.docker.internal;
+ * on Linux use the bridge gateway IP (works both sides; host.docker.internal is often absent from host DNS).
  */
 export function fileServerHost(): string {
     if (!testConfig.useTestContainers) {

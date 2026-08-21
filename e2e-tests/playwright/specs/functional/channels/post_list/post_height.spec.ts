@@ -392,8 +392,6 @@ test.describe('Post height', () => {
                     await testCase.additionalCheck({postComponent});
                 }
 
-                // networkidle never settles here (persistent websocket / polling), so don't wait on it.
-
                 // * Verify no height changes were detected
                 expect(await sizeWatcher.getObservations()).toHaveLength(1);
             },
