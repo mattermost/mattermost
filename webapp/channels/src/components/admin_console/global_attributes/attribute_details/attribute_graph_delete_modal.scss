@@ -1,0 +1,43 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.attribute-graph-delete-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    p {
+        margin: 0;
+    }
+
+    .attribute-graph-delete-modal__heading {
+        margin: 8px 0 4px;
+        color: var(--center-channel-color);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+        text-transform: uppercase;
+    }
+
+    .attribute-graph-delete-modal__list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .attribute-graph-delete-modal__item {
+        padding: 6px 0;
+    }
+
+    .attribute-graph-delete-modal__item-name {
+        display: block;
+        font-weight: 600;
+    }
+
+    .attribute-graph-delete-modal__item-secondary,
+    .attribute-graph-delete-modal__helper {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
