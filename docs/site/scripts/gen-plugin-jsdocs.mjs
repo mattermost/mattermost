@@ -22,12 +22,13 @@ const OUT_PATH = resolve(SITE_ROOT, 'data/plugin-jsdocs.json');
 function paramNamesFromPattern(pattern) {
   if (pattern.type === 'Identifier') return [pattern.name];
   if (pattern.type === 'ObjectPattern') {
-    return pattern.properties.flatMap((prop) => (prop.type === 'Property' ? paramNamesFromPattern(prop.value) : []));
+    return pattern.properties.flatMap((prop) => (prop.type === 'Property' ? paramNamesFromPattern(prop.value) : paramNamesFromPattern(prop)));
   }
   if (pattern.type === 'ArrayPattern') {
     return pattern.elements.flatMap((el) => (el ? paramNamesFromPattern(el) : []));
   }
   if (pattern.type === 'AssignmentPattern') return paramNamesFromPattern(pattern.left);
+  if (pattern.type === 'RestElement') return paramNamesFromPattern(pattern.argument);
   return [];
 }
 
