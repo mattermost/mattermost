@@ -316,6 +316,27 @@ func TestDiffSanitized(t *testing.T) {
 			"",
 		},
 		{
+			"sensitive CacheSettings.RedisPassword",
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.CacheSettings.RedisPassword = new("base")
+				return cfg
+			}(),
+			func() *model.Config {
+				cfg := defaultConfigGen()
+				cfg.CacheSettings.RedisPassword = new("actual")
+				return cfg
+			}(),
+			ConfigDiffs{
+				{
+					Path:      "CacheSettings.RedisPassword",
+					BaseVal:   model.FakeSetting,
+					ActualVal: model.FakeSetting,
+				},
+			},
+			"",
+		},
+		{
 			"sensitive GitLabSettings.Secret",
 			func() *model.Config {
 				cfg := defaultConfigGen()
