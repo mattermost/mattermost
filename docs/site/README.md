@@ -158,9 +158,7 @@ They're consumed by the `<PluginGoDocs />`, `<PluginGoExample />`, `<PluginJsDoc
 via `npm run build:plugin-docs`, wired into `prestart`/`prebuild` like everything else in this
 section. The two Go generators parse their target packages with `go/parser` + `go/doc` rather than
 type-checking them via `golang.org/x/tools/go/packages`, so they have no dependency on the Go
-toolchain version declared in `server/public/go.mod` — only stdlib, no `go.sum`. Their own `go.mod`
-declares `go 1.26`; if your local `go` is older, `go run` transparently downloads a matching
-toolchain the first time (needs network once, then it's cached).
+toolchain version declared in `server/public/go.mod` — only stdlib, no `go.sum`.
 
 The API reference section (`docs/api/reference/`, also gitignored) has the
 same requirement: `docusaurus-plugin-openapi-docs` needs `docusaurus
