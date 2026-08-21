@@ -782,7 +782,7 @@ func (th *TestHelper) SetupLdapConfig() {
 		*cfg.LdapSettings.LdapServer = "dockerhost"
 		*cfg.LdapSettings.BaseDN = "dc=mm,dc=test,dc=com"
 		*cfg.LdapSettings.BindUsername = "cn=admin,dc=mm,dc=test,dc=com"
-		*cfg.LdapSettings.BindPassword = "mostest"
+		*cfg.LdapSettings.BindPassword = "mostest_password"
 		*cfg.LdapSettings.FirstNameAttribute = "cn"
 		*cfg.LdapSettings.LastNameAttribute = "sn"
 		*cfg.LdapSettings.NicknameAttribute = "cn"

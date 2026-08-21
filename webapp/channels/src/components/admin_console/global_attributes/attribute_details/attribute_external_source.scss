@@ -4,18 +4,29 @@
 .AttributeExternalSource {
     display: flex;
     flex-direction: column;
-    margin-top: 12px;
     gap: 8px;
 }
 
-// The Divider is a section separator between the Options row above and this
-// whole external-source block (chips and/or the "add" trigger) -- it's a
-// real full-width element (components/divider) rather than a border on the
-// trigger button itself, so it always spans the full row width regardless
-// of the button's own (inline, content-sized) width, and still shows even
-// when only chips are rendered (both sources linked, no trigger).
+.AttributeExternalSource__synced {
+    display: flex;
+    min-height: 32px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.AttributeExternalSource__syncedLabel {
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 14px;
+    line-height: 20px;
+    white-space: nowrap;
+}
+
+// Full-width hairline between the Options help/editor and the "add" trigger.
+// Hidden once a source is linked, since the chips then occupy the Options
+// line and the trigger sits directly under them.
 .AttributeExternalSource__divider {
-    margin-bottom: 12px;
+    margin-bottom: 4px;
 }
 
 .AttributeExternalSource__chips {
