@@ -43,11 +43,11 @@ func createClientConfig(logger mlog.LoggerIFace, cfg *model.Config, fileBackend 
 			RetryBackoff:         func(i int) time.Duration { return time.Duration(i) * 100 * time.Millisecond }, // A minimal backoff function
 			RetryOnStatus:        []int{502, 503, 504, 429},                                                      // Retry on 429 TooManyRequests statuses
 			MaxRetries:           3,
-			DiscoverNodesOnStart: *cfg.ElasticsearchSettings.Sniff,
+			DiscoverNodesOnStart: cfg.ElasticsearchSettings.Sniff,
 		},
 	}
 
-	if osCfg.Client.DiscoverNodesOnStart {
+	if osCfg.Client.DiscoverNodesOnStart != nil && *osCfg.Client.DiscoverNodesOnStart {
 		osCfg.Client.DiscoverNodesInterval = 30 * time.Second
 	}
 
