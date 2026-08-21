@@ -495,13 +495,23 @@ func TestProcessScheduledPostsWithSystemPostType(t *testing.T) {
 		// system types are rejected up front (ScheduledPostErrorInvalidPost), while case- and
 		// whitespace-based near-misses slip past that check but still fail post validation on
 		// publish (ScheduledPostErrorUnknownError). Empty when the post is expected to publish.
-		errorCode string
+		errorCode      string
+		repeatType     string
+		repeatTimezone string
 	}{
 		{
 			name:      "generic system post type",
 			postType:  model.PostTypeSystemGeneric,
 			published: false,
 			errorCode: model.ScheduledPostErrorInvalidPost,
+		},
+		{
+			name:           "recurring weekly system post type",
+			postType:       model.PostTypeSystemGeneric,
+			published:      false,
+			errorCode:      model.ScheduledPostErrorInvalidPost,
+			repeatType:     model.ScheduledPostRepeatTypeWeekly,
+			repeatTimezone: "UTC",
 		},
 		{
 			name:      "structured system post type",
@@ -557,6 +567,7 @@ func TestProcessScheduledPostsWithSystemPostType(t *testing.T) {
 			th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
 
 			message := "scheduled post: " + testCase.name
+			scheduledAt := model.GetMillis() - 1000
 			scheduledPost := &model.ScheduledPost{
 				Draft: model.Draft{
 					CreateAt:  model.GetMillis(),
@@ -565,7 +576,9 @@ func TestProcessScheduledPostsWithSystemPostType(t *testing.T) {
 					Message:   message,
 					Type:      testCase.postType,
 				},
-				ScheduledAt: model.GetMillis() - 1000,
+				ScheduledAt:    scheduledAt,
+				RepeatType:     testCase.repeatType,
+				RepeatTimezone: testCase.repeatTimezone,
 			}
 			created, err := th.Server.Store().ScheduledPost().CreateScheduledPost(th.Context, scheduledPost)
 			require.NoError(t, err)
@@ -587,6 +600,9 @@ func TestProcessScheduledPostsWithSystemPostType(t *testing.T) {
 			updated, err := th.Server.Store().ScheduledPost().Get(th.Context, created.Id)
 			if assert.NoError(t, err, "the scheduled post should have been kept with an error code instead of being published") {
 				assert.Equal(t, testCase.errorCode, updated.ErrorCode)
+				if testCase.repeatType != "" {
+					assert.Equal(t, created.ScheduledAt, updated.ScheduledAt, "a series that could not send must not advance to its next occurrence")
+				}
 			}
 
 			// A second job run must not resurrect the post and publish it later.

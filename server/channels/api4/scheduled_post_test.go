@@ -421,6 +421,11 @@ func TestCreateScheduledPost(t *testing.T) {
 				if !testCase.rejected {
 					require.NoError(t, err)
 					require.NotNil(t, created)
+					require.Equal(t, testCase.postType, created.Type)
+
+					fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
+					require.NoError(t, storeErr)
+					require.Equal(t, testCase.postType, fetched.Type)
 					return
 				}
 
@@ -431,7 +436,7 @@ func TestCreateScheduledPost(t *testing.T) {
 				storedScheduledPosts, storeErr := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
 				require.NoError(t, storeErr)
 				for _, storedScheduledPost := range storedScheduledPosts {
-					require.NotEqual(t, testCase.postType, storedScheduledPost.Type, "a scheduled post with a reserved system post type must not be stored")
+					require.NotEqual(t, scheduledPost.Message, storedScheduledPost.Message, "a rejected scheduled post must not be stored")
 				}
 			})
 		}
