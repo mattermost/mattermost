@@ -85,7 +85,7 @@ jobs:
         image: postgres:14
         env:
           POSTGRES_USER: mmuser
-          POSTGRES_PASSWORD: mostest
+          POSTGRES_PASSWORD: mostest_password
           POSTGRES_DB: mattermost_test
         ports:
           - 5432:5432
@@ -103,7 +103,7 @@ jobs:
         with:
           run: |
             export IS_CI=true
-            export TEST_DATABASE_POSTGRESQL_DSN="postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+            export TEST_DATABASE_POSTGRESQL_DSN="postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
             make generated
       - name: Check generated files
         run: |
@@ -179,7 +179,7 @@ jobs:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
       name: "Postgres (shard ${{ matrix.shard }})"
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       # Each shard gets a unique artifact name so they don't collide
       logsartifact: "postgres-server-test-logs-shard-${{ matrix.shard }}"
@@ -213,7 +213,7 @@ jobs:
     uses: ./.github/workflows/server-test-template.yml
     with:
       name: Elasticsearch v8 Compatibility
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: elasticsearch-v8-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
@@ -231,7 +231,7 @@ jobs:
     uses: ./.github/workflows/server-test-template.yml
     with:
       name: OpenSearch v2 Compatibility
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: opensearch-v2-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
@@ -260,7 +260,7 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
       name: "Postgres FIPS (shard ${{ matrix.shard }})"
-      datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: "postgres-server-fips-test-logs-shard-${{ matrix.shard }}"
       go-version: ${{ needs.go.outputs.version }}
@@ -291,7 +291,7 @@ jobs:
       MM_E2E_ZEPHYR_API_KEY: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
     with:
       name: mmctl
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: mmctl-test-logs
       go-version: ${{ needs.go.outputs.version }}
@@ -312,7 +312,7 @@ jobs:
       MM_E2E_ZEPHYR_API_KEY: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
     with:
       name: mmctl
-      datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: mmctl-fips-test-logs
       go-version: ${{ needs.go.outputs.version }}
