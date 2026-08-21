@@ -1192,6 +1192,14 @@ func (s *ClusterSettings) SetDefaults() {
 	}
 }
 
+func (s *ClusterSettings) isValid() *AppError {
+	if !isValidPortNumber(*s.GossipPort, false) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_gossip_port.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 type MetricsSettings struct {
 	Enable                    *bool    `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
 	BlockProfileRate          *int     `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"`
@@ -1629,6 +1637,18 @@ func NewLogSettings() *LogSettings {
 }
 
 func (s *LogSettings) isValid() *AppError {
+	if !isValidLogLevelName(*s.ConsoleLevel) {
+		return NewAppError("LogSettings.isValid", "model.config.is_valid.log_level.app_error", map[string]any{"Setting": "LogSettings.ConsoleLevel", "Value": *s.ConsoleLevel}, "", http.StatusBadRequest)
+	}
+
+	if !isValidLogLevelName(*s.FileLevel) {
+		return NewAppError("LogSettings.isValid", "model.config.is_valid.log_level.app_error", map[string]any{"Setting": "LogSettings.FileLevel", "Value": *s.FileLevel}, "", http.StatusBadRequest)
+	}
+
+	if *s.MaxFieldSize < 0 {
+		return NewAppError("LogSettings.isValid", "model.config.is_valid.non_negative_number.app_error", map[string]any{"Setting": "LogSettings.MaxFieldSize"}, "", http.StatusBadRequest)
+	}
+
 	cfg := make(mlog.LoggerConfiguration)
 	err := json.Unmarshal(s.AdvancedLoggingJSON, &cfg)
 	if err != nil {
@@ -1641,6 +1661,16 @@ func (s *LogSettings) isValid() *AppError {
 	}
 
 	return nil
+}
+
+func isValidLogLevelName(level string) bool {
+	level = strings.ToLower(level)
+	for _, l := range mlog.StdAll {
+		if l.Name == level {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -2275,14 +2305,6 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 		s.EnablePreviewModeBanner = new(true)
 	}
 
-	if s.EnableSMTPAuth == nil {
-		if *s.ConnectionSecurity == ConnSecurityNone {
-			s.EnableSMTPAuth = new(false)
-		} else {
-			s.EnableSMTPAuth = new(true)
-		}
-	}
-
 	if *s.ConnectionSecurity == ConnSecurityPlain {
 		*s.ConnectionSecurity = ConnSecurityNone
 	}
@@ -2446,6 +2468,38 @@ func (s *SupportSettings) SetDefaults() {
 	}
 }
 
+func (s *SupportSettings) isValid() *AppError {
+	if *s.SupportEmail != "" && !IsValidEmail(strings.ToLower(*s.SupportEmail)) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.email_address.app_error", map[string]any{"Setting": "SupportSettings.SupportEmail"}, "", http.StatusBadRequest)
+	}
+
+	if appErr := validateNonNegativeNumber(*s.CustomTermsOfServiceReAcceptancePeriod, "SupportSettings.CustomTermsOfServiceReAcceptancePeriod"); appErr != nil {
+		return appErr
+	}
+
+	if s.ReportAProblemType != nil {
+		if *s.ReportAProblemType == SupportSettingsReportAProblemTypeMail {
+			if s.ReportAProblemMail == nil {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_mail.missing.app_error", nil, "", http.StatusBadRequest)
+			}
+			if !IsValidEmail(strings.ToLower(*s.ReportAProblemMail)) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_mail.invalid.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+		if *s.ReportAProblemType == SupportSettingsReportAProblemTypeLink {
+			if s.ReportAProblemLink == nil {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.missing.app_error", nil, "", http.StatusBadRequest)
+			}
+
+			if !IsValidHTTPURL(*s.ReportAProblemLink) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.invalid.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+	}
+
+	return nil
+}
+
 type AnnouncementSettings struct {
 	EnableBanner          *bool   `access:"site_announcement_banner"`
 	BannerText            *string `access:"site_announcement_banner"` // telemetry: none
@@ -2496,6 +2550,14 @@ func (s *AnnouncementSettings) SetDefaults() {
 	if s.NoticesFetchFrequency == nil {
 		s.NoticesFetchFrequency = new(AnnouncementSettingsDefaultNoticesFetchFrequencySeconds)
 	}
+}
+
+func (s *AnnouncementSettings) isValid() *AppError {
+	if appErr := validatePositiveNumber(*s.NoticesFetchFrequency, "AnnouncementSettings.NoticesFetchFrequency"); appErr != nil {
+		return appErr
+	}
+
+	return nil
 }
 
 type ThemeSettings struct {
@@ -3822,6 +3884,22 @@ func (c *ConnectedWorkspacesSettings) SetDefaults(isUpdate bool, e ExperimentalS
 	}
 }
 
+func (c *ConnectedWorkspacesSettings) isValid() *AppError {
+	if *c.GlobalUserSyncBatchSize <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.connected_workspaces.batch_size.app_error", map[string]any{"Setting": "ConnectedWorkspacesSettings.GlobalUserSyncBatchSize"}, "", http.StatusBadRequest)
+	}
+
+	if *c.MaxPostsPerSync <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.connected_workspaces.batch_size.app_error", map[string]any{"Setting": "ConnectedWorkspacesSettings.MaxPostsPerSync"}, "", http.StatusBadRequest)
+	}
+
+	if *c.MemberSyncBatchSize <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.connected_workspaces.batch_size.app_error", map[string]any{"Setting": "ConnectedWorkspacesSettings.MemberSyncBatchSize"}, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 type GlobalRelayMessageExportSettings struct {
 	CustomerType         *string `access:"compliance_compliance_export"` // must be either A9, A10 or CUSTOM, dictates SMTP server url
 	SMTPUsername         *string `access:"compliance_compliance_export"`
@@ -4284,7 +4362,6 @@ func (o *Config) SetDefaults() {
 	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
 	o.Office365Settings.setDefaults()
-	o.Office365Settings.setDefaults()
 	o.GitLabSettings.setDefaults("", "", "", "", "")
 	o.GoogleSettings.setDefaults(GoogleSettingsDefaultScope, GoogleSettingsDefaultAuthEndpoint, GoogleSettingsDefaultTokenEndpoint, GoogleSettingsDefaultUserAPIEndpoint, "")
 	o.OpenIdSettings.setDefaults(OpenidSettingsDefaultScope, "", "", "", "#145DBF")
@@ -4343,12 +4420,12 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
-	if appErr := o.CacheSettings.isValid(); appErr != nil {
+	if appErr := o.ClusterSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
-	if *o.ServiceSettings.SiteURL == "" && *o.ServiceSettings.AllowCookiesForSubdomains {
-		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
+	if appErr := o.CacheSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
 	if appErr := o.TeamSettings.isValid(); appErr != nil {
@@ -4356,6 +4433,14 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.ExperimentalSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.SupportSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.AnnouncementSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
@@ -4460,28 +4545,16 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if appErr := o.ExportSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
 	if appErr := o.WranglerSettings.IsValid(); appErr != nil {
 		return appErr
 	}
 
-	if o.SupportSettings.ReportAProblemType != nil {
-		if *o.SupportSettings.ReportAProblemType == SupportSettingsReportAProblemTypeMail {
-			if o.SupportSettings.ReportAProblemMail == nil {
-				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_mail.missing.app_error", nil, "", http.StatusBadRequest)
-			}
-			if !IsValidEmail(*o.SupportSettings.ReportAProblemMail) {
-				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_mail.invalid.app_error", nil, "", http.StatusBadRequest)
-			}
-		}
-		if *o.SupportSettings.ReportAProblemType == SupportSettingsReportAProblemTypeLink {
-			if o.SupportSettings.ReportAProblemLink == nil {
-				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.missing.app_error", nil, "", http.StatusBadRequest)
-			}
-
-			if !IsValidHTTPURL(*o.SupportSettings.ReportAProblemLink) {
-				return NewAppError("Config.IsValid", "model.config.is_valid.report_a_problem_link.invalid.app_error", nil, "", http.StatusBadRequest)
-			}
-		}
+	if appErr := o.ConnectedWorkspacesSettings.isValid(); appErr != nil {
+		return appErr
 	}
 
 	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
@@ -4594,6 +4667,14 @@ func (s *SqlSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_analytics_query_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.MigrationsStatementTimeoutSeconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_migrations_statement_timeout_seconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.ReplicaMonitorIntervalSeconds <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_replica_monitor_interval_seconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.DataSource == "" {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_data_src.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -4619,12 +4700,28 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if appErr := validatePositiveNumber(*s.MaxImageResolution, "FileSettings.MaxImageResolution"); appErr != nil {
+		return appErr
+	}
+
 	if *s.ExtractContentTimeout < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.extract_content_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.AmazonS3UploadPartSizeBytes < FileSettingsDefaultS3UploadPartSizeBytes {
+		return NewAppError("Config.IsValid", "model.config.is_valid.s3_upload_part_size.app_error", map[string]any{"Setting": "FileSettings.AmazonS3UploadPartSizeBytes", "Min": FileSettingsDefaultS3UploadPartSizeBytes}, "", http.StatusBadRequest)
+	}
+
+	if *s.ExportAmazonS3UploadPartSizeBytes < FileSettingsDefaultS3UploadPartSizeBytes {
+		return NewAppError("Config.IsValid", "model.config.is_valid.s3_upload_part_size.app_error", map[string]any{"Setting": "FileSettings.ExportAmazonS3UploadPartSizeBytes", "Min": FileSettingsDefaultS3UploadPartSizeBytes}, "", http.StatusBadRequest)
+	}
+
 	if !(*s.DriverName == ImageDriverLocal || *s.DriverName == ImageDriverS3 || *s.DriverName == ImageDriverAzure) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.file_driver.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !(*s.ExportDriverName == ImageDriverLocal || *s.ExportDriverName == ImageDriverS3 || *s.ExportDriverName == ImageDriverAzure) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.export_file_driver.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.PublicLinkSalt != "" && len(*s.PublicLinkSalt) < 32 {
@@ -4740,12 +4837,28 @@ func (s *EmailSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.FeedbackEmail != "" && !IsValidEmail(strings.ToLower(*s.FeedbackEmail)) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.email_address.app_error", map[string]any{"Setting": "EmailSettings.FeedbackEmail"}, "", http.StatusBadRequest)
+	}
+
+	if *s.ReplyToAddress != "" && !IsValidEmail(strings.ToLower(*s.ReplyToAddress)) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.email_address.app_error", map[string]any{"Setting": "EmailSettings.ReplyToAddress"}, "", http.StatusBadRequest)
+	}
+
+	if appErr := validatePortString(*s.SMTPPort, false, "EmailSettings.SMTPPort"); appErr != nil {
+		return appErr
+	}
+
 	if *s.EmailBatchingBufferSize <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_batching_buffer_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.EmailBatchingInterval < 30 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_batching_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.PushNotificationBuffer <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.email_push_notification_buffer.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !(*s.EmailNotificationContentsType == EmailNotificationContentsFull || *s.EmailNotificationContentsType == EmailNotificationContentsGeneric) {
@@ -4774,6 +4887,14 @@ func (s *RateLimitSettings) isValid() *AppError {
 func (s *LdapSettings) isValid() *AppError {
 	if !(*s.ConnectionSecurity == ConnSecurityNone || *s.ConnectionSecurity == ConnSecurityTLS || *s.ConnectionSecurity == ConnSecurityStarttls) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.ldap_security.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if appErr := validatePort(*s.LdapPort, false, "LdapSettings.LdapPort"); appErr != nil {
+		return appErr
+	}
+
+	if appErr := validatePositiveNumber(*s.QueryTimeout, "LdapSettings.QueryTimeout"); appErr != nil {
+		return appErr
 	}
 
 	if *s.SyncIntervalMinutes <= 0 {
@@ -4828,6 +4949,12 @@ func (s *LdapSettings) isValid() *AppError {
 		if *s.AdminFilter != "" {
 			if _, err := ldap.CompileFilter(*s.AdminFilter); err != nil {
 				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_admin_filter.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			}
+		}
+
+		if *s.GroupFilter != "" {
+			if _, err := ldap.CompileFilter(*s.GroupFilter); err != nil {
+				return NewAppError("LdapSettings.isValid", "ent.ldap.validate_group_filter.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 		}
 	}
@@ -4911,6 +5038,10 @@ func (s *SamlSettings) isValid() *AppError {
 }
 
 func (s *ServiceSettings) isValid() *AppError {
+	if *s.SiteURL == "" && *s.AllowCookiesForSubdomains {
+		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if !(*s.ConnectionSecurity == ConnSecurityNone || *s.ConnectionSecurity == ConnSecurityTLS) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_security.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -4941,12 +5072,92 @@ func (s *ServiceSettings) isValid() *AppError {
 		}
 	}
 
+	if !(*s.TLSMinVer == "1.0" || *s.TLSMinVer == "1.1" || *s.TLSMinVer == "1.2" || *s.TLSMinVer == "1.3") {
+		return NewAppError("Config.IsValid", "model.config.is_valid.tls_min_ver.app_error", map[string]any{"Value": *s.TLSMinVer}, "", http.StatusBadRequest)
+	}
+
+	if appErr := validateNonNegativeNumber(*s.TLSStrictTransportMaxAge, "ServiceSettings.TLSStrictTransportMaxAge"); appErr != nil {
+		return appErr
+	}
+
+	if !(*s.WebserverMode == "gzip" || *s.WebserverMode == "nogzip" || *s.WebserverMode == "disabled") {
+		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_mode.app_error", map[string]any{"Value": *s.WebserverMode}, "", http.StatusBadRequest)
+	}
+
+	if appErr := validatePort(*s.WebsocketPort, true, "ServiceSettings.WebsocketPort"); appErr != nil {
+		return appErr
+	}
+
+	if appErr := validatePort(*s.WebsocketSecurePort, true, "ServiceSettings.WebsocketSecurePort"); appErr != nil {
+		return appErr
+	}
+
 	if *s.MaximumPayloadSizeBytes <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_payload_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.MaximumURLLength <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_url_length.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if appErr := validatePositiveNumber(*s.IdleTimeout, "ServiceSettings.IdleTimeout"); appErr != nil {
+		return appErr
+	}
+
+	if appErr := validatePositiveNumber(*s.SessionLengthMobileInDays, "ServiceSettings.SessionLengthMobileInDays"); appErr != nil {
+		return appErr
+	}
+
+	if appErr := validatePositiveNumber(*s.SessionLengthMobileInHours, "ServiceSettings.SessionLengthMobileInHours"); appErr != nil {
+		return appErr
+	}
+
+	if appErr := validatePositiveNumber(*s.SessionLengthSSOInDays, "ServiceSettings.SessionLengthSSOInDays"); appErr != nil {
+		return appErr
+	}
+
+	if appErr := validatePositiveNumber(*s.SessionLengthSSOInHours, "ServiceSettings.SessionLengthSSOInHours"); appErr != nil {
+		return appErr
+	}
+
+	if appErr := validatePositiveNumber(*s.SessionCacheInMinutes, "ServiceSettings.SessionCacheInMinutes"); appErr != nil {
+		return appErr
+	}
+
+	if appErr := validateNonNegativeNumber(*s.SessionIdleTimeoutInMinutes, "ServiceSettings.SessionIdleTimeoutInMinutes"); appErr != nil {
+		return appErr
+	}
+
+	if appErr := validatePositiveNumber(*s.MinimumHashtagLength, "ServiceSettings.MinimumHashtagLength"); appErr != nil {
+		return appErr
+	}
+
+	if appErr := validatePositiveNumber(*s.ClusterLogTimeoutMilliseconds, "ServiceSettings.ClusterLogTimeoutMilliseconds"); appErr != nil {
+		return appErr
+	}
+
+	if appErr := validatePositiveNumber(*s.AWSMeteringTimeoutSeconds, "ServiceSettings.AWSMeteringTimeoutSeconds"); appErr != nil {
+		return appErr
+	}
+
+	if *s.FeatureFlagSyncIntervalSeconds <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.service_settings.feature_flag_sync_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if _, err := time.Parse("15:04", *s.RefreshPostStatsRunTime); err != nil {
+		return NewAppError("Config.IsValid", "model.config.is_valid.service_settings.refresh_post_stats_run_time.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if *s.BurnOnReadDurationSeconds <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.service_settings.burn_on_read_duration_seconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.BurnOnReadMaximumTimeToLiveSeconds <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.service_settings.burn_on_read_maximum_time_to_live_seconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.BurnOnReadSchedulerFrequencySeconds <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.service_settings.burn_on_read_scheduler_frequency_seconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.ReadTimeout <= 0 {
@@ -4990,8 +5201,7 @@ func (s *ServiceSettings) isValid() *AppError {
 	} else {
 		isValidHost = (net.ParseIP(host) != nil) || isDomainName(host)
 	}
-	portInt, err := strconv.Atoi(port)
-	if err != nil || !isValidHost || portInt < 0 || portInt > math.MaxUint16 {
+	if !isValidHost || !isValidPortString(port, true) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -5089,6 +5299,30 @@ func (s *ElasticsearchSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.PostIndexShards < 1 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.index_shards.app_error", map[string]any{"Setting": "ElasticsearchSettings.PostIndexShards"}, "", http.StatusBadRequest)
+	}
+
+	if *s.ChannelIndexShards < 1 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.index_shards.app_error", map[string]any{"Setting": "ElasticsearchSettings.ChannelIndexShards"}, "", http.StatusBadRequest)
+	}
+
+	if *s.UserIndexShards < 1 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.index_shards.app_error", map[string]any{"Setting": "ElasticsearchSettings.UserIndexShards"}, "", http.StatusBadRequest)
+	}
+
+	if *s.PostIndexReplicas < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.index_replicas.app_error", map[string]any{"Setting": "ElasticsearchSettings.PostIndexReplicas"}, "", http.StatusBadRequest)
+	}
+
+	if *s.ChannelIndexReplicas < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.index_replicas.app_error", map[string]any{"Setting": "ElasticsearchSettings.ChannelIndexReplicas"}, "", http.StatusBadRequest)
+	}
+
+	if *s.UserIndexReplicas < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.index_replicas.app_error", map[string]any{"Setting": "ElasticsearchSettings.UserIndexReplicas"}, "", http.StatusBadRequest)
+	}
+
 	if _, err := time.Parse("15:04", *s.PostsAggregatorJobStartTime); err != nil {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -5169,6 +5403,18 @@ func (s *DataRetentionSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.deletion_job_start_time.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	if appErr := validatePositiveNumber(*s.BatchSize, "DataRetentionSettings.BatchSize"); appErr != nil {
+		return appErr
+	}
+
+	if appErr := validateNonNegativeNumber(*s.TimeBetweenBatchesMilliseconds, "DataRetentionSettings.TimeBetweenBatchesMilliseconds"); appErr != nil {
+		return appErr
+	}
+
+	if appErr := validatePositiveNumber(*s.RetentionIdsBatchSize, "DataRetentionSettings.RetentionIdsBatchSize"); appErr != nil {
+		return appErr
+	}
+
 	return nil
 }
 
@@ -5241,9 +5487,9 @@ func (s *MessageExportSettings) isValid() *AppError {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.customer_type.app_error", nil, "", http.StatusBadRequest)
 			} else if *s.GlobalRelaySettings.CustomerType == GlobalrelayCustomerTypeCustom && ((s.GlobalRelaySettings.CustomSMTPServerName == nil || *s.GlobalRelaySettings.CustomSMTPServerName == "") || (s.GlobalRelaySettings.CustomSMTPPort == nil || *s.GlobalRelaySettings.CustomSMTPPort == "")) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error", nil, "", http.StatusBadRequest)
-			} else if s.GlobalRelaySettings.EmailAddress == nil || !strings.Contains(*s.GlobalRelaySettings.EmailAddress, "@") {
-				// validating email addresses is hard - just make sure it contains an '@' sign
-				// see https://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address
+			} else if *s.GlobalRelaySettings.CustomerType == GlobalrelayCustomerTypeCustom && !isValidPortString(*s.GlobalRelaySettings.CustomSMTPPort, false) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_smtp_port.app_error", nil, "", http.StatusBadRequest)
+			} else if s.GlobalRelaySettings.EmailAddress == nil || !IsValidEmail(strings.ToLower(*s.GlobalRelaySettings.EmailAddress)) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.email_address.app_error", nil, "", http.StatusBadRequest)
 			} else if s.GlobalRelaySettings.SMTPUsername == nil || *s.GlobalRelaySettings.SMTPUsername == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.smtp_username.app_error", nil, "", http.StatusBadRequest)
@@ -5696,6 +5942,49 @@ func isTagPresent(tag string, tags []string) bool {
 	}
 
 	return false
+}
+
+func validatePositiveNumber[T ~int | ~int64](value T, setting string) *AppError {
+	if value <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.positive_number.app_error", map[string]any{"Setting": setting}, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
+func validateNonNegativeNumber[T ~int | ~int64](value T, setting string) *AppError {
+	if value < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.non_negative_number.app_error", map[string]any{"Setting": setting}, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
+func isValidPortNumber(port int, allowZero bool) bool {
+	if allowZero {
+		return port >= 0 && port <= math.MaxUint16
+	}
+	return port > 0 && port <= math.MaxUint16
+}
+
+func isValidPortString(port string, allowZero bool) bool {
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		return false
+	}
+	return isValidPortNumber(portInt, allowZero)
+}
+
+func validatePort(port int, allowZero bool, setting string) *AppError {
+	if !isValidPortNumber(port, allowZero) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.port.app_error", map[string]any{"Setting": setting}, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
+func validatePortString(port string, allowZero bool, setting string) *AppError {
+	if !isValidPortString(port, allowZero) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.port.app_error", map[string]any{"Setting": setting}, "", http.StatusBadRequest)
+	}
+	return nil
 }
 
 // Copied from https://golang.org/src/net/dnsclient.go#L119
