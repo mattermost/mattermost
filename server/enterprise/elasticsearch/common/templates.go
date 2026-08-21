@@ -39,8 +39,8 @@ func GetPostTemplate(cfg *model.Config) *putindextemplate.Request {
 		Template: &types.IndexTemplateMapping{
 			Settings: &types.IndexSettings{
 				Index: &types.IndexSettings{
-					NumberOfShards:   strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexShards),
-					NumberOfReplicas: strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexReplicas),
+					NumberOfShards:   model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexShards)),
+					NumberOfReplicas: model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexReplicas)),
 				},
 				Analysis: &types.IndexSettingsAnalysis{
 					CharFilter: map[string]types.CharFilter{
@@ -116,8 +116,8 @@ func GetFileInfoTemplate(cfg *model.Config) *putindextemplate.Request {
 		Template: &types.IndexTemplateMapping{
 			Settings: &types.IndexSettings{
 				Index: &types.IndexSettings{
-					NumberOfShards:   strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexShards),
-					NumberOfReplicas: strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexReplicas),
+					NumberOfShards:   model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexShards)),
+					NumberOfReplicas: model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.PostIndexReplicas)),
 				},
 				Analysis: &types.IndexSettingsAnalysis{
 					CharFilter: map[string]types.CharFilter{
@@ -192,8 +192,8 @@ func GetChannelTemplate(cfg *model.Config) *putindextemplate.Request {
 		Template: &types.IndexTemplateMapping{
 			Settings: &types.IndexSettings{
 				Index: &types.IndexSettings{
-					NumberOfShards:   strconv.Itoa(*cfg.ElasticsearchSettings.ChannelIndexShards),
-					NumberOfReplicas: strconv.Itoa(*cfg.ElasticsearchSettings.ChannelIndexReplicas),
+					NumberOfShards:   model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.ChannelIndexShards)),
+					NumberOfReplicas: model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.ChannelIndexReplicas)),
 				},
 			},
 			Mappings: mappings,
@@ -230,8 +230,8 @@ func GetUserTemplate(cfg *model.Config) *putindextemplate.Request {
 		Template: &types.IndexTemplateMapping{
 			Settings: &types.IndexSettings{
 				Index: &types.IndexSettings{
-					NumberOfShards:   strconv.Itoa(*cfg.ElasticsearchSettings.UserIndexShards),
-					NumberOfReplicas: strconv.Itoa(*cfg.ElasticsearchSettings.UserIndexReplicas),
+					NumberOfShards:   model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.UserIndexShards)),
+					NumberOfReplicas: model.NewPointer(strconv.Itoa(*cfg.ElasticsearchSettings.UserIndexReplicas)),
 				},
 			},
 			Mappings: mappings,
