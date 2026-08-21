@@ -315,6 +315,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	os.Stdout.Write(b)
-	os.Stdout.Write([]byte("\n"))
+	if _, err := os.Stdout.Write(b); err != nil {
+		log.Fatal(err)
+	}
+	if _, err := os.Stdout.Write([]byte("\n")); err != nil {
+		log.Fatal(err)
+	}
 }
