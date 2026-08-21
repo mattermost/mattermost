@@ -1,0 +1,26 @@
+name: "Restore Cypress binary cache"
+description: >
+  Restore the Cypress binary (~/.cache/Cypress), keyed on the cypress lockfile.
+  Read-only — it does not save.
+
+outputs:
+  cache-hit:
+    description: "true on an exact-key hit"
+    value: ${{ steps.restore.outputs.cache-hit }}
+  key:
+    description: "The computed cache key"
+    value: ${{ steps.key.outputs.key }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: ci/compute-cypress-binary-key
+      id: key
+      shell: bash
+      run: echo "key=e2e-cypress-binary-${{ runner.os }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}" >> "${GITHUB_OUTPUT}"
+    - name: ci/restore-cypress-binary
+      id: restore
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      with:
+        path: ~/.cache/Cypress
+        key: ${{ steps.key.outputs.key }}
