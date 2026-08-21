@@ -72,7 +72,9 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	reportPath, appErr := c.App.GenerateFlaggedPostReport(c.AppContext, postId, userId, actionRequest.Comment, actionRequest.Action)
+	includeAttachments := c.App.HasPermissionToFileAction(c.AppContext, userId, c.AppContext.Session().Roles, channel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+
+	reportPath, omittedAttachments, appErr := c.App.GenerateFlaggedPostReport(c.AppContext, postId, userId, actionRequest.Comment, actionRequest.Action, includeAttachments)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -82,6 +84,9 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 			c.Logger.Warn("Failed to remove flagged post report temp file", mlog.String("path", reportPath), mlog.Err(err))
 		}
 	}()
+
+	model.AddEventParameterToAuditRec(auditRec, "attachments_omitted", omittedAttachments > 0)
+	model.AddEventParameterToAuditRec(auditRec, "omitted_attachment_count", omittedAttachments)
 
 	f, err := os.Open(reportPath)
 	if err != nil {
@@ -99,6 +104,9 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 	// Notify all team reviewers that a report has been generated. Best-effort:
 	// must run before http.ServeContent (which writes the response and may block).
 	c.App.NotifyReviewersOfFlaggedPostReportGeneration(c.AppContext, postId, userId)
+	if omittedAttachments > 0 {
+		c.App.NotifyRequestingReviewerOfSkippedAttachments(c.AppContext, postId, userId)
+	}
 
 	filename := fmt.Sprintf("flagged-post-%s-%d.zip", postId, model.GetMillis())
 	w.Header().Set("Content-Type", "application/zip")

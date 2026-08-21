@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/stretchr/testify/require"
 )
 
@@ -1747,7 +1748,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test reviewer message"
-		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "")
+		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "", "")
 		require.Nil(t, appErr)
 
 		// Verify message was posted to the reviewer thread
@@ -1804,7 +1805,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test message for multiple reviewers"
-		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "")
+		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "", "")
 		require.Nil(t, appErr)
 
 		// Verify message was posted to both reviewer threads
@@ -1869,7 +1870,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		report.AddStep("app.data_spillage.report.step.file_attachments", model.StepFailed, "app.data_spillage.report.detail.failed", []string{"file not found"})
 
 		reportFileName := "deletion_report.md"
-		createdPosts, appErr := th.App.postReviewerMessage(th.Context, "", groupId, post.Id, report, reportFileName)
+		createdPosts, appErr := th.App.postReviewerMessage(th.Context, "", groupId, post.Id, report, reportFileName, "")
 		require.Nil(t, appErr)
 		require.NotEmpty(t, createdPosts)
 
@@ -1896,7 +1897,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test message for non-flagged post"
-		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "")
+		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "", "")
 		require.Nil(t, appErr)
 	})
 
@@ -1909,7 +1910,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test message with special chars: @user #channel ~team & <script>alert('xss')</script>"
-		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "")
+		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "", "")
 		require.Nil(t, appErr)
 
 		// Verify message was posted correctly with special characters preserved
@@ -3328,5 +3329,109 @@ func TestScrubPost(t *testing.T) {
 
 		require.Equal(t, expectedMessage, post.Message)
 		require.Nil(t, post.Metadata)
+	})
+}
+
+// setTwoReviewerConfig gives the flagged post two reviewer threads, so that "posted to
+// only one of them" is observable.
+func setTwoReviewerConfig(th *TestHelper) *model.AppError {
+	config := getBaseConfig(th)
+	config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id, th.BasicUser2.Id}
+	return th.App.SaveContentFlaggingConfig(config)
+}
+
+func countReviewerThreadReplies(t *testing.T, th *TestHelper, reviewerID, message string) int {
+	t.Helper()
+
+	contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
+	require.Nil(t, appErr)
+
+	dmChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, reviewerID, contentReviewBot.UserId)
+	require.Nil(t, appErr)
+
+	posts, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+		ChannelId: dmChannel.Id,
+		Page:      0,
+		PerPage:   100,
+	})
+	require.Nil(t, appErr)
+
+	count := 0
+	for _, p := range posts.Posts {
+		if p.RootId != "" && p.Message == message {
+			count++
+		}
+	}
+	return count
+}
+
+func TestPostReviewerMessageTargeting(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.Nil(t, setTwoReviewerConfig(th))
+
+	post := setupFlaggedPost(t, th)
+
+	groupId, err := th.App.ContentFlaggingGroupId()
+	require.Nil(t, err)
+
+	t.Run("empty target posts to every reviewer thread", func(t *testing.T) {
+		message := "fan out to everyone " + model.NewId()
+
+		created, appErr := th.App.postReviewerMessage(th.Context, message, groupId, post.Id, nil, "", "")
+		require.Nil(t, appErr)
+		require.Len(t, created, 2)
+
+		require.Equal(t, 1, countReviewerThreadReplies(t, th, th.BasicUser.Id, message))
+		require.Equal(t, 1, countReviewerThreadReplies(t, th, th.BasicUser2.Id, message))
+	})
+
+	t.Run("non-empty target posts only to that reviewer's thread", func(t *testing.T) {
+		message := "for the second reviewer only " + model.NewId()
+
+		created, appErr := th.App.postReviewerMessage(th.Context, message, groupId, post.Id, nil, "", th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.Len(t, created, 1)
+
+		require.Equal(t, 0, countReviewerThreadReplies(t, th, th.BasicUser.Id, message))
+		require.Equal(t, 1, countReviewerThreadReplies(t, th, th.BasicUser2.Id, message))
+	})
+
+	t.Run("target without a review thread posts nothing", func(t *testing.T) {
+		message := "nobody should see this " + model.NewId()
+
+		created, appErr := th.App.postReviewerMessage(th.Context, message, groupId, post.Id, nil, "", th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, created)
+
+		require.Equal(t, 0, countReviewerThreadReplies(t, th, th.BasicUser.Id, message))
+		require.Equal(t, 0, countReviewerThreadReplies(t, th, th.BasicUser2.Id, message))
+	})
+}
+
+func TestNotifyRequestingReviewerOfSkippedAttachments(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.Nil(t, setTwoReviewerConfig(th))
+
+	post := setupFlaggedPost(t, th)
+	message := i18n.GetUserTranslations("en")("app.data_spillage.report.attachments_omitted.notification")
+
+	t.Run("notifies only the requesting reviewer", func(t *testing.T) {
+		th.App.NotifyRequestingReviewerOfSkippedAttachments(th.Context, post.Id, th.BasicUser.Id)
+
+		require.Equal(t, 1, countReviewerThreadReplies(t, th, th.BasicUser.Id, message))
+		require.Equal(t, 0, countReviewerThreadReplies(t, th, th.BasicUser2.Id, message),
+			"the other reviewers only see the generic report generation notice")
+	})
+
+	t.Run("is a no-op for a reviewer with no review thread", func(t *testing.T) {
+		th.App.NotifyRequestingReviewerOfSkippedAttachments(th.Context, post.Id, th.SystemAdminUser.Id)
+
+		require.Equal(t, 0, countReviewerThreadReplies(t, th, th.SystemAdminUser.Id, message))
 	})
 }
