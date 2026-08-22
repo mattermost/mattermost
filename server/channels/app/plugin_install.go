@@ -75,6 +75,7 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -250,6 +251,36 @@ func (ch *Channels) installPluginToFilestore(manifest *model.Manifest, bundle, s
 	)
 
 	return nil
+}
+
+func newPluginInstallConflictAppError(existingManifest, uploadedManifest *model.Manifest) *model.AppError {
+	conflict := model.PluginInstallConflict{
+		PluginID:         uploadedManifest.Id,
+		PluginName:       uploadedManifest.Name,
+		HomepageURL:      uploadedManifest.HomepageURL,
+		ExistingVersion:  existingManifest.Version,
+		UploadedVersion:  uploadedManifest.Version,
+		VersionDirection: model.PluginInstallConflictVersionDirection(existingManifest, uploadedManifest),
+	}
+
+	// Installing only validates the plugin id, so the name and homepage may be missing. Fall back to
+	// the installed plugin's metadata to keep the plugin identifiable.
+	if conflict.PluginName == "" {
+		conflict.PluginName = existingManifest.Name
+	}
+	if conflict.HomepageURL == "" {
+		conflict.HomepageURL = existingManifest.HomepageURL
+	}
+
+	details := ""
+	if data, err := json.Marshal(conflict); err == nil {
+		details = string(data)
+	}
+
+	appErr := model.NewAppError("installExtractedPlugin", "app.plugin.install_id.app_error", nil, details, http.StatusBadRequest)
+	appErr.ExposeDetailedError = true
+
+	return appErr
 }
 
 // InstallMarketplacePlugin installs a plugin listed in the marketplace server. It will get the
@@ -451,7 +482,7 @@ func (ch *Channels) installExtractedPlugin(manifest *model.Manifest, fromPluginD
 	if existingManifest != nil {
 		// Return an error if already installed and strategy disallows installation.
 		if installationStrategy == installPluginLocallyOnlyIfNew {
-			return nil, model.NewAppError("installExtractedPlugin", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
+			return nil, newPluginInstallConflictAppError(existingManifest, manifest)
 		}
 
 		// Skip installation if already installed and newer.

@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -284,6 +285,42 @@ func TestPlugin(t *testing.T) {
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
+}
+
+func TestUploadPluginConflictDetails(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+		*cfg.ServiceSettings.EnableDeveloper = false
+	})
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	manifest, _, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+	require.NoError(t, err)
+	defer os.RemoveAll("plugins/testplugin")
+	require.Equal(t, "testplugin", manifest.Id)
+
+	_, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "app.plugin.install_id.app_error")
+
+	var appErr *model.AppError
+	require.True(t, errors.As(err, &appErr))
+	require.NotEmpty(t, appErr.DetailedError, "conflict details must survive with EnableDeveloper disabled")
+
+	var conflict model.PluginInstallConflict
+	require.NoError(t, json.Unmarshal([]byte(appErr.DetailedError), &conflict))
+	assert.Equal(t, "testplugin", conflict.PluginID)
+	assert.Equal(t, manifest.Version, conflict.ExistingVersion)
+	assert.Equal(t, manifest.Version, conflict.UploadedVersion)
+	assert.Equal(t, model.PluginInstallConflictVersionDirectionSame, conflict.VersionDirection)
 }
 
 func TestPluginInstallDirectoryConflict(t *testing.T) {

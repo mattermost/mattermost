@@ -237,8 +237,14 @@ type AppError struct {
 	StatusCode      int    `json:"status_code,omitempty"` // The http status code
 	Where           string `json:"-"`                     // The function where it happened in the form of Struct.Func
 	SkipTranslation bool   `json:"-"`                     // Whether translation for the error should be skipped.
-	params          map[string]any
-	wrapped         error
+
+	// ExposeDetailedError returns DetailedError to API clients even when
+	// ServiceSettings.EnableDeveloper is false. Only set it when DetailedError is authored by the
+	// caller and holds no internal information; the wrapped error is always discarded.
+	ExposeDetailedError bool `json:"-"`
+
+	params  map[string]any
+	wrapped error
 }
 
 const maxErrorLength = 1024
@@ -336,8 +342,15 @@ func (er *AppError) Wrap(err error) *AppError {
 	return er
 }
 
+// WipeDetailed removes the debugging information that should not be returned to API clients. The
+// wrapped error is always discarded; DetailedError survives only if ExposeDetailedError is set.
 func (er *AppError) WipeDetailed() {
 	er.wrapped = nil
+
+	if er.ExposeDetailedError {
+		return
+	}
+
 	er.DetailedError = ""
 }
 

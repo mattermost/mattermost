@@ -249,10 +249,8 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Equal(plugin1ID, printer.GetLines()[0].(*model.Manifest).Id)
 
-		var expected error
-		expected = multierror.Append(expected, errors.New("Unable to install plugin. A plugin with the same ID is already installed.")) //nolint:revive
 		err = pluginInstallURLCmdF(c, &cobra.Command{}, []string{plugin1URL})
-		s.Require().ErrorContains(err, expected.Error())
+		s.Require().ErrorContains(err, "Unable to install plugin. A plugin with the same ID is already installed.")
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to install plugin from URL \"%s\".", plugin1URL))
