@@ -7573,6 +7573,14 @@
     "translation": "Unable to get the unread thread counts for direct and group message channels."
   },
   {
+    "id": "app.initial_load.get_group_memberships.app_error",
+    "translation": "Unable to get the group memberships for the initial load."
+  },
+  {
+    "id": "app.initial_load.get_preference_tombstones.app_error",
+    "translation": "Unable to get the deleted preferences for the initial load."
+  },
+  {
     "id": "app.initial_load.get_roles.app_error",
     "translation": "Unable to get the roles for the initial load."
   },

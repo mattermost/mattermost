@@ -718,12 +718,12 @@ func TestGetSidebarVersion(t *testing.T) {
 	})
 
 	t.Run("returns the version for the given team", func(t *testing.T) {
-		prefs := model.Preferences{{Category: model.PreferenceCategorySidebarSettings, Name: "sidebar_version_team1", Value: "42"}}
+		prefs := model.Preferences{{Category: model.PreferenceCategorySidebarVersion, Name: "team1", Value: "42"}}
 		assert.Equal(t, int64(42), getSidebarVersion(prefs, "team1"))
 	})
 
 	t.Run("does not match a different team's version key", func(t *testing.T) {
-		prefs := model.Preferences{{Category: model.PreferenceCategorySidebarSettings, Name: "sidebar_version_team2", Value: "42"}}
+		prefs := model.Preferences{{Category: model.PreferenceCategorySidebarVersion, Name: "team2", Value: "42"}}
 		assert.Equal(t, int64(0), getSidebarVersion(prefs, "team1"))
 	})
 }

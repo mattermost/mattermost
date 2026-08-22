@@ -4742,6 +4742,7 @@ func TestRemoveUserFromChannelWebSocketEventOmitsExperienceFieldsWhenFlagOff(t *
 	appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, th.BasicUser.Id, th.BasicChannel)
 	require.Nil(t, appErr)
 
+	var caught bool
 	timeout := time.After(2 * time.Second)
 	for {
 		select {
@@ -4749,12 +4750,14 @@ func TestRemoveUserFromChannelWebSocketEventOmitsExperienceFieldsWhenFlagOff(t *
 			if ev.EventType() != model.WebsocketEventUserRemoved {
 				continue
 			}
+			caught = true
 			data := ev.GetData()
 			_, hasTeamId := data["team_id"]
 			require.False(t, hasTeamId, "team_id must not be present when flag is off")
 			_, hasField := data["member_unreads_mentions"]
 			require.False(t, hasField, "member_unreads_mentions must not be present when flag is off")
 		case <-timeout:
+			require.True(t, caught, "User should have received %s event", model.WebsocketEventUserRemoved)
 			return
 		}
 	}
@@ -4827,6 +4830,7 @@ func TestUpdateChannelNotifyPropsMuteToggleOmitsExperienceFieldsWhenFlagOff(t *t
 	})
 	require.NoError(t, err)
 
+	var caught bool
 	timeout := time.After(2 * time.Second)
 	for {
 		select {
@@ -4834,6 +4838,7 @@ func TestUpdateChannelNotifyPropsMuteToggleOmitsExperienceFieldsWhenFlagOff(t *t
 			if ev.EventType() != model.WebsocketEventChannelMemberUpdated {
 				continue
 			}
+			caught = true
 			data := ev.GetData()
 			_, hasTeamId := data["team_id"]
 			require.False(t, hasTeamId, "team_id must not be present when flag is off")
@@ -4844,6 +4849,7 @@ func TestUpdateChannelNotifyPropsMuteToggleOmitsExperienceFieldsWhenFlagOff(t *t
 			_, hasField := data["member_unreads_mentions"]
 			require.False(t, hasField, "member_unreads_mentions must not be present when flag is off")
 		case <-timeout:
+			require.True(t, caught, "User should have received %s event", model.WebsocketEventChannelMemberUpdated)
 			return
 		}
 	}
@@ -4920,6 +4926,7 @@ func TestUpdateChannelNotifyPropsNonMuteChangeDoesNotCarryMuteFields(t *testing.
 	})
 	require.NoError(t, err)
 
+	var caught bool
 	timeout := time.After(2 * time.Second)
 	for {
 		select {
@@ -4927,12 +4934,14 @@ func TestUpdateChannelNotifyPropsNonMuteChangeDoesNotCarryMuteFields(t *testing.
 			if ev.EventType() != model.WebsocketEventChannelMemberUpdated {
 				continue
 			}
+			caught = true
 			data := ev.GetData()
 			_, hasPrev := data["previous_muted"]
 			require.False(t, hasPrev, "previous_muted must be absent when MarkUnread was not changed")
 			_, hasCurrent := data["current_muted"]
 			require.False(t, hasCurrent, "current_muted must be absent when MarkUnread was not changed")
 		case <-timeout:
+			require.True(t, caught, "User should have received %s event", model.WebsocketEventChannelMemberUpdated)
 			return
 		}
 	}

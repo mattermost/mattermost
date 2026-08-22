@@ -15,6 +15,7 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -36,6 +37,7 @@ var experiencePreferenceCategories = []string{
 	model.PreferenceCategoryDisplaySettings,
 	model.PreferenceCategoryAdvancedSettings,
 	model.PreferenceCategorySidebarSettings,
+	model.PreferenceCategorySidebarVersion,
 	model.PreferenceCategoryNotifications,
 	model.PreferenceCategoryCustomStatus,
 	model.PreferenceCategoryFlaggedPost,
@@ -121,11 +123,11 @@ func (a *App) loadExperienceSnapshot(rctx request.CTX, userID string, since int6
 
 	if since > 0 {
 		eg.Go(func() error {
-			var err error
-			res.prefTombstones, err = a.Srv().Store().Preference().GetDeletedSince(userID, since)
+			tombstones, err := a.Srv().Store().Preference().GetDeletedSince(userID, since)
 			if err != nil {
 				return model.NewAppError(keys.function, keys.prefTombstones, nil, "", http.StatusInternalServerError).Wrap(err)
 			}
+			res.prefTombstones = filterExperienceTombstones(tombstones)
 			return nil
 		})
 	}
@@ -299,10 +301,7 @@ func filterMembersSince(members model.ChannelMembersWithTeamData, since int64) m
 }
 
 func filterExperiencePreferences(allPrefs model.Preferences) model.Preferences {
-	categorySet := make(map[string]struct{}, len(experiencePreferenceCategories))
-	for _, c := range experiencePreferenceCategories {
-		categorySet[c] = struct{}{}
-	}
+	categorySet := experiencePreferenceCategorySet()
 	prefs := make(model.Preferences, 0, len(allPrefs))
 	for _, p := range allPrefs {
 		if _, ok := categorySet[p.Category]; ok {
@@ -310,6 +309,28 @@ func filterExperiencePreferences(allPrefs model.Preferences) model.Preferences {
 		}
 	}
 	return prefs
+}
+
+// filterExperienceTombstones applies the same category allowlist as
+// filterExperiencePreferences, so clients never receive delete tombstones for
+// categories they were never sent in the first place.
+func filterExperienceTombstones(allTombstones []model.PreferenceTombstone) []model.PreferenceTombstone {
+	categorySet := experiencePreferenceCategorySet()
+	tombstones := make([]model.PreferenceTombstone, 0, len(allTombstones))
+	for _, tb := range allTombstones {
+		if _, ok := categorySet[tb.Category]; ok {
+			tombstones = append(tombstones, tb)
+		}
+	}
+	return tombstones
+}
+
+func experiencePreferenceCategorySet() map[string]struct{} {
+	categorySet := make(map[string]struct{}, len(experiencePreferenceCategories))
+	for _, c := range experiencePreferenceCategories {
+		categorySet[c] = struct{}{}
+	}
+	return categorySet
 }
 
 func buildTombstonedTeamIDs(teamMembers []*model.TeamMember, deletedTeams []*model.Team) map[string]struct{} {
@@ -1075,9 +1096,8 @@ func selectVisibleDMGMChannels(
 }
 
 func getSidebarVersion(prefs model.Preferences, teamID string) int64 {
-	key := "sidebar_version_" + teamID
 	for _, p := range prefs {
-		if p.Category == model.PreferenceCategorySidebarSettings && p.Name == key {
+		if p.Category == model.PreferenceCategorySidebarVersion && p.Name == teamID {
 			if v, err := strconv.ParseInt(p.Value, 10, 64); err == nil {
 				return v
 			}
@@ -1096,6 +1116,7 @@ func (a *App) buildStatusSnapshot(userIDs []string) map[string]*model.Status {
 	}
 	statuses, appErr := a.GetUserStatusesByIds(userIDs)
 	if appErr != nil {
+		a.Log().Warn("Failed to fetch status snapshot", mlog.Err(appErr))
 		return nil
 	}
 	out := make(map[string]*model.Status, len(statuses))

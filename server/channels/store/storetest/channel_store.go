@@ -10112,7 +10112,7 @@ func testGetMembersUnreadsAndMentionsForChannel(t *testing.T, rctx request.CTX, 
 	_, nErr := ss.Channel().Save(rctx, channel, -1)
 	require.NoError(t, nErr)
 
-	t.Run("empty input returns empty map", func(t *testing.T) {
+	t.Run("nonexistent channel ID returns empty map", func(t *testing.T) {
 		result, err := ss.Channel().GetMembersUnreadsAndMentionsForChannel(model.NewId())
 		require.NoError(t, err)
 		require.Empty(t, result)
@@ -10131,7 +10131,7 @@ func testGetMembersUnreadsAndMentionsForChannel(t *testing.T, rctx request.CTX, 
 		assert.Equal(t, int64(2), result[member.UserId].MentionCountRoot)
 	})
 
-	t.Run("delta mode: caught up member reports no unreads", func(t *testing.T) {
+	t.Run("caught-up member reports no unreads", func(t *testing.T) {
 		member := &model.ChannelMember{ChannelId: channel.Id, UserId: model.NewId(), NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: channel.TotalMsgCount, MsgCountRoot: channel.TotalMsgCountRoot}
 		_, err := ss.Channel().SaveMember(rctx, member)
 		require.NoError(t, err)

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"maps"
 	"net/http"
 
 	"golang.org/x/sync/errgroup"
@@ -75,6 +76,13 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 	prefTombstones = baseData.prefTombstones
 	groupMemberships = baseData.groupMemberships
 
+	// Capture locale before the delta suppression below nils me — team/DM sort
+	// ordering needs the user's real locale even when the profile itself is omitted.
+	var locale = *a.Config().LocalizationSettings.DefaultClientLocale
+	if me != nil {
+		locale = me.Locale
+	}
+
 	// Delta: suppress unchanged user profile.
 	if since > 0 && me != nil && me.UpdateAt <= since {
 		me = nil
@@ -86,10 +94,6 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 	// GetTeamsForUser never returns archived teams so we fetch them separately.
 	tombstonedTeamIDs := buildTombstonedTeamIDs(teamMembers, deletedTeams)
 
-	var locale = *a.Config().LocalizationSettings.DefaultClientLocale
-	if me != nil {
-		locale = me.Locale
-	}
 	resolvedTeamID := a.resolveActiveTeam(activeTeamID, teams, prefs, locale)
 
 	// Stale team_id hint: if the client passed a team_id the user no longer belongs to,
@@ -280,6 +284,30 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 			return nil, appErr
 		}
 		return nil, model.NewAppError("GetInitialLoad", "app.initial_load.profile_role_data.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// In delta mode, dmGMProfilesByChannel only contains members whose profile changed
+	// since the cursor. That's correct for DMs (only the partner's own profile matters),
+	// but a GM's display name and member count depend on its FULL membership — if only
+	// one member changed, using the delta-filtered set would truncate the name and
+	// undercount members. Back-fill full membership for any GM that had at least one
+	// changed member (GMs have a small member cap, so this stays cheap).
+	if since > 0 {
+		changedGMIDs := make([]string, 0, len(dmGMProfilesByChannel))
+		for _, ch := range dmChannels {
+			if ch.Type == model.ChannelTypeGroup {
+				if _, changed := dmGMProfilesByChannel[ch.Id]; changed {
+					changedGMIDs = append(changedGMIDs, ch.Id)
+				}
+			}
+		}
+		if len(changedGMIDs) > 0 {
+			fullGMProfiles, err := a.Srv().Store().Channel().GetDMGMProfilesByChannelIds(changedGMIDs, userID, 0)
+			if err != nil {
+				return nil, model.NewAppError("GetInitialLoad", "app.initial_load.dm_profiles.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			maps.Copy(dmGMProfilesByChannel, fullGMProfiles)
+		}
 	}
 
 	dmChannels = selectVisibleDMGMChannels(userID, activeChannelID, dmChannels, channelMembers, sidebarCats, prefs, dmGMProfilesByChannel, dmLimit, isCRT, locale)

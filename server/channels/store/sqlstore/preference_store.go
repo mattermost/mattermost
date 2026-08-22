@@ -114,11 +114,23 @@ func (s SqlPreferenceStore) recordDeletionsTx(tx *sqlxTxWrapper, preferences mod
 		return nil
 	}
 
+	// Postgres rejects a multi-row INSERT ... ON CONFLICT DO UPDATE if the same
+	// conflict key appears more than once in the same statement ("ON CONFLICT DO
+	// UPDATE command cannot affect row a second time"), so dedupe by (UserId,
+	// Category, Name) before building the values list.
+	type prefKey struct {
+		UserId, Category, Name string
+	}
+	deduped := make(map[prefKey]model.Preference, len(preferences))
+	for _, p := range preferences {
+		deduped[prefKey{p.UserId, p.Category, p.Name}] = p
+	}
+
 	builder := s.getQueryBuilder().
 		Insert("PreferenceDeletions").
 		Columns("UserId", "Category", "Name", "DeleteAt")
 
-	for _, p := range preferences {
+	for _, p := range deduped {
 		builder = builder.Values(p.UserId, p.Category, p.Name, deleteAt)
 	}
 

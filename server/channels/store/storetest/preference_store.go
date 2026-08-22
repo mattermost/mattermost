@@ -31,6 +31,7 @@ func TestPreferenceStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	t.Run("PreferenceGetDeletedSince", func(t *testing.T) { testPreferenceGetDeletedSince(t, ss) })
 	t.Run("PreferenceSaveClearsTombstones", func(t *testing.T) { testPreferenceSaveClearsTombstones(t, ss) })
 	t.Run("PreferenceDeletePreferenceDeletionsBefore", func(t *testing.T) { testPreferenceDeletePreferenceDeletionsBefore(t, ss, s) })
+	t.Run("PreferenceDeletePreferencesWithDuplicateKeys", func(t *testing.T) { testPreferenceDeletePreferencesWithDuplicateKeys(t, ss) })
 }
 
 func testPreferenceSave(t *testing.T, _ request.CTX, ss store.Store) {
@@ -677,6 +678,25 @@ func testPreferenceDeletePreferencesRecordsTombstones(t *testing.T, ss store.Sto
 	remaining, err := ss.Preference().GetCategory(userID, "test_tombstone")
 	require.NoError(t, err)
 	assert.Empty(t, remaining)
+}
+
+// Reproduces a Postgres duplicate-key failure in recordDeletionsTx: passing the same
+// (UserId, Category, Name) twice in one DeletePreferences call used to build a multi-row
+// INSERT ... ON CONFLICT DO UPDATE with a repeated conflict key, which Postgres rejects
+// ("ON CONFLICT DO UPDATE command cannot affect row a second time").
+func testPreferenceDeletePreferencesWithDuplicateKeys(t *testing.T, ss store.Store) {
+	userID := model.NewId()
+	pref := model.Preference{UserId: userID, Category: "test_tombstone", Name: "dup_key", Value: "v"}
+
+	require.NoError(t, ss.Preference().Save(model.Preferences{pref}))
+
+	before := model.GetMillis()
+	require.NoError(t, ss.Preference().DeletePreferences(model.Preferences{pref, pref}))
+
+	tombstones, err := ss.Preference().GetDeletedSince(userID, before-1)
+	require.NoError(t, err)
+	require.Len(t, tombstones, 1, "duplicate keys in the same batch should collapse to a single tombstone")
+	assert.Equal(t, "dup_key", tombstones[0].Name)
 }
 
 func testPreferenceGetDeletedSince(t *testing.T, ss store.Store) {

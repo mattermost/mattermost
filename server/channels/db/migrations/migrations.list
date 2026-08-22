@@ -429,3 +429,5 @@ channels/db/migrations/postgres/000216_add_preference_deletions.down.sql
 channels/db/migrations/postgres/000216_add_preference_deletions.up.sql
 channels/db/migrations/postgres/000217_add_preference_deletions_index.down.sql
 channels/db/migrations/postgres/000217_add_preference_deletions_index.up.sql
+channels/db/migrations/postgres/000218_add_preference_deletions_deleteat_index.down.sql
+channels/db/migrations/postgres/000218_add_preference_deletions_deleteat_index.up.sql

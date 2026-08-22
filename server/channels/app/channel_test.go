@@ -82,6 +82,35 @@ func TestPermanentDeleteChannel(t *testing.T) {
 	require.NotNil(t, appErr, "Outgoing webhook wasn't deleted")
 }
 
+func TestPermanentDeleteChannelSendsMemberUnreadsMentions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+	channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "deletion-unreads-test", Name: "deletion-unreads-test", Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id}, false)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
+	require.Nil(t, appErr)
+
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{ChannelId: channel.Id, Message: "hello", UserId: th.BasicUser.Id}, channel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventChannelDeleted}
+	messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
+	defer closeWS()
+
+	appErr = th.App.PermanentDeleteChannel(th.Context, channel)
+	require.Nil(t, appErr)
+
+	received := <-messages
+	assert.Equal(t, model.WebsocketEventChannelDeleted, received.EventType())
+	memberUnreadsMentions := received.GetData()["member_unreads_mentions"]
+	require.NotNil(t, memberUnreadsMentions, "channel_deleted event should carry member_unreads_mentions collected before the members were deleted")
+}
+
 func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -2412,11 +2441,22 @@ func TestRemoveUserFromChannelSendsUnreadsMentionsTimestamp(t *testing.T) {
 		appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser2.Id, th.BasicUser.Id, channel)
 		require.Nil(t, appErr)
 
-		received := <-messages
-		assert.Equal(t, model.WebsocketEventUserRemoved, received.EventType())
-		assert.Equal(t, channel.Id, received.GetData()["channel_id"])
-		assert.NotNil(t, received.GetData()["member_unreads_mentions"])
-		assert.NotNil(t, received.GetData()["timestamp"])
+		var caught bool
+		for !caught {
+			select {
+			case received := <-messages:
+				if _, present := received.GetData()["member_unreads_mentions"]; !present {
+					continue
+				}
+				caught = true
+				assert.Equal(t, model.WebsocketEventUserRemoved, received.EventType())
+				assert.Equal(t, channel.Id, received.GetData()["channel_id"])
+				assert.NotNil(t, received.GetData()["timestamp"])
+			case <-time.After(2 * time.Second):
+				require.Fail(t, "Did not receive user_removed event with member_unreads_mentions")
+				return
+			}
+		}
 	})
 
 	t.Run("should not send member_unreads_mentions or timestamp when the experience API is disabled", func(t *testing.T) {
@@ -2436,11 +2476,22 @@ func TestRemoveUserFromChannelSendsUnreadsMentionsTimestamp(t *testing.T) {
 		appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser2.Id, th.BasicUser.Id, channel)
 		require.Nil(t, appErr)
 
-		received := <-messages
-		assert.Equal(t, model.WebsocketEventUserRemoved, received.EventType())
-		assert.Equal(t, channel.Id, received.GetData()["channel_id"])
-		assert.Nil(t, received.GetData()["member_unreads_mentions"])
-		assert.Nil(t, received.GetData()["timestamp"])
+		var caught bool
+		for !caught {
+			select {
+			case received := <-messages:
+				if received.GetData()["channel_id"] != channel.Id {
+					continue
+				}
+				caught = true
+				assert.Equal(t, model.WebsocketEventUserRemoved, received.EventType())
+				assert.Nil(t, received.GetData()["member_unreads_mentions"])
+				assert.Nil(t, received.GetData()["timestamp"])
+			case <-time.After(2 * time.Second):
+				require.Fail(t, "Did not receive user_removed event for this channel")
+				return
+			}
+		}
 	})
 }
 

@@ -324,6 +324,55 @@ func TestGetInitialLoad(t *testing.T) {
 		assert.Contains(t, found.DisplayName, user3.Username)
 	})
 
+	t.Run("delta: GM display name includes all members even when only one member's profile changed", func(t *testing.T) {
+		user3 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user3, th.BasicTeam)
+
+		gm, _, err := th.Client.CreateGroupChannel(context.Background(),
+			[]string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+
+		user2Client := th.CreateClient()
+		_, _, err = user2Client.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
+		require.NoError(t, err)
+		_, _, err = user2Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: gm.Id,
+			Message:   "gm delta display name test post",
+		})
+		require.NoError(t, err)
+
+		since := model.GetMillis() - 1
+
+		// Only user3's profile changes after the cursor — BasicUser2's profile does not.
+		user3.Nickname = "user3-updated-nickname"
+		_, appErr := th.App.UpdateUser(th.Context, user3, false)
+		require.Nil(t, appErr)
+
+		url := fmt.Sprintf("/users/me/initial_load?team_id=%s&since=%d", th.BasicTeam.Id, since)
+		resp, err := th.Client.DoAPIGet(context.Background(), url, "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var r model.InitialLoadResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&r))
+
+		var found *model.ExperienceChannel
+		for _, ch := range r.ActiveTeam.Channels {
+			if ch.Id == gm.Id {
+				found = ch
+				break
+			}
+		}
+		require.NotNil(t, found, "GM channel should appear in delta response since a member's profile changed")
+		assert.NotContains(t, found.DisplayName, th.BasicUser.Username)
+		assert.Contains(t, found.DisplayName, th.BasicUser2.Username,
+			"GM display_name must include every member, not just the one whose profile changed")
+		assert.Contains(t, found.DisplayName, user3.Username)
+
+		assert.EqualValues(t, 2, found.MemberCount,
+			"GM member_count must reflect full membership (other 2 members), not just the 1 changed member")
+	})
+
 	t.Run("preferences are filtered to client-relevant categories", func(t *testing.T) {
 		resp, err := th.Client.DoAPIGet(context.Background(), "/users/me/initial_load", "")
 		require.NoError(t, err)
@@ -339,6 +388,7 @@ func TestGetInitialLoad(t *testing.T) {
 			model.PreferenceCategoryDisplaySettings:   {},
 			model.PreferenceCategoryAdvancedSettings:  {},
 			model.PreferenceCategorySidebarSettings:   {},
+			model.PreferenceCategorySidebarVersion:    {},
 			model.PreferenceCategoryNotifications:     {},
 			model.PreferenceCategoryCustomStatus:      {},
 			model.PreferenceCategoryFlaggedPost:       {},
@@ -349,6 +399,86 @@ func TestGetInitialLoad(t *testing.T) {
 			assert.Contains(t, allowed, p.Category,
 				"unexpected preference category %q in initial_load response", p.Category)
 		}
+	})
+
+	t.Run("delta: sidebar categories are omitted when the cursor is newer than the last sidebar mutation", func(t *testing.T) {
+		freshUser := th.CreateUserWithClient(t, th.SystemAdminClient)
+		th.LinkUserToTeam(t, freshUser, th.BasicTeam)
+
+		freshClient := th.CreateClient()
+		_, _, err := freshClient.Login(context.Background(), freshUser.Email, freshUser.Password)
+		require.NoError(t, err)
+
+		cats, _, err := freshClient.GetSidebarCategoriesForTeamForUser(context.Background(), freshUser.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, cats.Categories)
+		order := make([]string, len(cats.Categories))
+		for i, c := range cats.Categories {
+			order[i] = c.Id
+		}
+		_, _, err = freshClient.UpdateSidebarCategoryOrderForTeamForUser(context.Background(), freshUser.Id, th.BasicTeam.Id, order)
+		require.NoError(t, err)
+
+		url := fmt.Sprintf("/users/me/initial_load?team_id=%s", th.BasicTeam.Id)
+		resp, err := freshClient.DoAPIGet(context.Background(), url, "")
+		require.NoError(t, err)
+		var cold model.InitialLoadResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&cold))
+		resp.Body.Close()
+		require.NotNil(t, cold.ActiveTeam)
+		require.NotNil(t, cold.ActiveTeam.SidebarCategories, "cold start must always include sidebar categories")
+
+		sinceURL := fmt.Sprintf("/users/me/initial_load?team_id=%s&since=%d", th.BasicTeam.Id, cold.Timestamp)
+		resp, err = freshClient.DoAPIGet(context.Background(), sinceURL, "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var r model.InitialLoadResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&r))
+
+		require.NotNil(t, r.ActiveTeam)
+		assert.Nil(t, r.ActiveTeam.SidebarCategories,
+			"sidebar categories must be omitted when nothing changed since the cursor")
+	})
+
+	t.Run("delta: sidebar categories are included when a mutation happened after the cursor", func(t *testing.T) {
+		freshUser := th.CreateUserWithClient(t, th.SystemAdminClient)
+		th.LinkUserToTeam(t, freshUser, th.BasicTeam)
+
+		freshClient := th.CreateClient()
+		_, _, err := freshClient.Login(context.Background(), freshUser.Email, freshUser.Password)
+		require.NoError(t, err)
+
+		url := fmt.Sprintf("/users/me/initial_load?team_id=%s", th.BasicTeam.Id)
+		resp, err := freshClient.DoAPIGet(context.Background(), url, "")
+		require.NoError(t, err)
+		var cold model.InitialLoadResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&cold))
+		resp.Body.Close()
+		require.NotNil(t, cold.ActiveTeam)
+
+		// Mutate the sidebar after the cursor was taken.
+		cats, _, err := freshClient.GetSidebarCategoriesForTeamForUser(context.Background(), freshUser.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, cats.Categories)
+		order := make([]string, len(cats.Categories))
+		for i, c := range cats.Categories {
+			order[i] = c.Id
+		}
+		_, _, err = freshClient.UpdateSidebarCategoryOrderForTeamForUser(context.Background(), freshUser.Id, th.BasicTeam.Id, order)
+		require.NoError(t, err)
+
+		sinceURL := fmt.Sprintf("/users/me/initial_load?team_id=%s&since=%d", th.BasicTeam.Id, cold.Timestamp)
+		resp, err = freshClient.DoAPIGet(context.Background(), sinceURL, "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var r model.InitialLoadResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&r))
+
+		require.NotNil(t, r.ActiveTeam)
+		assert.NotNil(t, r.ActiveTeam.SidebarCategories,
+			"sidebar categories must be included when a mutation happened after the cursor")
 	})
 
 	t.Run("system admin sees their own data", func(t *testing.T) {
@@ -490,6 +620,53 @@ func TestGetInitialLoad(t *testing.T) {
 			}
 		}
 		assert.True(t, found, "team with unread should appear in delta Teams even if UpdateAt <= since")
+	})
+
+	t.Run("delta: active team resolution uses the user's real locale, not the server default", func(t *testing.T) {
+		// "Öland" sorts before "Zebra" under English collation but after it under
+		// Swedish collation. With no team_id hint, no ExperimentalPrimaryTeam, and no
+		// teams_order preference, resolveActiveTeam falls back to a locale-aware
+		// alphabetical sort of the user's teams — so which team is picked depends
+		// entirely on which locale is used.
+		freshUser := th.CreateUserWithClient(t, th.SystemAdminClient)
+		password := freshUser.Password
+		freshUser.Locale = "sv"
+		_, appErr := th.App.UpdateUser(th.Context, freshUser, false)
+		require.Nil(t, appErr)
+		freshUser.Password = password
+
+		teamO, appErr := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Öland", Name: model.NewId(), Email: th.GenerateTestEmail(), Type: model.TeamOpen})
+		require.Nil(t, appErr)
+		teamZ, appErr := th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Zebra", Name: model.NewId(), Email: th.GenerateTestEmail(), Type: model.TeamOpen})
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, freshUser, teamO)
+		th.LinkUserToTeam(t, freshUser, teamZ)
+
+		freshClient := th.CreateClient()
+		_, _, err := freshClient.Login(context.Background(), freshUser.Email, freshUser.Password)
+		require.NoError(t, err)
+
+		// Cold start to obtain a cursor; freshUser.UpdateAt <= this cursor from here on,
+		// so a subsequent delta call suppresses Me and must fall back to baseData.me.Locale
+		// rather than the server's DefaultClientLocale.
+		resp, err := freshClient.DoAPIGet(context.Background(), "/users/me/initial_load", "")
+		require.NoError(t, err)
+		var cold model.InitialLoadResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&cold))
+		resp.Body.Close()
+
+		url := fmt.Sprintf("/users/me/initial_load?since=%d", cold.Timestamp)
+		resp, err = freshClient.DoAPIGet(context.Background(), url, "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var r model.InitialLoadResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&r))
+
+		require.Nil(t, r.Me, "profile should be suppressed in delta mode since it hasn't changed")
+		require.NotNil(t, r.ActiveTeam, "active team must resolve even though Me was suppressed")
+		assert.Equal(t, teamZ.Id, r.ActiveTeam.Team.Id,
+			"Swedish collation sorts Zebra before Öland — using the server default (en) locale would incorrectly pick Öland")
 	})
 
 	t.Run("delta: channel member update includes slim channel companion when channel metadata unchanged", func(t *testing.T) {
@@ -847,7 +1024,7 @@ func TestGetInitialLoadPreferenceTombstones(t *testing.T) {
 
 	t.Run("cold start returns no tombstones (since=0)", func(t *testing.T) {
 		// Delete a preference so a tombstone row exists.
-		pref := model.Preference{UserId: th.BasicUser.Id, Category: "test_tombstone", Name: "cold_start_key", Value: "1"}
+		pref := model.Preference{UserId: th.BasicUser.Id, Category: model.PreferenceCategoryCustomStatus, Name: "cold_start_key", Value: "1"}
 		_, err := th.Client.UpdatePreferences(context.Background(), th.BasicUser.Id, model.Preferences{pref})
 		require.NoError(t, err)
 		_, err = th.Client.DeletePreferences(context.Background(), th.BasicUser.Id, model.Preferences{pref})
@@ -855,6 +1032,7 @@ func TestGetInitialLoadPreferenceTombstones(t *testing.T) {
 
 		resp, appErr := th.Client.DoAPIGet(context.Background(), initialLoadURL(), "")
 		require.NoError(t, appErr)
+		defer resp.Body.Close()
 		data, readErr := io.ReadAll(resp.Body)
 		require.NoError(t, readErr)
 		r := decodeResponse(t, data)
@@ -866,7 +1044,7 @@ func TestGetInitialLoadPreferenceTombstones(t *testing.T) {
 	t.Run("delta returns tombstones for preferences deleted since cursor", func(t *testing.T) {
 		cursor := model.GetMillis()
 
-		pref := model.Preference{UserId: th.BasicUser.Id, Category: "test_tombstone", Name: "delta_key", Value: "1"}
+		pref := model.Preference{UserId: th.BasicUser.Id, Category: model.PreferenceCategoryCustomStatus, Name: "delta_key", Value: "1"}
 		_, err := th.Client.UpdatePreferences(context.Background(), th.BasicUser.Id, model.Preferences{pref})
 		require.NoError(t, err)
 		_, err = th.Client.DeletePreferences(context.Background(), th.BasicUser.Id, model.Preferences{pref})
@@ -874,13 +1052,14 @@ func TestGetInitialLoadPreferenceTombstones(t *testing.T) {
 
 		resp, appErr := th.Client.DoAPIGet(context.Background(), initialLoadURL(fmt.Sprintf("since=%d", cursor)), "")
 		require.NoError(t, appErr)
+		defer resp.Body.Close()
 		data, readErr := io.ReadAll(resp.Body)
 		require.NoError(t, readErr)
 		r := decodeResponse(t, data)
 
 		found := false
 		for _, tb := range r.PreferenceTombstones {
-			if tb.Category == "test_tombstone" && tb.Name == "delta_key" {
+			if tb.Category == model.PreferenceCategoryCustomStatus && tb.Name == "delta_key" {
 				found = true
 				assert.Equal(t, th.BasicUser.Id, tb.UserId)
 				assert.Greater(t, tb.DeleteAt, cursor)
@@ -889,12 +1068,35 @@ func TestGetInitialLoadPreferenceTombstones(t *testing.T) {
 		assert.True(t, found, "expected preference tombstone not found in delta response")
 	})
 
+	t.Run("delta excludes tombstones for categories not in the experience allowlist", func(t *testing.T) {
+		cursor := model.GetMillis()
+
+		pref := model.Preference{UserId: th.BasicUser.Id, Category: model.PreferenceCategoryTutorialSteps, Name: "excluded_key", Value: "1"}
+		_, err := th.Client.UpdatePreferences(context.Background(), th.BasicUser.Id, model.Preferences{pref})
+		require.NoError(t, err)
+		_, err = th.Client.DeletePreferences(context.Background(), th.BasicUser.Id, model.Preferences{pref})
+		require.NoError(t, err)
+
+		resp, appErr := th.Client.DoAPIGet(context.Background(), initialLoadURL(fmt.Sprintf("since=%d", cursor)), "")
+		require.NoError(t, appErr)
+		defer resp.Body.Close()
+		data, readErr := io.ReadAll(resp.Body)
+		require.NoError(t, readErr)
+		r := decodeResponse(t, data)
+
+		for _, tb := range r.PreferenceTombstones {
+			assert.NotEqual(t, model.PreferenceCategoryTutorialSteps, tb.Category,
+				"tutorial_step is not a client-relevant category and must not appear in preference_tombstones")
+		}
+	})
+
 	t.Run("delta returns no tombstones when nothing was deleted since cursor", func(t *testing.T) {
 		// Use a cursor in the future so nothing qualifies.
 		future := model.GetMillis() + 60000
 
 		resp, appErr := th.Client.DoAPIGet(context.Background(), initialLoadURL(fmt.Sprintf("since=%d", future)), "")
 		require.NoError(t, appErr)
+		defer resp.Body.Close()
 		data, readErr := io.ReadAll(resp.Body)
 		require.NoError(t, readErr)
 		r := decodeResponse(t, data)

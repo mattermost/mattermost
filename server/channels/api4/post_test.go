@@ -6214,6 +6214,7 @@ func TestCreatePostWebSocketEventCarriesMuteForRecipient(t *testing.T) {
 					if ev.EventType() == model.WebsocketEventPosted {
 						caught = true
 						require.Equal(t, false, ev.GetData()["mute_for_recipient"])
+						return
 					}
 				case <-time.After(5 * time.Second):
 					return
@@ -6229,6 +6230,13 @@ func TestCreatePostWebSocketEventCarriesMuteForRecipient(t *testing.T) {
 		})
 		require.NoError(t, err)
 		th.App.Srv().Store().Channel().ClearCaches()
+		defer func() {
+			_, err := th.Client.UpdateChannelNotifyProps(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, map[string]string{
+				model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll,
+			})
+			require.NoError(t, err)
+			th.App.Srv().Store().Channel().ClearCaches()
+		}()
 
 		userWSClient := th.CreateConnectedWebSocketClient(t)
 
@@ -6247,6 +6255,7 @@ func TestCreatePostWebSocketEventCarriesMuteForRecipient(t *testing.T) {
 					if ev.EventType() == model.WebsocketEventPosted {
 						caught = true
 						require.Equal(t, true, ev.GetData()["mute_for_recipient"])
+						return
 					}
 				case <-time.After(5 * time.Second):
 					return
@@ -6280,6 +6289,7 @@ func TestCreatePostWebSocketEventCarriesMuteForRecipient(t *testing.T) {
 						caught = true
 						_, present := ev.GetData()["mute_for_recipient"]
 						require.False(t, present, "mute_for_recipient must not be present when flag is off")
+						return
 					}
 				case <-time.After(5 * time.Second):
 					return

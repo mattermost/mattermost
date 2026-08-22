@@ -164,6 +164,87 @@ func TestCompressionHandlerBrotli(t *testing.T) {
 		req.Header.Set("Connection", "Upgrade")
 
 		h.ServeHTTP(hw, req)
+
+		// flush() must not write to the ResponseRecorder once the connection has
+		// been hijacked — the recorder is orphaned at that point, and writing to
+		// it (or to the real connection) would be incorrect.
+		assert.Empty(t, hw.Body.Bytes())
+		assert.Empty(t, hw.Header().Get("Content-Encoding"))
+	})
+
+	t.Run("br;q=0 is treated as declining brotli", func(t *testing.T) {
+		h := compressionHandler(innerHandler, true)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+		req.Header.Set("Accept-Encoding", "br;q=0, gzip")
+
+		h.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Equal(t, "gzip", resp.Header().Get("Content-Encoding"))
+	})
+
+	t.Run("Vary: Accept-Encoding is set on brotli responses", func(t *testing.T) {
+		h := compressionHandler(innerHandler, true)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+		req.Header.Set("Accept-Encoding", "br")
+
+		h.ServeHTTP(resp, req)
+
+		assert.Equal(t, "Accept-Encoding", resp.Header().Get("Vary"))
+	})
+
+	t.Run("204 response is not brotli-encoded and Content-Encoding is left unset", func(t *testing.T) {
+		noContentHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		})
+		h := compressionHandler(noContentHandler, true)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+		req.Header.Set("Accept-Encoding", "br")
+
+		h.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusNoContent, resp.Code)
+		assert.Empty(t, resp.Header().Get("Content-Encoding"))
+		assert.Empty(t, resp.Body.Bytes())
+	})
+
+	t.Run("small response below the min-size threshold is not compressed", func(t *testing.T) {
+		smallHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, err := w.Write([]byte("tiny body"))
+			require.NoError(t, err)
+		})
+		h := compressionHandler(smallHandler, true)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+		req.Header.Set("Accept-Encoding", "br")
+
+		h.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Empty(t, resp.Header().Get("Content-Encoding"))
+		assert.Equal(t, "tiny body", resp.Body.String())
+	})
+
+	t.Run("JPEG content type is not brotli-encoded even when large", func(t *testing.T) {
+		jpegHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set("Content-Type", "image/jpeg")
+			var body [2000]byte
+			_, err := w.Write(body[:])
+			require.NoError(t, err)
+		})
+		h := compressionHandler(jpegHandler, true)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+		req.Header.Set("Accept-Encoding", "br")
+
+		h.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusOK, resp.Code)
+		assert.Empty(t, resp.Header().Get("Content-Encoding"))
+		assert.Len(t, resp.Body.Bytes(), 2000)
 	})
 
 	t.Run("no encoding when no Accept-Encoding header and compression enabled", func(t *testing.T) {

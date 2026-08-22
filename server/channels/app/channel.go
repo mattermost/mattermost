@@ -935,7 +935,7 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, "", channel.Id, "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
 	messageWs.Add("channel_type", string(channel.Type))
-	a.attachChannelMembersUnreadsMentions(rctx, messageWs, channel)
+	a.attachChannelMembersUnreadsMentions(rctx, messageWs, channel, nil)
 	a.Publish(messageWs)
 
 	return channel, nil
@@ -1008,7 +1008,7 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 		message = model.NewWebSocketEvent(model.WebsocketEventChannelRestored, "", channel.Id, "", nil, "")
 	}
 	message.Add("channel_id", channel.Id)
-	a.attachChannelMembersUnreadsMentions(rctx, message, channel)
+	a.attachChannelMembersUnreadsMentions(rctx, message, channel, nil)
 	a.Publish(message)
 
 	var user *model.User
@@ -1596,7 +1596,9 @@ func (a *App) UpdateChannelMemberNotifyProps(rctx request.CTX, data map[string]s
 	a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
 
 	if attachMuteToggle {
-		if channel, channelErr := a.GetChannel(rctx, channelID); channelErr == nil {
+		if channel, channelErr := a.GetChannel(rctx, channelID); channelErr != nil {
+			rctx.Logger().Warn("Failed to fetch channel for mute-toggle event enrichment, falling back to plain channel_member_updated event", mlog.String("channel_id", channelID), mlog.Err(channelErr))
+		} else {
 			if err = a.sendUpdateChannelMemberEventWithMuteCheck(member, channel, previousMuted); err != nil {
 				return nil, model.NewAppError("UpdateChannelMemberNotifyProps", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
@@ -1876,7 +1878,7 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 	}
 	message.Add("channel_id", channel.Id)
 	message.Add("delete_at", deleteAt)
-	a.attachChannelMembersUnreadsMentions(rctx, message, channel)
+	a.attachChannelMembersUnreadsMentions(rctx, message, channel, nil)
 	a.Publish(message)
 
 	return nil
@@ -3822,6 +3824,19 @@ func (a *App) PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *
 		return model.NewAppError("PermanentDeleteChannel", "app.post.permanent_delete_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Fetch member unread/mention state before the members are deleted below, since
+	// the channel_deleted broadcast built at the end of this function needs it and
+	// GetMembersUnreadsAndMentionsForChannel would return nothing once the members
+	// (and later the channel itself) no longer exist.
+	var byUser map[string]*model.ChannelMemberUnreadsAndMentions
+	if a.Config().FeatureFlags.EnableExperienceAPI && !channel.IsSpace() {
+		var err error
+		byUser, err = a.Srv().Store().Channel().GetMembersUnreadsAndMentionsForChannel(channel.Id)
+		if err != nil {
+			rctx.Logger().Warn("Failed to fetch member unread state for channel_deleted broadcast", mlog.String("channel_id", channel.Id), mlog.Err(err))
+		}
+	}
+
 	if err := a.Srv().Store().Channel().PermanentDeleteMembersByChannel(rctx, channel.Id); err != nil {
 		return model.NewAppError("PermanentDeleteChannel", "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3864,23 +3879,26 @@ func (a *App) PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *
 	}
 	message.Add("channel_id", channel.Id)
 	message.Add("delete_at", deleteAt)
-	a.attachChannelMembersUnreadsMentions(rctx, message, channel)
+	a.attachChannelMembersUnreadsMentions(rctx, message, channel, byUser)
 	a.Publish(message)
 
 	return nil
 }
 
-func (a *App) attachChannelMembersUnreadsMentions(rctx request.CTX, message *model.WebSocketEvent, channel *model.Channel) {
+func (a *App) attachChannelMembersUnreadsMentions(rctx request.CTX, message *model.WebSocketEvent, channel *model.Channel, byUser map[string]*model.ChannelMemberUnreadsAndMentions) {
 	if !a.Config().FeatureFlags.EnableExperienceAPI {
 		return
 	}
 
 	message.Add("team_id", channel.TeamId)
 
-	byUser, err := a.Srv().Store().Channel().GetMembersUnreadsAndMentionsForChannel(channel.Id)
-	if err != nil {
-		rctx.Logger().Warn("Failed to fetch member unread state for channel broadcast", mlog.String("channel_id", channel.Id), mlog.Err(err))
-		return
+	if byUser == nil {
+		var err error
+		byUser, err = a.Srv().Store().Channel().GetMembersUnreadsAndMentionsForChannel(channel.Id)
+		if err != nil {
+			rctx.Logger().Warn("Failed to fetch member unread state for channel broadcast", mlog.String("channel_id", channel.Id), mlog.Err(err))
+			return
+		}
 	}
 
 	useAddMemberUnreadsMentionsHook(message, byUser)
@@ -4209,7 +4227,9 @@ func (a *App) setChannelsMuted(rctx request.CTX, channelIDs []string, userID str
 				updatedChannelIDs = append(updatedChannelIDs, m.ChannelId)
 			}
 		}
-		if channels, chErr := a.Srv().Store().Channel().GetMany(updatedChannelIDs, true); chErr == nil {
+		if channels, chErr := a.Srv().Store().Channel().GetMany(updatedChannelIDs, true); chErr != nil {
+			rctx.Logger().Warn("Failed to fetch channels for mute-toggle event enrichment, falling back to plain channel_member_updated events", mlog.Err(chErr))
+		} else {
 			channelByID = make(map[string]*model.Channel, len(channels))
 			for _, c := range channels {
 				channelByID[c.Id] = c

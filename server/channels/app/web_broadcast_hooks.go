@@ -46,15 +46,27 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 	}
 }
 
+// userSet marshals to/from JSON as an object keyed by user ID, giving broadcast
+// hooks O(1) recipient membership checks instead of a linear slice scan.
+type userSet map[string]struct{}
+
+func newUserSet(userIDs []string) userSet {
+	set := make(userSet, len(userIDs))
+	for _, id := range userIDs {
+		set[id] = struct{}{}
+	}
+	return set
+}
+
 type addMentionsBroadcastHook struct{}
 
 func (h *addMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
-	mentions, err := getTypedArg[model.StringArray](args, "mentions")
+	mentions, err := getTypedArg[userSet](args, "mentions")
 	if err != nil {
 		return errors.Wrap(err, "Invalid mentions value passed to addMentionsBroadcastHook")
 	}
 
-	if len(mentions) > 0 && slices.Contains(mentions, webConn.UserId) {
+	if _, ok := mentions[webConn.UserId]; ok {
 		// Note that the client expects this field to be stringified
 		msg.Add("mentions", model.ArrayToJSON([]string{webConn.UserId}))
 	}
@@ -64,19 +76,19 @@ func (h *addMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, w
 
 func useAddMentionsHook(message *model.WebSocketEvent, mentionedUsers model.StringArray) {
 	message.GetBroadcast().AddHook(broadcastAddMentions, map[string]any{
-		"mentions": mentionedUsers,
+		"mentions": newUserSet(mentionedUsers),
 	})
 }
 
 type addFollowersBroadcastHook struct{}
 
 func (h *addFollowersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
-	followers, err := getTypedArg[model.StringArray](args, "followers")
+	followers, err := getTypedArg[userSet](args, "followers")
 	if err != nil {
 		return errors.Wrap(err, "Invalid followers value passed to addFollowersBroadcastHook")
 	}
 
-	if len(followers) > 0 && slices.Contains(followers, webConn.UserId) {
+	if _, ok := followers[webConn.UserId]; ok {
 		// Note that the client expects this field to be stringified
 		msg.Add("followers", model.ArrayToJSON([]string{webConn.UserId}))
 	}
@@ -86,7 +98,7 @@ func (h *addFollowersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, 
 
 func useAddFollowersHook(message *model.WebSocketEvent, followers model.StringArray) {
 	message.GetBroadcast().AddHook(broadcastAddFollowers, map[string]any{
-		"followers": followers,
+		"followers": newUserSet(followers),
 	})
 }
 
@@ -94,19 +106,20 @@ func useAddFollowersHook(message *model.WebSocketEvent, followers model.StringAr
 type addMutedUsersBroadcastHook struct{}
 
 func (h *addMutedUsersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
-	mutedUsers, err := getTypedArg[model.StringArray](args, "muted_users")
+	mutedUsers, err := getTypedArg[userSet](args, "muted_users")
 	if err != nil {
 		return errors.Wrap(err, "Invalid muted_users value passed to addMutedUsersBroadcastHook")
 	}
 
-	msg.Add("mute_for_recipient", slices.Contains(mutedUsers, webConn.UserId))
+	_, muted := mutedUsers[webConn.UserId]
+	msg.Add("mute_for_recipient", muted)
 	msg.Add("timestamp", model.GetMillis())
 	return nil
 }
 
 func useAddMutedUsersHook(message *model.WebSocketEvent, mutedUsers model.StringArray) {
 	message.GetBroadcast().AddHook(broadcastAddMutedUsers, map[string]any{
-		"muted_users": mutedUsers,
+		"muted_users": newUserSet(mutedUsers),
 	})
 }
 
@@ -137,7 +150,7 @@ func usePostedAckHook(message *model.WebSocketEvent, postedUserId string, channe
 	message.GetBroadcast().AddHook(broadcastPostedAck, map[string]any{
 		"posted_user_id": postedUserId,
 		"channel_type":   channelType,
-		"users":          usersToNotify,
+		"users":          newUserSet(usersToNotify),
 	})
 }
 
@@ -177,12 +190,12 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		return nil
 	}
 
-	users, err := getTypedArg[model.StringArray](args, "users")
+	users, err := getTypedArg[userSet](args, "users")
 	if err != nil {
 		return errors.Wrap(err, "Invalid users value passed to postedAckBroadcastHook")
 	}
 
-	if len(users) > 0 && slices.Contains(users, webConn.UserId) {
+	if _, ok := users[webConn.UserId]; ok {
 		msg.Add("should_ack", true)
 		incrementWebsocketCounter(webConn)
 	}

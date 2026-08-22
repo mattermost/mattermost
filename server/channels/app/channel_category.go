@@ -110,8 +110,8 @@ func (a *App) writeSidebarVersionTimestamp(rctx request.CTX, userID, teamID stri
 	now := model.GetMillis()
 	pref := model.Preference{
 		UserId:   userID,
-		Category: model.PreferenceCategorySidebarSettings,
-		Name:     fmt.Sprintf("sidebar_version_%s", teamID),
+		Category: model.PreferenceCategorySidebarVersion,
+		Name:     teamID,
 		Value:    fmt.Sprintf("%d", now),
 	}
 	if err := a.Srv().Store().Preference().Save(model.Preferences{pref}); err != nil {
