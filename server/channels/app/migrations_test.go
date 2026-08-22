@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/require"
 )
 
@@ -753,4 +754,60 @@ func stripStatusColors(t *testing.T, attrs model.StringInterface) model.StringIn
 	maps.Copy(out, attrs)
 	out["options"] = options
 	return out
+}
+
+// lockToMasterSpyStore records when doAppMigrations locks and unlocks the store
+// relative to the store access the migrations themselves make.
+type lockToMasterSpyStore struct {
+	store.Store
+
+	mu     sync.Mutex
+	events []string
+}
+
+func (s *lockToMasterSpyStore) record(event string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.events = append(s.events, event)
+}
+
+func (s *lockToMasterSpyStore) snapshot() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append([]string(nil), s.events...)
+}
+
+func (s *lockToMasterSpyStore) LockToMaster() {
+	s.record("lock")
+	s.Store.LockToMaster()
+}
+
+func (s *lockToMasterSpyStore) UnlockFromMaster() {
+	s.record("unlock")
+	s.Store.UnlockFromMaster()
+}
+
+func (s *lockToMasterSpyStore) System() store.SystemStore {
+	s.record("system")
+	return s.Store.System()
+}
+
+// Guard, not a reproduction: storetest configures no replicas, so GetReplica already
+// returns master and the race cannot be staged here. It pins that doAppMigrations
+// brackets its work in the master lock; it does not exercise the routing of individual
+// reads, as propertyService holds store handles captured before the spy wraps them.
+func TestDoAppMigrationsRunsLockedToMaster(t *testing.T) {
+	th := Setup(t)
+
+	spy := &lockToMasterSpyStore{Store: th.Server.Store()}
+	th.Server.SetStore(spy)
+	t.Cleanup(func() { th.Server.SetStore(spy.Store) })
+
+	th.Server.doAppMigrations()
+
+	events := spy.snapshot()
+	require.GreaterOrEqual(t, len(events), 3, "expected migrations to access the store between lock and unlock")
+	require.Equal(t, "lock", events[0], "migrations must lock to master before touching the store")
+	require.Equal(t, "unlock", events[len(events)-1], "migrations must release the lock once finished")
+	require.Contains(t, events[1:len(events)-1], "system", "migration store access must happen while locked to master")
 }
