@@ -863,6 +863,28 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 		userID = user.Id
 	case model.WebsocketEventNewUser:
 		userID = msg.GetData()["user_id"].(string)
+	case model.WebsocketEventCPAValuesUpdated:
+		id, ok := msg.GetData()["user_id"].(string)
+		if !ok || id == "" {
+			wc.Platform.logger.Debug("webhub.shouldSendEvent: user_id not found in message", mlog.Any("user_id", msg.GetData()["user_id"]))
+			return false
+		}
+		userID = id
+	case model.WebsocketEventPropertyValuesUpdated:
+		objectType, ok := msg.GetData()["object_type"].(string)
+		if !ok || objectType == "" {
+			wc.Platform.logger.Debug("webhub.shouldSendEvent: object_type not found in message", mlog.Any("object_type", msg.GetData()["object_type"]))
+			return false
+		}
+		if objectType != model.PropertyFieldObjectTypeUser {
+			return true
+		}
+		id, ok := msg.GetData()["target_id"].(string)
+		if !ok || id == "" {
+			wc.Platform.logger.Debug("webhub.shouldSendEvent: target_id not found in message", mlog.Any("target_id", msg.GetData()["target_id"]))
+			return false
+		}
+		userID = id
 	default:
 		return true
 	}
