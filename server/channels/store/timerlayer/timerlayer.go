@@ -2481,6 +2481,22 @@ func (s *TimerLayerChannelStore) GetTeamChannels(teamID string) (model.ChannelLi
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) GetTeamChannelsCount(teamID string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetTeamChannelsCount(teamID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetTeamChannelsCount", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, teamID string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
 	start := time.Now()
 
