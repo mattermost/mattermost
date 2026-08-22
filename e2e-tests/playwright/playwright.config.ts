@@ -59,11 +59,13 @@ export default defineConfig({
                 ...devices['iPad Pro 11'],
                 permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
             },
+            testIgnore: /specs[\\/]+components[\\/]+/,
             dependencies: ['setup'],
         },
         {
             name: 'chrome',
             use: chromeUse,
+            testIgnore: /specs[\\/]+components[\\/]+/,
             dependencies: ['setup'],
         },
         {
@@ -73,6 +75,12 @@ export default defineConfig({
                 permissions: ['notifications'],
                 viewport: {width: 1280, height: 1024},
             },
+            testIgnore: /specs[\\/]+components[\\/]+/,
+            dependencies: ['setup'],
+        },
+        {
+            name: 'components',
+            testDir: 'specs/components',
             dependencies: ['setup'],
         },
     ],

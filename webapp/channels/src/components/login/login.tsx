@@ -966,7 +966,10 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 </div>
                 <div className='login-body-action'>
                     {!isMobileView && getAlternateLink()}
-                    <div className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
+                    <div
+                        data-testid='field-with-error'
+                        className={classNames('login-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}
+                    >
                         <div
                             data-testid='login-body-card'
                             className='login-body-card-content'
