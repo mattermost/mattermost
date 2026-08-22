@@ -337,6 +337,12 @@ jobs:
           run: |
             export BUILD_NUMBER="$(printf '%s' "${HEAD_REF:-${REF_NAME}}" | tr -c 'A-Za-z0-9._-' '-')-${RUN_ID}"
             export FIPS_ENABLED=false
+            # On the StrictMode experiment branch, build a development webapp bundle so React's
+            # development-only warnings (e.g. those emitted by StrictMode) are retained and can be
+            # surfaced by the E2E tests. See MM-70393.
+            if [ "${HEAD_REF:-${REF_NAME}}" = "MM-70393_strict-mode-tests" ]; then
+              export MM_WEBAPP_DEV_BUILD=true
+            fi
             make config-reset
             make build-cmd
             make package
