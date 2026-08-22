@@ -16,6 +16,7 @@ import AudioVideoPreview from 'components/audio_video_preview';
 import CodePreview, {hasSupportedLanguage} from 'components/code_preview';
 import FileInfoPreview from 'components/file_info_preview';
 import LoadingImagePreview from 'components/loading_image_preview';
+import MarkdownPreview, {isMarkdownFile} from 'components/markdown_preview';
 import type {Props as PDFPreviewComponentProps} from 'components/pdf_preview';
 
 import Constants, {FileTypes, ZoomSettings} from 'utils/constants';
@@ -641,6 +642,18 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                             handleZoomIn={this.handleZoomIn}
                             handleZoomOut={this.handleZoomOut}
                             handleZoomReset={this.handleZoomReset}
+                        />
+                    );
+                } else if (isMarkdownFile(fileInfo)) {
+                    dialogClassName += ' modal-code';
+
+                    // Only enable copy after MarkdownPreview loads this file's content.
+                    canCopyContent = this.state.content.length > 0;
+                    content = (
+                        <MarkdownPreview
+                            fileInfo={fileInfo as FileInfo}
+                            fileUrl={fileUrl}
+                            getContent={this.getContent}
                         />
                     );
                 } else if (hasSupportedLanguage(fileInfo)) {
