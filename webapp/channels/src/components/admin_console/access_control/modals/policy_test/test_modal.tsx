@@ -46,7 +46,8 @@ function TestResultsModal({
         setLoading(true);
         const result: ActionResult<AccessControlTestResult> = await dispatch(actions.searchUsers(searchTerm, cursor, USERS_TO_FETCH));
         if (result?.data) {
-            const newUsers = result.data.users;
+            // Plugin RPC (gob) can turn an empty users slice into null on the wire.
+            const newUsers = result.data.users ?? [];
             if (reset) {
                 setUsers(newUsers);
             } else {
@@ -61,7 +62,7 @@ function TestResultsModal({
     }, [dispatch, actions]);
 
     useEffect(() => {
-        fetchUsers(term, '');
+        fetchUsers(term, '', true);
     }, []);
 
     const handleSearch = (newTerm: string) => {

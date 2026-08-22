@@ -358,7 +358,12 @@ func TestEvaluatePluginAccessRequestStoreError(t *testing.T) {
 }
 
 func TestSavePluginAccessControlPolicy(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	// Write-guard self-inclusion and masking cases live in
+	// plugin_access_control_save_test.go. Keep this suite on ownership/versioning
+	// with masking off.
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = false
+	}).InitBasic(t)
 	actingUserID := th.BasicUser.Id
 
 	notFoundErr := model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusNotFound)
@@ -426,6 +431,8 @@ func TestSavePluginAccessControlPolicy(t *testing.T) {
 		expression := p.Rules[0].Expression
 
 		mockACS.On("GetPolicy", mock.Anything, p.ID).Return(nil, notFoundErr).Once()
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+			Return([]*model.User{{Id: actingUserID}}, int64(1), nil).Once()
 		mockACS.On("SavePolicy", mock.MatchedBy(func(c request.CTX) bool {
 			return c.Session() != nil && c.Session().UserId == actingUserID
 		}), mock.MatchedBy(func(saved *model.AccessControlPolicy) bool {
@@ -450,6 +457,8 @@ func TestSavePluginAccessControlPolicy(t *testing.T) {
 		p := validPluginPolicy(model.NewId())
 		existing := validPluginPolicy(p.ID)
 		mockACS.On("GetPolicy", mock.Anything, p.ID).Return(existing, nil).Once()
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+			Return([]*model.User{{Id: actingUserID}}, int64(1), nil).Once()
 		mockACS.On("SavePolicy", mock.Anything, mock.Anything).Return(p, nil).Once()
 
 		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, p)
@@ -995,7 +1004,9 @@ func auditParam(t *testing.T, rec map[string]any, key string) any {
 // from entry and refines it to "create"/"update" once the existence probe
 // resolves; Delete stamps "delete".
 func TestPluginAccessControlAudit(t *testing.T) {
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.AttributeValueMasking = false
+	}).InitBasic(t)
 	capture := startPluginAuditCapture(t, th)
 
 	actingUserID := th.BasicUser.Id
@@ -1094,6 +1105,8 @@ func TestPluginAccessControlAudit(t *testing.T) {
 		p := validPluginPolicy(model.NewId())
 		mockACS.On("GetPolicy", mock.Anything, p.ID).
 			Return(nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusNotFound)).Once()
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+			Return([]*model.User{{Id: actingUserID}}, int64(1), nil).Once()
 		mockACS.On("SavePolicy", mock.Anything, mock.Anything).Return(p, nil).Once()
 
 		rec := assertNextRecord(t, model.AuditEventSavePluginAccessControlPolicy, model.AuditStatusSuccess, func() {
@@ -1101,6 +1114,26 @@ func TestPluginAccessControlAudit(t *testing.T) {
 			require.Nil(t, appErr)
 		})
 		assert.Equal(t, "create", auditParam(t, rec, "operation"))
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("save: self-exclusion audits as fail", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		p := validPluginPolicy(model.NewId())
+		mockACS.On("GetPolicy", mock.Anything, p.ID).
+			Return(nil, model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusNotFound)).Once()
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+			Return([]*model.User{}, int64(0), nil).Once()
+
+		rec := assertNextRecord(t, model.AuditEventSavePluginAccessControlPolicy, model.AuditStatusFail, func() {
+			_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, p)
+			require.NotNil(t, appErr)
+			assert.Equal(t, "app.pap.save_policy.self_exclusion", appErr.Id)
+		})
+		assert.Equal(t, "create", auditParam(t, rec, "operation"))
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
 		mockACS.AssertExpectations(t)
 	})
 

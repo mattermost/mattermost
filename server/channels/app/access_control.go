@@ -114,70 +114,18 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		}
 	}
 
-	// Defense in depth: a team admin must remain within their own team policy's
-	// rules. The api4 handler enforces this for the request path, but guard here
-	// so any internal caller saving a team policy is held to the same invariant
-	// regardless of the masking flag. System admins and sessionless internal
-	// callers may intentionally set rules they don't match, mirroring the
-	// masking self-inclusion exemption below.
-	if policy.Type == model.AccessControlPolicyTypeTeam {
-		if session := rctx.Session(); session != nil && session.UserId != "" && !a.HasPermissionTo(session.UserId, model.PermissionManageSystem) {
-			for _, rule := range policy.Rules {
-				if appErr := a.ValidateTeamAdminSelfInclusion(rctx, session.UserId, rule.Expression); appErr != nil {
-					return nil, appErr
-				}
-			}
-		}
+	callerID := ""
+	if session := rctx.Session(); session != nil {
+		callerID = session.UserId
 	}
-
-	// ABAC is gated at route registration; only check masking here. Masking is
-	// attribute-based: edits are allowed with masked values present as long as
-	// the caller doesn't drop a condition holding values they couldn't see.
-	if a.Config().FeatureFlags.AttributeValueMasking {
-		session := rctx.Session()
-		if session == nil {
-			return nil, model.NewAppError("CreateOrUpdateAccessControlPolicy", "api.context.session_expired.app_error", nil, "session required for masking validation", http.StatusUnauthorized)
-		}
-		callerID := session.UserId
-
-		resolver, appErr := newMaskingResolver(a, rctx, callerID)
-		if appErr != nil {
-			return nil, model.NewAppError("CreateOrUpdateAccessControlPolicy", "app.pap.save_policy.resolver_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
-		}
-
-		// Validate submitted values BEFORE merge: only the values the caller
-		// actually submitted should be checked against their holdings. Running
-		// validation after merge would reject the re-injected hidden values
-		// (e.g. Bravo, Charlie) that the caller legitimately cannot see.
-		appErr = a.validatePolicyExpressionValues(rctx, policy, resolver)
-		if appErr != nil {
-			return nil, appErr
-		}
-
-		// Merge hidden values back in and block deletion of masked conditions.
-		mergedHidden, appErr := a.mergeStoredPolicyExpressions(rctx, policy, resolver)
-		if appErr != nil {
-			return nil, appErr
-		}
-
-		// Guard against persisting the sentinel as a real value.
-		if appErr := rejectMaskedTokens(policy); appErr != nil {
-			return nil, appErr
-		}
-
-		// Self-inclusion check applies only to non-admins. System admins may
-		// legitimately set conditions for attributes they do not personally hold
-		// (e.g., creating a "Clearance == Top Secret" rule without holding that
-		// clearance themselves). Masking and write-path value validation still
-		// apply to system admins above.
-		if !a.HasPermissionTo(callerID, model.PermissionManageSystem) {
-			if appErr := a.checkSelfInclusion(rctx, policy, callerID, mergedHidden); appErr != nil {
-				return nil, appErr
-			}
-		}
-	}
-
+	// Channel/team UI GET masks values the caller cannot see, so mergeFromStore
+	// re-injects those hidden literals before persist.
 	var appErr *model.AppError
+	policy, appErr = a.enforceAccessControlPolicyWriteGuards(rctx, policy, callerID, true)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	policy, appErr = acs.SavePolicy(rctx, policy)
 	if appErr != nil {
 		return nil, appErr
@@ -406,6 +354,74 @@ func saveForbiddenError(rctx request.CTX, where, internalReason string) *model.A
 		mlog.String("internal_reason", internalReason),
 	)
 	return model.NewAppError(where, "app.pap.save_policy.forbidden", nil, "", http.StatusForbidden)
+}
+
+// enforceAccessControlPolicyWriteGuards runs shared save-path invariants for
+// channel/team (CreateOrUpdateAccessControlPolicy) and plugin-owned policies
+// (SavePluginAccessControlPolicy).
+//
+// When AttributeValueMasking is on (applies to all callers, including system
+// admins):
+//  1. validatePolicyExpressionValues — submitted literals must be held by caller
+//  2. mergeStoredPolicyExpressions — only when mergeFromStore is true
+//     (channel/team UI round-trips masked GET responses; plugin GET is unmasked,
+//     so plugin saves pass mergeFromStore=false)
+//  3. rejectMaskedTokens — never persist the masking sentinel
+//
+// Self-inclusion always runs for non-sysadmins with a non-empty callerID, even
+// when AttributeValueMasking is off. That matches product intent (a non-sysadmin
+// cannot save a policy that excludes them) and keeps the plugin path from
+// weakening when masking is disabled. Sessionless/internal callers with an empty
+// callerID skip self-inclusion. System admins are exempt from self-inclusion but
+// remain subject to value-holding validation when masking is on.
+//
+// Masking with an empty callerID is rejected (session required), matching the
+// historical CreateOrUpdateAccessControlPolicy contract.
+func (a *App) enforceAccessControlPolicyWriteGuards(
+	rctx request.CTX,
+	policy *model.AccessControlPolicy,
+	callerID string,
+	mergeFromStore bool,
+) (*model.AccessControlPolicy, *model.AppError) {
+	mergedHidden := false
+
+	if a.Config().FeatureFlags.AttributeValueMasking {
+		if callerID == "" {
+			return nil, model.NewAppError("enforceAccessControlPolicyWriteGuards", "api.context.session_expired.app_error", nil, "session required for masking validation", http.StatusUnauthorized)
+		}
+
+		resolver, appErr := newMaskingResolver(a, rctx, callerID)
+		if appErr != nil {
+			return nil, model.NewAppError("enforceAccessControlPolicyWriteGuards", "app.pap.save_policy.resolver_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		}
+
+		// Validate submitted values BEFORE merge: only the values the caller
+		// actually submitted should be checked against their holdings. Running
+		// validation after merge would reject the re-injected hidden values
+		// (e.g. Bravo, Charlie) that the caller legitimately cannot see.
+		if appErr = a.validatePolicyExpressionValues(rctx, policy, resolver); appErr != nil {
+			return nil, appErr
+		}
+
+		if mergeFromStore {
+			mergedHidden, appErr = a.mergeStoredPolicyExpressions(rctx, policy, resolver)
+			if appErr != nil {
+				return nil, appErr
+			}
+		}
+
+		if appErr := rejectMaskedTokens(policy); appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	if callerID != "" && !a.HasPermissionTo(callerID, model.PermissionManageSystem) {
+		if appErr := a.checkSelfInclusion(rctx, policy, callerID, mergedHidden); appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	return policy, nil
 }
 
 // checkSelfInclusion verifies the caller satisfies all policy rules after their edit.

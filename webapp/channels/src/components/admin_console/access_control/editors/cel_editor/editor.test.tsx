@@ -203,4 +203,15 @@ describe('buildCELSchemas', () => {
         expect(schemas['user.attributes']).toEqual(['valid']);
         expect(schemas['user.session']).toEqual(['ip_address']);
     });
+
+    test('skips null or undefined attribute names without throwing', () => {
+        const schemas = buildCELSchemas([
+            {attribute: null as unknown as string, values: [], objectType: 'user'},
+            {attribute: undefined as unknown as string, values: [], isNative: true},
+            {attribute: 'department', values: [], objectType: 'user'},
+        ]);
+
+        expect(schemas.user).toEqual(['attributes']);
+        expect(schemas['user.attributes']).toEqual(['department']);
+    });
 });

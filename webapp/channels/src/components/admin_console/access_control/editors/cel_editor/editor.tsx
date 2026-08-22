@@ -88,9 +88,11 @@ type CELUserAttribute = {
 // offered under user.session.* — the session bucket only appears when present.
 // Native attributes (isNative) complete directly off user.* (e.g. user.email).
 export function buildCELSchemas(userAttributes: CELUserAttribute[]): Record<string, string[]> {
+    // Skip null/undefined names — plugin proxies can surface incomplete
+    // PropertyField rows, and name.includes would throw during render.
     const cleanNames = (attrs: CELUserAttribute[]) => attrs.
         map((attr) => attr.attribute).
-        filter((name) => !name.includes(' ') && name.trim() !== '');
+        filter((name): name is string => typeof name === 'string' && !name.includes(' ') && name.trim() !== '');
     const sessionAttrNames = cleanNames(userAttributes.filter((attr) => attr.objectType === SESSION_ATTRIBUTES_OBJECT_TYPE));
     const userAttrs = userAttributes.filter((attr) => !attr.objectType || attr.objectType === USER_OBJECT_TYPE);
     const nativeNames = cleanNames(userAttrs.filter((attr) => attr.isNative));
