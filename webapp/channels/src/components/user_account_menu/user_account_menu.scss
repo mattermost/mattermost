@@ -12,6 +12,8 @@
 
         .label-elements {
             gap: 0;
+            min-width: 0;
+            overflow: hidden;
         }
 
         span.userAccountMenu_nameMenuItem_primaryLabel {
