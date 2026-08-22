@@ -2806,7 +2806,6 @@
   "admin.plugin.state.stopping": "Stopping",
   "admin.plugin.state.stopping.description": "This plugin is stopping.",
   "admin.plugin.state.unknown": "Unknown",
-  "admin.plugin.upload": "Upload",
   "admin.plugin.upload.disabled_permission": "You need permission to manage plugins before uploading a plugin.",
   "admin.plugin.upload.disabled_plugins": "Enable plugins before uploading a plugin.",
   "admin.plugin.upload.disabled_signature_required": "Plugin signatures are required. Install plugins through Marketplace instead.",
