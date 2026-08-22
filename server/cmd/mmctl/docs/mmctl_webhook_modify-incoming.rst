@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Modify existing incoming webhook by changing its title, description, channel or icon url
+Modify existing incoming webhook by changing its title, description, channel, icon url or owner
 
 ::
 
@@ -20,7 +20,7 @@ Examples
 
 ::
 
-    webhook modify-incoming [webhookID] --channel [channelID] --display-name [displayName] --description [webhookDescription] --lock-to-channel --icon [iconURL]
+    webhook modify-incoming [webhookID] --channel [channelID] --display-name [displayName] --description [webhookDescription] --lock-to-channel --icon [iconURL] --user [username]
 
 Options
 ~~~~~~~
@@ -33,6 +33,7 @@ Options
   -h, --help                  help for modify-incoming
       --icon string           Icon URL
       --lock-to-channel       Lock to channel
+      --user string           User username, email, or ID to set as the webhook owner
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

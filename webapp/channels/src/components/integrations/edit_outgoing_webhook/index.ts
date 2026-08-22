@@ -8,7 +8,9 @@ import type {Dispatch} from 'redux';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {getOutgoingHook, updateOutgoingHook} from 'mattermost-redux/actions/integrations';
+import {Permissions} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import EditOutgoingWebhook from './edit_outgoing_webhook';
 
@@ -24,6 +26,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const enableOutgoingWebhooks = config.EnableOutgoingWebhooks === 'true';
     const enablePostUsernameOverride = config.EnablePostUsernameOverride === 'true';
     const enablePostIconOverride = config.EnablePostIconOverride === 'true';
+    const canManageOthersWebhooks = haveICurrentTeamPermission(state, Permissions.MANAGE_OTHERS_OUTGOING_WEBHOOKS);
 
     return {
         hookId: hookId!,
@@ -31,6 +34,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         enableOutgoingWebhooks,
         enablePostUsernameOverride,
         enablePostIconOverride,
+        canManageOthersWebhooks,
     };
 }
 
