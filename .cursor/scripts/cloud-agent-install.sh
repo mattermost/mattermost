@@ -95,8 +95,15 @@ verify_enterprise_checkout() {
 
   local target
   if ! target="$(find_enterprise_checkout)"; then
-    log "Enterprise checkout not found. Ensure the Cursor multi-repo environment includes github.com/mattermost/enterprise."
-    return 1
+    # The multi-repo enterprise sibling is provided when Cursor checks out the
+    # workspace for a running agent, but it is not present during environment
+    # prebuilds (which clone only the primary repo). Don't hard-fail here:
+    # `make setup-go-work` and `go mod download` work without enterprise, and
+    # `run-server` re-runs setup-go-work at boot, picking up the enterprise
+    # sibling once it is present. Failing would break otherwise-valid builds.
+    log "Enterprise checkout not found; proceeding without it (team-edition workspace)."
+    log "For an enterprise workspace, ensure the Cursor multi-repo environment includes github.com/mattermost/enterprise."
+    return 0
   fi
 
   log "Enterprise checkout ready at $target."
