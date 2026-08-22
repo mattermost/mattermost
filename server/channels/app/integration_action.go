@@ -283,10 +283,20 @@ func (ch *Channels) doPluginRequest(rctx request.CTX, method, rawURL string, val
 		Body:       io.NopCloser(bytes.NewReader(w.data)),
 	}
 	if resp.StatusCode == 0 {
-		resp.StatusCode = http.StatusOK
-	}
+        resp.StatusCode = http.StatusOK
+    }
 
-	return resp, nil
+    if resp.StatusCode >= 400 {
+        return resp, model.NewAppError(
+            "doPluginRequest",
+            "api.post.do_action.action_integration.app_error",
+            nil,
+            fmt.Sprintf("plugin returned HTTP status %d", resp.StatusCode),
+            resp.StatusCode,
+        )
+    }
+
+    return resp, nil
 }
 
 type MailToLinkContent struct {
