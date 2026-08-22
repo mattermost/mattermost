@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {Component, createRef} from 'react';
-import type {ChangeEvent, CSSProperties, MouseEvent, ReactNode, RefObject} from 'react';
+import type {ChangeEvent, MouseEvent, ReactNode, RefObject} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -12,7 +12,6 @@ import FormError from 'components/form_error';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {Constants} from 'utils/constants';
-import * as FileUtils from 'utils/file_utils';
 import {localizeMessage} from 'utils/utils';
 
 type Props = {
@@ -37,7 +36,6 @@ type State = {
     image: string | null;
     removeSrc: boolean;
     setDefaultSrc: boolean;
-    orientationStyles?: CSSProperties;
 };
 
 export default class SettingPicture extends Component<Props, State> {
@@ -144,18 +142,7 @@ export default class SettingPicture extends Component<Props, State> {
     setPicture = (file: File) => {
         if (file) {
             this.previewBlob = URL.createObjectURL(file);
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const orientation = FileUtils.getExifOrientation(e.target!.result! as ArrayBuffer);
-                const orientationStyles = FileUtils.getOrientationStyles(orientation);
-
-                this.setState({
-                    image: this.previewBlob,
-                    orientationStyles,
-                });
-            };
-            reader.readAsArrayBuffer(file);
+            this.setState({image: this.previewBlob});
         }
     };
 
@@ -165,7 +152,6 @@ export default class SettingPicture extends Component<Props, State> {
         if (this.props.file) {
             const imageStyles = {
                 backgroundImage: 'url(' + this.state.image + ')',
-                ...this.state.orientationStyles,
             };
 
             return (
