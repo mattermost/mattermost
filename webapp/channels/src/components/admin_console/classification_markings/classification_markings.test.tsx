@@ -28,6 +28,9 @@ import {
     CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID,
     CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+    CLASSIFICATIONS_USER_OBJECT_TYPE,
+    CLEARANCE_FIELD_DISPLAY_NAME,
+    CLEARANCE_FIELD_NAME,
     DISPLAY_BANNER_BOTTOM,
     DISPLAY_BANNER_TOP,
 } from './utils';
@@ -38,6 +41,11 @@ const MOCK_USER_ID = 'current_user_id_12345678';
 const BASE_STATE = {entities: {users: {currentUserId: MOCK_USER_ID}}};
 
 jest.mock('mattermost-redux/client');
+
+const mockHistoryPush = jest.fn();
+jest.mock('utils/browser_history', () => ({
+    getHistory: () => ({push: mockHistoryPush}),
+}));
 
 function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
@@ -97,6 +105,35 @@ function makeChannelLinkedField(overrides: Partial<PropertyField> = {}): Propert
         ...overrides,
     };
 }
+
+// A "Clearance" user field linked to the classification template ('field1').
+function makeUserLinkedField(overrides: Partial<PropertyField> = {}): PropertyField {
+    return {
+        id: 'clearance_field1',
+        group_id: CLASSIFICATIONS_GROUP_NAME,
+        name: CLEARANCE_FIELD_NAME,
+        type: 'rank',
+        attrs: {},
+        target_id: '',
+        target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+        object_type: CLASSIFICATIONS_USER_OBJECT_TYPE,
+        linked_field_id: 'field1',
+        create_at: 5000,
+        update_at: 5000,
+        delete_at: 0,
+        created_by: 'user1',
+        updated_by: 'user1',
+        ...overrides,
+    };
+}
+
+// State with ABAC enabled, which reveals the clearance attribute checkbox.
+const ABAC_STATE = {
+    entities: {
+        users: {currentUserId: MOCK_USER_ID},
+        admin: {config: {AccessControlSettings: {EnableAttributeBasedAccessControl: true}}},
+    },
+};
 
 function makeSystemValue(fieldId: string, optionId: string): PropertyValue<string> {
     return {
@@ -469,6 +506,57 @@ describe('ClassificationMarkings component', () => {
         expect(
             screen.getByText('Markings are not tied to access control decisions at this time and are for display purposes only.'),
         ).toBeInTheDocument();
+    });
+
+    test('should hide the informational notice while the clearance attribute is enabled', async () => {
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        const linked = makeLinkedField({attrs: {actions: []}});
+        const channel = makeChannelLinkedField();
+        const clearance = makeUserLinkedField();
+
+        // Clearance exists, so the levels are enforced and the notice is untrue.
+        // Second user-object-type page comes back empty to end pagination.
+        let userCalls = 0;
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            switch (objectType) {
+            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
+                return [field];
+            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
+                return [linked];
+            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
+                return [channel];
+            default:
+                return (userCalls++ % 2 === 0) ? [clearance] : [];
+            }
+        });
+
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByTestId('clearanceAttributeCheckbox');
+
+        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeChecked();
+        expect(
+            screen.queryByRole('heading', {name: 'Classification markings are informational only'}),
+        ).not.toBeInTheDocument();
+
+        // ...and it comes back the moment enforcement is turned off again.
+        await userEvent.setup().click(screen.getByTestId('clearanceAttributeCheckbox'));
+        expect(
+            await screen.findByRole('heading', {name: 'Classification markings are informational only'}),
+        ).toBeInTheDocument();
+        await act(async () => {});
+    });
+
+    test('should navigate to the membership policies page from the clearance help text', async () => {
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            return objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE ? [field] : [];
+        });
+
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByTestId('clearanceAttributeCheckbox');
+
+        await userEvent.setup().click(screen.getByText('membership policy'));
+        expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/membership_policies');
     });
 
     test('should render disabled state when no existing field', async () => {
@@ -1055,7 +1143,8 @@ describe('GlobalClassificationIndicators section', () => {
         jest.spyOn(Client4, 'getPropertyFields').
             mockResolvedValueOnce([field]).
             mockResolvedValueOnce([linked]).
-            mockResolvedValueOnce([]);
+            mockResolvedValueOnce([]). // channel-linked field lookup during disable -> none
+            mockResolvedValueOnce([]); // clearance user field lookup during disable -> none
 
         const deleteOrder: string[] = [];
         const deleteFieldSpy = jest.spyOn(Client4, 'deletePropertyField');
@@ -1205,6 +1294,111 @@ describe('Channel classification linked field branches', () => {
         expect(fieldsById[existingChannelField.id]).toEqual(existingChannelField);
     });
 
+    test('should create the linked Clearance user field on save when the clearance checkbox is enabled (ABAC on)', async () => {
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        const linked = makeLinkedField({attrs: {actions: []}});
+        const channel = makeChannelLinkedField();
+
+        // No existing clearance field; everything else already exists (patch, not create).
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            switch (objectType) {
+            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
+                return [field];
+            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
+                return [linked];
+            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
+                return [channel];
+            default:
+                return []; // user object type: no clearance yet
+            }
+        });
+        jest.spyOn(Client4, 'patchPropertyField').
+            mockResolvedValueOnce(makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}})).
+            mockResolvedValueOnce(makeLinkedField({attrs: {actions: []}}));
+        const createdClearance = makeUserLinkedField();
+        const createSpy = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(createdClearance);
+
+        const {store} = renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByTestId('clearanceAttributeCheckbox');
+
+        const user = userEvent.setup();
+        await user.click(screen.getByTestId('clearanceAttributeCheckbox'));
+        await user.click(await screen.findByText('Save'));
+
+        await waitFor(() => {
+            expect(createSpy).toHaveBeenCalledWith(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_USER_OBJECT_TYPE,
+                expect.objectContaining({
+                    name: CLEARANCE_FIELD_NAME,
+                    type: 'rank',
+                    linked_field_id: field.id,
+                    attrs: expect.objectContaining({managed: 'admin', display_name: CLEARANCE_FIELD_DISPLAY_NAME}),
+                }),
+            );
+        });
+        await act(async () => {});
+
+        // Pushed into Redux eagerly, like every other field this save touches, so
+        // a consumer reading the properties slice sees it without a reload.
+        expect(store.getState().entities.properties.fields.byId[createdClearance.id]).toEqual(createdClearance);
+    });
+
+    test('should delete the linked Clearance user field on save when the clearance checkbox is disabled (ABAC on)', async () => {
+        const field = makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}});
+        const linked = makeLinkedField({attrs: {actions: []}});
+        const channel = makeChannelLinkedField();
+        const clearance = makeUserLinkedField();
+
+        // Two linked clearance fields: this UI only ever creates one, but every
+        // match must be deleted — leaving one behind would keep enforcement live
+        // while the saved state records it as off.
+        const extraClearance = makeUserLinkedField({id: 'clearance_field2', name: 'clearance_dupe'});
+
+        // Clearance exists: return both on the first user-object-type page, then an
+        // empty page to end pagination (per fetchUserLinkedFields invocation).
+        let userCalls = 0;
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            switch (objectType) {
+            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
+                return [field];
+            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
+                return [linked];
+            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
+                return [channel];
+            default:
+                return (userCalls++ % 2 === 0) ? [clearance, extraClearance] : [];
+            }
+        });
+        jest.spyOn(Client4, 'patchPropertyField').
+            mockResolvedValueOnce(makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}})).
+            mockResolvedValueOnce(makeLinkedField({attrs: {actions: []}}));
+        const deleteSpy = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+
+        renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
+        await screen.findByTestId('clearanceAttributeCheckbox');
+
+        const user = userEvent.setup();
+        const checkbox = screen.getByTestId('clearanceAttributeCheckbox');
+        expect(checkbox).toBeChecked();
+        await user.click(checkbox); // uncheck
+        await user.click(await screen.findByText('Save'));
+
+        await waitFor(() => {
+            expect(deleteSpy).toHaveBeenCalledWith(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_USER_OBJECT_TYPE,
+                clearance.id,
+            );
+            expect(deleteSpy).toHaveBeenCalledWith(
+                CLASSIFICATIONS_GROUP_NAME,
+                CLASSIFICATIONS_USER_OBJECT_TYPE,
+                extraClearance.id,
+            );
+        });
+        await act(async () => {});
+    });
+
     test('should delete channel-linked field before linked and template when disabling', async () => {
         const field = makePropertyField({
             attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
@@ -1215,7 +1409,8 @@ describe('Channel classification linked field branches', () => {
         jest.spyOn(Client4, 'getPropertyFields').
             mockResolvedValueOnce([field]). // template field load
             mockResolvedValueOnce([linked]). // linked field load
-            mockResolvedValueOnce([channel]); // channel field lookup during disable
+            mockResolvedValueOnce([channel]). // channel field lookup during disable
+            mockResolvedValueOnce([]); // clearance user field lookup during disable -> none
 
         const deleteOrder: string[] = [];
         jest.spyOn(Client4, 'deletePropertyField').mockImplementation(async (_group, objectType, id) => {
@@ -1274,7 +1469,8 @@ describe('Channel classification linked field branches', () => {
         jest.spyOn(Client4, 'getPropertyFields').
             mockResolvedValueOnce([field]).
             mockResolvedValueOnce([linked]).
-            mockResolvedValueOnce([]); // no channel field exists
+            mockResolvedValueOnce([]). // no channel field exists
+            mockResolvedValueOnce([]); // no clearance user field exists
 
         const deletedTypes: string[] = [];
         jest.spyOn(Client4, 'deletePropertyField').mockImplementation(async (_group, objectType) => {
@@ -1305,6 +1501,64 @@ describe('Channel classification linked field branches', () => {
 
             await waitFor(() => {
                 expect(deletedTypes).toEqual([CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]);
+            });
+        } finally {
+            console.error = origError;
+        }
+    });
+
+    test('should delete an existing clearance field when disabling even with ABAC off', async () => {
+        const field = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+        });
+        const linked = makeLinkedField({attrs: {actions: []}});
+        const clearance = makeUserLinkedField();
+
+        // ABAC is off now, but the clearance field was created while it was on.
+        // Skipping its deletion would leave a dependent and fail the template delete.
+        let userCalls = 0;
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            switch (objectType) {
+            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
+                return [field];
+            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
+                return [linked];
+            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
+                return [];
+            default:
+                return (userCalls++ % 2 === 0) ? [clearance] : [];
+            }
+        });
+
+        const deletedIds: string[] = [];
+        jest.spyOn(Client4, 'deletePropertyField').mockImplementation(async (_group, _objectType, id) => {
+            deletedIds.push(id);
+            return {status: 'OK'};
+        });
+
+        const origError = console.error;
+        console.error = (...args: Parameters<typeof console.error>) => {
+            if (typeof args[0] === 'string' && args[0].includes('not configured to support act')) {
+                return;
+            }
+            origError(...args);
+        };
+
+        try {
+            renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+            await screen.findByText('Global Classification Indicators');
+
+            const user = userEvent.setup();
+
+            await act(async () => {
+                await user.click(screen.getByTestId('classificationEnabledfalse'));
+            });
+            await act(async () => {
+                await user.click(screen.getByText('Save'));
+            });
+
+            await waitFor(() => {
+                expect(deletedIds).toEqual([clearance.id, linked.id, field.id]);
             });
         } finally {
             console.error = origError;

@@ -1,3 +1,5 @@
+@use 'utils/mixins';
+
 .select-attribute-mui-menu {
     max-height: 400px;
     overflow-y: auto;
@@ -5,20 +7,38 @@
 
 .field-selector-menu-button {
     width: 100%;
+    // 40px is the floor, not the height: the value trigger wraps its selected-value
+    // chips onto new lines (see &__multi-values-container) and must grow to fit them
+    // rather than clip under overflow: hidden.
     height: auto;
     min-height: 40px;
     justify-content: start;
     border: none;
     font-weight: normal;
     
-    &:hover {
+    // These triggers also carry `btn btn-transparent`, whose :hover/:active paint
+    // the whole button solid blue (var(--button-bg)) with white text — which would
+    // swallow the channel-attribute chip. Keep the hover a subtle neutral wash.
+    // The extra .btn.btn-transparent qualifiers out-specify _buttons.scss.
+    &:hover,
+    &.btn.btn-transparent:hover,
+    &.btn.btn-transparent:active {
         background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: inherit;
     }
-    
-    &:focus,
+
+    // Menu-open state: a slightly deeper neutral than the hover wash. Never the
+    // accent tint — the only blue in a row belongs to the channel-attribute
+    // token, and a blue cell background competes with it.
     &[aria-expanded="true"] {
-        background: rgba(var(--button-bg-rgb), 0.08);
+        background: rgba(var(--center-channel-color-rgb), 0.08);
     }
+
+    // Focus gets the standard ring rather than a background fill: clicking a
+    // trigger leaves it focused, so a fill would stick on the cell long after
+    // the menu closed and read as "selected". The mixin suppresses the ring for
+    // pointer focus and keeps it for keyboard.
+    @include mixins.button-focus;
 
     &.disabled {
         cursor: not-allowed;
@@ -45,13 +65,9 @@
 }
 
 .value-selector-menu-button {
-    // Chips wrap onto new lines within the fixed-width Values cell so the
-    // table never expands horizontally past the modal. The row grows
-    // vertically to fit however many values are added.
     &__multi-values-container {
         display: flex;
         overflow: hidden;
-        min-width: 0;
         flex-grow: 1;
         flex-wrap: wrap;
         gap: 2px;
@@ -60,9 +76,36 @@
     &__inner-wrapper {
         display: flex;
         width: 100%;
-        min-width: 0;
         align-items: center;
         justify-content: space-between;
+    }
+
+    // Shown in the button when the RHS compares against a channel attribute
+    // (target mode): a "[] Channel: X" token in the accent color,
+    // styled as a chip so it reads as a variable reference rather than a value.
+    &__target-label {
+        display: inline-flex;
+        overflow: hidden;
+        min-width: 0; // shrink inside the button's flex row instead of clipping
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 4px;
+        background: rgba(var(--button-bg-rgb), 0.12);
+        color: var(--button-bg);
+        font-size: 12px;
+        font-weight: 600;
+        gap: 4px;
+        line-height: 12px;
+        white-space: nowrap;
+
+        > svg {
+            flex-shrink: 0;
+        }
+    }
+
+    &__target-label-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }
 
@@ -99,7 +142,6 @@
     .select__multi-value {
         display: flex;
         height: 24px;
-        flex: 0 0 auto;
         align-items: center;
         border-radius: 4px;
         margin: 2px;

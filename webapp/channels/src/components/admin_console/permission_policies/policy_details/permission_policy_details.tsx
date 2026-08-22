@@ -11,6 +11,7 @@ import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
+import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
 import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -118,7 +119,13 @@ function PermissionPolicyDetails({
     sessionAttributesEnabled,
 }: PermissionPolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
-    const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
+
+    // Not seeded from `policy`: the list leaves the search endpoint's copy in the
+    // store, and search returns rules in their stored form — a rank comparison is
+    // stored desugared as `_rank_ge(...)`, which /cel/visual_ast rejects, so the
+    // editor would fire a doomed parse on mount. fetchPolicy below is the only
+    // source; it also sets the name, role and permissions seeded here.
+    const [expression, setExpression] = useState('');
     const [selectedRole, setSelectedRole] = useState(policy?.roles?.[0] || 'system_user');
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>(
         getPermissionActions(policy?.rules || []),
@@ -143,9 +150,27 @@ function PermissionPolicyDetails({
     // the channel-settings Permissions Policy tab.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
 
+    // The autocomplete mixes the requesting user's attributes (user.attributes.*)
+    // and the accessed channel's attributes (resource.attributes.*), tagged by
+    // object_type. Permission policies are channel-scoped, so they may reference
+    // resource.attributes.*; split so user fields drive rules and channel fields
+    // are comparison targets.
+    const {userFields, resourceFields} = useMemo(() => {
+        const uf: UserPropertyField[] = [];
+        const rf: UserPropertyField[] = [];
+        for (const f of autocompleteResult) {
+            if (f.object_type === CHANNEL_ATTRIBUTES_OBJECT_TYPE) {
+                rf.push(f);
+            } else {
+                uf.push(f);
+            }
+        }
+        return {userFields: uf, resourceFields: rf};
+    }, [autocompleteResult]);
+
     // Permission policies can reference session attributes (e.g. user.session.ip_address),
     // so the editor stays usable even without any configured user attributes when SessionAttributes is on.
-    const noUsableAttributes = attributesLoaded && !sessionAttributesEnabled && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
+    const noUsableAttributes = attributesLoaded && !sessionAttributesEnabled && !hasUsableAttributes(userFields, accessControlSettings.EnableUserManagedAttributes);
 
     const sessionFields = useEnabledSessionAttributeFields(sessionAttributesEnabled);
     const mergedAttributes = useMemo(
@@ -162,7 +187,9 @@ function PermissionPolicyDetails({
     // are recognized as simple and open in table mode.
 
     const loadPage = async (): Promise<void> => {
-        const fieldsPromise = abacActions.getAccessControlFields('', 100).then((result) => {
+        // Permission policies can reference resource.attributes.* (the accessed
+        // channel), so request channel fields too.
+        const fieldsPromise = abacActions.getAccessControlFields('', 100, true).then((result) => {
             if (result.data) {
                 setAutocompleteResult(result.data);
             }
@@ -538,7 +565,10 @@ function PermissionPolicyDetails({
                                             }}
                                             onValidate={() => {}}
                                             disabled={noUsableAttributes}
-                                            userAttributes={toCELEditorAttributes(mergedAttributes, accessControlSettings.EnableUserManagedAttributes)}
+                                            userAttributes={toCELEditorAttributes(mergeSessionAttributes(userFields, sessionFields), accessControlSettings.EnableUserManagedAttributes)}
+                                            resourceAttributes={resourceFields.map((attr) => ({
+                                                attribute: attr.name,
+                                            }))}
 
                                             // Both editor modes route the test
                                             // button through SimulateAccessModal:

@@ -85,6 +85,12 @@ describe('UserPropertyTypeMenu', () => {
         expect(menuButton).toBeDisabled();
     });
 
+    it('disables menu button when the field is linked to a template', () => {
+        renderComponent({...baseField, linked_field_id: 'template-field-id'});
+
+        expect(screen.getByTestId('fieldTypeSelectorMenuButton')).toBeDisabled();
+    });
+
     it('changes field type when a new type is selected', async () => {
         renderComponent();
 

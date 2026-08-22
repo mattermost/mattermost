@@ -13,6 +13,7 @@ import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/cha
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
+import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 import type {Team} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -33,7 +34,7 @@ import Constants from 'utils/constants';
 import ChannelList from './channel_list';
 
 import CELEditor from '../editors/cel_editor/editor';
-import {excludeSessionAttributes, hasUsableAttributes, isSimpleExpression, toCELEditorAttributes, MASKED_VALUE_TOKEN_LITERAL} from '../editors/shared';
+import {excludeSessionAttributes, hasUsableAttributes, isSimpleExpression, referencesResourceAttributes, toCELEditorAttributes, MASKED_VALUE_TOKEN_LITERAL} from '../editors/shared';
 import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
@@ -82,7 +83,17 @@ function PolicyDetails({
     accessControlSettings,
 }: PolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
-    const [expression, setExpression] = useState(getMembershipRule(policy?.rules)?.expression || '');
+
+    // Deliberately not seeded from `policy`: that copy comes from the policies
+    // list, which is filled by the search endpoint, and search returns a rule in
+    // its *stored* form. A rank comparison is stored desugared into the marker
+    // call `_rank_ge(user.attributes.x, "Secret", "<fieldID>")`, which
+    // /cel/visual_ast rejects — so seeding it makes TableEditor fire a doomed
+    // parse on mount, and whether that 400 or fetchPolicy below resolves first
+    // decides whether the editor flips to Advanced mode. fetchPolicy (the single
+    // GET, which rehydrates markers back to operators) is the only source, and it
+    // sets every other field seeded here too.
+    const [expression, setExpression] = useState('');
     const [existingRules, setExistingRules] = useState<AccessControlPolicyRule[]>(policy?.rules || []);
     const [autoSyncMembership, setAutoSyncMembership] = useState(policy?.active || false);
     const [serverError, setServerError] = useState<string | undefined>(undefined);
@@ -145,8 +156,26 @@ function PolicyDetails({
         </div>
     ), []);
 
-    // Check if there are any usable attributes for ABAC
-    const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
+    // The autocomplete mixes the requesting user's attributes (user.attributes.*)
+    // and the accessed channel's attributes (resource.attributes.*), tagged by
+    // object_type. Split them: user fields drive the left picker and the
+    // user.attributes.* autocomplete; channel fields back resource.attributes.*.
+    const {userFields, resourceFields} = useMemo(() => {
+        const uf: UserPropertyField[] = [];
+        const rf: UserPropertyField[] = [];
+        for (const f of autocompleteResult) {
+            if (f.object_type === CHANNEL_ATTRIBUTES_OBJECT_TYPE) {
+                rf.push(f);
+            } else {
+                uf.push(f);
+            }
+        }
+        return {userFields: uf, resourceFields: rf};
+    }, [autocompleteResult]);
+
+    // Check if there are any usable user attributes for ABAC (channel fields
+    // are comparison targets, not standalone rules, so they don't count).
+    const noUsableAttributes = attributesLoaded && !hasUsableAttributes(userFields, accessControlSettings.EnableUserManagedAttributes);
 
     useEffect(() => {
         loadPage();
@@ -164,7 +193,8 @@ function PolicyDetails({
 
     const loadPage = async (): Promise<void> => {
         // Fetch autocomplete fields first, as they are general and needed for both new and existing policies.
-        const fieldsPromise = abacActions.getAccessControlFields('', 100).then((result) => {
+        // Parent policies reference resource.attributes.* against many channels, so request channel fields too.
+        const fieldsPromise = abacActions.getAccessControlFields('', 100, true).then((result) => {
             if (result.data) {
                 setAutocompleteResult(excludeSessionAttributes(result.data));
             }
@@ -425,6 +455,15 @@ function PolicyDetails({
         );
     };
 
+    // A channel that has no value for a referenced channel attribute cannot be
+    // evaluated, and the server fails closed by denying the whole rule — so every
+    // member of that channel loses access. Warn as soon as the rule references any
+    // channel attribute, before any channel is assigned, without checking which
+    // channels actually carry a value: reading that would cost one property-values
+    // request per assigned channel (the endpoint takes a single target id), and the
+    // broad warning is what the reviewer asked for.
+    const showChannelAttributeWarning = referencesResourceAttributes(expression);
+
     // Deletion is blocked while the policy still has ANY assigned resource —
     // channels or teams. Teams aren't editable from this editor (MVF), so a
     // linked team must be removed from the per-team System Console page first.
@@ -522,6 +561,21 @@ function PolicyDetails({
                             }}
                         />
                     </div>)}
+                    {showChannelAttributeWarning && (<div className='admin-console__warning-notice'>
+                        <SectionNotice
+                            type='warning'
+                            title={
+                                <FormattedMessage
+                                    id='admin.access_control.policy.edit_policy.channel_attribute_notice.title'
+                                    defaultMessage='Potential for denied access'
+                                />
+                            }
+                            text={formatMessage({
+                                id: 'admin.access_control.policy.edit_policy.channel_attribute_notice.text',
+                                defaultMessage: 'If any assigned channel is missing the referenced channel attribute, all members will be denied access. This notice is shown whenever a channel attribute is referenced in a policy.',
+                            })}
+                        />
+                    </div>)}
                     <Card
                         expanded={true}
                         className={'console'}
@@ -601,7 +655,10 @@ function PolicyDetails({
                                     onValidate={() => {}}
                                     disabled={noUsableAttributes}
                                     hasMaskedRows={hasMaskedRows}
-                                    userAttributes={toCELEditorAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes)}
+                                    userAttributes={toCELEditorAttributes(userFields, accessControlSettings.EnableUserManagedAttributes)}
+                                    resourceAttributes={resourceFields.map((attr) => ({
+                                        attribute: attr.name,
+                                    }))}
                                 />
                             ) : (
                                 <TableEditor
