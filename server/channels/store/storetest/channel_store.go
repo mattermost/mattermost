@@ -166,6 +166,8 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("GetChannelsWithUnreadsAndWithMentions", func(t *testing.T) { testGetChannelsWithUnreadsAndWithMentions(t, rctx, ss) })
 	t.Run("GetDirectMessagesWithUnreadAndMentions", func(t *testing.T) { testGetDirectMessagesWithUnreadAndMentions(t, rctx, ss) })
 	t.Run("GetTeamChannelsWithUnreadAndMentions", func(t *testing.T) { testGetTeamChannelsWithUnreadAndMentions(t, rctx, ss) })
+	t.Run("GetMembersUnreadsAndMentionsForChannel", func(t *testing.T) { testGetMembersUnreadsAndMentionsForChannel(t, rctx, ss) })
+	t.Run("GetDMGMProfilesByChannelIds", func(t *testing.T) { testGetDMGMProfilesByChannelIds(t, rctx, ss) })
 	t.Run("SaveBoardChannel", func(t *testing.T) { testChannelStoreSaveBoardChannel(t, rctx, ss) })
 	t.Run("SaveRejectsBoardTypes", func(t *testing.T) { testChannelStoreSaveRejectsBoardTypes(t, rctx, ss) })
 }
@@ -5141,13 +5143,13 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, rctx request.CTX, ss store
 	rm1, err := ss.Channel().GetMember(rctx, m1.ChannelId, m1.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, o1.LastPostAt, rm1.LastViewedAt)
-	assert.Equal(t, o1.LastPostAt, rm1.LastUpdateAt)
+	assert.GreaterOrEqual(t, rm1.LastUpdateAt, o1.LastPostAt, "LastUpdateAt must be >= LastPostAt (wall-clock time of the view)")
 	assert.Equal(t, o1.TotalMsgCount, rm1.MsgCount)
 
 	rm2, err := ss.Channel().GetMember(rctx, m2.ChannelId, m2.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, o2.LastPostAt, rm2.LastViewedAt)
-	assert.Equal(t, o2.LastPostAt, rm2.LastUpdateAt)
+	assert.GreaterOrEqual(t, rm2.LastUpdateAt, o2.LastPostAt, "LastUpdateAt must be >= LastPostAt (wall-clock time of the view)")
 	assert.Equal(t, o2.TotalMsgCount, rm2.MsgCount)
 
 	_, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id")
@@ -9014,26 +9016,32 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, rctx request.CTX, s
 			o1, m1 := setupMembership(tc.pushProp, tc.withUnreads, tc.withMentions, tc.isDirect, model.NewId())
 			userNotifyProps := model.GetDefaultChannelNotifyProps()
 			userNotifyProps[model.PushNotifyProp] = tc.userNotifyProp
-			unreads, mentions, times, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{o1.Id}, m1.UserId, userNotifyProps)
+			viewed, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{o1.Id}, m1.UserId, userNotifyProps, false)
 			require.NoError(t, err)
 
-			expectedUnreadsLength := 0
+			info := viewed[o1.Id]
+			require.NotNil(t, info)
+
 			if tc.withUnreads {
-				expectedUnreadsLength = 1
+				require.True(t, info.HasUnread)
+			} else {
+				require.False(t, info.HasUnread)
 			}
-			require.Len(t, unreads, expectedUnreadsLength)
 
 			propToUse := tc.pushProp
 			if tc.pushProp == model.ChannelNotifyDefault {
 				propToUse = tc.userNotifyProp
 			}
-			expectedMentionsLength := 0
-			if (tc.isDirect && tc.withUnreads) || (propToUse == model.UserNotifyAll && tc.withUnreads) || (propToUse == model.UserNotifyMention && tc.withMentions) {
-				expectedMentionsLength = 1
-			}
+			expectedClearPush := (tc.isDirect && tc.withUnreads) || (propToUse == model.UserNotifyAll && tc.withUnreads) || (propToUse == model.UserNotifyMention && tc.withMentions)
+			require.Equal(t, expectedClearPush, info.ClearPush)
 
-			require.Len(t, mentions, expectedMentionsLength)
-			require.Equal(t, o1.LastPostAt, times[o1.Id])
+			require.Equal(t, o1.LastPostAt, info.LastViewed)
+			require.Equal(t, o1.TeamId, info.TeamID)
+			if tc.withMentions {
+				require.Equal(t, int64(5), info.ClearedMentions)
+			} else {
+				require.Equal(t, int64(0), info.ClearedMentions)
+			}
 		})
 	}
 
@@ -9045,26 +9053,92 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, rctx request.CTX, s
 		userNotifyProps := model.GetDefaultChannelNotifyProps()
 		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
 
-		unreads, mentions, times, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{o1.Id, o2.Id}, userID, userNotifyProps)
+		viewed, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{o1.Id, o2.Id}, userID, userNotifyProps, false)
 		require.NoError(t, err)
 
-		require.Contains(t, unreads, o1.Id)
-		require.Contains(t, unreads, o2.Id)
-		require.Contains(t, mentions, o1.Id)
-		require.Contains(t, mentions, o2.Id)
-		require.Equal(t, o1.LastPostAt, times[o1.Id])
-		require.Equal(t, o2.LastPostAt, times[o2.Id])
+		require.True(t, viewed[o1.Id].HasUnread)
+		require.True(t, viewed[o2.Id].HasUnread)
+		require.True(t, viewed[o1.Id].ClearPush)
+		require.True(t, viewed[o2.Id].ClearPush)
+		require.Equal(t, o1.LastPostAt, viewed[o1.Id].LastViewed)
+		require.Equal(t, o2.LastPostAt, viewed[o2.Id].LastViewed)
+		require.Equal(t, o1.TeamId, viewed[o1.Id].TeamID)
+		require.Equal(t, o2.TeamId, viewed[o2.Id].TeamID)
+		require.Equal(t, int64(5), viewed[o1.Id].ClearedMentions)
+		require.Equal(t, int64(5), viewed[o2.Id].ClearedMentions)
 	})
 
 	t.Run("non existing channel", func(t *testing.T) {
 		userNotifyProps := model.GetDefaultChannelNotifyProps()
 		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
-		unreads, mentions, times, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{"foo"}, "foo", userNotifyProps)
+		viewed, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{"foo"}, "foo", userNotifyProps, false)
+		require.NoError(t, err)
+		require.Len(t, viewed, 0)
+	})
+
+	t.Run("muted channel reports 0 cleared mentions", func(t *testing.T) {
+		userID := model.NewId()
+		o1, m1 := setupMembership(model.ChannelNotifyDefault, true, true, false, userID)
+
+		// Re-fetch and mute the membership.
+		m1.NotifyProps[model.MarkUnreadNotifyProp] = model.ChannelMarkUnreadMention
+		_, err := ss.Channel().UpdateMember(rctx, &m1)
 		require.NoError(t, err)
 
-		require.Len(t, unreads, 0)
-		require.Len(t, mentions, 0)
-		require.Len(t, times, 0)
+		userNotifyProps := model.GetDefaultChannelNotifyProps()
+		userNotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+		viewed, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{o1.Id}, userID, userNotifyProps, false)
+		require.NoError(t, err)
+
+		// The channel still has unreads, but ClearedMentions is zeroed because of the mute.
+		require.True(t, viewed[o1.Id].HasUnread)
+		require.Equal(t, int64(0), viewed[o1.Id].ClearedMentions)
+	})
+
+	t.Run("CRT-enabled uses root counters", func(t *testing.T) {
+		userID := model.NewId()
+		// Channel where the user is caught up on root posts but has reply mentions only.
+		// MsgCount == TotalMsgCount → no non-root unreads to drive hasUnreads.
+		// MentionCount > 0 (reply mention), MentionCountRoot == 0.
+		o1 := model.Channel{}
+		o1.TeamId = model.NewId()
+		o1.DisplayName = "CRT Channel"
+		o1.Name = NewTestID()
+		o1.Type = model.ChannelTypeOpen
+		o1.TotalMsgCount = 10
+		o1.TotalMsgCountRoot = 5
+		o1.LastPostAt = 12345
+		o1.LastRootPostAt = 12345
+		_, nErr := ss.Channel().Save(rctx, &o1, -1)
+		require.NoError(t, nErr)
+
+		m1 := model.ChannelMember{
+			ChannelId:        o1.Id,
+			UserId:           userID,
+			NotifyProps:      model.GetDefaultChannelNotifyProps(),
+			MsgCount:         8,
+			MsgCountRoot:     5, // caught up on root
+			MentionCount:     3, // reply mention
+			MentionCountRoot: 0, // no root mention
+			LastViewedAt:     o1.LastPostAt,
+		}
+		_, err := ss.Channel().SaveMember(rctx, &m1)
+		require.NoError(t, err)
+
+		userNotifyProps := model.GetDefaultChannelNotifyProps()
+		userNotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		// Non-CRT: channel has unreads (MentionCount > 0, MsgCount < TotalMsgCount).
+		viewedNonCRT, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{o1.Id}, userID, userNotifyProps, false)
+		require.NoError(t, err)
+		require.True(t, viewedNonCRT[o1.Id].HasUnread)
+		require.Equal(t, int64(3), viewedNonCRT[o1.Id].ClearedMentions)
+
+		// CRT: root counters are caught up and there are no root mentions — not unread.
+		viewedCRT, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{o1.Id}, userID, userNotifyProps, true)
+		require.NoError(t, err)
+		require.False(t, viewedCRT[o1.Id].HasUnread)
+		require.Equal(t, int64(0), viewedCRT[o1.Id].ClearedMentions)
 	})
 }
 
@@ -9899,10 +9973,10 @@ func testChannelStoreSpaceExclusion(t *testing.T, rctx request.CTX, ss store.Sto
 	}
 	notifyProps := model.GetDefaultChannelNotifyProps()
 
-	unreadIDs, _, _, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{unreadOpen.Id, unreadSpace.Id}, unreadUserID, notifyProps)
+	unreadViewed, err := ss.Channel().GetChannelsWithUnreadsAndWithMentions(rctx, []string{unreadOpen.Id, unreadSpace.Id}, unreadUserID, notifyProps, false)
 	require.NoError(t, err)
-	require.Contains(t, unreadIDs, unreadOpen.Id)
-	require.NotContains(t, unreadIDs, unreadSpace.Id, "GetChannelsWithUnreadsAndWithMentions must exclude space channels")
+	require.Contains(t, unreadViewed, unreadOpen.Id)
+	require.NotContains(t, unreadViewed, unreadSpace.Id, "GetChannelsWithUnreadsAndWithMentions must exclude space channels")
 
 	teamUnreadIDs, _, _, err := ss.Channel().GetTeamChannelsWithUnreadAndMentions(rctx, unreadTeamID, unreadUserID, notifyProps)
 	require.NoError(t, err)
@@ -10031,4 +10105,102 @@ func testChannelStoreGetTeamSpaceChannelsForUser(t *testing.T, rctx request.CTX,
 	empty, err := ss.Channel().GetTeamSpaceChannelsForUser(teamID, model.NewId())
 	require.NoError(t, err)
 	require.Empty(t, empty)
+}
+
+func testGetMembersUnreadsAndMentionsForChannel(t *testing.T, rctx request.CTX, ss store.Store) {
+	channel := &model.Channel{TeamId: model.NewId(), DisplayName: "Name", Name: NewTestID(), Type: model.ChannelTypeOpen, TotalMsgCount: 10, TotalMsgCountRoot: 10}
+	_, nErr := ss.Channel().Save(rctx, channel, -1)
+	require.NoError(t, nErr)
+
+	t.Run("nonexistent channel ID returns empty map", func(t *testing.T) {
+		result, err := ss.Channel().GetMembersUnreadsAndMentionsForChannel(model.NewId())
+		require.NoError(t, err)
+		require.Empty(t, result)
+	})
+
+	t.Run("no messages read yet reports full unread and mention counts", func(t *testing.T) {
+		member := &model.ChannelMember{ChannelId: channel.Id, UserId: model.NewId(), NotifyProps: model.GetDefaultChannelNotifyProps(), MentionCount: 3, MentionCountRoot: 2}
+		_, err := ss.Channel().SaveMember(rctx, member)
+		require.NoError(t, err)
+
+		result, err := ss.Channel().GetMembersUnreadsAndMentionsForChannel(channel.Id)
+		require.NoError(t, err)
+		require.Contains(t, result, member.UserId)
+		assert.True(t, result[member.UserId].IsUnread)
+		assert.Equal(t, int64(3), result[member.UserId].MentionCount)
+		assert.Equal(t, int64(2), result[member.UserId].MentionCountRoot)
+	})
+
+	t.Run("caught-up member reports no unreads", func(t *testing.T) {
+		member := &model.ChannelMember{ChannelId: channel.Id, UserId: model.NewId(), NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: channel.TotalMsgCount, MsgCountRoot: channel.TotalMsgCountRoot}
+		_, err := ss.Channel().SaveMember(rctx, member)
+		require.NoError(t, err)
+
+		result, err := ss.Channel().GetMembersUnreadsAndMentionsForChannel(channel.Id)
+		require.NoError(t, err)
+		require.Contains(t, result, member.UserId)
+		assert.False(t, result[member.UserId].IsUnread)
+		assert.Equal(t, int64(0), result[member.UserId].MentionCount)
+	})
+
+	t.Run("muted member's mentions are zeroed even when present", func(t *testing.T) {
+		notifyProps := model.GetDefaultChannelNotifyProps()
+		notifyProps[model.MarkUnreadNotifyProp] = model.ChannelMarkUnreadMention
+		member := &model.ChannelMember{ChannelId: channel.Id, UserId: model.NewId(), NotifyProps: notifyProps, MentionCount: 5, MentionCountRoot: 4}
+		_, err := ss.Channel().SaveMember(rctx, member)
+		require.NoError(t, err)
+
+		result, err := ss.Channel().GetMembersUnreadsAndMentionsForChannel(channel.Id)
+		require.NoError(t, err)
+		require.Contains(t, result, member.UserId)
+		assert.Equal(t, int64(0), result[member.UserId].MentionCount)
+		assert.Equal(t, int64(0), result[member.UserId].MentionCountRoot)
+	})
+}
+
+func testGetDMGMProfilesByChannelIds(t *testing.T, rctx request.CTX, ss store.Store) {
+	u1 := &model.User{Email: MakeEmail(), Nickname: model.NewId()}
+	_, err := ss.User().Save(rctx, u1)
+	require.NoError(t, err)
+	u2 := &model.User{Email: MakeEmail(), Nickname: model.NewId()}
+	_, err = ss.User().Save(rctx, u2)
+	require.NoError(t, err)
+
+	dm, nErr := ss.Channel().CreateDirectChannel(rctx, u1, u2)
+	require.NoError(t, nErr)
+
+	t.Run("empty channel id list returns nil", func(t *testing.T) {
+		result, err := ss.Channel().GetDMGMProfilesByChannelIds(nil, u1.Id, 0)
+		require.NoError(t, err)
+		require.Nil(t, result)
+	})
+
+	t.Run("cold start returns the other member's profile, excluding the requesting user", func(t *testing.T) {
+		result, err := ss.Channel().GetDMGMProfilesByChannelIds([]string{dm.Id}, u1.Id, 0)
+		require.NoError(t, err)
+		require.Contains(t, result, dm.Id)
+		require.Len(t, result[dm.Id], 1)
+		assert.Equal(t, u2.Id, result[dm.Id][0].Id)
+	})
+
+	t.Run("self-DM: requesting user is excluded, resulting in no profiles", func(t *testing.T) {
+		selfDM, nErr := ss.Channel().CreateDirectChannel(rctx, u1, u1)
+		require.NoError(t, nErr)
+
+		result, err := ss.Channel().GetDMGMProfilesByChannelIds([]string{selfDM.Id}, u1.Id, 0)
+		require.NoError(t, err)
+		assert.Empty(t, result[selfDM.Id])
+	})
+
+	t.Run("delta mode: only profiles updated or deleted since the cursor are returned", func(t *testing.T) {
+		since := model.GetMillis()
+
+		result, err := ss.Channel().GetDMGMProfilesByChannelIds([]string{dm.Id}, u1.Id, since+1000)
+		require.NoError(t, err)
+		assert.Empty(t, result[dm.Id])
+
+		result, err = ss.Channel().GetDMGMProfilesByChannelIds([]string{dm.Id}, u1.Id, since-1000)
+		require.NoError(t, err)
+		require.Len(t, result[dm.Id], 1)
+	})
 }

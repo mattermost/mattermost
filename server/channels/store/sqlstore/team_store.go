@@ -715,6 +715,64 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 	return teams, nil
 }
 
+// GetDeletedTeamsByUserIdSince returns teams archived since the given time whose
+// membership the user still holds (TeamMembers.DeleteAt = 0), so a delta-sync
+// caller can surface the archival to clients that were online before it happened.
+func (s SqlTeamStore) GetDeletedTeamsByUserIdSince(userId string, since int64) ([]*model.Team, error) {
+	teams := []*model.Team{}
+	query := s.teamsQuery.
+		Join("TeamMembers ON TeamMembers.TeamId = Teams.Id").
+		Where(sq.Eq{"TeamMembers.UserId": userId, "TeamMembers.DeleteAt": 0}).
+		Where(sq.Gt{"Teams.DeleteAt": since})
+
+	if err := s.GetReplica().SelectBuilder(&teams, query); err != nil {
+		return nil, errors.Wrap(err, "failed to find deleted Teams")
+	}
+
+	return teams, nil
+}
+
+// UserCanJoinAnyTeam returns true if there exists at least one non-deleted team the
+// user is NOT already a member of and that the user is allowed to list, based on the
+// caller's ListPublicTeams / ListPrivateTeams permissions. If both flags are false,
+// returns false without querying.
+func (s SqlTeamStore) UserCanJoinAnyTeam(userID string, listPublic, listPrivate bool) (bool, error) {
+	if !listPublic && !listPrivate {
+		return false, nil
+	}
+
+	builder := s.getQueryBuilder().
+		Select("1").
+		From("Teams t").
+		Where(sq.Eq{"t.DeleteAt": 0}).
+		Where(sq.Expr(
+			"NOT EXISTS (SELECT 1 FROM TeamMembers tm WHERE tm.TeamId = t.Id AND tm.UserId = ? AND tm.DeleteAt = 0)",
+			userID,
+		)).
+		Limit(1)
+
+	if listPublic && !listPrivate {
+		builder = builder.Where(sq.Eq{"t.AllowOpenInvite": true})
+	} else if listPrivate && !listPublic {
+		builder = builder.Where(sq.Eq{"t.AllowOpenInvite": false})
+	}
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return false, errors.Wrap(err, "user_can_join_any_team_tosql")
+	}
+
+	var one int
+	err = s.GetReplica().Get(&one, query, args...)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+	if err != nil {
+		return false, errors.Wrap(err, "failed to check if user can join any team")
+	}
+	return true, nil
+}
+
 // GetAllPrivateTeamListing returns all private teams.
 func (s SqlTeamStore) GetAllPrivateTeamListing() ([]*model.Team, error) {
 	query := s.teamsQuery.Where(sq.Eq{"AllowOpenInvite": false}).

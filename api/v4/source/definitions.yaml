@@ -5595,6 +5595,389 @@ components:
           type: integer
           format: int64
           description: The time in milliseconds the scheduled recap was soft-deleted (0 if not deleted)
+    ExperienceUser:
+      description: >
+        Compact user representation returned by the experience endpoints. A subset of
+        the fields on [User](#/components/schemas/User).
+      type: object
+      properties:
+        id:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        update_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
+        username:
+          type: string
+        auth_service:
+          type: string
+        email:
+          type: string
+        nickname:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        position:
+          type: string
+        roles:
+          type: string
+        props:
+          type: object
+        notify_props:
+          $ref: "#/components/schemas/UserNotifyProps"
+        last_picture_update:
+          type: integer
+          format: int64
+        locale:
+          type: string
+        timezone:
+          $ref: "#/components/schemas/Timezone"
+        terms_of_service_id:
+          type: string
+        terms_of_service_create_at:
+          type: integer
+          format: int64
+    ExperienceTeam:
+      description: Compact team metadata representation returned by the experience endpoints.
+      type: object
+      properties:
+        id:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        update_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
+        display_name:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        invite_id:
+          type: string
+        group_constrained:
+          type: boolean
+          nullable: true
+        last_team_icon_update:
+          type: integer
+          format: int64
+    ExperienceTeamMember:
+      description: Compact team membership representation returned by the experience endpoints.
+      type: object
+      properties:
+        team_id:
+          type: string
+        user_id:
+          type: string
+        roles:
+          type: string
+        delete_at:
+          type: integer
+          format: int64
+        scheme_guest:
+          type: boolean
+        scheme_user:
+          type: boolean
+        scheme_admin:
+          type: boolean
+    ExperienceTeamMemberList:
+      description: >
+        Current team memberships, paired with the IDs of teams the user left or was
+        removed from since the request's cursor.
+      type: object
+      properties:
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceTeamMember"
+        removed_team_ids:
+          type: array
+          items:
+            type: string
+    ExperienceUnreads:
+      description: >
+        Unread badge counts for a team, or for direct/group-message channels when
+        `team_id` is absent.
+      type: object
+      properties:
+        team_id:
+          type: string
+        mention_count:
+          type: integer
+          format: int64
+        mention_count_root:
+          type: integer
+          format: int64
+        urgent_mention_count:
+          type: integer
+          format: int64
+        has_unreads:
+          type: boolean
+        thread_mention_count:
+          type: integer
+          format: int64
+        thread_urgent_mention_count:
+          type: integer
+          format: int64
+        thread_has_unreads:
+          type: boolean
+    ExperienceGroupMembership:
+      description: Compact group membership representation returned by the experience endpoints.
+      type: object
+      properties:
+        group_id:
+          type: string
+        user_id:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+    ExperienceGroupMembershipList:
+      description: >
+        Active group memberships, paired with the IDs of groups the user was removed
+        from since the request's cursor.
+      type: object
+      properties:
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceGroupMembership"
+        removed_group_ids:
+          type: array
+          items:
+            type: string
+    PreferenceTombstone:
+      description: A preference that was deleted since the request's cursor.
+      type: object
+      properties:
+        user_id:
+          type: string
+        category:
+          type: string
+        name:
+          type: string
+        delete_at:
+          type: integer
+          format: int64
+    ExperienceChannel:
+      description: >
+        Compact channel representation returned by the experience endpoints. Heavier
+        fields such as header, purpose, and banner info are omitted and fetched lazily
+        when the channel is opened or browsed.
+      type: object
+      properties:
+        id:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        update_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
+        team_id:
+          type: string
+        type:
+          type: string
+          enum:
+            - O
+            - P
+            - D
+            - G
+        display_name:
+          type: string
+        name:
+          type: string
+        last_post_at:
+          type: integer
+          format: int64
+        total_msg_count:
+          type: integer
+          format: int64
+        creator_id:
+          type: string
+        group_constrained:
+          type: boolean
+          nullable: true
+        shared:
+          type: boolean
+          nullable: true
+        total_msg_count_root:
+          type: integer
+          format: int64
+        last_root_post_at:
+          type: integer
+          format: int64
+        policy_enforced:
+          type: boolean
+        member_count:
+          type: integer
+          format: int64
+          description: Populated only for group-message channels, so the client can show the
+            member badge at cold start without waiting for profile fetches.
+    ExperienceChannelMember:
+      description: Compact channel membership representation returned by the experience endpoints.
+      type: object
+      properties:
+        channel_id:
+          type: string
+        user_id:
+          type: string
+        roles:
+          type: string
+        last_viewed_at:
+          type: integer
+          format: int64
+        notify_props:
+          $ref: "#/components/schemas/ChannelNotifyProps"
+        msg_count:
+          type: integer
+          format: int64
+        mention_count:
+          type: integer
+          format: int64
+        mention_count_root:
+          type: integer
+          format: int64
+        urgent_mention_count:
+          type: integer
+          format: int64
+        msg_count_root:
+          type: integer
+          format: int64
+        last_update_at:
+          type: integer
+          format: int64
+        scheme_guest:
+          type: boolean
+        scheme_user:
+          type: boolean
+        scheme_admin:
+          type: boolean
+        autotranslation_disabled:
+          type: boolean
+    ExperienceChannelMemberList:
+      description: >
+        Channel memberships, paired with the IDs of channels the user left or was
+        removed from since the request's cursor.
+      type: object
+      properties:
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceChannelMember"
+        removed_channel_ids:
+          type: array
+          items:
+            type: string
+    ExperienceRole:
+      description: >
+        Compact role representation returned by the experience endpoints, with only
+        the fields needed for client-side permission evaluation.
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        create_at:
+          type: integer
+          format: int64
+        update_at:
+          type: integer
+          format: int64
+        delete_at:
+          type: integer
+          format: int64
+        permissions:
+          type: array
+          items:
+            type: string
+    ExperienceActiveTeam:
+      description: Full data for the user's currently active team.
+      type: object
+      properties:
+        team:
+          $ref: "#/components/schemas/ExperienceTeam"
+        channels:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceChannel"
+        channel_members:
+          $ref: "#/components/schemas/ExperienceChannelMemberList"
+        sidebar_categories:
+          description: Absent when nothing changed since the request's cursor.
+          $ref: "#/components/schemas/OrderedSidebarCategories"
+    InitialLoadResponse:
+      description: >
+        Aggregate response for `GET /users/me/initial_load`. In delta mode
+        (`?since=` provided), a pointer or array field that is `null`/absent means
+        nothing changed since the cursor and the client should keep its cached value;
+        a populated field means changed data, alongside any `removed_*_ids` lists for
+        deletions where applicable.
+      type: object
+      properties:
+        me:
+          $ref: "#/components/schemas/ExperienceUser"
+        teams:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceTeam"
+        team_members:
+          $ref: "#/components/schemas/ExperienceTeamMemberList"
+        active_team:
+          $ref: "#/components/schemas/ExperienceActiveTeam"
+        team_unreads:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceUnreads"
+        direct_unreads:
+          $ref: "#/components/schemas/ExperienceUnreads"
+        direct_profiles:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceUser"
+        statuses:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/Status"
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceRole"
+        preferences:
+          type: array
+          items:
+            $ref: "#/components/schemas/Preference"
+        preference_tombstones:
+          type: array
+          items:
+            $ref: "#/components/schemas/PreferenceTombstone"
+        timestamp:
+          type: integer
+          format: int64
+          description: Cursor to pass as `?since=` on the next request.
+        can_join_other_teams:
+          type: boolean
+          description: Whether at least one joinable team exists that the user is not already
+            a member of, given the caller's list-teams permissions. Lets the client
+            drive the "Join Another Team" UI without paginating `GET /teams`.
+        group_memberships:
+          $ref: "#/components/schemas/ExperienceGroupMembershipList"
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

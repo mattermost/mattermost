@@ -148,6 +148,8 @@ type TeamStore interface {
 	GetAllPrivateTeamListing() ([]*model.Team, error)
 	GetAllTeamListing() ([]*model.Team, error)
 	GetTeamsByUserId(userID string) ([]*model.Team, error)
+	GetDeletedTeamsByUserIdSince(userID string, since int64) ([]*model.Team, error)
+	UserCanJoinAnyTeam(userID string, listPublic, listPrivate bool) (bool, error)
 	GetByInviteId(inviteID string) (*model.Team, error)
 	GetByEmptyInviteID() ([]*model.Team, error)
 	PermanentDelete(teamID string) error
@@ -295,8 +297,10 @@ type ChannelStore interface {
 	GetMembersByIds(channelID string, userIds []string) (model.ChannelMembers, error)
 	GetMembersByChannelIds(channelIds []string, userID string) (model.ChannelMembers, error)
 	GetMembersInfoByChannelIds(channelIDs []string) (map[string][]*model.User, error)
+	GetDMGMProfilesByChannelIds(channelIDs []string, userID string, since int64) (map[string][]*model.User, error)
 	GetChannelUnread(channelID, userID string) (*model.ChannelUnread, error)
-	GetChannelsWithUnreadsAndWithMentions(rctx request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error)
+	GetChannelsWithUnreadsAndWithMentions(rctx request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap, isCRTEnabled bool) (model.ChannelsViewedResult, error)
+	GetMembersUnreadsAndMentionsForChannel(channelID string) (map[string]*model.ChannelMemberUnreadsAndMentions, error)
 	GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, teamID string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error)
 	GetDirectMessagesWithUnreadAndMentions(rctx request.CTX, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error)
 	ClearCaches()
@@ -349,6 +353,7 @@ type ChannelMemberHistoryStore interface {
 	DeleteOrphanedRows(limit int) (deleted int64, err error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	GetChannelsLeftSince(userID string, since int64) ([]string, error)
+	GetChannelsLeftInTeamSince(userID string, teamID string, since int64) ([]string, error)
 	GetMembershipChanges(channelID string, since int64, limit int) ([]*model.ChannelMemberHistory, error)
 }
 type ThreadStore interface {
@@ -360,6 +365,7 @@ type ThreadStore interface {
 	GetTotalThreads(userID, teamID string, opts model.GetUserThreadsOpts) (int64, error)
 	GetTotalUnreadMentions(userID, teamID string, opts model.GetUserThreadsOpts) (int64, error)
 	GetTotalUnreadUrgentMentions(userID, teamID string, opts model.GetUserThreadsOpts) (int64, error)
+	GetDMGMThreadCounts(userID string, postPriorityEnabled bool) (hasUnreads bool, mentionCount int64, urgentMentionCount int64, err error)
 	GetThreadsForUser(rctx request.CTX, userID, teamID string, opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error)
 	GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadMembership, extended, postPriorityIsEnabled bool) (*model.ThreadResponse, error)
 	GetTeamsUnreadForUser(userID string, teamIDs []string, includeUrgentMentionCount bool) (map[string]*model.TeamUnread, error)
@@ -716,6 +722,9 @@ type PreferenceStore interface {
 	Get(userID string, category string, name string) (*model.Preference, error)
 	GetAll(userID string) (model.Preferences, error)
 	Delete(userID, category, name string) error
+	DeletePreferences(preferences model.Preferences) error
+	GetDeletedSince(userID string, since int64) ([]model.PreferenceTombstone, error)
+	DeletePreferenceDeletionsBefore(cutoff int64) error
 	DeleteCategory(userID string, category string) error
 	DeleteCategoryAndName(category string, name string) error
 	PermanentDeleteByUser(userID string) error
@@ -948,6 +957,7 @@ type GroupStore interface {
 	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, error)
 	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, error)
 	GetByUser(userID string, opts model.GroupSearchOpts) ([]*model.Group, error)
+	GetMembershipsByUser(userID string, since int64) (*model.ExperienceGroupMembershipList, error)
 	Update(group *model.Group) (*model.Group, error)
 	Delete(groupID string) (*model.Group, error)
 	Restore(groupID string) (*model.Group, error)

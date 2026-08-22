@@ -33,7 +33,7 @@ func TestAddMentionsHook_Process(t *testing.T) {
 		require.Nil(t, msg.Event().GetData()["mentions"])
 
 		err := hook.Process(msg, webConn, map[string]any{
-			"mentions": model.StringArray{userID},
+			"mentions": newUserSet([]string{userID}),
 		})
 		require.NoError(t, err)
 
@@ -47,11 +47,57 @@ func TestAddMentionsHook_Process(t *testing.T) {
 		require.Nil(t, msg.Event().GetData()["mentions"])
 
 		err := hook.Process(msg, webConn, map[string]any{
-			"mentions": model.StringArray{otherUserID},
+			"mentions": newUserSet([]string{otherUserID}),
 		})
 		require.NoError(t, err)
 
 		assert.Nil(t, msg.Event().GetData()["mentions"])
+	})
+}
+
+func TestAddMutedUsersHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &addMutedUsersBroadcastHook{}
+
+	userID := model.NewId()
+	otherUserID := model.NewId()
+
+	webConn := &platform.WebConn{
+		UserId: userID,
+	}
+
+	t.Run("should set mute_for_recipient: true when the current user is in the muted list", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		err := hook.Process(msg, webConn, map[string]any{
+			"muted_users": newUserSet([]string{userID, otherUserID}),
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, true, msg.Event().GetData()["mute_for_recipient"])
+		assert.NotNil(t, msg.Event().GetData()["timestamp"])
+	})
+
+	t.Run("should set mute_for_recipient: false when the current user is not in the muted list", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		err := hook.Process(msg, webConn, map[string]any{
+			"muted_users": newUserSet([]string{otherUserID}),
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, false, msg.Event().GetData()["mute_for_recipient"])
+	})
+
+	t.Run("should set mute_for_recipient: false when the muted list is empty", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		err := hook.Process(msg, webConn, map[string]any{
+			"muted_users": newUserSet(nil),
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, false, msg.Event().GetData()["mute_for_recipient"])
 	})
 }
 
@@ -72,7 +118,7 @@ func TestAddFollowersHook_Process(t *testing.T) {
 		require.Nil(t, msg.Event().GetData()["followers"])
 
 		err := hook.Process(msg, webConn, map[string]any{
-			"followers": model.StringArray{userID},
+			"followers": newUserSet([]string{userID}),
 		})
 		require.NoError(t, err)
 
@@ -85,11 +131,90 @@ func TestAddFollowersHook_Process(t *testing.T) {
 		require.Nil(t, msg.Event().GetData()["followers"])
 
 		err := hook.Process(msg, webConn, map[string]any{
-			"followers": model.StringArray{otherUserID},
+			"followers": newUserSet([]string{otherUserID}),
 		})
 		require.NoError(t, err)
 
 		assert.Nil(t, msg.Event().GetData()["followers"])
+	})
+}
+
+func TestAddMemberUnreadsMentionsHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &addMemberUnreadsMentionsBroadcastHook{}
+
+	userID := model.NewId()
+	otherUserID := model.NewId()
+
+	webConn := &platform.WebConn{
+		UserId: userID,
+	}
+
+	t.Run("should add member_unreads_mentions and timestamp for the current user", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		err := hook.Process(msg, webConn, map[string]any{
+			"by_user": map[string]*model.ChannelMemberUnreadsAndMentions{
+				userID: {MentionCount: 2, MentionCountRoot: 1, IsUnread: true},
+			},
+		})
+		require.NoError(t, err)
+
+		assert.NotNil(t, msg.Event().GetData()["member_unreads_mentions"])
+		assert.NotNil(t, msg.Event().GetData()["timestamp"])
+	})
+
+	t.Run("should not add member_unreads_mentions or timestamp for another user", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		err := hook.Process(msg, webConn, map[string]any{
+			"by_user": map[string]*model.ChannelMemberUnreadsAndMentions{
+				otherUserID: {MentionCount: 2, MentionCountRoot: 1, IsUnread: true},
+			},
+		})
+		require.NoError(t, err)
+
+		assert.Nil(t, msg.Event().GetData()["member_unreads_mentions"])
+		assert.Nil(t, msg.Event().GetData()["timestamp"])
+	})
+
+	t.Run("should not add member_unreads_mentions or timestamp when the current user's entry is nil", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		err := hook.Process(msg, webConn, map[string]any{
+			"by_user": map[string]*model.ChannelMemberUnreadsAndMentions{
+				userID: nil,
+			},
+		})
+		require.NoError(t, err)
+
+		assert.Nil(t, msg.Event().GetData()["member_unreads_mentions"])
+		assert.Nil(t, msg.Event().GetData()["timestamp"])
+	})
+
+	t.Run("should reconstruct by_user via JSON fallback when it arrives as a generic map (cross-cluster)", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+
+		// Simulates what a hook's args look like after crossing a cluster node
+		// boundary: JSON round-tripped into map[string]any rather than the exact
+		// Go type, exercising getTypedArg's marshal/unmarshal fallback path.
+		err := hook.Process(msg, webConn, map[string]any{
+			"by_user": map[string]any{
+				userID: map[string]any{
+					"mention_count":      float64(2),
+					"mention_count_root": float64(1),
+					"is_unread":          true,
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		raw, ok := msg.Event().GetData()["member_unreads_mentions"].(*model.ChannelMemberUnreadsAndMentions)
+		require.True(t, ok, "member_unreads_mentions must be reconstructed as *model.ChannelMemberUnreadsAndMentions")
+		assert.EqualValues(t, 2, raw.MentionCount)
+		assert.EqualValues(t, 1, raw.MentionCountRoot)
+		assert.True(t, raw.IsUnread)
+		assert.NotNil(t, msg.Event().GetData()["timestamp"])
 	})
 }
 
@@ -111,7 +236,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		err := hook.Process(msg, webConn, map[string]any{
 			"posted_user_id": model.NewId(),
 			"channel_type":   model.ChannelTypeOpen,
-			"users":          []string{userID},
+			"users":          newUserSet([]string{userID}),
 		})
 		require.NoError(t, err)
 
@@ -124,7 +249,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		err := hook.Process(msg, webConn, map[string]any{
 			"posted_user_id": model.NewId(),
 			"channel_type":   model.ChannelTypeOpen,
-			"users":          []string{},
+			"users":          newUserSet(nil),
 		})
 		require.NoError(t, err)
 
@@ -137,7 +262,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		err := hook.Process(msg, webConn, map[string]any{
 			"posted_user_id": userID,
 			"channel_type":   model.ChannelTypeOpen,
-			"users":          []string{userID},
+			"users":          newUserSet([]string{userID}),
 		})
 		require.NoError(t, err)
 
@@ -150,7 +275,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		err := hook.Process(msg, webConn, map[string]any{
 			"posted_user_id": model.NewId(),
 			"channel_type":   model.ChannelTypeDirect,
-			"users":          []string{},
+			"users":          newUserSet(nil),
 		})
 		require.NoError(t, err)
 
@@ -169,7 +294,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		err := hook.Process(msg, noAckWebConn, map[string]any{
 			"posted_user_id": model.NewId(),
 			"channel_type":   model.ChannelTypeDirect,
-			"users":          []string{},
+			"users":          newUserSet(nil),
 		})
 		require.NoError(t, err)
 
@@ -188,7 +313,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		err := hook.Process(msg, inactiveWebConn, map[string]any{
 			"posted_user_id": model.NewId(),
 			"channel_type":   model.ChannelTypeDirect,
-			"users":          []string{},
+			"users":          newUserSet(nil),
 		})
 		require.NoError(t, err)
 
@@ -215,12 +340,12 @@ func TestAddMentionsAndAddFollowersHooks(t *testing.T) {
 	require.Nil(t, originalData["followers"])
 
 	err := addMentionsHook.Process(msg, webConn, map[string]any{
-		"mentions": model.StringArray{userID},
+		"mentions": newUserSet([]string{userID}),
 	})
 	require.NoError(t, err)
 
 	err = addFollowersHook.Process(msg, webConn, map[string]any{
-		"followers": model.StringArray{userID},
+		"followers": newUserSet([]string{userID}),
 	})
 	require.NoError(t, err)
 

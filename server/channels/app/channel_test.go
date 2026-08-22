@@ -82,6 +82,35 @@ func TestPermanentDeleteChannel(t *testing.T) {
 	require.NotNil(t, appErr, "Outgoing webhook wasn't deleted")
 }
 
+func TestPermanentDeleteChannelSendsMemberUnreadsMentions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	defer th.ConfigStore.SetReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+	channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "deletion-unreads-test", Name: "deletion-unreads-test", Type: model.ChannelTypeOpen, TeamId: th.BasicTeam.Id}, false)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
+	require.Nil(t, appErr)
+
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{ChannelId: channel.Id, Message: "hello", UserId: th.BasicUser.Id}, channel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventChannelDeleted}
+	messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
+	defer closeWS()
+
+	appErr = th.App.PermanentDeleteChannel(th.Context, channel)
+	require.Nil(t, appErr)
+
+	received := <-messages
+	assert.Equal(t, model.WebsocketEventChannelDeleted, received.EventType())
+	memberUnreadsMentions := received.GetData()["member_unreads_mentions"]
+	require.NotNil(t, memberUnreadsMentions, "channel_deleted event should carry member_unreads_mentions collected before the members were deleted")
+}
+
 func TestRemoveAllDeactivatedMembersFromChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1246,6 +1275,48 @@ func TestSetChannelsMuted(t *testing.T) {
 		require.Nil(t, appErr)
 		require.False(t, member2.IsChannelMuted())
 	})
+
+	t.Run("should send a channel_member_updated event with a timestamp when the mute state changes", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		channel := th.BasicChannel
+
+		eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventChannelMemberUpdated}
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
+		defer closeWS()
+
+		_, appErr := th.App.setChannelsMuted(th.Context, []string{channel.Id}, th.BasicUser.Id, true)
+		require.Nil(t, appErr)
+
+		received := <-messages
+		assert.Equal(t, model.WebsocketEventChannelMemberUpdated, received.EventType())
+		assert.NotNil(t, received.GetData()["member_unreads_mentions"])
+		assert.NotNil(t, received.GetData()["timestamp"])
+		assert.Equal(t, false, received.GetData()["previous_muted"])
+		assert.Equal(t, true, received.GetData()["current_muted"])
+	})
+
+	t.Run("should not send member_unreads_mentions or timestamp when the experience API is disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+		channel := th.BasicChannel
+
+		eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventChannelMemberUpdated}
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
+		defer closeWS()
+
+		_, appErr := th.App.setChannelsMuted(th.Context, []string{channel.Id}, th.BasicUser.Id, true)
+		require.Nil(t, appErr)
+
+		received := <-messages
+		assert.Equal(t, model.WebsocketEventChannelMemberUpdated, received.EventType())
+		assert.Nil(t, received.GetData()["member_unreads_mentions"])
+		assert.Nil(t, received.GetData()["timestamp"])
+	})
 }
 
 func TestFillInChannelProps(t *testing.T) {
@@ -2153,6 +2224,54 @@ func TestMarkChannelAsUnreadFromPost(t *testing.T) {
 	})
 }
 
+func TestMarkChannelAsUnreadFromPostSendsTimestamp(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("should send a timestamp when the experience API is enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		channel := th.BasicChannel
+		p1 := th.CreatePost(t, channel)
+		th.CreatePost(t, channel)
+
+		eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventPostUnread}
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
+		defer closeWS()
+
+		response, appErr := th.App.MarkChannelAsUnreadFromPost(th.Context, p1.Id, th.BasicUser.Id, true)
+		require.Nil(t, appErr)
+		require.NotNil(t, response)
+
+		received := <-messages
+		assert.Equal(t, model.WebsocketEventPostUnread, received.EventType())
+		assert.NotNil(t, received.GetData()["timestamp"])
+	})
+
+	t.Run("should not send a timestamp when the experience API is disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+		channel := th.BasicChannel
+		p1 := th.CreatePost(t, channel)
+		th.CreatePost(t, channel)
+
+		eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventPostUnread}
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
+		defer closeWS()
+
+		response, appErr := th.App.MarkChannelAsUnreadFromPost(th.Context, p1.Id, th.BasicUser.Id, true)
+		require.Nil(t, appErr)
+		require.NotNil(t, response)
+
+		received := <-messages
+		assert.Equal(t, model.WebsocketEventPostUnread, received.EventType())
+		assert.Nil(t, received.GetData()["timestamp"])
+	})
+}
+
 func TestAddUserToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -2304,6 +2423,132 @@ func TestRemoveUserFromChannel(t *testing.T) {
 	// Should allow a bot to be removed from a group synced channel
 	appErr = th.App.RemoveUserFromChannel(th.Context, botUser.Id, th.SystemAdminUser.Id, privateChannel)
 	require.Nil(t, appErr)
+}
+
+func TestRemoveUserFromChannelSendsUnreadsMentionsTimestamp(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("should send member_unreads_mentions and timestamp when the experience API is enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser2, channel)
+
+		eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventUserRemoved}
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
+		defer closeWS()
+
+		appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser2.Id, th.BasicUser.Id, channel)
+		require.Nil(t, appErr)
+
+		var caught bool
+		for !caught {
+			select {
+			case received := <-messages:
+				if _, present := received.GetData()["member_unreads_mentions"]; !present {
+					continue
+				}
+				caught = true
+				assert.Equal(t, model.WebsocketEventUserRemoved, received.EventType())
+				assert.Equal(t, channel.Id, received.GetData()["channel_id"])
+				assert.NotNil(t, received.GetData()["timestamp"])
+			case <-time.After(2 * time.Second):
+				require.Fail(t, "Did not receive user_removed event with member_unreads_mentions")
+				return
+			}
+		}
+	})
+
+	t.Run("should not send member_unreads_mentions or timestamp when the experience API is disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser2, channel)
+
+		eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventUserRemoved}
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
+		defer closeWS()
+
+		appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser2.Id, th.BasicUser.Id, channel)
+		require.Nil(t, appErr)
+
+		var caught bool
+		for !caught {
+			select {
+			case received := <-messages:
+				if received.GetData()["channel_id"] != channel.Id {
+					continue
+				}
+				caught = true
+				assert.Equal(t, model.WebsocketEventUserRemoved, received.EventType())
+				assert.Nil(t, received.GetData()["member_unreads_mentions"])
+				assert.Nil(t, received.GetData()["timestamp"])
+			case <-time.After(2 * time.Second):
+				require.Fail(t, "Did not receive user_removed event for this channel")
+				return
+			}
+		}
+	})
+}
+
+func TestMarkChannelsAsViewedSendsClearedMentionsTimestamp(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("should send cleared_mentions, team_ids and timestamp when the experience API is enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		channel := th.BasicChannel
+		th.AddUserToChannel(t, th.BasicUser2, channel)
+		post := &model.Post{UserId: th.BasicUser2.Id, ChannelId: channel.Id, Message: "hello @" + th.BasicUser.Username}
+		_, _, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventMultipleChannelsViewed}
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
+		defer closeWS()
+
+		_, appErr = th.App.MarkChannelsAsViewed(th.Context, []string{channel.Id}, th.BasicUser.Id, "", false, false)
+		require.Nil(t, appErr)
+
+		received := <-messages
+		assert.Equal(t, model.WebsocketEventMultipleChannelsViewed, received.EventType())
+		assert.NotNil(t, received.GetData()["channel_times"])
+		assert.NotNil(t, received.GetData()["cleared_mentions"])
+		assert.NotNil(t, received.GetData()["team_ids"])
+		assert.NotNil(t, received.GetData()["timestamp"])
+	})
+
+	t.Run("should not send cleared_mentions, team_ids or timestamp when the experience API is disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableExperienceAPI = true })
+
+		channel := th.BasicChannel
+		th.AddUserToChannel(t, th.BasicUser2, channel)
+		post := &model.Post{UserId: th.BasicUser2.Id, ChannelId: channel.Id, Message: "hello @" + th.BasicUser.Username}
+		_, _, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventMultipleChannelsViewed}
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
+		defer closeWS()
+
+		_, appErr = th.App.MarkChannelsAsViewed(th.Context, []string{channel.Id}, th.BasicUser.Id, "", false, false)
+		require.Nil(t, appErr)
+
+		received := <-messages
+		assert.Equal(t, model.WebsocketEventMultipleChannelsViewed, received.EventType())
+		assert.NotNil(t, received.GetData()["channel_times"])
+		assert.Nil(t, received.GetData()["cleared_mentions"])
+		assert.Nil(t, received.GetData()["team_ids"])
+		assert.Nil(t, received.GetData()["timestamp"])
+	})
 }
 
 func TestPatchChannelModerationsForChannel(t *testing.T) {

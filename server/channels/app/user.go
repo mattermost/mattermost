@@ -3286,6 +3286,20 @@ func (a *App) UpdateThreadReadForUser(rctx request.CTX, currentSessionId, userID
 	message.Add("previous_unread_mentions", previousUnreadMentions)
 	message.Add("previous_unread_replies", previousUnreadReplies)
 	message.Add("channel_id", post.ChannelId)
+
+	// thread_team_id ("" for DM/GM) is what experience-API clients route on;
+	// broadcast.team_id is just the caller's current team, a placeholder for DM/GM.
+	// A failure here is best-effort enrichment only — the read state above is
+	// already committed, so it must not turn into an error response or skip the
+	// publish below.
+	if a.Config().FeatureFlags.EnableExperienceAPI {
+		if channel, channelErr := a.GetChannel(rctx, post.ChannelId); channelErr != nil {
+			rctx.Logger().Warn("Failed to fetch channel for thread_team_id enrichment", mlog.String("channel_id", post.ChannelId), mlog.Err(channelErr))
+		} else {
+			message.Add("thread_team_id", channel.TeamId)
+		}
+	}
+
 	a.Publish(message)
 	return thread, nil
 }
