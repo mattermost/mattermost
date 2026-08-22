@@ -309,6 +309,11 @@
             &:last-child {
                 margin-right: 0;
             }
+
+            img.emoji-category {
+                width: 20px;
+                height: 20px;
+            }
         }
 
         .skin-tones__expand-icon {
@@ -531,46 +536,18 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
     &.selected,
     &:hover {
         background-color: rgba(var(--center-channel-color-rgb), 0.16);
-
-        img {
-            -moz-transform: scale(0.45);
-            transform: scale(0.45);
-
-            @supports (zoom: 0.45) {
-                -moz-transform: none;
-                transform: none;
-                zoom: 0.45;
-            }
-
-            &.emoji-category--custom {
-                -moz-transform: scale(1);
-                transform: scale(1);
-
-                @supports (zoom: 1) {
-                    -moz-transform: none;
-                    transform: none;
-                    zoom: 1;
-                }
-            }
-        }
     }
 
     &:active {
         background-color: rgba(var(--center-channel-color-rgb), 0.32);
     }
 
-    img {
+    img.emoji-category {
         position: relative;
-        transition: transform 0.2s ease-in-out;
-
-        &.emoji-category--custom {
-            top: auto;
-            left: auto;
-            width: auto;
-            max-width: 22px;
-            height: auto;
-            max-height: 22px;
-        }
+        width: auto;
+        max-width: 22px;
+        height: auto;
+        max-height: 22px;
     }
 }
 
@@ -630,15 +607,11 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
     }
 
     .emoji-picker__preview-image-box {
+        display: inline-block;
+        width: $emoji-half-height;
+        height: $emoji-half-height;
         margin-right: 12px;
         vertical-align: middle;
-
-        &,
-        .sprite-preview {
-            display: inline-block;
-            width: $emoji-half-height;
-            height: $emoji-half-height;
-        }
     }
 
     .emoji-picker__preview-image {
