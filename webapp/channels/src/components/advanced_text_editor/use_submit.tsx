@@ -37,7 +37,7 @@ import {isErrorInvalidSlashCommand, isServerError, specialMentionsInText} from '
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import {isPostDraftEmpty} from 'types/store/draft';
+import {draftMatchesDestination, isPostDraftEmpty} from 'types/store/draft';
 
 import useGroups from './use_groups';
 
@@ -150,6 +150,11 @@ const useSubmit = (
     }, [dispatch, postFileIds, postId]);
 
     const doSubmit = useCallback(async (submittingDraft: PostDraft = draft, schedulingInfo?: SchedulingInfo, createPostOptions?: CreatePostOptions) => {
+        if (!draftMatchesDestination(submittingDraft, {channelId, rootId})) {
+            isDraftSubmitting.current = false;
+            return;
+        }
+
         if (submittingDraft.uploadsInProgress.length > 0) {
             isDraftSubmitting.current = false;
             return;
@@ -204,7 +209,7 @@ const useSubmit = (
                 response = await dispatch(editPost(submittingDraft as unknown as Post));
                 handleFileChange(submittingDraft);
             } else {
-                response = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
+                response = await dispatch(onSubmit(channelId, rootId, submittingDraft, options, schedulingInfo));
             }
             if (response?.error) {
                 throw response.error;
@@ -305,6 +310,11 @@ const useSubmit = (
         }
 
         const submittingDraft = setUpdatedFileIds(submittingDraftParam);
+
+        if (!draftMatchesDestination(submittingDraft, {channelId, rootId})) {
+            return;
+        }
+
         setShowPreview(false);
         isDraftSubmitting.current = true;
 

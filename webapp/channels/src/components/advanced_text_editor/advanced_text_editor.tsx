@@ -225,6 +225,7 @@ const AdvancedTextEditor = ({
     const lastBlurAt = useRef(0);
     const messageStatusRef = useRef<HTMLDivElement | null>(null);
 
+    const [draftContext, setDraftContext] = useState({channelId, rootId});
     const [draft, setDraft] = useState(draftFromStore);
     const [serverError, setServerError] = useState<(ServerError & {submittedMessage?: string}) | null>(null);
     const [postError, setPostError] = useState<React.ReactNode>(null);
@@ -242,6 +243,11 @@ const AdvancedTextEditor = ({
     const codeBlockOnCtrlEnter = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true));
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
 
+    if (draftContext.channelId !== channelId || draftContext.rootId !== rootId) {
+        setDraftContext({channelId, rootId});
+        setDraft(draftFromStore);
+    }
+
     const handleShowPreview = useCallback(() => {
         setShowPreview((prev) => !prev);
     }, []);
@@ -255,7 +261,17 @@ const AdvancedTextEditor = ({
             clearTimeout(saveDraftFrame.current);
         }
 
-        setDraft(draftToChange);
+        // A late async callback (slow submit, finished file upload) may call handleDraftChange
+        // with the channelId/rootId captured when it started. If the user has since moved to
+        // another channel or thread, do not overwrite the text they have typed here.
+        setDraft((currentDraft) => {
+            if (currentDraft.channelId !== draftToChange.channelId || currentDraft.rootId !== draftToChange.rootId) {
+                // The current channel/thread has changed, so don't update the draft displayed to the user
+                return currentDraft;
+            }
+
+            return draftToChange;
+        });
 
         const saveDraft = () => {
             let prefix = StoragePrefixes.DRAFT;
@@ -695,12 +711,10 @@ const AdvancedTextEditor = ({
         handleSubmitWithErrorHandling(undefined, schedulingInfo);
     }, [handleSubmitWithErrorHandling]);
 
-    // Set the draft from store when changing post or channels, and store the previous one
+    // Store the previous draft when changing post or channels
     useEffect(() => {
         // Store the draft that existed when we opened the channel to know if it should be saved
         const draftOnOpen = draftFromStore;
-
-        setDraft(draftOnOpen);
 
         return () => {
             if (draftOnOpen !== draftRef.current) {

@@ -279,7 +279,7 @@ describe('rhs view actions', () => {
         };
 
         test('it adds message into history', () => {
-            store.dispatch(onSubmit(draft, {}));
+            store.dispatch(onSubmit(channelId, rootId, draft, {}));
 
             const testStore = mockStore(initialState);
             testStore.dispatch(addMessageIntoHistory('test'));
@@ -290,7 +290,7 @@ describe('rhs view actions', () => {
         });
 
         test('it submits a command when message is /away', () => {
-            store.dispatch(onSubmit({
+            store.dispatch(onSubmit(channelId, rootId, {
                 message: '/away',
                 fileInfos: [],
                 uploadsInProgress: [],
@@ -307,7 +307,7 @@ describe('rhs view actions', () => {
         });
 
         test('it submits a regular post when options.ignoreSlash is true', () => {
-            store.dispatch(onSubmit({
+            store.dispatch(onSubmit(channelId, rootId, {
                 message: '/fakecommand',
                 fileInfos: [],
                 uploadsInProgress: [],
@@ -323,7 +323,7 @@ describe('rhs view actions', () => {
         });
 
         test('it submits a regular post when message is something else', () => {
-            store.dispatch(onSubmit({
+            store.dispatch(onSubmit(channelId, rootId, {
                 message: 'test msg',
                 fileInfos: [],
                 uploadsInProgress: [],
@@ -336,6 +336,23 @@ describe('rhs view actions', () => {
                 expect.arrayContaining(testStore.getActions()),
                 expect.arrayContaining([{args: ['test msg'], type: 'MOCK_ADD_MESSAGE_INTO_HISTORY'}]),
             );
+        });
+
+        test('it rejects a draft whose destination does not match the explicit channel and thread', async () => {
+            const result = await store.dispatch(onSubmit(channelId, rootId, {
+                message: 'test msg',
+                fileInfos: [],
+                uploadsInProgress: [],
+                channelId: 'other_channel_id',
+                rootId: '',
+            }, {}));
+
+            expect(result.error).toEqual(new Error('draft destination mismatch'));
+            expect(store.getActions()).toEqual([]);
+            expect(HookActions.runMessageWillBePostedHooks).not.toHaveBeenCalled();
+            expect(HookActions.runSlashCommandWillBePostedHooks).not.toHaveBeenCalled();
+            expect(executeCommand).not.toHaveBeenCalled();
+            expect(PostActions.createPost).not.toHaveBeenCalled();
         });
     });
 });

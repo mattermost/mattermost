@@ -36,6 +36,7 @@ import * as Utils from 'utils/utils';
 
 import type {ActionFunc, ActionFuncAsync, GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
+import {draftMatchesDestination} from 'types/store/draft';
 
 export function submitPost(
     channelId: string,
@@ -175,12 +176,18 @@ export type OnSubmitOptions = {
 };
 
 export function onSubmit(
+    channelId: string,
+    rootId: string,
     draft: PostDraft,
     options: OnSubmitOptions,
     schedulingInfo?: SchedulingInfo,
 ): ActionFuncAsync<SubmitPostReturnType> {
     return async (dispatch, getState) => {
-        const {message, channelId, rootId} = draft;
+        if (!draftMatchesDestination(draft, {channelId, rootId})) {
+            return {error: new Error('draft destination mismatch')};
+        }
+
+        const {message} = draft;
         const state = getState();
 
         dispatch(addMessageIntoHistory(message));
