@@ -28,6 +28,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 )
@@ -1768,6 +1769,11 @@ func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword str
 	if user.IsMagicLinkEnabled() {
 		return model.NewAppError("UpdatePassword", "api.user.update_password.magic_link.app_error", nil, "", http.StatusBadRequest)
 	}
+
+	// Normalize Unicode to NFC before hashing, matching model.User.PreSave
+	// and checkUserPassword, so the stored hash verifies consistently
+	// regardless of which Unicode form the client's input method produces.
+	newPassword = utils.NormalizePassword(newPassword)
 
 	hashedPassword, err := hashers.Hash(newPassword)
 	if err != nil {
