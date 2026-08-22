@@ -349,6 +349,14 @@ func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks, manifes
 	}
 }
 
+// RunMultiHookConcurrent is like RunMultiHook but dispatches the hook to all plugins concurrently,
+// waiting at most waitLimit for them to complete. See Environment.RunMultiPluginHookConcurrent.
+func (ch *Channels) RunMultiHookConcurrent(hookRunnerFunc func(hooks plugin.Hooks, manifest *model.Manifest), hookId int, waitLimit time.Duration) {
+	if env := ch.GetPluginsEnvironment(); env != nil {
+		env.RunMultiPluginHookConcurrent(hookRunnerFunc, hookId, waitLimit)
+	}
+}
+
 // RunMultiHookExcluding is like RunMultiHook but skips plugins whose IDs appear in excludePluginIDs.
 // Fail-open semantics are preserved.
 func (ch *Channels) RunMultiHookExcluding(excludePluginIDs []string, hookRunnerFunc func(plugin.Hooks, *model.Manifest) bool, hookId int) {
