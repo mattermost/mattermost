@@ -37,6 +37,21 @@ func (a *App) resolveValueBroadcastParams(rctx request.CTX, objectType, targetID
 	}
 }
 
+// broadcastUserScope returns the user ID a property-value websocket event must
+// be scoped to. Values on user objects (e.g. custom profile attributes) are
+// access-controlled per viewer on the REST path via UserCanSeeOtherUser and
+// per-field visibility; a system-wide broadcast of the raw values bypasses
+// that control and exposes them to every connected user. Scoping user-object
+// events to the target user keeps delivery to a recipient that is always
+// authorized to see the values. Other object types remain scoped by the
+// team/channel resolved in resolveValueBroadcastParams.
+func broadcastUserScope(objectType, targetID string) string {
+	if objectType == model.PropertyFieldObjectTypeUser {
+		return targetID
+	}
+	return ""
+}
+
 // CreatePropertyValue creates a new property value.
 func (a *App) CreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, *model.AppError) {
 	if value == nil {
@@ -274,7 +289,7 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 			if jsonErr != nil {
 				rctx.Logger().Warn("Failed to encode property values to JSON", mlog.Err(jsonErr))
 			} else {
-				message := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, teamID, channelID, "", nil, connectionID)
+				message := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, teamID, channelID, broadcastUserScope(objectType, targetID), nil, connectionID)
 				message.Add("object_type", objectType)
 				message.Add("target_id", targetID)
 				message.Add("values", string(valuesJSON))
@@ -318,7 +333,7 @@ func (a *App) DeletePropertyValue(rctx request.CTX, groupID, valueID string) *mo
 		return nil
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, teamID, channelID, "", nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, teamID, channelID, broadcastUserScope(value.TargetType, value.TargetID), nil, "")
 	message.Add("object_type", value.TargetType)
 	message.Add("target_id", value.TargetID)
 	message.Add("values", string(valuesJSON))
@@ -341,7 +356,7 @@ func (a *App) DeletePropertyValuesForTarget(rctx request.CTX, groupID, targetTyp
 		return nil
 	}
 
-	message := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, teamID, channelID, "", nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, teamID, channelID, broadcastUserScope(targetType, targetID), nil, "")
 	message.Add("object_type", targetType)
 	message.Add("target_id", targetID)
 	message.Add("values", "[]")
