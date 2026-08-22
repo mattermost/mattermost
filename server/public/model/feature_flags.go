@@ -20,6 +20,10 @@ type FeatureFlags struct {
 	// Enable DMs and GMs for shared channels.
 	EnableSharedChannelsDMs bool
 
+	// FEATURE_FLAG_REMOVAL: EnableMutableGroupMessages - Remove this when GA is released
+	// Enable adding members to existing group messages while preserving history.
+	EnableMutableGroupMessages bool
+
 	// Enable syncing all users for remote clusters in shared channels
 	EnableSyncAllUsersForRemoteCluster bool
 
@@ -160,6 +164,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestBoolFeature = false
 	f.ClusterGracefulDrain = true
 	f.EnableSharedChannelsDMs = false
+	f.EnableMutableGroupMessages = false
 	f.EnableSyncAllUsersForRemoteCluster = false
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false

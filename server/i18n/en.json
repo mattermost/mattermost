@@ -292,6 +292,18 @@
     "translation": "Can not add user to this channel type."
   },
   {
+    "id": "api.channel.add_user_to_group.already_exists.app_error",
+    "translation": "A group message with these members already exists."
+  },
+  {
+    "id": "api.channel.add_user_to_group.max_members.app_error",
+    "translation": "Group messages are limited to {{.MaxUsers}} members."
+  },
+  {
+    "id": "api.channel.add_user_to_group.shared.app_error",
+    "translation": "Members cannot be added to shared group messages."
+  },
+  {
     "id": "api.channel.board_channel.app_error",
     "translation": "Board channels cannot be accessed via /channels endpoints. Use the /boards API instead."
   },

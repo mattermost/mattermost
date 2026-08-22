@@ -2410,8 +2410,80 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+	if channel.Type == model.ChannelTypeDirect {
 		c.Err = model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if channel.Type == model.ChannelTypeGroup {
+		if !c.App.Config().FeatureFlags.EnableMutableGroupMessages {
+			c.Err = model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePrivateChannelMembers); !hasPermission {
+			c.SetPermissionError(model.PermissionManagePrivateChannelMembers)
+			return
+		}
+
+		// Prevalidate all user_ids, then add atomically so failures cannot leave
+		// partial membership or return 201 Created for a partial result.
+		for _, userId := range userIds {
+			user, userErr := c.App.GetUser(userId)
+			if userErr != nil {
+				c.Err = userErr
+				return
+			}
+			if user.DeleteAt > 0 {
+				c.Err = model.NewAppError("addChannelMember", "app.channel.add_member.deleted_user.app_error", nil, "", http.StatusForbidden)
+				return
+			}
+		}
+
+		auditRec := c.MakeAuditRecord(model.AuditEventAddChannelMember, model.AuditStatusFail)
+		defer c.LogAuditRec(auditRec)
+		model.AddEventParameterToAuditRec(auditRec, "user_ids", userIds)
+		model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
+		model.AddEventParameterToAuditRec(auditRec, "post_root_id", postRootId)
+
+		addedMembers, addErr := c.App.AddGroupChannelMembers(c.AppContext, channel, userIds, app.ChannelMemberOpts{
+			UserRequestorID: c.AppContext.Session().UserId,
+			PostRootID:      postRootId,
+		})
+		if addErr != nil {
+			c.Err = addErr
+			return
+		}
+
+		newChannelMembers := make([]model.ChannelMember, 0, len(addedMembers))
+		for _, cm := range addedMembers {
+			newChannelMembers = append(newChannelMembers, *cm)
+			if postRootId != "" {
+				if threadErr := c.App.UpdateThreadFollowForUserFromChannelAdd(c.AppContext, cm.UserId, channel.TeamId, postRootId); threadErr != nil {
+					c.Logger.Warn("Error updating thread follow after group channel member add", mlog.String("UserId", cm.UserId), mlog.String("ChannelId", channel.Id), mlog.Err(threadErr))
+				}
+			}
+		}
+
+		auditRec.Success()
+		auditRec.AddEventObjectType("channel_member")
+		c.LogAudit("name=" + channel.Name)
+
+		currentUserId := c.AppContext.Session().UserId
+		for i := range newChannelMembers {
+			newChannelMembers[i].SanitizeForCurrentUser(currentUserId)
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		userId, hasUserId := props["user_id"]
+		if hasUserId && len(newChannelMembers) == 1 && newChannelMembers[0].UserId == userId {
+			if err := json.NewEncoder(w).Encode(newChannelMembers[0]); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
+		} else {
+			if err := json.NewEncoder(w).Encode(newChannelMembers); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
+		}
 		return
 	}
 
