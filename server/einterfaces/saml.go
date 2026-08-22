@@ -12,7 +12,7 @@ import (
 type SamlInterface interface {
 	ConfigureSP(rctx request.CTX) error
 	BuildRequest(rctx request.CTX, relayState string) (*model.SamlAuthRequest, *model.AppError)
-	DoLogin(rctx request.CTX, encodedXML string, relayState map[string]string) (*model.User, *saml2.AssertionInfo, *model.AppError)
+	DoLogin(rctx request.CTX, encodedXML string, relayState map[string]string) (user *model.User, assertion *saml2.AssertionInfo, userWasCreated bool, err *model.AppError)
 	GetMetadata(rctx request.CTX) (string, *model.AppError)
 	CheckProviderAttributes(rctx request.CTX, SS *model.SamlSettings, ouser *model.User, patch *model.UserPatch) string
 }

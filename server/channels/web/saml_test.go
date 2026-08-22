@@ -5,9 +5,12 @@ package web
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -18,6 +21,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
@@ -186,7 +190,7 @@ func TestCompleteSamlRelayStateSignedRoundTrip(t *testing.T) {
 	var capturedRelayProps map[string]string
 	fakeSaml.On("DoLogin", mock.Anything, mock.Anything, mock.AnythingOfType("map[string]string")).
 		Run(func(args mock.Arguments) { capturedRelayProps = args.Get(2).(map[string]string) }).
-		Return(th.BasicUser, (*saml2.AssertionInfo)(nil), nil)
+		Return(th.BasicUser, (*saml2.AssertionInfo)(nil), false, nil)
 
 	res = postCompleteSaml(t, th, "dummy-encoded-xml", capturedRelayState)
 	assert.Equal(t, http.StatusFound, res.Code)
@@ -204,4 +208,57 @@ func TestCompleteSamlRelayStateSignedRoundTrip(t *testing.T) {
 	res = postCompleteSaml(t, th, "dummy-encoded-xml", capturedRelayState)
 	assert.Equal(t, http.StatusFound, res.Code)
 	fakeSaml.AssertNumberOfCalls(t, "DoLogin", 2)
+}
+
+func TestCompleteSamlUserCreatedAudit(t *testing.T) {
+	fakeSaml := registerFakeSamlInterface(t)
+	th := Setup(t).InitBasic(t)
+
+	path := filepath.Join(t.TempDir(), "audit.log")
+	cfg, err := config.MloggerConfigFromAuditConfig(model.ExperimentalAuditSettings{
+		FileEnabled: model.NewPointer(true),
+		FileName:    model.NewPointer(path),
+	}, nil)
+	require.NoError(t, err)
+	require.NoError(t, th.App.Srv().Audit.Configure(cfg))
+
+	relayState := model.SignSamlRelayState(th.App.SamlRelayStateSigningKey(), map[string]string{
+		"action": model.OAuthActionLogin,
+	})
+
+	lastUserCreated := func() any {
+		t.Helper()
+		require.NoError(t, th.App.Srv().Audit.Flush())
+		data, readErr := os.ReadFile(path)
+		require.NoError(t, readErr)
+
+		var last map[string]any
+		for line := range strings.SplitSeq(strings.TrimSpace(string(data)), "\n") {
+			var rec map[string]any
+			require.NoError(t, json.Unmarshal([]byte(line), &rec))
+			if rec[model.AuditKeyEventName] == model.AuditEventCompleteSaml {
+				last = rec
+			}
+		}
+		require.NotNil(t, last, "expected a completeSaml audit record")
+
+		metaMap := last[model.AuditKeyMeta].(map[string]any)
+		if params, ok := last[model.AuditKeyEvent].(map[string]any)["parameters"].(map[string]any); ok {
+			_, inParams := params["user_created"]
+			assert.False(t, inParams)
+		}
+		return metaMap["user_created"]
+	}
+
+	fakeSaml.On("DoLogin", mock.Anything, mock.Anything, mock.Anything).
+		Return(th.BasicUser, (*saml2.AssertionInfo)(nil), true, nil).Once()
+	res := postCompleteSaml(t, th, "dummy-encoded-xml", relayState)
+	assert.Equal(t, http.StatusFound, res.Code)
+	assert.Equal(t, true, lastUserCreated())
+
+	fakeSaml.On("DoLogin", mock.Anything, mock.Anything, mock.Anything).
+		Return(th.BasicUser, (*saml2.AssertionInfo)(nil), false, nil).Once()
+	res = postCompleteSaml(t, th, "dummy-encoded-xml", relayState)
+	assert.Equal(t, http.StatusFound, res.Code)
+	assert.Equal(t, false, lastUserCreated())
 }
