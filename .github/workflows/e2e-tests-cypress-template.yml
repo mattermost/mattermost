@@ -54,6 +54,10 @@ on:
         description: "Comma-separated alias tags for description"
         type: string
         required: false
+      fixed_images_cache_key:
+        description: "Cache key of the pre-warmed fixed-service-images tarball (see e2e-tests-check-images.yml); empty skips restore"
+        type: string
+        required: false
 
       enable_reporting:
         type: boolean
@@ -325,6 +329,37 @@ jobs:
             ~/.cache/Cypress
           key: e2e-cypress-deps-${{ runner.os }}-${{ hashFiles('e2e-tests/cypress/package-lock.json') }}
           fail-on-cache-miss: true
+      # Loads images pre-warmed by e2e-tests-check-images.yml so the pulls
+      # below (inside `make start-server`) hit local content instead of
+      # Docker Hub. A cache miss here just means a normal pull happens -
+      # never fails the job.
+      - name: ci/restore-fixed-images-cache
+        if: inputs.fixed_images_cache_key != ''
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: /tmp/docker-image-cache/fixed-images.tar.gz
+          key: ${{ inputs.fixed_images_cache_key }}
+      - name: ci/resolve-server-image-digest
+        id: resolve-server-digest
+        run: |
+          DIGEST=$(docker manifest inspect -v "$SERVER_IMAGE" | jq -r '
+            if type=="array"
+            then (.[] | select(.Descriptor.platform.architecture=="amd64" and .Descriptor.platform.os=="linux") | .Descriptor.digest)
+            else .Descriptor.digest
+            end' | head -1)
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+      - name: ci/restore-server-image-cache
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: /tmp/docker-image-cache/server-image.tar.gz
+          key: docker-image-server-${{ steps.resolve-server-digest.outputs.digest }}
+      - name: ci/load-cached-images
+        run: |
+          shopt -s nullglob
+          for f in /tmp/docker-image-cache/*.tar.gz; do
+            echo "Loading cached images from $f"
+            gunzip -c "$f" | docker load
+          done
       - name: ci/cloud-init
         working-directory: e2e-tests
         run: make cloud-init
