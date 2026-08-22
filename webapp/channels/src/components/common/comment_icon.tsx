@@ -42,18 +42,23 @@ const CommentIcon = ({
         iconStyle = `${iconStyle} ${searchStyle}`;
     }
 
-    const replyTitle = intl.formatMessage({
+    // In search results the icon opens the post's thread in the RHS rather
+    // than composing a reply, so label it accordingly.
+    const tooltipTitle = location === 'SEARCH' ? intl.formatMessage({
+        id: 'post_info.comment_icon.tooltip.view_thread',
+        defaultMessage: 'View thread',
+    }) : intl.formatMessage({
         id: 'post_info.comment_icon.tooltip.reply',
         defaultMessage: 'Reply',
     });
 
     return (
         <WithTooltip
-            title={replyTitle}
+            title={tooltipTitle}
         >
             <button
                 id={`${location}_commentIcon_${postId}`}
-                aria-label={replyTitle.toLowerCase()}
+                aria-label={tooltipTitle.toLowerCase()}
                 className={`${iconStyle} ${extraClass}`}
                 onClick={handleCommentClick}
             >

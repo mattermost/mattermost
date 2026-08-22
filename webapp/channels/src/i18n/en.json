@@ -6459,6 +6459,7 @@
   "post_info.ai_generated.self": "AI-generated",
   "post_info.auto_responder": "AUTOMATIC REPLY",
   "post_info.comment_icon.tooltip.reply": "Reply",
+  "post_info.comment_icon.tooltip.view_thread": "View thread",
   "post_info.copy": "Copy Text",
   "post_info.del": "Delete",
   "post_info.dot_menu.tooltip.more": "More",
