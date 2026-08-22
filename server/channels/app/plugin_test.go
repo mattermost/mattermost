@@ -1258,6 +1258,17 @@ func TestGetPluginStateOverride(t *testing.T) {
 		require.False(t, value)
 	})
 
+	t.Run("message-based encryption override", func(t *testing.T) {
+		overrides, value := th.App.ch.getPluginStateOverride("message-based-encryption")
+		require.True(t, overrides)
+		require.True(t, value)
+	})
+
+	t.Run("message-based encryption is eligible for prepackaged installation without config state", func(t *testing.T) {
+		delete(th.App.Config().PluginSettings.PluginStates, "message-based-encryption")
+		require.True(t, th.App.ch.isPrepackagedPluginEnabled("message-based-encryption"))
+	})
+
 	t.Run("apps override", func(t *testing.T) {
 		t.Run("without enabled flag", func(t *testing.T) {
 			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.apps")
