@@ -58,6 +58,13 @@ func storeMockWithMaskingOff(tb testing.TB) *TestHelper {
 	return th
 }
 
+// stubACPEtagInvalidation stubs the render-ETag cache invalidation calls the policy publish paths
+// make through the store, so mock-store tests that mutate a policy don't panic on them.
+func stubACPEtagInvalidation(m *storemocks.AccessControlPolicyStore) {
+	m.On("InvalidateEtagForChannel", mock.Anything).Return().Maybe()
+	m.On("ClearEtagCache").Return().Maybe()
+}
+
 func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.AttributeValueMasking = false
@@ -164,6 +171,9 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockChannelStore := storemocks.ChannelStore{}
 		mockStore.On("Channel").Return(&mockChannelStore)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		// publishChannelPolicyEnforcedUpdate is expected to invalidate the
 		// channel cache and reload the channel for the WS payload.
 		mockChannelStore.On("InvalidateChannel", channelID).Once()
@@ -211,6 +221,7 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 		// A parent save fans out to both its channel and team children;
 		// with no children of either kind, neither search yields a broadcast.
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
 			return s.Type == model.AccessControlPolicyTypeChannel && s.ParentID == parentID
@@ -280,6 +291,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 
 		// channel-type policies must NOT trigger a parent fan-out search.
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
@@ -317,6 +329,7 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		mockChannelStore.On("Get", childChannelID, true).Return(&model.Channel{Id: childChannelID, Type: model.ChannelTypePrivate}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		// channelPolicyIDsWithImport (called pre-delete) returns one child.
 		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
@@ -424,6 +437,9 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockChannelStore := storemocks.ChannelStore{}
 		mockStore.On("Channel").Return(&mockChannelStore)
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockChannelStore.On("InvalidateChannel", channelID).Once()
 		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Once()
 
@@ -1325,6 +1341,7 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 
 		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockAccessControlPolicyStore)
 		mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
 		// Mock SearchPolicies to return the child policy as a child of the parent
 		mockAccessControlPolicyStore.On("SearchPolicies", thMock.Context, model.AccessControlPolicySearch{
@@ -4115,6 +4132,7 @@ func TestHydrateChannelPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		// We register the AccessControlPolicy() accessor in case any other
 		// path touches it, but `GetActionsForPolicy` MUST NOT be called
 		// when PolicyEnforced is false — that's the whole point of the
@@ -4138,6 +4156,7 @@ func TestHydrateChannelPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		channelID := model.NewId()
@@ -4156,6 +4175,7 @@ func TestHydrateChannelPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		channelID := model.NewId()
@@ -4173,6 +4193,7 @@ func TestHydrateChannelPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		channelID := model.NewId()
@@ -4190,6 +4211,7 @@ func TestHydrateChannelPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		channelID := model.NewId()
@@ -4209,6 +4231,7 @@ func TestHydrateChannelsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
 
 		appErr := thMock.App.HydrateChannelsPolicyActions(thMock.Context, nil)
@@ -4222,6 +4245,7 @@ func TestHydrateChannelsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
 
 		channels := []*model.Channel{
@@ -4240,6 +4264,7 @@ func TestHydrateChannelsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		enforced1 := model.NewId()
@@ -4280,6 +4305,7 @@ func TestHydrateChannelsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		enforced := model.NewId()
@@ -4302,6 +4328,7 @@ func TestHydrateChannelsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		channels := []*model.Channel{{Id: model.NewId(), PolicyEnforced: true}}
@@ -4331,6 +4358,7 @@ func TestGetChannelHydratesPolicyActions(t *testing.T) {
 			Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate, PolicyEnforced: true}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("GetActionsForPolicy", thMock.Context, channelID).
 			Return(map[string]bool{model.AccessControlPolicyActionMembership: true}, nil).Once()
@@ -4353,6 +4381,7 @@ func TestGetChannelHydratesPolicyActions(t *testing.T) {
 			Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate, PolicyEnforced: false}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
 
 		channel, appErr := thMock.App.GetChannel(thMock.Context, channelID)
@@ -4388,6 +4417,7 @@ func TestGetChannelsForTeamForUserHydratesPolicyActions(t *testing.T) {
 			}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{permChannelID}).
 			Return(map[string]map[string]bool{
@@ -4432,6 +4462,7 @@ func TestGetChannelsForTeamForUserHydratesPolicyActions(t *testing.T) {
 			Return(model.ChannelList{{Id: channelID, TeamId: teamID, PolicyEnforced: true}}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{channelID}).
 			Return(map[string]map[string]bool{
@@ -4460,6 +4491,7 @@ func TestGetChannelsForTeamForUserHydratesPolicyActions(t *testing.T) {
 			Return(model.ChannelList{{Id: channelID, TeamId: teamID, PolicyEnforced: true}}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{channelID}).
 			Return(nil, errors.New("boom")).Once()
@@ -4495,6 +4527,7 @@ func TestSearchChannelsHydratePolicyActions(t *testing.T) {
 			}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{channelID}).
 			Return(map[string]map[string]bool{
@@ -4537,6 +4570,7 @@ func TestSearchChannelsHydratePolicyActions(t *testing.T) {
 			Return(model.ChannelList{{Id: channelID, TeamId: teamID, PolicyEnforced: true}}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{channelID}).
 			Return(map[string]map[string]bool{
@@ -4565,6 +4599,7 @@ func TestSearchChannelsHydratePolicyActions(t *testing.T) {
 			Return(model.ChannelList{{Id: channelID, TeamId: teamID, PolicyEnforced: true}}, nil).Once()
 
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("GetActionsForPolicies", thMock.Context, []string{channelID}).
 			Return(nil, errors.New("boom")).Once()
@@ -4673,6 +4708,7 @@ func TestPublishChannelPolicyEnforcedUpdateHydratesBroadcastPayload(t *testing.T
 		Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate, PolicyEnforced: true}, nil).Twice()
 
 	mockACPStore := storemocks.AccessControlPolicyStore{}
+	stubACPEtagInvalidation(&mockACPStore)
 	mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 	// Permission-only policy: hydrator must return an action set WITHOUT
 	// the membership key. This is the bug-fix invariant the broadcast
@@ -5143,6 +5179,7 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("SetActiveStatusMultiple", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
 
@@ -5176,6 +5213,7 @@ func TestUpdateAccessControlPoliciesActive_MaskingGuard(t *testing.T) {
 
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("SetActiveStatusMultiple", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
 
@@ -5213,6 +5251,7 @@ func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.
 
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("SetActiveStatusMultiple", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
 
@@ -5244,6 +5283,7 @@ func TestUpdateAccessControlPoliciesActive_BroadcastsWebsocketEvents(t *testing.
 
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 		mockACPStore.On("SetActiveStatusMultiple", thMock.Context, mock.Anything).Return([]*model.AccessControlPolicy{policy}, nil).Once()
 

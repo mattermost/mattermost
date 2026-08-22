@@ -24,6 +24,7 @@ import posts from './posts';
 import preferences from './preferences';
 import properties from './properties';
 import recaps from './recaps';
+import renderPermissions from './render_permissions';
 import roles from './roles';
 import scheduledPosts from './scheduled_posts';
 import schemes from './schemes';
@@ -67,4 +68,5 @@ export default combineReducers({
     sharedChannels,
     contentFlagging,
     properties,
+    renderPermissions,
 });

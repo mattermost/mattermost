@@ -241,6 +241,33 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 	return members, nil
 }
 
+// Count folded in alongside the max to catch soft deletes: dropping a value that isn't the most
+// recently updated leaves MAX(UpdateAt) unchanged, and the stale ETag would keep matching.
+func (s *SqlAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("COALESCE(MAX(UpdateAt), 0) AS MaxUpdateAt", "COUNT(*) AS Total").
+		From("PropertyValues").
+		Where(sq.Eq{"TargetID": userID}).
+		Where("DeleteAt = 0").
+		ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "GetUserPropertyValuesEpoch: failed to build query")
+	}
+
+	var epoch struct {
+		MaxUpdateAt int64
+		Total       int64
+	}
+	if err := s.GetReplica().Get(&epoch, query, args...); err != nil {
+		return "", errors.Wrap(err, "GetUserPropertyValuesEpoch: query failed")
+	}
+	return fmt.Sprintf("%d-%d", epoch.MaxUpdateAt, epoch.Total), nil
+}
+
+// No-op at the SQL layer; the per-user epoch is cached in and invalidated by the local cache layer.
+func (s *SqlAttributesStore) InvalidateUserPropertyValuesEpoch(userID string) {}
+func (s *SqlAttributesStore) ClearUserPropertyValuesEpochCache()              {}
+
 func (s *SqlAttributesStore) GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error) {
 	query := s.getQueryBuilder().
 		Select(qualify("TeamMembers", teamMemberSliceColumns())...).From("TeamMembers").

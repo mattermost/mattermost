@@ -28,6 +28,7 @@ import PostTypes from './posts';
 import PreferenceTypes from './preferences';
 import PropertyTypes from './properties';
 import RecapTypes from './recaps';
+import RenderPermissionTypes from './render_permissions';
 import RoleTypes from './roles';
 import SchemeTypes from './schemes';
 import ScheduledPostTypes from './scheudled_posts';
@@ -72,6 +73,7 @@ export {
     ContentFlaggingTypes,
     PropertyTypes,
     AgentTypes,
+    RenderPermissionTypes,
     WebSocketTypes,
 };
 

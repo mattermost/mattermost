@@ -4590,6 +4590,10 @@ func (a *App) cleanupChannelAccessControlPolicy(rctx request.CTX, channel *model
 			)
 		}
 	}
+
+	// Drop the channel's cached render-ETag epoch: its policy row is gone, so a stale epoch
+	// would otherwise linger until the cache TTL.
+	a.Srv().Store().AccessControlPolicy().InvalidateEtagForChannel(channel.Id)
 }
 
 // recommendedPublicChannelsScanPageSize is the per-page size used while

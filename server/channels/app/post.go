@@ -1418,18 +1418,55 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 	return postList, nil
 }
 
-func (a *App) GetPostsEtag(channelID string, collapsedThreads bool) string {
-	if a.AutoTranslation() == nil || !a.AutoTranslation().IsFeatureAvailable() {
-		return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, false)
+// Cannot collide with a real epoch, which always carries a row count.
+const unknownABACEtagEpoch = "unknown"
+
+// AppendABACEtag folds the policy and user-attribute epochs into a base ETag, so a policy or
+// attribute change misses the cache and SanitizePostListMetadataForUser runs instead of the
+// request 304ing onto differently-sanitized content. No-op when ABAC is inactive.
+//
+// Pass "" for channelID when no channel is in scope; the policy epoch then covers only the
+// system-scoped permission policies.
+func (a *App) AppendABACEtag(base string, userID string, channelID string) string {
+	if !a.Config().FeatureFlags.PermissionPolicies ||
+		a.Config().AccessControlSettings.EnableAttributeBasedAccessControl == nil ||
+		!*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return base
 	}
 
-	channelEnabled, err := a.AutoTranslation().IsChannelEnabled(channelID)
-	if err != nil || !channelEnabled {
-		return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, false)
+	rctx := request.EmptyContext(a.Log())
+
+	policyEpoch := unknownABACEtagEpoch
+	if epoch, err := a.Srv().Store().AccessControlPolicy().GetEtagEpoch(rctx, channelID); err == nil {
+		policyEpoch = epoch
+	} else {
+		a.Log().Warn("ABAC ETag: failed to get access control policy epoch; policy component will be unknown",
+			mlog.Err(err))
 	}
 
-	// Channel has auto-translation enabled - include translation etag
-	return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, true)
+	cpaEpoch := unknownABACEtagEpoch
+	if userID != "" {
+		if epoch, err := a.Srv().Store().Attributes().GetUserPropertyValuesEpoch(rctx, userID); err == nil {
+			cpaEpoch = epoch
+		} else {
+			a.Log().Warn("ABAC ETag: failed to get user CPA epoch; attribute component will be unknown",
+				mlog.String("user_id", userID),
+				mlog.Err(err))
+		}
+	}
+
+	return fmt.Sprintf("%s.%s.%s", base, policyEpoch, cpaEpoch)
+}
+
+func (a *App) GetPostsEtag(channelID string, userID string, collapsedThreads bool) string {
+	includeTranslations := false
+	if a.AutoTranslation() != nil && a.AutoTranslation().IsFeatureAvailable() {
+		if enabled, err := a.AutoTranslation().IsChannelEnabled(channelID); err == nil && enabled {
+			includeTranslations = true
+		}
+	}
+	base := a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, includeTranslations)
+	return a.AppendABACEtag(base, userID, channelID)
 }
 
 func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {

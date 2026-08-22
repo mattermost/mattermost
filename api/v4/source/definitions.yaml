@@ -5446,6 +5446,120 @@ components:
           type: integer
           format: int64
           description: The time in milliseconds the recap channel was created
+    AccessControlResource:
+      type: object
+      description: Identifies a resource (type + id) for an ABAC decision request.
+      required:
+        - type
+        - id
+      properties:
+        type:
+          type: string
+          description: The resource type (e.g. "channel").
+        id:
+          type: string
+          description: The resource identifier.
+    RenderPermissionDecision:
+      type: object
+      description: |
+        A non-authoritative, render-time ABAC decision for a single action.
+        Must not be used to authorize an action — server enforcement is authoritative.
+      required:
+        - allowed
+        - evaluated
+      properties:
+        allowed:
+          type: boolean
+          description: Whether the action is permitted for rendering purposes.
+        evaluated:
+          type: boolean
+          description: Whether the server intentionally computed this decision.
+        reason:
+          type: string
+          description: Generic denial reason (e.g. "restricted_by_policy"). Never contains policy names, expressions, or attribute values.
+    ActionSearchResult:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+              description: Name of a permitted action. Denial is expressed by omission from the results list.
+    ActionSearchSubject:
+      type: object
+      description: >
+        RESERVED for Phase 3 cross-subject evaluation. In Phase 2 the ID must equal
+        the authenticated session user ID; mismatches return 403. Present to allow
+        Phase 3 as a non-breaking extension.
+      required:
+        - id
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+    ActionSearchPage:
+      type: object
+      description: >
+        RESERVED for Phase 3 pagination. Accepted in requests but always ignored;
+        next_token is never emitted in responses. Present to allow Phase 3
+        pagination as a non-breaking extension.
+      properties:
+        next_token:
+          type: string
+    ActionSearchRequest:
+      type: object
+      description: Request body for the Action Search render-decision endpoint.
+      required:
+        - resource
+      properties:
+        resource:
+          $ref: "#/components/schemas/AccessControlResource"
+        actions:
+          type: array
+          description: >
+            Actions to evaluate (max 16). Omit or leave empty for discovery mode:
+            the server evaluates all registered actions for the resource type and
+            returns the permitted set.
+          maxItems: 16
+          items:
+            type: string
+        subject:
+          $ref: "#/components/schemas/ActionSearchSubject"
+        page:
+          $ref: "#/components/schemas/ActionSearchPage"
+    ActionSearchResponse:
+      type: object
+      description: Response from the Action Search render-decision endpoint.
+      required:
+        - resource
+        - results
+        - decisions
+      properties:
+        resource:
+          $ref: "#/components/schemas/AccessControlResource"
+        results:
+          type: array
+          description: >
+            AuthZEN-canonical list: only PERMITTED actions appear here.
+            Denial is expressed by omission. Always present; an empty array []
+            is meaningful (all evaluated actions were denied).
+          items:
+            $ref: "#/components/schemas/ActionSearchResult"
+        decisions:
+          type: object
+          description: >
+            Mattermost extension: all evaluated actions with full decision detail
+            (allowed, evaluated, reason), including denied ones. Always present.
+          additionalProperties:
+            $ref: "#/components/schemas/RenderPermissionDecision"
+        page:
+          $ref: "#/components/schemas/ActionSearchPage"
     RecapLimitStatus:
       type: object
       description: The current user's recap limit status including usage and cooldown information

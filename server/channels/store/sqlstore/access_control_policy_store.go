@@ -941,3 +941,39 @@ func (s *SqlAccessControlPolicyStore) GetPoliciesByFieldID(_ request.CTX, fieldI
 
 	return policies, nil
 }
+
+// GetEtagEpoch covers the system-scoped permission policies plus the given channel's own policy
+// row (a channel policy's ID equals the channel ID); an empty channelID covers only the former.
+//
+// MAX(CreateAt), because the table has no UpdateAt and saves are delete-and-reinsert. The count is
+// folded in to catch deletes: dropping a policy that isn't the newest leaves the max untouched, so
+// the ETag would still match and clients would keep a differently-sanitized cached copy.
+//
+// Matching the channel by primary key instead of scanning every policy's rules JSON costs a benign
+// false positive: a membership-only change to this channel's policy also advances the epoch.
+func (s *SqlAccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
+	query, args, err := s.getQueryBuilder().
+		Select("COALESCE(MAX(CreateAt), 0) AS MaxCreateAt", "COUNT(*) AS Total").
+		From("AccessControlPolicies").
+		Where(sq.Or{
+			sq.Eq{"Type": model.AccessControlPolicyTypePermission},
+			sq.Eq{"Id": channelID},
+		}).
+		ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "GetEtagEpoch: failed to build query")
+	}
+
+	var epoch struct {
+		MaxCreateAt int64
+		Total       int64
+	}
+	if err := s.GetReplica().Get(&epoch, query, args...); err != nil {
+		return "", errors.Wrap(err, "GetEtagEpoch: query failed")
+	}
+	return fmt.Sprintf("%d-%d", epoch.MaxCreateAt, epoch.Total), nil
+}
+
+// No-op at the SQL layer; the render-ETag epoch is cached in and invalidated by the local cache layer.
+func (s *SqlAccessControlPolicyStore) InvalidateEtagForChannel(channelID string) {}
+func (s *SqlAccessControlPolicyStore) ClearEtagCache()                           {}
