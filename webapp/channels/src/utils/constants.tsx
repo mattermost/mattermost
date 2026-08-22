@@ -1613,9 +1613,6 @@ export const Constants = {
     SYSTEM_MESSAGE_PREFIX: 'system_',
     SUGGESTION_LIST_MAXHEIGHT: 292,
     SUGGESTION_LIST_MAXWIDTH: 496,
-
-    // Suggestion list max height for taller modal-based lists (e.g. the Find Channels
-    // modal), allowing 300px more than the default cap so they use larger monitors better.
     SUGGESTION_LIST_MAXHEIGHT_MODAL: 592,
     SUGGESTION_LIST_SPACE_RHS: 420,
     MOBILE_SUGGESTION_LIST_SPACE_RHS: 220,
