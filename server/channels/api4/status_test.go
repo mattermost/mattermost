@@ -195,6 +195,21 @@ func TestUpdateUserStatus(t *testing.T) {
 		updateUserStatus, _, err := client.UpdateUserStatus(context.Background(), th.BasicUser.Id, toUpdateUserStatus)
 		require.NoError(t, err)
 		assert.Equal(t, "online", updateUserStatus.Status)
+
+		// Setting online through the API is an explicit choice, so it pins the status the
+		// same way away, dnd and offline do.
+		assert.True(t, updateUserStatus.Manual, "an explicitly set online status should be manual")
+	})
+
+	t.Run("online pin survives a round trip", func(t *testing.T) {
+		toUpdateUserStatus := &model.Status{Status: "online", UserId: th.BasicUser.Id}
+		_, _, err := client.UpdateUserStatus(context.Background(), th.BasicUser.Id, toUpdateUserStatus)
+		require.NoError(t, err)
+
+		fetched, _, err := client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
+		require.NoError(t, err)
+		assert.Equal(t, "online", fetched.Status)
+		assert.True(t, fetched.Manual, "the pin should be readable back from the server")
 	})
 
 	t.Run("set away status", func(t *testing.T) {
