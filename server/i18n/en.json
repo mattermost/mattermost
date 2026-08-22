@@ -652,6 +652,10 @@
     "translation": "Unable to remove user from the default channel {{.Channel}}."
   },
   {
+    "id": "api.channel.remove_channel_member.membership.app_error",
+    "translation": "You must be a member of the group message to remove members."
+  },
+  {
     "id": "api.channel.remove_channel_member.type.app_error",
     "translation": "Unable to remove user from a channel."
   },
@@ -664,12 +668,20 @@
     "translation": "%v removed from the channel."
   },
   {
+    "id": "api.channel.remove_member.removed_from_group",
+    "translation": "%v was removed from the group message by %v."
+  },
+  {
     "id": "api.channel.remove_members.denied",
     "translation": "Channel membership removal denied to the following users because of group constraints: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
     "translation": "Can not remove user from this channel type."
+  },
+  {
+    "id": "api.channel.remove_user_from_group.shared.app_error",
+    "translation": "Members cannot be removed from shared group messages."
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",

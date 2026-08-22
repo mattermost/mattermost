@@ -9,12 +9,15 @@ import type {Channel} from '@mattermost/types/channels';
 
 import {getChannelStats, updateChannelMemberSchemeRoles, removeChannelMember, getChannelMember} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
+import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {openModal} from 'actions/views/modals';
 
 import {canManageMembers} from 'utils/channel_utils';
+import {Constants} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -26,18 +29,21 @@ interface OwnProps {
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const {channel} = ownProps;
-    const canChangeMemberRoles = haveIChannelPermission(
+    const isGroupMessage = channel.type === Constants.GM_CHANNEL;
+    const mutableGroupMessagesEnabled = getFeatureFlagValue(state, 'EnableMutableGroupMessages') === 'true';
+    const canChangeMemberRoles = !isGroupMessage && haveIChannelPermission(
         state,
         channel.team_id,
         channel.id,
         Permissions.MANAGE_CHANNEL_ROLES,
     ) && canManageMembers(state, channel);
-    const canRemoveMember = canManageMembers(state, channel);
+    const canRemoveMember = isGroupMessage ? mutableGroupMessagesEnabled : canManageMembers(state, channel);
 
     return {
         currentUserId: getCurrentUserId(state),
         canChangeMemberRoles,
         canRemoveMember,
+        teammateNameDisplay: getTeammateNameDisplaySetting(state),
     };
 }
 

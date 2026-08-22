@@ -13,6 +13,7 @@ import Constants from 'utils/constants';
 
 type Props = {
     channel: Channel;
+    channelDisplayName?: string;
     currentUserId?: string;
     isMuted?: boolean;
     onExited: () => void;
@@ -23,8 +24,9 @@ type Props = {
     };
 };
 
-const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, onExited}: Props) => {
+const LeaveChannelModal = ({actions, channel, channelDisplayName, callback, currentUserId, isMuted, onExited}: Props) => {
     const [show, setShow] = useState(true);
+    const displayName = channelDisplayName || channel.display_name;
 
     const handleSubmit = () => {
         if (channel) {
@@ -159,14 +161,24 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
 
     let title;
     let message;
-    if (channel && channel.display_name) {
-        if (channel.type === Constants.PRIVATE_CHANNEL) {
+    if (channel && displayName) {
+        if (channel.type === Constants.GM_CHANNEL) {
+            title = (
+                <FormattedMessage
+                    id='leave_group_message_modal.title'
+                    defaultMessage='Leave Group Message {channel}'
+                    values={{
+                        channel: <b>{displayName}</b>,
+                    }}
+                />
+            );
+        } else if (channel.type === Constants.PRIVATE_CHANNEL) {
             title = (
                 <FormattedMessage
                     id='leave_private_channel_modal.title'
                     defaultMessage='Leave Private Channel {channel}'
                     values={{
-                        channel: <b>{channel.display_name}</b>,
+                        channel: <b>{displayName}</b>,
                     }}
                 />
             );
@@ -176,19 +188,29 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
                     id='leave_public_channel_modal.title'
                     defaultMessage='Leave Channel {channel}'
                     values={{
-                        channel: <b>{channel.display_name}</b>,
+                        channel: <b>{displayName}</b>,
                     }}
                 />
             );
         }
 
-        if (channel.type === Constants.PRIVATE_CHANNEL) {
+        if (channel.type === Constants.GM_CHANNEL) {
+            message = (
+                <FormattedMessage
+                    id='leave_group_message_modal.message'
+                    defaultMessage='Are you sure you wish to leave the group message {channel}? You must be re-added in order to re-join this conversation in the future.'
+                    values={{
+                        channel: <b>{displayName}</b>,
+                    }}
+                />
+            );
+        } else if (channel.type === Constants.PRIVATE_CHANNEL) {
             message = (
                 <FormattedMessage
                     id='leave_private_channel_modal.message'
                     defaultMessage='Are you sure you wish to leave the private channel {channel}? You must be re-invited in order to re-join this channel in the future.'
                     values={{
-                        channel: <b>{channel.display_name}</b>,
+                        channel: <b>{displayName}</b>,
                     }}
                 />
             );
@@ -198,7 +220,7 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
                     id='leave_public_channel_modal.message'
                     defaultMessage='Are you sure you wish to leave the channel {channel}? You can re-join this channel in the future if you change your mind.'
                     values={{
-                        channel: <b>{channel.display_name}</b>,
+                        channel: <b>{displayName}</b>,
                     }}
                 />
             );

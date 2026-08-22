@@ -5788,6 +5788,69 @@ func TestAddChannelMemberToGroupChannel(t *testing.T) {
 	})
 }
 
+func TestRemoveChannelMemberFromGroupChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("rejected when feature flag is off", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableMutableGroupMessages = false
+		}).InitBasic(t)
+		client := th.Client
+
+		user3 := th.CreateUser(t)
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+
+		resp, err := client.RemoveUserFromChannel(context.Background(), groupChannel.Id, user3.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.EnableMutableGroupMessages = true
+	}).InitBasic(t)
+	client := th.Client
+
+	user3 := th.CreateUser(t)
+	user4 := th.CreateUser(t)
+
+	t.Run("removes other member and updates identity", func(t *testing.T) {
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id, user4.Id})
+		require.NoError(t, err)
+
+		resp, err := client.RemoveUserFromChannel(context.Background(), groupChannel.Id, user4.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		updated, _, err := client.GetChannel(context.Background(), groupChannel.Id)
+		require.NoError(t, err)
+		require.Equal(t, model.GetGroupNameFromUserIds([]string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id}), updated.Name)
+	})
+
+	t.Run("allows self leave", func(t *testing.T) {
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+
+		resp, err := client.RemoveUserFromChannel(context.Background(), groupChannel.Id, th.BasicUser.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("rejects non-member", func(t *testing.T) {
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, err)
+
+		_, err = client.Logout(context.Background())
+		require.NoError(t, err)
+		_, _, err = client.Login(context.Background(), user4.Email, user4.Password)
+		require.NoError(t, err)
+
+		resp, err := client.RemoveUserFromChannel(context.Background(), groupChannel.Id, user3.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
 func TestAddChannelMembers(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -6232,7 +6295,7 @@ func TestRemoveChannelMember(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	// Test on preventing removal of user from a group channel
+	// Test on preventing removal of user from a group channel when mutable GMs are disabled
 	user3 := th.CreateUser(t)
 	groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{user1.Id, user2.Id, user3.Id})
 	require.NoError(t, err)
