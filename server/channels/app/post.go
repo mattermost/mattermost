@@ -2949,23 +2949,28 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 				continue
 			}
 
+			teamName := metadata.TeamName
+            if teamName == "" {
+                teamName = metadata.DefaultTeam
+            }
+
 			T := i18n.GetUserTranslations(metadata.UserLocale)
 			dm := &model.Post{
 				ChannelId: ch.Id,
 				Message: T("app.post_reminder_dm", model.StringInterface{
 					"SiteURL":  siteURL,
-					"TeamName": metadata.TeamName,
+					"TeamName": teamName,
 					"PostId":   postID,
 					"Username": metadata.Username,
 				}),
 				Type:   model.PostTypeReminder,
 				UserId: systemBot.UserId,
 				Props: model.StringInterface{
-					"team_name": metadata.TeamName,
+					"team_name": teamName,
 					"post_id":   postID,
 					"username":  metadata.Username,
 				},
-			}
+			} 
 
 			if _, _, err := a.CreatePost(request.EmptyContext(a.Log()), dm, ch, model.CreatePostFlags{SetOnline: true}); err != nil {
 				rctx.Logger().Error("Failed to post reminder message", mlog.Err(err))

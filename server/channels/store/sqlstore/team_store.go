@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 package sqlstore
-
+ 
 import (
 	"database/sql"
 	"fmt"

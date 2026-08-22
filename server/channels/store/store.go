@@ -195,7 +195,7 @@ type TeamStore interface {
 	GetCommonTeamIDsForTwoUsers(userID, otherUserID string) ([]string, error)
 
 	GetCommonTeamIDsForMultipleUsers(userIDs []string) ([]string, error)
-}
+} 
 
 type ChannelStore interface {
 	Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64, channelOptions ...model.ChannelOption) (*model.Channel, error)
@@ -1388,10 +1388,11 @@ type ThreadMembershipOpts struct {
 // PostReminderMetadata contains some info needed to send
 // the reminder message to the user.
 type PostReminderMetadata struct {
-	ChannelID  string
-	TeamName   string
-	UserLocale string
-	Username   string
+    ChannelID   string
+    TeamName    string
+    UserLocale  string
+    Username    string
+    DefaultTeam string
 }
 
 type ThreadMembershipImportData struct {
