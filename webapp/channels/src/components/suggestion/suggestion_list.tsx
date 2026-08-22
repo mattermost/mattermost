@@ -23,6 +23,13 @@ export interface Props {
     results: SuggestionResults;
     selection: string;
 
+    /**
+     * Optional maximum height in pixels for the suggestion list content.
+     * Overrides {@link Constants.SUGGESTION_LIST_MAXHEIGHT} when set (e.g. to allow
+     * modal-based lists like the Find Channels modal to grow taller).
+     */
+    maxHeight?: number;
+
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret
     // as the user is typing.
     suggestionBoxAlgn?: {
@@ -73,7 +80,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
 
         this.maxHeight = Math.min(
             window.innerHeight - (inputHeight + Constants.POST_MODAL_PADDING),
-            Constants.SUGGESTION_LIST_MAXHEIGHT,
+            this.props.maxHeight ?? Constants.SUGGESTION_LIST_MAXHEIGHT,
         );
 
         if (this.contentRef.current) {

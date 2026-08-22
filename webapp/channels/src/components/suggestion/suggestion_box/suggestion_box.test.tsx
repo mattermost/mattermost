@@ -4,6 +4,7 @@
 import React, {useCallback, useState} from 'react';
 
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import SuggestionBox from './suggestion_box';
@@ -163,6 +164,55 @@ describe('SuggestionBox', () => {
         await userEvent.keyboard('{escape}');
 
         expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+
+    test('should cap the suggestion list height using the default max height', async () => {
+        const provider = new TestProvider();
+
+        renderWithContext(
+            <TestWrapper
+                {...makeBaseProps()}
+                providers={[provider]}
+            />,
+        );
+
+        await userEvent.click(screen.getByPlaceholderText('test input'));
+        await userEvent.keyboard('test');
+
+        await waitFor(() => {
+            expect(screen.getByRole('listbox')).toBeVisible();
+        });
+
+        const expectedMaxHeight = Math.min(
+            window.innerHeight - Constants.POST_MODAL_PADDING,
+            Constants.SUGGESTION_LIST_MAXHEIGHT,
+        );
+        expect(document.getElementById('suggestionList')).toHaveStyle(`max-height: ${expectedMaxHeight}px`);
+    });
+
+    test('should use listMaxHeight to allow a taller suggestion list', async () => {
+        const provider = new TestProvider();
+
+        renderWithContext(
+            <TestWrapper
+                {...makeBaseProps()}
+                providers={[provider]}
+                listMaxHeight={Constants.SUGGESTION_LIST_MAXHEIGHT + 300}
+            />,
+        );
+
+        await userEvent.click(screen.getByPlaceholderText('test input'));
+        await userEvent.keyboard('test');
+
+        await waitFor(() => {
+            expect(screen.getByRole('listbox')).toBeVisible();
+        });
+
+        const expectedMaxHeight = Math.min(
+            window.innerHeight - Constants.POST_MODAL_PADDING,
+            Constants.SUGGESTION_LIST_MAXHEIGHT + 300,
+        );
+        expect(document.getElementById('suggestionList')).toHaveStyle(`max-height: ${expectedMaxHeight}px`);
     });
 
     test('should autocomplete suggestions by pressing enter', async () => {
