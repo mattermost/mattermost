@@ -1,0 +1,24 @@
+{
+    "server": {
+        "edition": "enterprise",
+        "tag": "release-11.4",
+        "ha": false,
+        "subpath": false,
+        "env": {
+            "MM_FEATUREFLAGS_MOVETHREADSENABLED": "true"
+        },
+        "config": {
+            "ServiceSettings": {
+                "EnableOpenServer": false
+            },
+            "TeamSettings": {
+                "MaxUsersPerTeam": 50
+            }
+        }
+    },
+    "dependencies": ["postgres", "inbucket", "openldap", "minio", "keycloak"],
+    "admin": {
+        "username": "sysadmin",
+        "password": "Sys@dmin-sample1"
+    }
+}
