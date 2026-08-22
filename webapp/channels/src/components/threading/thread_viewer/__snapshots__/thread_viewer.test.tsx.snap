@@ -3,16 +3,24 @@
 exports[`components/threading/ThreadViewer should match snapshot 1`] = `
 <div>
   <div
-    class="ThreadViewer"
+    class="loading-screen"
+    data-testid="loading-screen"
+    style="position: relative; display: grid; place-content: center; flex: 1 1 0%;"
   >
     <div
-      class="post-right-comments-container"
+      class="loading__content"
     >
+      <p>
+        Loading
+      </p>
       <div
-        data-testid="file-upload-overlay"
+        class="round round-1"
       />
       <div
-        data-testid="virtualized-thread-viewer"
+        class="round round-2"
+      />
+      <div
+        class="round round-3"
       />
     </div>
   </div>

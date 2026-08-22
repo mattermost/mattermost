@@ -418,15 +418,12 @@ exports[`components/marketplace/ hides search and shows web marketplace banner 1
               >
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
               </div>
             </a>
@@ -570,15 +567,12 @@ exports[`components/marketplace/ should render default 1`] = `
               >
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
               </div>
             </a>
@@ -764,15 +758,12 @@ exports[`components/marketplace/ should render with error banner 1`] = `
               >
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
               </div>
             </a>
@@ -942,15 +933,12 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
               >
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
               </div>
             </a>
@@ -1162,15 +1150,12 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
               >
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
               </div>
             </a>
@@ -1472,15 +1457,12 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
               >
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
                 <img
                   class="PluginIcon-gwsFHd eGJjnp"
-                  src=""
                 />
               </div>
             </a>

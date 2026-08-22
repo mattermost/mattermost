@@ -16,7 +16,6 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
           alt=""
           class="overlay__files"
           loading="lazy"
-          src=""
         />
         Drop a file to upload it.
       </div>
@@ -41,7 +40,6 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
           alt=""
           class="overlay__files"
           loading="lazy"
-          src=""
         />
         Drop a file to upload it.
       </div>
@@ -66,7 +64,6 @@ exports[`components/FileUploadOverlay should match snapshot when file upload is 
           alt=""
           class="overlay__files"
           loading="lazy"
-          src=""
         />
         Drop a file to upload it.
       </div>

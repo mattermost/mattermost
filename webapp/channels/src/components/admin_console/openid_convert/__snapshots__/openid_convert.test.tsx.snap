@@ -11,7 +11,6 @@ exports[`components/OpenIdConvert should match snapshot 1`] = `
       <img
         alt="OpenId Convert Image"
         class="OpenIdConvert_image"
-        src=""
       />
     </div>
     <div
