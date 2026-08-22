@@ -4,6 +4,20 @@
         padding: 0 4px 16px;
     }
 
+    &__filter-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px 4px;
+    }
+
+    &__filter-label {
+        margin: 0;
+        cursor: pointer;
+        font-size: 13px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+    }
+
     &__member-list-separator {
         padding: 0px 12px;
         margin-top: 16px;
