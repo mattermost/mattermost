@@ -1,29 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import debounce from 'lodash/debounce';
-import React from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
-import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 import type {
     LogFilter,
     LogLevels,
-    LogObject,
     LogServerNames,
 } from '@mattermost/types/admin';
 
 import {Client4} from 'mattermost-redux/client';
 
-import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import LogFormatMenu from './log_format_menu';
 import LogList from './log_list';
 import PlainLogList from './plain_log_list';
+import type {LogObjectWithAdditionalInfo} from './types';
+import useLogPolling from './use_log_polling';
 
-type LogObjectWithAdditionalInfo = LogObject & {
-    [key: string]: string;
-};
+import './logs.scss';
 
 type Props = {
     logs: LogObjectWithAdditionalInfo[];
@@ -38,226 +35,288 @@ type Props = {
     };
 };
 
-type State = {
-    dateFrom: string;
-    dateTo: string;
-    filteredLogs: LogObject[];
-    loading: boolean;
-    logLevels: LogLevels;
-    search: string;
-    serverNames: LogServerNames;
-    page: number;
-    perPage: number;
-    isPlainLogs: boolean;
-};
-
 const messages = defineMessages({
     title: {id: 'admin.logs.title', defaultMessage: 'Server Logs'},
-    bannerDesc: {id: 'admin.logs.bannerDesc', defaultMessage: 'To look up users by User ID or Token ID, go to User Management > Users and paste the ID into the search filter.'},
-    logFormatTitle: {id: 'admin.logs.logFormatTitle', defaultMessage: 'Log Format:'},
-    logFormatJson: {id: 'admin.logs.logFormatJson', defaultMessage: 'JSON'},
-    logFormatPlain: {id: 'admin.logs.logFormatPlain', defaultMessage: 'Plain text'},
 });
+
 export const searchableStrings = [
     messages.title,
-    messages.bannerDesc,
 ];
 
-export default class Logs extends React.PureComponent<Props, State> {
-    constructor(props: Props) {
-        super(props);
-        this.state = {
-            dateFrom: '',
-            dateTo: '',
-            filteredLogs: [],
-            loading: true,
-            logLevels: [],
-            search: '',
-            serverNames: [],
-            page: 0,
-            perPage: 1000,
-            isPlainLogs: props.isPlainLogs,
-        };
-    }
+const POLL_INTERVALS = [5000, 10000, 30000, 60000] as const;
+const POLL_INTERVAL_LABELS = defineMessages<number>({
+    5000: {id: 'admin.logs.pollInterval.5s', defaultMessage: 'Every 5 seconds'},
+    10000: {id: 'admin.logs.pollInterval.10s', defaultMessage: 'Every 10 seconds'},
+    30000: {id: 'admin.logs.pollInterval.30s', defaultMessage: 'Every 30 seconds'},
+    60000: {id: 'admin.logs.pollInterval.60s', defaultMessage: 'Every 60 seconds'},
+});
 
-    componentDidMount() {
-        this.reload();
-    }
+const timePresetMessages = defineMessages({
+    fiveMinutes: {id: 'admin.logs.time.5m', defaultMessage: 'Last 5 minutes'},
+    fifteenMinutes: {id: 'admin.logs.time.15m', defaultMessage: 'Last 15 minutes'},
+    oneHour: {id: 'admin.logs.time.1h', defaultMessage: 'Last hour'},
+    oneDay: {id: 'admin.logs.time.24h', defaultMessage: 'Last 24 hours'},
+});
 
-    componentDidUpdate(prevProps: Props, prevState: State) {
-        if (this.state.isPlainLogs && (this.state.page !== prevState.page || !this.props.plainLogs?.length)) {
-            this.reload();
+const TIME_PRESETS = [
+    {label: timePresetMessages.fiveMinutes, minutes: 5},
+    {label: timePresetMessages.fifteenMinutes, minutes: 15},
+    {label: timePresetMessages.oneHour, minutes: 60},
+    {label: timePresetMessages.oneDay, minutes: 1440},
+] as const;
+
+const LOG_FORMAT_PREF_KEY = 'mm_admin_logs_format';
+
+// The logs API expects filter dates as UTC in "YYYY-MM-DD HH:mm:ss.SSS +00:00"
+function formatFilterDate(date: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}.000 +00:00`;
+}
+
+// The range covered by a time preset, ending at the current time
+function presetRange(minutes: number): {dateFrom: string; dateTo: string} {
+    const now = new Date();
+    return {
+        dateFrom: formatFilterDate(new Date(now.getTime() - (minutes * 60 * 1000))),
+        dateTo: formatFilterDate(now),
+    };
+}
+
+// The level and server-name filters are applied client side, so the query never
+// narrows them
+const ALL_SERVER_NAMES: LogServerNames = [];
+const ALL_LOG_LEVELS: LogLevels = [];
+
+const PLAIN_LOGS_PER_PAGE = 1000;
+
+function getInitialFormat(configIsPlainLogs: boolean): boolean {
+    if (configIsPlainLogs) {
+        return true;
+    }
+    try {
+        const saved = localStorage.getItem(LOG_FORMAT_PREF_KEY);
+        if (saved === 'plain') {
+            return true;
         }
+        if (saved === 'structured') {
+            return false;
+        }
+    } catch {
+        // ignore
     }
+    return false;
+}
 
-    nextPage = () => {
-        this.setState({page: this.state.page + 1});
-    };
+export default function Logs({logs, plainLogs, isPlainLogs: configIsPlainLogs, actions}: Props) {
+    const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs));
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState('');
 
-    previousPage = () => {
-        this.setState({page: this.state.page - 1});
-    };
+    // Filter state
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
 
-    reload = async () => {
-        this.setState({loading: true});
-        if (this.state.isPlainLogs) {
-            await this.props.actions.getPlainLogs(
-                this.state.page,
-                this.state.perPage,
-            );
+    // Refs for latest date values (used by reload during live tail)
+    const dateFromRef = useRef(dateFrom);
+    const dateToRef = useRef(dateTo);
+    dateFromRef.current = dateFrom;
+    dateToRef.current = dateTo;
+
+    // Plain log pagination
+    const [plainPage, setPlainPage] = useState(0);
+
+    // Live tail state
+    const [liveTailEnabled, setLiveTailEnabled] = useState(false);
+    const [pollInterval, setPollInterval] = useState(5000);
+
+    // Active time preset
+    const [activeTimePreset, setActiveTimePreset] = useState<number | null>(null);
+
+    // Ref for active time preset so reload can recompute dates dynamically
+    const activeTimePresetRef = useRef<number | null>(null);
+
+    // `silent` keeps the loading state untouched, so a background poll never
+    // replaces the viewer with a spinner
+    const reload = useCallback(async (options?: {silent?: boolean}) => {
+        const silent = options?.silent === true;
+        if (!silent) {
+            setLoading(true);
+        }
+        if (isPlainLogs) {
+            await actions.getPlainLogs(plainPage, PLAIN_LOGS_PER_PAGE);
         } else {
-            await this.props.actions.getLogs({
-                serverNames: this.state.serverNames,
-                logLevels: this.state.logLevels,
-                dateFrom: this.state.dateFrom,
-                dateTo: this.state.dateTo,
+            // If a time preset is active, recompute the date range for fresh data
+            let effectiveDateFrom = dateFromRef.current;
+            let effectiveDateTo = dateToRef.current;
+            if (activeTimePresetRef.current !== null) {
+                ({dateFrom: effectiveDateFrom, dateTo: effectiveDateTo} = presetRange(activeTimePresetRef.current));
+            }
+            await actions.getLogs({
+                serverNames: ALL_SERVER_NAMES,
+                logLevels: ALL_LOG_LEVELS,
+                dateFrom: effectiveDateFrom,
+                dateTo: effectiveDateTo,
             });
         }
-        this.setState({loading: false});
-    };
+        if (!silent) {
+            setLoading(false);
+        }
+    }, [isPlainLogs, plainPage, actions]);
 
-    onLogFormatToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({isPlainLogs: event.target.value === 'plain'});
-    };
+    const pollLogs = useCallback(() => reload({silent: true}), [reload]);
 
-    onSearchChange = (search: string) => {
-        this.setState({search}, () => this.performSearch());
-    };
+    // Click handlers must not forward their event as reload options
+    const handleReload = useCallback(() => reload(), [reload]);
 
-    performSearch = debounce(() => {
-        const {search} = this.state;
+    // Initial load + reload when plain page changes
+    const hasMountedRef = useRef(false);
+    useEffect(() => {
+        if (!hasMountedRef.current) {
+            hasMountedRef.current = true;
+            reload();
+            return;
+        }
+        if (isPlainLogs) {
+            reload();
+        }
+    }, [plainPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
-        // Excluding level and timestamp from search
+    // Live tail polling
+    useLogPolling({
+        fetchLogs: pollLogs,
+        enabled: liveTailEnabled && !isPlainLogs,
+        intervalMs: pollInterval,
+    });
+
+    const onSearchChange = useCallback((term: string) => {
+        setSearch(term);
+    }, []);
+
+    // Filter logs based on search term
+    const searchFilteredLogs = useMemo(() => {
+        if (!search) {
+            return logs;
+        }
         const excludedKeys = new Set(['level', 'timestamp']);
-
-        const filteredLogs = this.props.logs.filter((log) =>
+        const lowerSearch = search.toLowerCase();
+        return logs.filter((log) =>
             Object.entries(log).some(([key, value]) => {
                 if (excludedKeys.has(key)) {
                     return false;
                 }
-                return String(value).toLowerCase().includes(search.toLowerCase());
+                return String(value).toLowerCase().includes(lowerSearch);
             }),
         );
-        this.setState({filteredLogs});
-    }, 200);
+    }, [logs, search]);
 
-    componentWillUnmount(): void {
-        this.performSearch.cancel();
-    }
-
-    onFiltersChange = ({
-        dateFrom,
-        dateTo,
-        logLevels,
-        serverNames,
-    }: LogFilter) => {
-        this.setState({dateFrom, dateTo, logLevels, serverNames}, () =>
-            this.reload(),
-        );
-    };
-
-    render() {
-        const list = this.state.isPlainLogs ? (
-            <PlainLogList
-                loading={this.state.loading}
-                logs={this.props.plainLogs}
-                nextPage={this.nextPage}
-                previousPage={this.previousPage}
-                page={this.state.page}
-                perPage={this.state.perPage}
-            />
-        ) : (
-            <LogList
-                loading={this.state.loading}
-                logs={this.state.search ? this.state.filteredLogs : this.props.logs}
-                onSearchChange={this.onSearchChange}
-                search={this.state.search}
-                onFiltersChange={this.onFiltersChange}
-            />
-        );
-
-        let toggleLogFormat;
-        if (!this.props.isPlainLogs) {
-            toggleLogFormat = (
-                <div
-                    className='banner-buttons__log-format'
-                    id='admin.logs.LogFormat'
-                    role='radiogroup'
-                    aria-labelledby='admin.logs.LogFormat.legend'
-                >
-                    <span
-                        id='admin.logs.LogFormat.legend'
-                    >
-                        <FormattedMessage {...messages.logFormatTitle}/>
-                    </span>
-
-                    <label>
-                        <input
-                            type='radio'
-                            id='admin.logs.LogFormat.json'
-                            name='log-format'
-                            value='json'
-                            checked={!this.state.isPlainLogs}
-                            onChange={this.onLogFormatToggle}
-                        />
-                        <FormattedMessage {...messages.logFormatJson}/>
-                    </label>
-                    <label>
-                        <input
-                            type='radio'
-                            id='admin.logs.LogFormat.plain'
-                            name='log-format'
-                            value='plain'
-                            checked={this.state.isPlainLogs}
-                            onChange={this.onLogFormatToggle}
-                        />
-                        <FormattedMessage {...messages.logFormatPlain}/>
-                    </label>
-                </div>
-            );
+    const onLogFormatChange = useCallback((plain: boolean) => {
+        setIsPlainLogs(plain);
+        try {
+            localStorage.setItem(LOG_FORMAT_PREF_KEY, plain ? 'plain' : 'structured');
+        } catch {
+            // ignore
         }
+        if (plain) {
+            setLiveTailEnabled(false);
+            setLoading(true);
+            actions.getPlainLogs(plainPage, PLAIN_LOGS_PER_PAGE).then(() => setLoading(false));
+        } else {
+            setLoading(true);
+            actions.getLogs({
+                serverNames: ALL_SERVER_NAMES,
+                logLevels: ALL_LOG_LEVELS,
+                dateFrom,
+                dateTo,
+            }).then(() => setLoading(false));
+        }
+    }, [actions, plainPage, dateFrom, dateTo]);
 
-        return (
-            <div className='wrapper--fixed'>
-                <AdminHeader>
-                    <FormattedMessage {...messages.title}/>
-                </AdminHeader>
-                <div className='admin-console__wrapper'>
-                    <div className='admin-logs-content admin-console__content'>
-                        <div className='logs-banner'>
-                            <div className='banner'>
-                                <div className='banner__content'>
-                                    <FormattedMessage {...messages.bannerDesc}/>
-                                </div>
-                            </div>
-                            <div className='banner-buttons'>
-                                {toggleLogFormat}
-                                <Button
-                                    type='submit'
-                                    emphasis='primary'
-                                    onClick={this.reload}
-                                >
-                                    <FormattedMessage
-                                        id='admin.logs.ReloadLogs'
-                                        defaultMessage='Reload Logs'
-                                    />
-                                </Button>
-                                <ExternalLink
-                                    location='download_logs'
-                                    className={buttonClassNames({emphasis: 'primary'})}
-                                    href={Client4.getUrl() + '/api/v4/logs/download'}
-                                >
-                                    <FormattedMessage
-                                        id='admin.logs.DownloadLogs'
-                                        defaultMessage='Download Logs'
-                                    />
-                                </ExternalLink>
-                            </div>
-                        </div>
-                        {list}
-                    </div>
+    // Time presets
+    const handleTimePreset = useCallback((minutes: number) => {
+        const {dateFrom: newDateFrom, dateTo: newDateTo} = presetRange(minutes);
+
+        setActiveTimePreset(minutes);
+        activeTimePresetRef.current = minutes;
+        setDateFrom(newDateFrom);
+        setDateTo(newDateTo);
+
+        setLoading(true);
+        actions.getLogs({
+            serverNames: ALL_SERVER_NAMES,
+            logLevels: ALL_LOG_LEVELS,
+            dateFrom: newDateFrom,
+            dateTo: newDateTo,
+        }).then(() => setLoading(false));
+    }, [actions]);
+
+    const clearTimePreset = useCallback(() => {
+        setActiveTimePreset(null);
+        activeTimePresetRef.current = null;
+        setDateFrom('');
+        setDateTo('');
+        setLoading(true);
+        actions.getLogs({
+            serverNames: ALL_SERVER_NAMES,
+            logLevels: ALL_LOG_LEVELS,
+            dateFrom: '',
+            dateTo: '',
+        }).then(() => setLoading(false));
+    }, [actions]);
+
+    const displayLogs = searchFilteredLogs;
+
+    const logFormatMenu = configIsPlainLogs ? null : (
+        <LogFormatMenu
+            isPlainLogs={isPlainLogs}
+            onChange={onLogFormatChange}
+        />
+    );
+
+    const list = isPlainLogs ? (
+        <PlainLogList
+            loading={loading}
+            logs={plainLogs}
+            nextPage={() => setPlainPage((p) => p + 1)}
+            previousPage={() => setPlainPage((p) => Math.max(0, p - 1))}
+            goToPage={(p: number) => setPlainPage(Math.max(0, p))}
+            page={plainPage}
+            perPage={PLAIN_LOGS_PER_PAGE}
+            onReload={handleReload}
+            downloadUrl={Client4.getUrl() + '/api/v4/logs/download'}
+            logFormatMenu={logFormatMenu}
+        />
+    ) : (
+        <LogList
+            loading={loading}
+            logs={displayLogs as LogObjectWithAdditionalInfo[]}
+            onSearchChange={onSearchChange}
+            search={search}
+            onReload={handleReload}
+            downloadUrl={Client4.getUrl() + '/api/v4/logs/download'}
+            liveTailEnabled={liveTailEnabled}
+            onToggleLiveTail={() => setLiveTailEnabled(!liveTailEnabled)}
+            pollInterval={pollInterval}
+            onPollIntervalChange={setPollInterval}
+            pollIntervals={POLL_INTERVALS}
+            pollIntervalLabels={POLL_INTERVAL_LABELS}
+            timePresets={TIME_PRESETS}
+            activeTimePreset={activeTimePreset}
+            onTimePreset={handleTimePreset}
+            onClearTimePreset={clearTimePreset}
+            logFormatMenu={logFormatMenu}
+        />
+    );
+
+    return (
+        <div className='wrapper--fixed'>
+            <AdminHeader>
+                <FormattedMessage {...messages.title}/>
+            </AdminHeader>
+            <div className='admin-console__wrapper'>
+                <div className='admin-console__container ServerLogs'>
+                    {list}
                 </div>
             </div>
-        );
-    }
+        </div>
+    );
 }

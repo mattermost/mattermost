@@ -1,36 +1,443 @@
-.LogTable {
-    overflow: hidden;
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
-    .DataGrid {
-        .DataGrid_row {
-            min-height: 40px;
-            padding-left: 16px;
-            cursor: pointer;
-        }
+@use "./log_viewer";
 
-        .DataGrid_cell > .timestamp {
-            display: flex;
-            width: 100%;
-            align-items: center;
-            cursor: pointer;
+// ============================
+// Log Viewer
+// ============================
+
+.LogViewer {
+    @include log_viewer.viewer-shell;
+
+    // ---------------------
+    // Filters
+    // ---------------------
+    // Padding and wrapping come from .admin-console__filters-rows, matching the
+    // System Users filter row.
+    &__filters {
+        column-gap: 12px;
+
+        // Wide enough for the longest selector value, 'Every 5 seconds'
+        .inputWithMenu input.form-control {
+            width: 140px;
         }
     }
 
-    .btn-inverted {
-        border: 2px solid var(--button-bg);
-        border-radius: 4px;
-        background: transparent;
-        color: var(--button-bg);
-        font-weight: bold;
-        line-height: 12px;
+    &__filters-spacer {
+        flex: 1;
     }
 
-    .btn-dangerous {
-        border: 2px solid var(--dnd-indicator);
-        border-radius: 4px;
-        background: transparent;
-        color: var(--dnd-indicator);
-        font-weight: bold;
+    &__search {
+        width: 240px;
+
+        .Input_wrapper {
+            gap: 4px;
+        }
+
+        .icon-magnify {
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-size: 18px;
+        }
+    }
+
+    &__search-clear {
+        margin-inline-start: -4px;
+    }
+
+    // Count of entries per level, shown next to each level in the filter menu
+    &__level-count {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    // ---------------------
+    // Live tail
+    // ---------------------
+    &__live-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        flex-shrink: 0;
+        border-radius: var(--radius-full);
+        animation: log-live-pulse 1.5s ease-in-out infinite;
+        background: var(--dnd-indicator);
+
+        @media (prefers-reduced-motion: reduce) {
+            animation: none;
+        }
+    }
+
+    // ---------------------
+    // Column header
+    // ---------------------
+    // Mirrors the `thead` of .adminConsoleListTable so the log list reads as a
+    // table alongside the other admin console lists.
+    &__header {
+        display: flex;
+        align-items: center;
+        padding: 12px 24px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        font-weight: 600;
+        gap: 12px;
         line-height: 16px;
+        white-space: nowrap;
+    }
+
+    &__header-level {
+        width: log_viewer.$level-column-width;
+        flex-shrink: 0;
+    }
+
+    &__header-timestamp {
+        display: inline-flex;
+        width: log_viewer.$timestamp-column-width;
+        flex-shrink: 0;
+        align-items: center;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        font-size: inherit;
+        font-weight: inherit;
+        gap: 2px;
+        text-align: left;
+
+        i {
+            font-size: 14px;
+        }
+
+        &:hover {
+            color: var(--center-channel-color);
+        }
+    }
+
+    &__header-message {
+        min-width: 0;
+        flex: 1;
+    }
+
+    &__header-caller {
+        // Caller column plus the gap and the expand chevron beside it
+        width: log_viewer.$caller-column-width + 12px + 16px;
+        flex-shrink: 0;
+        text-align: right;
+    }
+
+    // ---------------------
+    // Log list container
+    // ---------------------
+    &__list {
+        flex: 1;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    // Loading and empty states
+    &__placeholder {
+        @include log_viewer.viewer-placeholder;
+
+        flex: 1;
+    }
+
+    // ---------------------
+    // Footer
+    // ---------------------
+    &__footer {
+        @include log_viewer.viewer-footer;
+    }
+
+    &__footer-info {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    &__footer-help {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: help;
+        font-size: 16px;
+
+        &:hover {
+            color: var(--center-channel-color);
+        }
+    }
+
+    &__footer-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    &__pagesize {
+        @include log_viewer.viewer-page-size;
+    }
+
+    &__pagination {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    &__page-indicator {
+        margin-inline-end: 8px;
+        white-space: nowrap;
+    }
+}
+
+// ============================
+// Log Row
+// ============================
+
+.LogRow {
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    cursor: pointer;
+
+    &:first-child {
+        border-top: none;
+    }
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+    }
+
+    &--focused {
+        background: rgba(var(--button-bg-rgb), 0.04);
+        box-shadow: inset 2px 0 0 var(--button-bg);
+    }
+
+    &--expanded {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+    }
+
+    // A tint on the rows that need attention, kept faint enough that hover and
+    // selection still read on top of it
+    &--error-bg {
+        background: rgba(var(--semantic-color-danger), 0.04);
+
+        &:hover {
+            background: rgba(var(--semantic-color-danger), 0.08);
+        }
+    }
+
+    &--warn-bg {
+        background: rgba(var(--semantic-color-warning), 0.04);
+
+        &:hover {
+            background: rgba(var(--semantic-color-warning), 0.08);
+        }
+    }
+
+    // Main row content
+    &__main {
+        display: flex;
+        min-height: 36px;
+        align-items: flex-start;
+        padding: 8px 24px;
+        font-family: log_viewer.$mono-font;
+        font-size: 13px;
+        gap: 12px;
+        line-height: 20px;
+
+        &:focus-visible {
+            outline: 2px solid var(--button-bg);
+            outline-offset: -2px;
+        }
+    }
+
+    // Level chip. Sized to the level column so the rows stay aligned, and
+    // otherwise built to the same metrics as the shared Tag widget.
+    &__level {
+        display: inline-flex;
+        width: log_viewer.$level-column-width;
+        height: 20px;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-s);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        line-height: 16px;
+        text-transform: uppercase;
+
+        &--error {
+            background: rgba(var(--semantic-color-danger), 0.12);
+            color: rgb(var(--semantic-color-danger));
+        }
+
+        &--warn {
+            background: rgba(var(--semantic-color-warning), 0.12);
+            color: rgb(var(--semantic-color-warning));
+        }
+
+        &--info {
+            background: rgba(var(--semantic-color-info), 0.12);
+            color: rgb(var(--semantic-color-info));
+        }
+
+        &--debug {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+        }
+    }
+
+    &__timestamp {
+        width: log_viewer.$timestamp-column-width;
+        flex-shrink: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+    }
+
+    &__message {
+        min-width: 0;
+        flex: 1;
+        color: var(--center-channel-color);
+    }
+
+    &--wrap &__message {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    &--nowrap &__message {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    // Caller. Shrinkable (unlike the other columns) so it yields space to the
+    // expand indicator instead of pushing it past the row's right edge on
+    // narrow viewports. `direction: rtl` truncates from the start, keeping
+    // the useful file:line suffix visible.
+    &__caller {
+        overflow: hidden;
+        min-width: 60px;
+        flex: 0 1 log_viewer.$caller-column-width;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        direction: rtl;
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__expand-indicator {
+        width: 16px;
+        flex-shrink: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 16px;
+    }
+
+    &__highlight {
+        padding: 0 1px;
+        border-radius: var(--radius-xs);
+        background: rgba(var(--mention-highlight-bg-rgb), 0.48);
+        color: inherit;
+    }
+
+    // ---------------------
+    // Expanded details
+    // ---------------------
+    &__details {
+        padding: 16px 24px 16px log_viewer.$details-indent;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    // Level and timestamp are narrow, so the core fields get their own column
+    // widths instead of the even split the dynamic fields use
+    &__details-core {
+        display: grid;
+        gap: 12px 24px;
+        grid-template-columns: minmax(0, max-content) minmax(0, max-content) minmax(0, 1fr);
+    }
+
+    &__details-grid {
+        display: grid;
+        gap: 12px 24px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    &__details-extra {
+        padding-top: 16px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-top: 16px;
+    }
+
+    &__detail-item {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 2px;
+
+        &--full {
+            grid-column: 1 / -1;
+        }
+    }
+
+    &__detail-label {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+    }
+
+    &__detail-value {
+        display: flex;
+        align-items: center;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        gap: 4px;
+        line-height: 20px;
+        word-break: break-word;
+
+        &--mono {
+            font-family: log_viewer.$mono-font;
+            font-size: 13px;
+        }
+    }
+
+    &__copy-btn {
+        flex-shrink: 0;
+    }
+
+    &__detail-link {
+        display: inline-flex;
+        align-items: center;
+        color: var(--link-color);
+        gap: 2px;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    &__detail-link-icon {
+        font-size: 14px;
+    }
+
+    &__details-actions {
+        display: flex;
+        align-items: center;
+        padding-top: 16px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-top: 16px;
+        gap: 8px;
+    }
+}
+
+@keyframes log-live-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
     }
 }

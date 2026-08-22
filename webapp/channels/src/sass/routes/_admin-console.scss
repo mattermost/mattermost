@@ -186,23 +186,6 @@
         }
     }
 
-    .log__panel {
-        overflow: scroll;
-        width: 100%;
-        min-height: 0;
-        flex: 1;
-        padding: 10px;
-        border: variables.$border-gray;
-        margin-top: 14px;
-        background-color: white;
-
-        &:has(.LoadingSpinner) {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-    }
-
     &.admin {
         overflow: auto;
         height: 100%;
@@ -596,12 +579,6 @@
         font-weight: 400;
     }
 
-    .logs-banner {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-    }
 }
 
 .job-table__table {
@@ -1135,69 +1112,6 @@
 #error-tooltip {
     .tooltip-inner {
         max-width: none;
-    }
-}
-
-.admin-console .admin-console__content.admin-logs-content {
-    display: flex;
-    overflow: hidden;
-    max-width: none;
-    height: 100%;
-    flex-direction: column;
-
-    // We keep the banner the same width and only expand the content box.
-    .banner {
-        max-width: 920px;
-    }
-
-    .banner-buttons {
-        display: flex;
-
-        .banner-buttons__log-format {
-            display: flex;
-            align-items: center;
-            margin-right: 28px;
-            gap: 8px;
-
-            label {
-                display: inline-flex;
-                align-items: center;
-                margin-bottom: 0;
-                gap: 8px;
-
-                input[type="radio"] {
-                    margin-top: 0;
-                }
-            }
-        }
-    }
-
-    > .btn {
-        width: fit-content;
-    }
-
-    .LogTable {
-        min-height: 0;
-        flex: 1;
-
-        .DataGrid {
-            display: flex;
-            height: 100%;
-            flex-direction: column;
-
-            .DataGrid_rows {
-                overflow: auto;
-                min-height: 0 !important;
-                flex: 1;
-            }
-        }
-    }
-
-    .plain-log-list {
-        display: flex;
-        min-height: 0;
-        flex: 1;
-        flex-direction: column;
     }
 }
 
