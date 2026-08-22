@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -125,6 +126,11 @@ func init() {
 	ImportProcessCmd.Flags().Bool("bypass-upload", false, "If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.")
 	ImportProcessCmd.Flags().Bool("extract-content", true, "If this is set, document attachments will be extracted and indexed during the import process. It is advised to disable it to improve performance.")
 	ImportProcessCmd.Flags().Int("workers", 0, "The number of concurrent import worker goroutines. Controls database load during import. When set to 0 (default), uses the number of CPUs available. Maximum allowed is 4x the CPU count.")
+	ImportProcessCmd.Flags().String("destination-team-name", "", "Map the source team in the export to an existing team on the destination server (by name/slug). Works with both channel-scoped and full-team exports. Mutually exclusive with --destination-team-id.")
+	ImportProcessCmd.Flags().String("destination-team-id", "", "Map the source team in the export to an existing team on the destination server (by ID). Mutually exclusive with --destination-team-name.")
+	ImportProcessCmd.Flags().String("destination-channel-name", "", "Map the source channel in the export to a different channel name on the destination server (by name). Only valid for channel-scoped exports. Mutually exclusive with --destination-channel-id.")
+	ImportProcessCmd.Flags().String("destination-channel-id", "", "Map the source channel in the export to a different channel on the destination server (by ID). Only valid for channel-scoped exports. Mutually exclusive with --destination-channel-name.")
+	ImportProcessCmd.Flags().Bool("skip-preflight", false, "Skip SSO provider configuration checks. By default the import fails if an auth provider present in the export is not enabled on the destination. Use this flag only after reviewing the preflight error and accepting the risk.")
 
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
@@ -319,6 +325,41 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 		return fmt.Errorf("workers value %d exceeds maximum allowed (%d = 4 * CPU count)", workers, maxWorkers)
 	}
 
+	destinationTeamName, _ := command.Flags().GetString("destination-team-name")
+	destinationTeamNameID, _ := command.Flags().GetString("destination-team-id")
+	skipPreflight, _ := command.Flags().GetBool("skip-preflight")
+
+	if destinationTeamName != "" && destinationTeamNameID != "" {
+		return fmt.Errorf("--destination-team-name and --destination-team-id are mutually exclusive")
+	}
+	if destinationTeamNameID != "" {
+		team, _, err := c.GetTeam(context.TODO(), destinationTeamNameID, "")
+		if err != nil {
+			return fmt.Errorf("failed to lookup destination team by ID %q: %w", destinationTeamNameID, err)
+		}
+		if team == nil {
+			return fmt.Errorf("destination team with ID %q not found", destinationTeamNameID)
+		}
+		destinationTeamName = team.Name
+	}
+
+	destinationChannelName, _ := command.Flags().GetString("destination-channel-name")
+	destinationChannelID, _ := command.Flags().GetString("destination-channel-id")
+
+	if destinationChannelName != "" && destinationChannelID != "" {
+		return fmt.Errorf("--destination-channel-name and --destination-channel-id are mutually exclusive")
+	}
+	if destinationChannelID != "" {
+		channel, _, err := c.GetChannel(context.TODO(), destinationChannelID)
+		if err != nil {
+			return fmt.Errorf("failed to lookup destination channel by ID %q: %w", destinationChannelID, err)
+		}
+		if channel == nil {
+			return fmt.Errorf("destination channel with ID %q not found", destinationChannelID)
+		}
+		destinationChannelName = channel.Name
+	}
+
 	jobData := map[string]string{
 		"import_file":     importFile,
 		"local_mode":      strconv.FormatBool(isLocal && bypassUpload),
@@ -326,6 +367,39 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	}
 	if workers > 0 {
 		jobData["workers"] = strconv.Itoa(workers)
+	}
+	if destinationTeamName != "" {
+		jobData["destination_team_name"] = destinationTeamName
+	}
+	if destinationChannelName != "" {
+		jobData["destination_channel_name"] = destinationChannelName
+	}
+	if skipPreflight {
+		jobData["skip_preflight"] = "true"
+	}
+
+	// Check for a previous failed import of the same file with a checkpoint.
+	// If found, ask the user whether to resume or start fresh.
+	if checkpoint, checkpointFile, totalLines := findImportCheckpoint(c, importFile); checkpoint > 0 && checkpointFile == importFile {
+		if totalLines > 0 {
+			pct := float64(checkpoint) / float64(totalLines) * 100
+			fmt.Printf("\nA previous import of '%s' was interrupted at line %d of %d (%.0f%% complete).\n",
+				importFile, checkpoint, totalLines, pct)
+		} else {
+			fmt.Printf("\nA previous import of '%s' was interrupted at line %d.\n", importFile, checkpoint)
+		}
+		fmt.Println("Resume from that point? Starting fresh will re-import everything from the beginning.")
+		fmt.Print("[Y/n]: ")
+		reader := bufio.NewReader(os.Stdin)
+		answer, _ := reader.ReadString('\n')
+		answer = strings.TrimSpace(strings.ToLower(answer))
+		if answer == "" || answer == "y" || answer == "yes" {
+			jobData["checkpoint"] = strconv.Itoa(checkpoint)
+			jobData["checkpoint_file"] = checkpointFile
+			fmt.Printf("Resuming from line %d.\n", checkpoint)
+		} else {
+			fmt.Println("Starting fresh.")
+		}
 	}
 
 	job, _, err := c.CreateJob(context.TODO(), &model.Job{
@@ -339,6 +413,40 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	printer.PrintT("Import process job successfully created, ID: {{.Id}}", job)
 
 	return nil
+}
+
+// findImportCheckpoint searches recent import jobs for a failed run of the
+// given file that has a checkpoint stored. Also checks for a prior successful
+// run to derive the total line count for percentage display.
+// Returns (checkpoint, checkpointFile, totalLines). totalLines is 0 if unknown.
+func findImportCheckpoint(c client.Client, importFile string) (int, string, int) {
+	jobs, _, err := c.GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusError, 0, 10)
+	if err != nil {
+		return 0, "", 0
+	}
+	for _, job := range jobs {
+		if job.Data["import_file"] != importFile {
+			continue
+		}
+		cpStr := job.Data["checkpoint"]
+		if cpStr == "" {
+			continue
+		}
+		n, err := strconv.Atoi(cpStr)
+		if err != nil || n <= 0 {
+			continue
+		}
+		// total_lines is stored by the pre-creation pass at the start of the
+		// import — available even on first failure, no prior successful run needed.
+		totalLines := 0
+		if tlStr := job.Data["total_lines"]; tlStr != "" {
+			if tl, err := strconv.Atoi(tlStr); err == nil {
+				totalLines = tl
+			}
+		}
+		return n, job.Data["checkpoint_file"], totalLines
+	}
+	return 0, "", 0
 }
 
 func importJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {

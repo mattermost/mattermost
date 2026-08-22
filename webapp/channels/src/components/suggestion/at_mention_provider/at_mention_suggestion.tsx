@@ -17,6 +17,7 @@ import StatusIcon from 'components/status_icon';
 import AgentTag from 'components/widgets/tag/agent_tag';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
+import ImportedInactiveTag from 'components/widgets/tag/imported_inactive_tag';
 import Tag from 'components/widgets/tag/tag';
 import Avatar from 'components/widgets/users/avatar';
 
@@ -223,6 +224,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                 {customStatus}
                 {sharedIcon}
                 {isGuest(item.roles) && <GuestTag/>}
+                {item.props?.importedInactive === 'true' && <ImportedInactiveTag/>}
             </span>
             {countBadge}
         </SuggestionContainer>

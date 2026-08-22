@@ -13,6 +13,7 @@ import {getRhsState} from 'selectors/rhs';
 
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
+import ImportedInactiveTag from 'components/widgets/tag/imported_inactive_tag';
 import Tag from 'components/widgets/tag/tag';
 
 import type {A11yFocusEventDetail} from 'utils/constants';
@@ -22,6 +23,7 @@ import type {GlobalState} from 'types/store';
 
 type Props = {
     isBot?: boolean;
+    isImportedInactive?: boolean;
     roles: string;
     returnFocus: () => void;
     hide?: () => void;
@@ -52,6 +54,7 @@ function getIsChannelAdmin(state: GlobalState, userId: string, channelId?: strin
 
 const ProfilePopoverTitle = ({
     isBot,
+    isImportedInactive,
     roles,
     returnFocus,
     hide,
@@ -135,6 +138,7 @@ const ProfilePopoverTitle = ({
     return (
         <div className='user-profile-popover-title'>
             {roleTitle}
+            {isImportedInactive && <ImportedInactiveTag className='user-popover__role' size={'sm'}/>}
             <button
                 ref={closeRef}
                 className='btn btn-icon btn-sm closeButtonRelativePosition'

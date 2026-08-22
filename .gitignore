@@ -203,3 +203,13 @@ docs/site/static/images/agents/
 api/v4/html/static/mattermost-openapi-v4.yaml
 api/v4/html/index.html
 api/node_modules/
+
+# Local migration artifacts (export files, test reports, planning docs)
+backend_export.zip
+server/export.zip
+server/demo-commands.txt
+docs/channel_migration_*.md
+docs/channel_migration_*.pdf
+docs/display-name-fix-test-report.pdf
+server/docs/*.pdf
+server/docs/*.md

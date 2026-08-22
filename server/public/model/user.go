@@ -69,6 +69,8 @@ const (
 	DesktopTokenTTL = time.Minute * 3
 
 	UserAuthServiceMagicLink = "magic_link"
+
+	UserPropsKeyImportedInactive = "importedInactive"
 )
 
 // ErrPasswordTooLong is returned when the password exceeds
