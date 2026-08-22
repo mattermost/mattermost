@@ -30,6 +30,7 @@ export default class ChannelsCenterView {
     readonly notificationSeparator;
     readonly postViews;
     readonly channelIntro;
+    readonly setHeaderButton;
 
     constructor(container: Locator, page: Page) {
         this.container = container;
@@ -50,6 +51,7 @@ export default class ChannelsCenterView {
         this.notificationSeparator = container.locator('.NotificationSeparator');
         this.postViews = container.getByTestId('postView');
         this.channelIntro = container.locator('#channelIntro');
+        this.setHeaderButton = this.channelIntro.getByRole('button', {name: 'Set header'});
     }
 
     async toBeVisible() {
@@ -59,6 +61,10 @@ export default class ChannelsCenterView {
 
     async postMessage(message: string, files?: string[]) {
         await this.postCreate.postMessage(message, files);
+    }
+
+    async openSetHeader() {
+        await this.setHeaderButton.click();
     }
 
     /**

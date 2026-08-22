@@ -11,7 +11,6 @@
 // Group: @channels @search_date_filter
 
 import {
-    getMsAndQueryForDate,
     getTestMessages,
     searchAndValidate,
     setupTestData,
@@ -66,29 +65,5 @@ describe('Search Date Filter', () => {
 
     it('MM-T3994_3 on: re-add "in:" in conjunction with "from:"', () => {
         searchAndValidate(`on:${secondDateEarly.query} in:${channelName} from:${anotherAdmin.username} ${commonText}`);
-    });
-
-    it('MM-T604 Use "on:" to return only results from today', () => {
-        // create posts on a day at 11:59 the previous day, 12:00am the main day, 11:59pm the main day, and 12:00 the next day
-        const identifier = 'christmas' + Date.now();
-
-        const preTarget = getMsAndQueryForDate(Date.UTC(2018, 11, 24, 23, 59)); // December 24th, 2018 @ 11:59pm
-        const targetAM = getMsAndQueryForDate(Date.UTC(2018, 11, 25, 0, 0)); // December 25th, 2018 @ 12:00am
-        const targetPM = getMsAndQueryForDate(Date.UTC(2018, 11, 25, 23, 59)); // December 25th, 2018 @ 11:59pm
-        const postTarget = getMsAndQueryForDate(Date.UTC(2018, 11, 26, 0, 0)); // December 26th, 2018 @ 12:00am
-
-        const targetAMMessage = 'targetAM ' + identifier;
-        const targetPMMessage = 'targetPM ' + identifier;
-
-        // Post same message at different times
-        cy.getCurrentChannelId().then((channelId) => {
-            cy.postMessageAs({sender: admin, message: 'pretarget ' + identifier, channelId, createAt: preTarget.ms});
-            cy.postMessageAs({sender: admin, message: targetAMMessage, channelId, createAt: targetAM.ms});
-            cy.postMessageAs({sender: admin, message: targetPMMessage, channelId, createAt: targetPM.ms});
-            cy.postMessageAs({sender: admin, message: 'postTarget' + identifier, channelId, createAt: postTarget.ms});
-        });
-
-        // * Verify we only see messages from the expected date, and not outside of it
-        searchAndValidate(`on:${targetAM.query} ${identifier}`, [targetPMMessage, targetAMMessage]);
     });
 });

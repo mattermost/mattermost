@@ -3,36 +3,22 @@
 
 import type {Locator} from '@playwright/test';
 
-import {expect, test, testConfig} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
-/**
- * Posts a JSON payload to an incoming webhook URL.
- */
-async function postToWebhook(webhookId: string, payload: Record<string, unknown>) {
-    const hookUrl = `${testConfig.baseURL}/hooks/${webhookId}`;
-    const resp = await fetch(hookUrl, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload),
-    });
-
-    if (!resp.ok) {
-        throw new Error(`Webhook POST failed: ${resp.status} ${await resp.text()}`);
-    }
-}
+import {postToWebhook} from '../webhook_helpers';
 
 /** Legacy attachments are translated to mm_blocks; author/title live in markdown text blocks. */
-function mmBlocks(lastPost: {container: Locator}) {
-    return lastPost.container.locator('.mm-blocks');
+function mmBlocks(lastPost: {mmBlocks: Locator}) {
+    return lastPost.mmBlocks;
 }
 
-async function expectMmBlocksAuthorName(lastPost: {container: Locator}, name: string) {
+async function expectMmBlocksAuthorName(lastPost: {mmBlocks: Locator}, name: string) {
     const blocks = mmBlocks(lastPost);
     // Attachment translation renders author before title; title <p> also contains the link text via hasText.
     await expect(blocks.locator('p').first()).toHaveText(name);
 }
 
-async function expectMmBlocksTitleLink(lastPost: {container: Locator}, title: string) {
+async function expectMmBlocksTitleLink(lastPost: {mmBlocks: Locator}, title: string) {
     await expect(mmBlocks(lastPost).getByRole('link', {name: title})).toBeVisible();
 }
 

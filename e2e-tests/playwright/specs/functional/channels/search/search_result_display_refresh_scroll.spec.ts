@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {duration, expect, test, type ChannelsPage} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
+
+import {expectSearchResult, submitSearch} from './search_result_helpers';
 
 /**
  * @objective Verify message search displays matching results in the right-hand side, rendering markdown
@@ -32,12 +34,12 @@ test('MM-T350 Searching displays results in the RHS', async ({pw}) => {
     // * Verify the matching result appears in the RHS with each markdown element rendered distinctly
     await expectSearchResult(channelsPage, 'Hello world', query);
     const result = channelsPage.getSearchResultItem('Hello world');
-    await expect(result.locator('h5.markdown__heading')).toContainText('Hello');
-    await expect(result.locator('.post-code.post-code--wrap code')).toContainText('Hello');
+    await expect(channelsPage.searchResultsPanel.getResultHeading('Hello world', 'Hello')).toBeVisible();
+    await expect(channelsPage.searchResultsPanel.getResultCodeBlock('Hello world')).toContainText('Hello');
     await expect(result).toContainText('#hello');
 
     // # Jump to the conversation from the search result
-    await result.getByRole('link', {name: 'Jump'}).click();
+    await channelsPage.searchResultsPanel.jumpToResultWithText('Hello world');
 
     // # Reopen search and clear the query text
     await channelsPage.globalHeader.openSearch();
@@ -116,33 +118,3 @@ test('MM-T382 keeps search results unchanged while scrolling the center channel'
     await channelsPage.searchResultsPanel.toContainText(token);
     expect(await channelsPage.searchResultsPanel.getResultItems().count()).toBe(resultCountBefore);
 });
-
-async function submitSearch(channelsPage: ChannelsPage, query: string) {
-    await channelsPage.globalHeader.openSearch();
-    await channelsPage.searchBox.clearIfPossible();
-    await channelsPage.searchBox.searchInput.fill(query);
-    await channelsPage.searchBox.searchInput.press('Enter');
-    await expect(channelsPage.searchResultsContainer).toBeVisible();
-}
-
-async function expectSearchResult(
-    channelsPage: ChannelsPage,
-    text: string,
-    query?: string,
-    timeout = duration.half_min,
-) {
-    const result = channelsPage.getSearchResultItem(text);
-
-    await expect(async () => {
-        if (await result.isVisible({timeout: duration.one_sec}).catch(() => false)) {
-            return;
-        }
-
-        if (query) {
-            await submitSearch(channelsPage, query);
-        } else {
-            await channelsPage.searchBox.searchInput.press('Enter');
-        }
-        await expect(result).toBeVisible({timeout: duration.one_sec * 5});
-    }).toPass({timeout});
-}

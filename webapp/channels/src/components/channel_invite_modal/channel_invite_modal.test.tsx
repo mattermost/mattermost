@@ -182,6 +182,21 @@ describe('components/channel_invite_modal', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('should expose selectable users as options', async () => {
+        renderWithContext(
+            <ChannelInviteModal
+                {...baseProps}
+                profilesNotInCurrentChannel={users}
+                profilesInCurrentChannel={[]}
+                profilesNotInCurrentTeam={[]}
+                profilesFromRecentDMs={[]}
+            />,
+        );
+
+        await userEvent.type(screen.getByRole('combobox', {name: /search for people/i}), users[0].username);
+        expect(await screen.findByRole('option', {name: users[0].username})).toHaveAttribute('aria-selected', 'true');
+    });
+
     test('should match snapshot for channel_invite_modal with profiles from DMs', () => {
         const {container} = renderWithContext(
             <ChannelInviteModal
