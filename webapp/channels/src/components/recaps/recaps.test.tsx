@@ -5,7 +5,6 @@ import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
 
 import {renderWithContext, waitFor} from 'tests/react_testing_utils';
-
 import {RHSStates} from 'utils/constants';
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';

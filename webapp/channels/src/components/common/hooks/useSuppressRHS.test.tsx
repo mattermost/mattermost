@@ -4,7 +4,6 @@
 import React from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
-
 import {RHSStates} from 'utils/constants';
 
 import type {RhsState} from 'types/store/rhs';
