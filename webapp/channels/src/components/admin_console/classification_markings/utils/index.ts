@@ -4,6 +4,7 @@
 import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
+import {ACCESS_CONTROL_PROPERTY_GROUP, DISPLAY_BANNER_BOTTOM, DISPLAY_BANNER_TOP} from 'mattermost-redux/constants/properties';
 
 import type {ClassificationLevel} from './presets';
 import {PRESET_CUSTOM, presets} from './presets';
@@ -25,9 +26,6 @@ import {PRESET_CUSTOM, presets} from './presets';
 // Property *values* for the system field are stored on the dedicated system
 // endpoint and use the sentinel target_id 'system'.
 // ---------------------------------------------------------------------------
-
-// Property-field group for all classification-markings entities.
-export const CLASSIFICATIONS_GROUP_NAME = 'access_control';
 
 // Field-level target attributes shared by template, system, and channel fields.
 // `target_type` is always 'system'; `target_id` is empty for system-scoped
@@ -52,10 +50,6 @@ export const CLASSIFICATIONS_SYSTEM_VALUE_TARGET_ID = 'system';
 // Channel field — drives the per-channel banner.
 export const CLASSIFICATIONS_CHANNEL_OBJECT_TYPE = 'channel';
 export const CLASSIFICATIONS_CHANNEL_FIELD_NAME = 'classification';
-
-// Actions stored on the linked fields' attrs.actions to control banner placement.
-export const DISPLAY_BANNER_TOP = 'display_banner_top';
-export const DISPLAY_BANNER_BOTTOM = 'display_banner_bottom';
 
 export type GlobalBannerPlacement = 'top' | 'top_and_bottom';
 
@@ -166,7 +160,7 @@ export async function fetchClassificationField(): Promise<PropertyField | undefi
 
     while (fetched < maxItems) {
         const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
-            CLASSIFICATIONS_GROUP_NAME,
+            ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
             CLASSIFICATIONS_FIELD_TARGET_TYPE,
             CLASSIFICATIONS_FIELD_TARGET_ID,
@@ -188,7 +182,7 @@ export async function fetchClassificationField(): Promise<PropertyField | undefi
 
 export async function saveCreateField(levels: ClassificationLevel[]): Promise<PropertyField> {
     const options = levelsToOptions(levels);
-    return Client4.createPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, {
+    return Client4.createPropertyField(ACCESS_CONTROL_PROPERTY_GROUP, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, {
         name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
         type: 'rank' as PropertyField['type'],
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
@@ -201,12 +195,12 @@ export async function saveCreateField(levels: ClassificationLevel[]): Promise<Pr
 }
 
 export async function saveDeleteField(fieldId: string): Promise<void> {
-    await Client4.deletePropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, fieldId);
+    await Client4.deletePropertyField(ACCESS_CONTROL_PROPERTY_GROUP, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, fieldId);
 }
 
 export async function savePatchField(fieldId: string, levels: ClassificationLevel[]): Promise<PropertyField> {
     const options = levelsToOptions(levels);
-    return Client4.patchPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, fieldId, {
+    return Client4.patchPropertyField(ACCESS_CONTROL_PROPERTY_GROUP, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, fieldId, {
         attrs: {options},
     } as Partial<PropertyField>);
 }
@@ -221,7 +215,7 @@ export async function fetchLinkedClassificationField(): Promise<PropertyField | 
 
     while (fetched < maxItems) {
         const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
-            CLASSIFICATIONS_GROUP_NAME,
+            ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
             CLASSIFICATIONS_FIELD_TARGET_TYPE,
             CLASSIFICATIONS_FIELD_TARGET_ID,
@@ -242,7 +236,7 @@ export async function fetchLinkedClassificationField(): Promise<PropertyField | 
 }
 
 export async function saveCreateLinkedField(templateFieldId: string, config: GlobalBannerConfig): Promise<PropertyField> {
-    return Client4.createPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, {
+    return Client4.createPropertyField(ACCESS_CONTROL_PROPERTY_GROUP, CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, {
         name: CLASSIFICATIONS_SYSTEM_FIELD_NAME,
         type: 'rank' as PropertyField['type'],
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
@@ -258,7 +252,7 @@ export async function saveCreateLinkedField(templateFieldId: string, config: Glo
 }
 
 export async function savePatchLinkedField(linkedFieldId: string, config: GlobalBannerConfig): Promise<PropertyField> {
-    return Client4.patchPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, linkedFieldId, {
+    return Client4.patchPropertyField(ACCESS_CONTROL_PROPERTY_GROUP, CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, linkedFieldId, {
         attrs: {
             actions: placementToActions(config),
         },
@@ -266,7 +260,7 @@ export async function savePatchLinkedField(linkedFieldId: string, config: Global
 }
 
 export async function saveDeleteLinkedField(fieldId: string): Promise<void> {
-    await Client4.deletePropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, fieldId);
+    await Client4.deletePropertyField(ACCESS_CONTROL_PROPERTY_GROUP, CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, fieldId);
 }
 
 // --- System classification property value API ---
@@ -276,7 +270,7 @@ export async function saveDeleteLinkedField(fieldId: string): Promise<void> {
  * Uses the dedicated system values endpoint (no target_id in URL).
  */
 export async function fetchSystemClassificationValue(linkedFieldId: string): Promise<string | undefined> {
-    const values = await Client4.getSystemPropertyValues<string>(CLASSIFICATIONS_GROUP_NAME);
+    const values = await Client4.getSystemPropertyValues<string>(ACCESS_CONTROL_PROPERTY_GROUP);
     const match = ((values as Array<PropertyValue<string>>) ?? []).find((v) => v.field_id === linkedFieldId);
     return match?.value;
 }
@@ -287,7 +281,7 @@ export async function fetchSystemClassificationValue(linkedFieldId: string): Pro
  * Returns the saved property values so callers can eagerly update the store.
  */
 export async function saveUpsertSystemValue(linkedFieldId: string, optionId: string): Promise<Array<PropertyValue<string>>> {
-    return Client4.patchSystemPropertyValues<string>(CLASSIFICATIONS_GROUP_NAME, [
+    return Client4.patchSystemPropertyValues<string>(ACCESS_CONTROL_PROPERTY_GROUP, [
         {field_id: linkedFieldId, value: optionId},
     ]);
 }
@@ -302,7 +296,7 @@ export async function fetchChannelClassificationField(): Promise<PropertyField |
 
     while (fetched < maxItems) {
         const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
-            CLASSIFICATIONS_GROUP_NAME,
+            ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
             CLASSIFICATIONS_FIELD_TARGET_TYPE,
             CLASSIFICATIONS_FIELD_TARGET_ID,
@@ -323,7 +317,7 @@ export async function fetchChannelClassificationField(): Promise<PropertyField |
 }
 
 export async function saveCreateChannelLinkedField(templateFieldId: string): Promise<PropertyField> {
-    return Client4.createPropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE, {
+    return Client4.createPropertyField(ACCESS_CONTROL_PROPERTY_GROUP, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE, {
         name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
         type: 'rank' as PropertyField['type'],
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
@@ -336,5 +330,5 @@ export async function saveCreateChannelLinkedField(templateFieldId: string): Pro
 }
 
 export async function saveDeleteChannelLinkedField(fieldId: string): Promise<void> {
-    await Client4.deletePropertyField(CLASSIFICATIONS_GROUP_NAME, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE, fieldId);
+    await Client4.deletePropertyField(ACCESS_CONTROL_PROPERTY_GROUP, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE, fieldId);
 }

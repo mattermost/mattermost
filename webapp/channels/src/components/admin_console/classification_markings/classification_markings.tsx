@@ -10,6 +10,7 @@ import {PlusIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
+import {DISPLAY_BANNER_TOP} from 'mattermost-redux/constants/properties';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
@@ -35,7 +36,6 @@ import GlobalClassificationIndicators from './components/global_classification_i
 import type {GlobalBannerConfig} from './utils';
 import {
     DEFAULT_GLOBAL_BANNER,
-    DISPLAY_BANNER_TOP,
     actionsToGlobalBanner,
     fetchChannelClassificationField,
     fetchClassificationField,
