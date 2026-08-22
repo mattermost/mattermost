@@ -80,6 +80,7 @@ type Store struct {
 	TemporaryPostStore              mocks.TemporaryPostStore
 	ViewStore                       mocks.ViewStore
 	ChannelJoinRequestStore         mocks.ChannelJoinRequestStore
+	SharedChannelInvitationStore    mocks.SharedChannelInvitationStore
 }
 
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
@@ -140,6 +141,9 @@ func (s *Store) PostAcknowledgement() store.PostAcknowledgementStore {
 }
 func (s *Store) PostPersistentNotification() store.PostPersistentNotificationStore {
 	return &s.PostPersistentNotificationStore
+}
+func (s *Store) SharedChannelInvitation() store.SharedChannelInvitationStore {
+	return &s.SharedChannelInvitationStore
 }
 func (s *Store) MarkSystemRanUnitTests()             { /* do nothing */ }
 func (s *Store) Close()                              { /* do nothing */ }
@@ -262,5 +266,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.TemporaryPostStore,
 		&s.ViewStore,
 		&s.ChannelJoinRequestStore,
+		&s.SharedChannelInvitationStore,
 	)
 }
