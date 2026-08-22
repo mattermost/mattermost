@@ -70,6 +70,7 @@ var PostActionRetainPropKeys = []string{
 	PostPropsFromPlugin,
 	PostPropsOverrideUsername,
 	PostPropsOverrideIconURL,
+	PostPropsOverrideIconEmoji,
 }
 
 // PostActionPreserve captures post fields preserved across an interactive action update.

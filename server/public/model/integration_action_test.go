@@ -1663,6 +1663,7 @@ func TestPost_PostActionPreserveState(t *testing.T) {
 		assert.Equal(t, "true", state.Retain[PostPropsFromWebhook])
 		assert.Contains(t, state.Remove, PostPropsOverrideUsername)
 		assert.Contains(t, state.Remove, PostPropsOverrideIconURL)
+		assert.Contains(t, state.Remove, PostPropsOverrideIconEmoji)
 		assert.Equal(t, "true", state.OriginalProps[PostPropsFromWebhook])
 		assert.Equal(t, "x", state.OriginalProps["other"])
 		assert.True(t, state.OriginalIsPinned)
