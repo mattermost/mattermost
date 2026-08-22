@@ -67,6 +67,18 @@ components:
   schemas:
     User:
       type: object
+      required:
+        - id
+        - delete_at
+        - username
+        - auth_service
+        - email
+        - nickname
+        - first_name
+        - last_name
+        - roles
+        - locale
+        - timezone
       properties:
         id:
           type: string
@@ -115,7 +127,9 @@ components:
         mfa_active:
           type: boolean
         timezone:
-          $ref: "#/components/schemas/Timezone"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Timezone"
         terms_of_service_id:
           description: ID of accepted terms of service, if any. This field is not present
             if empty.
@@ -126,6 +140,8 @@ components:
           format: int64
     UsersStats:
       type: object
+      required:
+        - total_users_count
       properties:
         total_users_count:
           type: integer
@@ -136,6 +152,20 @@ components:
           type: string
     Team:
       type: object
+      required:
+        - id
+        - create_at
+        - update_at
+        - delete_at
+        - display_name
+        - name
+        - description
+        - email
+        - type
+        - allowed_domains
+        - invite_id
+        - allow_open_invite
+        - policy_id
       properties:
         id:
           type: string
@@ -169,12 +199,16 @@ components:
           type: boolean
         policy_id:
           type: string
+          nullable: true
           description: >-
             The data retention policy to which this team has been assigned. If no such policy exists,
             or the caller does not have the `sysconsole_read_compliance_data_retention` permission,
             this field will be null.
     TeamStats:
       type: object
+      required:
+        - team_id
+        - total_member_count
       properties:
         team_id:
           type: string
@@ -187,6 +221,21 @@ components:
           type: boolean
     Channel:
       type: object
+      required:
+        - id
+        - create_at
+        - update_at
+        - delete_at
+        - team_id
+        - type
+        - display_name
+        - name
+        - header
+        - purpose
+        - last_post_at
+        - total_msg_count
+        - extra_update_at
+        - creator_id
       properties:
         id:
           type: string
@@ -228,6 +277,9 @@ components:
           type: string
     ChannelStats:
       type: object
+      required:
+        - channel_id
+        - member_count
       properties:
         channel_id:
           type: string
@@ -235,6 +287,15 @@ components:
           type: integer
     ChannelMember:
       type: object
+      required:
+        - channel_id
+        - user_id
+        - roles
+        - last_viewed_at
+        - msg_count
+        - mention_count
+        - notify_props
+        - last_update_at
       properties:
         channel_id:
           type: string
@@ -255,7 +316,9 @@ components:
         mention_count:
           type: integer
         notify_props:
-          $ref: "#/components/schemas/ChannelNotifyProps"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ChannelNotifyProps"
         last_update_at:
           description: >-
             The time in milliseconds the channel member was last updated. This
@@ -268,6 +331,10 @@ components:
       allOf:
         - $ref: "#/components/schemas/ChannelMember"
         - type: object
+          required:
+            - team_display_name
+            - team_name
+            - team_update_at
           properties:
             team_display_name:
               type: string
@@ -280,15 +347,27 @@ components:
               description: The time at which the team to which this channel belongs was last updated.
     ChannelData:
       type: object
+      required:
+        - channel
+        - member
       properties:
         channel:
-          $ref: "#/components/schemas/Channel"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Channel"
         member:
-          $ref: "#/components/schemas/ChannelMember"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ChannelMember"
     ChannelWithTeamData:
       allOf:
         - $ref: "#/components/schemas/Channel"
         - type: object
+          required:
+            - team_display_name
+            - team_name
+            - team_update_at
+            - policy_id
           properties:
             team_display_name:
               type: string
@@ -301,6 +380,7 @@ components:
               description: The time at which the team to which this channel belongs was last updated.
             policy_id:
               type: string
+              nullable: true
               description: >-
                 The data retention policy to which this team has been assigned. If no such policy exists,
                 or the caller does not have the `sysconsole_read_compliance_data_retention` permission, this field
@@ -311,6 +391,17 @@ components:
         $ref: "#/components/schemas/ChannelWithTeamData"
     ChannelBookmark:
       type: object
+      required:
+        - id
+        - create_at
+        - update_at
+        - delete_at
+        - channel_id
+        - owner_id
+        - file_id
+        - display_name
+        - sort_order
+        - type
       properties:
         id:
           type: string
@@ -376,6 +467,16 @@ components:
           $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
     View:
       type: object
+      required:
+        - id
+        - channel_id
+        - type
+        - creator_id
+        - title
+        - sort_order
+        - create_at
+        - update_at
+        - delete_at
       properties:
         id:
           type: string
@@ -425,12 +526,16 @@ components:
         sort_order:
           type: integer
         props:
+          nullable: true
           type: object
           description: Arbitrary key-value properties for the view
           additionalProperties: true
     ViewsWithCount:
       type: object
       description: Paginated list of views with total count
+      required:
+        - views
+        - total_count
       properties:
         views:
           type: array
@@ -442,6 +547,21 @@ components:
           description: Total number of views matching the query (ignoring pagination)
     Post:
       type: object
+      required:
+        - id
+        - create_at
+        - update_at
+        - edit_at
+        - delete_at
+        - user_id
+        - channel_id
+        - root_id
+        - original_id
+        - message
+        - type
+        - props
+        - file_ids
+        - pending_post_id
       properties:
         id:
           type: string
@@ -473,6 +593,7 @@ components:
         type:
           type: string
         props:
+          nullable: true
           type: object
         hashtag:
           type: string
@@ -486,24 +607,65 @@ components:
           $ref: "#/components/schemas/PostMetadata"
     PostPriority:
       type: object
-      description: Priority metadata associated with a post or draft.
+      description: Priority metadata associated with a post.
+      required:
+        - priority
+        - requested_ack
+        - persistent_notifications
       properties:
         priority:
           type: string
+          nullable: true
           description: The priority label of a post, either empty, important, or urgent.
           enum:
             - ""
             - important
             - urgent
+            - null
         requested_ack:
           type: boolean
+          nullable: true
           description: Whether the post author has requested acknowledgements.
         persistent_notifications:
           type: boolean
+          nullable: true
           description: Whether persistent notifications are enabled for the post.
+    DraftPriority:
+      type: object
+      description: >-
+        Priority metadata associated with a draft. Unlike post priority, the
+        server stores this as free-form data, so no field is guaranteed to be
+        present.
+      properties:
+        priority:
+          type: string
+          nullable: true
+          description: The priority label of the draft, either empty, important, or urgent.
+          enum:
+            - ""
+            - important
+            - urgent
+            - null
+        requested_ack:
+          type: boolean
+          nullable: true
+          description: Whether acknowledgements will be requested when the draft is posted.
+        persistent_notifications:
+          type: boolean
+          nullable: true
+          description: Whether persistent notifications will be enabled when the draft is posted.
     PostInfo:
       type: object
       description: Additional team and channel context metadata for a post.
+      required:
+        - channel_id
+        - channel_type
+        - channel_display_name
+        - has_joined_channel
+        - team_id
+        - team_type
+        - team_display_name
+        - has_joined_team
       properties:
         channel_id:
           type: string
@@ -531,6 +693,16 @@ components:
           description: Whether the requesting user is already a member of the team.
     Draft:
       type: object
+      required:
+        - create_at
+        - update_at
+        - delete_at
+        - user_id
+        - channel_id
+        - root_id
+        - message
+        - type
+        - props
       properties:
         create_at:
           type: integer
@@ -553,6 +725,7 @@ components:
         type:
           type: string
         props:
+          nullable: true
           type: object
           additionalProperties: true
         file_ids:
@@ -562,7 +735,7 @@ components:
         metadata:
           $ref: "#/components/schemas/PostMetadata"
         priority:
-          $ref: "#/components/schemas/PostPriority"
+          $ref: "#/components/schemas/DraftPriority"
     DraftUpsertRequest:
       type: object
       required:
@@ -580,15 +753,19 @@ components:
           type: string
         props:
           type: object
+          nullable: true
           additionalProperties: true
         file_ids:
           type: array
           items:
             type: string
         priority:
-          $ref: "#/components/schemas/PostPriority"
+          $ref: "#/components/schemas/DraftPriority"
     NotifyAdminToUpgradeRequest:
       type: object
+      required:
+        - required_plan
+        - required_feature
       properties:
         trial_notification:
           type: boolean
@@ -639,6 +816,11 @@ components:
           description: Optional plugin version. If omitted, the latest compatible version is installed.
     RemoteClusterMsg:
       type: object
+      required:
+        - id
+        - topic
+        - create_at
+        - payload
       properties:
         id:
           type: string
@@ -650,9 +832,13 @@ components:
         payload:
           description: Raw message payload.
           type: object
+          nullable: true
           additionalProperties: true
     RemoteClusterFrame:
       type: object
+      required:
+        - remote_id
+        - msg
       properties:
         remote_id:
           type: string
@@ -660,6 +846,9 @@ components:
           $ref: "#/components/schemas/RemoteClusterMsg"
     RemoteClusterPing:
       type: object
+      required:
+        - sent_at
+        - recv_at
       properties:
         sent_at:
           type: integer
@@ -680,6 +869,21 @@ components:
           additionalProperties: true
     PropertyField:
       type: object
+      required:
+        - id
+        - group_id
+        - name
+        - type
+        - attrs
+        - target_id
+        - target_type
+        - object_type
+        - protected
+        - create_at
+        - update_at
+        - delete_at
+        - created_by
+        - updated_by
       properties:
         id:
           type: string
@@ -696,6 +900,7 @@ components:
           description: The type of object this property applies to
           enum: [post, channel, user, template]
         attrs:
+          nullable: true
           type: object
           description: Additional attributes
         target_id:
@@ -721,11 +926,10 @@ components:
           enum: [none, sysadmin, member]
         linked_field_id:
           type: string
-          nullable: true
           description: >
             The ID of the template field this field is linked to. When set, the field
             inherits its type and options from the source template. Can only be set at
-            creation time. Null when the field is not linked.
+            creation time. Absent when the field is not linked.
         create_at:
           type: integer
           format: int64
@@ -749,6 +953,7 @@ components:
         type:
           type: string
         attrs:
+          nullable: true
           type: object
         linked_field_id:
           type: string
@@ -757,6 +962,18 @@ components:
             value on an existing field; linking is only allowed at creation time.
     PropertyValue:
       type: object
+      required:
+        - id
+        - target_id
+        - target_type
+        - group_id
+        - field_id
+        - value
+        - create_at
+        - update_at
+        - delete_at
+        - created_by
+        - updated_by
       properties:
         id:
           type: string
@@ -770,6 +987,7 @@ components:
           type: string
         value:
           type: string
+          nullable: true
         create_at:
           type: integer
           format: int64
@@ -787,6 +1005,9 @@ components:
           description: User ID of the user who last updated this property value
     FileInfoList:
       type: object
+      required:
+        - order
+        - file_infos
       properties:
         order:
           type: array
@@ -807,6 +1028,11 @@ components:
           description: The ID of previous file info. Not omitted when empty or not relevant.
     PostList:
       type: object
+      required:
+        - order
+        - posts
+        - next_post_id
+        - prev_post_id
       properties:
         order:
           type: array
@@ -940,6 +1166,14 @@ components:
           $ref: "#/components/schemas/Team"
     TeamMember:
       type: object
+      required:
+        - team_id
+        - user_id
+        - roles
+        - delete_at
+        - scheme_user
+        - scheme_admin
+        - explicit_roles
       properties:
         team_id:
           description: The ID of the team this member belongs to.
@@ -952,24 +1186,33 @@ components:
             space-separated list of role names, including any roles granted
             implicitly through permissions schemes.
           type: string
+          readOnly: true
         delete_at:
           description: The time in milliseconds that this team member was deleted.
           type: integer
+          readOnly: true
         scheme_user:
           description: Whether this team member holds the default user role defined by the
             team's permissions scheme.
           type: boolean
+          readOnly: true
         scheme_admin:
           description: Whether this team member holds the default admin role defined by the
             team's permissions scheme.
           type: boolean
+          readOnly: true
         explicit_roles:
           description: The list of roles explicitly assigned to this team member, as a
             space separated list of role names. This list does *not* include any
             roles granted implicitly through permissions schemes.
           type: string
+          readOnly: true
     TeamUnread:
       type: object
+      required:
+        - team_id
+        - msg_count
+        - mention_count
       properties:
         team_id:
           type: string
@@ -979,6 +1222,11 @@ components:
           type: integer
     ChannelUnread:
       type: object
+      required:
+        - team_id
+        - channel_id
+        - msg_count
+        - mention_count
       properties:
         team_id:
           type: string
@@ -990,6 +1238,12 @@ components:
           type: integer
     ChannelUnreadAt:
       type: object
+      required:
+        - team_id
+        - channel_id
+        - msg_count
+        - mention_count
+        - last_viewed_at
       properties:
         team_id:
           description: The ID of the team the channel belongs to.
@@ -1008,6 +1262,19 @@ components:
           type: integer
     Session:
       type: object
+      required:
+        - id
+        - token
+        - create_at
+        - expires_at
+        - last_activity_at
+        - user_id
+        - device_id
+        - voip_device_id
+        - roles
+        - is_oauth
+        - props
+        - team_members
       properties:
         create_at:
           description: The time in milliseconds a session was created
@@ -1031,6 +1298,7 @@ components:
           type: integer
           format: int64
         props:
+          nullable: true
           type: object
         roles:
           type: string
@@ -1044,6 +1312,16 @@ components:
           type: string
     FileInfo:
       type: object
+      required:
+        - id
+        - user_id
+        - create_at
+        - update_at
+        - delete_at
+        - name
+        - extension
+        - size
+        - mime_type
       properties:
         id:
           description: The unique identifier for this file
@@ -1090,6 +1368,9 @@ components:
           type: boolean
     Preference:
       type: object
+      required:
+        - user_id
+        - category
       properties:
         user_id:
           description: The ID of the user that owns this preference
@@ -1113,10 +1394,13 @@ components:
         - auth_service
     UserAutocomplete:
       type: object
+      required:
+        - users
       properties:
         users:
           description: A list of users that are the main result of the query
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/User"
         out_of_channel:
@@ -1127,6 +1411,8 @@ components:
             $ref: "#/components/schemas/User"
     UserAutocompleteInTeam:
       type: object
+      required:
+        - in_team
       properties:
         in_team:
           description: A list of user objects in the team
@@ -1135,19 +1421,33 @@ components:
             $ref: "#/components/schemas/User"
     UserAutocompleteInChannel:
       type: object
+      required:
+        - in_channel
+        - out_of_channel
       properties:
         in_channel:
           description: A list of user objects in the channel
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/User"
         out_of_channel:
           description: A list of user objects not in the channel
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/User"
     IncomingWebhook:
       type: object
+      required:
+        - id
+        - create_at
+        - update_at
+        - delete_at
+        - channel_id
+        - display_name
+        - description
+        - last_used
       properties:
         id:
           description: The unique identifier for this incoming webhook
@@ -1180,6 +1480,20 @@ components:
           type: string
     OutgoingWebhook:
       type: object
+      required:
+        - id
+        - create_at
+        - update_at
+        - delete_at
+        - creator_id
+        - channel_id
+        - team_id
+        - trigger_words
+        - trigger_when
+        - callback_urls
+        - display_name
+        - description
+        - content_type
       properties:
         id:
           description: The unique identifier for this outgoing webhook
@@ -1214,6 +1528,7 @@ components:
         trigger_words:
           description: List of words for the webhook to trigger on
           type: array
+          nullable: true
           items:
             type: string
         trigger_when:
@@ -1223,6 +1538,7 @@ components:
         callback_urls:
           description: The URLs to POST the payloads to when the webhook is triggered
           type: array
+          nullable: true
           items:
             type: string
         content_type:
@@ -1232,6 +1548,11 @@ components:
           type: string
     Reaction:
       type: object
+      required:
+        - user_id
+        - post_id
+        - emoji_name
+        - create_at
       properties:
         user_id:
           description: The ID of the user that made this reaction
@@ -1246,6 +1567,7 @@ components:
           description: The time in milliseconds this reaction was made
           type: integer
           format: int64
+          readOnly: true
     NewTeamMember:
       type: object
       properties:
@@ -1282,6 +1604,13 @@ components:
           type: integer
     Emoji:
       type: object
+      required:
+        - id
+        - create_at
+        - update_at
+        - delete_at
+        - creator_id
+        - name
       properties:
         id:
           description: The ID of the emoji
@@ -1306,27 +1635,44 @@ components:
           format: int64
     Command:
       type: object
+      required:
+        - id
+        - token
+        - create_at
+        - update_at
+        - delete_at
+        - creator_id
+        - team_id
+        - trigger
+        - method
+        - url
       properties:
         id:
           description: The ID of the slash command
           type: string
+          readOnly: true
         token:
           description: The token which is used to verify the source of the payload
           type: string
+          readOnly: true
         create_at:
           description: The time in milliseconds the command was created
           type: integer
+          readOnly: true
         update_at:
           description: The time in milliseconds the command was last updated
           type: integer
           format: int64
+          readOnly: true
         delete_at:
           description: The time in milliseconds the command was deleted, 0 if never deleted
           type: integer
           format: int64
+          readOnly: true
         creator_id:
           description: The user id for the commands creator
           type: string
+          readOnly: true
         team_id:
           description: The team id for which this command is configured
           type: string
@@ -1584,6 +1930,14 @@ components:
               type: string
     Audit:
       type: object
+      required:
+        - id
+        - create_at
+        - user_id
+        - action
+        - extra_info
+        - ip_address
+        - session_id
       properties:
         id:
           type: string
@@ -1670,6 +2024,12 @@ components:
           type: string
     LdapDiagnosticResult:
       type: object
+      required:
+        - test_name
+        - test_value
+        - total_count
+        - error
+        - sample_results
       properties:
         test_name:
           type: string
@@ -1688,6 +2048,7 @@ components:
           description: Optional error message if test failed
         sample_results:
           type: array
+          nullable: true
           description: Array of sample LDAP entries found
           items:
             type: object
@@ -2682,6 +3043,10 @@ components:
               type: boolean
     SamlCertificateStatus:
       type: object
+      required:
+        - idp_certificate_file
+        - private_key_file
+        - public_certificate_file
       properties:
         idp_certificate_file:
           description: Status is good when `true`
@@ -2709,6 +3074,18 @@ components:
           description: Optional VoIP push token. Same prefix shape as device_id. When provided, enables ring-style call push notifications.
     Compliance:
       type: object
+      required:
+        - id
+        - create_at
+        - user_id
+        - status
+        - count
+        - desc
+        - type
+        - start_at
+        - end_at
+        - keywords
+        - emails
       properties:
         id:
           type: string
@@ -2736,31 +3113,38 @@ components:
         emails:
           type: string
     ClusterInfo:
-      type: array
+      type: object
+      required:
+        - id
+        - version
+        - schema_version
+        - config_hash
+        - ipaddress
+        - hostname
       properties:
-        items:
-          type: object
-          properties:
-            id:
-              description: The unique ID for the node
-              type: string
-            version:
-              description: The server version the node is on
-              type: string
-            schema_version:
-              description: The number of the latest DB migration successfully executed for the node
-              type: string
-            config_hash:
-              description: The hash of the configuration file the node is using
-              type: string
-            ipaddress:
-              description: The IP address of the node
-              type: string
-            hostname:
-              description: The hostname for this node
-              type: string
+        id:
+          description: The unique ID for the node
+          type: string
+        version:
+          description: The server version the node is on
+          type: string
+        schema_version:
+          description: The number of the latest DB migration successfully executed for the node
+          type: string
+        config_hash:
+          description: The hash of the configuration file the node is using
+          type: string
+        ipaddress:
+          description: The IP address of the node
+          type: string
+        hostname:
+          description: The hostname for this node
+          type: string
     AppError:
       type: object
+      required:
+        - id
+        - message
       properties:
         status_code:
           type: integer
@@ -2772,6 +3156,11 @@ components:
           type: string
     Status:
       type: object
+      required:
+        - user_id
+        - status
+        - manual
+        - last_activity_at
       properties:
         user_id:
           type: string
@@ -2784,6 +3173,17 @@ components:
           format: int64
     OAuthApp:
       type: object
+      required:
+        - id
+        - create_at
+        - update_at
+        - client_secret
+        - name
+        - description
+        - icon_url
+        - callback_urls
+        - homepage
+        - is_trusted
       properties:
         id:
           type: string
@@ -2843,6 +3243,12 @@ components:
     ClientRegistrationResponse:
       type: object
       description: OAuth 2.0 Dynamic Client Registration response as defined in RFC 7591
+      required:
+        - client_id
+        - redirect_uris
+        - token_endpoint_auth_method
+        - grant_types
+        - response_types
       properties:
         client_id:
           type: string
@@ -2927,6 +3333,15 @@ components:
         - response_types_supported
     Job:
       type: object
+      required:
+        - id
+        - type
+        - create_at
+        - start_at
+        - last_activity_at
+        - status
+        - progress
+        - data
       properties:
         id:
           type: string
@@ -2953,10 +3368,15 @@ components:
           type: integer
           description: The progress (as a percentage) of the job
         data:
+          nullable: true
           type: object
           description: A freeform data field containing additional information about the job
     UserAccessToken:
       type: object
+      required:
+        - id
+        - user_id
+        - description
       properties:
         id:
           type: string
@@ -3065,9 +3485,13 @@ components:
           description: The number of days a message will be retained before being deleted by this policy.
     RetentionPolicyForTeamList:
       type: object
+      required:
+        - policies
+        - total_count
       properties:
         policies:
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/DataRetentionPolicyForTeam"
           description: The list of team policies.
@@ -3085,9 +3509,13 @@ components:
           description: The number of days a message will be retained before being deleted by this policy.
     RetentionPolicyForChannelList:
       type: object
+      required:
+        - policies
+        - total_count
       properties:
         policies:
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/DataRetentionPolicyForChannel"
           description: The list of channel policies.
@@ -3241,6 +3669,14 @@ components:
           description: Settings schema used to define the System Console UI for the plugin.
     MarketplacePlugin:
       type: object
+      required:
+        - homepage_url
+        - icon_data
+        - download_url
+        - release_notes_url
+        - signature
+        - manifest
+        - installed_version
       properties:
         homepage_url:
           type: string
@@ -3263,12 +3699,23 @@ components:
           type: string
           description: Base64 encoded signature of the plugin.
         manifest:
-          $ref: "#/components/schemas/PluginManifest"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/PluginManifest"
         installed_version:
           type: string
           description: Version number of the already installed plugin, if any.
     PushNotification:
       type: object
+      required:
+        - ack_id
+        - platform
+        - server_id
+        - device_id
+        - post_id
+        - is_crt_enabled
+        - is_id_loaded
+        - signature
       properties:
         ack_id:
           type: string
@@ -3330,6 +3777,14 @@ components:
           type: string
     PluginStatus:
       type: object
+      required:
+        - plugin_id
+        - cluster_id
+        - plugin_path
+        - state
+        - name
+        - description
+        - version
       properties:
         plugin_id:
           type: string
@@ -3378,6 +3833,13 @@ components:
               description: Path to the webapp JavaScript bundle.
     Role:
       type: object
+      required:
+        - id
+        - name
+        - display_name
+        - description
+        - permissions
+        - scheme_managed
       properties:
         id:
           type: string
@@ -3403,6 +3865,18 @@ components:
             stand-alone role (false).
     Scheme:
       type: object
+      required:
+        - id
+        - name
+        - description
+        - create_at
+        - update_at
+        - delete_at
+        - scope
+        - default_team_admin_role
+        - default_team_user_role
+        - default_channel_admin_role
+        - default_channel_user_role
       properties:
         id:
           type: string
@@ -3443,6 +3917,11 @@ components:
           description: The id of the default channel user role for this scheme.
     TermsOfService:
       type: object
+      required:
+        - id
+        - create_at
+        - user_id
+        - text
       properties:
         id:
           type: string
@@ -3459,6 +3938,10 @@ components:
           description: The text of terms of service. Supports Markdown.
     UserTermsOfService:
       type: object
+      required:
+        - user_id
+        - terms_of_service_id
+        - create_at
       properties:
         user_id:
           type: string
@@ -3480,6 +3963,12 @@ components:
           $ref: "#/components/schemas/Reaction"
     Product:
       type: object
+      required:
+        - id
+        - name
+        - description
+        - price_per_seat
+        - add_ons
       properties:
         id:
           type: string
@@ -3491,10 +3980,16 @@ components:
           type: string
         add_ons:
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/AddOn"
     AddOn:
       type: object
+      required:
+        - id
+        - name
+        - display_name
+        - price_per_seat
       properties:
         id:
           type: string
@@ -3509,19 +4004,14 @@ components:
       properties:
         boards:
           $ref: "#/components/schemas/BoardsLimits"
-          nullable: true
         files:
           $ref: "#/components/schemas/FilesLimits"
-          nullable: true
         integrations:
           $ref: "#/components/schemas/IntegrationsLimits"
-          nullable: true
         messages:
           $ref: "#/components/schemas/MessagesLimits"
-          nullable: true
         teams:
           $ref: "#/components/schemas/TeamsLimits"
-          nullable: true
     BoardsLimits:
       type: object
       properties:
@@ -3533,6 +4023,8 @@ components:
           nullable: true
     FilesLimits:
       type: object
+      required:
+        - total_storage
       properties:
         total_storage:
           type: integer
@@ -3546,18 +4038,29 @@ components:
           nullable: true
     MessagesLimits:
       type: object
+      required:
+        - history
       properties:
         history:
           type: integer
           nullable: true
     TeamsLimits:
       type: object
+      required:
+        - active
       properties:
         active:
           type: integer
           nullable: true
     PaymentMethod:
       type: object
+      required:
+        - type
+        - last_four
+        - exp_month
+        - exp_year
+        - card_brand
+        - name
       properties:
         type:
           type: string
@@ -3588,6 +4091,15 @@ components:
           type: string
     CloudCustomer:
       type: object
+      required:
+        - id
+        - creator_id
+        - create_at
+        - name
+        - num_employees
+        - billing_address
+        - company_address
+        - payment_method
       properties:
         id:
           type: string
@@ -3601,19 +4113,35 @@ components:
         name:
           type: string
         num_employees:
-          type: string
+          type: integer
         contact_first_name:
           type: string
         contact_last_name:
           type: string
         billing_address:
-          $ref: "#/components/schemas/Address"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Address"
         company_address:
-          $ref: "#/components/schemas/Address"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Address"
         payment_method:
-          $ref: "#/components/schemas/PaymentMethod"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/PaymentMethod"
     Subscription:
       type: object
+      required:
+        - id
+        - customer_id
+        - product_id
+        - add_ons
+        - start_at
+        - end_at
+        - create_at
+        - seats
+        - dns
       properties:
         id:
           type: string
@@ -3623,6 +4151,7 @@ components:
           type: string
         add_ons:
           type: array
+          nullable: true
           items:
             type: string
         start_at:
@@ -3647,6 +4176,16 @@ components:
           type: string
     Invoice:
       type: object
+      required:
+        - id
+        - number
+        - create_at
+        - total
+        - tax
+        - status
+        - period_start
+        - period_end
+        - subscription_id
       properties:
         id:
           type: string
@@ -3677,6 +4216,13 @@ components:
             $ref: "#/components/schemas/InvoiceLineItem"
     InvoiceLineItem:
       type: object
+      required:
+        - price_id
+        - total
+        - quantity
+        - price_per_unit
+        - description
+        - metadata
       properties:
         price_id:
           type: string
@@ -3693,10 +4239,21 @@ components:
           type: string
         metadata:
           type: array
+          nullable: true
           items:
             type: string
     Group:
       type: object
+      required:
+        - id
+        - display_name
+        - description
+        - source
+        - remote_id
+        - create_at
+        - update_at
+        - delete_at
+        - has_syncables
       properties:
         id:
           type: string
@@ -3710,6 +4267,7 @@ components:
           type: string
         remote_id:
           type: string
+          nullable: true
         create_at:
           type: integer
           format: int64
@@ -3723,6 +4281,11 @@ components:
           type: boolean
     GroupMember:
       type: object
+      required:
+        - group_id
+        - user_id
+        - create_at
+        - delete_at
       properties:
         group_id:
           type: string
@@ -3822,20 +4385,35 @@ components:
           format: int64
     ChannelModeration:
       type: object
+      required:
+        - name
+        - roles
       properties:
         name:
           type: string
         roles:
-          $ref: "#/components/schemas/ChannelModeratedRoles"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ChannelModeratedRoles"
     ChannelModeratedRoles:
       type: object
+      required:
+        - guests
+        - members
       properties:
         guests:
-          $ref: "#/components/schemas/ChannelModeratedRole"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ChannelModeratedRole"
         members:
-          $ref: "#/components/schemas/ChannelModeratedRole"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ChannelModeratedRole"
     ChannelModeratedRole:
       type: object
+      required:
+        - value
+        - enabled
       properties:
         value:
           type: boolean
@@ -3858,6 +4436,10 @@ components:
     ChannelMemberCountByGroup:
       description: An object describing group member information in a channel
       type: object
+      required:
+        - group_id
+        - channel_member_count
+        - channel_member_timezones_count
       properties:
         group_id:
           type: string
@@ -3894,6 +4476,9 @@ components:
     SidebarCategory:
       description: User's sidebar category
       type: object
+      required:
+        - user_id
+        - team_id
       properties:
         id:
           type: string
@@ -3913,6 +4498,13 @@ components:
     SidebarCategoryWithChannels:
       description: User's sidebar category with it's channels
       type: object
+      required:
+        - id
+        - user_id
+        - team_id
+        - display_name
+        - type
+        - channel_ids
       properties:
         id:
           type: string
@@ -3936,6 +4528,9 @@ components:
     OrderedSidebarCategories:
       description: List of user's categories with their channels
       type: object
+      required:
+        - categories
+        - order
       properties:
         order:
           type: array
@@ -3948,6 +4543,13 @@ components:
     Bot:
       description: A bot account
       type: object
+      required:
+        - user_id
+        - username
+        - owner_id
+        - create_at
+        - update_at
+        - delete_at
       properties:
         user_id:
           description: The user id of the associated user entry.
@@ -4002,12 +4604,17 @@ components:
     OrphanedRecord:
       description: an object containing information about an orphaned record.
       type: object
+      required:
+        - parent_id
+        - child_id
       properties:
         parent_id:
           type: string
+          nullable: true
           description: the id of the parent relation (table) entry.
         child_id:
           type: string
+          nullable: true
           description: the id of the child relation (table) entry.
     UserThread:
       description: a thread that user is following
@@ -4037,6 +4644,12 @@ components:
     RelationalIntegrityCheckData:
       description: an object containing the results of a relational integrity check.
       type: object
+      required:
+        - parent_name
+        - child_name
+        - parent_id_attr
+        - child_id_attr
+        - records
       properties:
         parent_name:
           type: string
@@ -4053,20 +4666,35 @@ components:
         records:
           description: the list of orphaned records found.
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/OrphanedRecord"
     IntegrityCheckResult:
       description: an object with the result of the integrity check.
       type: object
+      required:
+        - data
+        - err
       properties:
         data:
-          $ref: "#/components/schemas/RelationalIntegrityCheckData"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/RelationalIntegrityCheckData"
         err:
           type: string
+          nullable: true
           description: a string value set in case of error.
     UploadSession:
       description: an object containing information used to keep track of a file upload.
       type: object
+      required:
+        - id
+        - type
+        - create_at
+        - user_id
+        - filename
+        - file_size
+        - file_offset
       properties:
         id:
           description: The unique identifier for the upload.
@@ -4130,6 +4758,18 @@ components:
           type: string
     SharedChannel:
       type: object
+      required:
+        - id
+        - team_id
+        - home
+        - readonly
+        - name
+        - display_name
+        - purpose
+        - header
+        - creator_id
+        - create_at
+        - update_at
       properties:
         id:
           description: Channel id of the shared channel
@@ -4166,6 +4806,22 @@ components:
           type: string
     RemoteCluster:
       type: object
+      required:
+        - remote_id
+        - remote_team_id
+        - name
+        - display_name
+        - site_url
+        - default_team_id
+        - create_at
+        - delete_at
+        - last_ping_at
+        - token
+        - remote_token
+        - topics
+        - creator_id
+        - plugin_id
+        - options
       properties:
         remote_id:
           type: string
@@ -4205,6 +4861,10 @@ components:
           type: integer
     RemoteClusterInfo:
       type: object
+      required:
+        - display_name
+        - create_at
+        - last_ping_at
       properties:
         display_name:
           description: The display name for the remote cluster
@@ -4219,6 +4879,20 @@ components:
           format: int64
     SharedChannelRemote:
       type: object
+      required:
+        - id
+        - channel_id
+        - creator_id
+        - create_at
+        - update_at
+        - delete_at
+        - is_invite_accepted
+        - is_invite_confirmed
+        - remote_id
+        - last_post_update_at
+        - last_post_id
+        - last_post_create_at
+        - last_post_create_id
       properties:
         id:
           description: The id of the shared channel remote
@@ -4304,6 +4978,9 @@ components:
             $ref: "#/components/schemas/UserThread"
     System:
       type: object
+      required:
+        - name
+        - value
       properties:
         name:
           description: System property name
@@ -4313,18 +4990,28 @@ components:
           type: string
     PostsUsage:
       type: object
+      required:
+        - count
       properties:
         count:
           type: number
           description: Total no. of posts
     StorageUsage:
       type: object
+      required:
+        - bytes
       properties:
         bytes:
           type: number
           description: Total file storage usage for the instance in bytes rounded down to the most significant digit
     BridgeAgentInfo:
       type: object
+      required:
+        - id
+        - displayName
+        - username
+        - service_id
+        - service_type
       properties:
         id:
           type: string
@@ -4343,6 +5030,10 @@ components:
           description: Type of the service (e.g., openai, anthropic)
     BridgeServiceInfo:
       type: object
+      required:
+        - id
+        - name
+        - type
       properties:
         id:
           type: string
@@ -4371,6 +5062,8 @@ components:
           description: List of available LLM services
     AgentsIntegrityResponse:
       type: object
+      required:
+        - available
       properties:
         available:
           type: boolean
@@ -4380,6 +5073,8 @@ components:
           description: Reason code if not available (translation ID)
     AIBridgeTestHelperStatus:
       type: object
+      required:
+        - available
       properties:
         available:
           type: boolean
@@ -4410,6 +5105,9 @@ components:
           description: Optional HTTP-style status code associated with a mocked error
     AIBridgeTestHelperMessage:
       type: object
+      required:
+        - role
+        - message
       properties:
         role:
           type: string
@@ -4451,6 +5149,9 @@ components:
           description: Whether bridge requests should be recorded for later inspection
     AIBridgeTestHelperRecordedRequest:
       type: object
+      required:
+        - operation
+        - messages
       properties:
         operation:
           type: string
@@ -4478,6 +5179,7 @@ components:
           description: Service ID targeted by the bridge completion request
         messages:
           type: array
+          nullable: true
           items:
             $ref: "#/components/schemas/AIBridgeTestHelperMessage"
           description: Bridge messages sent for the recorded request
@@ -4487,6 +5189,9 @@ components:
           additionalProperties: true
     AIBridgeTestHelperState:
       type: object
+      required:
+        - record_requests
+        - recorded_requests
       properties:
         status:
           $ref: "#/components/schemas/AIBridgeTestHelperStatus"
@@ -4514,11 +5219,16 @@ components:
           description: Whether bridge request recording is currently enabled
         recorded_requests:
           type: array
+          nullable: true
           description: Recorded bridge requests captured while record_requests was enabled
           items:
             $ref: "#/components/schemas/AIBridgeTestHelperRecordedRequest"
     PostAcknowledgement:
       type: object
+      required:
+        - user_id
+        - post_id
+        - acknowledged_at
       properties:
         user_id:
           description: The ID of the user that made this acknowledgement.
@@ -4600,17 +5310,27 @@ components:
           type: integer
     Installation:
       type: object
+      required:
+        - id
+        - state
+        - allowed_ip_ranges
       properties:
         id:
           description: A unique identifier
           type: string
         allowed_ip_ranges:
-          $ref: "#/components/schemas/AllowedIPRange"
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/AllowedIPRange"
         state:
           description: The current state of the installation
           type: string
     MessageDescriptor:
       type: object
+      required:
+        - id
+        - defaultMessage
       properties:
         id:
           description: The i18n message ID
@@ -4624,6 +5344,12 @@ components:
           additionalProperties: true
     PreviewModalContentData:
       type: object
+      required:
+        - skuLabel
+        - title
+        - subtitle
+        - videoUrl
+        - useCase
       properties:
         skuLabel:
           $ref: "#/components/schemas/MessageDescriptor"
@@ -4642,6 +5368,9 @@ components:
           type: string
     ServerLimits:
       type: object
+      required:
+        - maxUsersLimit
+        - activeUserCount
       properties:
         maxUsersLimit:
           description: The maximum number of users allowed on server
@@ -4725,6 +5454,7 @@ components:
           type: string
         props:
           type: object
+          nullable: true
         file_ids:
           type: array
           items:
