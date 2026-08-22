@@ -889,7 +889,17 @@ func TestImportValidateReactionImportData(t *testing.T) {
 	err = ValidateReactionImportData(&data, parentCreateAt)
 	require.NotNil(t, err, "Should have failed due to missing required property.")
 
-	// Test with invalid emoji name.
+	// Empty emoji name is present but invalid (distinct from missing).
+	data = ReactionImportData{
+		User:      new("username"),
+		EmojiName: new(""),
+		CreateAt:  new(model.GetMillis()),
+	}
+	err = ValidateReactionImportData(&data, parentCreateAt)
+	require.NotNil(t, err, "Should have failed due to empty emoji name.")
+	require.Equal(t, "app.import.validate_reaction_import_data.emoji_name_invalid.error", err.Id)
+
+	// Test with too long emoji name.
 	data = ReactionImportData{
 		User:      new("username"),
 		EmojiName: new(strings.Repeat("1234567890", 500)),
@@ -897,6 +907,36 @@ func TestImportValidateReactionImportData(t *testing.T) {
 	}
 	err = ValidateReactionImportData(&data, parentCreateAt)
 	require.NotNil(t, err, "Should have failed due to too long emoji name.")
+	require.Equal(t, "app.import.validate_reaction_import_data.emoji_name_invalid.error", err.Id)
+
+	// Test with non-ASCII emoji name (same charset rules as Reaction.IsValid).
+	data = ReactionImportData{
+		User:      new("username"),
+		EmojiName: new("リハテスト"),
+		CreateAt:  new(model.GetMillis()),
+	}
+	err = ValidateReactionImportData(&data, parentCreateAt)
+	require.NotNil(t, err, "Should have failed due to invalid emoji name characters.")
+	require.Equal(t, "app.import.validate_reaction_import_data.emoji_name_invalid.error", err.Id)
+
+	// Test with invalid characters in emoji name.
+	data = ReactionImportData{
+		User:      new("username"),
+		EmojiName: new("emoji:"),
+		CreateAt:  new(model.GetMillis()),
+	}
+	err = ValidateReactionImportData(&data, parentCreateAt)
+	require.NotNil(t, err, "Should have failed due to invalid emoji name characters.")
+	require.Equal(t, "app.import.validate_reaction_import_data.emoji_name_invalid.error", err.Id)
+
+	// System emoji names are allowed on reactions.
+	data = ReactionImportData{
+		User:      new("username"),
+		EmojiName: new("+1"),
+		CreateAt:  new(model.GetMillis()),
+	}
+	err = ValidateReactionImportData(&data, parentCreateAt)
+	require.Nil(t, err, "Validation failed but should have been valid.")
 
 	// Test with invalid CreateAt
 	data = ReactionImportData{
