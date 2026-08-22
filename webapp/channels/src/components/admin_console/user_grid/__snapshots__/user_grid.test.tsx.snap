@@ -413,10 +413,10 @@ exports[`components/admin_console/user_grid/UserGrid should match snapshot with 
           data-testid="dataGrid-cell"
         >
           <div
-            class="TagWrapper-kezsCu gCuUKH Tag Tag--xs NewUserBadge"
+            class="TagWrapper-kfDQYC liNNWY Tag Tag--xs NewUserBadge"
           >
             <span
-              class="TagText-bWoQAI beIloY"
+              class="TagText-bVBjHg CqOfw"
             >
               New
             </span>

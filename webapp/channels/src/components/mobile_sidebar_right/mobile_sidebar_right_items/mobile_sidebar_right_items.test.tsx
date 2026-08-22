@@ -7,6 +7,8 @@ import * as UserAgent from '@mattermost/shared/utils/user_agent';
 
 import {Permissions} from 'mattermost-redux/constants';
 
+import {WithTestMenuContext} from 'components/menu/menu_context_test';
+
 import type {MockIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
@@ -102,7 +104,12 @@ describe('MobileSidebarRightItems', () => {
     };
 
     test('should render basic menu items', () => {
-        renderWithContext(<MobileSidebarRightItems {...defaultProps}/>, defaultState);
+        renderWithContext(
+            <WithTestMenuContext>
+                <MobileSidebarRightItems {...defaultProps}/>
+            </WithTestMenuContext>,
+            defaultState,
+        );
         expect(screen.getByText('Recent Mentions')).toBeInTheDocument();
         expect(screen.getByText('Saved messages')).toBeInTheDocument();
         expect(screen.getByText('Profile')).toBeInTheDocument();
@@ -111,11 +118,13 @@ describe('MobileSidebarRightItems', () => {
 
     test('should show leave team option when primary team is not set', () => {
         renderWithContext(
-            <MobileSidebarRightItems
-                {...defaultProps}
-                teamIsGroupConstrained={false}
-                experimentalPrimaryTeam={undefined}
-            />,
+            <WithTestMenuContext>
+                <MobileSidebarRightItems
+                    {...defaultProps}
+                    teamIsGroupConstrained={false}
+                    experimentalPrimaryTeam={undefined}
+                />
+            </WithTestMenuContext>,
             defaultState,
         );
         expect(screen.getByText('Leave Team')).toBeInTheDocument();
@@ -123,17 +132,24 @@ describe('MobileSidebarRightItems', () => {
 
     test('should hide leave team option when team is group constrained', () => {
         renderWithContext(
-            <MobileSidebarRightItems
-                {...defaultProps}
-                teamIsGroupConstrained={true}
-            />,
+            <WithTestMenuContext>
+                <MobileSidebarRightItems
+                    {...defaultProps}
+                    teamIsGroupConstrained={true}
+                />
+            </WithTestMenuContext>,
             defaultState,
         );
         expect(screen.queryByText('Leave Team')).not.toBeInTheDocument();
     });
 
     test('should show create team option with proper permissions', () => {
-        renderWithContext(<MobileSidebarRightItems {...defaultProps}/>, defaultState);
+        renderWithContext(
+            <WithTestMenuContext>
+                <MobileSidebarRightItems {...defaultProps}/>
+            </WithTestMenuContext>,
+            defaultState,
+        );
         expect(screen.getByText('Create a Team')).toBeInTheDocument();
     });
 
@@ -148,10 +164,12 @@ describe('MobileSidebarRightItems', () => {
             },
         ];
         renderWithContext(
-            <MobileSidebarRightItems
-                {...defaultProps}
-                pluginMenuItems={pluginMenuItems}
-            />,
+            <WithTestMenuContext>
+                <MobileSidebarRightItems
+                    {...defaultProps}
+                    pluginMenuItems={pluginMenuItems}
+                />
+            </WithTestMenuContext>,
             defaultState,
         );
         expect(screen.getByText('Plugin Item 1')).toBeInTheDocument();
@@ -159,10 +177,12 @@ describe('MobileSidebarRightItems', () => {
 
     test('should show help link when provided', () => {
         renderWithContext(
-            <MobileSidebarRightItems
-                {...defaultProps}
-                helpLink='https://help.example.com'
-            />,
+            <WithTestMenuContext>
+                <MobileSidebarRightItems
+                    {...defaultProps}
+                    helpLink='https://help.example.com'
+                />
+            </WithTestMenuContext>,
             defaultState,
         );
         expect(screen.getByText('Help')).toBeInTheDocument();
@@ -171,10 +191,12 @@ describe('MobileSidebarRightItems', () => {
     test('should show Download Apps link when appDownloadLink is set and not in desktop app', () => {
         isDesktopAppMock.mockReturnValue(false);
         renderWithContext(
-            <MobileSidebarRightItems
-                {...defaultProps}
-                appDownloadLink='https://downloads.example.com'
-            />,
+            <WithTestMenuContext>
+                <MobileSidebarRightItems
+                    {...defaultProps}
+                    appDownloadLink='https://downloads.example.com'
+                />
+            </WithTestMenuContext>,
             defaultState,
         );
         expect(screen.getByText('Download Apps')).toBeInTheDocument();
@@ -183,10 +205,12 @@ describe('MobileSidebarRightItems', () => {
     test('should hide Download Apps link when in desktop app', () => {
         isDesktopAppMock.mockReturnValue(true);
         renderWithContext(
-            <MobileSidebarRightItems
-                {...defaultProps}
-                appDownloadLink='https://downloads.example.com'
-            />,
+            <WithTestMenuContext>
+                <MobileSidebarRightItems
+                    {...defaultProps}
+                    appDownloadLink='https://downloads.example.com'
+                />
+            </WithTestMenuContext>,
             defaultState,
         );
         expect(screen.queryByText('Download Apps')).not.toBeInTheDocument();

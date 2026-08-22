@@ -22,7 +22,7 @@ exports[`components/widgets/menu/menu_items/menu_item_cloud_limit shows more att
       You’re almost at the message limit. Your admin can upgrade your plan for unlimited messages. 
       <span>
         <button
-          class="Button-dukoRx jscxGC"
+          class="Button-dtfQvp dRBNQP"
           id="notify_admin_cta"
         >
           Notify admin
@@ -33,11 +33,11 @@ exports[`components/widgets/menu/menu_items/menu_item_cloud_limit shows more att
       class="MenuItemCloudLimit__usage"
     >
       <div
-        class="BarBackground-egyIcY dvRyxa"
+        class="BarBackground-egrKOA ibeaFA"
         width="155"
       >
         <div
-          class="BarForeground-kxWflJ eKdTUN"
+          class="BarForeground-kydeaV hhYDmB"
           width="155"
         />
       </div>

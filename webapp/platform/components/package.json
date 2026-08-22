@@ -29,7 +29,6 @@
     "@types/react-dom": "18.2.25",
     "@types/scheduler": "0.16.8",
     "@types/shallow-equals": "^1.0.0",
-    "@types/styled-components": "^5.1.19",
     "babel-plugin-styled-components": "2.1.4",
     "jest-environment-jsdom": "30.1.0",
     "react": "18.2.0",
@@ -52,6 +51,6 @@
   "dependencies": {
     "@tippyjs/react": "4.2.6",
     "react-bootstrap": "github:mattermost/react-bootstrap#c17701564a6f240a14419d94369936c380f917e5",
-    "styled-components": "5.3.7"
+    "styled-components": "6.5.2"
   }
 }

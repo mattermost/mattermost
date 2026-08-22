@@ -64,7 +64,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
         emitUserLoggedOutEvent();
     };
 
-    openCustomStatusModal = (event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>): void => {
+    openCustomStatusModal = (event: React.MouseEvent<HTMLElement>): void => {
         event.stopPropagation();
         this.props.actions.openModal({
             modalId: ModalIdentifiers.CUSTOM_STATUS,

@@ -247,7 +247,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                   class="priorityLabelsContainer"
                 >
                   <div
-                    class="TagWrapper-kezsCu cA-dXXM Tag Tag--info Tag--xs"
+                    class="TagWrapper-kfDQYC gPUiz Tag Tag--info Tag--xs"
                     data-testid="post-priority-label"
                   >
                     <svg
@@ -263,7 +263,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                       />
                     </svg>
                     <span
-                      class="TagText-bWoQAI beIloY"
+                      class="TagText-bVBjHg CqOfw"
                     >
                       Important
                     </span>
