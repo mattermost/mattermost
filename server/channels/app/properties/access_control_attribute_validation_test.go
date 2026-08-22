@@ -80,6 +80,72 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		assert.NotEmpty(t, created.ID)
 	})
 
+	t.Run("allows classification and smart label actions on create", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs: model.StringInterface{model.PropertyFieldAttrActions: []any{
+				model.PropertyFieldActionDisplayBannerTop,
+				model.PropertyFieldActionDisplayLabelHeader,
+				model.PropertyFieldActionDisplayLabelInfo,
+			}},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		require.Equal(t, []any{
+			model.PropertyFieldActionDisplayBannerTop,
+			model.PropertyFieldActionDisplayLabelHeader,
+			model.PropertyFieldActionDisplayLabelInfo,
+		}, created.Attrs[model.PropertyFieldAttrActions])
+	})
+
+	// The classification banner is the only production writer of actions today,
+	// on a system-object linked field. Its exact round trip has to keep working:
+	// this validation is new, the banner is not.
+	t.Run("classification banner actions round-trip through create, patch, and clear", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "system",
+			Attrs: model.StringInterface{model.PropertyFieldAttrActions: []any{
+				model.PropertyFieldActionDisplayBannerTop,
+				model.PropertyFieldActionDisplayBannerBottom,
+			}},
+		})
+		require.NoError(t, createErr)
+
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrActions: []any{model.PropertyFieldActionDisplayBannerTop}}
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		require.Equal(t, []any{model.PropertyFieldActionDisplayBannerTop}, updated.Attrs[model.PropertyFieldAttrActions])
+
+		// Disabling the banner sends an empty list, which clears the key rather
+		// than storing []. Both read as "no actions" client-side.
+		updated.Attrs = model.StringInterface{model.PropertyFieldAttrActions: []any{}}
+		cleared, _, clearErr := th.service.UpdatePropertyField(th.Context, group.ID, updated)
+		require.NoError(t, clearErr)
+		require.NotContains(t, cleared.Attrs, model.PropertyFieldAttrActions)
+	})
+
+	t.Run("rejects invalid actions on create", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs:      model.StringInterface{model.PropertyFieldAttrActions: []any{"unknown"}},
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "unknown action")
+	})
+
 	t.Run("rejects invalid visibility on update", func(t *testing.T) {
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    group.ID,
@@ -93,6 +159,49 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.Error(t, updateErr)
 		assert.Contains(t, updateErr.Error(), "visibility")
+	})
+
+	t.Run("rejects invalid actions on update", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+		})
+
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrActions: []any{"unknown"}}
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "unknown action")
+	})
+
+	// Mirrors the lenient grandfather for Name: attrs are merged on PATCH, so a
+	// field carrying an actions value that is no longer valid has to stay editable
+	// on every other attr rather than needing delete/recreate to fix.
+	t.Run("grandfathers an untouched invalid actions value on update", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "channel",
+			Attrs:      model.StringInterface{model.PropertyFieldAttrActions: []any{"retired_action"}},
+		})
+
+		field.Attrs = model.StringInterface{
+			model.PropertyFieldAttrActions:     []any{"retired_action"},
+			model.PropertyFieldAttrDisplayName: "Renamed",
+		}
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		assert.Equal(t, "Renamed", updated.Attrs[model.PropertyFieldAttrDisplayName])
+
+		// Changing actions still gets the strict check.
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrActions: []any{"retired_action", "unknown"}}
+		_, _, updateErr = th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "unknown action")
 	})
 
 	t.Run("skips validation for unmanaged groups", func(t *testing.T) {
