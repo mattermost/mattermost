@@ -4061,6 +4061,25 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                             ],
                         },
+                        {
+                            key: 'AIRecapSettings.Processing',
+                            title: defineMessage({id: 'admin.recaps.sections.processing.title', defaultMessage: 'Processing'}),
+                            description: defineMessage({id: 'admin.recaps.sections.processing.description', defaultMessage: 'Control how the server processes recap jobs.'}),
+                            settings: [
+                                {
+                                    type: 'number',
+                                    key: 'AIRecapSettings.Processing.MaxConcurrentJobs',
+                                    label: defineMessage({id: 'admin.recaps.maxConcurrentJobs.title', defaultMessage: 'Maximum Concurrent Jobs Per Recap Worker:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.maxConcurrentJobs.desc', defaultMessage: 'Number of jobs each recap-related worker processes at the same time on each server. Requires a server restart to take effect.'}),
+                                    placeholder: defineMessage({id: 'admin.recaps.maxConcurrentJobs.placeholder', defaultMessage: 'E.g.: "4"'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
+                                    ),
+                                    validate: validators.minValue(1, defineMessage({id: 'admin.recaps.maxConcurrentJobs.minValue', defaultMessage: 'Must be 1 or greater'})),
+                                },
+                            ],
+                        },
                     ],
                 },
             },

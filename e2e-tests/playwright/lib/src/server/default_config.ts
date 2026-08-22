@@ -910,6 +910,11 @@ const defaultServerConfig: AdminConfig = {
             MaxPostsPerDay: 5000,
             CooldownMinutes: 60,
         },
+        Processing: {
+            MaxConcurrentJobs: 4,
+            MaxConcurrentLLMCalls: 16,
+            MaxDueSchedulesPerTick: 1000,
+        },
         EnforceRecapsPerDay: true,
         EnforceScheduledRecaps: true,
         EnforceChannelsPerRecap: true,

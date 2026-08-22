@@ -11807,6 +11807,18 @@
     "translation": "Invalid AI recap max channels per recap. Must be greater than or equal to 1, or -1 for unlimited."
   },
   {
+    "id": "model.config.is_valid.ai_recap.max_concurrent_jobs.app_error",
+    "translation": "Invalid AI recap max concurrent jobs. Must be greater than or equal to 1."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_concurrent_llm_calls.app_error",
+    "translation": "Invalid AI recap max concurrent LLM calls. Must be greater than or equal to 1."
+  },
+  {
+    "id": "model.config.is_valid.ai_recap.max_due_schedules_per_tick.app_error",
+    "translation": "Invalid AI recap max due schedules per tick. Must be greater than or equal to 1."
+  },
+  {
     "id": "model.config.is_valid.ai_recap.max_posts_per_day.app_error",
     "translation": "Invalid AI recap max posts per day. Must be greater than or equal to 1, or -1 for unlimited."
   },
