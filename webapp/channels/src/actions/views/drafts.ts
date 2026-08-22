@@ -20,6 +20,7 @@ import {getGlobalItem} from 'selectors/storage';
 import {ActionTypes, StoragePrefixes} from 'utils/constants';
 
 import type {ActionFunc, ActionFuncAsync, GlobalState} from 'types/store';
+import {isPostDraftEmpty} from 'types/store/draft';
 import type {PostDraft} from 'types/store/draft';
 
 type Draft = {
@@ -46,7 +47,23 @@ export function getDrafts(teamId: string): ActionFuncAsync<boolean> {
         }
 
         const localDrafts = getLocalDrafts(state);
-        const drafts = [...serverDrafts, ...localDrafts];
+
+        // Don't restore server drafts that were explicitly cleared locally.
+        // Cleared drafts are stored as empty objects (message='', no files) and are
+        // invisible to getLocalDrafts, so we cross-check raw storage directly.
+        const rawStorage = state.storage?.storage ?? {};
+        const filteredServerDrafts = serverDrafts.filter((draft) => {
+            const localItem = rawStorage[draft.key];
+            if (!localItem) {
+                return true;
+            }
+            const localValue = localItem.value as PostDraft | null;
+            if (!localValue) {
+                return true;
+            }
+            return !isPostDraftEmpty(localValue);
+        });
+        const drafts = [...filteredServerDrafts, ...localDrafts];
 
         // Reconcile drafts and only keep the latest version of a draft.
         const draftsMap = new Map(drafts.map((draft) => [draft.key, draft]));
