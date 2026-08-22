@@ -14,10 +14,9 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import {UserTypes} from 'mattermost-redux/action_types';
 import {fetchAllMyTeamsChannels, searchAllChannels} from 'mattermost-redux/actions/channels';
 import {logError} from 'mattermost-redux/actions/errors';
-import {Client4} from 'mattermost-redux/client';
+import {autocompleteUsers} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 import {
     getDirectAndGroupChannels,
@@ -682,9 +681,9 @@ export default class SwitchChannelProvider extends Provider {
         const config = getConfig(state);
         let usersAsync;
         if (config.RestrictDirectMessage === 'team') {
-            usersAsync = Client4.autocompleteUsers(channelPrefix, teamId, '');
+            usersAsync = this.store.dispatch(autocompleteUsers(channelPrefix, teamId, ''));
         } else {
-            usersAsync = Client4.autocompleteUsers(channelPrefix, '', '');
+            usersAsync = this.store.dispatch(autocompleteUsers(channelPrefix, '', ''));
         }
 
         const channelsAsync = this.store.dispatch(searchAllChannels(channelPrefix, {nonAdminSearch: true}));
@@ -693,7 +692,8 @@ export default class SwitchChannelProvider extends Provider {
         let channelsFromServer;
 
         try {
-            usersFromServer = await usersAsync;
+            const usersResponse = await usersAsync;
+            usersFromServer = (usersResponse as ActionResult).data;
             const channelsResponse = await channelsAsync;
             channelsFromServer = (channelsResponse as ActionResult).data;
         } catch (err) {
@@ -705,23 +705,21 @@ export default class SwitchChannelProvider extends Provider {
             return;
         }
 
-        const currentUserId = getCurrentUserId(state);
+        // Re-read the state so direct message teammates loaded by the autocompleteUsers
+        // action above are available when formatting the local results.
+        const latestState = this.store.getState();
 
         // filter out deleted and archived channels from local store data
-        let localChannelData = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state)).filter((c) => c.delete_at === 0) || [];
+        let localChannelData = getChannelsInAllTeams(latestState).concat(getDirectAndGroupChannels(latestState)).filter((c) => c.delete_at === 0) || [];
         localChannelData = this.removeChannelsFromArchivedTeams(localChannelData);
-        const localUserData = searchProfilesMatchingWithTerm(state, channelPrefix, false);
+        const localUserData = searchProfilesMatchingWithTerm(latestState, channelPrefix, false);
         const localFormattedData = this.formatGroup(channelPrefix, [ThreadsChannel, ...localChannelData], localUserData);
-        let remoteChannelData = channelsFromServer.concat(getGroupChannels(state)) || [];
+        let remoteChannelData = channelsFromServer.concat(getGroupChannels(latestState)) || [];
         remoteChannelData = this.removeChannelsFromArchivedTeams(remoteChannelData);
 
-        const remoteUserData = usersFromServer.users || [];
+        const remoteUserData = usersFromServer?.users || [];
         const remoteFormattedData = this.formatGroup(channelPrefix, remoteChannelData, remoteUserData, false);
 
-        this.store.dispatch({
-            type: UserTypes.RECEIVED_PROFILES_LIST,
-            data: [...localUserData.filter((user) => user.id !== currentUserId), ...remoteUserData.filter((user) => user.id !== currentUserId)],
-        });
         const combinedTerms = [...localFormattedData.terms, ...remoteFormattedData.terms.filter((term) => !localFormattedData.terms.includes(term))];
         const combinedItems = [...localFormattedData.items, ...remoteFormattedData.items.filter((item: any) => !localFormattedData.terms.includes((item.channel as FakeDirectChannel).userId || item.channel.id))];
 

@@ -32,7 +32,7 @@ jest.mock('mattermost-redux/client', () => {
         ...original,
         Client4: {
             ...original.Client4,
-            autocompleteUsers: jest.fn().mockResolvedValue([]),
+            autocompleteUsers: jest.fn().mockResolvedValue({users: []}),
         },
     };
 });
@@ -50,6 +50,27 @@ jest.mock('mattermost-redux/actions/channels', () => ({
         },
         ],
     })),
+}));
+
+// Simulates the autocompleteUsers Redux action loading teammate profiles into the
+// store, which is how uncached direct message teammates become resolvable.
+let mockAutocompletedProfiles: UserProfile[] = [];
+const mockAutocompleteUsers = jest.fn(() => async (_dispatch: unknown, getState: () => any) => {
+    const state = getState();
+    const profiles = {...state.entities.users.profiles};
+
+    for (const profile of mockAutocompletedProfiles) {
+        profiles[profile.id] = profile;
+    }
+
+    state.entities.users.profiles = profiles;
+
+    return {data: {users: mockAutocompletedProfiles}};
+});
+
+jest.mock('mattermost-redux/actions/users', () => ({
+    ...jest.requireActual('mattermost-redux/actions/users'),
+    autocompleteUsers: () => mockAutocompleteUsers(),
 }));
 
 describe('components/SwitchChannelProvider', () => {
@@ -140,6 +161,98 @@ describe('components/SwitchChannelProvider', () => {
             },
         },
     };
+
+    beforeEach(() => {
+        mockAutocompletedProfiles = [];
+        mockAutocompleteUsers.mockClear();
+    });
+
+    it('should include an uncached direct message ahead of a matching group message in search results', async () => {
+        const teammate = TestHelper.getUserMock({
+            id: 'teammate_id',
+            username: 'joram',
+            first_name: 'Joram',
+            last_name: 'User',
+        });
+
+        const directChannel = TestHelper.getChannelMock({
+            id: 'direct_joram',
+            type: 'D' as const,
+            name: 'current_user_id__teammate_id',
+            display_name: '',
+            delete_at: 0,
+            team_id: '',
+        });
+        const groupChannel = TestHelper.getChannelMock({
+            id: 'gm_joram',
+            type: 'G' as const,
+            name: 'gm_joram',
+            display_name: 'current_user, joram, alice',
+            delete_at: 0,
+            team_id: '',
+        });
+
+        const modifiedState = {
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    channels: {
+                        ...defaultState.entities.channels.channels,
+                        [directChannel.id]: directChannel,
+                        [groupChannel.id]: groupChannel,
+                    },
+                    myMembers: {
+                        ...defaultState.entities.channels.myMembers,
+                        [directChannel.id]: {
+                            channel_id: directChannel.id,
+                            user_id: 'current_user_id',
+                            last_viewed_at: 20,
+                        },
+                        [groupChannel.id]: {
+                            channel_id: groupChannel.id,
+                            user_id: 'current_user_id',
+                            last_viewed_at: 10,
+                        },
+                    },
+                },
+                preferences: {
+                    ...defaultState.entities.preferences,
+                    myPreferences: {
+                        ...defaultState.entities.preferences.myPreferences,
+                        [`group_channel_show--${groupChannel.id}`]: {
+                            category: 'group_channel_show',
+                            value: 'true',
+                            name: groupChannel.id,
+                            user_id: 'current_user_id',
+                        },
+                    },
+                },
+            },
+        };
+
+        // The teammate profile is not cached, so the autocompleteUsers action is what
+        // loads it into the store before the local results are formatted.
+        mockAutocompletedProfiles = [teammate];
+
+        const switchProvider = new SwitchChannelProvider();
+        const store = mockStore(modifiedState);
+        switchProvider.store = store;
+
+        const resultsCallback = jest.fn();
+        switchProvider.startNewRequest('joram');
+        await switchProvider.fetchUsersAndChannels('joram', resultsCallback);
+
+        expect(mockAutocompleteUsers).toHaveBeenCalled();
+
+        const lastCall = resultsCallback.mock.calls[resultsCallback.mock.calls.length - 1][0];
+        const terms = lastCall.groups[0].terms;
+
+        expect(terms).toContain(teammate.id);
+        expect(terms).toContain(groupChannel.id);
+        expect(terms.indexOf(teammate.id)).toBeLessThan(terms.indexOf(groupChannel.id));
+    });
 
     it('should change name on wrapper to be unique with same name user channel and public channel', () => {
         const switchProvider = new SwitchChannelProvider();
