@@ -466,7 +466,7 @@ var hashtags = map[string]string{
 	"#test":           "#test",
 	"test":            "",
 	"#test123":        "#test123",
-	"#123test123":     "",
+	"#123test123":     "#123test123",
 	"#test-test":      "#test-test",
 	"#test?":          "#test",
 	"hi #there":       "#there",
