@@ -52,6 +52,12 @@ export type SuggestionBoxProps = {
     renderNoResults?: boolean;
 
     /**
+     * Optional maximum height in pixels for the suggestion list, overriding the default cap.
+     * Used by taller modal-based lists such as the Find Channels modal.
+     */
+    listMaxHeight?: number;
+
+    /**
      * Set to true if we want the suggestions to take in the complete word as the pretext, defaults to false
      */
     shouldSearchCompleteText?: boolean;

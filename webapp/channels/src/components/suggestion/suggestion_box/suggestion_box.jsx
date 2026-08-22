@@ -70,6 +70,12 @@ export default class SuggestionBox extends React.PureComponent {
         renderNoResults: PropTypes.bool,
 
         /**
+         * Optional maximum height in pixels for the suggestion list, overriding the default cap.
+         * Used by taller modal-based lists such as the Find Channels modal.
+         */
+        listMaxHeight: PropTypes.number,
+
+        /**
          * Set to true if we want the suggestions to take in the complete word as the pretext, defaults to false
          */
         shouldSearchCompleteText: PropTypes.bool,
@@ -717,6 +723,7 @@ export default class SuggestionBox extends React.PureComponent {
         const {
             dateComponent,
             listComponent,
+            listMaxHeight,
             listPosition,
             renderNoResults,
             ...props
@@ -768,6 +775,7 @@ export default class SuggestionBox extends React.PureComponent {
                         pretext={this.pretext}
                         position={this.getListPosition(listPosition)}
                         renderNoResults={renderNoResults}
+                        maxHeight={listMaxHeight}
                         onCompleteWord={this.handleCompleteWord}
                         preventClose={this.preventSuggestionListClose}
                         onItemHover={this.setSelection}
