@@ -224,15 +224,36 @@ func (d *Decoder) DecodeWebPFirstFrame(r io.Reader) (image.Image, error) {
 		return nil, errors.New("webp: not a WebP file")
 	}
 
+	// Animated WebP must start with VP8X and have the animation bit (bit 1) set.
+	// Still images start with VP8/VP8L at the top level and are rejected fast.
 	var chunkHdr [riffChunkHeaderSize]byte
+	if _, err := io.ReadFull(r, chunkHdr[:]); err != nil {
+		return nil, errors.New("webp: not animated")
+	}
+	firstSize := int64(binary.LittleEndian.Uint32(chunkHdr[4:]))
+	if string(chunkHdr[:4]) != "VP8X" || firstSize < vp8xPayloadSize {
+		return nil, errors.New("webp: not animated")
+	}
+	var vp8xFlags [vp8xPayloadSize]byte
+	if _, err := io.ReadFull(r, vp8xFlags[:]); err != nil {
+		return nil, errors.New("webp: not animated")
+	}
+	if vp8xFlags[0]&0x02 == 0 {
+		return nil, errors.New("webp: not animated")
+	}
+	if remaining := firstSize - vp8xPayloadSize; remaining > 0 {
+		if _, err := io.CopyN(io.Discard, r, remaining); err != nil {
+			return nil, errors.New("webp: not animated")
+		}
+	}
+
 	for {
 		if _, err := io.ReadFull(r, chunkHdr[:]); err != nil {
 			break
 		}
-		id := string(chunkHdr[:4])
 		size := int64(binary.LittleEndian.Uint32(chunkHdr[4:]))
 
-		if id == "ANMF" && size >= anmfFrameHeaderSize+riffChunkHeaderSize {
+		if string(chunkHdr[:4]) == "ANMF" && size >= anmfFrameHeaderSize+riffChunkHeaderSize {
 			payload, err := io.ReadAll(io.LimitReader(r, size))
 			if err != nil || int64(len(payload)) != size {
 				break
@@ -241,8 +262,6 @@ func (d *Decoder) DecodeWebPFirstFrame(r io.Reader) (image.Image, error) {
 			if err != nil {
 				return nil, err
 			}
-			// enforceResolutionLimit peeks the header and seeks back, so rd is
-			// ready to pass straight to image.Decode.
 			rd, err := d.enforceResolutionLimit(bytes.NewReader(container))
 			if err != nil {
 				return nil, err
@@ -258,11 +277,7 @@ func (d *Decoder) DecodeWebPFirstFrame(r io.Reader) (image.Image, error) {
 			return img, nil
 		}
 
-		skip := size
-		if size%2 != 0 {
-			skip++
-		}
-		if _, err := io.CopyN(io.Discard, r, skip); err != nil {
+		if _, err := io.CopyN(io.Discard, r, size+size%2); err != nil {
 			break
 		}
 	}
@@ -278,25 +293,20 @@ func anmfContainer(anmf []byte) ([]byte, error) {
 		return nil, errors.New("webp: ANMF payload too short")
 	}
 	// ANMF header bytes 6-8: frame width minus one; bytes 9-11: frame height minus one.
-	wMinus1 := uint32(anmf[6]) | uint32(anmf[7])<<8 | uint32(anmf[8])<<16
-	hMinus1 := uint32(anmf[9]) | uint32(anmf[10])<<8 | uint32(anmf[11])<<16
+	wMinus1 := binary.LittleEndian.Uint32(anmf[6:]) & 0xFFFFFF
+	hMinus1 := binary.LittleEndian.Uint32(anmf[9:]) & 0xFFFFFF
 
 	sub := anmf[anmfFrameHeaderSize:]
 	var alph []byte
 	for pos := 0; pos+riffChunkHeaderSize <= len(sub); {
-		id := string(sub[pos : pos+4])
 		size := int(binary.LittleEndian.Uint32(sub[pos+4 : pos+riffChunkHeaderSize]))
 		end := pos + riffChunkHeaderSize + size
 		if end > len(sub) {
 			break
 		}
-		switch id {
+		switch string(sub[pos : pos+4]) {
 		case "ALPH":
-			padEnd := end
-			if size%2 != 0 && padEnd < len(sub) {
-				padEnd++ // include RIFF pad byte so the next chunk isn't misread
-			}
-			alph = sub[pos:padEnd]
+			alph = sub[pos:min(end+size%2, len(sub))] // include RIFF pad byte so the next chunk isn't misread
 		case "VP8L":
 			return webpContainer(sub[pos:end]), nil
 		case "VP8 ":
@@ -305,10 +315,7 @@ func anmfContainer(anmf []byte) ([]byte, error) {
 			}
 			return webpContainer(sub[pos:end]), nil
 		}
-		pos = end
-		if size%2 != 0 {
-			pos++
-		}
+		pos = end + size%2
 	}
 	return nil, errors.New("webp: no VP8/VP8L subchunk in ANMF frame")
 }
