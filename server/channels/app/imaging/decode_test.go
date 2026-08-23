@@ -271,18 +271,18 @@ func TestDecodeWebPFirstFrame(t *testing.T) {
 		})
 	})
 
-	t.Run("oversized ANMF declared size does not over-allocate", func(t *testing.T) {
-		// A malicious WebP can claim a huge ANMF payload size while the actual
-		// file is tiny. The io.ReadAll(io.LimitReader(r, int64(size))) only allocates what
-		// the reader actually delivers, so this must stay well under 1 MB.
+	t.Run("oversized ANMF declared size is rejected before reading", func(t *testing.T) {
+		// A malicious WebP can claim a huge ANMF payload to trigger memory exhaustion.
+		// The maxANMFPayload cap must reject the chunk before any read happens, so
+		// allocation must stay well under 1 MB regardless of the declared size.
 		const claimedSize = 500 * 1024 * 1024 // 500 MB declared, 0 bytes present
 
-		buf := make([]byte, riffContainerSize+riffChunkHeaderSize)
-		copy(buf, "RIFF")
-		binary.LittleEndian.PutUint32(buf[4:], uint32(4+riffChunkHeaderSize+claimedSize))
-		copy(buf[8:], "WEBP")
-		copy(buf[riffContainerSize:], "ANMF")
-		binary.LittleEndian.PutUint32(buf[riffContainerSize+4:], uint32(claimedSize))
+		// Build a bare ANMF chunk header (no payload) to append after the VP8X chunk.
+		anmfHdr := make([]byte, riffChunkHeaderSize)
+		copy(anmfHdr, "ANMF")
+		binary.LittleEndian.PutUint32(anmfHdr[4:], uint32(claimedSize))
+
+		buf := wrapWebP(mkVP8XAnim(), anmfHdr)
 
 		runtime.GC()
 		var before runtime.MemStats
@@ -295,9 +295,10 @@ func TestDecodeWebPFirstFrame(t *testing.T) {
 		runtime.ReadMemStats(&after)
 
 		require.Error(t, err)
+		require.Contains(t, err.Error(), "too large")
 		allocated := int64(after.TotalAlloc) - int64(before.TotalAlloc)
 		require.Less(t, allocated, int64(1*1024*1024),
-			"allocated %d bytes — must not pre-allocate the declared chunk size", allocated)
+			"allocated %d bytes — must not buffer the declared chunk size", allocated)
 	})
 
 	t.Run("valid animated WebP VP8 frame decoded successfully", func(t *testing.T) {

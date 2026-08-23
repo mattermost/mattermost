@@ -25,6 +25,11 @@ const (
 	riffContainerSize   = 12 // "RIFF" + uint32 total size + "WEBP" FourCC
 	anmfFrameHeaderSize = 16 // Frame X, Y, Width, Height, Duration, Flags
 	vp8xPayloadSize     = 10 // Flags (4 bytes) + Canvas W-1 (3 bytes) + Canvas H-1 (3 bytes)
+
+	// maxANMFPayload caps how many bytes we read from a single ANMF chunk. A
+	// 64 MB cap is generous for any compressed WebP frame while preventing a
+	// crafted file from directing us to buffer an unreasonable amount of data.
+	maxANMFPayload = 64 * 1024 * 1024
 )
 
 // DecoderOptions holds configuration options for an image decoder.
@@ -254,6 +259,9 @@ func (d *Decoder) DecodeWebPFirstFrame(r io.Reader) (image.Image, error) {
 		size := int64(binary.LittleEndian.Uint32(chunkHdr[4:]))
 
 		if string(chunkHdr[:4]) == "ANMF" && size >= anmfFrameHeaderSize+riffChunkHeaderSize {
+			if size > maxANMFPayload {
+				return nil, errors.New("webp: ANMF chunk too large")
+			}
 			payload, err := io.ReadAll(io.LimitReader(r, size))
 			if err != nil || int64(len(payload)) != size {
 				break
