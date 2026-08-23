@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	brrr "github.com/molecule-man/go-brrr"
@@ -262,5 +263,41 @@ func TestCompressionHandlerBrotli(t *testing.T) {
 		assert.Equal(t, "br", resp.Header().Get("Content-Encoding"))
 		assert.Empty(t, resp.Header().Get("Content-Length"),
 			"a Content-Length describing the uncompressed size must not survive into a compressed response")
+	})
+
+	t.Run("a handler that already set Content-Encoding is passed through unchanged", func(t *testing.T) {
+		preEncodedHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			var body [1400]byte
+			w.Header().Set("Content-Encoding", "identity")
+			_, err := w.Write(body[:])
+			require.NoError(t, err)
+		})
+		h := compressionHandler(preEncodedHandler, true)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+		req.Header.Set("Accept-Encoding", "br")
+
+		h.ServeHTTP(resp, req)
+
+		assert.Equal(t, "identity", resp.Header().Get("Content-Encoding"),
+			"must not overwrite or double-compress a response that already declared its own Content-Encoding")
+		assert.Len(t, resp.Body.Bytes(), 1400)
+	})
+
+	t.Run("Content-Type is detected from the buffered body when the handler never sets it", func(t *testing.T) {
+		noContentTypeHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, err := w.Write([]byte("<html><body>" + strings.Repeat("x", 1100) + "</body></html>"))
+			require.NoError(t, err)
+		})
+		h := compressionHandler(noContentTypeHandler, true)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+		req.Header.Set("Accept-Encoding", "br")
+
+		h.ServeHTTP(resp, req)
+
+		assert.Equal(t, "br", resp.Header().Get("Content-Encoding"))
+		assert.Contains(t, resp.Header().Get("Content-Type"), "text/html",
+			"Content-Type must be sniffed from the plain buffered bytes before compression starts")
 	})
 }

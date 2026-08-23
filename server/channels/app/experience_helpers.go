@@ -63,10 +63,8 @@ type experienceLoadSnapshot struct {
 }
 
 type experienceLoadErrorKeys struct {
-	function         string
-	loadError        string
-	groupMemberships string
-	prefTombstones   string
+	function  string
+	loadError string
 }
 
 func (a *App) loadExperienceSnapshot(rctx request.CTX, userID string, since int64, keys experienceLoadErrorKeys) (*experienceLoadSnapshot, *model.AppError) {
@@ -125,7 +123,7 @@ func (a *App) loadExperienceSnapshot(rctx request.CTX, userID string, since int6
 		eg.Go(func() error {
 			tombstones, err := a.Srv().Store().Preference().GetDeletedSince(userID, since)
 			if err != nil {
-				return model.NewAppError(keys.function, keys.prefTombstones, nil, "", http.StatusInternalServerError).Wrap(err)
+				return model.NewAppError(keys.function, "app.initial_load.get_preference_tombstones.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
 			res.prefTombstones = filterExperienceTombstones(tombstones)
 			return nil
@@ -136,7 +134,7 @@ func (a *App) loadExperienceSnapshot(rctx request.CTX, userID string, since int6
 		var err error
 		res.groupMemberships, err = a.Srv().Store().Group().GetMembershipsByUser(userID, since)
 		if err != nil {
-			return model.NewAppError(keys.function, keys.groupMemberships, nil, "", http.StatusInternalServerError).Wrap(err)
+			return model.NewAppError(keys.function, "app.initial_load.get_group_memberships.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 		return nil
 	})

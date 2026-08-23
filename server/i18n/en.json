@@ -7581,10 +7581,6 @@
     "translation": "Unable to get the deleted preferences for the initial load."
   },
   {
-    "id": "app.initial_load.get_roles.app_error",
-    "translation": "Unable to get the roles for the initial load."
-  },
-  {
     "id": "app.initial_load.profile_role_data.error",
     "translation": "Unable to load the profile and role data for the initial load."
   },

@@ -126,9 +126,32 @@ func (b *brotliResponseWriter) startCompression(remain []byte) error {
 	h.Add("Vary", "Accept-Encoding")
 
 	code := b.statusCode()
-	if !bodyAllowedForStatus(code) || !brotliContentTypeAllowed(h.Get("Content-Type")) {
+
+	// A handler that already declared its own Content-Encoding has either
+	// pre-compressed the body itself or opted out of transparent compression;
+	// compressing it again would corrupt the response, so pass it through as-is.
+	alreadyEncoded := h.Get("Content-Encoding") != ""
+
+	ct := h.Get("Content-Type")
+	if ct == "" && bodyAllowedForStatus(code) && len(b.buf) > 0 {
+		// Detect Content-Type from the buffered plain bytes before compressing —
+		// once Content-Encoding is set, net/http's own sniffing (which normally
+		// runs on Write when Content-Type is unset) would otherwise sniff the
+		// compressed bytes instead, matching gzhttp's own behavior.
+		ct = http.DetectContentType(b.buf)
+		h.Set("Content-Type", ct)
+	}
+
+	if alreadyEncoded || !bodyAllowedForStatus(code) || !brotliContentTypeAllowed(ct) {
 		return b.startPlain(remain)
 	}
+
+	bw, err := brrr.NewWriter(b.ResponseWriter, brotliCompressionLevel)
+	if err != nil {
+		mlog.Warn("Failed to create brotli writer, sending uncompressed response", mlog.Err(err))
+		return b.startPlain(remain)
+	}
+	b.bw = bw
 
 	h.Set("Content-Encoding", "br")
 	// If the handler already set an explicit Content-Length (e.g. compliance.go),
@@ -136,14 +159,6 @@ func (b *brotliResponseWriter) startCompression(remain []byte) error {
 	// response, or the client will misread the body boundary.
 	h.Del("Content-Length")
 	b.ResponseWriter.WriteHeader(code)
-
-	bw, err := brrr.NewWriter(b.ResponseWriter, brotliCompressionLevel)
-	if err != nil {
-		mlog.Warn("Failed to create brotli writer, sending uncompressed response", mlog.Err(err))
-		h.Del("Content-Encoding")
-		return b.startPlain(remain)
-	}
-	b.bw = bw
 
 	if len(b.buf) > 0 {
 		if _, err := b.bw.Write(b.buf); err != nil {

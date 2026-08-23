@@ -39,10 +39,8 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 	baseLoadGroup.Go(func() error {
 		var appErr *model.AppError
 		baseData, appErr = a.loadExperienceSnapshot(rctx, userID, since, experienceLoadErrorKeys{
-			function:         "GetInitialLoad",
-			loadError:        "app.initial_load.base_data.error",
-			groupMemberships: "app.initial_load.get_group_memberships.app_error",
-			prefTombstones:   "app.initial_load.get_preference_tombstones.app_error",
+			function:  "GetInitialLoad",
+			loadError: "app.initial_load.base_data.error",
 		})
 		if appErr != nil {
 			return appErr
