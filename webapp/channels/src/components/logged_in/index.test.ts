@@ -62,9 +62,6 @@ describe('LoggedIn mapStateToProps', () => {
                         license: {
                             IsLicensed: 'false',
                         } as ClientLicense,
-                        config: {
-                            FeatureFlagCustomProfileAttributes: 'true',
-                        },
                     },
                 },
             });
@@ -74,7 +71,7 @@ describe('LoggedIn mapStateToProps', () => {
             expect(props.customProfileAttributesEnabled).toBe(false);
         });
 
-        it('should be false when Enterprise license but feature flag disabled', () => {
+        it('should be true when Enterprise license', () => {
             const state = mergeObjects(baseState, {
                 entities: {
                     general: {
@@ -82,47 +79,6 @@ describe('LoggedIn mapStateToProps', () => {
                             IsLicensed: 'true',
                             SkuShortName: LicenseSkus.Enterprise,
                         } as ClientLicense,
-                        config: {
-                            FeatureFlagCustomProfileAttributes: 'false',
-                        },
-                    },
-                },
-            });
-
-            const props = mapStateToProps(state, baseProps);
-
-            expect(props.customProfileAttributesEnabled).toBe(false);
-        });
-
-        it('should be false when Enterprise license but feature flag missing', () => {
-            const state = mergeObjects(baseState, {
-                entities: {
-                    general: {
-                        license: {
-                            IsLicensed: 'true',
-                            SkuShortName: LicenseSkus.Enterprise,
-                        } as ClientLicense,
-                        config: {},
-                    },
-                },
-            });
-
-            const props = mapStateToProps(state, baseProps);
-
-            expect(props.customProfileAttributesEnabled).toBe(false);
-        });
-
-        it('should be true when Enterprise license and feature flag enabled', () => {
-            const state = mergeObjects(baseState, {
-                entities: {
-                    general: {
-                        license: {
-                            IsLicensed: 'true',
-                            SkuShortName: LicenseSkus.Enterprise,
-                        } as ClientLicense,
-                        config: {
-                            FeatureFlagCustomProfileAttributes: 'true',
-                        },
                     },
                 },
             });
@@ -137,9 +93,6 @@ describe('LoggedIn mapStateToProps', () => {
                 entities: {
                     general: {
                         license: {} as ClientLicense,
-                        config: {
-                            FeatureFlagCustomProfileAttributes: 'true',
-                        },
                     },
                 },
             });
@@ -159,9 +112,6 @@ describe('LoggedIn mapStateToProps', () => {
                             IsLicensed: 'true',
                             SkuShortName: LicenseSkus.Enterprise,
                         } as ClientLicense,
-                        config: {
-                            FeatureFlagCustomProfileAttributes: 'true',
-                        },
                     },
                 },
             });

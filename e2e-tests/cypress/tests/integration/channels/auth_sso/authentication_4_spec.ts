@@ -276,10 +276,14 @@ describe('Authentication', () => {
         cy.findByText('Copy invite link').click();
 
         // # Input email, select member
-        cy.findByLabelText('Invite People').type(`test-${getRandomId()}@mattermost.com{downarrow}{downarrow}{enter}`, {force: true});
+        cy.findByLabelText('Invite People').type(`test-${getRandomId()}@mattermost.com`);
+
+        // # Wait a moment for the autocomplete and then press enter to select the email
+        cy.wait(100);
+        cy.findByLabelText('Invite People').type('{enter}');
 
         // # Click invite members button
-        cy.findByRole('button', {name: 'Invite'}).click({force: true});
+        cy.findByRole('button', {name: 'Invite'}).click();
 
         // * Verify message is what you expect it to be
         cy.contains('The following email addresses do not belong to an accepted domain:', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('exist');

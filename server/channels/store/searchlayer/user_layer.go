@@ -4,7 +4,6 @@
 package searchlayer
 
 import (
-	"context"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -91,7 +90,7 @@ func (s *SearchUserStore) Save(rctx request.CTX, user *model.User) (*model.User,
 }
 
 func (s *SearchUserStore) PermanentDelete(rctx request.CTX, userId string) error {
-	user, userErr := s.UserStore.Get(context.Background(), userId)
+	user, userErr := s.UserStore.Get(rctx, userId)
 	if userErr != nil {
 		rctx.Logger().Warn("Encountered error deleting user", mlog.String("user_id", userId), mlog.Err(userErr))
 	}

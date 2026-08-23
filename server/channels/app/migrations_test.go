@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/require"
 )
 
@@ -362,6 +363,53 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 	require.Equal(t, "true", data.Value)
 }
 
+var expectedOSPlatformOptions = []string{"macos", "windows", "linux", "ios", "android"}
+
+func sessionAttributeFieldByName(t *testing.T, th *TestHelper, groupID, name string) *model.PropertyField {
+	t.Helper()
+
+	fields, appErr := th.App.SearchPropertyFields(th.Context, groupID, model.PropertyFieldSearchOpts{PerPage: 100})
+	require.Nil(t, appErr)
+	for _, field := range fields {
+		if field.Name == name {
+			return field
+		}
+	}
+
+	require.FailNowf(t, "session attribute field not found", "field %q was not seeded", name)
+	return nil
+}
+
+func sessionAttributeOptions(t *testing.T, field *model.PropertyField) model.PropertyOptions[*model.PluginPropertyOption] {
+	t.Helper()
+
+	options, err := model.NewPropertyOptionsFromFieldAttrs[*model.PluginPropertyOption](field.Attrs[model.PropertyFieldAttributeOptions])
+	require.NoError(t, err)
+	return options
+}
+
+func sessionAttributeOptionNames(t *testing.T, field *model.PropertyField) []string {
+	t.Helper()
+
+	options := sessionAttributeOptions(t, field)
+	names := make([]string, 0, len(options))
+	for _, option := range options {
+		names = append(names, option.GetName())
+	}
+	return names
+}
+
+func sessionAttributeOptionIDsByName(t *testing.T, field *model.PropertyField) map[string]string {
+	t.Helper()
+
+	options := sessionAttributeOptions(t, field)
+	idsByName := make(map[string]string, len(options))
+	for _, option := range options {
+		idsByName[option.GetName()] = option.GetID()
+	}
+	return idsByName
+}
+
 func TestDoSetupSessionAttributesProperties(t *testing.T) {
 	expectedFieldCount := len(model.SessionAttributeSystemFields("group-id"))
 
@@ -413,6 +461,58 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		)
 	})
 
+	t.Run("os_platform seeds as a select with the known platform values", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
+		require.Equal(t, model.PropertyFieldTypeSelect, field.Type)
+		require.Equal(t, expectedOSPlatformOptions, sessionAttributeOptionNames(t, field))
+		require.True(t, model.IsValidSessionAttributeValue(field, "windows"))
+		require.False(t, model.IsValidSessionAttributeValue(field, "darwin"))
+	})
+
+	t.Run("converts a legacy text os_platform field into a select", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		// Restore the pre-conversion shape a server upgrade would find: free
+		// text with no options. Written with a nil request context so
+		// SessionAttributesHook treats it as a system caller, the same way the
+		// seed itself does.
+		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
+		field.Type = model.PropertyFieldTypeText
+		delete(field.Attrs, model.PropertyFieldAttributeOptions)
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{field})
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		converted := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
+		require.Equal(t, model.PropertyFieldTypeSelect, converted.Type)
+		require.Equal(t, expectedOSPlatformOptions, sessionAttributeOptionNames(t, converted))
+		require.True(t, model.IsValidSessionAttributeValue(converted, "windows"))
+	})
+
+	t.Run("re-seeding preserves select option IDs", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		before := sessionAttributeOptionIDsByName(t, sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform))
+		require.Len(t, before, len(expectedOSPlatformOptions))
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		after := sessionAttributeOptionIDsByName(t, sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform))
+		require.Equal(t, before, after, "re-seeding must not regenerate option IDs")
+	})
+
 	t.Run("re-running is idempotent", func(t *testing.T) {
 		th := Setup(t)
 
@@ -429,6 +529,23 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.Nil(t, appErr)
 		require.Len(t, after, expectedFieldCount, "re-running must not create duplicate fields")
+	})
+
+	t.Run("backfills operators on legacy fields missing attrs.operators", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
+		delete(field.Attrs, model.NativeAttributeAttrOperators)
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{field})
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		updated := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
+		require.NotNil(t, updated.Attrs[model.NativeAttributeAttrOperators])
 	})
 
 	t.Run("concurrent runs tolerate update conflicts", func(t *testing.T) {
@@ -637,4 +754,60 @@ func stripStatusColors(t *testing.T, attrs model.StringInterface) model.StringIn
 	maps.Copy(out, attrs)
 	out["options"] = options
 	return out
+}
+
+// lockToMasterSpyStore records when doAppMigrations locks and unlocks the store
+// relative to the store access the migrations themselves make.
+type lockToMasterSpyStore struct {
+	store.Store
+
+	mu     sync.Mutex
+	events []string
+}
+
+func (s *lockToMasterSpyStore) record(event string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.events = append(s.events, event)
+}
+
+func (s *lockToMasterSpyStore) snapshot() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append([]string(nil), s.events...)
+}
+
+func (s *lockToMasterSpyStore) LockToMaster() {
+	s.record("lock")
+	s.Store.LockToMaster()
+}
+
+func (s *lockToMasterSpyStore) UnlockFromMaster() {
+	s.record("unlock")
+	s.Store.UnlockFromMaster()
+}
+
+func (s *lockToMasterSpyStore) System() store.SystemStore {
+	s.record("system")
+	return s.Store.System()
+}
+
+// Guard, not a reproduction: storetest configures no replicas, so GetReplica already
+// returns master and the race cannot be staged here. It pins that doAppMigrations
+// brackets its work in the master lock; it does not exercise the routing of individual
+// reads, as propertyService holds store handles captured before the spy wraps them.
+func TestDoAppMigrationsRunsLockedToMaster(t *testing.T) {
+	th := Setup(t)
+
+	spy := &lockToMasterSpyStore{Store: th.Server.Store()}
+	th.Server.SetStore(spy)
+	t.Cleanup(func() { th.Server.SetStore(spy.Store) })
+
+	th.Server.doAppMigrations()
+
+	events := spy.snapshot()
+	require.GreaterOrEqual(t, len(events), 3, "expected migrations to access the store between lock and unlock")
+	require.Equal(t, "lock", events[0], "migrations must lock to master before touching the store")
+	require.Equal(t, "unlock", events[len(events)-1], "migrations must release the lock once finished")
+	require.Contains(t, events[1:len(events)-1], "system", "migration store access must happen while locked to master")
 }
