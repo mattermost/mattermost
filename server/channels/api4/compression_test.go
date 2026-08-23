@@ -300,4 +300,21 @@ func TestCompressionHandlerBrotli(t *testing.T) {
 		assert.Contains(t, resp.Header().Get("Content-Type"), "text/html",
 			"Content-Type must be sniffed from the plain buffered bytes before compression starts")
 	})
+
+	t.Run("explicitly empty Content-Type is preserved and not overwritten by sniffing", func(t *testing.T) {
+		emptyContentTypeHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set("Content-Type", "")
+			_, err := w.Write([]byte(strings.Repeat("x", 1100)))
+			require.NoError(t, err)
+		})
+		h := compressionHandler(emptyContentTypeHandler, true)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+		req.Header.Set("Accept-Encoding", "br")
+
+		h.ServeHTTP(resp, req)
+
+		assert.Equal(t, "", resp.Header().Get("Content-Type"),
+			"a handler-set empty Content-Type must not be overwritten by sniffing")
+	})
 }

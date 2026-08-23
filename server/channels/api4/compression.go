@@ -132,12 +132,16 @@ func (b *brotliResponseWriter) startCompression(remain []byte) error {
 	// compressing it again would corrupt the response, so pass it through as-is.
 	alreadyEncoded := h.Get("Content-Encoding") != ""
 
+	_, hasContentType := h["Content-Type"]
 	ct := h.Get("Content-Type")
-	if ct == "" && bodyAllowedForStatus(code) && len(b.buf) > 0 {
+	if !hasContentType && bodyAllowedForStatus(code) && len(b.buf) > 0 {
 		// Detect Content-Type from the buffered plain bytes before compressing —
 		// once Content-Encoding is set, net/http's own sniffing (which normally
 		// runs on Write when Content-Type is unset) would otherwise sniff the
-		// compressed bytes instead, matching gzhttp's own behavior.
+		// compressed bytes instead, matching gzhttp's own behavior. Checking the
+		// header key's presence (not just whether its value is "") distinguishes
+		// "never set" from a handler explicitly setting an empty Content-Type to
+		// opt out of sniffing — the same distinction gzhttp itself makes.
 		ct = http.DetectContentType(b.buf)
 		h.Set("Content-Type", ct)
 	}
