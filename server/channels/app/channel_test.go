@@ -3727,6 +3727,10 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 	mockStore.On("System").Return(&mockSystemStore)
 	mockSystemStore.On("GetByName", model.MigrationKeyAdvancedPermissionsPhase2).Return(nil, nil)
 
+	mockPreferenceStore := mocks.PreferenceStore{}
+	mockStore.On("Preference").Return(&mockPreferenceStore)
+	mockPreferenceStore.On("Save", mock.Anything).Return(nil)
+
 	var err error
 
 	th.App.ch.srv.userService, err = users.New(users.ServiceConfig{

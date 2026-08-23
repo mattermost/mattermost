@@ -470,6 +470,7 @@ func buildDirectProfiles(profilesByChannel map[string][]*model.User, showEmail b
 func buildDirectUnreads(
 	userID string,
 	channelMembers model.ChannelMembersWithTeamData,
+	channelsByID map[string]*model.Channel,
 	profilesByChannel map[string][]*model.User,
 	prefs model.Preferences,
 	isCRT bool,
@@ -511,15 +512,17 @@ func buildDirectUnreads(
 			}
 		}
 
+		ch := channelsByID[cm.ChannelId]
+
 		if isCRT {
 			counts.MentionCount += cm.MentionCountRoot
 			counts.MentionCountRoot += cm.MentionCountRoot
-			if cm.MsgCountRoot > 0 || cm.MentionCountRoot > 0 {
+			if (ch != nil && ch.TotalMsgCountRoot-cm.MsgCountRoot > 0) || cm.MentionCountRoot > 0 {
 				counts.HasUnreads = true
 			}
 		} else {
 			counts.MentionCount += cm.MentionCount
-			if cm.MsgCount > 0 || cm.MentionCount > 0 {
+			if (ch != nil && ch.TotalMsgCount-cm.MsgCount > 0) || cm.MentionCount > 0 {
 				counts.HasUnreads = true
 			}
 		}
@@ -807,7 +810,6 @@ func toExperienceActiveTeam(
 	teams []*model.Team,
 	allChannels model.ChannelList,
 	changedChannels model.ChannelList,
-	allChannelMembers model.ChannelMembersWithTeamData,
 	changedChannelMembers model.ChannelMembersWithTeamData,
 	sidebarCats *model.OrderedSidebarCategories,
 	removedChIDs []string,
@@ -862,15 +864,21 @@ type dmEntry struct {
 	unread     bool
 }
 
-func dmIsUnread(cm *model.ChannelMemberWithTeamData, isCRT bool) bool {
-	if cm == nil {
+// dmIsUnread reports whether the channel has unread messages for cm's user.
+// ChannelMember.MsgCount/MsgCountRoot are read counters, not unread counts —
+// the actual unread total is the channel's TotalMsgCount/TotalMsgCountRoot
+// minus what the member has read, matching every other unread computation in
+// this codebase (e.g. the IsUnread calculation in channel.go's
+// attachMuteToggleData).
+func dmIsUnread(ch *model.Channel, cm *model.ChannelMemberWithTeamData, isCRT bool) bool {
+	if cm == nil || ch == nil {
 		return false
 	}
 	isMuted := cm.NotifyProps[model.MarkUnreadNotifyProp] == model.ChannelMarkUnreadMention
 	if isCRT {
-		return cm.MentionCountRoot > 0 || (!isMuted && cm.MsgCountRoot > 0)
+		return cm.MentionCountRoot > 0 || (!isMuted && ch.TotalMsgCountRoot-cm.MsgCountRoot > 0)
 	}
-	return cm.MentionCount > 0 || (!isMuted && cm.MsgCount > 0)
+	return cm.MentionCount > 0 || (!isMuted && ch.TotalMsgCount-cm.MsgCount > 0)
 }
 
 func filterManuallyClosedDMEntries(entries []dmEntry, prefs model.Preferences, userID string, pinnedElsewhere map[string]struct{}) []dmEntry {
@@ -1053,7 +1061,7 @@ func selectVisibleDMGMChannels(
 			ch:         ch,
 			cm:         cm,
 			lastViewed: lastViewed[ch.Id],
-			unread:     dmIsUnread(cm, isCRT),
+			unread:     dmIsUnread(ch, cm, isCRT),
 		})
 	}
 

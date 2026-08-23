@@ -206,23 +206,32 @@ func TestBuildDirectUnreads(t *testing.T) {
 			TeamName: "", // empty TeamName = DM/GM channel
 		}
 	}
+	chTotals := func(chID string, totalMsgCount, totalMsgCountRoot int64) map[string]*model.Channel {
+		return map[string]*model.Channel{chID: {Id: chID, TotalMsgCount: totalMsgCount, TotalMsgCountRoot: totalMsgCountRoot}}
+	}
 
 	t.Run("returns nil when all counts are zero and no thread counts", func(t *testing.T) {
 		members := model.ChannelMembersWithTeamData{dmMember("c1", 0, 0, 0, 0, 0, false)}
-		assert.Nil(t, buildDirectUnreads("u1", members, nil, nil, false, false, 0, 0))
+		assert.Nil(t, buildDirectUnreads("u1", members, chTotals("c1", 0, 0), nil, nil, false, false, 0, 0))
 	})
 
-	t.Run("non-CRT: accumulates MentionCount and sets HasUnreads from MsgCount", func(t *testing.T) {
+	t.Run("non-CRT: accumulates MentionCount and sets HasUnreads from unread total minus read count", func(t *testing.T) {
 		members := model.ChannelMembersWithTeamData{dmMember("c1", 3, 2, 0, 0, 0, false)}
-		result := buildDirectUnreads("u1", members, nil, nil, false, false, 0, 0)
+		result := buildDirectUnreads("u1", members, chTotals("c1", 5, 0), nil, nil, false, false, 0, 0)
 		require.NotNil(t, result)
 		assert.Equal(t, int64(2), result.MentionCount)
 		assert.True(t, result.HasUnreads)
 	})
 
-	t.Run("CRT: uses MentionCountRoot and MsgCountRoot", func(t *testing.T) {
+	t.Run("non-CRT: read counter alone (no channel total) must not report HasUnreads", func(t *testing.T) {
+		members := model.ChannelMembersWithTeamData{dmMember("c1", 3, 0, 0, 0, 0, false)}
+		result := buildDirectUnreads("u1", members, chTotals("c1", 3, 0), nil, nil, false, false, 0, 0)
+		assert.Nil(t, result, "caught-up member with no mentions must report no unreads")
+	})
+
+	t.Run("CRT: uses MentionCountRoot and unread total minus MsgCountRoot", func(t *testing.T) {
 		members := model.ChannelMembersWithTeamData{dmMember("c1", 0, 5, 3, 0, 2, false)}
-		result := buildDirectUnreads("u1", members, nil, nil, true, false, 0, 0)
+		result := buildDirectUnreads("u1", members, chTotals("c1", 0, 4), nil, nil, true, false, 0, 0)
 		require.NotNil(t, result)
 		assert.Equal(t, int64(3), result.MentionCount)
 		assert.Equal(t, int64(3), result.MentionCountRoot)
@@ -231,35 +240,33 @@ func TestBuildDirectUnreads(t *testing.T) {
 
 	t.Run("muted channel is excluded entirely", func(t *testing.T) {
 		members := model.ChannelMembersWithTeamData{dmMember("c1", 5, 5, 0, 0, 0, true)}
-		assert.Nil(t, buildDirectUnreads("u1", members, nil, nil, false, false, 0, 0))
+		assert.Nil(t, buildDirectUnreads("u1", members, chTotals("c1", 10, 0), nil, nil, false, false, 0, 0))
 	})
 
 	t.Run("regular team channel (TeamName != empty) is skipped", func(t *testing.T) {
 		m := dmMember("c1", 5, 5, 0, 0, 0, false)
 		m.TeamName = "someteam"
-		assert.Nil(t, buildDirectUnreads("u1", model.ChannelMembersWithTeamData{m}, nil, nil, false, false, 0, 0))
+		assert.Nil(t, buildDirectUnreads("u1", model.ChannelMembersWithTeamData{m}, chTotals("c1", 10, 0), nil, nil, false, false, 0, 0))
 	})
 
 	t.Run("DM with deactivated user deactivated after last view is excluded", func(t *testing.T) {
 		m := dmMember("c1", 5, 2, 0, 0, 0, false)
 		m.LastViewedAt = 100
 		profiles := map[string][]*model.User{"c1": {{Id: "partner", DeleteAt: 500}}}
-		// partner.DeleteAt=500 > lastViewedAt=100 → excluded
-		assert.Nil(t, buildDirectUnreads("u1", model.ChannelMembersWithTeamData{m}, profiles, nil, false, false, 0, 0))
+		assert.Nil(t, buildDirectUnreads("u1", model.ChannelMembersWithTeamData{m}, chTotals("c1", 10, 0), profiles, nil, false, false, 0, 0))
 	})
 
 	t.Run("DM with deactivated user deactivated before last view is included", func(t *testing.T) {
 		m := dmMember("c1", 5, 2, 0, 0, 0, false)
 		m.LastViewedAt = 1000
 		profiles := map[string][]*model.User{"c1": {{Id: "partner", DeleteAt: 500}}}
-		// partner.DeleteAt=500 < lastViewedAt=1000 → included
-		result := buildDirectUnreads("u1", model.ChannelMembersWithTeamData{m}, profiles, nil, false, false, 0, 0)
+		result := buildDirectUnreads("u1", model.ChannelMembersWithTeamData{m}, chTotals("c1", 10, 0), profiles, nil, false, false, 0, 0)
 		require.NotNil(t, result)
 		assert.Equal(t, int64(2), result.MentionCount)
 	})
 
 	t.Run("thread counts populate the result even with no channel unreads", func(t *testing.T) {
-		result := buildDirectUnreads("u1", nil, nil, nil, true, true, 3, 1)
+		result := buildDirectUnreads("u1", nil, nil, nil, nil, true, true, 3, 1)
 		require.NotNil(t, result)
 		assert.Equal(t, int64(3), result.ThreadMentionCount)
 		assert.Equal(t, int64(1), result.ThreadUrgentMentionCount)
@@ -271,7 +278,11 @@ func TestBuildDirectUnreads(t *testing.T) {
 			dmMember("c1", 1, 1, 0, 0, 0, false),
 			dmMember("c2", 1, 2, 0, 0, 0, false),
 		}
-		result := buildDirectUnreads("u1", members, nil, nil, false, false, 0, 0)
+		channels := map[string]*model.Channel{
+			"c1": {Id: "c1", TotalMsgCount: 2},
+			"c2": {Id: "c2", TotalMsgCount: 2},
+		}
+		result := buildDirectUnreads("u1", members, channels, nil, nil, false, false, 0, 0)
 		require.NotNil(t, result)
 		assert.Equal(t, int64(3), result.MentionCount)
 	})
@@ -725,6 +736,54 @@ func TestGetSidebarVersion(t *testing.T) {
 	t.Run("does not match a different team's version key", func(t *testing.T) {
 		prefs := model.Preferences{{Category: model.PreferenceCategorySidebarVersion, Name: "team2", Value: "42"}}
 		assert.Equal(t, int64(0), getSidebarVersion(prefs, "team1"))
+	})
+}
+
+// --- dmIsUnread ---
+
+func TestDmIsUnread(t *testing.T) {
+	member := func(msgCount, mentionCount, mentionCountRoot, msgCountRoot int64, muted bool) *model.ChannelMemberWithTeamData {
+		np := model.StringMap{}
+		if muted {
+			np[model.MarkUnreadNotifyProp] = model.ChannelMarkUnreadMention
+		}
+		return &model.ChannelMemberWithTeamData{
+			ChannelMember: model.ChannelMember{
+				MsgCount:         msgCount,
+				MentionCount:     mentionCount,
+				MentionCountRoot: mentionCountRoot,
+				MsgCountRoot:     msgCountRoot,
+				NotifyProps:      np,
+			},
+		}
+	}
+
+	t.Run("nil channel or member returns false", func(t *testing.T) {
+		assert.False(t, dmIsUnread(nil, member(0, 0, 0, 0, false), false))
+		assert.False(t, dmIsUnread(&model.Channel{TotalMsgCount: 5}, nil, false))
+	})
+
+	t.Run("non-CRT: caught-up member (MsgCount == TotalMsgCount) reports no unread", func(t *testing.T) {
+		assert.False(t, dmIsUnread(&model.Channel{TotalMsgCount: 5}, member(5, 0, 0, 0, false), false))
+	})
+
+	t.Run("non-CRT: member behind the channel total reports unread", func(t *testing.T) {
+		assert.True(t, dmIsUnread(&model.Channel{TotalMsgCount: 5}, member(3, 0, 0, 0, false), false))
+	})
+
+	t.Run("non-CRT: mention count alone reports unread even if caught up", func(t *testing.T) {
+		assert.True(t, dmIsUnread(&model.Channel{TotalMsgCount: 5}, member(5, 1, 0, 0, false), false))
+	})
+
+	t.Run("non-CRT: muted member ignores the message delta but not mentions", func(t *testing.T) {
+		assert.False(t, dmIsUnread(&model.Channel{TotalMsgCount: 5}, member(3, 0, 0, 0, true), false))
+		assert.True(t, dmIsUnread(&model.Channel{TotalMsgCount: 5}, member(3, 1, 0, 0, true), false))
+	})
+
+	t.Run("CRT: uses TotalMsgCountRoot/MsgCountRoot and MentionCountRoot", func(t *testing.T) {
+		assert.False(t, dmIsUnread(&model.Channel{TotalMsgCountRoot: 4}, member(0, 0, 0, 4, false), true))
+		assert.True(t, dmIsUnread(&model.Channel{TotalMsgCountRoot: 4}, member(0, 0, 0, 2, false), true))
+		assert.True(t, dmIsUnread(&model.Channel{TotalMsgCountRoot: 4}, member(0, 0, 1, 4, false), true))
 	})
 }
 

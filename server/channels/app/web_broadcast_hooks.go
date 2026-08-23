@@ -46,27 +46,15 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 	}
 }
 
-// userSet marshals to/from JSON as an object keyed by user ID, giving broadcast
-// hooks O(1) recipient membership checks instead of a linear slice scan.
-type userSet map[string]struct{}
-
-func newUserSet(userIDs []string) userSet {
-	set := make(userSet, len(userIDs))
-	for _, id := range userIDs {
-		set[id] = struct{}{}
-	}
-	return set
-}
-
 type addMentionsBroadcastHook struct{}
 
 func (h *addMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
-	mentions, err := getTypedArg[userSet](args, "mentions")
+	mentions, err := getTypedArg[model.StringArray](args, "mentions")
 	if err != nil {
 		return errors.Wrap(err, "Invalid mentions value passed to addMentionsBroadcastHook")
 	}
 
-	if _, ok := mentions[webConn.UserId]; ok {
+	if len(mentions) > 0 && slices.Contains(mentions, webConn.UserId) {
 		// Note that the client expects this field to be stringified
 		msg.Add("mentions", model.ArrayToJSON([]string{webConn.UserId}))
 	}
@@ -76,19 +64,19 @@ func (h *addMentionsBroadcastHook) Process(msg *platform.HookedWebSocketEvent, w
 
 func useAddMentionsHook(message *model.WebSocketEvent, mentionedUsers model.StringArray) {
 	message.GetBroadcast().AddHook(broadcastAddMentions, map[string]any{
-		"mentions": newUserSet(mentionedUsers),
+		"mentions": mentionedUsers,
 	})
 }
 
 type addFollowersBroadcastHook struct{}
 
 func (h *addFollowersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
-	followers, err := getTypedArg[userSet](args, "followers")
+	followers, err := getTypedArg[model.StringArray](args, "followers")
 	if err != nil {
 		return errors.Wrap(err, "Invalid followers value passed to addFollowersBroadcastHook")
 	}
 
-	if _, ok := followers[webConn.UserId]; ok {
+	if len(followers) > 0 && slices.Contains(followers, webConn.UserId) {
 		// Note that the client expects this field to be stringified
 		msg.Add("followers", model.ArrayToJSON([]string{webConn.UserId}))
 	}
@@ -98,15 +86,21 @@ func (h *addFollowersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, 
 
 func useAddFollowersHook(message *model.WebSocketEvent, followers model.StringArray) {
 	message.GetBroadcast().AddHook(broadcastAddFollowers, map[string]any{
-		"followers": newUserSet(followers),
+		"followers": followers,
 	})
 }
 
 // addMutedUsersBroadcastHook tags every recipient with mute_for_recipient: bool.
+// muted_users is JSON-serialized as an object (map[string]struct{}) for O(1)
+// lookups. Unlike mentions/followers/posted_ack's users, this argument was
+// introduced by the experience API this cycle, so there's no old-binary or
+// mixed-version-cluster wire format to preserve compatibility with — cluster
+// broadcasts serialize hook args as JSON (WebsocketBroadcast.BroadcastHookArgs)
+// and a rolling upgrade could have an old node decoding what a new node sent.
 type addMutedUsersBroadcastHook struct{}
 
 func (h *addMutedUsersBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
-	mutedUsers, err := getTypedArg[userSet](args, "muted_users")
+	mutedUsers, err := getTypedArg[map[string]struct{}](args, "muted_users")
 	if err != nil {
 		return errors.Wrap(err, "Invalid muted_users value passed to addMutedUsersBroadcastHook")
 	}
@@ -118,8 +112,12 @@ func (h *addMutedUsersBroadcastHook) Process(msg *platform.HookedWebSocketEvent,
 }
 
 func useAddMutedUsersHook(message *model.WebSocketEvent, mutedUsers model.StringArray) {
+	set := make(map[string]struct{}, len(mutedUsers))
+	for _, id := range mutedUsers {
+		set[id] = struct{}{}
+	}
 	message.GetBroadcast().AddHook(broadcastAddMutedUsers, map[string]any{
-		"muted_users": newUserSet(mutedUsers),
+		"muted_users": set,
 	})
 }
 
@@ -150,7 +148,7 @@ func usePostedAckHook(message *model.WebSocketEvent, postedUserId string, channe
 	message.GetBroadcast().AddHook(broadcastPostedAck, map[string]any{
 		"posted_user_id": postedUserId,
 		"channel_type":   channelType,
-		"users":          newUserSet(usersToNotify),
+		"users":          usersToNotify,
 	})
 }
 
@@ -190,12 +188,12 @@ func (h *postedAckBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		return nil
 	}
 
-	users, err := getTypedArg[userSet](args, "users")
+	users, err := getTypedArg[model.StringArray](args, "users")
 	if err != nil {
 		return errors.Wrap(err, "Invalid users value passed to postedAckBroadcastHook")
 	}
 
-	if _, ok := users[webConn.UserId]; ok {
+	if len(users) > 0 && slices.Contains(users, webConn.UserId) {
 		msg.Add("should_ack", true)
 		incrementWebsocketCounter(webConn)
 	}

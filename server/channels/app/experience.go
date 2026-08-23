@@ -402,6 +402,11 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 
 	directProfiles := buildDirectProfiles(dmGMProfilesByChannel, *a.Config().PrivacySettings.ShowEmailAddress)
 
+	channelsByID := make(map[string]*model.Channel, len(allChannels))
+	for _, ch := range allChannels {
+		channelsByID[ch.Id] = ch
+	}
+
 	// Omit sidebar when client cursor is newer than the last sidebar mutation.
 	// Uses activeSince (0 when the active team changed) so the full sidebar is always
 	// sent when the client has no local data for the resolved team.
@@ -422,9 +427,9 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 		Me:                   toExperienceUser(me, true, true),
 		Teams:                toExperienceTeams(changedTeams),
 		TeamMembers:          toExperienceTeamMemberList(scopedTeamMembers, tombstonedTeamIDs),
-		ActiveTeam:           toExperienceActiveTeam(resolvedTeamID, teams, allChannels, changedChannels, channelMembers, changedChannelMembers, sidebarCats, removedChIDs, prefs, gmMemberCounts),
+		ActiveTeam:           toExperienceActiveTeam(resolvedTeamID, teams, allChannels, changedChannels, changedChannelMembers, sidebarCats, removedChIDs, prefs, gmMemberCounts),
 		TeamUnreads:          toExperienceTeamUnreadsList(changedTeams, teamsUnread, isCRT),
-		DirectUnreads:        buildDirectUnreads(userID, channelMembers, dmGMProfilesByChannel, prefs, isCRT, dmThreadHasUnreads, dmThreadMentions, dmThreadUrgent),
+		DirectUnreads:        buildDirectUnreads(userID, channelMembers, channelsByID, dmGMProfilesByChannel, prefs, isCRT, dmThreadHasUnreads, dmThreadMentions, dmThreadUrgent),
 		DirectProfiles:       directProfiles,
 		Roles:                toExperienceRoles(roles),
 		Preferences:          prefs,

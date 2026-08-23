@@ -33,7 +33,7 @@ func TestAddMentionsHook_Process(t *testing.T) {
 		require.Nil(t, msg.Event().GetData()["mentions"])
 
 		err := hook.Process(msg, webConn, map[string]any{
-			"mentions": newUserSet([]string{userID}),
+			"mentions": model.StringArray{userID},
 		})
 		require.NoError(t, err)
 
@@ -47,11 +47,28 @@ func TestAddMentionsHook_Process(t *testing.T) {
 		require.Nil(t, msg.Event().GetData()["mentions"])
 
 		err := hook.Process(msg, webConn, map[string]any{
-			"mentions": newUserSet([]string{otherUserID}),
+			"mentions": model.StringArray{otherUserID},
 		})
 		require.NoError(t, err)
 
 		assert.Nil(t, msg.Event().GetData()["mentions"])
+	})
+
+	t.Run("decodes mentions as a plain JSON array, matching the wire format sent across cluster nodes", func(t *testing.T) {
+		// WebsocketBroadcast.BroadcastHookArgs is JSON-serialized when a broadcast
+		// crosses cluster nodes (see WebsocketBroadcast's json tag and
+		// PlatformService.Publish). mentions/followers/posted_ack's users predate
+		// the experience API, so an old node's array format must still decode
+		// correctly via getTypedArg's JSON fallback.
+		raw, err := json.Marshal(model.StringArray{userID})
+		require.NoError(t, err)
+		var args map[string]any
+		require.NoError(t, json.Unmarshal([]byte(`{"mentions":`+string(raw)+`}`), &args))
+
+		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
+		require.NoError(t, hook.Process(msg, webConn, args))
+
+		assert.Equal(t, `["`+userID+`"]`, msg.Event().GetData()["mentions"])
 	})
 }
 
@@ -70,7 +87,7 @@ func TestAddMutedUsersHook_Process(t *testing.T) {
 		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
 
 		err := hook.Process(msg, webConn, map[string]any{
-			"muted_users": newUserSet([]string{userID, otherUserID}),
+			"muted_users": map[string]struct{}{userID: {}, otherUserID: {}},
 		})
 		require.NoError(t, err)
 
@@ -82,7 +99,7 @@ func TestAddMutedUsersHook_Process(t *testing.T) {
 		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
 
 		err := hook.Process(msg, webConn, map[string]any{
-			"muted_users": newUserSet([]string{otherUserID}),
+			"muted_users": map[string]struct{}{otherUserID: {}},
 		})
 		require.NoError(t, err)
 
@@ -93,7 +110,7 @@ func TestAddMutedUsersHook_Process(t *testing.T) {
 		msg := platform.MakeHookedWebSocketEvent(model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, ""))
 
 		err := hook.Process(msg, webConn, map[string]any{
-			"muted_users": newUserSet(nil),
+			"muted_users": map[string]struct{}{},
 		})
 		require.NoError(t, err)
 
@@ -118,7 +135,7 @@ func TestAddFollowersHook_Process(t *testing.T) {
 		require.Nil(t, msg.Event().GetData()["followers"])
 
 		err := hook.Process(msg, webConn, map[string]any{
-			"followers": newUserSet([]string{userID}),
+			"followers": model.StringArray{userID},
 		})
 		require.NoError(t, err)
 
@@ -131,7 +148,7 @@ func TestAddFollowersHook_Process(t *testing.T) {
 		require.Nil(t, msg.Event().GetData()["followers"])
 
 		err := hook.Process(msg, webConn, map[string]any{
-			"followers": newUserSet([]string{otherUserID}),
+			"followers": model.StringArray{otherUserID},
 		})
 		require.NoError(t, err)
 
@@ -236,7 +253,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		err := hook.Process(msg, webConn, map[string]any{
 			"posted_user_id": model.NewId(),
 			"channel_type":   model.ChannelTypeOpen,
-			"users":          newUserSet([]string{userID}),
+			"users":          []string{userID},
 		})
 		require.NoError(t, err)
 
@@ -249,7 +266,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		err := hook.Process(msg, webConn, map[string]any{
 			"posted_user_id": model.NewId(),
 			"channel_type":   model.ChannelTypeOpen,
-			"users":          newUserSet(nil),
+			"users":          []string{},
 		})
 		require.NoError(t, err)
 
@@ -262,7 +279,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		err := hook.Process(msg, webConn, map[string]any{
 			"posted_user_id": userID,
 			"channel_type":   model.ChannelTypeOpen,
-			"users":          newUserSet([]string{userID}),
+			"users":          []string{userID},
 		})
 		require.NoError(t, err)
 
@@ -275,7 +292,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		err := hook.Process(msg, webConn, map[string]any{
 			"posted_user_id": model.NewId(),
 			"channel_type":   model.ChannelTypeDirect,
-			"users":          newUserSet(nil),
+			"users":          []string{},
 		})
 		require.NoError(t, err)
 
@@ -294,7 +311,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		err := hook.Process(msg, noAckWebConn, map[string]any{
 			"posted_user_id": model.NewId(),
 			"channel_type":   model.ChannelTypeDirect,
-			"users":          newUserSet(nil),
+			"users":          []string{},
 		})
 		require.NoError(t, err)
 
@@ -313,7 +330,7 @@ func TestPostedAckHook_Process(t *testing.T) {
 		err := hook.Process(msg, inactiveWebConn, map[string]any{
 			"posted_user_id": model.NewId(),
 			"channel_type":   model.ChannelTypeDirect,
-			"users":          newUserSet(nil),
+			"users":          []string{},
 		})
 		require.NoError(t, err)
 
@@ -340,12 +357,12 @@ func TestAddMentionsAndAddFollowersHooks(t *testing.T) {
 	require.Nil(t, originalData["followers"])
 
 	err := addMentionsHook.Process(msg, webConn, map[string]any{
-		"mentions": newUserSet([]string{userID}),
+		"mentions": model.StringArray{userID},
 	})
 	require.NoError(t, err)
 
 	err = addFollowersHook.Process(msg, webConn, map[string]any{
-		"followers": newUserSet([]string{userID}),
+		"followers": model.StringArray{userID},
 	})
 	require.NoError(t, err)
 

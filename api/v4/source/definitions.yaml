@@ -5920,8 +5920,9 @@ components:
         channel_members:
           $ref: "#/components/schemas/ExperienceChannelMemberList"
         sidebar_categories:
+          allOf:
+            - $ref: "#/components/schemas/OrderedSidebarCategories"
           description: Absent when nothing changed since the request's cursor.
-          $ref: "#/components/schemas/OrderedSidebarCategories"
     InitialLoadResponse:
       description: >
         Aggregate response for `GET /users/me/initial_load`. In delta mode
