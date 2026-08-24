@@ -524,11 +524,12 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 			return created
 		}
 
-		// The request says nothing about the graph type -- the field takes it from the
-		// template -- so a check reading the type off the request would miss this.
+		// A linked graph field's create payload is refused on the same terms as any
+		// other linked field's: the check fires on the link itself and never reads
+		// the type off the request.
 		_, err = th.service.CreatePropertyField(th.Context, linked(inlineOption("Land")))
 		require.Error(t, err)
-		require.ErrorContains(t, err, "cannot own options of its own")
+		require.ErrorContains(t, err, "takes its option list from that template")
 
 		// Without a list of its own it serves the template's hierarchy.
 		dependent, err := th.service.CreatePropertyField(th.Context, linked())

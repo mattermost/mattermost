@@ -50,7 +50,7 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 
 	// Legacy properties (PSAv1) skip the conflict check.
 	if field.IsPSAv1() {
-		return ps.createFieldWithOptionLinks(field, suppliedOptions)
+		return ps.createFieldWithOptionLinks(field)
 	}
 
 	// If this field links to a source, validate the source and copy its schema
@@ -144,8 +144,8 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 		// they were created, when the list actually saved is the template's.
 		if suppliedOptions {
 			return nil, optionsChangeRefused(
-				"a field linking to template %s serves that template's option list and cannot own options of its own; add them to template %s instead",
-				*field.LinkedFieldID, *field.LinkedFieldID)
+				"a field linking to template %s takes its option list from that template, so it cannot be created carrying one",
+				*field.LinkedFieldID)
 		}
 
 		// Copy type and options from source
@@ -187,7 +187,7 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 		)
 	}
 
-	return ps.createFieldWithOptionLinks(field, suppliedOptions)
+	return ps.createFieldWithOptionLinks(field)
 }
 
 // validateLinkedFieldOptionReadCeiling refuses a linked field whose option.read
@@ -306,25 +306,15 @@ func (ps *PropertyService) validateDependentOptionReadCeilings(field, existing *
 // It is called after the schema a linked field takes from its template has been
 // copied over, which is what makes the type it reads the field's real one: a field
 // created by linking to a graph template arrives with no mention of the graph type
-// anywhere in the request. suppliedOptions says whether the caller asked for
-// options of the field's own, which that copy would otherwise have hidden. The
-// other call site is the legacy path above, which cannot link at all and so has
-// nothing copied over it.
-func (ps *PropertyService) createFieldWithOptionLinks(field *model.PropertyField, suppliedOptions bool) (*model.PropertyField, error) {
+// anywhere in the request. The other call site is the legacy path above, which
+// cannot link at all and so has nothing copied over it.
+func (ps *PropertyService) createFieldWithOptionLinks(field *model.PropertyField) (*model.PropertyField, error) {
 	if field.Type == model.PropertyFieldTypeGraph && optionSourceID(field) != "" {
 		// A field linking to a graph template serves that template's hierarchy and
 		// owns no part of it. An option of its own could never be given a parent from
 		// that hierarchy -- an edge never crosses fields -- so it could only form a
 		// second hierarchy permanently disconnected from the one the field exists to
 		// serve: covered by nothing but itself, and so granting nothing.
-		//
-		// Refused rather than dropped, which is also the answer the options endpoints
-		// give: a caller that sent options would otherwise be told they were created.
-		if suppliedOptions {
-			return nil, optionsChangeRefused(
-				"a field linking to field %s serves that field's option hierarchy and cannot own options of its own; add them to field %s instead",
-				optionSourceID(field), optionSourceID(field))
-		}
 
 		// Any list the field carries now is its template's, copied in above so a read
 		// of the new field shows what it serves. None of it is this field's to own,

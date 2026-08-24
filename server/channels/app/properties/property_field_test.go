@@ -902,7 +902,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			},
 		})
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "template")
+		assert.Contains(t, err.Error(), "takes its option list from that template")
 	})
 
 	t.Run("create linked field with an empty option list succeeds", func(t *testing.T) {
