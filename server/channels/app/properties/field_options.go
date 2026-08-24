@@ -246,6 +246,11 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 		return nil, err
 	}
 
+	// One masking context is shared across every page of rows this loop reads,
+	// so a caller's holdings and the field's masking template resolve once for
+	// the whole listing rather than once per page scanned.
+	rctx = withMaskingContext(rctx, newMaskingContext())
+
 	// A page a caller may see only part of is filled from the rows behind it, not
 	// answered short. A caller pages until a page comes back shorter than the size
 	// it asked for, so a page that lost most of its options to the hooks would end
@@ -272,11 +277,6 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 	// by appending returns nil when it keeps nothing, and nil serializes as null
 	// rather than [], which a caller looping over the page cannot read. Starting
 	// from an empty slice settles it for every path out of here.
-	//
-	// One masking context is shared across every page of rows this loop reads,
-	// so a caller's holdings and the field's masking template resolve once for
-	// the whole listing rather than once per page scanned.
-	rctx = withMaskingContext(rctx, newMaskingContext())
 	options := []*model.PropertyFieldOption{}
 	for {
 		page, err := ps.fieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage)

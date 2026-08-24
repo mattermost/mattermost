@@ -399,8 +399,9 @@ func maskedField(groupID, name string, fieldType model.PropertyFieldType, maskin
 }
 
 // writeValueDirect stores a value through the store directly, bypassing the
-// write gate -- this phase is a read filter only, and what the caller may see
-// of a value already stored is what is under test, not how it got there.
+// write gate, so a fixture cannot be refused by the thing under test -- what
+// the caller may see of a value already stored is what is under test, not
+// how it got there.
 func writeValueDirect(t *testing.T, th *TestHelper, fieldID, targetType, targetID string, value any) *model.PropertyValue {
 	t.Helper()
 	encoded, err := json.Marshal(value)
@@ -1035,7 +1036,7 @@ func TestValueWriteVisibility(t *testing.T) {
 			{GroupID: th.CPAGroupID, FieldID: field.ID, TargetType: "channel", TargetID: target, Value: json.RawMessage(`"secret"`)},
 		})
 		require.NoError(t, upErr)
-		assert.Equal(t, 2, counter.searches, "one search for the stored value at (field, target) and one for the caller's own holdings, memoized across the batch rather than repeated per item")
+		assert.Equal(t, 2, counter.searches, "one search for the stored value at (field, target) and one for the caller's own holdings -- the second write reaches neither, because valueWriteAccessCache already answered for that (field, target) pair; a visibility check run per item instead of per pair would push this past 2")
 	})
 }
 
