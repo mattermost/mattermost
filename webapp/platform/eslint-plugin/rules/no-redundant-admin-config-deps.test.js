@@ -71,8 +71,10 @@ ruleTester.run('no-redundant-admin-config-deps', rule, {
             `,
         },
         {
+
             // Non-bool parents (fileupload) do not imply their isDisabled conditions,
             // so repeating Encrypt alongside PrivateKeyFile is intentional.
+
             filename,
             code: `
                 const AdminDefinition = {
@@ -100,7 +102,9 @@ ruleTester.run('no-redundant-admin-config-deps', rule, {
             `,
         },
         {
+
             // Non-admin_definition files are ignored
+
             filename: 'other_file.tsx',
             code: `
                 const x = {
@@ -188,7 +192,9 @@ ruleTester.run('no-redundant-admin-config-deps', rule, {
             ],
         },
         {
+
             // Bool parent Encrypt implies Enable; PrivateKeyFile should not repeat Enable
+
             filename,
             code: `
                 const AdminDefinition = {
@@ -214,8 +220,10 @@ ruleTester.run('no-redundant-admin-config-deps', rule, {
             ],
         },
         {
+
             // Grandparent listed before parent: still attribute to the closest parent (Mid),
             // not Root, after the full tree is built.
+
             filename,
             code: `
                 const AdminDefinition = {

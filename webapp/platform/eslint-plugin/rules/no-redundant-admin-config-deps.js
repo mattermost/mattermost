@@ -135,13 +135,20 @@ function getProperty(objectExpression, name) {
         if (prop.type !== 'Property' || prop.computed) {
             continue;
         }
-        const keyName =
-            prop.key.type === 'Identifier' ? prop.key.name :
-                prop.key.type === 'Literal' ? prop.key.value :
-                    null;
+        const keyName = getPropertyKeyName(prop.key);
         if (keyName === name) {
             return prop;
         }
+    }
+    return null;
+}
+
+function getPropertyKeyName(keyNode) {
+    if (keyNode.type === 'Identifier') {
+        return keyNode.name;
+    }
+    if (keyNode.type === 'Literal') {
+        return keyNode.value;
     }
     return null;
 }
@@ -166,7 +173,7 @@ function dependencyParentKeys(conditions) {
     const parents = [];
     for (const {key} of conditions) {
         // stateIsFalse:"Section.Setting" or not:stateIsTrue:"Section.Setting"
-        let match = /^stateIsFalse:(.*)$/.exec(key);
+        let match = (/^stateIsFalse:(.*)$/).exec(key);
         if (match) {
             const value = JSON.parse(match[1]);
             if (typeof value === 'string') {
@@ -174,7 +181,7 @@ function dependencyParentKeys(conditions) {
             }
             continue;
         }
-        match = /^not:stateIsTrue:(.*)$/.exec(key);
+        match = (/^not:stateIsTrue:(.*)$/).exec(key);
         if (match) {
             const value = JSON.parse(match[1]);
             if (typeof value === 'string') {
@@ -188,10 +195,6 @@ function dependencyParentKeys(conditions) {
 function isBoolSetting(key, settingsByKey) {
     const defs = settingsByKey.get(key) || [];
     return defs.some((def) => def.settingType === 'bool');
-}
-
-function boolParentKeys(parentKeys, settingsByKey) {
-    return parentKeys.filter((parentKey) => isBoolSetting(parentKey, settingsByKey));
 }
 
 /**
@@ -238,9 +241,11 @@ function buildDependencyTree(settingsByKey) {
         });
     }
 
+    const walked = new Set();
+
     function walk(settingKey, visiting) {
         const node = tree.get(settingKey);
-        if (!node || node._walked) {
+        if (!node || walked.has(settingKey)) {
             return node;
         }
         if (visiting.has(settingKey)) {
@@ -270,17 +275,13 @@ function buildDependencyTree(settingsByKey) {
 
         node.inheritedConditions = inheritedConditions;
         node.ancestors = ancestors;
-        node._walked = true;
+        walked.add(settingKey);
         visiting.delete(settingKey);
         return node;
     }
 
     for (const key of tree.keys()) {
         walk(key, new Set());
-    }
-
-    for (const node of tree.values()) {
-        delete node._walked;
     }
 
     return tree;
@@ -343,7 +344,7 @@ export default {
     },
     create(context) {
         const filename = context.filename || context.getFilename();
-        if (!/admin_definition/.test(filename)) {
+        if (!(/admin_definition/).test(filename)) {
             return {};
         }
 
