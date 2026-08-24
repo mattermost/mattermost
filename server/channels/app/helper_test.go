@@ -261,6 +261,10 @@ func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
 	return setupTestHelper(dbStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, true, nil, nil, tb)
 }
 
+func useCustomPushNotificationServer(cfg *model.Config) {
+	*cfg.EmailSettings.PushNotificationServer = "https://push.example.com"
+}
+
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	return SetupConfigWithStoreMock(tb, nil)
 }
@@ -270,7 +274,13 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 // th.App.UpdateConfig, which fires those listeners against the store mock.
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(*model.Config)) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false, updateConfig, nil, tb)
+	setupConfig := func(cfg *model.Config) {
+		useCustomPushNotificationServer(cfg)
+		if updateConfig != nil {
+			updateConfig(cfg)
+		}
+	}
+	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), false, false, setupConfig, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -291,7 +301,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(*model.Config)) *
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), true, false, nil, nil, tb)
+	th := setupTestHelper(mockStore, mainHelper.GetSQLStore(), mainHelper.GetSQLSettings(), mainHelper.GetSearchEngine(), true, false, useCustomPushNotificationServer, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)

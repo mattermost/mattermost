@@ -1335,6 +1335,12 @@ func (a *App) DoAppMigrations() {
 func (s *Server) doAppMigrations() {
 	rctx := request.EmptyContext(s.Log())
 
+	// Migrations read back rows they have just written. Routing those reads to a
+	// replica that has not caught up yet returns no rows, which the mlog.Fatal
+	// calls below turn into an aborted startup.
+	s.Store().LockToMaster()
+	defer s.Store().UnlockFromMaster()
+
 	type migration struct {
 		name    string
 		handler func() error
