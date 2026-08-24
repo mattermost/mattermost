@@ -61,16 +61,24 @@ func requireMaskingFailureLogged(t *testing.T, th *TestHelper, buffer *mlog.Buff
 }
 
 // countingPropertyFieldStore wraps a store.PropertyFieldStore and counts
-// calls to Get, so a test can assert a batch resolution loaded a template
-// once rather than once per field it was asked about.
+// calls to Get and GetLinkedFields, so a test can assert a batch resolution
+// loaded a template once rather than once per field it was asked about, or
+// that a dependents query ran only when the check guarding it had something
+// to check.
 type countingPropertyFieldStore struct {
 	store.PropertyFieldStore
-	gets int
+	gets         int
+	linkedFields int
 }
 
 func (c *countingPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*model.PropertyField, error) {
 	c.gets++
 	return c.PropertyFieldStore.Get(ctx, groupID, id)
+}
+
+func (c *countingPropertyFieldStore) GetLinkedFields(fieldIDs, excludeIDs []string) ([]*model.PropertyField, error) {
+	c.linkedFields++
+	return c.PropertyFieldStore.GetLinkedFields(fieldIDs, excludeIDs)
 }
 
 func TestResolveFieldMasking(t *testing.T) {

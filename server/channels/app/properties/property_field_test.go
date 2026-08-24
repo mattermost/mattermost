@@ -1524,7 +1524,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, model.PermissionLevelSysadmin, result.Permissions.Restrictions.Option.Read)
 	})
 
-	t.Run("update linked field with no Permissions object skips the ceiling check", func(t *testing.T) {
+	t.Run("update linked field reads the template for the ceiling check only when a Permissions object is supplied", func(t *testing.T) {
 		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    group.ID,
 			ObjectType: model.PropertyFieldObjectTypeTemplate,
@@ -1550,10 +1550,24 @@ func TestLinkedPropertyFields(t *testing.T) {
 			LinkedFieldID: &source.ID,
 		})
 
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
 		linked.Name = "UpdateNoPermsLinked-Renamed-" + model.NewId()
+		before := counter.gets
 		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
 		require.NoError(t, err)
 		assert.Equal(t, linked.Name, result.Name)
+		assert.Equal(t, before, counter.gets, "no Permissions object on the update must not read the template")
+
+		linked.Permissions = &model.Permissions{
+			Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}},
+		}
+		before = counter.gets
+		_, _, err = th.service.UpdatePropertyField(rctx, group.ID, linked)
+		require.NoError(t, err)
+		assert.Equal(t, before+1, counter.gets, "an update carrying a Permissions object must read the template to check the ceiling")
 	})
 
 	t.Run("tightening template's option.read past a dependent's tier is refused", func(t *testing.T) {
@@ -1761,6 +1775,52 @@ func TestLinkedPropertyFields(t *testing.T) {
 		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
 		require.NoError(t, err)
 		assert.Equal(t, template.Name, result.Name)
+	})
+
+	t.Run("only a template update that tightens option.read queries its dependents", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateQueryCostSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TemplateQueryCostDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		template.Name = "TemplateQueryCostSource-Renamed-" + model.NewId()
+		before := counter.linkedFields
+		_, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.NoError(t, err)
+		assert.Equal(t, before, counter.linkedFields, "leaving option.read alone must not query dependents")
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		before = counter.linkedFields
+		_, _, err = th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.Error(t, err)
+		assert.Equal(t, before+1, counter.linkedFields, "tightening option.read must query dependents")
 	})
 
 	t.Run("a deleted dependent does not block its template from tightening", func(t *testing.T) {
