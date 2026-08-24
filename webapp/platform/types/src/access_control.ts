@@ -253,12 +253,6 @@ export type AccessControlPolicyActiveUpdate = {
  *                         from no_applicable_policy because the policy as a
  *                         whole may still grant the verdict via a sibling
  *                         rule — only THIS rule didn't.
- * - `divergence`        — the server replayed this decision through the live
- *                         PDP and the two lanes disagreed, so the simulated
- *                         verdict does not describe what production will do.
- *                         `outcome` carries the LIVE verdict. Takes precedence
- *                         over every other source: an untrustworthy preview
- *                         must not render as a confident allow or deny.
  */
 export const POLICY_SIMULATION_BLAME_SOURCES = {
     THIS_RULE: 'this_rule',
@@ -270,7 +264,6 @@ export const POLICY_SIMULATION_BLAME_SOURCES = {
     NO_APPLICABLE_RULE: 'no_applicable_rule',
     NO_SESSION_DATA: 'no_session_data',
     SIBLING_SAVED: 'sibling_saved',
-    DIVERGENCE: 'divergence',
 } as const;
 
 export type PolicySimulationBlameSource =

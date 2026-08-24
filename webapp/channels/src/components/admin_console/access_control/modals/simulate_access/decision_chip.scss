@@ -56,16 +56,6 @@
         color: var(--away-indicator, #b07700);
     }
 
-    // Simulation and live enforcement disagreed for this decision. Styled
-    // as an error rather than a warning, and outlined so it stands out
-    // against the deny chip it would otherwise be confused with — this is
-    // not a verdict, it's a signal that the verdict can't be trusted.
-    &--diverged {
-        border: 1px solid rgba(var(--error-text-color-rgb, 210, 75, 78), 0.6);
-        background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.08);
-        color: var(--error-text);
-    }
-
     // Multi-action rollup chip — same shape as the per-action pills,
     // just rendered as a button with a count badge and chevron.
     // Padding/font/radius come from the parent `__rowChip` rules so
