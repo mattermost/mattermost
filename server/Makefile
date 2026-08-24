@@ -1,5 +1,8 @@
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+# Must be read before parse-time Enterprise detection so BUILD_ENTERPRISE_DIR applies.
+-include $(ROOT)config.override.mk
+
 ifeq ($(OS),Windows_NT)
 	PLATFORM := Windows
 else
@@ -193,8 +196,6 @@ CONFIG_FILE_PATH ?= ./config/config.json
 
 .PHONY: all
 all: run ## Alias for 'run'.
-
--include config.override.mk
 
 # Make sure not to modify an overridden ENABLED_DOCKER_SERVICES variable
 DOCKER_SERVICES_OVERRIDE=false

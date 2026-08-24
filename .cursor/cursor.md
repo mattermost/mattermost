@@ -7,7 +7,7 @@ These instructions apply to Cursor Cloud Agents after `.cursor/scripts/cloud-age
 - Docker must be available. If `docker info` fails, inspect `/tmp/docker-service-start.log` and `/tmp/dockerd.log`; do not assume a snapshot will provide Docker.
 - The image includes Go, Node/npm, Docker Compose, and AWS CLI v2.
 - Prefer Cursor's multi-repo layout for `mattermost/enterprise` when it is available: sibling repositories such as `/agent/repos/mattermost` and `/agent/repos/enterprise`, matching `server/Makefile`'s default `../../enterprise` path.
-- Git-triggered automations start as a single-repo checkout. If enterprise is missing, `cloud-agent-install.sh` clones it with the token scoped by `repositoryDependencies`. If that clone lands somewhere other than `../enterprise`, `BUILD_ENTERPRISE_DIR` is written to `server/config.override.mk`.
+- Git-triggered automations start as a single-repo checkout. If enterprise is missing, `cloud-agent-install.sh` clones it with the token scoped by `repositoryDependencies`. If that clone lands somewhere other than `../enterprise`, `BUILD_ENTERPRISE_DIR` is written to `server/config.override.mk`, which `server/Makefile` reads before Enterprise detection.
 
 ## Running Mattermost
 

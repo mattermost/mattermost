@@ -105,11 +105,26 @@ enterprise_clone_url() {
   printf 'https://github.com/mattermost/enterprise.git\n'
 }
 
+can_clone_into() {
+  local dest="$1"
+  local parent
+  parent="$(dirname "$dest")"
+  if [ ! -d "$parent" ] || [ ! -w "$parent" ]; then
+    return 1
+  fi
+  if [ ! -e "$dest" ]; then
+    return 0
+  fi
+  if is_git_work_tree "$dest"; then
+    return 0
+  fi
+  [ -d "$dest" ] && [ -z "$(ls -A "$dest" 2>/dev/null)" ]
+}
+
 enterprise_clone_dest() {
-  local sibling parent
+  local sibling
   sibling="$(default_enterprise_checkout)"
-  parent="$(dirname "$sibling")"
-  if [ -d "$parent" ] && [ -w "$parent" ]; then
+  if can_clone_into "$sibling"; then
     printf '%s\n' "$sibling"
     return 0
   fi
