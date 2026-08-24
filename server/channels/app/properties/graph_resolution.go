@@ -16,12 +16,11 @@ import (
 )
 
 // The options of a graph property field form a hierarchy, and this is where
-// questions about it are answered: which options sit above or below which, what
-// several holders of options have in common, and whether a proposed change to
-// the hierarchy leaves it usable. Everything here reads the edge rows through the
-// store on every call, with nothing held between them, so every server in a
-// cluster answers from the same rows and there is no per-node state to keep in
-// step.
+// questions about it are answered: which options sit above or below which, and
+// whether a proposed change to the hierarchy leaves it usable. Everything here
+// reads the edge rows through the store on every call, with nothing held
+// between them, so every server in a cluster answers from the same rows and
+// there is no per-node state to keep in step.
 //
 // The one relation underneath all of it is "at or above": option a is at-or-above
 // option b when a is b, or a is reachable by following parent links upwards from
@@ -54,93 +53,14 @@ func (ps *PropertyService) AncestorsOrSelf(rctx request.CTX, field *model.Proper
 	return resolved, nil
 }
 
-// DescendantsOrSelf returns, for each of the given options, that option together
-// with every option at-or-below it.
-func (ps *PropertyService) DescendantsOrSelf(rctx request.CTX, field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
-	if err := requireGraphField(field); err != nil {
-		return nil, err
-	}
-
-	resolved, err := ps.fieldStore.GetOptionDescendantsOrSelf(field, optionIDs)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to resolve the options below a graph property field's options")
-	}
-	logUnresolvedOptions(rctx, field, optionIDs, resolved)
-	return resolved, nil
-}
-
-// CoversAll reports whether every option in targets has some option in held
-// at-or-above it: the holder reaches all of them. This is the shape an access
-// rule takes when a subject must account for everything its target is marked
-// with.
-func (ps *PropertyService) CoversAll(rctx request.CTX, field *model.PropertyField, held, targets []string) (bool, error) {
-	all, _, err := ps.coverage(rctx, field, targets, held)
-	return all, err
-}
-
-// CoversAny reports whether some option in targets has an option in held
-// at-or-above it.
-func (ps *PropertyService) CoversAny(rctx request.CTX, field *model.PropertyField, held, targets []string) (bool, error) {
-	_, some, err := ps.coverage(rctx, field, targets, held)
-	return some, err
-}
-
-// WithinAll reports whether every option in held has some option in targets
-// at-or-above it: the holder sits entirely inside what the targets reach. A
-// holder of one option inside a target's subtree and one outside it fails, which
-// is the point of the direction -- it is the only way to write a rule that
-// excludes the options above the target rather than including them.
-func (ps *PropertyService) WithinAll(rctx request.CTX, field *model.PropertyField, held, targets []string) (bool, error) {
-	all, _, err := ps.coverage(rctx, field, held, targets)
-	return all, err
-}
-
-// WithinAny reports whether some option in held has an option in targets
-// at-or-above it.
-func (ps *PropertyService) WithinAny(rctx request.CTX, field *model.PropertyField, held, targets []string) (bool, error) {
-	_, some, err := ps.coverage(rctx, field, held, targets)
-	return some, err
-}
-
-// coverage reports whether every anchor and whether any anchor has one of the
-// holders at-or-above it.
-//
-// All four predicates are this one question: covering asks it of the target
-// options, being within asks it of the held options, and each reads off one of
-// the two quantifiers. Keeping it as one walk is what makes the four agree with
-// each other by construction rather than by four sets of tests.
-func (ps *PropertyService) coverage(rctx request.CTX, field *model.PropertyField, anchors, holders []string) (all, some bool, err error) {
-	// Neither side may be empty. A subject holding no options is not thereby
-	// cleared for everything, and an option set that resolved to nothing is not
-	// thereby open to everyone: there is no vacuous truth here.
-	if len(anchors) == 0 || len(holders) == 0 {
-		return false, false, nil
-	}
-
-	covered, err := ps.coveredBy(rctx, field, anchors, holders)
-	if err != nil {
-		return false, false, err
-	}
-
-	all = true
-	for _, anchor := range anchors {
-		if covered[anchor] {
-			some = true
-		} else {
-			all = false
-		}
-	}
-	return all, some, nil
-}
-
 // coveredBy walks up from each of the given options and reports, for each one,
 // whether one of the holders is at-or-above it. Every option asked about has an
 // entry, so a false is an answer and not a gap.
 //
-// One walk for the whole set, because the questions built on this are asked
-// about several options at once -- which of the options one object is marked with
-// may be shown to another, whether a subject accounts for all of them -- and a
-// walk seeded with a set costs what a walk seeded with one of them costs.
+// One walk for the whole set, because the question built on this is asked about
+// several options at once -- which of the options one object is marked with may
+// be shown to another -- and a walk seeded with a set costs what a walk seeded
+// with one of them costs.
 func (ps *PropertyService) coveredBy(rctx request.CTX, field *model.PropertyField, optionIDs, holders []string) (map[string]bool, error) {
 	above, err := ps.AncestorsOrSelf(rctx, field, optionIDs)
 	if err != nil {
@@ -163,80 +83,6 @@ func (ps *PropertyService) coveredBy(rctx request.CTX, field *model.PropertyFiel
 		})
 	}
 	return covered, nil
-}
-
-// CommonGround returns the most specific options every participant covers, given
-// each participant's held options: the maximal elements of the intersection of
-// what the participants reach downwards. It is a set and not a single option --
-// two participants can share two unrelated branches and neither is more specific
-// than the other.
-//
-// A participant holding nothing reaches nothing, so there is nothing in common
-// and the result is empty.
-func (ps *PropertyService) CommonGround(rctx request.CTX, field *model.PropertyField, heldPerParticipant [][]string) ([]string, error) {
-	if err := requireGraphField(field); err != nil {
-		return nil, err
-	}
-	if len(heldPerParticipant) == 0 {
-		return nil, nil
-	}
-	for _, held := range heldPerParticipant {
-		if len(held) == 0 {
-			return nil, nil
-		}
-	}
-
-	// Descend from the first participant's options, stopping each branch at the
-	// first option every other participant covers. Everything below such an
-	// option is shared too but less specific, so there is no reason to look. The
-	// other way round -- collecting everything each participant reaches downwards
-	// and intersecting the sets -- walks the entire hierarchy for a participant
-	// holding a root, where this walk stops at their first option and coverage is
-	// a single query per level.
-	others := heldPerParticipant[1:]
-
-	var frontier []string
-	seen := map[string]bool{}
-	for _, optionID := range heldPerParticipant[0] {
-		if !seen[optionID] {
-			seen[optionID] = true
-			frontier = append(frontier, optionID)
-		}
-	}
-
-	var shared []string
-	sharedAncestors := map[string][]string{}
-	for len(frontier) > 0 {
-		above, err := ps.AncestorsOrSelf(rctx, field, frontier)
-		if err != nil {
-			return nil, err
-		}
-
-		var uncovered []string
-		for _, optionID := range frontier {
-			// An option the field does not have reaches nothing, itself included,
-			// so there is neither anything to share nor anywhere to descend to.
-			if len(above[optionID]) == 0 {
-				continue
-			}
-			if coveredByEvery(above[optionID], others) {
-				shared = append(shared, optionID)
-				sharedAncestors[optionID] = above[optionID]
-				continue
-			}
-			uncovered = append(uncovered, optionID)
-		}
-
-		frontier, err = ps.levelBelow(field, uncovered, seen)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// Separate branches can stop at options that turn out to be related, since a
-	// branch that stopped never looked below itself. An option with another
-	// shared option above it is not one of the most specific ones.
-	return maximalElements(shared, sharedAncestors), nil
 }
 
 // clampToCoverage returns what a holder of the given options may be told about
@@ -402,9 +248,8 @@ func (ps *PropertyService) levelBelow(field *model.PropertyField, optionIDs []st
 // above, leaving the ones nothing else accounts for. above must say, for each
 // option, which options are at-or-above it.
 //
-// Two of the walks here stop a branch as soon as it reaches an option worth
-// reporting, which leaves this as the one place the results are compared against
-// each other.
+// coveredBelow stops a branch as soon as it reaches an option worth reporting,
+// which leaves this as the place its results are compared against each other.
 func maximalElements(optionIDs []string, above map[string][]string) []string {
 	if len(optionIDs) < 2 {
 		return optionIDs
@@ -425,21 +270,6 @@ func maximalElements(optionIDs []string, above map[string][]string) []string {
 		maximal = append(maximal, optionID)
 	}
 	return maximal
-}
-
-// coveredByEvery reports whether every participant holds one of the given
-// options, which are the options at-or-above the one being asked about. A
-// participant holding an option that no longer exists never matches, because the
-// options above anything are read from live rows.
-func coveredByEvery(above []string, heldPerParticipant [][]string) bool {
-	for _, held := range heldPerParticipant {
-		if !slices.ContainsFunc(held, func(optionID string) bool {
-			return slices.Contains(above, optionID)
-		}) {
-			return false
-		}
-	}
-	return true
 }
 
 // WouldCreateCycle reports whether the edges in add would put an option above
