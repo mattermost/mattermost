@@ -45,6 +45,14 @@ type ChannelSettingsInfoTabProps = {
     showTabSwitchError?: boolean;
 };
 
+// This form always saves trimmed values while the server stores channel text
+// verbatim, so both sides have to be trimmed before comparing. Otherwise a
+// channel whose stored name, purpose or header has surrounding whitespace looks
+// edited as soon as the tab opens.
+function hasTextChanged(value: string, savedValue?: string): boolean {
+    return value.trim() !== (savedValue ?? '').trim();
+}
+
 function ChannelSettingsInfoTab({
     channel,
     onCancel,
@@ -191,22 +199,27 @@ function ChannelSettingsInfoTab({
         }
     }, [channelNameError, formError, setFormError]);
 
+    const hasUnsavedChanges = useMemo(() => {
+        let unsavedChanges = hasTextChanged(channelHeader, channel.header);
+
+        if (!isDMorGroupChannel) {
+            unsavedChanges = unsavedChanges ||
+                hasTextChanged(displayName, channel.display_name) ||
+                hasTextChanged(channelUrl, channel.name) ||
+                hasTextChanged(channelPurpose, channel.purpose) ||
+                channelType !== channel.type ||
+                (defaultCategoryName ?? '') !== (serverDefaultCategoryName ?? '') ||
+                managedCategoryName !== serverManagedCategoryName ||
+                (showDiscoverableToggle && discoverable !== Boolean(channel.discoverable));
+        }
+
+        return unsavedChanges;
+    }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, discoverable, showDiscoverableToggle]);
+
     // Update parent component when changes occur
     useEffect(() => {
-        // Calculate unsaved changes directly
-        const unsavedChanges = channel ? (
-            displayName.trim() !== channel.display_name ||
-            channelUrl.trim() !== channel.name ||
-            channelPurpose.trim() !== channel.purpose ||
-            channelHeader.trim() !== channel.header ||
-            channelType !== channel.type ||
-            (defaultCategoryName ?? '') !== (serverDefaultCategoryName ?? '') ||
-            managedCategoryName !== serverManagedCategoryName ||
-            discoverable !== Boolean(channel.discoverable)
-        ) : false;
-
-        setAreThereUnsavedChanges?.(unsavedChanges);
-    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, discoverable, setAreThereUnsavedChanges]);
+        setAreThereUnsavedChanges?.(hasUnsavedChanges);
+    }, [hasUnsavedChanges, setAreThereUnsavedChanges]);
 
     const handleURLChange = useCallback((newURL: string) => {
         if (internalUrlError) {
@@ -344,16 +357,16 @@ function ChannelSettingsInfoTab({
         }
 
         const updated: Partial<Channel> = {};
-        if (!isDMorGroupChannel && displayName.trim() !== channel.display_name) {
+        if (!isDMorGroupChannel && hasTextChanged(displayName, channel.display_name)) {
             updated.display_name = displayName.trim();
         }
-        if (!isDMorGroupChannel && channelUrl.trim() !== channel.name) {
+        if (!isDMorGroupChannel && hasTextChanged(channelUrl, channel.name)) {
             updated.name = channelUrl.trim();
         }
-        if (!isDMorGroupChannel && channelPurpose.trim() !== channel.purpose) {
+        if (!isDMorGroupChannel && hasTextChanged(channelPurpose, channel.purpose)) {
             updated.purpose = channelPurpose.trim();
         }
-        if (channelHeader.trim() !== channel.header) {
+        if (hasTextChanged(channelHeader, channel.header)) {
             updated.header = channelHeader.trim();
         }
         if ((defaultCategoryName ?? '') !== (serverDefaultCategoryName ?? '')) {
@@ -462,24 +475,7 @@ function ChannelSettingsInfoTab({
                      Boolean(showTabSwitchError) ||
                      Boolean(internalUrlError);
 
-    // Memoize the calculation for whether to show the save changes panel
-    const shouldShowPanel = useMemo(() => {
-        let unsavedChanges = false;
-        if (channel) {
-            unsavedChanges = unsavedChanges || channelHeader.trim() !== channel.header;
-            if (!isDMorGroupChannel) {
-                unsavedChanges = unsavedChanges || displayName.trim() !== channel.display_name;
-                unsavedChanges = unsavedChanges || channelUrl.trim() !== channel.name;
-                unsavedChanges = unsavedChanges || channelPurpose.trim() !== channel.purpose;
-                unsavedChanges = unsavedChanges || channelType !== channel.type;
-                unsavedChanges = unsavedChanges || (defaultCategoryName ?? '') !== (serverDefaultCategoryName ?? '');
-                unsavedChanges = unsavedChanges || managedCategoryName !== serverManagedCategoryName;
-                unsavedChanges = unsavedChanges || (showDiscoverableToggle && discoverable !== Boolean(channel.discoverable));
-            }
-        }
-
-        return unsavedChanges || saveChangesPanelState === 'saved';
-    }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, saveChangesPanelState, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, discoverable, showDiscoverableToggle]);
+    const shouldShowPanel = hasUnsavedChanges || saveChangesPanelState === 'saved';
 
     return (
         <div
