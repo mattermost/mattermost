@@ -105,20 +105,30 @@ jobs:
           CHANGELOG_PATH: docs/main/product-overview/mattermost-v11-changelog.mdx
         run: python .github/scripts/generate_changelog.py
 
+      # Dispatch inputs and repo variables are bound to environment variables rather than
+      # interpolated directly into the script body. Interpolated ${{ }} expressions are
+      # substituted before bash runs, so a value containing shell metacharacters would be
+      # executed as code alongside the write-scoped app token.
       - name: Create Pull Request
         env:
           GH_TOKEN: ${{ steps.writeToken.outputs.token }}
+          VERSION: ${{ inputs.version }}
+          MILESTONE: ${{ inputs.milestone }}
+          SERVER_REPOS: ${{ inputs.server_repos }}
+          COMMIT_USER_NAME: ${{ vars.CHANGELOG_GIT_USERNAME }}
+          COMMIT_USER_EMAIL: ${{ vars.CHANGELOG_GIT_EMAIL }}
+          CHANGELOG_FILE: docs/main/product-overview/mattermost-v11-changelog.mdx
         run: |
-          git config user.name "${{ vars.CHANGELOG_GIT_USERNAME }}"
-          git config user.email "${{ vars.CHANGELOG_GIT_EMAIL }}"
-          git checkout -b "changelog/${{ inputs.version }}"
-          git add docs/main/product-overview/mattermost-v11-changelog.mdx
+          git config user.name "$COMMIT_USER_NAME"
+          git config user.email "$COMMIT_USER_EMAIL"
+          git checkout -b "changelog/$VERSION"
+          git add "$CHANGELOG_FILE"
           git diff --staged --quiet && echo "No changes to commit" && exit 0
-          git commit -m "docs: add changelog for ${{ inputs.version }}"
-          git push origin "changelog/${{ inputs.version }}" --force
+          git commit -m "docs: add changelog for $VERSION"
+          git push origin "changelog/$VERSION" --force
           gh pr create \
             --repo mattermost/mattermost \
-            --title "${{ inputs.version }} Changelog" \
-            --body "Auto-generated changelog for milestone \`${{ inputs.milestone }}\` from \`${{ inputs.server_repos }}\`." \
+            --title "$VERSION Changelog" \
+            --body "Auto-generated changelog for milestone \`$MILESTONE\` from \`$SERVER_REPOS\`." \
             --base master \
-            --head "changelog/${{ inputs.version }}"
+            --head "changelog/$VERSION"

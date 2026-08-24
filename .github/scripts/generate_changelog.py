@@ -116,7 +116,7 @@ Here are your instructions:
 
 6.  **MDX safety:** The changelog is an `.mdx` file, so raw `{`, `}`, and `<` characters are parsed as JSX and will break the docs build. Therefore:
     - Never output a bare `{` or `}` in prose. If a release note needs braces, wrap the text in double backticks (e.g. ``{"key": "value"}``) so it becomes inline code.
-    - Never output a bare `<` followed by a letter (e.g. `<Note>`, `<div>`, `<T>`). Wrap such text in double backticks, or rewrite it (e.g. "less than 5" instead of "``<5``").
+    - Never output a bare `<` followed by a letter (e.g. `<Note>`, `<div>`, `<T>`). Wrap such text in double backticks, or rewrite it (e.g. "less than 5" instead of "<5").
     - Do not emit JSX/HTML components yourself. Components like `<Note>` and `<Important>` already exist in the file and are added manually — never generate, duplicate, or close them.
     - Use standard Markdown links (`[text](url)`) and plain Markdown bullets only.
 
@@ -303,7 +303,7 @@ def extract_previous_go_version(changelog_path: str) -> str | None:
         return None
     with open(changelog_path, "r", encoding="utf-8") as f:
         content = f.read()
-    match = re.search(r"is built with Go\s+`*(v?[\d.]+)`*", content)
+    match = re.search(r"is built with Go\s+``(v?[\d.]+)``", content)
     if match:
         return normalize_go_version(match.group(1))
     return None
@@ -324,29 +324,34 @@ def insert_changelog_entry(entry: str, changelog_path: str = "CHANGELOG.md") -> 
     # The header block ends with the platform scope note, which closes a <Note> component.
     HEADER_END_MARKER = "may not represent all affected configurations.\n\n</Note>"
 
-    idx = None
-    if HEADER_END_MARKER in existing:
+    if not existing.strip():
+        # New or empty file: the entry is the whole document.
+        new_content = entry
+    elif HEADER_END_MARKER in existing:
         idx = existing.index(HEADER_END_MARKER) + len(HEADER_END_MARKER)
+        new_content = existing[:idx] + "\n\n\n" + entry + existing[idx:]
     else:
         # Fallback: insert immediately before the first "## Release" heading, which keeps
         # frontmatter, imports, and any header components above the newest entry.
         first_release = re.search(r"(?m)^## Release\b", existing)
-        if first_release:
-            new_content = (
-                existing[: first_release.start()].rstrip()
-                + "\n\n\n"
-                + entry.rstrip()
-                + "\n\n"
-                + existing[first_release.start():]
+        if not first_release:
+            # Never prepend above the file header: MDX requires frontmatter to be the very
+            # first thing in the file, so blindly prepending would corrupt the document and
+            # break the docs build. Fail loudly instead — the header format has changed and
+            # HEADER_END_MARKER needs updating.
+            raise RuntimeError(
+                f"Could not find an insertion point in {changelog_path}: neither the header "
+                f"marker ({HEADER_END_MARKER!r}) nor a '## Release' heading was found. "
+                "The changelog header format has likely changed — update HEADER_END_MARKER "
+                "in this script to match."
             )
-            with open(changelog_path, "w", encoding="utf-8") as f:
-                f.write(new_content)
-            return
-
-    if idx is not None:
-        new_content = existing[:idx] + "\n\n\n" + entry + existing[idx:]
-    else:
-        new_content = entry + "\n" + existing
+        new_content = (
+            existing[: first_release.start()].rstrip()
+            + "\n\n\n"
+            + entry.rstrip()
+            + "\n\n"
+            + existing[first_release.start():]
+        )
 
     with open(changelog_path, "w", encoding="utf-8") as f:
         f.write(new_content)
