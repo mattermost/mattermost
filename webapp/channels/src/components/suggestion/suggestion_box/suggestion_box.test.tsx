@@ -3,6 +3,8 @@
 
 import React, {useCallback, useState} from 'react';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -230,12 +232,11 @@ describe('SuggestionBox', () => {
 
             return (
                 <div>
-                    <button
-                        type='button'
+                    <Button
                         onClick={() => setUseModalHeight(true)}
                     >
                         {buttonText}
-                    </button>
+                    </Button>
                     <SuggestionBox
                         {...makeBaseProps()}
                         providers={providers}
