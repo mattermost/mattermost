@@ -744,6 +744,60 @@ func TestImportImportChannel(t *testing.T) {
 	assert.Equal(t, sanitizedChannelName, aChan.Name)
 }
 
+// TestImportChannelArchivedUnarchive is a regression test for the case where a
+// channel that was previously archived is re-imported without a DeletedAt value.
+// UpdateChannel rejects channels with DeleteAt != 0, so importChannel must clear
+// it before updating. Without that fix the import would return an error.
+func TestImportChannelArchivedUnarchive(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	teamName := model.NewRandomTeamName()
+	appErr := th.App.importTeam(th.Context, &imports.TeamImportData{
+		Name:        &teamName,
+		DisplayName: new("Unarchive Test"),
+		Type:        new("O"),
+	}, false)
+	require.Nil(t, appErr)
+
+	chanOpen := model.ChannelTypeOpen
+	channelName := model.NewId()
+	data := imports.ChannelImportData{
+		Team:        &teamName,
+		Name:        &channelName,
+		DisplayName: new("Original Name"),
+		Type:        &chanOpen,
+	}
+
+	// First import — creates the channel.
+	appErr = th.App.importChannel(th.Context, &data, false)
+	require.Nil(t, appErr)
+
+	team, err := th.App.Srv().Store().Team().GetByName(teamName)
+	require.NoError(t, err)
+	ch2, err := th.App.Srv().Store().Channel().GetByName(team.Id, channelName, false)
+	require.NoError(t, err)
+
+	// Archive the channel directly so the next import must handle DeleteAt != 0.
+	err = th.App.Srv().Store().Channel().Delete(ch2.Id, model.GetMillis())
+	require.NoError(t, err)
+
+	// Confirm it is now archived.
+	archived, err := th.App.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, channelName, true)
+	require.NoError(t, err)
+	require.NotZero(t, archived.DeleteAt, "channel should be archived before re-import")
+
+	// Re-import with updated display name and no DeletedAt — should unarchive.
+	data.DisplayName = new("Updated Name")
+	appErr = th.App.importChannel(th.Context, &data, false)
+	require.Nil(t, appErr, "re-import of archived channel should succeed")
+
+	unarchived, err := th.App.Srv().Store().Channel().GetByName(team.Id, channelName, false)
+	require.NoError(t, err)
+	assert.Zero(t, unarchived.DeleteAt, "channel should be unarchived after re-import")
+	assert.Equal(t, "Updated Name", unarchived.DisplayName)
+}
+
 func TestImportImportUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
