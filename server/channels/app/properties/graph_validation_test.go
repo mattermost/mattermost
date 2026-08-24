@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // chainNames returns names for a chain of the given length, A1 at the top.
@@ -98,7 +97,7 @@ func TestGraphValidateOptionEdges(t *testing.T) {
 			atLimit = append(atLimit, edge(graph, "Child", parent))
 		}
 		require.NoError(t, th.service.ValidateOptionEdges(graph.field, atLimit, nil))
-		require.NoError(t, th.service.ApplyOptionEdges(graph.field, atLimit, nil))
+		require.NoError(t, th.dbStore.PropertyField().MutateOptions(graph.field.GroupID, graph.field.ID, 0, nil, atLimit, nil))
 
 		// One more, counted against the parents the option already has rather than
 		// against the size of the change.
@@ -171,113 +170,11 @@ func TestGraphOptionEdgeChange(t *testing.T) {
 		"a link that was not there does not go":     {remove: []*model.PropertyOptionEdge{edge("c", "z")}, delta: 0},
 		"a link removed and added ends up present":  {add: []*model.PropertyOptionEdge{edge("c", "a")}, remove: []*model.PropertyOptionEdge{edge("c", "a")}, delta: 0},
 		"a link for one option and against another": {add: []*model.PropertyOptionEdge{edge("e", "a")}, remove: []*model.PropertyOptionEdge{edge("c", "b")}, delta: 0},
+		"two new links are two more":                {add: []*model.PropertyOptionEdge{edge("c", "d"), edge("e", "d")}, delta: 2},
 	} {
 		t.Run(name, func(t *testing.T) {
 			_, delta := optionEdgeChange(stored, tc.add, tc.remove)
 			require.Equal(t, tc.delta, delta)
 		})
 	}
-
-	// The edge limit is a million links, which is too many to store in a test to
-	// reject the one past it. What can be wrong is this arithmetic, so it is checked
-	// at the real limit: a field holding one fewer link than the limit accepts a
-	// change that brings it exactly to it, and refuses the one after that.
-	t.Run("the edge limit is a comparison against this total", func(t *testing.T) {
-		_, delta := optionEdgeChange(stored, []*model.PropertyOptionEdge{edge("c", "d")}, nil)
-		require.Equal(t, model.PropertyGraphMaxEdges, model.PropertyGraphMaxEdges-1+delta)
-
-		_, delta = optionEdgeChange(stored, []*model.PropertyOptionEdge{edge("c", "d"), edge("e", "d")}, nil)
-		require.Greater(t, model.PropertyGraphMaxEdges-1+delta, model.PropertyGraphMaxEdges)
-	})
-}
-
-func TestGraphApplyOptionEdges(t *testing.T) {
-	th := Setup(t)
-
-	edge := func(graph *graphFixture, child, parent string) *model.PropertyOptionEdge {
-		return &model.PropertyOptionEdge{
-			FieldID:        graph.field.ID,
-			ChildOptionID:  graph.ids[child],
-			ParentOptionID: graph.ids[parent],
-		}
-	}
-
-	storedEdges := func(t *testing.T, graph *graphFixture) [][2]string {
-		t.Helper()
-		edges, err := th.dbStore.PropertyField().GetOptionEdges(graph.field.ID)
-		require.NoError(t, err)
-		pairs := make([][2]string, 0, len(edges))
-		for _, e := range edges {
-			pairs = append(pairs, [2]string{e.ChildOptionID, e.ParentOptionID})
-		}
-		return pairs
-	}
-
-	t.Run("a valid change is written", func(t *testing.T) {
-		graph := setupGraph(t, th, []string{"Air", "Fighter Jet"}, nil)
-
-		require.NoError(t, th.service.ApplyOptionEdges(graph.field, []*model.PropertyOptionEdge{
-			edge(graph, "Fighter Jet", "Air"),
-		}, nil))
-		require.Equal(t, [][2]string{{graph.ids["Fighter Jet"], graph.ids["Air"]}}, storedEdges(t, graph))
-	})
-
-	t.Run("a rejected change writes nothing", func(t *testing.T) {
-		graph := setupGraph(t, th, []string{"Air", "Fighter Jet", "F-18"}, map[string][]string{
-			"Fighter Jet": {"Air"},
-			"F-18":        {"Fighter Jet"},
-		})
-
-		// One link that is fine and one that closes a circle. The limits are
-		// properties of the whole change, so neither half of it lands.
-		err := th.service.ApplyOptionEdges(graph.field, []*model.PropertyOptionEdge{
-			edge(graph, "F-18", "Air"),
-			edge(graph, "Air", "F-18"),
-		}, nil)
-		require.ErrorIs(t, err, ErrInvalidFieldAttrs)
-		require.ElementsMatch(t, [][2]string{
-			{graph.ids["Fighter Jet"], graph.ids["Air"]},
-			{graph.ids["F-18"], graph.ids["Fighter Jet"]},
-		}, storedEdges(t, graph))
-	})
-
-	t.Run("a change decided against a field that has moved is refused", func(t *testing.T) {
-		// Everything checked was checked against the hierarchy the caller's field was
-		// read from, so a change somebody else committed since that read makes this a
-		// conflict -- even here, where the two changes have nothing to do with each
-		// other. It has to, because the case that makes the check necessary, two
-		// changes that are each acyclic and jointly put an option below itself, looks
-		// no different from this one at the point of writing.
-		graph := setupGraph(t, th, []string{"Air", "Fighter Jet", "Trainer"}, nil)
-
-		require.NoError(t, th.service.ApplyOptionEdges(graph.field, []*model.PropertyOptionEdge{
-			edge(graph, "Fighter Jet", "Air"),
-		}, nil))
-
-		// The change above moved the field's row; the field the test holds still
-		// carries the UpdateAt it was read with, exactly as a caller reusing a read
-		// across two changes would.
-		err := th.service.ApplyOptionEdges(graph.field, []*model.PropertyOptionEdge{
-			edge(graph, "Trainer", "Air"),
-		}, nil)
-		require.Error(t, err)
-		var conflictErr *store.ErrConflict
-		require.ErrorAs(t, err, &conflictErr)
-
-		require.Equal(t, [][2]string{{graph.ids["Fighter Jet"], graph.ids["Air"]}}, storedEdges(t, graph))
-	})
-
-	t.Run("a field that was never read cannot be changed", func(t *testing.T) {
-		graph := setupGraph(t, th, []string{"Air", "Fighter Jet"}, nil)
-
-		// A field with no UpdateAt has nothing for the write to hold against a
-		// concurrent writer, and the store reads a zero as "assert nothing".
-		unread := *graph.field
-		unread.UpdateAt = 0
-		err := th.service.ApplyOptionEdges(&unread, []*model.PropertyOptionEdge{
-			edge(graph, "Fighter Jet", "Air"),
-		}, nil)
-		require.ErrorIs(t, err, ErrInvalidFieldAttrs)
-		require.Empty(t, storedEdges(t, graph))
-	})
 }

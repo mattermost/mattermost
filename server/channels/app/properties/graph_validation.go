@@ -37,8 +37,8 @@ import (
 // ValidateOptionEdges checks a change to a graph field's option hierarchy: the
 // parent links in add to be created, and the links in remove to go at the same
 // time. It reads the hierarchy as stored, so a caller has to write the change
-// under the field's UpdateAt -- see ApplyOptionEdges -- for what is checked here
-// to still be true when it lands.
+// under the field's UpdateAt -- see CreateFieldOptions and UpdateFieldOptions --
+// for what is checked here to still be true when it lands.
 //
 // Failures wrap ErrInvalidFieldAttrs, so a caller mapping them to a response
 // reports a bad request. The reason is in the error's text, which that mapping
@@ -119,35 +119,6 @@ func (ps *PropertyService) ValidateOptionEdges(field *model.PropertyField, add, 
 	}
 
 	return nil
-}
-
-// ApplyOptionEdges changes a graph field's option hierarchy, or changes nothing
-// at all: the links in add are created and the links in remove go, once the whole
-// change has been checked.
-//
-// The field is the caller's own read of it, and the change is written under the
-// UpdateAt that read saw. Everything ValidateOptionEdges checked was decided
-// against the hierarchy as of that read, so a change somebody else committed in
-// the meantime makes this a conflict rather than a write -- which is what stops
-// two changes that are each acyclic and jointly cyclic from both landing.
-//
-// Nothing outside tests calls this: a hierarchy change arrives as part of an
-// option change, and CreateFieldOptions and UpdateFieldOptions write the option
-// rows and their links in one transaction. **Anything that does start calling it
-// has to run runPreChangePropertyFieldOptions first** -- those two do, through
-// writableField, and a hierarchy is as much a part of what a field's options are
-// as their names. This checks the shape of a change and not the authority behind
-// it.
-func (ps *PropertyService) ApplyOptionEdges(field *model.PropertyField, add, remove []*model.PropertyOptionEdge) error {
-	if field == nil || field.UpdateAt == 0 {
-		return fmt.Errorf("a property field's option hierarchy can only be changed through a field read from the store: %w", ErrInvalidFieldAttrs)
-	}
-
-	if err := ps.ValidateOptionEdges(field, add, remove); err != nil {
-		return err
-	}
-
-	return ps.fieldStore.MutateOptionEdges(field.GroupID, field.ID, field.UpdateAt, add, remove)
 }
 
 // optionEdgeChange works out what a change does to the parent links of the
