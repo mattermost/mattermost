@@ -39,6 +39,10 @@ func stopOnError(rctx request.CTX, err imports.LineImportWorkerError) bool {
 	case "app.import.validate_direct_channel_import_data.members_too_few.error", "app.import.validate_direct_channel_import_data.members_too_many.error":
 		rctx.Logger().Warn("Invalid direct channel import data", mlog.Err(err.Error))
 		return false
+	case "app.user.save.email_exists.app_error", "app.user.save.username_exists.app_error":
+		// A user with this email/username already exists on the destination — skip and continue.
+		rctx.Logger().Warn("Skipping user that already exists on destination", mlog.Err(err.Error))
+		return false
 	default:
 		return true
 	}
@@ -304,7 +308,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 							if appErr := a.checkSSOProviderConfig(rctx, attachmentsReader, skipPreflight); appErr != nil {
 								return lineNumber, appErr
 							}
-							totalLines := a.preCreateSSOUsers(rctx, attachmentsReader, dryRun)
+							totalLines := a.preCreateSSOUsers(rctx, attachmentsReader, dryRun, deactivateMissingUsers)
 							if onCheckpoint != nil && totalLines > 0 {
 								// Store total line count early so a later failure
 								// can show percentage progress on resume.
@@ -665,7 +669,7 @@ func (a *App) checkSSOProviderConfig(rctx request.CTX, zipReader *zip.Reader, sk
 // omitted; the main pass populates those after teams and channels exist on dest.
 // preCreateSSOUsers returns the total number of lines in the JSONL so callers
 // can store it for percentage display on resume.
-func (a *App) preCreateSSOUsers(rctx request.CTX, zipReader *zip.Reader, dryRun bool) int {
+func (a *App) preCreateSSOUsers(rctx request.CTX, zipReader *zip.Reader, dryRun bool, deactivateMissingUsers bool) int {
 	var jsonlEntry *zip.File
 	for _, f := range zipReader.File {
 		if imports.IsRootJsonlFile(f.Name) {
@@ -715,7 +719,7 @@ func (a *App) preCreateSSOUsers(rctx request.CTX, zipReader *zip.Reader, dryRun 
 			continue
 		}
 
-		if appErr := a.preCreateSSOUser(rctx, line.User); appErr != nil {
+		if appErr := a.preCreateSSOUser(rctx, line.User, deactivateMissingUsers); appErr != nil {
 			rctx.Logger().Warn("preCreateSSOUsers: failed to pre-create SSO user; main pass will handle it",
 				mlog.String("username", *line.User.Username),
 				mlog.String("auth_service", *line.User.AuthService),
@@ -728,7 +732,7 @@ func (a *App) preCreateSSOUsers(rctx request.CTX, zipReader *zip.Reader, dryRun 
 // preCreateSSOUser ensures a single SSO user exists on the dest with their
 // auth_data set. It tries auth_data first, then username, then creates fresh.
 // Errors are non-fatal — the main import pass will handle unresolved users.
-func (a *App) preCreateSSOUser(rctx request.CTX, data *imports.UserImportData) *model.AppError {
+func (a *App) preCreateSSOUser(rctx request.CTX, data *imports.UserImportData, deactivateMissingUsers bool) *model.AppError {
 	// Already exists by auth_data — nothing to do.
 	if _, nErr := a.Srv().Store().User().GetByAuth(data.AuthData, *data.AuthService); nErr == nil {
 		return nil
@@ -745,6 +749,14 @@ func (a *App) preCreateSSOUser(rctx request.CTX, data *imports.UserImportData) *
 		if _, uErr := a.Srv().Store().User().UpdateAuthData(existing.Id, *data.AuthService, data.AuthData, existing.Email, false); uErr != nil {
 			return model.NewAppError("preCreateSSOUser", "app.user.update_auth_data.app_error", nil, "", http.StatusInternalServerError).Wrap(uErr)
 		}
+		return nil
+	}
+
+	// When deactivateMissingUsers is true this is a scoped migration import: a user
+	// not found by auth_data or username is genuinely absent from the destination.
+	// Skip the fresh-create here and let the main import pass create a deactivated
+	// shell so the missing user is flagged for admin review.
+	if deactivateMissingUsers {
 		return nil
 	}
 

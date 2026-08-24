@@ -318,6 +318,10 @@ func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, d
 			return chErr
 		}
 	} else {
+		// UpdateChannel rejects channels with DeleteAt != 0. If the existing
+		// channel was previously archived (e.g. from a prior import run), clear
+		// it before the update. The correct DeleteAt will be restored below.
+		channel.DeleteAt = 0
 		if _, chErr = a.UpdateChannel(rctx, channel); chErr != nil {
 			return chErr
 		}
@@ -627,7 +631,9 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	var savedUser *model.User
 	var err error
 	if user.Id == "" {
-		user.SetProp(model.UserPropsKeyImportedInactive, "true")
+		if createDeactivated {
+			user.SetProp(model.UserPropsKeyImportedInactive, "true")
+		}
 		if savedUser, err = a.ch.srv.userService.CreateUser(rctx, user, users.UserCreateOptions{FromImport: true}); err != nil {
 			var appErr *model.AppError
 			var invErr *store.ErrInvalidInput
