@@ -103,6 +103,45 @@ func TestFieldOptionsWritableField(t *testing.T) {
 		require.Error(t, err)
 		require.ErrorContains(t, err, "rank field")
 	})
+
+	t.Run("a linked field owns no options of its own, whatever its type", func(t *testing.T) {
+		graphTemplate := setupGraph(t, th, []string{"Air"}, nil)
+		linkedGraph := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:       graphTemplate.field.GroupID,
+			Name:          "Programs-" + model.NewId(),
+			Type:          model.PropertyFieldTypeGraph,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &graphTemplate.field.ID,
+		})
+		_, err := th.service.CreateFieldOptions(th.Context, linkedGraph, newOption("Land"))
+		require.Error(t, err)
+		require.ErrorContains(t, err, "cannot own options of its own")
+
+		// The same refusal reaches a type whose options form no hierarchy: the
+		// rule is about ownership of the option list, not about graph's edges.
+		selectTemplate := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Colours-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{"options": []any{
+				map[string]any{"id": model.NewId(), "name": "Red"},
+			}},
+		})
+		linkedSelect := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:       selectTemplate.GroupID,
+			Name:          "Colours-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &selectTemplate.ID,
+		})
+		_, err = th.service.CreateFieldOptions(th.Context, linkedSelect, newOption("Blue"))
+		require.Error(t, err)
+		require.ErrorContains(t, err, "cannot own options of its own")
+	})
 }
 
 // A field's options are part of its definition, so who may read and change them
@@ -552,10 +591,12 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 		dependent, err = th.service.CreatePropertyField(th.Context, dependent)
 		require.NoError(t, err)
 
-		// A field of a type with no hierarchy may own local options beside the ones it
-		// inherits, which is the only way this collision arises.
-		_, err = th.service.CreateFieldOptions(th.Context, dependent, []*model.PropertyFieldOption{{Name: "Land"}})
-		require.NoError(t, err)
+		// A linked field can no longer be given a local option through either
+		// write path, but existing data may still carry one -- planted straight
+		// through the store, the only way this collision can still arise.
+		local := &model.PropertyFieldOption{Name: "Land"}
+		local.SetID(model.NewId())
+		require.NoError(t, th.dbStore.PropertyField().MutateOptions(dependent.GroupID, dependent.ID, dependent.UpdateAt, []*model.PropertyFieldOption{local}, nil, nil))
 
 		renamed := *template
 		renamed.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: []any{
@@ -585,8 +626,12 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 		dependent, err = th.service.CreatePropertyField(th.Context, dependent)
 		require.NoError(t, err)
 
-		_, err = th.service.CreateFieldOptions(th.Context, dependent, []*model.PropertyFieldOption{{Name: "Land"}})
-		require.NoError(t, err)
+		// A linked field can no longer be given a local option through either
+		// write path, but existing data may still carry one -- planted straight
+		// through the store, the only way this collision can still arise.
+		local := &model.PropertyFieldOption{Name: "Land"}
+		local.SetID(model.NewId())
+		require.NoError(t, th.dbStore.PropertyField().MutateOptions(dependent.GroupID, dependent.ID, dependent.UpdateAt, []*model.PropertyFieldOption{local}, nil, nil))
 
 		// Through the options endpoint this time: the two write paths answer the same
 		// question the same way.
@@ -594,12 +639,12 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 		require.Error(t, err)
 		require.ErrorContains(t, err, "local option of its own")
 
-		// And the other direction, which is the half a field can answer on its own: a
-		// local option may not take a name the field inherits.
+		// And the other direction: a linked field may not add a local option of
+		// its own at all any more, so the name it names never gets far enough to
+		// be checked against what it inherits.
 		_, err = th.service.CreateFieldOptions(th.Context, dependent, []*model.PropertyFieldOption{{Name: "Air"}})
 		require.Error(t, err)
-		require.ErrorContains(t, err, "already has")
-		require.ErrorContains(t, err, template.ID)
+		require.ErrorContains(t, err, "cannot own options of its own")
 	})
 
 	// The limits on a hierarchy are checked against the hierarchy as stored, and a

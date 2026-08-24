@@ -355,7 +355,7 @@ func TestPropertyFieldOptions(t *testing.T) {
 		CheckErrorID(t, err, "api.property_field.options.too_many_items.request_error")
 	})
 
-	t.Run("a linked graph field may own no options of its own", func(t *testing.T) {
+	t.Run("a linked field may own no options of its own, of any type", func(t *testing.T) {
 		graphFields := setupOptionFields(t, th, group.ID, graph, memberLevel, nil)
 
 		_, resp, err := th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), group.Name, userObject, graphFields.linked.ID, []*model.PropertyFieldOption{
@@ -365,27 +365,24 @@ func TestPropertyFieldOptions(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		require.Contains(t, err.(*model.AppError).Message, "cannot own options of its own")
 
-		// The same call on a linked field of a type whose options form no
-		// hierarchy is fine: a local option there has nothing to be disconnected
-		// from.
+		// The same refusal reaches a type whose options form no hierarchy: a
+		// linked field owns none of its option list regardless of what shape
+		// that list takes.
 		selectFields := setupOptionFields(t, th, group.ID, model.PropertyFieldTypeSelect, memberLevel, []map[string]any{
 			{"id": model.NewId(), "name": "Inherited"},
 		})
-		created, resp, err := th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), group.Name, userObject, selectFields.linked.ID, []*model.PropertyFieldOption{
+		_, resp, err = th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), group.Name, userObject, selectFields.linked.ID, []*model.PropertyFieldOption{
 			namedOption("Local"),
 		})
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
-		require.Len(t, created, 1)
-		require.False(t, created[0].ReadOnly)
-		require.Nil(t, created[0].Parents, "a select field's options form no hierarchy")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Contains(t, err.(*model.AppError).Message, "cannot own options of its own")
 
-		// And it now serves both.
+		// The field still serves only what it inherits.
 		listed, _, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, userObject, selectFields.linked.ID, 0, "", 100)
 		require.NoError(t, err)
-		require.Len(t, listed, 2)
+		require.Len(t, listed, 1)
 		require.True(t, optionByName(t, listed, "Inherited").ReadOnly)
-		require.False(t, optionByName(t, listed, "Local").ReadOnly)
 	})
 
 	t.Run("parents on a field whose options form no hierarchy are refused", func(t *testing.T) {
