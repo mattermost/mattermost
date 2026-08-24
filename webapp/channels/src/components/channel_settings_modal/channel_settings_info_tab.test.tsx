@@ -294,13 +294,34 @@ describe('ChannelSettingsInfoTab', () => {
         expect(screen.getByTestId('channel_settings_header_textbox')).toHaveValue('Header with whitespace');
     });
 
-    it('should treat a whitespace-only edit as no change', async () => {
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+    it('detects removing stored whitespace and saves the trimmed value', async () => {
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
-        await userEvent.type(screen.getByTestId('channel_settings_header_textbox'), '   ');
+        const paddedHeaderChannel = {...mockChannel, header: 'Initial header   '};
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                channel={paddedHeaderChannel}
+                setAreThereUnsavedChanges={jest.fn()}
+            />,
+        );
 
-        expect(screen.getByTestId('channel_settings_header_textbox')).toHaveValue('Initial header   ');
+        // The untidy stored text opens the form cleanly.
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        expect(headerInput).toHaveValue('Initial header   ');
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+
+        // Removing the stored trailing whitespace is a real edit the user can save.
+        await userEvent.clear(headerInput);
+        await userEvent.type(headerInput, 'Initial header');
+
+        expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+        expect(patchChannel).toHaveBeenCalledWith('channel1', {
+            header: 'Initial header',
+        });
     });
 
     it('should hide SaveChangesPanel after successful save', async () => {

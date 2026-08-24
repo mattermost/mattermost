@@ -45,10 +45,13 @@ type ChannelSettingsInfoTabProps = {
     showTabSwitchError?: boolean;
 };
 
-// This form saves trimmed values while the server stores channel text verbatim,
-// so both sides must be trimmed or an untouched channel looks edited on open.
+// The form seeds each field from the raw channel record and trims only when
+// building the save payload, so change detection compares the raw values. That
+// keeps an untouched channel clean on open (local value equals the stored one)
+// while still letting a user save the removal of stored leading/trailing
+// whitespace.
 function hasTextChanged(value: string, savedValue?: string): boolean {
-    return value.trim() !== (savedValue ?? '').trim();
+    return value !== (savedValue ?? '');
 }
 
 function ChannelSettingsInfoTab({
