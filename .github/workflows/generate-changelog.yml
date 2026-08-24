@@ -1,0 +1,124 @@
+name: Generate Changelog
+
+on:
+  workflow_dispatch:
+    inputs:
+      milestone:
+        description: 'Milestone title in the server repo (e.g. v11.9.0)'
+        required: true
+        type: string
+      version:
+        description: 'Version label for changelog entry (e.g. v11.9.0)'
+        required: true
+        type: string
+      server_repos:
+        description: 'Comma-separated repos to pull PRs from'
+        required: true
+        default: 'mattermost/mattermost,mattermost/enterprise'
+        type: string
+      release_type:
+        description: 'Release type: "feature" (default) or "esr" (Extended Support Release)'
+        required: false
+        default: 'feature'
+        type: choice
+        options:
+          - feature
+          - esr
+      release_date:
+        description: 'Release day date (e.g. 2026-07-16) — defaults to today if omitted'
+        required: false
+        type: string
+      go_version:
+        description: 'Go version used in this release (e.g. go1.26.4) — if omitted, the previous version is read from the changelog and reused'
+        required: false
+        type: string
+      blog_post_url:
+        description: 'Blog post URL for the Improvements section — if omitted, auto-constructed from version (e.g. https://mattermost.com/blog/mattermost-v11-9-is-now-available/)'
+        required: false
+        type: string
+
+jobs:
+  generate-changelog:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      # App 1: Read-only access to mattermost/mattermost and mattermost/enterprise.
+      # Used by the Python script to fetch merged PRs and their release notes.
+      # The built-in GITHUB_TOKEN is not sufficient because mattermost/enterprise
+      # is a separate private repository.
+      # Credentials needed in Settings → Secrets and variables → Actions:
+      #   CHANGELOG_READ_CLIENT_ID   (variable)  — Client ID from the mattermost+enterprise GitHub App
+      #   CHANGELOG_READ_PRIVATE_KEY (secret)    — Private key from the mattermost+enterprise GitHub App
+      - name: Get read token (source repos)
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        id: readToken
+        with:
+          client-id: ${{ vars.CHANGELOG_READ_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_READ_PRIVATE_KEY }}
+          owner: mattermost
+
+      # App 2: Read/write access to this repo (mattermost/mattermost).
+      # Used to check out the repo, push the changelog branch, and open the PR.
+      # NOTE: the built-in GITHUB_TOKEN could technically do this now that the changelog
+      # lives in this repo, but PRs opened with GITHUB_TOKEN do not trigger other
+      # workflows — so CI would not run on the generated changelog PR. Using a GitHub
+      # App token keeps CI working and preserves the bot identity used for the CLA
+      # exemption.
+      # Credentials needed in Settings → Secrets and variables → Actions:
+      #   CHANGELOG_WRITE_CLIENT_ID   (variable) — Client ID from the write GitHub App
+      #   CHANGELOG_WRITE_PRIVATE_KEY (secret)   — Private key from the write GitHub App
+      - name: Get write token (this repo)
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        id: writeToken
+        with:
+          client-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
+          owner: mattermost
+
+      - name: Checkout repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          token: ${{ steps.writeToken.outputs.token }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests anthropic
+
+      - name: Generate changelog
+        env:
+          GITHUB_TOKEN: ${{ steps.readToken.outputs.token }} # Read-only token for fetching PRs from source repos
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }} # Enables AI categorization and formatting — add under Settings → Secrets and variables → Actions
+          MILESTONE: ${{ inputs.milestone }}
+          VERSION: ${{ inputs.version }}
+          REPOS: ${{ inputs.server_repos }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
+          RELEASE_DATE: ${{ inputs.release_date }}
+          GO_VERSION: ${{ inputs.go_version }}
+          BLOG_POST_URL: ${{ inputs.blog_post_url }}
+          CHANGELOG_PATH: docs/main/product-overview/mattermost-v11-changelog.mdx
+        run: python .github/scripts/generate_changelog.py
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ steps.writeToken.outputs.token }}
+        run: |
+          git config user.name "${{ vars.CHANGELOG_GIT_USERNAME }}"
+          git config user.email "${{ vars.CHANGELOG_GIT_EMAIL }}"
+          git checkout -b "changelog/${{ inputs.version }}"
+          git add docs/main/product-overview/mattermost-v11-changelog.mdx
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+          git commit -m "docs: add changelog for ${{ inputs.version }}"
+          git push origin "changelog/${{ inputs.version }}" --force
+          gh pr create \
+            --repo mattermost/mattermost \
+            --title "${{ inputs.version }} Changelog" \
+            --body "Auto-generated changelog for milestone \`${{ inputs.milestone }}\` from \`${{ inputs.server_repos }}\`." \
+            --base master \
+            --head "changelog/${{ inputs.version }}"
