@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
@@ -1504,6 +1505,20 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 	}
 
 	return len(p), nil
+}
+
+// The shared client used for outgoing webhooks and slash commands must not carry a request
+// timeout of its own, or it would cap an OutgoingIntegrationRequestsTimeout configured above
+// httpservice.RequestTimeout. Every request made with it gets the configured deadline from its
+// context instead.
+func TestOutgoingWebhookClientTimeout(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	assert.Zero(t, th.App.Srv().outgoingWebhookClient.Timeout, "expected no client timeout")
+
+	// Clients for anything other than outgoing integration requests keep the default timeout.
+	assert.Equal(t, httpservice.RequestTimeout, th.App.HTTPService().MakeClient(false).Timeout)
 }
 
 func TestDoOutgoingWebhookRequest(t *testing.T) {

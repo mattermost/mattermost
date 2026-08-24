@@ -1834,7 +1834,11 @@ func TestGetPostActionClient(t *testing.T) {
 			req, err := http.NewRequest("POST", tc.requestURL, nil)
 			require.NoError(t, err)
 
-			_ = th.App.getPostActionClient(th.Context, inURL, req)
+			client := th.App.getPostActionClient(th.Context, inURL, req)
+
+			// The request context already carries the configured
+			// OutgoingIntegrationRequestsTimeout, so the client must not cap it.
+			assert.Zero(t, client.Timeout, "expected no client timeout")
 
 			if tc.expectAuth {
 				assert.NotEmpty(t, req.Header.Get(model.HeaderAuth), "expected auth header to be set")
