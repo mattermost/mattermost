@@ -469,9 +469,6 @@ type DialogDateTimeConfig struct {
 	LocationTimezone string `json:"location_timezone,omitempty"`
 	// ManualTimeEntry: Allow manual text entry for time instead of dropdown
 	ManualTimeEntry bool `json:"manual_time_entry,omitempty"`
-	// Deprecated: Use ManualTimeEntry instead. Kept for backward compatibility;
-	// when both are provided, either field being true enables manual time entry.
-	AllowManualTimeEntry bool `json:"allow_manual_time_entry,omitempty"`
 }
 
 type DialogElement struct {
@@ -494,46 +491,18 @@ type DialogElement struct {
 
 	// Date/datetime field configuration
 	DateTimeConfig *DialogDateTimeConfig `json:"datetime_config,omitempty"`
-	// Deprecated: Use DateTimeConfig.MinDate instead. Kept for backward compatibility;
-	// if DateTimeConfig is provided, its MinDate takes precedence.
-	MinDate string `json:"min_date,omitempty"`
-	// Deprecated: Use DateTimeConfig.MaxDate instead. Kept for backward compatibility;
-	// if DateTimeConfig is provided, its MaxDate takes precedence.
-	MaxDate string `json:"max_date,omitempty"`
-	// Deprecated: Use DateTimeConfig.TimeInterval instead. Kept for backward compatibility;
-	// if DateTimeConfig is provided, its TimeInterval takes precedence.
-	TimeInterval int `json:"time_interval,omitempty"`
 
 	// Action button configuration (type "action_button")
 	ActionButton *DialogActionButton `json:"action_button,omitempty"`
 }
 
-// EffectiveDateTimeConfig returns the resolved date/datetime configuration by
-// merging DateTimeConfig over the deprecated top-level fields (MinDate, MaxDate,
-// TimeInterval). DateTimeConfig values take precedence when set.
+// EffectiveDateTimeConfig returns the resolved date/datetime configuration,
+// treating a nil DateTimeConfig as the zero value.
 func (e *DialogElement) EffectiveDateTimeConfig() DialogDateTimeConfig {
-	cfg := DialogDateTimeConfig{
-		MinDate:      e.MinDate,
-		MaxDate:      e.MaxDate,
-		TimeInterval: e.TimeInterval,
-	}
 	if e.DateTimeConfig != nil {
-		if e.DateTimeConfig.MinDate != "" {
-			cfg.MinDate = e.DateTimeConfig.MinDate
-		}
-		if e.DateTimeConfig.MaxDate != "" {
-			cfg.MaxDate = e.DateTimeConfig.MaxDate
-		}
-		if e.DateTimeConfig.TimeInterval != 0 {
-			cfg.TimeInterval = e.DateTimeConfig.TimeInterval
-		}
-		cfg.LocationTimezone = e.DateTimeConfig.LocationTimezone
-		// ManualTimeEntry is OR'd with the deprecated AllowManualTimeEntry. Booleans can't
-		// distinguish explicit-false from not-set across JSON (omitempty drops the zero value),
-		// so either field being true must enable the feature during the deprecation window.
-		cfg.ManualTimeEntry = e.DateTimeConfig.ManualTimeEntry || e.DateTimeConfig.AllowManualTimeEntry
+		return *e.DateTimeConfig
 	}
-	return cfg
+	return DialogDateTimeConfig{}
 }
 
 type DialogActionButton struct {

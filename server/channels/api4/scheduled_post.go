@@ -204,7 +204,7 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "scheduledPost", &scheduledPost)
 
 	userId := c.AppContext.Session().UserId
-	existingScheduledPost, err := c.App.Srv().Store().ScheduledPost().Get(scheduledPost.Id)
+	existingScheduledPost, err := c.App.Srv().Store().ScheduledPost().Get(c.AppContext, scheduledPost.Id)
 	if err != nil {
 		c.Err = model.NewAppError("updateScheduledPost", "app.update_scheduled_post.get_scheduled_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
@@ -278,7 +278,7 @@ func deleteScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userId := c.AppContext.Session().UserId
 
-	existingScheduledPost, err := c.App.Srv().Store().ScheduledPost().Get(scheduledPostId)
+	existingScheduledPost, err := c.App.Srv().Store().ScheduledPost().Get(c.AppContext, scheduledPostId)
 	if err != nil {
 		c.Err = model.NewAppError("deleteScheduledPost", "app.delete_scheduled_post.get_scheduled_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
