@@ -109,7 +109,9 @@ var optionFieldTypes = []PropertyFieldType{
 
 // SupportsOptions reports whether the field type carries a list of options
 // (select, multiselect, rank, graph). Mirrors the webapp's supportsOptions
-// helper, which does not list graph: the webapp has no graph authoring UI.
+// helper, which does not list graph: that helper also gates the admin
+// console's "at least one option" save requirement, which a graph field
+// whose options the server withheld cannot meet.
 func (t PropertyFieldType) SupportsOptions() bool {
 	return slices.Contains(optionFieldTypes, t)
 }
@@ -436,15 +438,18 @@ func (pf *PropertyField) IsValid() error {
 	}
 
 	if pf.Type == PropertyFieldTypeGraph {
-		if i := optionIndexCarryingRank(pf.Attrs); i >= 0 {
-			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": fmt.Sprintf("attrs.options[%d].rank", i), "Reason": "rank is not supported on a graph field"}, "id="+pf.ID, http.StatusBadRequest)
-		}
-
 		// The list a field is written with is the whole of its option set, so its
 		// length is the count the limit is about. A field grown past the limit one
 		// option at a time is refused where those options are created instead.
+		// Checked before the rank scan below: this is a slice-length check through
+		// reflection, so an over-limit list is rejected before paying for the
+		// JSON round-trip that scan needs.
 		if count := propertyFieldOptionCount(pf.Attrs); count > PropertyGraphMaxOptions {
 			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "attrs.options", "Reason": fmt.Sprintf("a graph field cannot have more than %d options", PropertyGraphMaxOptions)}, "id="+pf.ID, http.StatusBadRequest)
+		}
+
+		if i := optionIndexCarryingRank(pf.Attrs); i >= 0 {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": fmt.Sprintf("attrs.options[%d].rank", i), "Reason": "rank is not supported on a graph field"}, "id="+pf.ID, http.StatusBadRequest)
 		}
 	}
 
