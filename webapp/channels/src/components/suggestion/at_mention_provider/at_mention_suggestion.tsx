@@ -54,6 +54,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
         sharedIcon: null,
         guestTag: null,
         groupMembers: null,
+        importedInactiveTag: null,
     });
 
     let itemname: string;
@@ -206,7 +207,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
             {...props}
             className={classNames({'suggestion-list__item--default-agent': item.isDefaultAgent})}
             aria-labelledby={ids.atMention}
-            aria-describedby={joinIds(ids.description, ids.youElement, ids.status, ids.botTag, ids.sharedIcon, ids.guestTag, ids.groupMembers)}
+            aria-describedby={joinIds(ids.description, ids.youElement, ids.status, ids.botTag, ids.sharedIcon, ids.guestTag, ids.groupMembers, ids.importedInactiveTag)}
             data-testid={`mentionSuggestion_${itemname}`}
         >
             {icon}
@@ -224,7 +225,7 @@ const AtMentionSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Item
                 {customStatus}
                 {sharedIcon}
                 {isGuest(item.roles) && <GuestTag/>}
-                {item.props?.importedInactive === 'true' && <ImportedInactiveTag/>}
+                {item.props?.importedInactive === 'true' && <span id={ids.importedInactiveTag}><ImportedInactiveTag/></span>}
             </span>
             {countBadge}
         </SuggestionContainer>

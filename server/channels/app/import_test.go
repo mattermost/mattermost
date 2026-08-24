@@ -978,9 +978,6 @@ func TestCheckSSOProviderConfig(t *testing.T) {
 }
 
 func TestRewriteChannelName(t *testing.T) {
-	strPtr := func(s string) *string { return &s }
-	_ = strPtr
-
 	t.Run("rewrites channel line name", func(t *testing.T) {
 		name := "source-channel"
 		line := imports.LineImportData{

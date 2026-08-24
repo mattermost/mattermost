@@ -1868,6 +1868,10 @@ func TestImportUserScopedMatching(t *testing.T) {
 		require.NoError(t, err, "deactivated shell should exist")
 		assert.NotZero(t, u.DeleteAt, "shell account should be deactivated")
 
+		// No remap entry should exist — the shell was created with the source username,
+		// so post-processing can find it directly without a remap lookup.
+		_, remapped := report.Remap.Lookup(username)
+		assert.False(t, remapped, "no Remap entry expected for unmatched SSO user")
 	})
 
 	t.Run("email user matched by username in deactivateMissingUsers mode", func(t *testing.T) {
@@ -1880,6 +1884,10 @@ func TestImportUserScopedMatching(t *testing.T) {
 		appErr := th.App.importUser(th.Context, &data, false, true, report)
 		require.Nil(t, appErr)
 
+		// The existing user should have been matched, not a new duplicate created.
+		u, err := th.App.Srv().Store().User().Get(th.Context, existing.Id)
+		require.NoError(t, err)
+		assert.Equal(t, existing.Id, u.Id, "import should match the existing user, not create a duplicate")
 	})
 
 	t.Run("email user not on dest in deactivateMissingUsers — deactivated shell created", func(t *testing.T) {
@@ -1929,7 +1937,8 @@ func TestImportUserScopedMatching(t *testing.T) {
 
 		_, err := th.App.Srv().Store().User().GetByUsername(username)
 		assert.Error(t, err, "no user should be created in dry run")
-
+		_, remapped := report.Remap.Lookup(username)
+		assert.False(t, remapped, "dry run should not add Remap entries")
 	})
 
 	t.Run("auth_service mismatch — dest has SAML, import has LDAP — creates deactivated shell", func(t *testing.T) {

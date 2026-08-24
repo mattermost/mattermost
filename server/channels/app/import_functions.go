@@ -440,7 +440,6 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			user.MakeNonNil()
 			user.SetDefaultNotifications()
 			hasUserChanged = true
-		} else {
 		}
 	}
 
@@ -1868,10 +1867,6 @@ func (a *App) getUsersByUsernames(usernames []string, deactivateMissingUsers boo
 		return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	if len(allUsers) != len(uniqueUsernames) && !deactivateMissingUsers {
-		return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest)
-	}
-
 	users := make(map[string]*model.User)
 	for _, user := range allUsers {
 		users[strings.ToLower(user.Username)] = user
@@ -1907,6 +1902,13 @@ func (a *App) getUsersByUsernames(usernames []string, deactivateMissingUsers boo
 				}
 			}
 		}
+	}
+
+	// Check completeness after remap resolution so that SSO users whose username changed
+	// on the dest (recorded via report.Remap during user processing) are not falsely
+	// reported as missing when the post-processing pass resolves them via remap.
+	if len(users) != len(uniqueUsernames) && !deactivateMissingUsers {
+		return nil, model.NewAppError("BulkImport", "app.import.get_users_by_username.some_users_not_found.error", nil, "", http.StatusBadRequest)
 	}
 
 	return users, nil
