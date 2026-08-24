@@ -2284,6 +2284,53 @@ func TestPatchPropertyField(t *testing.T) {
 		CheckUnauthorizedStatus(t, resp)
 	})
 
+	t.Run("DM participant can manage options on a field pinned to admin", func(t *testing.T) {
+		// A DM has no channel-admin tier, so admin resolves to participation.
+		// This covers the options-only branch specifically: it dispatches to
+		// SessionHasPermissionToManagePropertyFieldOptions rather than the
+		// field-edit check (see isOptionsOnlyPatch in properties.go).
+		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		adminLevel := model.PermissionLevelAdmin
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: "post",
+			TargetType: "channel",
+			TargetID:   dm.Id,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": model.NewId(), "name": "first"}},
+			},
+			PermissionField:   &adminLevel,
+			PermissionValues:  &adminLevel,
+			PermissionOptions: &adminLevel,
+		}, false, "")
+		require.Nil(t, appErr)
+
+		optionsPatch := func() *model.PropertyFieldPatch {
+			return &model.PropertyFieldPatch{Attrs: &model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": model.NewId(), "name": model.NewId()}},
+			}}
+		}
+
+		th.LoginBasic(t)
+		_, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", field.ID, optionsPatch())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		nonParticipant := th.CreateUser(t)
+		th.LinkUserToTeam(t, nonParticipant, th.BasicTeam)
+		nonParticipantClient := th.CreateClient()
+		_, _, err = nonParticipantClient.Login(context.Background(), nonParticipant.Email, nonParticipant.Password)
+		require.NoError(t, err)
+
+		_, resp, err = nonParticipantClient.PatchPropertyField(context.Background(), group.Name, "post", field.ID, optionsPatch())
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
 	t.Run("patch cannot move a field to another scope", func(t *testing.T) {
 		// A field's scope decides who may administer it, so if patch could
 		// reparent a field, a channel admin could pin levels on a channel they
@@ -3048,6 +3095,47 @@ func TestDeletePropertyField(t *testing.T) {
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 		require.Equal(t, "app.property.not_found.app_error", err.(*model.AppError).Id)
+	})
+
+	t.Run("DM participant can delete a field pinned to admin", func(t *testing.T) {
+		// Delete is gated on PermissionField, so a DM participant who pins
+		// admin must still be able to remove their own field — this is the
+		// delete-and-recreate recovery path for a mis-provisioned field.
+		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		adminLevel := model.PermissionLevelAdmin
+		newDMField := func(t *testing.T) *model.PropertyField {
+			t.Helper()
+			field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+				Name:              model.NewId(),
+				Type:              model.PropertyFieldTypeText,
+				GroupID:           group.ID,
+				ObjectType:        "post",
+				TargetType:        "channel",
+				TargetID:          dm.Id,
+				PermissionField:   &adminLevel,
+				PermissionValues:  &adminLevel,
+				PermissionOptions: &adminLevel,
+			}, false, "")
+			require.Nil(t, appErr)
+			return field
+		}
+
+		nonParticipant := th.CreateUser(t)
+		th.LinkUserToTeam(t, nonParticipant, th.BasicTeam)
+		nonParticipantClient := th.CreateClient()
+		_, _, err := nonParticipantClient.Login(context.Background(), nonParticipant.Email, nonParticipant.Password)
+		require.NoError(t, err)
+
+		resp, err := nonParticipantClient.DeletePropertyField(context.Background(), group.Name, "post", newDMField(t).ID)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		th.LoginBasic(t)
+		resp, err = th.Client.DeletePropertyField(context.Background(), group.Name, "post", newDMField(t).ID)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 	})
 
 	t.Run("user without permission should not be able to delete", func(t *testing.T) {
