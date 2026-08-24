@@ -1145,10 +1145,17 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
         test('rejects a duplicate graph value name and leaves Save enabled for the existing graph', async ({pw}) => {
             const {adminUser} = await requireHierarchicalAttributesEnabled(pw);
 
+            const timestamp = Date.now();
+            const displayName = `Playwright Graph ${timestamp}`;
+            const expectedName = `playwright_graph_${timestamp}`;
+
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
             await page.getByTestId('newAttributeButton').click();
+
+            await page.getByTestId('attributeDisplayNameInput').fill(displayName);
+            await expect(page.getByTestId('attributeUniqueNameValue')).toHaveText(expectedName);
 
             await page.getByTestId('attributeTypeMenuButton').click();
             await page.getByRole('menuitemradio', {name: 'Hierarchical'}).click();
@@ -1156,6 +1163,7 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
             await page.getByTestId('attributeOptionsGraphEmpty__nameInput').fill('Engineering');
             await page.getByTestId('attributeOptionsGraphEmpty__addButton').click();
             await expect(graphRow(page, 'Engineering')).toBeVisible();
+            await expect(page.getByTestId('saveSetting')).toBeEnabled();
 
             // # Try to add the same name again (case-insensitive)
             await page.getByTestId('attributeOptionsGraphAddTop__nameInput').fill('engineering');
@@ -1163,6 +1171,7 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
 
             // * Duplicate is refused; the unique-name alert is shown; Save stays enabled
             await expect(page.getByRole('alert')).toContainText('"engineering" already exists in this field.');
+            await expect(page.getByTestId('attributeOptionsGraphAddTop__nameInput')).toHaveAttribute('aria-invalid', 'true');
             await expect(graphRow(page, 'Engineering')).toHaveCount(1);
             await expect(page.getByTestId('saveSetting')).toBeEnabled();
         });
