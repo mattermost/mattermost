@@ -775,8 +775,31 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
         const order = action.data.order;
 
         if (order.length === 0 && state[action.channelId]) {
-            // No new posts received when we already have posts
-            return state;
+            if (!recent && !oldest) {
+                // No new information
+                return state;
+            }
+
+            // No new posts, but the server confirmed there's nothing further in that
+            // direction. Persist that on whichever existing block is chronologically at
+            // that end, or callers like prefetch/reload/mark-as-unread keep re-requesting
+            // this same empty range forever.
+            let nextPostsForChannel = state[action.channelId];
+            if (recent) {
+                nextPostsForChannel = markExtremeBlockReached(nextPostsForChannel, nextPosts, 'recent', 'newest');
+            }
+            if (oldest) {
+                nextPostsForChannel = markExtremeBlockReached(nextPostsForChannel, nextPosts, 'oldest', 'oldest');
+            }
+
+            if (nextPostsForChannel === state[action.channelId]) {
+                return state;
+            }
+
+            return {
+                ...state,
+                [action.channelId]: nextPostsForChannel,
+            };
         }
 
         const postsForChannel = state[action.channelId] || [];
@@ -1112,6 +1135,53 @@ function markChannelBoundaryReached(postsForChannel: PostOrderBlock[], anchorPos
         [flag]: true,
     };
     return nextPostsForChannel;
+}
+
+// markExtremeBlockReached finds whichever block is chronologically newest ('newest', for the
+// 'recent' flag) or oldest ('oldest', for the 'oldest' flag) among a channel's blocks, and sets
+// that flag on it. Used when a page-level fetch (RECEIVED_POSTS_IN_CHANNEL) comes back with zero
+// new posts but the server has confirmed there's nothing further in that direction: unlike
+// before/after fetches, this action has no anchor post to look up directly, so the extremal
+// block is found by comparing create_at across blocks instead. Empty blocks are skipped since
+// they have no post to compare. Returns the original array unchanged if there's nothing to
+// update (no non-empty blocks, or the extremal block already carries the flag).
+function markExtremeBlockReached(
+    blocks: PostOrderBlock[],
+    posts: Record<string, Post>,
+    flag: 'oldest' | 'recent',
+    which: 'newest' | 'oldest',
+): PostOrderBlock[] {
+    let extremeIndex = -1;
+    let extremeCreateAt = 0;
+
+    blocks.forEach((block, i) => {
+        if (block.order.length === 0) {
+            return;
+        }
+
+        const postId = which === 'newest' ? block.order[0] : block.order[block.order.length - 1];
+        const post = posts[postId];
+        if (!post) {
+            return;
+        }
+        const createAt = post.create_at;
+
+        if (extremeIndex === -1 || (which === 'newest' ? createAt > extremeCreateAt : createAt < extremeCreateAt)) {
+            extremeIndex = i;
+            extremeCreateAt = createAt;
+        }
+    });
+
+    if (extremeIndex === -1 || blocks[extremeIndex][flag]) {
+        return blocks;
+    }
+
+    const nextBlocks = [...blocks];
+    nextBlocks[extremeIndex] = {
+        ...nextBlocks[extremeIndex],
+        [flag]: true,
+    };
+    return nextBlocks;
 }
 
 export function removeNonRecentEmptyPostBlocks(blocks: PostOrderBlock[]) {
