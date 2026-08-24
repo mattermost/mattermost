@@ -22,7 +22,6 @@ function optionByName(options: PropertyFieldOption[], name: string): PropertyFie
     return options.find((option) => option.name === name);
 }
 
-/** child name → parent names. Missing nodes (new child on add) → []. */
 function parentAdj(options: PropertyFieldOption[]): Map<string, string[]> {
     const adj = new Map<string, string[]>();
     for (const option of options) {
@@ -31,7 +30,6 @@ function parentAdj(options: PropertyFieldOption[]): Map<string, string[]> {
     return adj;
 }
 
-/** parent name → child names, preserving options-array order. */
 function childAdj(options: PropertyFieldOption[]): Map<string, string[]> {
     const adj = new Map<string, string[]>();
     for (const option of options) {
@@ -47,13 +45,6 @@ function childAdj(options: PropertyFieldOption[]): Map<string, string[]> {
     return adj;
 }
 
-/**
- * Immutable copy: drop `removeParent` from `childName` if set, then append
- * `parentName` if not already present. If `childName` is not in `options`
- * (new child), append `{id: '', name: childName, parents: [parentName]}`.
- * If `parentName` is not in `options`, leave it absent — walks treat missing
- * nodes as isolated (server: unknown endpoints are options with nothing around them).
- */
 function withProposedEdge(
     options: PropertyFieldOption[],
     childName: string,
@@ -81,10 +72,6 @@ function withProposedEdge(
     return next;
 }
 
-/**
- * start plus every strict descendant (holders of start can reach these).
- * BFS/DFS via childAdj. Used by grant-confirm. Includes start.
- */
 function reachableDown(options: PropertyFieldOption[], start: string): Set<string> {
     const children = childAdj(options);
     const reached = new Set<string>();
@@ -103,15 +90,6 @@ function reachableDown(options: PropertyFieldOption[], start: string): Set<strin
     return reached;
 }
 
-/**
- * Longest option-chain from `start` following `adjacency`. Start counts as 1.
- * Memoized DFS. Visiting a node already on the stack → cycle; return 0
- * (caller must have run wouldCreateCycle). Finished nodes reuse memo (diamond).
- *
- * G2: this is chain length, NOT |unique nodes|. Taking max over neighbors
- * (not parents[0], not a Set of ancestors) is what makes diamond = 3 and
- * uneven = 4.
- */
 function longestChain(
     start: string,
     adjacency: Map<string, string[]>,
@@ -228,9 +206,6 @@ export function computeDepthAfterAdd(
     parentName: string,
     opts?: ParentEdgeOpts,
 ): number {
-    // G2: do NOT return longestChain over the whole graph (sibling add would be 3).
-    // G2: do NOT return 1 + uniqueAncestors(child) (diamond close would be 4).
-    // G2: do NOT walk only parents[0] (uneven D.parents=[B,E] would be 3).
     const after = withProposedEdge(options, childName, parentName, opts);
     const above = longestChain(parentName, parentAdj(after), new Map(), new Set());
     const below = longestChain(childName, childAdj(after), new Map(), new Set());
@@ -278,23 +253,13 @@ export function findNewlyReachableDescendants(
     parentName: string,
     opts?: ParentEdgeOpts,
 ): string[] {
-    // 1. before = reachable(parent) on the CURRENT graph (include parent + descendants).
     const before = reachableDown(options, parentName);
-
-    // 2. after = user action: if removeParent, drop that occurrence edge, then add parentName.
     const after = withProposedEdge(options, childName, parentName, opts);
-
-    // 3. newly = reachable(parent, after) − before, then drop the child.
-    //    Product list is descendants-only (G13). Grant row already names the child.
     const newly = reachableDown(after, parentName);
     newly.delete(childName);
     for (const n of before) {
         newly.delete(n);
     }
-
-    // G3: do NOT compute “already reachable” on the reduced (after_remove) graph.
-    // Reparent C from R onto ancestor P on P→R→C→D must return [] .
-    // after_remove would report {C, D} and over-confirm.
     return [...newly];
 }
 
@@ -316,9 +281,6 @@ export function checkParentEdge(
         return {ok: false, error: 'self'};
     }
 
-    // G4: duplicate parent-edge is a silent no-op. Never 'duplicate-edge'.
-    // Do not inspect removeParent: if the new parent is already held, it is a
-    // no-op even when replacing a different occurrence.
     if (parentsOf(optionByName(options, childName)).includes(parentName)) {
         return {ok: true, noOp: true};
     }

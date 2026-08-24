@@ -38,7 +38,6 @@ export function useGrantConfirm(): (req: GrantConfirmRequest) => Promise<boolean
 
     return (req: GrantConfirmRequest) => {
         if (req.newlyReachable.length === 0) {
-            // Callers must not open. Defensive: empty list means apply without a modal.
             return Promise.resolve(true);
         }
 

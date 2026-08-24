@@ -76,7 +76,7 @@ describe('buildGraphNodeDeleteViewModel', () => {
         });
     });
 
-    it('returns the G8 safe diamond fixture', () => {
+    it('returns the safe diamond fixture', () => {
         expect(buildGraphNodeDeleteViewModel(diamondOptions, 'B')).toEqual({
             variant: 'safe',
             optionName: 'B',

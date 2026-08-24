@@ -17,9 +17,6 @@ export type AttributeFieldType = 'text' | 'select' | 'multiselect' | 'rank' | 'g
 // validateRankOptions hard-errors on create if it's missing); {id: '', name,
 // parents} for Graph, with parents always present (roots send [] — omitting
 // the key is a server no-op). Text has no options key at all.
-//
-// Graph with an empty options array returns [] (truthy). That is the helper
-// contract only — Manage Attributes Save must not submit an empty graph (D2).
 export function buildOptionsAttr(fieldType: AttributeFieldType, options: PropertyFieldOption[]): PropertyFieldOption[] | undefined {
     switch (fieldType) {
     case 'select':

@@ -55,20 +55,6 @@ const freezeGraph = (options: PropertyFieldOption[]): PropertyFieldOption[] => {
     }))) as PropertyFieldOption[];
 };
 
-// Spike fixture table (required assertions):
-// | Helper                         | Fixture                                      | Expected |
-// | computeDepthAfterAdd           | Root→child A:[] add B under A                | 2 |
-// | computeDepthAfterAdd           | Diamond close C→D on A→B→D, A→C              | 3 (not 4) |
-// | computeDepthAfterAdd           | Uneven D.parents=[B,E] through E→D           | 4 (not first-parent 3) |
-// | computeDepthAfterAdd           | Sibling S under A on A→B→C                   | 2 (not graph-wide 3) |
-// | findNewlyReachableDescendants  | Reparent C from R onto ancestor P            | [] (vs_original) |
-// | findNewlyReachableDescendants  | C has {R,S}, reparent R→P                    | ['D'] |
-// | findNewlyReachableDescendants  | Leaf C, add P                                | [] |
-// | findNewlyReachableDescendants  | already_d: D already under P via X; add P→C  | [] |
-// | findAncestors                  | Diamond D                                    | {A,B,C} |
-// | checkParentEdge                | C.parents=['R','S'] propose S                | {ok:true, noOp:true} |
-// | removeParentEdge               | Last parent B.parents=['A'] remove A         | parents: []; B in getRoots |
-
 describe('computeDepthAfterAdd', () => {
     test('root plus new child is 2 (start-counts-as-1 on both halves)', () => {
         expect(computeDepthAfterAdd([opt('A')], 'B', 'A')).toBe(2);
@@ -77,8 +63,6 @@ describe('computeDepthAfterAdd', () => {
     test('closing a diamond is 3, not unique-ancestor 4 (G2)', () => {
         const beforeClose = [opt('A'), opt('B', ['A']), opt('C', ['A']), opt('D', ['B'])];
         expect(computeDepthAfterAdd(beforeClose, 'D', 'C')).toBe(3);
-
-        // trap: unique ancestors of D after close = {A,B,C} + D = 4
     });
 
     test('uneven diamond through the long arm is 4, not first-parent 3 (G2)', () => {
@@ -97,8 +81,6 @@ describe('computeDepthAfterAdd', () => {
     test('sibling add under a depth-3 chain is 2, not graph-wide 3 (G2)', () => {
         const chain3 = [opt('A'), opt('B', ['A']), opt('C', ['B'])];
         expect(computeDepthAfterAdd(chain3, 'S', 'A')).toBe(2);
-
-        // trap: longest chain of the whole graph after add is still 3 (A-B-C)
     });
 
     test('remove-then-add measures the chain that remains (server DepthAfterAdding)', () => {
@@ -128,8 +110,6 @@ describe('findNewlyReachableDescendants', () => {
     test('reparent onto ancestor is empty (vs_original; after_remove would over-confirm) (G3)', () => {
         const shortcut = [opt('P'), opt('R', ['P']), opt('C', ['R']), opt('D', ['C'])];
         expect(sorted(findNewlyReachableDescendants(shortcut, 'C', 'P', {removeParent: 'R'}))).toEqual([]);
-
-        // trap: after_remove baseline = {C, D}
     });
 
     test('reparent R→P while C keeps S matches add (descendants-only D)', () => {
@@ -152,8 +132,6 @@ describe('findNewlyReachableDescendants', () => {
         ];
         expect(sorted(findNewlyReachableDescendants(alreadyD, 'C', 'P'))).toEqual([]);
         expect(sorted(findNewlyReachableDescendants(alreadyD, 'C', 'P', {removeParent: 'R'}))).toEqual([]);
-
-        // including-child newly would be {C}; that must NOT open the modal
     });
 
     test('isolated add of C (which has D) lists D only', () => {

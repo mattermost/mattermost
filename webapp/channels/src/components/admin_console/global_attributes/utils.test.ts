@@ -208,8 +208,6 @@ describe('global_attributes/utils', () => {
     });
 
     describe('buildOptionsAttr', () => {
-        // Helper contract only. Manage Attributes Save is disabled at 0 graph
-        // options (Phase 3/8 / D2). Do not treat this as a Save happy path.
         it('returns [] for graph with no options', () => {
             expect(buildOptionsAttr('graph', [])).toEqual([]);
         });

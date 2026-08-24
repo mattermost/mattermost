@@ -154,7 +154,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     // Type and Options are independent for text/select/multiselect/rank — a
     // Text -> Select -> Text -> Select round-trip must restore names already
-    // entered. Switching to or from graph clears options (D4): DAG parents are
+    // entered. Switching to or from graph clears options: DAG parents are
     // incompatible with a flat chip list.
     const [fieldType, setFieldType] = useState<AttributeFieldType>('text');
     const [options, setOptions] = useState<PropertyFieldOption[]>([]);
@@ -234,8 +234,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         }
         markDirty();
 
-        // D4: clear when crossing the graph boundary. Must run before the rank
-        // reassignment so graph -> rank does not rank leftover DAG options.
+        // Must run before rank reassignment so graph → rank does not rank leftover DAG options.
         if ((newType === 'graph') !== (fieldType === 'graph')) {
             setOptions([]);
         }
@@ -370,8 +369,6 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         if (!isHierarchical) {
             return null;
         }
-
-        // D2: 0 options is graphEmpty, not optionsIssue/graphOptionsIssue 'required'.
         if (hasBlankTrimmedOptionName(options)) {
             return 'empty' as const;
         }

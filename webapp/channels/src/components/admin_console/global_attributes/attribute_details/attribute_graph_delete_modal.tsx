@@ -53,7 +53,6 @@ function quotedOxfordJoin(names: string[]): string {
     return oxfordJoinNames(names.map((name) => `"${name}"`));
 }
 
-// G8 placeholder — replace if delete-safe spike disagrees
 function reachableNames(options: PropertyFieldOption[], start: string): Set<string> {
     const children = new Map<string, string[]>();
     for (const option of options) {
@@ -81,7 +80,6 @@ function reachableNames(options: PropertyFieldOption[], start: string): Set<stri
     return reached;
 }
 
-// G8 placeholder — replace if delete-safe spike disagrees
 function buildAccessRemovedLines(
     before: PropertyFieldOption[],
     after: PropertyFieldOption[],
@@ -111,7 +109,6 @@ function buildAccessRemovedLines(
     return lines;
 }
 
-// G8 placeholder — replace if delete-safe spike disagrees
 function buildStaysReachableLines(
     directChildren: PropertyFieldOption[],
     after: PropertyFieldOption[],
@@ -157,14 +154,13 @@ export function buildGraphNodeDeleteViewModel(
         };
     }
 
-    const before = options;
     const after = removeOption(options, optionName);
 
     return {
         variant: 'safe',
         optionName,
-        descendantCount: reachableNames(before, optionName).size - 1,
-        accessRemoved: buildAccessRemovedLines(before, after),
+        descendantCount: reachableNames(options, optionName).size - 1,
+        accessRemoved: buildAccessRemovedLines(options, after),
         staysReachable: buildStaysReachableLines(directChildren, after, optionName),
     };
 }

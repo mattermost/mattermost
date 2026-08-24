@@ -30,11 +30,6 @@ export function isSameGraphOccurrence(a: GraphRowDragData, b: GraphRowDragData):
     return a.optionName === b.optionName && a.parentName === b.parentName;
 }
 
-/**
- * Root occurrence (oldParentName === null) gaining a parent is net-new.
- * Replacing one existing parent with another is not.
- * Already-listed newParent is not (G4 noOp).
- */
 export function dropWouldAddNetNewEdge(
     options: PropertyFieldOption[],
     childName: string,
@@ -46,16 +41,9 @@ export function dropWouldAddNetNewEdge(
     if (parents.includes(newParentName)) {
         return false;
     }
-    if (oldParentName === null) {
-        return true;
-    }
-    if (!parents.includes(oldParentName)) {
-        return true;
-    }
-    return false;
+    return oldParentName === null || !parents.includes(oldParentName);
 }
 
-/** Product legality: DropIndicator + propose. Spike `can_reparent`. */
 export function canReparentGraphRow(
     source: GraphRowDragData,
     target: GraphRowDragData,
@@ -73,11 +61,6 @@ export function canReparentGraphRow(
     return true;
 }
 
-/**
- * PDND canDrop for a flat sibling row.
- * Self/descendant are intentionally allowed through so onDrop can alert.
- * Net-new at max edges is blocked here (G16, no toast).
- */
 export function canDropOnGraphRow(
     sourceData: Record<string | symbol, unknown>,
     target: GraphRowDragData,
@@ -103,7 +86,6 @@ export type GraphDropAlert = {
     parentName: string;
 };
 
-/** Canvas alert payload. `null` means clear (applied / noOp / cancel / self). */
 export function dropAlertFromProposeResult(
     result: ProposeParentResult,
     names: {childName: string; parentName: string},
@@ -129,15 +111,10 @@ export function dropAlertFromProposeResult(
 const GRAPH_ROW_TEST_ID = 'attributeOptionsGraphRow';
 const HONEY_POT_ATTR = 'data-pdnd-honey-pot';
 
-/**
- * Innermost graph row under the pointer. Skips the PDND honey-pot so a
- * dragend-without-drop can still resolve the hovered occurrence.
- */
 export function graphRowDragDataAtPoint(clientX: number, clientY: number): GraphRowDragData | null {
-    const stack = typeof document.elementsFromPoint === 'function' ?
-        document.elementsFromPoint(clientX, clientY) :
-        [];
+    const stack = document.elementsFromPoint(clientX, clientY);
     for (const node of stack) {
+        // PDND's honey-pot sits on top of the row during drag.
         if (!(node instanceof Element) || node.hasAttribute(HONEY_POT_ATTR)) {
             continue;
         }
@@ -153,18 +130,12 @@ export function graphRowDragDataAtPoint(clientX: number, clientY: number): Graph
         return {
             kind: GRAPH_ROW_DRAG_KIND,
             optionName,
-            parentName: parentAttr ? parentAttr : null,
+            parentName: parentAttr || null,
         };
     }
     return null;
 }
 
-/**
- * PDND `cancel()` clears dropTargets before `onDrop` when the browser never
- * fires native `drop` (dragend only). Hit-test the row under the pointer and
- * synthesize the cycle path only — never apply a legal reparent here, so
- * Escape / cancel cannot mutate.
- */
 export async function handleMissedNativeGraphRowDrop(args: {
     sourceData: Record<string | symbol, unknown>;
     input: {clientX: number; clientY: number};
@@ -183,6 +154,7 @@ export async function handleMissedNativeGraphRowDrop(args: {
     if (!canDropOnGraphRow(args.sourceData, target, args.options)) {
         return;
     }
+    // Legal reparents require a native drop so Escape/cancel cannot mutate.
     if (canReparentGraphRow(args.sourceData, target, args.options)) {
         return;
     }

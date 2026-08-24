@@ -32,7 +32,7 @@ import {
     wouldExceedMaxOptions,
     type CheckParentEdgeResult,
 } from './graph_utils';
-import {dropAlertFromProposeResult, useGraphRowDnd} from './use_graph_dnd';
+import {dropAlertFromProposeResult, useGraphRowDnd, type GraphDropAlert} from './use_graph_dnd';
 
 import './attribute_options_graph_values.scss';
 
@@ -92,12 +92,6 @@ type GraphRowProps = {
     onOptionsChange: (options: PropertyFieldOption[]) => void;
     confirmGrant?: ConfirmGrant;
     onDropResult: (result: ProposeParentResult, names: {childName: string; parentName: string}) => void;
-};
-
-type DropAlert = {
-    check: Extract<CheckParentEdgeResult, {ok: false}>;
-    childName: string;
-    parentName: string;
 };
 
 const DROP_ALERT_TIMEOUT_MS = 4000;
@@ -489,7 +483,7 @@ function dropAlertMessage(check: Extract<CheckParentEdgeResult, {ok: false}>) {
     case 'max-parents':
         return messages.maxParentsError;
     case 'self':
-        return messages.cycleError; // unreachable; caller skips self
+        return messages.cycleError;
     default: {
         const exhaustive: never = check;
         return exhaustive;
@@ -497,7 +491,7 @@ function dropAlertMessage(check: Extract<CheckParentEdgeResult, {ok: false}>) {
     }
 }
 
-function dropAlertValues(alert: DropAlert): Record<string, string | number> {
+function dropAlertValues(alert: GraphDropAlert): Record<string, string | number> {
     switch (alert.check.error) {
     case 'cycle':
         return cycleErrorValues(alert.parentName, alert.childName);
@@ -523,7 +517,7 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
     const [renameDraft, setRenameDraft] = useState('');
     const [childDraft, setChildDraft] = useState<ChildDraft | null>(null);
     const [childDraftName, setChildDraftName] = useState('');
-    const [dropAlert, setDropAlert] = useState<DropAlert | null>(null);
+    const [dropAlert, setDropAlert] = useState<GraphDropAlert | null>(null);
     const dropAlertTimeoutRef = useRef<number | null>(null);
 
     const clearDropAlert = useCallback(() => {
@@ -585,9 +579,7 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
     }, [draftName, options, onOptionsChange, disabled]);
 
     const handleGoToOrphan = useCallback((optionName: string) => {
-        // Close overlays first so a Parents pane restoreFocus cannot steal
-        // after we move to the orphan. Focus still runs from modal onExited
-        // (5.2); doing it on confirm loses to GenericModal restoreFocus.
+        // Close overlays first; focusing on confirm loses to GenericModal restoreFocus.
         flushSync(() => {
             setOpenParentsFor(null);
             setOpenMenuFor(null);
