@@ -150,7 +150,7 @@ const (
 	TeamSettingsLockProfileFieldsNameAndUsername = "name_and_username"
 	TeamSettingsLockProfileFieldsAll             = "all"
 
-	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
+	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
 
 	FileSettingsDefaultDirectory                   = "./data/"
 	FileSettingsDefaultS3UploadPartSizeBytes       = 5 * 1024 * 1024   // 5MB
@@ -441,12 +441,12 @@ type ServiceSettings struct {
 	EnableFileSearch                                  *bool   `access:"write_restrictable"`
 	MinimumHashtagLength                              *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
 	EnableUserTypingMessages                          *bool   `access:"site_posts,write_restrictable,cloud_restrictable"`
-	EnableChannelViewedMessages                       *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	EnableChannelViewedMessages                       *bool   `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableUserStatuses                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	ExperimentalEnableAuthenticationTransfer          *bool   `access:"experimental_features"`
 	ClusterLogTimeoutMilliseconds                     *int    `access:"write_restrictable,cloud_restrictable"`
-	EnableTutorial                                    *bool   `access:"experimental_features"`
-	EnableOnboardingFlow                              *bool   `access:"experimental_features"`
+	EnableTutorial                                    *bool   `access:"site_customization"`
+	EnableOnboardingFlow                              *bool   `access:"site_customization"`
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool   `access:"experimental_features"`
 	ExperimentalGroupUnreadChannels                   *string `access:"experimental_features"`
 	EnableAPITeamDeletion                             *bool
@@ -2499,10 +2499,10 @@ func (s *AnnouncementSettings) SetDefaults() {
 }
 
 type ThemeSettings struct {
-	EnableThemeSelection *bool   `access:"experimental_features"`
-	DefaultTheme         *string `access:"experimental_features"`
-	AllowCustomThemes    *bool   `access:"experimental_features"`
-	AllowedThemes        []string
+	EnableThemeSelection *bool    `access:"site_customization"`
+	DefaultTheme         *string  `access:"site_customization"`
+	AllowCustomThemes    *bool    `access:"site_customization"`
+	AllowedThemes        []string `access:"site_customization"`
 }
 
 func (s *ThemeSettings) SetDefaults() {
