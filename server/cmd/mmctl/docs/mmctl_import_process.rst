@@ -27,10 +27,15 @@ Options
 
 ::
 
-      --bypass-upload     If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.
-      --extract-content   If this is set, document attachments will be extracted and indexed during the import process. It is advised to disable it to improve performance. (default true)
-  -h, --help              help for process
-      --workers int       The number of concurrent import worker goroutines. Controls database load during import. When set to 0 (default), uses the number of CPUs available. Maximum allowed is 4x the CPU count.
+      --bypass-upload                     If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.
+      --destination-channel-id string     Map the source channel in the export to a different channel on the destination server (by ID). Only valid for channel-scoped exports. Mutually exclusive with --destination-channel-name.
+      --destination-channel-name string   Map the source channel in the export to a different channel name on the destination server (by name). Only valid for channel-scoped exports. Mutually exclusive with --destination-channel-id.
+      --destination-team-id string        Map the source team in the export to an existing team on the destination server (by ID). Mutually exclusive with --destination-team-name.
+      --destination-team-name string      Map the source team in the export to an existing team on the destination server (by name/slug). Works with both channel-scoped and full-team exports. Mutually exclusive with --destination-team-id.
+      --extract-content                   If this is set, document attachments will be extracted and indexed during the import process. It is advised to disable it to improve performance. (default true)
+  -h, --help                              help for process
+      --skip-preflight                    Skip SSO provider configuration checks. By default the import fails if an auth provider present in the export is not enabled on the destination. Use this flag only after reviewing the preflight error and accepting the risk.
+      --workers int                       The number of concurrent import worker goroutines. Controls database load during import. When set to 0 (default), uses the number of CPUs available. Maximum allowed is 4x the CPU count.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
