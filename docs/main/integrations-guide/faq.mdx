@@ -37,6 +37,16 @@ When "attachments" are mentioned in Mattermost integrations documentation, it re
 
 Mattermost doesn't currently support the ability to attach files to a post made via webhook. You can use the API to attach files to a message if needed.
 
+## What are Mattermost Blocks?
+
+Mattermost Blocks are the structured format for rich, interactive integration posts. Integrations can extend messages with text, images, buttons, menus, collapsible sections, and different layout options.
+
+Starting in Mattermost v11.10, Mattermost Blocks are the recommended replacement for [message attachments](https://developers.mattermost.com/integrate/reference/message-attachments/). They are the preferred way to create interactive messages for integrations such as [incoming webhooks](/integrations-guide/incoming-webhooks), plugins, and bot accounts.
+
+Legacy message attachments and other interactive message formats continue to work; clients translate them into the Mattermost Blocks format at render time. We encourage new and updated integrations to use Mattermost Blocks instead.
+
+For payload structure, block types, action handling, migration guidance, and troubleshooting, see the [Mattermost Blocks reference](https://developers.mattermost.com/integrate/reference/mm-blocks/) in the developer documentation.
+
 ## Where can I find existing integrations?
 
 Visit the [Mattermost Marketplace](https://mattermost.com/marketplace) to access open source integrations to common tools like Jira, Jenkins, and GitLab, along with interactive bot applications, and other communication tools that are freely available for use and customization.

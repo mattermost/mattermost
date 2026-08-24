@@ -6,8 +6,9 @@ import type {ServerChannel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Disposable, Locator, Page} from '@playwright/test';
+import type {Post} from '@mattermost/types/posts';
 
-import {expect, setupFileServer, test, watchElementSize} from '@mattermost/playwright-lib';
+import {expect, setupFileServer, test, testConfig, watchElementSize} from '@mattermost/playwright-lib';
 import type {ChannelsPage, ChannelsPost, PlaywrightClient4} from '@mattermost/playwright-lib';
 
 test.describe('Post height', () => {
@@ -54,10 +55,8 @@ test.describe('Post height', () => {
 
     type PostHeightTestCase = {
         name: string;
-        /** Static seed options for posts that don't depend on the file server URL. */
-        seedOptions?: SeedOptions;
-        /** Seed options builder for posts that reference the file server (e.g. Markdown images). */
-        getSeedOptions?: (baseUrl: string) => SeedOptions;
+        /** Returns the post to be measured and does any other prep work needed to set up the post. */
+        makePost: (options: {fileServerUrl: string; siteUrl: string}) => Promise<Post>;
         /** Extra assertions to run once the post has loaded. */
         additionalCheck?: (args: {postComponent: ChannelsPost}) => Promise<void>;
         /** Playwright project names for which this test case should be skipped. */
@@ -67,16 +66,18 @@ test.describe('Post height', () => {
     const testCases: PostHeightTestCase[] = [
         {
             name: 'text only post',
-            seedOptions: {
-                message: 'text only post',
-            },
+            makePost: () =>
+                seedPost({
+                    message: 'text only post',
+                }),
         },
         {
             name: 'post with replies',
-            seedOptions: {
-                message: 'post with replies',
-                replyCount: 3,
-            },
+            makePost: () =>
+                seedPost({
+                    message: 'post with replies',
+                    replyCount: 3,
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the thread footer has rendered
                 const image = postComponent.container.locator('.ThreadFooter');
@@ -85,10 +86,11 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with reactions',
-            seedOptions: {
-                message: 'post with reactions',
-                reactions: ['thumbsup', 'heart', 'tada'],
-            },
+            makePost: () =>
+                seedPost({
+                    message: 'post with reactions',
+                    reactions: ['thumbsup', 'heart', 'tada'],
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the reactions have rendered
                 const image = postComponent.container.locator('.Reaction');
@@ -97,10 +99,11 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a single image',
-            seedOptions: {
-                message: 'post with a single image',
-                files: ['mattermost.png'],
-            },
+            makePost: () =>
+                seedPost({
+                    message: 'post with a single image',
+                    files: ['mattermost.png'],
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the image has rendered
                 const image = postComponent.container.locator('.image-loaded-container');
@@ -109,10 +112,11 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a single small image',
-            seedOptions: {
-                message: 'post with a single small image',
-                files: ['small-image.png'],
-            },
+            makePost: () =>
+                seedPost({
+                    message: 'post with a single small image',
+                    files: ['small-image.png'],
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the image has rendered
                 const image = postComponent.container.locator('.small-image__container');
@@ -123,10 +127,11 @@ test.describe('Post height', () => {
             name: 'post with a single large image',
             // MM-69979 Skip this on iPad because images that are too wide but above the minimum height cause layout shift
             skipProjects: ['ipad'],
-            seedOptions: {
-                message: 'post with a single large image',
-                files: ['huge-image.jpg'],
-            },
+            makePost: () =>
+                seedPost({
+                    message: 'post with a single large image',
+                    files: ['huge-image.jpg'],
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the image has rendered
                 const image = postComponent.container.locator('.image-loaded-container');
@@ -135,10 +140,11 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a single wide image',
-            seedOptions: {
-                message: 'post with a single wide image',
-                files: ['image-400x40.jpg'],
-            },
+            makePost: () =>
+                seedPost({
+                    message: 'post with a single wide image',
+                    files: ['image-400x40.jpg'],
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the image has rendered
                 const image = postComponent.container.locator('.small-image__container img');
@@ -147,10 +153,11 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a single tall image',
-            seedOptions: {
-                message: 'post with a single tall image',
-                files: ['image-40x400.jpg'],
-            },
+            makePost: () =>
+                seedPost({
+                    message: 'post with a single tall image',
+                    files: ['image-40x400.jpg'],
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the image has rendered
                 const image = postComponent.container.locator('.small-image__container img');
@@ -159,10 +166,11 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a non-image file attachment',
-            seedOptions: {
-                message: 'post with a non-image file attachment',
-                files: ['sample_text_file.txt'],
-            },
+            makePost: () =>
+                seedPost({
+                    message: 'post with a non-image file attachment',
+                    files: ['sample_text_file.txt'],
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the attachment has rendered
                 const image = postComponent.container.locator('.post-image__columns');
@@ -171,10 +179,11 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with multiple images',
-            seedOptions: {
-                message: 'post with multiple images',
-                files: ['mattermost.png', 'mattermost-icon_128x128.png', 'mattermost.png'],
-            },
+            makePost: () =>
+                seedPost({
+                    message: 'post with multiple images',
+                    files: ['mattermost.png', 'mattermost-icon_128x128.png', 'mattermost.png'],
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the images have rendered
                 const image = postComponent.container.locator('.MediaGallery__tile img');
@@ -183,38 +192,45 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a code block without a language',
-            seedOptions: {
-                message: '```\nconst foo = 1;\nconst bar = 2;\n```',
-            },
+            makePost: () =>
+                seedPost({
+                    message: '```\nconst foo = 1;\nconst bar = 2;\n```',
+                }),
         },
         {
             name: 'post with a syntax-highlighted code block',
-            seedOptions: {
-                message: '```javascript\nconst foo = 1;\nconst bar = 2;\n```',
-            },
+            makePost: () =>
+                seedPost({
+                    message: '```javascript\nconst foo = 1;\nconst bar = 2;\n```',
+                }),
         },
         {
             name: 'post with a message attachment',
-            seedOptions: {
-                message: 'post with a message attachment',
-                props: {
-                    attachments: [
-                        {
-                            author_name: 'Author',
-                            title: 'Message attachment title',
-                            title_link: 'https://example.com',
-                            text: 'Message attachment body text',
-                        },
-                    ],
-                },
-            },
+            // For some reason, the font size of the attachment title changes slightly on Firefox with MM Blocks
+            // and concurrent React enabled at the same time.
+            skipProjects: ['firefox'],
+            makePost: () =>
+                seedPost({
+                    message: 'post with a message attachment',
+                    props: {
+                        attachments: [
+                            {
+                                author_name: 'Author',
+                                title: 'Message attachment title',
+                                title_link: 'https://example.com',
+                                text: 'Message attachment body text',
+                            },
+                        ],
+                    },
+                }),
         },
         {
             name: 'post with a single SVG attachment',
-            seedOptions: {
-                message: 'post with a single SVG attachment',
-                files: ['icon.svg'],
-            },
+            makePost: () =>
+                seedPost({
+                    message: 'post with a single SVG attachment',
+                    files: ['icon.svg'],
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the SVG has rendered as an image
                 const image = postComponent.container.locator('.image-loaded-container');
@@ -223,9 +239,10 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a Markdown image',
-            getSeedOptions: (baseUrl) => ({
-                message: `![mattermost](${baseUrl}/mattermost.png)`,
-            }),
+            makePost: ({fileServerUrl}) =>
+                seedPost({
+                    message: `![mattermost](${fileServerUrl}/mattermost.png)`,
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the Markdown image has rendered
                 const image = postComponent.container.locator('.image-loaded-container');
@@ -234,9 +251,10 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a small Markdown image',
-            getSeedOptions: (baseUrl) => ({
-                message: `![small image](${baseUrl}/small-image.png)`,
-            }),
+            makePost: ({fileServerUrl}) =>
+                seedPost({
+                    message: `![small image](${fileServerUrl}/small-image.png)`,
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the Markdown image has rendered
                 const image = postComponent.container.locator('.image-loaded-container');
@@ -247,9 +265,10 @@ test.describe('Post height', () => {
             name: 'post with a large Markdown image',
             // MM-69979 Images that are too wide but above the minimum height cause layout shift
             skipProjects: ['chrome', 'firefox', 'ipad'],
-            getSeedOptions: (baseUrl) => ({
-                message: `![large image](${baseUrl}/huge-image.jpg)`,
-            }),
+            makePost: ({fileServerUrl}) =>
+                seedPost({
+                    message: `![large image](${fileServerUrl}/huge-image.jpg)`,
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the Markdown image has rendered
                 const image = postComponent.container.locator('.image-loaded-container');
@@ -258,9 +277,10 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a wide Markdown image',
-            getSeedOptions: (baseUrl) => ({
-                message: `![wide image](${baseUrl}/image-400x40.jpg)`,
-            }),
+            makePost: ({fileServerUrl}) =>
+                seedPost({
+                    message: `![wide image](${fileServerUrl}/image-400x40.jpg)`,
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the Markdown image has rendered
                 const image = postComponent.container.locator('.image-loaded-container');
@@ -269,9 +289,10 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a tall Markdown image',
-            getSeedOptions: (baseUrl) => ({
-                message: `![tall image](${baseUrl}/image-40x400.jpg)`,
-            }),
+            makePost: ({fileServerUrl}) =>
+                seedPost({
+                    message: `![tall image](${fileServerUrl}/image-40x400.jpg)`,
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the Markdown image has rendered
                 const image = postComponent.container.locator('.image-loaded-container');
@@ -280,11 +301,12 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with an SVG Markdown image',
-            // Either Chrome preloads the SVG's dimensions early or Firefox doesn't allocate the height properly
-            skipProjects: ['firefox'],
-            getSeedOptions: (baseUrl) => ({
-                message: `![icon](${baseUrl}/icon.svg)`,
-            }),
+            // As of MM-67372, the server no longer provides dimensions for external SVGs
+            skipProjects: ['chrome', 'firefox', 'ipad'],
+            makePost: ({fileServerUrl}) =>
+                seedPost({
+                    message: `![icon](${fileServerUrl}/icon.svg)`,
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the Markdown image has rendered
                 const image = postComponent.container.locator('.image-loaded-container');
@@ -293,9 +315,10 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with an image preview',
-            getSeedOptions: (baseUrl) => ({
-                message: `${baseUrl}/mattermost.png`,
-            }),
+            makePost: ({fileServerUrl}) =>
+                seedPost({
+                    message: `${fileServerUrl}/mattermost.png`,
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the image is rendered
                 const image = postComponent.container.locator('.image-loaded-container');
@@ -304,9 +327,10 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a small image preview',
-            getSeedOptions: (baseUrl) => ({
-                message: `${baseUrl}/small-image.png`,
-            }),
+            makePost: ({fileServerUrl}) =>
+                seedPost({
+                    message: `${fileServerUrl}/small-image.png`,
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the image is rendered
                 const image = postComponent.container.locator('.image-loaded-container');
@@ -317,9 +341,10 @@ test.describe('Post height', () => {
             name: 'post with a large image preview',
             // MM-69979 Images that are too wide but above the minimum height cause layout shift
             skipProjects: ['chrome', 'firefox', 'ipad'],
-            getSeedOptions: (baseUrl) => ({
-                message: `${baseUrl}/huge-image.jpg`,
-            }),
+            makePost: ({fileServerUrl}) =>
+                seedPost({
+                    message: `${fileServerUrl}/huge-image.jpg`,
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the image is rendered
                 const image = postComponent.container.locator('.image-loaded-container');
@@ -328,9 +353,10 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a wide image preview',
-            getSeedOptions: (baseUrl) => ({
-                message: `${baseUrl}/image-400x40.jpg`,
-            }),
+            makePost: ({fileServerUrl}) =>
+                seedPost({
+                    message: `${fileServerUrl}/image-400x40.jpg`,
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the image is rendered
                 const image = postComponent.container.locator('.image-loaded-container');
@@ -339,9 +365,10 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with a tall image preview',
-            getSeedOptions: (baseUrl) => ({
-                message: `${baseUrl}/image-40x400.jpg`,
-            }),
+            makePost: ({fileServerUrl}) =>
+                seedPost({
+                    message: `${fileServerUrl}/image-40x400.jpg`,
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that the image is rendered
                 const image = postComponent.container.locator('.image-loaded-container');
@@ -350,9 +377,10 @@ test.describe('Post height', () => {
         },
         {
             name: 'post with an OpenGraph preview',
-            getSeedOptions: (baseUrl) => ({
-                message: `${baseUrl}/opengraph.html`,
-            }),
+            makePost: ({fileServerUrl}) =>
+                seedPost({
+                    message: `${fileServerUrl}/opengraph.html`,
+                }),
             additionalCheck: async ({postComponent}) => {
                 // * Verify that an OpenGraph preview was rendered
                 const preview = postComponent.container.locator('.PostAttachmentOpenGraph');
@@ -363,6 +391,51 @@ test.describe('Post height', () => {
                     'This is a test page to generate an OpenGraph link preview.',
                 );
                 await expect(preview.locator('.PostAttachmentOpenGraph__image img')).toBeVisible();
+            },
+        },
+        {
+            name: 'post with an OpenGraph preview with a larger image',
+            makePost: ({fileServerUrl}) =>
+                seedPost({
+                    message: `${fileServerUrl}/opengraph-huge.html`,
+                }),
+            additionalCheck: async ({postComponent}) => {
+                const preview = postComponent.container.locator('.PostAttachmentOpenGraph');
+                await expect(preview).toBeVisible();
+                await expect(preview.locator('.sitename')).toHaveText('Mattermost Test');
+                await expect(preview.locator('.title')).toHaveText('OpenGraph Preview Title');
+                await expect(preview.locator('.description')).toHaveText('This is a test page with a large image.');
+                await expect(preview.locator('.PostAttachmentOpenGraph__image img')).toBeVisible();
+            },
+        },
+        {
+            name: 'post with a post preview',
+            makePost: async ({siteUrl}) => {
+                const linkedPost = await seedPost({
+                    message: 'This is a post to be previewed.',
+                });
+
+                return seedPost({
+                    message: `${siteUrl}/${team.name}/pl/${linkedPost.id}`,
+                });
+            },
+        },
+        {
+            name: 'post with a long post preview',
+            makePost: async ({siteUrl}) => {
+                const linkedPost = await seedPost({
+                    message: new Array(50).fill('This is a multi-line post to be previewed.').join('\n'),
+                });
+
+                return seedPost({
+                    message: `${siteUrl}/${team.name}/pl/${linkedPost.id}`,
+                });
+            },
+            additionalCheck: async ({postComponent}) => {
+                // * Verify that the preview is faded out and has the "Show more" link visible
+                const showMoreButton = postComponent.container.locator('.post-preview-collapse__show-more-button');
+                await expect(showMoreButton).toBeVisible();
+                await expect(postComponent.container.locator('.post-message-preview--overflow')).toBeVisible();
             },
         },
     ];
@@ -377,10 +450,10 @@ test.describe('Post height', () => {
                     `Not supported on ${testInfo.project.name}`,
                 );
 
-                const seedOptions = testCase.getSeedOptions
-                    ? testCase.getSeedOptions(fileServerUrl)
-                    : testCase.seedOptions!;
-                const post = await seedPost(seedOptions);
+                const post = await testCase.makePost({
+                    fileServerUrl,
+                    siteUrl: testConfig.internalBaseURL,
+                });
 
                 const {sizeWatcher, postComponent} = await openChannelAndGetPost(post.id);
 
