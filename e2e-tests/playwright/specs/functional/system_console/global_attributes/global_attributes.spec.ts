@@ -1250,6 +1250,12 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
 
                 await expect(page.getByRole('heading', {name: 'Confirm this grant'})).toBeVisible();
                 await expect(page.getByTestId('attributeGraphGrantConfirm__newlyReachable')).toContainText('Fighter');
+
+                // The Parents picker keeps the menu open (disableCloseOnSelect) and sits
+                // above the modal, so dismiss it before confirming.
+                await page.keyboard.press('Escape');
+                await expect(page.getByRole('menu', {name: 'Parents'})).toHaveCount(0);
+
                 await page.getByRole('button', {name: /^add the parent$/i}).click();
 
                 // * Air now sits under Maritime as well as at the root of Fighter
