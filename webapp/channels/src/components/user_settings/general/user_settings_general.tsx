@@ -1611,7 +1611,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     }
 
                     if (supportsOptions(attribute)) {
-                        const attribOptions: PropertyFieldOption[] = attribute.attrs!.options as PropertyFieldOption[];
+                        const attribOptions: PropertyFieldOption[] = (attribute.attrs!.options as PropertyFieldOption[]) ?? [];
                         const opts = attribOptions.map((o) => {
                             return {label: o.name, value: o.id} as SelectOption;
                         });

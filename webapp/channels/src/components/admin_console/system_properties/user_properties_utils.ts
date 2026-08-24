@@ -180,7 +180,7 @@ export const useUserPropertyFields = () => {
 
                 if (supportsOptions(field)) {
                     const options = field.attrs?.options;
-                    if (!options?.length) {
+                    if (!options?.length && !field.attrs?.options_omitted) {
                         acc[field.id] = {attrs: ValidationWarningOptionsRequired};
                     }
                 }
