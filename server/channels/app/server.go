@@ -128,6 +128,9 @@ type Server struct {
 	clusterLeaderListenerId string
 	loggerLicenseListenerId string
 
+	pushNotificationServerLicenseListenerId       string
+	pushNotificationServerClusterLeaderListenerId string
+
 	platform         *platform.PlatformService
 	platformOptions  []platform.Option
 	telemetryService *telemetry.TelemetryService
@@ -484,7 +487,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
+		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("is_leader", s.IsLeader()))
 		if s.Jobs != nil {
 			s.Jobs.HandleClusterLeaderChange(s.IsLeader())
 		}
@@ -506,9 +509,11 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	// Start email batching because it's not like the other jobs
-	s.platform.AddConfigListener(func(_, _ *model.Config) {
-		s.EmailService.InitEmailBatching()
+	// Re-init email batching only when its enable flag or interval changes.
+	s.platform.AddConfigListener(func(oldCfg, newCfg *model.Config) {
+		if emailBatchingSettingChanged(oldCfg, newCfg) {
+			s.EmailService.InitEmailBatching()
+		}
 	})
 
 	pwd, _ := os.Getwd()
@@ -538,6 +543,15 @@ func NewServer(options ...Option) (*Server, error) {
 	s.loggerLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.platform.RemoveUnlicensedLogTargets(newLicense)
 		s.platform.EnableLoggingMetrics()
+	})
+
+	// Keep the push notification server in sync with the license's HPNS entitlement, and let a
+	// newly-elected cluster leader repair any transition missed while another node was leader.
+	s.pushNotificationServerLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		s.syncPushNotificationServerWithLicense()
+	})
+	s.pushNotificationServerClusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
+		s.syncPushNotificationServerWithLicense()
 	})
 
 	// if enabled - perform initial product notices fetch
@@ -767,6 +781,8 @@ func (s *Server) Shutdown() {
 
 	s.RemoveLicenseListener(s.loggerLicenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
+	s.RemoveLicenseListener(s.pushNotificationServerLicenseListenerId)
+	s.RemoveClusterLeaderChangedListener(s.pushNotificationServerClusterLeaderListenerId)
 
 	var err error
 	s.serviceMux.RLock()
@@ -1007,6 +1023,8 @@ func (s *Server) Start() error {
 			mlog.Error("Problem with file storage settings", mlog.Err(err))
 		}
 	}
+
+	s.syncPushNotificationServerWithLicense()
 
 	s.checkPushNotificationServerURL()
 
@@ -1958,13 +1976,13 @@ func runDNDStatusExpireJob(a *App) {
 	}
 
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("is_leader", a.IsLeader()))
 		if a.IsLeader() {
 			withMut(&a.ch.dndTaskMut, func() {
 				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
 			})
 		} else {
-			mlog.Debug("This is no longer leader node. Cancelling the unset DND status task", mlog.Bool("isLeader", a.IsLeader()))
+			mlog.Debug("This is no longer leader node. Cancelling the unset DND status task", mlog.Bool("is_leader", a.IsLeader()))
 			cancelTask(&a.ch.dndTaskMut, &a.ch.dndTask)
 		}
 	})
@@ -1982,7 +2000,7 @@ func runPostReminderJob(a *App) {
 	}
 
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("is_leader", a.IsLeader()))
 		if a.IsLeader() {
 			rctx := request.EmptyContext(a.Log())
 			withMut(&a.ch.postReminderMut, func() {
@@ -1990,7 +2008,7 @@ func runPostReminderJob(a *App) {
 				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
 			})
 		} else {
-			mlog.Debug("This is no longer leader node. Cancelling the post reminder task", mlog.Bool("isLeader", a.IsLeader()))
+			mlog.Debug("This is no longer leader node. Cancelling the post reminder task", mlog.Bool("is_leader", a.IsLeader()))
 			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
 		}
 	})
@@ -2004,11 +2022,11 @@ func runScheduledPostJob(a *App) {
 	}
 
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if scheduled posts task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		mlog.Info("Cluster leader changed. Determining if scheduled posts task should be running", mlog.Bool("is_leader", a.IsLeader()))
 		if a.IsLeader() {
 			doRunScheduledPostJob(a)
 		} else {
-			mlog.Debug("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("isLeader", a.IsLeader()))
+			mlog.Debug("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("is_leader", a.IsLeader()))
 			cancelTask(&a.ch.scheduledPostMut, &a.ch.scheduledPostTask)
 		}
 	})
@@ -2044,4 +2062,14 @@ func (s *Server) Platform() *platform.PlatformService {
 
 func (s *Server) Log() *mlog.Logger {
 	return s.platform.Logger()
+}
+
+func emailBatchingSettingChanged(oldCfg, newCfg *model.Config) bool {
+	if oldCfg == nil || newCfg == nil {
+		return true
+	}
+	return model.SafeDereference(oldCfg.EmailSettings.EnableEmailBatching) !=
+		model.SafeDereference(newCfg.EmailSettings.EnableEmailBatching) ||
+		model.SafeDereference(oldCfg.EmailSettings.EmailBatchingInterval) !=
+			model.SafeDereference(newCfg.EmailSettings.EmailBatchingInterval)
 }
