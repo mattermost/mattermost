@@ -5,12 +5,12 @@ package httpservice
 
 import (
 	"context"
-	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -24,78 +24,83 @@ func (s *testConfigService) Config() *model.Config {
 	return s.config
 }
 
-func newTestHTTPService() HTTPService {
+// newTestHTTPService returns a service with the given default request timeout that is allowed to
+// dial the loopback addresses used by httptest.
+func newTestHTTPService(requestTimeout time.Duration) *HTTPServiceImpl {
 	config := &model.Config{}
 	config.SetDefaults()
+	config.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
 
-	return MakeHTTPService(&testConfigService{config: config})
-}
-
-func TestMakeClientTimeout(t *testing.T) {
-	service := newTestHTTPService()
-
-	for _, trustURLs := range []bool{true, false} {
-		require.Equal(t, RequestTimeout, service.MakeClient(trustURLs).Timeout)
-		require.Equal(t, 5*time.Second, service.MakeClientWithTimeout(trustURLs, 5*time.Second).Timeout)
-		require.Zero(t, service.MakeClientWithTimeout(trustURLs, 0).Timeout)
+	return &HTTPServiceImpl{
+		configService:  &testConfigService{config: config},
+		RequestTimeout: requestTimeout,
 	}
 }
 
-// A client timeout shorter than the request context deadline cuts the request short, no matter how
-// much time the context still allows. Callers whose deadline comes from configuration (such as
-// ServiceSettings.OutgoingIntegrationRequestsTimeout) therefore need a client built without one.
-func TestMakeClientWithTimeoutRequestDeadline(t *testing.T) {
-	const handlerDelay = 500 * time.Millisecond
+func newSlowServer(t *testing.T, delay time.Duration) *httptest.Server {
+	t.Helper()
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		select {
-		case <-time.After(handlerDelay):
+		case <-time.After(delay):
 			w.WriteHeader(http.StatusOK)
 		case <-r.Context().Done():
 		}
 	}))
-	defer ts.Close()
+	t.Cleanup(server.Close)
 
-	service := newTestHTTPService()
+	return server
+}
 
-	get := func(t *testing.T, client *http.Client, contextTimeout time.Duration) (*http.Response, error) {
-		t.Helper()
+func doGet(t *testing.T, client *http.Client, rawURL string, contextTimeout time.Duration) (*http.Response, error) {
+	t.Helper()
 
-		ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
-		defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
+	defer cancel()
 
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL, nil)
-		require.NoError(t, err)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
+	require.NoError(t, err)
 
-		return client.Do(req)
+	return client.Do(req)
+}
+
+func TestMakeClientTimeout(t *testing.T) {
+	service := newTestHTTPService(RequestTimeout)
+
+	assert.Equal(t, RequestTimeout, service.MakeClient(false).Timeout)
+	assert.Equal(t, 5*time.Second, service.MakeClientWithTimeout(false, 5*time.Second).Timeout)
+	assert.Zero(t, service.MakeClientWithTimeout(false, 0).Timeout)
+
+	// Whatever the timeout, requests still go through the transport applying the Mattermost user
+	// agent and the AllowedUntrustedInternalConnections checks.
+	for _, trustURLs := range []bool{true, false} {
+		assert.IsType(t, &MattermostTransport{}, service.MakeClientWithTimeout(trustURLs, 0).Transport)
 	}
+}
 
-	t.Run("a client timeout shorter than the context deadline cuts the request short", func(t *testing.T) {
-		client := service.MakeClientWithTimeout(true, handlerDelay/5)
+// MM-68319 in miniature: a caller whose deadline is longer than the default request timeout only
+// reaches a slow endpoint if its client was built without a timeout of its own.
+func TestMakeClientWithTimeoutOutlivesDefaultTimeout(t *testing.T) {
+	const defaultTimeout = 100 * time.Millisecond
+	const handlerDelay = 5 * defaultTimeout
 
-		start := time.Now()
-		_, err := get(t, client, 10*handlerDelay)
+	server := newSlowServer(t, handlerDelay)
+	service := newTestHTTPService(defaultTimeout)
+
+	t.Run("the default request timeout caps a longer context deadline", func(t *testing.T) {
+		_, err := doGet(t, service.MakeClient(false), server.URL, 100*defaultTimeout)
 		require.Error(t, err)
-
-		var netErr net.Error
-		require.ErrorAs(t, err, &netErr)
-		require.True(t, netErr.Timeout())
-		require.Less(t, time.Since(start), handlerDelay, "the client timeout ended the request before the handler responded")
 	})
 
-	t.Run("without a client timeout the context deadline governs", func(t *testing.T) {
-		client := service.MakeClientWithTimeout(true, 0)
-
-		resp, err := get(t, client, 10*handlerDelay)
+	t.Run("a client built without a timeout runs to the context deadline", func(t *testing.T) {
+		resp, err := doGet(t, service.MakeClientWithTimeout(false, 0), server.URL, 100*defaultTimeout)
 		require.NoError(t, err)
 		defer resp.Body.Close()
-		require.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 
-	t.Run("without a client timeout a shorter context deadline still applies", func(t *testing.T) {
-		client := service.MakeClientWithTimeout(true, 0)
-
-		_, err := get(t, client, handlerDelay/5)
+	t.Run("a client built without a timeout still honours a shorter context deadline", func(t *testing.T) {
+		_, err := doGet(t, service.MakeClientWithTimeout(false, 0), server.URL, defaultTimeout)
 		require.ErrorIs(t, err, context.DeadlineExceeded)
 	})
 }

@@ -1834,11 +1834,7 @@ func TestGetPostActionClient(t *testing.T) {
 			req, err := http.NewRequest("POST", tc.requestURL, nil)
 			require.NoError(t, err)
 
-			client := th.App.getPostActionClient(th.Context, inURL, req)
-
-			// The request context already carries the configured
-			// OutgoingIntegrationRequestsTimeout, so the client must not cap it.
-			assert.Zero(t, client.Timeout, "expected no client timeout")
+			_ = th.App.getPostActionClient(th.Context, inURL, req)
 
 			if tc.expectAuth {
 				assert.NotEmpty(t, req.Header.Get(model.HeaderAuth), "expected auth header to be set")
@@ -1848,6 +1844,36 @@ func TestGetPostActionClient(t *testing.T) {
 			}
 		})
 	}
+
+	// DoActionRequest's callers put OutgoingIntegrationRequestsTimeout on the request context, so
+	// the client must not add a timeout capping a value configured above
+	// httpservice.RequestTimeout. Without a deadline to inherit it falls back to the configured
+	// timeout rather than leaving the request unbounded.
+	t.Run("client timeout", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(60))
+		})
+
+		for _, rawURL := range []string{
+			"http://localhost:8065/plugins/myplugin/action", // trusted plugin route
+			"http://example.com/action",                     // untrusted external URL
+		} {
+			inURL, err := url.Parse(rawURL)
+			require.NoError(t, err)
+
+			req, err := http.NewRequest("POST", rawURL, nil)
+			require.NoError(t, err)
+
+			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+			client := th.App.getPostActionClient(th.Context.WithContext(ctx), inURL, req)
+			cancel()
+			assert.Zero(t, client.Timeout, "url: %s", rawURL)
+
+			client = th.App.getPostActionClient(th.Context, inURL, req)
+			assert.Equal(t, 60*time.Second, client.Timeout, "url: %s", rawURL)
+		}
+	})
 }
 
 func TestDoLocalRequest(t *testing.T) {

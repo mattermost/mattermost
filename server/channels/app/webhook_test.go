@@ -1507,18 +1507,53 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-// The shared client used for outgoing webhooks and slash commands must not carry a request
-// timeout of its own, or it would cap an OutgoingIntegrationRequestsTimeout configured above
-// httpservice.RequestTimeout. Every request made with it gets the configured deadline from its
-// context instead.
-func TestOutgoingWebhookClientTimeout(t *testing.T) {
+// deadlineRecorder records the deadline carried by the request reaching the transport, which is
+// the effective limit on the request: the earlier of the client timeout and the context deadline.
+type deadlineRecorder struct {
+	next        http.RoundTripper
+	deadline    time.Time
+	hasDeadline bool
+}
+
+func (r *deadlineRecorder) RoundTrip(req *http.Request) (*http.Response, error) {
+	r.deadline, r.hasDeadline = req.Context().Deadline()
+
+	return r.next.RoundTrip(req)
+}
+
+// Outgoing webhooks and slash commands share Srv().outgoingWebhookClient and give every request a
+// deadline of OutgoingIntegrationRequestsTimeout, so a timeout on the client itself would cap a
+// value configured above httpservice.RequestTimeout.
+func TestOutgoingWebhookRequestDeadline(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	assert.Zero(t, th.App.Srv().outgoingWebhookClient.Timeout, "expected no client timeout")
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = new("127.0.0.1")
+		cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(60))
+	})
 
-	// Clients for anything other than outgoing integration requests keep the default timeout.
-	assert.Equal(t, httpservice.RequestTimeout, th.App.HTTPService().MakeClient(false).Timeout)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+		require.NoError(t, err)
+	}))
+	defer server.Close()
+
+	client := th.App.Srv().outgoingWebhookClient
+	recorder := &deadlineRecorder{next: client.Transport}
+	client.Transport = recorder
+	t.Cleanup(func() { client.Transport = recorder.next })
+
+	resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+
+	require.True(t, recorder.hasDeadline, "the request should carry the configured deadline")
+	assert.Greater(t, time.Until(recorder.deadline), httpservice.RequestTimeout,
+		"the configured timeout must not be capped by a client timeout")
+
+	// Clients that are not used for outgoing integration requests keep the default timeout.
+	assert.Equal(t, httpservice.RequestTimeout, th.App.Srv().pushNotificationClient.Timeout)
 }
 
 func TestDoOutgoingWebhookRequest(t *testing.T) {
