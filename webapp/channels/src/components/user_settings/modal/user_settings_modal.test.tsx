@@ -307,7 +307,7 @@ describe('discarding an unsaved theme preview', () => {
 
         await previewOnyxTheme();
         await closeSettingsModal();
-        await user.click(screen.getByRole('button', {name: 'Yes, Discard'}));
+        await user.click(within(confirmDialog()!).getByRole('button', {name: 'Yes, Discard'}));
         settleTransitions();
 
         expect(settingsModal()).not.toBeInTheDocument();
@@ -320,6 +320,10 @@ describe('discarding an unsaved theme preview', () => {
 
         await openThemeSection();
         await user.click(screen.getByRole('button', {name: /Denim/}));
+
+        // Denim is already the active theme, so this proves the click reached the theme setting
+        expect(applyTheme).toHaveBeenCalledWith(expect.objectContaining({type: 'Denim'}));
+
         await closeSettingsModal();
 
         // Asserted before the fade completes, since a confirmation that is wrongly shown here

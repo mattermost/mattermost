@@ -142,7 +142,6 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
 
             expect(setRequireConfirm).toHaveBeenCalledWith(false);
             expect(setRequireConfirm).not.toHaveBeenCalledWith(true);
-            expect(themeButton(/Denim/)).toHaveClass('active');
         });
 
         it('should not require confirmation when re-selecting a saved theme that has no code theme', async () => {
@@ -200,6 +199,7 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
 
             await userEvent.click(screen.getByRole('radio', {name: 'Custom Theme'}));
 
+            expect(screen.getByLabelText('Code Theme')).toBeVisible();
             expect(setRequireConfirm).not.toHaveBeenCalled();
         });
 

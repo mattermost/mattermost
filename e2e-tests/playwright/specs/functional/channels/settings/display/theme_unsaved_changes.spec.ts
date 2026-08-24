@@ -53,7 +53,9 @@ test(
         // # Close the settings modal
         await settingsModal.closeButton.click();
 
-        // * Verify the discard confirmation is shown
+        // * Verify the discard confirmation is shown. Both modals fall back to
+        // aria-labelledby='genericModalLabel' and duplicate that id, so the confirmation resolves
+        // its accessible name to the settings modal's title and cannot be found by role and name.
         const confirmDialog = page.locator('#confirmModal');
         await expect(confirmDialog).toBeVisible();
         await expect(confirmDialog).toContainText(discardMessage);
