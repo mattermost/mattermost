@@ -66,7 +66,10 @@ export default class SuggestionList extends React.PureComponent<Props> {
             this.scrollToItem(this.props.selection);
         }
 
-        if (hasResults(this.props.results) && !hasResults(prevProps.results)) {
+        if (
+            (hasResults(this.props.results) && !hasResults(prevProps.results)) ||
+            this.props.maxHeight !== prevProps.maxHeight
+        ) {
             this.updateMaxHeight();
         }
     }

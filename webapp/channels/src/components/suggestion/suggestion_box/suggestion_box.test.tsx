@@ -215,6 +215,68 @@ describe('SuggestionBox', () => {
         expect(document.getElementById('suggestionList')).toHaveStyle(`max-height: ${expectedMaxHeight}px`);
     });
 
+    test('should recompute the list height when listMaxHeight changes while results remain visible', async () => {
+        const provider = new TestProvider();
+
+        function HeightToggleWrapper({providers}: {providers: Provider[]}) {
+            const [value, setValue] = useState('');
+            const [useModalHeight, setUseModalHeight] = useState(false);
+
+            const handleChange = useCallback((e: React.FormEvent) => {
+                setValue((e.target as HTMLInputElement).value);
+            }, []);
+
+            const buttonText = 'Make taller';
+
+            return (
+                <div>
+                    <button
+                        type='button'
+                        onClick={() => setUseModalHeight(true)}
+                    >
+                        {buttonText}
+                    </button>
+                    <SuggestionBox
+                        {...makeBaseProps()}
+                        providers={providers}
+                        forceSuggestionsWhenBlur={true}
+                        listMaxHeight={useModalHeight ? Constants.SUGGESTION_LIST_MAXHEIGHT_MODAL : undefined}
+                        onChange={handleChange}
+                        value={value}
+                    />
+                </div>
+            );
+        }
+
+        renderWithContext(
+            <HeightToggleWrapper providers={[provider]}/>,
+        );
+
+        await userEvent.click(screen.getByPlaceholderText('test input'));
+        await userEvent.keyboard('test');
+
+        await waitFor(() => {
+            expect(screen.getByRole('listbox')).toBeVisible();
+        });
+
+        const defaultMaxHeight = Math.min(
+            window.innerHeight - Constants.POST_MODAL_PADDING,
+            Constants.SUGGESTION_LIST_MAXHEIGHT,
+        );
+        expect(document.getElementById('suggestionList')).toHaveStyle(`max-height: ${defaultMaxHeight}px`);
+
+        // Increase the max height while the results stay visible
+        await userEvent.click(screen.getByRole('button', {name: 'Make taller'}));
+
+        const tallerMaxHeight = Math.min(
+            window.innerHeight - Constants.POST_MODAL_PADDING,
+            Constants.SUGGESTION_LIST_MAXHEIGHT_MODAL,
+        );
+        await waitFor(() => {
+            expect(document.getElementById('suggestionList')).toHaveStyle(`max-height: ${tallerMaxHeight}px`);
+        });
+    });
+
     test('should autocomplete suggestions by pressing enter', async () => {
         const provider = new TestProvider();
 
