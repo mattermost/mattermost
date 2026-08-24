@@ -61,6 +61,56 @@ test.describe('draft channel switch', () => {
     });
 
     /**
+     * @objective Verify Ctrl/Cmd+K restores the destination draft and routes
+     * messages to the selected channel with concurrent React enabled.
+     */
+    test(
+        'quick switcher keeps drafts and messages scoped to their channels with concurrent React',
+        {tag: '@messaging'},
+        async ({pw}) => {
+            await pw.ensureFeatureFlag('EnableConcurrentReact', true);
+
+            const {team, user} = await pw.initSetup();
+            const {channelsPage, page} = await pw.testBrowser.login(user);
+
+            await channelsPage.goto(team.name, 'off-topic');
+            await channelsPage.toBeVisible();
+
+            const originDraft = `quick-switch-origin-${pw.random.id()}`;
+            const destinationMessage = `quick-switch-destination-${pw.random.id()}`;
+
+            // # Leave a draft in Off-Topic
+            await channelsPage.centerView.postCreate.writeMessage(originDraft);
+
+            // # Switch to Town Square using Ctrl/Cmd+K
+            await page.keyboard.press('ControlOrMeta+K');
+            await expect(channelsPage.findChannelsModal.input).toBeVisible();
+            await channelsPage.findChannelsModal.input.fill('town');
+            await channelsPage.findChannelsModal.selectChannel('town-square');
+            await channelsPage.centerView.header.toHaveTitle('Town Square');
+
+            // * Town Square did not inherit the Off-Topic draft
+            expect(await channelsPage.centerView.postCreate.getInputValue()).toBe('');
+
+            // # Send a destination-owned message
+            await channelsPage.centerView.postCreate.writeMessage(destinationMessage);
+            await channelsPage.centerView.postCreate.sendMessage();
+            await channelsPage.centerView.waitUntilLastPostContains(destinationMessage);
+
+            // # Return to Off-Topic using Ctrl/Cmd+K
+            await page.keyboard.press('ControlOrMeta+K');
+            await expect(channelsPage.findChannelsModal.input).toBeVisible();
+            await channelsPage.findChannelsModal.input.fill('off');
+            await channelsPage.findChannelsModal.selectChannel('off-topic');
+            await channelsPage.centerView.header.toHaveTitle('Off-Topic');
+
+            // * The origin draft was restored and the destination message was not misrouted
+            expect(await channelsPage.centerView.postCreate.getInputValue()).toBe(originDraft);
+            await expect(channelsPage.centerView.container).not.toContainText(destinationMessage);
+        },
+    );
+
+    /**
      * @objective Verify sending /msg to an existing DM clears the origin
      * channel draft instead of leaving it behind for later restoration.
      *

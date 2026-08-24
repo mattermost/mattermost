@@ -205,6 +205,10 @@ const baseProps = {
 };
 
 describe('components/avanced_text_editor/advanced_text_editor', () => {
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
     describe('keyDown behavior', () => {
         it('ESC should blur the input', async () => {
             renderWithContext(
@@ -258,7 +262,6 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(mockedRemoveDraft).toHaveBeenCalled();
             expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
-            jest.useRealTimers();
         });
     });
 
@@ -515,7 +518,6 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect.anything(),
         );
 
-        jest.useRealTimers();
     });
 
     it('should save a new draft when changing channels', async () => {
