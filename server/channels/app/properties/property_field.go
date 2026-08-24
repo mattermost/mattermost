@@ -216,6 +216,63 @@ func validateLinkedFieldOptionReadCeiling(caller string, field, template *model.
 	)
 }
 
+// validateDependentOptionReadCeilings refuses a template update that tightens
+// its own option.read below the tier of a field already linked to it.
+// validateLinkedFieldOptionReadCeiling closes the other half of this ceiling —
+// a linked field may not move above its template's tier — but a linked field
+// serves its template's option names without holding a copy of them, and who
+// may read them is decided against the linked field's own option.read, never
+// the template's. So a template's tier could otherwise be lowered out from
+// under a dependent that already sits at the old, more permissive tier, and
+// the dependent would go on serving those names to everyone it was already
+// open to.
+//
+// It runs on every field in the update loop, not only templates: a field
+// nothing links to simply has no dependents to check, and loading them costs
+// nothing when the tier did not tighten (see the early return below).
+func (ps *PropertyService) validateDependentOptionReadCeilings(field, existing *model.PropertyField) error {
+	newTier := model.PermissionLevelNone
+	if field.Permissions != nil {
+		newTier = field.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead)
+	}
+
+	oldTier := model.PermissionLevelNone
+	if existing.Permissions != nil {
+		oldTier = existing.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead)
+	}
+
+	// Nothing to check unless the tier tightened. Loosening a template can
+	// never put a dependent above it, and an unchanged tier was already
+	// checked when each dependent was written.
+	if newTier == oldTier || !newTier.AtMostAsPermissiveAs(oldTier) {
+		return nil
+	}
+
+	dependents, err := ps.fieldStore.GetLinkedFields([]string{field.ID}, nil)
+	if err != nil {
+		return fmt.Errorf("failed to get linked fields for option.read ceiling check: %w", err)
+	}
+
+	for _, dependent := range dependents {
+		dependentTier := model.PermissionLevelNone
+		if dependent.Permissions != nil {
+			dependentTier = dependent.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead)
+		}
+
+		if !dependentTier.AtMostAsPermissiveAs(newTier) {
+			return model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.option_read_ceiling_dependents.app_error",
+				map[string]any{"DependentID": dependent.ID, "DependentTier": string(dependentTier), "NewTier": string(newTier)},
+				fmt.Sprintf("linked field %q at option.read tier %q would exceed the template's new tier %q", dependent.ID, dependentTier, newTier),
+				http.StatusConflict,
+			)
+		}
+	}
+
+	return nil
+}
+
 // createFieldWithOptionLinks writes a new field once the hierarchy its option
 // list asks for has been checked.
 //
@@ -503,6 +560,13 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 			if err := validateLinkedFieldOptionReadCeiling("UpdatePropertyFields", field, template); err != nil {
 				return nil, nil, nil, err
 			}
+		}
+
+		// The ceiling holds from the template's side too: tightening this
+		// field's own option.read below what a field linked to it already
+		// sits at is the same breach reached from the other direction.
+		if err := ps.validateDependentOptionReadCeilings(field, existing); err != nil {
+			return nil, nil, nil, err
 		}
 
 		// Block type changes on source fields with active linked dependents

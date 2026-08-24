@@ -1556,6 +1556,250 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, linked.Name, result.Name)
 	})
 
+	t.Run("tightening template's option.read past a dependent's tier is refused", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateCeilingSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		dependent := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TemplateCeilingDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		_, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), dependent.ID)
+
+		reloaded, err := th.service.GetPropertyField(rctx, group.ID, template.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelMember, reloaded.Permissions.Restrictions.Option.Read)
+	})
+
+	t.Run("tightening template's option.read to match a dependent's tier succeeds", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateCeilingEqualSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TemplateCeilingEqualDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}},
+			},
+		})
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelSysadmin, result.Permissions.Restrictions.Option.Read)
+	})
+
+	t.Run("clearing template's Permissions object counts as tightening to none", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateClearSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TemplateClearDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		template.Permissions = nil
+		_, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+	})
+
+	t.Run("loosening template's option.read is unaffected by a dependent's tier", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateLoosenSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}},
+			},
+		})
+
+		th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TemplateLoosenDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelSysadmin}},
+			},
+		})
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelMember
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelMember, result.Permissions.Restrictions.Option.Read)
+	})
+
+	t.Run("tightening a template with no dependents succeeds", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateNoDependentsSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelSysadmin, result.Permissions.Restrictions.Option.Read)
+	})
+
+	t.Run("tightening template while renaming leaves option.read alone succeeds", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateRenameSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TemplateRenameDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		template.Name = "TemplateRenameSource-Renamed-" + model.NewId()
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.NoError(t, err)
+		assert.Equal(t, template.Name, result.Name)
+	})
+
+	t.Run("a deleted dependent does not block its template from tightening", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "TemplateDeletedDependentSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		dependent := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TemplateDeletedDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		require.NoError(t, th.service.DeletePropertyField(rctx, group.ID, dependent.ID))
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		result, _, err := th.service.UpdatePropertyField(rctx, group.ID, template)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelSysadmin, result.Permissions.Restrictions.Option.Read)
+	})
+
 	t.Run("unlinking a field while raising option.read past the old template's ceiling succeeds", func(t *testing.T) {
 		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    group.ID,

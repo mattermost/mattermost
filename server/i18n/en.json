@@ -8705,6 +8705,10 @@
     "translation": "Cannot update property to \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level."
   },
   {
+    "id": "app.property_field.update.option_read_ceiling_dependents.app_error",
+    "translation": "Cannot update: linked field {{.DependentID}} is at option.read tier {{.DependentTier}}, which would exceed the new tier {{.NewTier}}."
+  },
+  {
     "id": "app.property_field.update.options_withheld.app_error",
     "translation": "This property has more than {{.Max}} options, so its option list was not loaded and cannot be replaced. Edit its options individually instead."
   },
