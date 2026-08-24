@@ -663,6 +663,88 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.Error(t, pf.IsValid())
 	})
 
+	t.Run("linked field with empty masking object is invalid", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "linked field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeUser,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+			Permissions:   &Permissions{Masking: &Masking{}},
+			CreateAt:      GetMillis(),
+			UpdateAt:      GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("linked field with masking carrying MaskByFieldID is invalid", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "linked field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeUser,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+			Permissions:   &Permissions{Masking: &Masking{MaskByFieldID: NewId()}},
+			CreateAt:      GetMillis(),
+			UpdateAt:      GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("linked field with nil LinkedFieldID and masking is valid", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:          NewId(),
+			GroupID:     NewId(),
+			Name:        "field",
+			Type:        PropertyFieldTypeSelect,
+			ObjectType:  PropertyFieldObjectTypeUser,
+			TargetType:  string(PropertyFieldTargetLevelSystem),
+			Permissions: &Permissions{Masking: &Masking{}},
+			CreateAt:    GetMillis(),
+			UpdateAt:    GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("linked field with empty string LinkedFieldID and masking is valid", func(t *testing.T) {
+		emptyID := ""
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeUser,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &emptyID,
+			Permissions:   &Permissions{Masking: &Masking{}},
+			CreateAt:      GetMillis(),
+			UpdateAt:      GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("linked field with nil masking is valid", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "linked field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeUser,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+			CreateAt:      GetMillis(),
+			UpdateAt:      GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
 	t.Run("PSAv1 cannot have permission_field set", func(t *testing.T) {
 		pf := &PropertyField{
 			ID:              NewId(),

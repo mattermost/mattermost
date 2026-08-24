@@ -510,6 +510,16 @@ func (pf *PropertyField) IsValid() error {
 		if err := pf.Permissions.IsValid(pf.ObjectType); err != nil {
 			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions", "Reason": err.Error()}, "id="+pf.ID, http.StatusBadRequest)
 		}
+
+		// A linked field inherits its template's masking object whole, so letting it
+		// declare one of its own would let anyone who can create a linked field point
+		// it at a sensitive template and name themselves in that template's except
+		// list. Nothing legitimate is lost: withholding value.read already keeps the
+		// linked field's own readers out, and masking one field of an otherwise open
+		// scheme is done by masking the template instead.
+		if pf.LinkedFieldID != nil && *pf.LinkedFieldID != "" && pf.Permissions.Masking != nil {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions.masking", "Reason": "a linked field cannot declare its own masking"}, "id="+pf.ID, http.StatusBadRequest)
+		}
 	}
 
 	return nil

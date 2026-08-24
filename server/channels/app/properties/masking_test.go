@@ -122,10 +122,10 @@ func TestResolveFieldMasking(t *testing.T) {
 	}
 
 	// setMasking persists masking directly through the store rather than the
-	// service; both routes run the same PropertyField.IsValid, which does not
-	// reject a linked field's own masking, so this can set one to prove
-	// resolution ignores it on read regardless of what a linked field is
-	// actually allowed to save.
+	// service, for a template or an unlinked field -- the two object shapes
+	// PropertyField.IsValid still allows to carry masking. A linked field's own
+	// masking is set on the in-memory struct instead, without going through this
+	// helper; see the subtests that do that for why.
 	setMasking := func(field *model.PropertyField, masking *model.Masking) *model.PropertyField {
 		field.Permissions = &model.Permissions{Masking: masking}
 		updated, err := th.dbStore.PropertyField().Update(field.GroupID, []*model.PropertyField{field}, nil)
@@ -197,7 +197,12 @@ func TestResolveFieldMasking(t *testing.T) {
 			Except:        []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}},
 		})
 		linked := newLinkedField("Linked-OwnMaskingIgnored", template.ID)
-		linked = setMasking(linked, &model.Masking{}) // would be rejected on save once the lock lands; direct store write here
+		// PropertyField.IsValid now rejects a linked field's own masking, so this
+		// sets it on the in-memory struct without persisting: resolveFieldMasking
+		// reads a linked field's masking off the struct it is handed and only
+		// fetches the template from the store, so this still proves the read path
+		// ignores it regardless of what a save would allow.
+		linked.Permissions = &model.Permissions{Masking: &model.Masking{}}
 
 		fm, err := h.resolveFieldMasking(linked)
 		require.NoError(t, err)
@@ -209,7 +214,7 @@ func TestResolveFieldMasking(t *testing.T) {
 	t.Run("linked field carrying its own masking, linked to an unmasked template: not masked", func(t *testing.T) {
 		template := newTemplate("Template-UnmaskedCeiling")
 		linked := newLinkedField("Linked-OwnMaskingOnUnmaskedTemplate", template.ID)
-		linked = setMasking(linked, &model.Masking{})
+		linked.Permissions = &model.Permissions{Masking: &model.Masking{}}
 
 		fm, err := h.resolveFieldMasking(linked)
 		require.NoError(t, err)
@@ -350,9 +355,12 @@ func TestExempt(t *testing.T) {
 		template = updatedTemplate[0]
 
 		attacker := model.NewId()
-		// Would be rejected on save once the lock lands (a later step); a
-		// direct store write here stands in for a stray one from before that
-		// lock existed, or a migration that has not caught up.
+		// PropertyField.IsValid now rejects a linked field's own masking, so this
+		// is created without one and given it on the in-memory struct afterward --
+		// standing in for a stray one from before that lock existed, or a
+		// migration that has not caught up. resolveFieldMasking reads a linked
+		// field's masking off the struct it is handed, so this still exercises
+		// the read path the same way a persisted stray masking would.
 		linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:       th.CPAGroupID,
 			Name:          "Linked-Exfil",
@@ -360,8 +368,8 @@ func TestExempt(t *testing.T) {
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			LinkedFieldID: &template.ID,
-			Permissions:   &model.Permissions{Masking: &model.Masking{Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: attacker}}}},
 		})
+		linked.Permissions = &model.Permissions{Masking: &model.Masking{Except: []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: attacker}}}}
 
 		fm, err := h.resolveFieldMasking(linked)
 		require.NoError(t, err)
