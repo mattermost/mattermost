@@ -745,6 +745,124 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.NoError(t, pf.IsValid())
 	})
 
+	t.Run("linked field with an option.read grant is invalid", func(t *testing.T) {
+		grants := []Grant{
+			{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"}, Allow: []string{PropertyActionOptionRead}},
+			{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: NewId()}, Allow: []string{PropertyActionOptionRead}},
+			{Identity: Identity{Type: PropertyOwnerTypeService, ID: NewId()}, Allow: []string{PropertyActionOptionRead}},
+			{Identity: Identity{Type: PropertyOwnerTypeRole, ID: "system_admin"}, Allow: []string{PropertyActionOptionRead}},
+			{Identity: Identity{Type: PropertyOwnerTypeUser, ID: NewId()}, Allow: []string{PropertyActionOptionRead}},
+		}
+		for _, grant := range grants {
+			linkedID := NewId()
+			pf := &PropertyField{
+				ID:            NewId(),
+				GroupID:       NewId(),
+				Name:          "linked field",
+				Type:          PropertyFieldTypeSelect,
+				ObjectType:    PropertyFieldObjectTypeUser,
+				TargetType:    string(PropertyFieldTargetLevelSystem),
+				LinkedFieldID: &linkedID,
+				Permissions:   &Permissions{Grants: []Grant{grant}},
+				CreateAt:      GetMillis(),
+				UpdateAt:      GetMillis(),
+			}
+			require.Error(t, pf.IsValid(), "grant type %q should be rejected", grant.Type)
+		}
+	})
+
+	t.Run("linked field with an option.read grant behind a valid one is invalid", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "linked field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeUser,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+			Permissions: &Permissions{Grants: []Grant{
+				{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"}, Allow: []string{PropertyActionValueRead}},
+				{Identity: Identity{Type: PropertyOwnerTypeUser, ID: NewId()}, Allow: []string{PropertyActionOptionRead}},
+			}},
+			CreateAt: GetMillis(),
+			UpdateAt: GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("linked field with a wildcard grant over other actions is valid", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "linked field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeUser,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+			Permissions: &Permissions{Grants: []Grant{
+				{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "*"}, Allow: []string{PropertyActionValueRead, PropertyActionValueWrite}},
+			}},
+			CreateAt: GetMillis(),
+			UpdateAt: GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("linked field with grants over the other four actions is valid", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "linked field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeUser,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+			Permissions: &Permissions{Grants: []Grant{
+				{Identity: Identity{Type: PropertyOwnerTypeUser, ID: NewId()}, Allow: []string{PropertyActionFieldWrite, PropertyActionOptionWrite, PropertyActionValueRead, PropertyActionValueWrite}},
+			}},
+			CreateAt: GetMillis(),
+			UpdateAt: GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("unlinked field with an option.read grant is valid", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "field",
+			Type:       PropertyFieldTypeSelect,
+			ObjectType: PropertyFieldObjectTypeUser,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			Permissions: &Permissions{Grants: []Grant{
+				{Identity: Identity{Type: PropertyOwnerTypeUser, ID: NewId()}, Allow: []string{PropertyActionOptionRead}},
+			}},
+			CreateAt: GetMillis(),
+			UpdateAt: GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("template with an option.read grant is valid", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "template field",
+			Type:       PropertyFieldTypeSelect,
+			ObjectType: PropertyFieldObjectTypeTemplate,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			Permissions: &Permissions{Grants: []Grant{
+				{Identity: Identity{Type: PropertyOwnerTypeUser, ID: NewId()}, Allow: []string{PropertyActionOptionRead}},
+			}},
+			CreateAt: GetMillis(),
+			UpdateAt: GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
 	t.Run("PSAv1 cannot have permission_field set", func(t *testing.T) {
 		pf := &PropertyField{
 			ID:              NewId(),
