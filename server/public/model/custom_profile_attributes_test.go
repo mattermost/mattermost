@@ -525,6 +525,29 @@ func TestCPAField_ToPropertyField_DisplayName(t *testing.T) {
 		require.Empty(t, roundTripped.Attrs.Owners)
 	})
 
+	t.Run("empty DisplayName round-trips as empty string", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: AccessControlPropertyGroupName,
+				Name:    "department",
+				Type:    PropertyFieldTypeText,
+			},
+			Attrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityWhenSet,
+			},
+		}
+
+		pf := field.ToPropertyField()
+		// With omitempty, an empty DisplayName should still be written (as empty string) to
+		// the StringInterface; NewCPAFieldFromPropertyField should unmarshal it as "".
+		roundTripped, err := NewCPAFieldFromPropertyField(pf)
+		require.NoError(t, err)
+		require.Equal(t, "", roundTripped.Attrs.DisplayName)
+	})
+}
+
+func TestCPAField_ToPropertyField_WithheldOptions(t *testing.T) {
 	t.Run("withheld-options markers round-trip through ToPropertyField and NewCPAFieldFromPropertyField", func(t *testing.T) {
 		original := &CPAField{
 			PropertyField: PropertyField{
@@ -575,27 +598,6 @@ func TestCPAField_ToPropertyField_DisplayName(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 0, roundTripped.Attrs.OptionsCount)
 		require.False(t, roundTripped.Attrs.OptionsOmitted)
-	})
-
-	t.Run("empty DisplayName round-trips as empty string", func(t *testing.T) {
-		field := &CPAField{
-			PropertyField: PropertyField{
-				ID:      NewId(),
-				GroupID: AccessControlPropertyGroupName,
-				Name:    "department",
-				Type:    PropertyFieldTypeText,
-			},
-			Attrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityWhenSet,
-			},
-		}
-
-		pf := field.ToPropertyField()
-		// With omitempty, an empty DisplayName should still be written (as empty string) to
-		// the StringInterface; NewCPAFieldFromPropertyField should unmarshal it as "".
-		roundTripped, err := NewCPAFieldFromPropertyField(pf)
-		require.NoError(t, err)
-		require.Equal(t, "", roundTripped.Attrs.DisplayName)
 	})
 }
 
