@@ -2,16 +2,23 @@ import {defineConfig} from '@eloqnt/cli';
 
 export default defineConfig({
   messages: {
-    path: './src/i18n',
+    path: './src/i18n/{code}',
     locales: 'infer',
     sourceLocale: 'en',
-    format: 'json'
+    format: 'json',
+    codes: {
+      // `ar_SA.json` is the one file here spelled the POSIX way
+      'ar-SA': 'ar_SA'
+    }
   },
   lint: {
-    rules: {
-      // `la` and `pr` have no CLDR data at all, so no locale code can satisfy
-      // this rule, and `ar_SA.json` is empty and unreferenced by imports.ts.
-      'invalid-locale': 'off'
-    }
+    overrides: [
+      {
+        // `pr` is a language picker entry rather than a language code, so no
+        // code can satisfy this rule for it
+        locales: ['pr'],
+        rules: {'invalid-locale': 'off'}
+      }
+    ]
   }
 });
