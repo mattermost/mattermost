@@ -2996,5 +2996,4 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 			})
 		}
 	})
-
 }
