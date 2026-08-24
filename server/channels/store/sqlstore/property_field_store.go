@@ -513,8 +513,6 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		}
 	}
 
-	// Bring each field's option rows in line with the option list it was
-	// submitted with.
 	changedFieldIDs, err := s.syncPropertyFieldOptions(transaction, fields, updateTime)
 	if err != nil {
 		return nil, errors.Wrap(err, "property_field_update_options")
