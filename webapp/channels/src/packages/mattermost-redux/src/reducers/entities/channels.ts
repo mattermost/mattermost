@@ -502,6 +502,19 @@ function receiveChannelMember(state: RelationOneToOne<Channel, ChannelMembership
             urgent_mention_count: Math.min(existingChannelMember.urgent_mention_count, received.urgent_mention_count),
             mention_count_root: Math.min(existingChannelMember.mention_count_root, received.mention_count_root),
         };
+    } else if (existingChannelMember &&
+               updatedChannelMember.last_viewed_at === existingChannelMember.last_viewed_at &&
+               updatedChannelMember.mention_count < existingChannelMember.mention_count) {
+        // A WS event (e.g. channel_member_updated after IncrementMentionCount) may have set
+        // mention_count to 1 before this REST response arrived with mention_count=0. Since
+        // last_viewed_at hasn't changed (the user hasn't read the channel), the server cannot
+        // have legitimately decremented mention_count — preserve the higher value.
+        updatedChannelMember = {
+            ...received,
+            mention_count: existingChannelMember.mention_count,
+            mention_count_root: Math.max(existingChannelMember.mention_count_root, received.mention_count_root),
+            urgent_mention_count: Math.max(existingChannelMember.urgent_mention_count, received.urgent_mention_count),
+        };
     }
 
     return {

@@ -50,6 +50,8 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 	// Do not send any notification (push, email, websocket) for a membership
 	// system post in a channel where join/leave messages are suppressed.
+	// The mention count increment for add-type posts is handled synchronously in
+	// AddChannelMember before the HTTP response is sent.
 	if a.shouldSuppressMembershipSystemPost(rctx, channel, post) {
 		return []string{}, nil
 	}

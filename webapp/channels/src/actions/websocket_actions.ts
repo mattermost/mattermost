@@ -864,6 +864,10 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
             if (hasAutotranslationBecomeEnabled(state, channel)) {
                 doDispatch(resetReloadPostsInChannel(channel.id));
             }
+
+            if (existingChannel.disable_join_leave_messages !== channel.disable_join_leave_messages) {
+                doDispatch(resetReloadPostsInChannel(channel.id));
+            }
         }
 
         doDispatch(batchActions(actions));

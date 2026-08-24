@@ -1150,6 +1150,17 @@ func IsMembershipSystemPost(post *Post) bool {
 	return post != nil && slices.Contains(MembershipSystemPostTypes(), post.Type)
 }
 
+// IsAddMembershipSystemPost returns true for posts that notify a user they were
+// added to a channel or team.
+func IsAddMembershipSystemPost(post *Post) bool {
+	if post == nil {
+		return false
+	}
+	return post.Type == PostTypeAddToChannel ||
+		post.Type == PostTypeAddGuestToChannel ||
+		post.Type == PostTypeAddToTeam
+}
+
 func (o *Post) Patch(patch *PostPatch) {
 	if patch.IsPinned != nil {
 		o.IsPinned = *patch.IsPinned

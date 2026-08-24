@@ -121,6 +121,117 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
     );
 
     /**
+     * @objective Verify that a user added to a channel with DisableJoinLeaveMessages=true
+     * receives a sidebar mention count badge (blue dot) even though the add-to-channel
+     * system post is suppressed from the timeline.
+     */
+    test(
+        'added user receives sidebar mention badge when join/leave messages are disabled',
+        {tag: '@channel_settings'},
+        async ({pw}) => {
+            // # Initialize test setup
+            const {adminClient, team} = await pw.initSetup();
+
+            // # Create a public channel and immediately disable join/leave messages
+            const channel = await adminClient.createChannel({
+                team_id: team.id,
+                name: `jl-added-badge-${Date.now()}`,
+                display_name: 'JL Added Badge Test',
+                type: 'O',
+            } as any);
+            await adminClient.patchChannel(channel.id, {disable_join_leave_messages: true} as any);
+
+            // # Create a second user and add them to the team (not the channel yet)
+            const secondUser = await pw.createNewUserProfile(adminClient, {
+                prefix: 'jl-badge',
+                disableTutorial: true,
+                disableOnboarding: true,
+            });
+            await adminClient.addToTeam(team.id, secondUser.id);
+
+            // # Login as secondUser and navigate to a channel so the app fully loads and
+            // WS connection is established before the add-to-channel event fires
+            const {page: secondPage} = await pw.testBrowser.login(secondUser);
+            const secondChannelsPage = new ChannelsPage(secondPage);
+            await secondChannelsPage.goto(team.name, 'town-square');
+            await secondChannelsPage.toBeVisible();
+
+            // # Admin adds secondUser to the channel — this triggers a suppressed add-to-channel
+            // system post; IncrementMentionCount runs instead of SendNotifications
+            await adminClient.addToChannel(secondUser.id, channel.id);
+
+            // * secondUser's sidebar should show the new channel with a mention count badge
+            const badge = secondChannelsPage.sidebarLeft.unreadMentionsBadge(channel.name);
+            await expect(badge).toBeVisible({timeout: pw.duration.ten_sec});
+
+            // * The channel timeline should NOT contain an add-to-channel system post
+            await secondChannelsPage.sidebarLeft.goToItem(channel.name);
+            await expect(
+                secondChannelsPage.centerView.container.getByText('added to the channel'),
+            ).not.toBeVisible({timeout: pw.duration.ten_sec});
+        },
+    );
+
+    /**
+     * @objective Verify that toggling DisableJoinLeaveMessages live-reloads the channel
+     * post list for all users currently viewing the channel (Option 7 / WS reload).
+     * A second user already viewing the channel should see join system posts appear or
+     * disappear in real time when the admin changes the setting.
+     */
+    test(
+        'toggling join/leave messages live-reloads the channel for other viewers',
+        {tag: '@channel_settings'},
+        async ({pw}) => {
+            // # Initialize test setup
+            const {adminUser, adminClient, team} = await pw.initSetup();
+
+            // # Create a public channel and add a second user to produce a join system post
+            const channel = await adminClient.createChannel({
+                team_id: team.id,
+                name: `jl-ws-reload-${Date.now()}`,
+                display_name: 'JL WS Reload Test',
+                type: 'O',
+            } as any);
+
+            const secondUser = await pw.createNewUserProfile(adminClient, {
+                prefix: 'jl-ws',
+                disableTutorial: true,
+                disableOnboarding: true,
+            });
+            await adminClient.addToTeam(team.id, secondUser.id);
+            await adminClient.addToChannel(secondUser.id, channel.id);
+
+            // # Login as secondUser and navigate to the channel
+            const {page: secondPage} = await pw.testBrowser.login(secondUser);
+            const secondChannelsPage = new ChannelsPage(secondPage);
+            await secondChannelsPage.goto(team.name, channel.name);
+            await secondChannelsPage.toBeVisible();
+
+            // * secondUser sees the join system post in the channel
+            await expect(
+                secondChannelsPage.centerView.container.getByText('joined the channel'),
+            ).toBeVisible({timeout: pw.duration.ten_sec});
+
+            // # Admin logs in and disables join/leave messages from their browser
+            const {page: adminPage} = await pw.testBrowser.login(adminUser);
+            const adminChannelsPage = new ChannelsPage(adminPage);
+            await adminChannelsPage.goto(team.name, channel.name);
+            await adminChannelsPage.toBeVisible();
+
+            const channelSettings = await adminChannelsPage.openChannelSettings();
+            const configSettings = await channelSettings.openConfigurationTab();
+            await configSettings.disableJoinLeaveMessages();
+            await configSettings.save();
+            await channelSettings.close();
+
+            // * secondUser's view updates in real time — join post disappears without a page reload
+            await expect(
+                secondChannelsPage.centerView.container.getByText('joined the channel'),
+            ).not.toBeVisible({timeout: pw.duration.ten_sec});
+        },
+    );
+
+    /**
      * @objective Verify that re-enabling the join/leave messages toggle restores
      * previously hidden join system posts (two-way door behavior).
      */
