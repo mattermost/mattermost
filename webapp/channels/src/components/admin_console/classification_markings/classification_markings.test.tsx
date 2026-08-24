@@ -1381,7 +1381,7 @@ describe('Channel classification linked field branches', () => {
         const user = userEvent.setup();
         const checkbox = screen.getByTestId('clearanceAttributeCheckbox');
         expect(checkbox).toBeChecked();
-        await user.click(checkbox); // uncheck
+        await user.click(checkbox);
         await user.click(await screen.findByText('Save'));
 
         await waitFor(() => {
