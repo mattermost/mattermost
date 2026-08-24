@@ -213,5 +213,43 @@ ruleTester.run('no-redundant-admin-config-deps', rule, {
                 {messageId: 'redundant', data: {condition: 'stateIsFalse:"SamlSettings.Enable"', setting: 'SamlSettings.PrivateKeyFile', parent: 'SamlSettings.Encrypt'}},
             ],
         },
+        {
+            // Grandparent listed before parent: still attribute to the closest parent (Mid),
+            // not Root, after the full tree is built.
+            filename,
+            code: `
+                const AdminDefinition = {
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'FeatureSettings.Root',
+                            isDisabled: it.configIsTrue('ClusterSettings', 'Enable'),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'FeatureSettings.Mid',
+                            isDisabled: it.any(
+                                it.stateIsFalse('FeatureSettings.Root'),
+                                it.configIsTrue('ClusterSettings', 'Enable'),
+                            ),
+                        },
+                        {
+                            type: 'number',
+                            key: 'FeatureSettings.Leaf',
+                            isDisabled: it.any(
+                                it.stateIsFalse('FeatureSettings.Root'),
+                                it.stateIsFalse('FeatureSettings.Mid'),
+                                it.configIsTrue('ClusterSettings', 'Enable'),
+                            ),
+                        },
+                    ],
+                };
+            `,
+            errors: [
+                {messageId: 'redundant', data: {condition: 'configIsTrue:"ClusterSettings","Enable"', setting: 'FeatureSettings.Mid', parent: 'FeatureSettings.Root'}},
+                {messageId: 'redundant', data: {condition: 'stateIsFalse:"FeatureSettings.Root"', setting: 'FeatureSettings.Leaf', parent: 'FeatureSettings.Mid'}},
+                {messageId: 'redundant', data: {condition: 'configIsTrue:"ClusterSettings","Enable"', setting: 'FeatureSettings.Leaf', parent: 'FeatureSettings.Mid'}},
+            ],
+        },
     ],
 });

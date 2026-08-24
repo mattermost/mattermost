@@ -14,6 +14,11 @@
  * config checks. File/text parents can remain truthy while disabled, so their
  * checks are not treated as transitive.
  *
+ * The dependency tree is built fully before reporting. When a setting lists
+ * both a parent and a grandparent, redundant conditions are attributed to the
+ * closest (most specific) bool parent — not whichever ancestor appears first
+ * in the isDisabled list.
+ *
  * Only config/state helpers are considered (stateIsFalse/True/Equals/...,
  * configIsFalse/True, …). Permission and license checks are left alone —
  * non-bool children still need their own permission gates.
@@ -180,37 +185,148 @@ function dependencyParentKeys(conditions) {
     return parents;
 }
 
-function boolParentKeys(parentKeys, settingsByKey) {
-    return parentKeys.filter((parentKey) => {
-        const parentDefs = settingsByKey.get(parentKey) || [];
-        return parentDefs.some((def) => def.settingType === 'bool');
-    });
+function isBoolSetting(key, settingsByKey) {
+    const defs = settingsByKey.get(key) || [];
+    return defs.some((def) => def.settingType === 'bool');
 }
 
-function inheritedConditionKeys(settingKey, settingsByKey, visiting = new Set()) {
-    if (visiting.has(settingKey)) {
-        return new Set();
-    }
-    visiting.add(settingKey);
+function boolParentKeys(parentKeys, settingsByKey) {
+    return parentKeys.filter((parentKey) => isBoolSetting(parentKey, settingsByKey));
+}
 
-    const inherited = new Set();
-    const definitions = settingsByKey.get(settingKey) || [];
-    for (const def of definitions) {
-        for (const parentKey of boolParentKeys(def.parentKeys, settingsByKey)) {
-            const parentDefs = settingsByKey.get(parentKey) || [];
-            for (const parentDef of parentDefs) {
-                for (const {key} of parentDef.conditions) {
-                    inherited.add(key);
+/**
+ * Build the full bool-parent dependency tree once, then derive inherited
+ * condition sets. Reporting uses this snapshot so parent attribution does not
+ * depend on isDisabled declaration order.
+ *
+ * @returns {Map<string, {
+ *   isBool: boolean,
+ *   directConditions: Set<string>,
+ *   boolParents: string[],
+ *   inheritedConditions: Set<string>,
+ *   ancestors: Set<string>,
+ * }>}
+ */
+function buildDependencyTree(settingsByKey) {
+    const tree = new Map();
+
+    for (const [key, defs] of settingsByKey) {
+        const directConditions = new Set();
+        const parentKeys = [];
+        let isBool = false;
+
+        for (const def of defs) {
+            if (def.settingType === 'bool') {
+                isBool = true;
+            }
+            for (const {key: conditionKey} of def.conditions) {
+                directConditions.add(conditionKey);
+            }
+            for (const parentKey of def.parentKeys) {
+                if (!parentKeys.includes(parentKey)) {
+                    parentKeys.push(parentKey);
                 }
             }
-            for (const key of inheritedConditionKeys(parentKey, settingsByKey, visiting)) {
-                inherited.add(key);
-            }
         }
+
+        tree.set(key, {
+            isBool,
+            directConditions,
+            boolParents: parentKeys.filter((parentKey) => isBoolSetting(parentKey, settingsByKey)),
+            inheritedConditions: new Set(),
+            ancestors: new Set(),
+        });
     }
 
-    visiting.delete(settingKey);
-    return inherited;
+    function walk(settingKey, visiting) {
+        const node = tree.get(settingKey);
+        if (!node || node._walked) {
+            return node;
+        }
+        if (visiting.has(settingKey)) {
+            return node;
+        }
+        visiting.add(settingKey);
+
+        const inheritedConditions = new Set();
+        const ancestors = new Set();
+
+        for (const parentKey of node.boolParents) {
+            ancestors.add(parentKey);
+            const parentNode = walk(parentKey, visiting);
+            if (!parentNode) {
+                continue;
+            }
+            for (const conditionKey of parentNode.directConditions) {
+                inheritedConditions.add(conditionKey);
+            }
+            for (const conditionKey of parentNode.inheritedConditions) {
+                inheritedConditions.add(conditionKey);
+            }
+            for (const ancestorKey of parentNode.ancestors) {
+                ancestors.add(ancestorKey);
+            }
+        }
+
+        node.inheritedConditions = inheritedConditions;
+        node.ancestors = ancestors;
+        node._walked = true;
+        visiting.delete(settingKey);
+        return node;
+    }
+
+    for (const key of tree.keys()) {
+        walk(key, new Set());
+    }
+
+    for (const node of tree.values()) {
+        delete node._walked;
+    }
+
+    return tree;
+}
+
+function nodeImpliesCondition(node, conditionKey) {
+    return node.directConditions.has(conditionKey) || node.inheritedConditions.has(conditionKey);
+}
+
+/**
+ * Among immediate bool parents that imply the condition, pick the closest /
+ * most specific one: a parent that is a descendant of another candidate wins
+ * over that ancestor. Declaration order is ignored.
+ */
+function closestImplyingParent(settingKey, conditionKey, tree) {
+    const node = tree.get(settingKey);
+    if (!node) {
+        return null;
+    }
+
+    const candidates = node.boolParents.filter((parentKey) => {
+        const parentNode = tree.get(parentKey);
+        return parentNode && nodeImpliesCondition(parentNode, conditionKey);
+    });
+
+    if (candidates.length === 0) {
+        return null;
+    }
+
+    return candidates.reduce((best, candidate) => {
+        const bestNode = tree.get(best);
+        const candidateNode = tree.get(candidate);
+
+        // Prefer the candidate that is under the current best (more specific).
+        if (candidateNode.ancestors.has(best)) {
+            return candidate;
+        }
+
+        // Keep best when it is under the candidate.
+        if (bestNode.ancestors.has(candidate)) {
+            return best;
+        }
+
+        // Disjoint parents that both imply the condition: stable tie-break by key.
+        return candidate < best ? candidate : best;
+    });
 }
 
 export default {
@@ -274,35 +390,27 @@ export default {
                     settingsByKey.get(setting.key).push(setting);
                 }
 
+                // Build the complete tree before attributing any parent.
+                const tree = buildDependencyTree(settingsByKey);
+
                 for (const setting of settings) {
-                    const parents = boolParentKeys(setting.parentKeys, settingsByKey);
-                    if (parents.length === 0) {
+                    const node = tree.get(setting.key);
+                    if (!node || node.boolParents.length === 0 || node.inheritedConditions.size === 0) {
                         continue;
                     }
 
-                    const inherited = inheritedConditionKeys(setting.key, settingsByKey);
-                    if (inherited.size === 0) {
-                        continue;
-                    }
-
-                    for (const {key, node} of setting.conditions) {
-                        if (!inherited.has(key)) {
+                    for (const {key, node: conditionNode} of setting.conditions) {
+                        if (!node.inheritedConditions.has(key)) {
                             continue;
                         }
 
-                        let implyingParent = parents[0];
-                        for (const parentKey of parents) {
-                            const parentDefs = settingsByKey.get(parentKey) || [];
-                            const parentHas = parentDefs.some((d) => d.conditions.some((c) => c.key === key));
-                            const parentInherits = inheritedConditionKeys(parentKey, settingsByKey).has(key);
-                            if (parentHas || parentInherits) {
-                                implyingParent = parentKey;
-                                break;
-                            }
+                        const implyingParent = closestImplyingParent(setting.key, key, tree);
+                        if (!implyingParent) {
+                            continue;
                         }
 
                         context.report({
-                            node,
+                            node: conditionNode,
                             messageId: 'redundant',
                             data: {
                                 condition: key,

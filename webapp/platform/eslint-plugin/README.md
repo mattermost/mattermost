@@ -34,6 +34,8 @@ Enforces that System Console settings in `admin_definition` files do not repeat 
 
 When setting B disables itself with `it.stateIsFalse('A')`, A is a bool setting, and A already includes condition C (for example `it.configIsTrue('ClusterSettings', 'Enable')`), repeating C on B is redundant and tends to drift. Keep the dependency on A and omit the duplicated checks. Inheritance only follows bool parents (disabled bools are forced false on save). Permission and license helpers are not treated as config dependencies.
 
+The rule builds the full bool-parent dependency tree before reporting. If a setting lists both a parent and a grandparent, redundant conditions are attributed to the closest (most specific) parent — not whichever ancestor appears first in `isDisabled`.
+
 Examples of **incorrect** code for this rule:
 ```javascript
 {
