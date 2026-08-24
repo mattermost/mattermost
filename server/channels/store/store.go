@@ -1208,7 +1208,6 @@ type PropertyFieldStore interface {
 	CountOptions(fieldID string) (int, error)
 	MutateOptions(groupID, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add, remove []*model.PropertyOptionEdge) error
 	DeleteOptions(groupID, fieldID string, expectedUpdateAt int64, optionIDs []string) error
-	MutateOptionEdges(groupID, fieldID string, expectedUpdateAt int64, add, remove []*model.PropertyOptionEdge) error
 	GetOptionEdges(fieldID string) ([]*model.PropertyOptionEdge, error)
 	GetOptionChildEdges(fieldID string, parentOptionIDs []string) ([]*model.PropertyOptionEdge, error)
 	GetOptionParentEdges(fieldID string, childOptionIDs []string) ([]*model.PropertyOptionEdge, error)

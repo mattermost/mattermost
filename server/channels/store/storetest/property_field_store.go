@@ -3991,7 +3991,7 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		t.Helper()
 		current, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
 		require.NoError(t, err)
-		return ss.PropertyField().MutateOptionEdges(groupID, field.ID, current.UpdateAt, add, remove)
+		return ss.PropertyField().MutateOptions(groupID, field.ID, current.UpdateAt, nil, add, remove)
 	}
 
 	t.Run("edges are stored, read back, and deleted", func(t *testing.T) {
@@ -4168,7 +4168,7 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		_, err = s.GetMaster().Exec("UPDATE PropertyFields SET UpdateAt = $1 WHERE ID = $2", ahead, field.ID)
 		require.NoError(t, err)
 
-		require.NoError(t, ss.PropertyField().MutateOptionEdges(groupID, field.ID, ahead, []*model.PropertyOptionEdge{
+		require.NoError(t, ss.PropertyField().MutateOptions(groupID, field.ID, ahead, nil, []*model.PropertyOptionEdge{
 			edge(field.ID, ids["F-18 Program"], ids["Fighter Jet Program"]),
 		}, nil))
 		read, err = ss.PropertyField().Get(context.Background(), groupID, field.ID)
@@ -4185,11 +4185,11 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		// below itself. The first lands; the second is checking a hierarchy that no
 		// longer exists, and gets a conflict rather than writing the cycle.
 		stale := field.UpdateAt
-		require.NoError(t, ss.PropertyField().MutateOptionEdges(groupID, field.ID, stale, []*model.PropertyOptionEdge{
+		require.NoError(t, ss.PropertyField().MutateOptions(groupID, field.ID, stale, nil, []*model.PropertyOptionEdge{
 			edge(field.ID, ids["Fighter Jet Program"], ids["Air Program"]),
 		}, nil))
 
-		err := ss.PropertyField().MutateOptionEdges(groupID, field.ID, stale, []*model.PropertyOptionEdge{
+		err := ss.PropertyField().MutateOptions(groupID, field.ID, stale, nil, []*model.PropertyOptionEdge{
 			edge(field.ID, ids["Air Program"], ids["Fighter Jet Program"]),
 		}, nil)
 		require.Error(t, err)
@@ -4239,7 +4239,7 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		// A field that does not exist is a different failure, and neither is a
 		// silent no-op.
 		missingID := model.NewId()
-		err = ss.PropertyField().MutateOptionEdges(groupID, missingID, 0, []*model.PropertyOptionEdge{
+		err = ss.PropertyField().MutateOptions(groupID, missingID, 0, nil, []*model.PropertyOptionEdge{
 			edge(missingID, ids["F-18 Program"], ids["Air Program"]),
 		}, nil)
 		require.Error(t, err)
@@ -4613,7 +4613,7 @@ func testPropertyFieldOptionHierarchy(t *testing.T, _ request.CTX, ss store.Stor
 				ParentOptionID: ids[pair[1]],
 			})
 		}
-		require.NoError(t, ss.PropertyField().MutateOptionEdges(groupID, field.ID, field.UpdateAt, edges, nil))
+		require.NoError(t, ss.PropertyField().MutateOptions(groupID, field.ID, field.UpdateAt, nil, edges, nil))
 	}
 
 	// named turns a walk's result back into option names, so a failure reads as

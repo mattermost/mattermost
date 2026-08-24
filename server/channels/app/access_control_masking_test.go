@@ -1617,7 +1617,7 @@ func TestAppMaskingResolver_HierarchyAndLadderUseOptionNames(t *testing.T) {
 		require.NoError(t, sErr)
 
 		//	Air Program ── Fighter Jet Program ── F-18 Program
-		require.NoError(t, th.Store.PropertyField().MutateOptionEdges(groupID, field.ID, field.UpdateAt, []*model.PropertyOptionEdge{
+		require.NoError(t, th.Store.PropertyField().MutateOptions(groupID, field.ID, field.UpdateAt, nil, []*model.PropertyOptionEdge{
 			{FieldID: field.ID, ChildOptionID: jet, ParentOptionID: air},
 			{FieldID: field.ID, ChildOptionID: f18, ParentOptionID: jet},
 		}, nil))

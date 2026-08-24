@@ -45,23 +45,6 @@ var propertyOptionEdgeColumns = []string{"FieldID", "ChildOptionID", "ParentOpti
 // worth avoiding on its own account.
 const maxOptionIDsPerQuery = 10000
 
-// MutateOptionEdges changes one graph field's hierarchy without touching the
-// options themselves: the parent links to remove and the parent links to add,
-// applied together. A caller that gets an error changed nothing.
-//
-// An edge that is already there is not added again and an edge that is not there
-// is not removed, so a caller asserting what an option's parents should be does
-// not have to work out which of them are new. An edge in both lists ends up
-// present: the removals are applied first.
-//
-// This is the hierarchy-only case of MutateOptions, whose documentation covers
-// the compare-and-swap on the field's UpdateAt, what the structural checks are,
-// and what is deliberately not checked. Both endpoints of an added edge have to
-// be options the field already owns, since this change creates none.
-func (s *SqlPropertyFieldStore) MutateOptionEdges(groupID, fieldID string, expectedUpdateAt int64, add, remove []*model.PropertyOptionEdge) error {
-	return s.MutateOptions(groupID, fieldID, expectedUpdateAt, nil, add, remove)
-}
-
 // bumpFieldForOptionChange marks a field as changed because something about its
 // options changed, and refuses to do so if the row no longer carries the UpdateAt
 // the caller read.

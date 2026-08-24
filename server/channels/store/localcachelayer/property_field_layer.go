@@ -51,15 +51,6 @@ func (s LocalCachePropertyFieldStore) MutateOptions(groupID, fieldID string, exp
 	return nil
 }
 
-func (s LocalCachePropertyFieldStore) MutateOptionEdges(groupID, fieldID string, expectedUpdateAt int64, add, remove []*model.PropertyOptionEdge) error {
-	if err := s.PropertyFieldStore.MutateOptionEdges(groupID, fieldID, expectedUpdateAt, add, remove); err != nil {
-		return err
-	}
-
-	s.invalidateForOptionChange(groupID)
-	return nil
-}
-
 func (s LocalCachePropertyFieldStore) DeleteOptions(groupID, fieldID string, expectedUpdateAt int64, optionIDs []string) error {
 	if err := s.PropertyFieldStore.DeleteOptions(groupID, fieldID, expectedUpdateAt, optionIDs); err != nil {
 		return err

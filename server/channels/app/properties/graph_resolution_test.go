@@ -72,7 +72,7 @@ func setupGraph(t *testing.T, th *TestHelper, names []string, parents map[string
 			})
 		}
 	}
-	require.NoError(t, th.dbStore.PropertyField().MutateOptionEdges(fixture.field.GroupID, fixture.field.ID, fixture.field.UpdateAt, edges, nil))
+	require.NoError(t, th.dbStore.PropertyField().MutateOptions(fixture.field.GroupID, fixture.field.ID, fixture.field.UpdateAt, nil, edges, nil))
 
 	return fixture
 }
@@ -487,7 +487,7 @@ func TestGraphDepthAfterAdding(t *testing.T) {
 		// The store enforces nothing about the shape of a hierarchy -- the checks
 		// that do sit above it -- so a cycle can be stored. Asked for a depth over
 		// one, this reports it rather than walking it forever or picking a number.
-		require.NoError(t, th.dbStore.PropertyField().MutateOptionEdges(graph.field.GroupID, graph.field.ID, 0, []*model.PropertyOptionEdge{
+		require.NoError(t, th.dbStore.PropertyField().MutateOptions(graph.field.GroupID, graph.field.ID, 0, nil, []*model.PropertyOptionEdge{
 			edge(graph, "Air", "Fighter Jet"),
 		}, nil))
 
