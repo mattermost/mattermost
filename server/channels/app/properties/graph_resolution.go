@@ -716,9 +716,8 @@ func requireGraphField(field *model.PropertyField) error {
 // logUnresolvedOptions reports the options a walk found nothing for. They are not
 // an error -- a value pointing at an option that has since been deleted is
 // tolerated throughout the property system -- but they answer every question
-// about themselves with "no", so a decision that turned on one otherwise leaves
-// no trace of why it went the way it did. Logged at debug: this fires on every
-// read of a value naming a deleted option, for as long as the value stays.
+// about themselves with "no". Logged at debug: this fires on every read of a
+// value naming a deleted option, for as long as the value stays.
 func logUnresolvedOptions(rctx request.CTX, field *model.PropertyField, requested []string, resolved map[string][]string) {
 	var unresolved []string
 	for _, optionID := range requested {
