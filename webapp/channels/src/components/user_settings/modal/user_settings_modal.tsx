@@ -57,10 +57,10 @@ type State = {
     show: boolean;
     resendStatus: string;
     loading: boolean;
-    requireConfirm: boolean;
 };
 
 class UserSettingsModal extends React.PureComponent<Props, State> {
+    private requireConfirm: boolean;
     private customConfirmAction: ((handleConfirm: () => void) => void) | null;
     private afterConfirm: (() => void) | null;
     private modalBodyRef: React.RefObject<HTMLDivElement>;
@@ -76,8 +76,9 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             show: true,
             resendStatus: '',
             loading: false,
-            requireConfirm: false,
         };
+
+        this.requireConfirm = false;
 
         // Used when settings want to override the default confirm modal with their own
         // If set by a child, it will be called in place of showing the regular confirm
@@ -145,20 +146,15 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         }
     };
 
-    // Called by settings tabs to flag that they hold unsaved changes. This is kept in state
-    // because it drives preventClose on the modal below, which is what keeps the modal open
-    // long enough for the confirmation to be answered.
+    // Called by settings tabs to flag that they hold unsaved changes
     setRequireConfirm = (requireConfirm?: boolean, customConfirmAction?: (handleConfirm: () => void) => void) => {
-        this.customConfirmAction = customConfirmAction ?? null;
-
-        if (this.state.requireConfirm !== Boolean(requireConfirm)) {
-            this.setState({requireConfirm: Boolean(requireConfirm)});
-        }
+        this.requireConfirm = requireConfirm || false;
+        this.customConfirmAction = customConfirmAction || null;
     };
 
     // Called when the close button is pressed on the main modal
     handleHide = () => {
-        if (this.state.requireConfirm) {
+        if (this.requireConfirm) {
             this.showConfirmModal(() => this.handleHide());
             return;
         }
@@ -192,19 +188,17 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
     };
 
     handleConfirm = () => {
-        this.customConfirmAction = null;
-
         this.setState({
             showConfirmModal: false,
             enforceFocus: true,
-            requireConfirm: false,
-        }, () => {
-            if (this.afterConfirm) {
-                const afterConfirm = this.afterConfirm;
-                this.afterConfirm = null;
-                afterConfirm();
-            }
         });
+        this.requireConfirm = false;
+        this.customConfirmAction = null;
+
+        if (this.afterConfirm) {
+            this.afterConfirm();
+            this.afterConfirm = null;
+        }
     };
 
     handleCancelConfirmation = () => {
@@ -233,7 +227,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
 
     // Called by settings tabs when their close button is pressed
     closeModal = () => {
-        if (this.state.requireConfirm) {
+        if (this.requireConfirm) {
             this.showConfirmModal(this.closeModal);
         } else {
             this.handleHide();
@@ -242,7 +236,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
 
     // Called by settings tabs when their back button is pressed
     collapseModal = () => {
-        if (this.state.requireConfirm) {
+        if (this.requireConfirm) {
             this.showConfirmModal(this.collapseModal);
         } else {
             this.handleCollapse();
@@ -250,7 +244,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
     };
 
     updateTab = (tab?: string, skipConfirm?: boolean) => {
-        if (!skipConfirm && this.state.requireConfirm) {
+        if (!skipConfirm && this.requireConfirm) {
             this.showConfirmModal(() => this.updateTab(tab, true));
         } else {
             this.setState({
@@ -261,7 +255,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
     };
 
     updateSection = (section?: string, skipConfirm?: boolean) => {
-        if (!skipConfirm && this.state.requireConfirm) {
+        if (!skipConfirm && this.requireConfirm) {
             this.showConfirmModal(() => this.updateSection(section, true));
         } else {
             this.setState({active_section: section ?? ''});
@@ -371,7 +365,11 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleHidden}
-                preventClose={this.state.requireConfirm}
+
+                // Closing is owned by handleHide so that unsaved changes can be confirmed first.
+                // Without this, the modal hides itself before handleHide runs and takes the
+                // confirmation below down with it.
+                preventClose={true}
                 ariaLabel={modalTitle}
                 compassDesign={true}
                 enforceFocus={this.state.enforceFocus}
