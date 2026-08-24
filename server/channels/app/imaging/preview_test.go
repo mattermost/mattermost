@@ -5,6 +5,7 @@ package imaging
 
 import (
 	"bytes"
+	"flag"
 	"image"
 	"os"
 	"path/filepath"
@@ -14,6 +15,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 )
+
+var updateImagingFixtures = flag.Bool("update-fixtures", false, "overwrite imaging fixture files with actual output")
 
 func TestGenerateThumbnail(t *testing.T) {
 	tcs := []struct {
@@ -125,16 +128,23 @@ func TestGenerateMiniPreviewImage(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "png", format)
 
-	expectedFile, err := os.Open(filepath.Join(imgDir, "mini_preview_test_qa_data_graph_16x16_q90.jpg"))
+	fixturePath := filepath.Join(imgDir, "mini_preview_test_qa_data_graph_16x16_q90.jpg")
+
+	out, err := GenerateMiniPreviewImage(inputImg, 16, 16, 90)
+	require.NoError(t, err)
+
+	if *updateImagingFixtures {
+		require.NoError(t, os.WriteFile(fixturePath, out, 0600))
+		return
+	}
+
+	expectedFile, err := os.Open(fixturePath)
 	require.NoError(t, err)
 	defer expectedFile.Close()
 
 	expectedImg, format, err := d.Decode(expectedFile)
 	require.NoError(t, err)
 	require.Equal(t, "jpeg", format)
-
-	out, err := GenerateMiniPreviewImage(inputImg, 16, 16, 90)
-	require.NoError(t, err)
 
 	actualImg, format, err := d.Decode(bytes.NewReader(out))
 	require.NoError(t, err)
