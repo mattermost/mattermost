@@ -669,6 +669,22 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	})
 }
 
+func TestGetEnvironmentConfigWhenOnlyLicenseIsSetFromEnvironment(t *testing.T) {
+	// GetEnvironmentConfig returns nil (not an empty map) when no matching MM_*
+	// config overrides exist. MM_LICENSE is not a config field, so this is the
+	// case that previously panicked on assignment to a nil map.
+	t.Setenv("MM_LICENSE", "license-provided-through-the-environment")
+
+	th := Setup(t)
+
+	envConfig, _, err := th.SystemAdminClient.GetEnvironmentConfig(context.Background())
+	require.NoError(t, err)
+
+	license, ok := envConfig["License"]
+	require.True(t, ok, "should've returned the top-level License override")
+	require.Equal(t, true, license, "should've returned License as true")
+}
+
 func TestGetClientConfig(t *testing.T) {
 	th := Setup(t)
 

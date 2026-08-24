@@ -207,4 +207,15 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         const {container} = renderWithContext(<LicenseSettings {...props}/>);
         expect(container).toMatchSnapshot();
     });
+
+    test('should disable starter upload when license is set by environment', () => {
+        const props = {
+            ...defaultProps,
+            license: {IsLicensed: 'false'},
+            environmentConfig: {License: true},
+        };
+        renderWithContext(<LicenseSettings {...props}/>);
+
+        expect(screen.getByRole('button', {name: /Upload File/i})).toBeDisabled();
+    });
 });
