@@ -318,8 +318,9 @@ func (ps *PropertyService) validateDependentOptionReadCeilings(field, existing *
 // It is called after the schema a linked field takes from its template has been
 // copied over, which is what makes the type it reads the field's real one: a field
 // created by linking to a graph template arrives with no mention of the graph type
-// anywhere in the request. The other call site is the legacy path above, which
-// cannot link at all and so has nothing copied over it.
+// anywhere in the request. The other call site is the legacy path above: it returns
+// before that copy step runs, so a legacy field's schema is never copied from
+// anything it links to, even when it carries its own LinkedFieldID.
 func (ps *PropertyService) createFieldWithOptionLinks(field *model.PropertyField) (*model.PropertyField, error) {
 	if field.Type == model.PropertyFieldTypeGraph && optionSourceID(field) != "" {
 		// Any list the field carries now is its template's, copied in above so a read
