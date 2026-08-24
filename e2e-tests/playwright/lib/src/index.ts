@@ -109,6 +109,8 @@ export {setWysiwygUserPreference, WYSIWYG_PREF_CATEGORY, WYSIWYG_PREF_NAME} from
 
 export {TextInputSetting} from './ui/components/system_console/base_components';
 
+export {expectFilesVisible, expectFilesRedacted} from './ui/components/channels/post';
+
 export {TestArgs, ScreenshotOptions} from './types';
 
 export {

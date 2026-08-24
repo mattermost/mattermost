@@ -12,7 +12,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {newTestPassword} from '@mattermost/playwright-lib';
+import {getRandomId, newTestPassword} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../channels/custom_profile_attributes/helpers';
 import {setupCustomProfileAttributeValuesForUser} from '../../channels/custom_profile_attributes/helpers';
@@ -195,16 +195,16 @@ export async function createUserForABAC(
     attributeFieldsMap: Record<string, UserPropertyField>,
     attributes: CustomProfileAttribute[],
 ): Promise<UserProfile> {
-    // Generate random ID and ensure username starts with letter
-    const randomId = Math.random().toString(36).substring(2, 9);
-    const username = `user${randomId}`.toLowerCase();
+    // Username must start with a letter
+    const username = `user${getRandomId()}`.toLowerCase();
+    const password = newTestPassword();
 
     // Create the user
     const user = await adminClient.createUser(
         {
             email: `${username}@example.com`,
             username,
-            password: newTestPassword(),
+            password,
         } as any,
         '',
         '',
@@ -214,7 +214,7 @@ export async function createUserForABAC(
 
     // Attach the password back to the user object so pw.testBrowser.login() can authenticate.
     // The API response does not include the password field.
-    (user as any).password = 'Passwd4Testing!';
+    (user as any).password = password;
 
     return user;
 }
@@ -1389,6 +1389,35 @@ export async function navigateToPermissionPoliciesPage(page: Page): Promise<void
  * Uses doFetch (same pattern as getPolicyIdByName) to find the policy by name,
  * then issues a DELETE. Safe to call even if the policy does not exist.
  */
+/**
+ * Rewrite the CEL expression on every rule of an existing permission policy.
+ *
+ * API rather than the CEL editor: SavePolicy publishes permission_policy_updated whichever
+ * surface issued the change, and driving the admin UI would test the editor instead.
+ *
+ * Revoke by narrowing the expression, never by removing an action. An action no rule grants is
+ * implicitly allowed, so dropping one widens access instead of withdrawing it.
+ */
+export async function updatePermissionPolicyExpression(
+    client: Client4,
+    policyName: string,
+    expression: string,
+): Promise<void> {
+    const policyId = await getPolicyIdByName(client, policyName);
+    expect(policyId, `Could not find permission policy "${policyName}" to update`).toBeTruthy();
+
+    const policy = await (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies/${policyId}`, {
+        method: 'GET',
+    });
+
+    policy.rules = (policy.rules || []).map((rule: any) => ({...rule, expression}));
+
+    await (client as any).doFetch(`${client.getBaseRoute()}/access_control_policies`, {
+        method: 'PUT',
+        body: JSON.stringify(policy),
+    });
+}
+
 export async function deletePermissionPolicyByName(client: Client4, policyName: string): Promise<void> {
     try {
         const searchUrl = `${client.getBaseRoute()}/access_control_policies/search`;

@@ -2220,6 +2220,43 @@ func TestHasPermissionToFileAction(t *testing.T) {
 		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
 		assert.True(t, result)
 	})
+
+	// Above are the allow short-circuits; below are the two paths that actually withhold access.
+	t.Run("should deny when the policy denies the action", func(t *testing.T) {
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		th.ConfigStore.SetReadOnlyFF(false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+			cfg.FeatureFlags.PermissionPolicies = true
+		})
+
+		mockAccessControl.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == th.BasicChannel.Id &&
+				req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		assert.False(t, result)
+	})
+
+	t.Run("should deny when the evaluation errors (fail-secure)", func(t *testing.T) {
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+
+		th.ConfigStore.SetReadOnlyFF(false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+			cfg.FeatureFlags.PermissionPolicies = true
+		})
+
+		mockAccessControl.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{}, model.NewAppError("AccessEvaluation", "app.pdp.access_evaluation.app_error", nil, "", http.StatusInternalServerError))
+
+		result := th.App.HasPermissionToFileAction(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionDownloadFileAttachment)
+		assert.False(t, result)
+	})
 }
 
 func TestResolveSystemRole(t *testing.T) {
