@@ -299,6 +299,7 @@ func SessionAttributeSystemFields(groupID string) []*PropertyField {
 				{"name": "Windows"},
 				{"name": "Macintosh"},
 				{"name": "Linux"},
+				{"name": "Android"},
 				{"name": "iPad"},
 				{"name": "iPhone"},
 				{"name": "iPod"},
