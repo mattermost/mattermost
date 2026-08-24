@@ -567,12 +567,12 @@ function PolicyDetails({
                             title={
                                 <FormattedMessage
                                     id='admin.access_control.policy.edit_policy.channel_attribute_notice.title'
-                                    defaultMessage='Potential for denied access'
+                                    defaultMessage='Channels without this attribute lose all members'
                                 />
                             }
                             text={formatMessage({
                                 id: 'admin.access_control.policy.edit_policy.channel_attribute_notice.text',
-                                defaultMessage: 'If any assigned channel is missing the referenced channel attribute, all members will be denied access. This notice is shown whenever a channel attribute is referenced in a policy.',
+                                defaultMessage: 'If an assigned channel is missing the referenced attribute, every member of that channel is removed.',
                             })}
                         />
                     </div>)}

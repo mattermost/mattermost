@@ -293,7 +293,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
     });
 
     describe('channel attribute warning notice', () => {
-        const NOTICE_TITLE = 'Potential for denied access';
+        const NOTICE_TITLE = 'Channels without this attribute lose all members';
 
         // A channel with no value for a referenced channel attribute denies every
         // member, so the notice fires as soon as the rule references a channel
