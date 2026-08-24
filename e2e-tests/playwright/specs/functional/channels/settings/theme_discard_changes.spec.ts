@@ -35,7 +35,8 @@ test.describe('Settings Display theme discard confirmation', () => {
 
         const settingsModal = await channelsPage.globalHeader.openSettings();
         const displaySettings = await settingsModal.openDisplayTab();
-        await displaySettings.expandSection('theme');
+        await displaySettings.themeEditButton.click();
+        await displaySettings.verifySectionIsExpanded('theme');
 
         await displaySettings.container.getByRole('button', {name: 'Denim'}).click();
         await settingsModal.closeButton.click();
@@ -57,7 +58,8 @@ test.describe('Settings Display theme discard confirmation', () => {
 
         const settingsModal = await channelsPage.globalHeader.openSettings();
         const displaySettings = await settingsModal.openDisplayTab();
-        await displaySettings.expandSection('theme');
+        await displaySettings.themeEditButton.click();
+        await displaySettings.verifySectionIsExpanded('theme');
 
         await displaySettings.container.getByRole('button', {name: 'Onyx'}).click();
         await settingsModal.closeButton.click();
