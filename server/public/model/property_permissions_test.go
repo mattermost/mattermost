@@ -253,6 +253,43 @@ func TestRestrictionsTierFor(t *testing.T) {
 	assert.Equal(t, PermissionLevelNone, nilRestrictions.TierFor(PropertyActionValueRead))
 }
 
+func TestPermissionLevelAtMostAsPermissiveAs(t *testing.T) {
+	// Most restrictive to least permissive, matching the human ladder.
+	ladder := []PermissionLevel{
+		PermissionLevelNone,
+		PermissionLevelSysadmin,
+		PermissionLevelAdmin,
+		PermissionLevelMember,
+		PermissionLevelEveryone,
+	}
+	for i, l := range ladder {
+		for j, other := range ladder {
+			want := i <= j
+			assert.Equalf(t, want, l.AtMostAsPermissiveAs(other), "%s.AtMostAsPermissiveAs(%s)", l, other)
+		}
+	}
+
+	t.Run("each tier against itself is true", func(t *testing.T) {
+		for _, l := range ladder {
+			assert.True(t, l.AtMostAsPermissiveAs(l))
+		}
+	})
+
+	t.Run("empty string behaves as none", func(t *testing.T) {
+		var empty PermissionLevel
+		assert.True(t, empty.AtMostAsPermissiveAs(PermissionLevelEveryone))
+		assert.False(t, PermissionLevelEveryone.AtMostAsPermissiveAs(empty))
+		assert.True(t, empty.AtMostAsPermissiveAs(PermissionLevelNone))
+	})
+
+	t.Run("unrecognized value behaves as none", func(t *testing.T) {
+		bogus := PermissionLevel("bogus")
+		assert.True(t, bogus.AtMostAsPermissiveAs(PermissionLevelEveryone))
+		assert.False(t, PermissionLevelEveryone.AtMostAsPermissiveAs(bogus))
+		assert.True(t, bogus.AtMostAsPermissiveAs(PermissionLevelNone))
+	})
+}
+
 func TestPropertyActionMeasuredAgainstValueObject(t *testing.T) {
 	assert.True(t, PropertyActionMeasuredAgainstValueObject(PropertyActionValueRead))
 	assert.True(t, PropertyActionMeasuredAgainstValueObject(PropertyActionValueWrite))

@@ -268,6 +268,28 @@ func (r *Restrictions) TierFor(action string) PermissionLevel {
 	return leaf
 }
 
+// permissionLevelRank orders the human ladder most restrictive to least
+// permissive: none admits no human at all (only grants can act), sysadmin
+// admits only a system administrator, admin additionally admits an admin of
+// the target, member additionally admits any member, and everyone admits
+// anyone. An empty string (leaf omitted) and any value outside this map both
+// rank as none, the fail-closed answer.
+var permissionLevelRank = map[PermissionLevel]int{
+	PermissionLevelNone:     0,
+	PermissionLevelSysadmin: 1,
+	PermissionLevelAdmin:    2,
+	PermissionLevelMember:   3,
+	PermissionLevelEveryone: 4,
+}
+
+// AtMostAsPermissiveAs reports whether l admits no more callers than other —
+// true when l sits at or below other on the human ladder. Equal tiers count
+// as at most as permissive, which is what a tighten-only ceiling needs: a
+// linked field may match its template's tier, not just undercut it.
+func (l PermissionLevel) AtMostAsPermissiveAs(other PermissionLevel) bool {
+	return permissionLevelRank[l] <= permissionLevelRank[other]
+}
+
 // PropertyActionMeasuredAgainstValueObject reports whether action is measured
 // against the object a value is attached to (found through the field's
 // ObjectType) rather than against the field's own definition
