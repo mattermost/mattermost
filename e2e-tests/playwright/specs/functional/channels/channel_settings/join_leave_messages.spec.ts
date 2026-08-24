@@ -166,9 +166,9 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
             // * The channel timeline should NOT contain an add-to-channel system post
             await secondChannelsPage.sidebarLeft.goToItem(channel.name);
-            await expect(
-                secondChannelsPage.centerView.container.getByText('added to the channel'),
-            ).not.toBeVisible({timeout: pw.duration.ten_sec});
+            await expect(secondChannelsPage.centerView.container.getByText('added to the channel')).not.toBeVisible({
+                timeout: pw.duration.ten_sec,
+            });
         },
     );
 
@@ -208,9 +208,9 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
             await secondChannelsPage.toBeVisible();
 
             // * secondUser sees the join system post in the channel
-            await expect(
-                secondChannelsPage.centerView.container.getByText('joined the channel'),
-            ).toBeVisible({timeout: pw.duration.ten_sec});
+            await expect(secondChannelsPage.centerView.container.getByText('joined the channel')).toBeVisible({
+                timeout: pw.duration.ten_sec,
+            });
 
             // # Admin logs in and disables join/leave messages from their browser
             const {page: adminPage} = await pw.testBrowser.login(adminUser);
@@ -225,9 +225,9 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
             await channelSettings.close();
 
             // * secondUser's view updates in real time — join post disappears without a page reload
-            await expect(
-                secondChannelsPage.centerView.container.getByText('joined the channel'),
-            ).not.toBeVisible({timeout: pw.duration.ten_sec});
+            await expect(secondChannelsPage.centerView.container.getByText('joined the channel')).not.toBeVisible({
+                timeout: pw.duration.ten_sec,
+            });
         },
     );
 
