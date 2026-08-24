@@ -427,3 +427,11 @@ channels/db/migrations/postgres/000215_drop_channelmembers_autotranslation_colum
 channels/db/migrations/postgres/000215_drop_channelmembers_autotranslation_column.up.sql
 channels/db/migrations/postgres/000216_split_attribute_view_by_object_type.down.sql
 channels/db/migrations/postgres/000216_split_attribute_view_by_object_type.up.sql
+channels/db/migrations/postgres/000217_move_property_options_to_table.down.sql
+channels/db/migrations/postgres/000217_move_property_options_to_table.up.sql
+channels/db/migrations/postgres/000218_add_graph_to_property_field_type.down.sql
+channels/db/migrations/postgres/000218_add_graph_to_property_field_type.up.sql
+channels/db/migrations/postgres/000219_create_property_option_edges.down.sql
+channels/db/migrations/postgres/000219_create_property_option_edges.up.sql
+channels/db/migrations/postgres/000220_add_graph_to_attribute_views.down.sql
+channels/db/migrations/postgres/000220_add_graph_to_attribute_views.up.sql
