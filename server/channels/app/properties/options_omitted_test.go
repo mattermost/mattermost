@@ -80,10 +80,8 @@ func TestOptionsOmitted_ReadMasking(t *testing.T) {
 	})
 	rctxSource := RequestContextWithCallerID(th.Context, "test-plugin")
 
-	// A value on a field above the cap cannot be written through the service —
-	// validateValueAgainstField has no option list to check it against — so the
-	// caller's holding goes in through the store. The masking paths under test
-	// read values, not write them.
+	// These masking paths read values rather than writing them, so the store is
+	// the direct way to arrange a holding.
 	assignValue := func(t *testing.T, fieldID, userID, optionID string) {
 		t.Helper()
 		encoded, err := json.Marshal(optionID)
@@ -240,12 +238,12 @@ func TestOptionsOmitted_ValueValidation(t *testing.T) {
 	})
 }
 
-// TestOptionsOmitted_LinkedFieldGuard pins the guard that refuses option edits
-// on a linked field. Above the hydration cap it has no lists to compare, so it
-// has to refuse anything that supplies one and allow the read-modify-write that
-// does not.
-func TestOptionsOmitted_LinkedFieldGuard(t *testing.T) {
-	th := Setup(t).RegisterCPAPropertyGroup(t)
+// TestOptionsOmitted_WithheldGuardOnLinkedField pins the withheld-options guard
+// on a field that happens to be linked. That guard fires before the linked-field
+// guard ever runs, so it has to refuse anything that supplies an option list and
+// allow the read-modify-write that does not.
+func TestOptionsOmitted_WithheldGuardOnLinkedField(t *testing.T) {
+	th := Setup(t)
 	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 
 	template, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
@@ -348,8 +346,8 @@ func TestOptionsOmitted_DisplayNameBackfill(t *testing.T) {
 
 // TestOptionsOmitted_PatchThenWrite drives the shape the field PATCH handlers
 // produce — read the field, PropertyField.Patch a client patch onto it, write it
-// back — against a field above the hydration cap. A supplied option list has to
-// land, and a supplied empty one has to leave the field's options alone.
+// back — against a field above the hydration cap. A supplied option list is
+// refused, and a supplied empty one has to leave the field's options alone.
 func TestOptionsOmitted_PatchThenWrite(t *testing.T) {
 	th := Setup(t)
 	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
