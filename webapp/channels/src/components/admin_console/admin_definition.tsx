@@ -177,6 +177,8 @@ const SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11 = 'Canonical1.1';
 //   - type: which define the widget type.
 //   - label (and label_default): which define the main text of the setting.
 //   - isDisabled: a function which receive current config, the state of the page and the license.
+//     Prefer depending on a parent bool setting (it.stateIsFalse('Parent.Key')) over repeating that
+//     parent's config/state checks; @mattermost/no-redundant-admin-config-deps enforces this.
 //   - isHidden: a function which receive current config, the state of the page and the license.
 //
 // Custom Widget (extends from Widget):
@@ -4585,7 +4587,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
                                 it.configIsFalse('GuestAccountsSettings', 'Enable'),
                                 it.stateIsFalse('SamlSettings.EnableSyncWithLdap'),
-                                it.stateIsFalse('SamlSettings.Enable'),
                             ),
                         },
                         {
@@ -4607,7 +4608,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
-                                it.stateIsFalse('SamlSettings.Enable'),
                                 it.stateIsFalse('SamlSettings.EnableSyncWithLdap'),
                             ),
                         },
@@ -4761,7 +4761,6 @@ const AdminDefinition: AdminDefinitionType = {
                             remove_action: removePrivateSamlCertificate,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
-                                it.stateIsFalse('SamlSettings.Enable'),
                                 it.stateIsFalse('SamlSettings.Encrypt'),
                             ),
                         },
@@ -4779,7 +4778,6 @@ const AdminDefinition: AdminDefinitionType = {
                             remove_action: removePublicSamlCertificate,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
-                                it.stateIsFalse('SamlSettings.Enable'),
                                 it.stateIsFalse('SamlSettings.Encrypt'),
                             ),
                         },
@@ -4801,7 +4799,6 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.saml.signatureAlgorithmTitle', defaultMessage: 'Signature Algorithm'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
-                                it.stateIsFalse('SamlSettings.Encrypt'),
                                 it.stateIsFalse('SamlSettings.SignRequest'),
                             ),
                             options: [
@@ -4845,7 +4842,6 @@ const AdminDefinition: AdminDefinitionType = {
                             ],
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.SAML)),
-                                it.stateIsFalse('SamlSettings.Encrypt'),
                                 it.stateIsFalse('SamlSettings.SignRequest'),
                             ),
                         },
@@ -4914,7 +4910,6 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.any(
                                 it.not(it.isSystemAdmin),
                                 it.stateIsFalse('SamlSettings.EnableAdminAttribute'),
-                                it.stateIsFalse('SamlSettings.Enable'),
                             ),
                         },
                         {
@@ -6026,7 +6021,6 @@ const AdminDefinition: AdminDefinitionType = {
                             placeholder: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistPlaceholder', defaultMessage: 'E.g.: https://*.example.com/**, https://app.example.com/callback'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
-                                it.stateIsFalse('ServiceSettings.EnableOAuthServiceProvider'),
                                 it.stateIsFalse('ServiceSettings.EnableDynamicClientRegistration'),
                             ),
                             isHidden: it.licensedForFeature('Cloud'),
