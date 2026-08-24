@@ -13,10 +13,10 @@ Review and manage the following [experimental](/administration-guide/manage/feat
 
 <Tip>
 
-System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, the `EmailBatchingBufferSize` value is under `EmailSettings`.
+System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, the `LinkMetadataTimeoutMilliseconds` value is under `ExperimentalSettings`.
 
-- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.EmailSettings.EmailBatchingBufferSize'`
-- When working with the `config.json` file manually, look for an object such as `EmailSettings`, then within that object, find the key `EmailBatchingBufferSize`.
+- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.ExperimentalSettings.LinkMetadataTimeoutMilliseconds'`
+- When working with the `config.json` file manually, look for an object such as `ExperimentalSettings`, then within that object, find the key `LinkMetadataTimeoutMilliseconds`.
 
 </Tip>
 
@@ -55,7 +55,6 @@ Adds a configurable timeout for requests made to return link metadata. If the me
 </tr>
 </tbody>
 </table>
-
 
 ### Enable account deactivation
 
