@@ -6,6 +6,7 @@ exports[`components/UserProfile should match snapshot 1`] = `
     aria-expanded="false"
     aria-haspopup="dialog"
     class="user-popover style--none"
+    type="button"
   >
     nickname
   </button>
@@ -18,6 +19,7 @@ exports[`components/UserProfile should match snapshot, when displayUsername is e
     aria-expanded="false"
     aria-haspopup="dialog"
     class="user-popover style--none"
+    type="button"
   >
     @username
   </button>
@@ -40,6 +42,7 @@ exports[`components/UserProfile should match snapshot, when user is shared 1`] =
     aria-expanded="false"
     aria-haspopup="dialog"
     class="user-popover style--none"
+    type="button"
   >
     nickname
   </button>
@@ -53,6 +56,7 @@ exports[`components/UserProfile should match snapshot, with colorization 1`] = `
     aria-haspopup="dialog"
     class="user-popover style--none"
     style="color: rgb(187, 210, 121);"
+    type="button"
   >
     nickname
   </button>
