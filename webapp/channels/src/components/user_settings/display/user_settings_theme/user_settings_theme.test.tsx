@@ -7,12 +7,13 @@ import type {ComponentProps} from 'react';
 import {Preferences} from 'mattermost-redux/constants';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {applyTheme} from 'utils/utils';
 
 import UserSettingsTheme from './user_settings_theme';
 
 jest.mock('utils/utils', () => ({
     applyTheme: jest.fn(),
-    toTitleCase: jest.fn(),
+    toTitleCase: jest.fn((text: string) => text),
     a11yFocus: jest.fn(),
 }));
 
@@ -110,6 +111,83 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
 
         await waitFor(() => {
             expect(props.actions.deleteTeamSpecificThemes).toHaveBeenCalled();
+        });
+    });
+
+    describe('unsaved changes detection', () => {
+        const openProps = {
+            ...requiredProps,
+            selected: true,
+            theme: Preferences.THEMES.denim,
+        };
+
+        it('should not require confirmation when re-selecting the theme already in use', async () => {
+            const setRequireConfirm = jest.fn();
+
+            renderWithContext(
+                <UserSettingsTheme
+                    {...openProps}
+                    setRequireConfirm={setRequireConfirm}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: /Denim/}));
+
+            expect(setRequireConfirm).toHaveBeenCalledWith(false);
+            expect(setRequireConfirm).not.toHaveBeenCalledWith(true);
+            expect(applyTheme).toHaveBeenCalledWith(expect.objectContaining({type: 'Denim'}));
+        });
+
+        it('should require confirmation when selecting a different theme', async () => {
+            const setRequireConfirm = jest.fn();
+
+            renderWithContext(
+                <UserSettingsTheme
+                    {...openProps}
+                    setRequireConfirm={setRequireConfirm}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: /Onyx/}));
+
+            expect(setRequireConfirm).toHaveBeenCalledWith(true);
+            expect(applyTheme).toHaveBeenCalledWith(expect.objectContaining({type: 'Onyx'}));
+        });
+
+        it('should stop requiring confirmation when the saved theme is selected again', async () => {
+            const setRequireConfirm = jest.fn();
+
+            renderWithContext(
+                <UserSettingsTheme
+                    {...openProps}
+                    setRequireConfirm={setRequireConfirm}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: /Onyx/}));
+            expect(setRequireConfirm).toHaveBeenLastCalledWith(true);
+
+            await userEvent.click(screen.getByRole('button', {name: /Denim/}));
+            expect(setRequireConfirm).toHaveBeenLastCalledWith(false);
+        });
+
+        it('should require confirmation when a custom theme value is changed', async () => {
+            const setRequireConfirm = jest.fn();
+
+            renderWithContext(
+                <UserSettingsTheme
+                    {...openProps}
+                    setRequireConfirm={setRequireConfirm}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('radio', {name: 'Custom Theme'}));
+            expect(setRequireConfirm).not.toHaveBeenCalled();
+
+            await userEvent.selectOptions(screen.getByLabelText('Code Theme'), 'monokai');
+
+            expect(setRequireConfirm).toHaveBeenLastCalledWith(true);
+            expect(applyTheme).toHaveBeenLastCalledWith(expect.objectContaining({codeTheme: 'monokai'}));
         });
     });
 });
