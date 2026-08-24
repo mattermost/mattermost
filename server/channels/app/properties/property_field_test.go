@@ -1861,6 +1861,179 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, before+1, counter.linkedFields, "tightening option.read must query dependents")
 	})
 
+	t.Run("moving a template and its dependent in the same call is checked against each other, not the stored rows", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "BatchCeilingSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}},
+			},
+		})
+
+		dependent := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "BatchCeilingDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelMember
+		dependent.Permissions.Restrictions.Option.Read = model.PermissionLevelEveryone
+		_, _, _, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{template, dependent})
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+
+		reloadedTemplate, err := th.service.GetPropertyField(rctx, group.ID, template.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelEveryone, reloadedTemplate.Permissions.Restrictions.Option.Read, "template tier must not have changed")
+
+		reloadedDependent, err := th.service.GetPropertyField(rctx, group.ID, dependent.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelMember, reloadedDependent.Permissions.Restrictions.Option.Read, "dependent tier must not have changed")
+	})
+
+	t.Run("tightening a template and its dependent together in the same call succeeds", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "BatchTightenSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		dependent := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "BatchTightenDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		dependent.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		_, _, _, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{template, dependent})
+		require.NoError(t, err)
+
+		reloadedTemplate, err := th.service.GetPropertyField(rctx, group.ID, template.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelSysadmin, reloadedTemplate.Permissions.Restrictions.Option.Read)
+
+		reloadedDependent, err := th.service.GetPropertyField(rctx, group.ID, dependent.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelSysadmin, reloadedDependent.Permissions.Restrictions.Option.Read)
+	})
+
+	t.Run("tightening a template while unlinking its dependent in the same call succeeds", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "BatchUnlinkSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		dependent := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "BatchUnlinkDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		dependent.LinkedFieldID = nil
+		_, _, _, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{template, dependent})
+		require.NoError(t, err)
+
+		reloadedTemplate, err := th.service.GetPropertyField(rctx, group.ID, template.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PermissionLevelSysadmin, reloadedTemplate.Permissions.Restrictions.Option.Read)
+
+		reloadedDependent, err := th.service.GetPropertyField(rctx, group.ID, dependent.ID)
+		require.NoError(t, err)
+		assert.Nil(t, reloadedDependent.LinkedFieldID)
+	})
+
+	t.Run("a batch carrying both a linked field and its template checks the ceiling without reading the template from the store", func(t *testing.T) {
+		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "BatchNoGetSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		dependent := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "BatchNoGetDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		template.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		dependent.Permissions.Restrictions.Option.Read = model.PermissionLevelSysadmin
+		before := counter.gets
+		_, _, _, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{template, dependent})
+		require.NoError(t, err)
+		assert.Equal(t, before, counter.gets, "the template's row is already in the call, so the linked-field side must not read the store for it")
+	})
+
 	t.Run("a deleted dependent does not block its template from tightening", func(t *testing.T) {
 		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    group.ID,

@@ -240,7 +240,12 @@ func validateLinkedFieldOptionReadCeiling(caller string, field, template *model.
 // It runs on every field in the update loop, not only templates: a field
 // nothing links to simply has no dependents to check, and loading them costs
 // nothing when the tier did not tighten (see the early return below).
-func (ps *PropertyService) validateDependentOptionReadCeilings(field, existing *model.PropertyField) error {
+//
+// incoming holds every field in the same UpdatePropertyFields call, keyed by
+// ID: a dependent this same call also updates has not reached the store yet,
+// so checking against its stored row would miss a tier the call is raising or
+// lowering right alongside the template.
+func (ps *PropertyService) validateDependentOptionReadCeilings(field, existing *model.PropertyField, incoming map[string]*model.PropertyField) error {
 	newTier := model.PermissionLevelNone
 	if field.Permissions != nil {
 		newTier = field.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead)
@@ -264,6 +269,18 @@ func (ps *PropertyService) validateDependentOptionReadCeilings(field, existing *
 	}
 
 	for _, dependent := range dependents {
+		if inc, ok := incoming[dependent.ID]; ok {
+			// A dependent this same call unlinks serves no options at all once
+			// unlinked, so the template's tier no longer governs anything it
+			// shows. Both nil and "" mean unlinked here: the empty-string-to-nil
+			// canonicalization happens in that field's own turn round the update
+			// loop, which may not have come yet relative to this one.
+			if inc.LinkedFieldID == nil || *inc.LinkedFieldID == "" {
+				continue
+			}
+			dependent = inc
+		}
+
 		dependentTier := model.PermissionLevelNone
 		if dependent.Permissions != nil {
 			dependentTier = dependent.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead)
@@ -414,6 +431,16 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 		existingByID[ef.ID] = ef
 	}
 
+	// A field elsewhere in this same call is not yet in the store, so the
+	// option.read ceiling checks below must consult this map before falling
+	// back to a store read — otherwise a call that moves a template and one
+	// of its linked fields in the same request has each side judged against
+	// the other's stale, pre-update row.
+	incoming := make(map[string]*model.PropertyField, len(fields))
+	for _, f := range fields {
+		incoming[f.ID] = f
+	}
+
 	// Enforce version match between field and group for each field
 	for _, field := range fields {
 		if err := ps.enforceFieldGroupVersionMatch("UpdatePropertyFields", groupID, field); err != nil {
@@ -562,9 +589,13 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 		// (checked against field.LinkedFieldID, final as of the canonicalization
 		// above) has no ceiling to hold it to.
 		if newIsLinked && field.Permissions != nil {
-			template, tErr := ps.fieldStore.Get(store.WithMaster(context.Background()), "", *field.LinkedFieldID)
-			if tErr != nil {
-				return nil, nil, nil, fmt.Errorf("failed to get linked template field %q: %w", *field.LinkedFieldID, tErr)
+			template, ok := incoming[*field.LinkedFieldID]
+			if !ok {
+				var tErr error
+				template, tErr = ps.fieldStore.Get(store.WithMaster(context.Background()), "", *field.LinkedFieldID)
+				if tErr != nil {
+					return nil, nil, nil, fmt.Errorf("failed to get linked template field %q: %w", *field.LinkedFieldID, tErr)
+				}
 			}
 
 			if err := validateLinkedFieldOptionReadCeiling("UpdatePropertyFields", field, template); err != nil {
@@ -575,7 +606,7 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 		// The ceiling holds from the template's side too: tightening this
 		// field's own option.read below what a field linked to it already
 		// sits at is the same breach reached from the other direction.
-		if err := ps.validateDependentOptionReadCeilings(field, existing); err != nil {
+		if err := ps.validateDependentOptionReadCeilings(field, existing, incoming); err != nil {
 			return nil, nil, nil, err
 		}
 
