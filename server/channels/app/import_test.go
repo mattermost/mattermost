@@ -1063,7 +1063,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthService: &authService,
 			AuthData:    authData(ad),
 		}
-		appErr := th.App.preCreateSSOUser(th.Context, data)
+		appErr := th.App.preCreateSSOUser(th.Context, data, false)
 		require.Nil(t, appErr)
 
 		// Verify no duplicate was created.
@@ -1088,7 +1088,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthService: &authService,
 			AuthData:    authData(ad),
 		}
-		appErr := th.App.preCreateSSOUser(th.Context, data)
+		appErr := th.App.preCreateSSOUser(th.Context, data, false)
 		require.Nil(t, appErr)
 
 		updated, err := th.App.Srv().Store().User().GetByUsername(user.Username)
@@ -1109,7 +1109,9 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthService: &authService,
 			AuthData:    authData(ad),
 		}
-		appErr := th.App.preCreateSSOUser(th.Context, data)
+		// deactivateMissingUsers must be false here — true causes preCreateSSOUser to
+		// skip fresh creation, defeating the purpose of this subtest.
+		appErr := th.App.preCreateSSOUser(th.Context, data, false)
 		require.Nil(t, appErr)
 
 		created, err := th.App.Srv().Store().User().GetByUsername(username)
@@ -1133,7 +1135,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthService: &authService, // ldap
 			AuthData:    authData(ldapData),
 		}
-		appErr := th.App.preCreateSSOUser(th.Context, data)
+		appErr := th.App.preCreateSSOUser(th.Context, data, false)
 		require.Nil(t, appErr)
 
 		// Auth_service should still be saml, not ldap.

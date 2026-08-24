@@ -309,9 +309,9 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 		mockJob := &model.Job{
 			Type: model.JobTypeImportProcess,
 			Data: map[string]string{
-				"import_file":      importFile,
-				"local_mode":       "false",
-				"extract_content":  "false",
+				"import_file":           importFile,
+				"local_mode":            "false",
+				"extract_content":       "false",
 				"destination_team_name": "myteam",
 			},
 		}
@@ -332,7 +332,7 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 		cmd.Flags().Bool("bypass-upload", false, "")
 		cmd.Flags().Bool("extract-content", false, "")
 		cmd.Flags().Int("workers", 0, "")
-		cmd.Flags().String("destination-team-name","", "")
+		cmd.Flags().String("destination-team-name", "", "")
 		cmd.Flags().String("destination-team-id", "teamid1", "")
 		cmd.Flags().Bool("skip-preflight", false, "")
 
@@ -350,7 +350,7 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 		cmd.Flags().Bool("bypass-upload", false, "")
 		cmd.Flags().Bool("extract-content", false, "")
 		cmd.Flags().Int("workers", 0, "")
-		cmd.Flags().String("destination-team-name","myteam", "")
+		cmd.Flags().String("destination-team-name", "myteam", "")
 		cmd.Flags().String("destination-team-id", "teamid1", "")
 		cmd.Flags().Bool("skip-preflight", false, "")
 

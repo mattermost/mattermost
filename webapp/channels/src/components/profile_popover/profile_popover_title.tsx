@@ -138,7 +138,12 @@ const ProfilePopoverTitle = ({
     return (
         <div className='user-profile-popover-title'>
             {roleTitle}
-            {isImportedInactive && <ImportedInactiveTag className='user-popover__role' size={'sm'}/>}
+            {isImportedInactive && (
+                <ImportedInactiveTag
+                    className='user-popover__role'
+                    size={'sm'}
+                />
+            )}
             <button
                 ref={closeRef}
                 className='btn btn-icon btn-sm closeButtonRelativePosition'
