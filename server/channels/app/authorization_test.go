@@ -2594,3 +2594,107 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostMember(t *testing.T) {
 	// Non-author who is also a channel member can set the value.
 	assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, nonAuthorSession, field, post.Id))
 }
+
+func TestSessionHasPermissionToAdministerPropertyFieldScope(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	// th.BasicUser created th.BasicChannel, and CreateChannel grants the
+	// creator SchemeAdmin, so BasicUser is already a channel admin there.
+	// Denial rows must therefore use a different user, or they silently
+	// become allow rows.
+	plainMember := th.BasicUser2
+	_, appErr := th.App.AddUserToChannel(th.Context, plainMember, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	// A team admin who is deliberately never added to th.BasicChannel, so the
+	// channel rows exercise the manage_channel_roles cascade rather than
+	// channel membership.
+	teamAdmin := th.CreateUser(t)
+	th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+	_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id,
+		model.TeamUserRoleId+" "+model.TeamAdminRoleId)
+	require.Nil(t, appErr)
+
+	// A second channel where plainMember *is* a channel admin, to prove the
+	// check is scoped to the field's TargetID and not to "is an admin of
+	// something somewhere".
+	otherChannel := th.CreateChannel(t, th.BasicTeam)
+	th.AddUserToChannel(t, plainMember, otherChannel)
+	_, appErr = th.App.UpdateChannelMemberRoles(th.Context, otherChannel.Id, plainMember.Id,
+		model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+	require.Nil(t, appErr)
+
+	userSession := func(u *model.User) model.Session {
+		return model.Session{UserId: u.Id, Roles: model.SystemUserRoleId}
+	}
+	sysadminSession := model.Session{
+		UserId: th.SystemAdminUser.Id,
+		Roles:  model.SystemUserRoleId + " " + model.SystemAdminRoleId,
+	}
+
+	fieldFor := func(target model.PropertyFieldTargetLevel, targetID string) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "scope admin " + string(target) + " " + targetID,
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypePost,
+			TargetType:        string(target),
+			TargetID:          targetID,
+			PermissionField:   model.NewPointer(model.PermissionLevelMember),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelMember),
+		}
+	}
+
+	channelField := fieldFor(model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id)
+	otherChannelField := fieldFor(model.PropertyFieldTargetLevelChannel, otherChannel.Id)
+	teamField := fieldFor(model.PropertyFieldTargetLevelTeam, th.BasicTeam.Id)
+	systemField := fieldFor(model.PropertyFieldTargetLevelSystem, "")
+
+	protectedField := fieldFor(model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id)
+	protectedField.Protected = true
+	protectedField.PermissionField = model.NewPointer(model.PermissionLevelNone)
+
+	testCases := []struct {
+		name    string
+		session model.Session
+		field   *model.PropertyField
+		want    bool
+	}{
+		// Channel targets: manage_channel_roles on the target channel.
+		{"channel admin of the target channel", userSession(th.BasicUser), channelField, true},
+		{"plain member of the target channel", userSession(plainMember), channelField, false},
+		{"team admin who is not a channel member", userSession(teamAdmin), channelField, true},
+		{"sysadmin on a channel target", sysadminSession, channelField, true},
+		{"channel admin of a different channel", userSession(plainMember), channelField, false},
+		{"same user is an admin on the channel they administer", userSession(plainMember), otherChannelField, true},
+
+		// Team targets: manage_team on the target team.
+		{"team admin of the target team", userSession(teamAdmin), teamField, true},
+		{"plain team member", userSession(plainMember), teamField, false},
+		{"sysadmin on a team target", sysadminSession, teamField, true},
+
+		// System targets: manage_system.
+		{"team admin on a system target", userSession(teamAdmin), systemField, false},
+		{"sysadmin on a system target", sysadminSession, systemField, true},
+
+		// Fail-closed cases.
+		{"nil field", userSession(th.BasicUser), nil, false},
+		{"protected field", userSession(th.BasicUser), protectedField, false},
+		{"empty target type", userSession(th.BasicUser), fieldFor("", th.BasicChannel.Id), false},
+		{"unknown target type", userSession(th.BasicUser), fieldFor("bogus", th.BasicChannel.Id), false},
+
+		// Fails closed on a zero-value session rather than granting.
+		{"empty user id", model.Session{}, channelField, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want,
+				th.App.SessionHasPermissionToAdministerPropertyFieldScope(th.Context, tc.session, tc.field))
+		})
+	}
+}

@@ -602,6 +602,22 @@ func (a *App) HasPermissionToManagePropertyFieldOptions(rctx request.CTX, userID
 	return a.hasPropertyFieldPermissionLevel(rctx, userID, field, *field.PermissionOptions)
 }
 
+
+// SessionHasPermissionToAdministerPropertyFieldScope reports whether the session
+// administers the scope the field is attached to: manage_system for system
+// targets, manage_team for team targets, manage_channel_roles for channel
+// targets.
+//
+// This is the same resolution as PermissionLevelAdmin, and delegates to it
+// rather than restating the cascade, so "who may configure a field's permission
+// levels" and "who the admin level grants" cannot drift apart.
+func (a *App) SessionHasPermissionToAdministerPropertyFieldScope(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
+	if field == nil || field.Protected {
+		return false
+	}
+	return a.hasPropertyFieldPermissionLevel(rctx, session.UserId, field, model.PermissionLevelAdmin)
+}
+
 // hasPropertyFieldPermissionLevel checks if the user has the specified permission level for the field.
 // "admin" resolves against the field's target: manage_system on system targets,
 // manage_team on team targets, manage_channel_roles on channel targets — i.e.
