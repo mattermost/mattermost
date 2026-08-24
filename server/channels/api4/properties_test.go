@@ -2284,6 +2284,61 @@ func TestPatchPropertyField(t *testing.T) {
 		CheckUnauthorizedStatus(t, resp)
 	})
 
+	t.Run("patch cannot move a field to another scope", func(t *testing.T) {
+		// A field's scope decides who may administer it, so if patch could
+		// reparent a field, a channel admin could pin levels on a channel they
+		// administer and then move the result somewhere they do not. The
+		// handler defends this by discarding patch.TargetID/TargetType
+		// outright; nothing else enforces it, so assert it directly.
+		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
+			model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, _ = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
+		})
+		th.LoginBasic(t)
+
+		adminLevel := model.PermissionLevelAdmin
+		created, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			PermissionField:   &adminLevel,
+			PermissionValues:  &adminLevel,
+			PermissionOptions: &adminLevel,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, model.PermissionLevelAdmin, *created.PermissionField)
+
+		// th.BasicChannel2 is a channel th.BasicUser belongs to but does not
+		// administer, which is the reparenting that would actually gain them
+		// something.
+		for name, patch := range map[string]*model.PropertyFieldPatch{
+			"to a channel they do not administer": {TargetID: model.NewPointer(th.BasicChannel2.Id)},
+			"to team scope":                       {TargetType: model.NewPointer("team"), TargetID: model.NewPointer(th.BasicTeam.Id)},
+			"to system scope":                     {TargetType: model.NewPointer("system"), TargetID: model.NewPointer("")},
+		} {
+			t.Run(name, func(t *testing.T) {
+				patched, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", created.ID, patch)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+
+				// The patch succeeds but the scope fields are ignored.
+				require.Equal(t, "channel", patched.TargetType)
+				require.Equal(t, th.BasicChannel.Id, patched.TargetID)
+			})
+		}
+
+		// Confirm the scope is unchanged in storage, not merely in the
+		// responses above.
+		stored, appErr := th.App.GetPropertyField(th.Context, group.ID, created.ID)
+		require.Nil(t, appErr)
+		require.Equal(t, "channel", stored.TargetType)
+		require.Equal(t, th.BasicChannel.Id, stored.TargetID)
+	})
+
 	t.Run("protected field update should fail", func(t *testing.T) {
 		protectedField := &model.PropertyField{
 			Name:              model.NewId(),
