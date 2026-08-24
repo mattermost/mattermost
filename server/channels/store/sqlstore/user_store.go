@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -607,13 +606,13 @@ func (us SqlUserStore) GetMany(rctx request.CTX, ids []string) ([]*model.User, e
 	return users, nil
 }
 
-func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) {
+func (us SqlUserStore) Get(rctx request.CTX, id string) (*model.User, error) {
 	query := us.usersQuery.Where("Id = ?", id)
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "users_get_tosql")
 	}
-	row := us.SqlStore.DBXFromContext(ctx).QueryRow(queryString, args...)
+	row := us.SqlStore.DBXFromContext(rctx.Context()).QueryRow(queryString, args...)
 
 	var user model.User
 	var props, notifyProps, timezone []byte
@@ -959,7 +958,7 @@ func (us SqlUserStore) GetProfilesInChannelByAdmin(options *model.UserGetOptions
 	return users, nil
 }
 
-func (us SqlUserStore) GetAllProfilesInChannel(ctx context.Context, channelID string, allowFromCache bool) (map[string]*model.User, error) {
+func (us SqlUserStore) GetAllProfilesInChannel(rctx request.CTX, channelID string, allowFromCache bool) (map[string]*model.User, error) {
 	query := us.usersQuery.
 		Join("ChannelMembers cm ON ( cm.UserId = Users.Id )").
 		Where("cm.ChannelId = ?", channelID).
@@ -972,7 +971,7 @@ func (us SqlUserStore) GetAllProfilesInChannel(ctx context.Context, channelID st
 	}
 
 	users := []*model.User{}
-	rows, err := us.SqlStore.DBXFromContext(ctx).Query(queryString, args...)
+	rows, err := us.SqlStore.DBXFromContext(rctx.Context()).QueryContext(rctx.Context(), queryString, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
@@ -2193,14 +2192,14 @@ func applyViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.Vie
 	return resultQuery
 }
 
-func (us SqlUserStore) PromoteGuestToUser(userId string) (err error) {
+func (us SqlUserStore) PromoteGuestToUser(rctx request.CTX, userId string) (err error) {
 	transaction, err := us.GetMaster().Begin()
 	if err != nil {
 		return errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	user, err := us.Get(context.Background(), userId)
+	user, err := us.Get(rctx, userId)
 	if err != nil {
 		return err
 	}
@@ -2262,14 +2261,14 @@ func (us SqlUserStore) PromoteGuestToUser(userId string) (err error) {
 	return nil
 }
 
-func (us SqlUserStore) DemoteUserToGuest(userID string) (_ *model.User, err error) {
+func (us SqlUserStore) DemoteUserToGuest(rctx request.CTX, userID string) (_ *model.User, err error) {
 	transaction, err := us.GetMaster().Begin()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	user, err := us.Get(context.Background(), userID)
+	user, err := us.Get(rctx, userID)
 	if err != nil {
 		return nil, err
 	}

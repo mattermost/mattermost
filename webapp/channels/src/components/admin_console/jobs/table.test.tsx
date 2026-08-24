@@ -37,7 +37,6 @@ describe('components/admin_console/jobs/table', () => {
             getJobsByType,
         },
         jobType: 'data_retention',
-        isSystemAdmin: true,
         jobs: [{
             create_at: 1540834294674,
             last_activity_at: 1540834294674,
@@ -206,40 +205,20 @@ describe('components/admin_console/jobs/table', () => {
         expect(button).toHaveLength(0);
     });
 
-    test('should poll for updates when user is not a system admin', () => {
+    test('should load jobs on mount without polling', () => {
         jest.useFakeTimers();
+        try {
+            renderWithContext(
+                <JobTable {...baseProps}/>,
+            );
 
-        renderWithContext(
-            <JobTable
-                {...baseProps}
-                isSystemAdmin={false}
-            />,
-        );
+            expect(getJobsByType).toHaveBeenCalledTimes(1);
 
-        expect(getJobsByType).toHaveBeenCalledTimes(1);
-
-        jest.advanceTimersByTime(15000);
-        expect(getJobsByType).toHaveBeenCalledTimes(2);
-
-        jest.useRealTimers();
-    });
-
-    test('should not poll for updates when user is a system admin', () => {
-        jest.useFakeTimers();
-
-        renderWithContext(
-            <JobTable
-                {...baseProps}
-                isSystemAdmin={true}
-            />,
-        );
-
-        expect(getJobsByType).toHaveBeenCalledTimes(1);
-
-        jest.advanceTimersByTime(15000);
-        expect(getJobsByType).toHaveBeenCalledTimes(1);
-
-        jest.useRealTimers();
+            jest.advanceTimersByTime(15000);
+            expect(getJobsByType).toHaveBeenCalledTimes(1);
+        } finally {
+            jest.useRealTimers();
+        }
     });
 
     test('shows a View details affordance and fires onRowClick when a row is clicked', async () => {

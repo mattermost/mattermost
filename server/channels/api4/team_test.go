@@ -5,8 +5,6 @@ package api4
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -590,6 +588,81 @@ func TestGetTeam(t *testing.T) {
 		_, resp, err = contentReviewClient.GetTeamAsContentReviewer(context.Background(), privateTeam.Id, "", post.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Content reviewer should not be able to get a team via a DM or GM post", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		contentReviewClient := th.CreateClient()
+		_, _, err := contentReviewClient.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+
+		flagRequest := model.FlagContentRequest{
+			Reason:  "Classification mismatch",
+			Comment: "This is sensitive content",
+		}
+
+		testCases := []struct {
+			name    string
+			post    *model.Post
+			flagged bool
+		}{
+			{"flagged DM post", createDmPost(t, th, contentReviewClient), true},
+			{"flagged GM post", createGmPost(t, th, contentReviewClient), true},
+			{"unflagged DM post", createDmPost(t, th, contentReviewClient), false},
+			{"unflagged GM post", createGmPost(t, th, contentReviewClient), false},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.name, func(t *testing.T) {
+				if testCase.flagged {
+					flagErr := th.App.FlagPost(th.Context, testCase.post, "", th.BasicUser.Id, flagRequest)
+					require.Nil(t, flagErr)
+				}
+
+				_, resp, err := contentReviewClient.GetTeamAsContentReviewer(context.Background(), th.BasicTeam.Id, "", testCase.post.Id)
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+				CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+			})
+		}
+	})
+
+	t.Run("Content reviewer should not be able to get a team via a post from another team", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		contentReviewClient := th.CreateClient()
+		_, _, err := contentReviewClient.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+
+		otherTeam := th.CreateTeam(t)
+		otherChannel := th.CreateChannelWithClientAndTeam(t, contentReviewClient, model.ChannelTypeOpen, otherTeam.Id)
+
+		// As above, the flagged and the unflagged post have to fail identically so the
+		// error doesn't disclose the flag status of a post outside the requested team.
+		for _, testCase := range []struct {
+			name    string
+			flagged bool
+		}{
+			{"flagged post", true},
+			{"unflagged post", false},
+		} {
+			t.Run(testCase.name, func(t *testing.T) {
+				post := th.CreatePostWithClient(t, contentReviewClient, otherChannel)
+				if testCase.flagged {
+					flagPostViaAPI(t, contentReviewClient, post.Id)
+				}
+
+				_, resp, err := contentReviewClient.GetTeamAsContentReviewer(context.Background(), th.BasicTeam.Id, "", post.Id)
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+				CheckErrorID(t, err, "api.team.get_team.flagged_post_mismatch.app_error")
+			})
+		}
 	})
 }
 
@@ -3780,6 +3853,25 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestUpdateTeamMemberRolesRejectsGuestAndAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	SystemAdminClient := th.SystemAdminClient
+
+	memberBefore, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+	require.NoError(t, err)
+	rolesBefore := memberBefore.Roles
+
+	resp, err := SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, model.TeamGuestRoleId+" "+model.TeamAdminRoleId)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+	CheckErrorID(t, err, "api.team.update_team_member_roles.guest_and_admin.app_error")
+
+	memberAfter, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser2.Id, "")
+	require.NoError(t, err)
+	require.Equal(t, rolesBefore, memberAfter.Roles)
+}
+
 func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -4034,97 +4126,6 @@ func TestTeamExists(t *testing.T) {
 		exists, _, err := client.TeamExists(context.Background(), private_not_member_team.Name, "")
 		require.NoError(t, err)
 		assert.False(t, exists, "team should not be visible")
-	})
-}
-
-func TestImportTeam(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
-	th.TestForAllClients(t, func(T *testing.T, c *model.Client4) {
-		data, err := testutils.ReadTestFile("Fake_Team_Import.zip")
-
-		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
-		_, resp, err := th.SystemAdminClient.ImportTeam(context.Background(), data, binary.Size(data), "XYZ", "Fake_Team_Import.zip", th.BasicTeam.Id)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-
-		_, resp, err = th.SystemAdminClient.ImportTeam(context.Background(), data, binary.Size(data), "", "Fake_Team_Import.zip", th.BasicTeam.Id)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	}, "Import from unknown and source")
-
-	t.Run("ImportTeam", func(t *testing.T) {
-		var data []byte
-		var err error
-		data, err = testutils.ReadTestFile("Fake_Team_Import.zip")
-
-		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
-
-		// Import the channels/users/posts
-		fileResp, _, err := th.SystemAdminClient.ImportTeam(context.Background(), data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
-		require.NoError(t, err)
-
-		fileData, err := base64.StdEncoding.DecodeString(fileResp["results"])
-		require.NoError(t, err, "failed to decode base64 results data")
-
-		fileReturned := string(fileData)
-		require.Truef(t, strings.Contains(fileReturned, "darth.vader@stardeath.com"), "failed to report the user was imported, fileReturned: %s", fileReturned)
-
-		// Checking the imported users
-		importedUser, _, err := th.SystemAdminClient.GetUserByUsername(context.Background(), "bot_test", "")
-		require.NoError(t, err)
-		require.Equal(t, importedUser.Username, "bot_test", "username should match with the imported user")
-
-		importedUser, _, err = th.SystemAdminClient.GetUserByUsername(context.Background(), "lordvader", "")
-		require.NoError(t, err)
-		require.Equal(t, importedUser.Username, "lordvader", "username should match with the imported user")
-
-		// Checking the imported Channels
-		importedChannel, _, err := th.SystemAdminClient.GetChannelByName(context.Background(), "testchannel", th.BasicTeam.Id, "")
-		require.NoError(t, err)
-		require.Equal(t, importedChannel.Name, "testchannel", "names did not match expected: testchannel")
-
-		importedChannel, _, err = th.SystemAdminClient.GetChannelByName(context.Background(), "general", th.BasicTeam.Id, "")
-		require.NoError(t, err)
-		require.Equal(t, importedChannel.Name, "general", "names did not match expected: general")
-
-		posts, _, err := th.SystemAdminClient.GetPostsForChannel(context.Background(), importedChannel.Id, 0, 60, "", false, false)
-		require.NoError(t, err)
-		require.Equal(t, posts.Posts[posts.Order[3]].Message, "This is a test post to test the import process", "missing posts in the import process")
-	})
-
-	t.Run("Cloud Forbidden", func(t *testing.T) {
-		var data []byte
-		var err error
-		data, err = testutils.ReadTestFile("Fake_Team_Import.zip")
-
-		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
-		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		// Import the channels/users/posts
-		_, resp, err := th.SystemAdminClient.ImportTeam(context.Background(), data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-		th.App.Srv().SetLicense(nil)
-	})
-
-	t.Run("MissingFile", func(t *testing.T) {
-		_, resp, err := th.SystemAdminClient.ImportTeam(context.Background(), nil, 4343, "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
-
-	t.Run("WrongPermission", func(t *testing.T) {
-		var data []byte
-		var err error
-		data, err = testutils.ReadTestFile("Fake_Team_Import.zip")
-		require.False(t, err != nil && len(data) == 0, "Error while reading the test file.")
-
-		// Import the channels/users/posts
-		_, resp, err := th.Client.ImportTeam(context.Background(), data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
 	})
 }
 

@@ -433,6 +433,79 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
 	})
 
+	t.Run("team invitation token with mismatched email fails", func(t *testing.T) {
+		otherUser := th.CreateUser(t)
+
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": otherUser.Email}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		defer func() {
+			appErr := th.App.DeleteToken(token)
+			require.Nil(t, appErr)
+		}()
+
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, ruser.Id, token.Token)
+		require.NotNil(t, err, "Should fail when the redeeming user's email does not match the token's email")
+		assert.Equal(t, "api.user.create_user.bad_token_email_data.app_error", err.Id)
+	})
+
+	t.Run("team invitation token with matching email succeeds", func(t *testing.T) {
+		matchingUser := th.CreateUser(t)
+
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": strings.ToUpper(matchingUser.Email)}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, matchingUser.Id, token.Token)
+		require.Nil(t, err, "Should add user to the team when the email matches")
+
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, nErr, "The token must be deleted after be used")
+	})
+
+	t.Run("guest invitation token with mismatched email fails", func(t *testing.T) {
+		otherGuest := th.CreateGuest(t)
+
+		token := model.NewToken(
+			model.TokenTypeGuestInvitation,
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id, "email": otherGuest.Email}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		defer func() {
+			appErr := th.App.DeleteToken(token)
+			require.Nil(t, appErr)
+		}()
+
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, rguest.Id, token.Token)
+		require.NotNil(t, err, "Should fail when the redeeming guest's email does not match the token's email")
+		assert.Equal(t, "api.user.create_user.bad_token_email_data.app_error", err.Id)
+	})
+
+	t.Run("guest invitation token with matching email succeeds", func(t *testing.T) {
+		matchingGuest := th.CreateGuest(t)
+
+		token := model.NewToken(
+			model.TokenTypeGuestInvitation,
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id, "email": matchingGuest.Email}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, matchingGuest.Id, token.Token)
+		require.Nil(t, err, "Should add guest to the team when the email matches")
+
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, nErr, "The token must be deleted after be used")
+
+		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, matchingGuest.Id)
+		require.Nil(t, err)
+		require.Len(t, members, 1)
+		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
+	})
+
 	t.Run("group-constrained team", func(t *testing.T) {
 		th.BasicTeam.GroupConstrained = new(true)
 		_, err := th.App.UpdateTeam(th.BasicTeam)
@@ -581,6 +654,31 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		// Regular users cannot use guest magic link tokens (they're guest-only)
 		_, _, err := th.App.AddUserToTeamByToken(th.Context, regularUser.Id, token.Token)
 		require.NotNil(t, err, "Should fail when adding regular user with guest magic link token")
+	})
+
+	t.Run("guest magic link invitation token with mismatched email fails", func(t *testing.T) {
+		otherGuest := th.CreateGuest(t)
+
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id,
+			"email":    otherGuest.Email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			model.TokenTypeGuestMagicLinkInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		defer func() {
+			appErr := th.App.DeleteToken(token)
+			require.Nil(t, appErr)
+		}()
+
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, rguest.Id, token.Token)
+		require.NotNil(t, err, "Should fail when the redeeming guest's email does not match the token's email")
+		assert.Equal(t, "api.user.create_user.bad_token_email_data.app_error", err.Id)
 	})
 }
 
@@ -1227,7 +1325,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
-	mockUserStore.On("Get", context.Background(), "userID").Return(&model.User{Id: "userID"}, nil)
+	mockUserStore.On("Get", mock.Anything, "userID").Return(&model.User{Id: "userID"}, nil)
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 
 	mockChannelStore := mocks.ChannelStore{}
@@ -2121,7 +2219,9 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	license := model.NewTestLicenseWithFalseDefaults("mhpns")
+	license.SkuShortName = model.LicenseShortSkuEnterprise
+	th.App.Srv().SetLicense(license)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
 		*cfg.TeamSettings.LockProfileFieldsForEmailUsers = model.TeamSettingsLockProfileFieldsNameAndUsername
@@ -2270,6 +2370,8 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 	t.Run("it returns error for deactivated user without sending email", func(t *testing.T) {
 		emailServiceMock := emailmocks.ServiceInterface{}
 		emailServiceMock.On("Stop").Once().Return()
+		// The teardown license reset saves a config change, whose listener re-inits email batching.
+		emailServiceMock.On("InitEmailBatching").Return().Maybe()
 		th.App.Srv().EmailService = &emailServiceMock
 
 		_, appErr := th.App.UpdateActive(th.Context, th.BasicUser2, false)

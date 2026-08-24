@@ -530,20 +530,16 @@ export function convertElement(element: DialogElement, options: ConversionOption
 
     // Add date/datetime specific properties
     if (element.type === DialogElementTypes.DATE || element.type === DialogElementTypes.DATETIME) {
-        // Merge datetime_config over deprecated top-level fields (datetime_config takes precedence)
-        const minDate = element.datetime_config?.min_date ?? element.min_date;
-        const maxDate = element.datetime_config?.max_date ?? element.max_date;
-        const timeInterval = element.datetime_config?.time_interval ?? element.time_interval;
+        const minDate = element.datetime_config?.min_date;
+        const maxDate = element.datetime_config?.max_date;
+        const timeInterval = element.datetime_config?.time_interval;
 
         const mergedConfig: DateTimeConfig = {};
         if (element.datetime_config?.location_timezone) {
             mergedConfig.location_timezone = element.datetime_config.location_timezone;
         }
 
-        // manual_time_entry supersedes the deprecated allow_manual_time_entry. OR-merge
-        // the two sources into a single normalized key so downstream consumers don't
-        // need to repeat the precedence logic.
-        if (element.datetime_config?.manual_time_entry || element.datetime_config?.allow_manual_time_entry) {
+        if (element.datetime_config?.manual_time_entry) {
             mergedConfig.manual_time_entry = true;
         }
         if (minDate !== undefined) {
@@ -558,17 +554,6 @@ export function convertElement(element: DialogElement, options: ConversionOption
 
         if (Object.keys(mergedConfig).length > 0) {
             appField.datetime_config = mergedConfig;
-        }
-
-        // Also set deprecated top-level fields for backward compatibility with consumers
-        if (minDate !== undefined) {
-            appField.min_date = String(minDate);
-        }
-        if (maxDate !== undefined) {
-            appField.max_date = String(maxDate);
-        }
-        if (timeInterval !== undefined && element.type === DialogElementTypes.DATETIME) {
-            appField.time_interval = Number(timeInterval);
         }
 
         if (element.refresh !== undefined) {

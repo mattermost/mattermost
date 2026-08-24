@@ -59,12 +59,11 @@ services:
       MM_CONNECTEDWORKSPACESSETTINGS_ENABLEREMOTECLUSTERSERVICE: "true"
       MM_CONNECTEDWORKSPACESSETTINGS_ENABLESHAREDWORKSPACES: "true"
       MM_FEATUREFLAGS_ENABLEREMOTECLUSTERSERVICE: "true"
-      MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
+      MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
       MM_SQLSETTINGS_DRIVERNAME: "postgres"
       MM_EMAILSETTINGS_SMTPSERVER: "localhost"
       MM_CLUSTERSETTINGS_READONLYCONFIG: "false"
       MM_SERVICEENVIRONMENT: "test"
-      MM_FEATUREFLAGS_MOVETHREADSENABLED: "true"
       MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES: "true"
       MM_FEATUREFLAGS_PERMISSIONPOLICIES: "true"
       MM_FEATUREFLAGS_TEAMMEMBERSHIPACCESSCONTROL: "true"
@@ -73,6 +72,8 @@ services:
       MM_FEATUREFLAGS_PROPERTYFIELDRANK: "true"
       MM_FEATUREFLAGS_ATTRIBUTEVALUEMASKING: "true"
       MM_FEATUREFLAGS_WYSIWYGEDITOR: "true"
+      MM_FEATUREFLAGS_RECURRINGSCHEDULEDPOSTS: "true"
+      MM_FEATUREFLAGS_ENABLECONCURRENTREACT: "true"
       MM_LOGSETTINGS_ENABLEDIAGNOSTICS: "false"
       MM_LOGSETTINGS_CONSOLELEVEL: "DEBUG"
     network_mode: host
@@ -92,7 +93,7 @@ $(for service in $ENABLED_DOCKER_SERVICES; do
 $(if mme2e_is_token_in_list "postgres" "$ENABLED_DOCKER_SERVICES"; then
     echo '
   postgres:
-    image: mattermostdevelopment/mirrored-postgres:14
+    image: mattermostdevelopment/mirrored-postgres:15
     restart: "no"
     network_mode: host
     networks: !reset []
@@ -240,7 +241,7 @@ $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
       - "../../e2e-tests/.ci/.env.cypress"
     environment:
       CYPRESS_baseUrl: "http://localhost:8065"
-      CYPRESS_dbConnection: "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+      CYPRESS_dbConnection: "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
       CYPRESS_smtpUrl: "http://localhost:9001"
       CYPRESS_webhookBaseUrl: "http://localhost:3000"
       CYPRESS_chromeWebSecurity: "false"
@@ -318,7 +319,7 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
       PW_ADMIN_PASSWORD: Sys@dmin-sample1
       PW_ADMIN_EMAIL: sysadmin@sample.mattermost.com
       PW_ENSURE_PLUGINS_INSTALLED: ""
-      MM_TEST_DB_URL: "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
+      MM_TEST_DB_URL: "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
       PW_HA_CLUSTER_ENABLED: "false"
       PW_RESET_BEFORE_TEST: "false"
       PW_HEADLESS: "true"

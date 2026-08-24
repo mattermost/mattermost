@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -177,9 +178,24 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var scheduledPost model.ScheduledPost
-	if err := json.NewDecoder(r.Body).Decode(&scheduledPost); err != nil {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
 		c.SetInvalidParamWithErr("schedule_post", err)
+		return
+	}
+
+	var scheduledPost model.ScheduledPost
+	if unmarshalErr := json.Unmarshal(body, &scheduledPost); unmarshalErr != nil {
+		c.SetInvalidParamWithErr("schedule_post", unmarshalErr)
+		return
+	}
+
+	// Detect whether the payload included repeat_type at all.
+	var rawPayload struct {
+		RepeatType json.RawMessage `json:"repeat_type"`
+	}
+	if unmarshalErr := json.Unmarshal(body, &rawPayload); unmarshalErr != nil {
+		c.SetInvalidParamWithErr("schedule_post", unmarshalErr)
 		return
 	}
 
@@ -193,7 +209,7 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "scheduledPost", &scheduledPost)
 
 	userId := c.AppContext.Session().UserId
-	existingScheduledPost, err := c.App.Srv().Store().ScheduledPost().Get(scheduledPost.Id)
+	existingScheduledPost, err := c.App.Srv().Store().ScheduledPost().Get(c.AppContext, scheduledPost.Id)
 	if err != nil {
 		c.Err = model.NewAppError("updateScheduledPost", "app.update_scheduled_post.get_scheduled_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
@@ -205,6 +221,14 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if existingScheduledPost.UserId != userId {
 		c.Err = model.NewAppError("updateScheduledPost", "app.update_scheduled_post.update_permission.error", nil, "", http.StatusForbidden)
 		return
+	}
+
+	// Clients that predate recurring scheduled posts omit the repeat fields entirely, so an
+	// absent repeat_type preserves the existing recurrence rather than ending the series.
+	// Sending an explicit, empty repeat_type remains the way to stop repeating.
+	if rawPayload.RepeatType == nil {
+		scheduledPost.RepeatType = existingScheduledPost.RepeatType
+		scheduledPost.RepeatTimezone = existingScheduledPost.RepeatTimezone
 	}
 
 	if len(scheduledPost.FileIds) > 0 {
@@ -259,7 +283,7 @@ func deleteScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userId := c.AppContext.Session().UserId
 
-	existingScheduledPost, err := c.App.Srv().Store().ScheduledPost().Get(scheduledPostId)
+	existingScheduledPost, err := c.App.Srv().Store().ScheduledPost().Get(c.AppContext, scheduledPostId)
 	if err != nil {
 		c.Err = model.NewAppError("deleteScheduledPost", "app.delete_scheduled_post.get_scheduled_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return

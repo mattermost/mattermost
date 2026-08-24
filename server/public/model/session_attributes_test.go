@@ -4,6 +4,7 @@
 package model
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -63,6 +64,58 @@ func TestSessionAttributeSystemFieldsDisplayNames(t *testing.T) {
 	}
 }
 
+func TestSessionAttributeSystemFieldsOSPlatform(t *testing.T) {
+	var field *PropertyField
+	for _, f := range SessionAttributeSystemFields("group-id") {
+		if f.Name == SessionAttributesPropertyFieldOSPlatform {
+			field = f
+			break
+		}
+	}
+	require.NotNil(t, field)
+	require.Equal(t, PropertyFieldTypeSelect, field.Type)
+
+	options, err := NewPropertyOptionsFromFieldAttrs[*PluginPropertyOption](field.Attrs[PropertyFieldAttributeOptions])
+	require.NoError(t, err)
+
+	names := make([]string, 0, len(options))
+	for _, option := range options {
+		names = append(names, option.GetName())
+	}
+	assert.Equal(t, []string{"macos", "windows", "linux", "ios", "android"}, names)
+
+	for _, name := range names {
+		assert.True(t, IsValidSessionAttributeValue(field, name), "%q must be an accepted value", name)
+	}
+	assert.False(t, IsValidSessionAttributeValue(field, "darwin"))
+}
+
+func TestSessionAttributeSystemFieldsUserAgentPlatform(t *testing.T) {
+	var field *PropertyField
+	for _, f := range SessionAttributeSystemFields("group-id") {
+		if f.Name == SessionAttributesPropertyFieldUserAgentPlatform {
+			field = f
+			break
+		}
+	}
+	require.NotNil(t, field)
+	require.Equal(t, PropertyFieldTypeSelect, field.Type)
+
+	options, err := NewPropertyOptionsFromFieldAttrs[*PluginPropertyOption](field.Attrs[PropertyFieldAttributeOptions])
+	require.NoError(t, err)
+
+	names := make([]string, 0, len(options))
+	for _, option := range options {
+		names = append(names, option.GetName())
+	}
+	// TestPlatformNamesAreSelectableSessionAttributeValues (channels/app) keeps this
+	// list in sync with the platform names the server derives from a user agent.
+	assert.Equal(t, []string{"Windows", "Macintosh", "Linux", "Android", "iPad", "iPhone", "iPod", "BlackBerry", "Windows Phone", "Unknown"}, names)
+
+	assert.True(t, IsValidSessionAttributeValue(field, "Android"))
+	assert.False(t, IsValidSessionAttributeValue(field, "android"))
+}
+
 func TestSAFieldEnabledForPlatform(t *testing.T) {
 	field := &PropertyField{
 		Name: SessionAttributesPropertyFieldVPNActive,
@@ -85,9 +138,39 @@ func TestSAFieldEnabledForPlatform(t *testing.T) {
 	assert.False(t, disabled.EnabledForPlatform(SessionAttributePlatformDesktop))
 }
 
+func TestSessionAttributeSystemFieldsOperators(t *testing.T) {
+	fields := SessionAttributeSystemFields("group-id")
+	byName := make(map[string]*PropertyField, len(fields))
+	for _, field := range fields {
+		byName[field.Name] = field
+	}
+
+	baseStringOps := []string{"==", "!=", "in", "startsWith", "endsWith", "contains"}
+	versionOps := append(slices.Clone(baseStringOps), sessionVersionOperators...)
+
+	assertOperators := func(t *testing.T, field *PropertyField, expected []string) {
+		t.Helper()
+		require.NotNil(t, field)
+		raw, ok := field.Attrs[NativeAttributeAttrOperators]
+		require.True(t, ok, "field %q must declare operators", field.Name)
+		ops, ok := raw.([]string)
+		require.True(t, ok, "field %q operators must be []string", field.Name)
+		assert.Equal(t, expected, ops)
+	}
+
+	assertOperators(t, byName[SessionAttributesPropertyFieldIPAddress], append(slices.Clone(baseStringOps), SessionOperatorInCIDR))
+	assertOperators(t, byName[SessionAttributesPropertyFieldClientIPAddress], append(slices.Clone(baseStringOps), SessionOperatorInCIDR))
+	assertOperators(t, byName[SessionAttributesPropertyFieldOSVersion], versionOps)
+	assertOperators(t, byName[SessionAttributesPropertyFieldClientVersion], versionOps)
+	assertOperators(t, byName[SessionAttributesPropertyFieldUserAgentBrowserVersion], versionOps)
+
+	_, hasOperators := byName[SessionAttributesPropertyFieldSSID].Attrs[NativeAttributeAttrOperators]
+	assert.False(t, hasOperators, "fields without specialized operators must not declare attrs.operators")
+}
+
 func TestIsValidSessionAttributeValue(t *testing.T) {
 	textField := &PropertyField{
-		Name: SessionAttributesPropertyFieldOSPlatform,
+		Name: SessionAttributesPropertyFieldOSVersion,
 		Type: PropertyFieldTypeText,
 	}
 	selectField := &PropertyField{
@@ -112,7 +195,7 @@ func TestIsValidSessionAttributeValue(t *testing.T) {
 	}
 
 	t.Run("text accepts string", func(t *testing.T) {
-		assert.True(t, IsValidSessionAttributeValue(textField, "linux"))
+		assert.True(t, IsValidSessionAttributeValue(textField, "15.1"))
 	})
 
 	t.Run("text rejects non-string", func(t *testing.T) {
