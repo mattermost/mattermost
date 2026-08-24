@@ -16,10 +16,12 @@ The Docker build context is `.cursor/` only. The Dockerfile intentionally does n
 
 ## Runtime Hooks
 
-- `cloud-agent-install.sh` runs after Cursor checks out the repo. It refreshes nvm, verifies Cursor's multi-repo `mattermost/enterprise` checkout, runs `server` Go dependency hydration, installs webapp dependencies, and runs Playwright `npm ci`.
+- `cloud-agent-install.sh` runs after Cursor checks out the repo. It refreshes nvm, locates or clones `mattermost/enterprise`, runs `server` Go dependency hydration, installs webapp dependencies, and runs Playwright `npm ci`.
 - `cloud-agent-start.sh` materializes `.cursor/cursor.md` as `.cursor/AGENTS.md`, fixes current-session Docker socket access, starts Docker, waits until `docker info` and `docker compose version` succeed, then logs in to Docker Hub when credentials are configured.
 
-The environment declares `github.com/mattermost/enterprise` in `repositoryDependencies` so Cursor can provide it as part of the multi-repo workspace. Cursor currently clones the repositories as siblings, such as `/agent/repos/mattermost` and `/agent/repos/enterprise`, which matches `server/Makefile`'s default `../../enterprise` path. The install hook does not clone, pull, or symlink enterprise.
+The environment declares `github.com/mattermost/enterprise` in `repositoryDependencies` so Cursor can provide it as part of the multi-repo workspace and so the Cloud Agent GitHub token can read that private repo. Cursor currently clones the repositories as siblings when you explicitly select the multi-repo environment, such as `/agent/repos/mattermost` and `/agent/repos/enterprise`, which matches `server/Makefile`'s default `../../enterprise` path.
+
+Git-triggered automations (for example, a PR label) still launch in a single-repo layout. `repositoryDependencies` only adds enterprise to the token scope in that mode; it does not check the repo out. The install hook therefore clones `https://github.com/mattermost/enterprise.git` into `../enterprise` (or `$HOME/enterprise` if that parent is not writable) when no checkout is already present.
 
 ## Useful Skips
 

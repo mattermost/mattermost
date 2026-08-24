@@ -61,6 +61,10 @@ enterprise_build_dir() {
   esac
 }
 
+default_enterprise_checkout() {
+  realpath -m "$ROOT/../enterprise"
+}
+
 find_enterprise_checkout() {
   local candidates=()
   if [ -n "${ENTERPRISE_CHECKOUT_DIR:-}" ]; then
@@ -69,9 +73,15 @@ find_enterprise_checkout() {
   if [ -n "${ENTERPRISE_DIR:-}" ]; then
     candidates+=("$ENTERPRISE_DIR")
   fi
+  if [ -n "${BUILD_ENTERPRISE_DIR:-}" ]; then
+    case "$BUILD_ENTERPRISE_DIR" in
+      /*) candidates+=("$BUILD_ENTERPRISE_DIR") ;;
+      *) candidates+=("$ROOT/server/$BUILD_ENTERPRISE_DIR") ;;
+    esac
+  fi
 
   candidates+=(
-    "$ROOT/../enterprise"
+    "$(default_enterprise_checkout)"
     "$ROOT/../../enterprise"
     "$HOME/enterprise"
   )
@@ -87,18 +97,107 @@ find_enterprise_checkout() {
   return 1
 }
 
-verify_enterprise_checkout() {
+enterprise_clone_url() {
+  printf 'https://github.com/mattermost/enterprise.git\n'
+}
+
+enterprise_clone_dest() {
+  local sibling parent
+  sibling="$(default_enterprise_checkout)"
+  parent="$(dirname "$sibling")"
+  if [ -d "$parent" ] && [ -w "$parent" ]; then
+    printf '%s\n' "$sibling"
+    return 0
+  fi
+
+  realpath -m "$HOME/enterprise"
+}
+
+clone_enterprise_checkout() {
+  local dest="$1"
+  local url
+  url="$(enterprise_clone_url)"
+
+  if [ -z "$dest" ] || [ "$dest" = "/" ] || [ "$(basename "$dest")" != "enterprise" ]; then
+    log "Refusing unsafe enterprise clone dest: ${dest:-<empty>}"
+    return 1
+  fi
+
+  if [ -e "$dest" ]; then
+    if git -C "$dest" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+      return 0
+    fi
+    if [ -n "$(ls -A "$dest" 2>/dev/null)" ]; then
+      log "Refusing to clone enterprise into non-empty path $dest"
+      return 1
+    fi
+    rmdir "$dest"
+  fi
+
+  log "Enterprise checkout missing; cloning mattermost/enterprise into $dest."
+  log "Git-triggered automations stay single-repo; repositoryDependencies only scopes the GitHub token."
+  mkdir -p "$(dirname "$dest")"
+
+  if GIT_TERMINAL_PROMPT=0 git clone --depth 1 --single-branch "$url" "$dest"; then
+    return 0
+  fi
+
+  rm -rf "$dest"
+
+  if command -v gh >/dev/null 2>&1; then
+    log "git clone failed; retrying with GitHub CLI."
+    if gh repo clone mattermost/enterprise "$dest" -- --depth 1 --single-branch; then
+      return 0
+    fi
+    rm -rf "$dest"
+  fi
+
+  log "Failed to clone mattermost/enterprise. repositoryDependencies must include github.com/mattermost/enterprise so the GitHub token can access it."
+  return 1
+}
+
+persist_build_enterprise_dir() {
+  local target="$1"
+  export BUILD_ENTERPRISE_DIR="$target"
+
+  local default_target
+  default_target="$(default_enterprise_checkout)"
+  if [ "$target" = "$default_target" ]; then
+    return 0
+  fi
+
+  local override="$ROOT/server/config.override.mk"
+  if [ -f "$override" ] && grep -q '^BUILD_ENTERPRISE_DIR' "$override"; then
+    return 0
+  fi
+
+  printf 'BUILD_ENTERPRISE_DIR := %s\n' "$target" >> "$override"
+  log "Wrote BUILD_ENTERPRISE_DIR to $override so make uses the cloned checkout."
+}
+
+ensure_enterprise_checkout() {
   if is_true "${CLOUD_AGENT_SKIP_ENTERPRISE:-false}"; then
     log "Skipping enterprise verification because CLOUD_AGENT_SKIP_ENTERPRISE is set."
     return 0
   fi
 
   local target
-  if ! target="$(find_enterprise_checkout)"; then
-    log "Enterprise checkout not found. Ensure the Cursor multi-repo environment includes github.com/mattermost/enterprise."
+  if target="$(find_enterprise_checkout)"; then
+    persist_build_enterprise_dir "$target"
+    log "Enterprise checkout ready at $target."
+    return 0
+  fi
+
+  local dest
+  dest="$(enterprise_clone_dest)"
+  clone_enterprise_checkout "$dest"
+  target="$(realpath -m "$dest")"
+  if ! git -C "$target" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    log "Enterprise clone completed but checkout was not found at $dest."
     return 1
   fi
 
+  persist_build_enterprise_dir "$target"
   log "Enterprise checkout ready at $target."
 }
 
@@ -161,7 +260,7 @@ hydrate_playwright_dependencies() {
 
 ensure_go
 ensure_node
-verify_enterprise_checkout
+ensure_enterprise_checkout
 hydrate_go_dependencies
 hydrate_webapp_dependencies
 hydrate_playwright_dependencies
