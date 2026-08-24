@@ -222,8 +222,7 @@ func (c *CPAField) Patch(patch *PropertyFieldPatch) error {
 // CPAAttrs models. A field read above PropertyFieldMaxHydratedOptions carries
 // PropertyFieldAttributeOptionsOmitted and PropertyFieldAttributeOptionsCount
 // instead of an option list, and those two keys round-trip through CPAAttrs
-// like any other: written back only when OptionsOmitted is true, so a field
-// with an inlined list keeps its attrs blob byte-for-byte unchanged.
+// like any other.
 func (c *CPAField) ToPropertyField() *PropertyField {
 	pf := c.PropertyField
 
