@@ -1064,6 +1064,11 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await expect(page.getByTestId('attributeTypeMenuButton')).toBeEnabled();
 
                 await page.getByTestId('saveSetting').click();
+
+                // # Removing a resource with stored values warns before deleting it
+                await expect(page.getByRole('dialog')).toBeVisible();
+                await page.getByRole('button', {name: 'Remove and save', exact: true}).click();
+
                 await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
 
                 const remaining = await fetchLinkedFieldsForTemplate(adminClient, field.id);
@@ -1119,6 +1124,175 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await page.getByTestId('saveSetting').click();
                 await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
 
+                const remaining = await fetchLinkedFieldsForTemplate(adminClient, field.id);
+                expect(remaining).toHaveLength(1);
+                expect(remaining[0].id).toBe(linked.id);
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Locks the Unique name while any Applies-to resource is persisted -- renaming
+         * would leave those linked fields on the old identifier, since the server does not
+         * propagate a template rename onto them.
+         */
+        test('locks Unique name editing while a resource is applied, and unlocks only once Save persists its removal', async ({
+            pw,
+        }) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_edit_name_lock_${timestamp}`;
+            const displayName = `Playwright Name Lock ${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+                await createLinkedDependentField(adminClient, name, field.id, 'text', 'user');
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+
+                await expect(page.getByTestId('attributeAppliesToRow-user')).toBeVisible();
+                await expect(page.getByTestId('attributeNameEditLink')).toBeDisabled();
+
+                // # A pending local removal does not unlock the Name -- the dependent field is
+                // still live on the server until Save actually removes it
+                await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+                await page.getByTestId('attributeAppliesToRow-user-remove').click();
+                await expect(page.getByTestId('attributeAppliesToRow-user')).toHaveCount(0);
+                await expect(page.getByTestId('attributeNameEditLink')).toBeDisabled();
+
+                await page.getByTestId('saveSetting').click();
+                await expect(page.getByRole('dialog')).toBeVisible();
+                await page.getByRole('button', {name: 'Remove and save', exact: true}).click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                // * Only once the removal is actually persisted does re-opening the attribute
+                // show the Name as editable
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+                await expect(page.getByTestId('attributeAppliesToRow-user')).toHaveCount(0);
+                await expect(page.getByTestId('attributeNameEditLink')).toBeEnabled();
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Declining the remove-applies-to warning aborts the save entirely -- no PATCH,
+         * no DELETE, and the admin stays on the form with the persisted linked field untouched.
+         */
+        test('cancelling the remove-applies-to warning leaves the linked field untouched', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_edit_cancel_remove_${timestamp}`;
+            const displayName = `Playwright Cancel Remove ${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+                const linked = await createLinkedDependentField(adminClient, name, field.id, 'text', 'user');
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+
+                await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+                await page.getByTestId('attributeAppliesToRow-user-remove').click();
+                await expect(page.getByTestId('attributeAppliesToRow-user')).toHaveCount(0);
+
+                await page.getByTestId('saveSetting').click();
+                await expect(page.getByRole('dialog')).toBeVisible();
+                await page.getByRole('button', {name: 'Cancel', exact: true}).click();
+
+                // * Still on the form, Save re-clickable, nothing sent to the server
+                await expect(page).toHaveURL(new RegExp(`attribute_details/${field.id}$`));
+                await expect(page.getByTestId('saveSetting')).toBeEnabled();
+
+                const remaining = await fetchLinkedFieldsForTemplate(adminClient, field.id);
+                expect(remaining).toHaveLength(1);
+                expect(remaining[0].id).toBe(linked.id);
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Regression guard for the ordering bug: when the type is not changing, a
+         * failed PATCH (e.g. a name conflict) must abort the save before the confirmed removal's
+         * DELETE ever runs -- otherwise the linked field's stored values are lost even though
+         * Save reported failure.
+         */
+        test('does not delete a confirmed-removed linked field when the PATCH fails and type is unchanged', async ({
+            pw,
+        }) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_edit_patch_fail_${timestamp}`;
+            const displayName = `Playwright Patch Fail ${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+                const linked = await createLinkedDependentField(adminClient, name, field.id, 'text', 'user');
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+
+                await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+                await page.getByTestId('attributeAppliesToRow-user-remove').click();
+                await expect(page.getByTestId('attributeAppliesToRow-user')).toHaveCount(0);
+
+                // # Force the template PATCH to fail for a reason unrelated to type (e.g. a
+                // name conflict), without touching the DELETE/POST linked-field requests
+                await page.route(
+                    `**/api/v4/properties/groups/access_control/template/fields/${field.id}`,
+                    async (route) => {
+                        if (route.request().method() === 'PATCH') {
+                            await route.fulfill({
+                                status: 400,
+                                contentType: 'application/json',
+                                body: JSON.stringify({
+                                    id: 'app.property_field.update.name_conflict.app_error',
+                                    message: 'forced name conflict',
+                                }),
+                            });
+                        } else {
+                            await route.continue();
+                        }
+                    },
+                );
+
+                await page.getByTestId('saveSetting').click();
+                await expect(page.getByRole('dialog')).toBeVisible();
+                await page.getByRole('button', {name: 'Remove and save', exact: true}).click();
+
+                // * Save reports failure and stays on the form
+                await expect(page.getByTestId('attributeSaveError')).toBeVisible();
+                await expect(page).toHaveURL(new RegExp(`attribute_details/${field.id}$`));
+
+                // * The linked field survives -- PATCH ran (and failed) before any DELETE could
                 const remaining = await fetchLinkedFieldsForTemplate(adminClient, field.id);
                 expect(remaining).toHaveLength(1);
                 expect(remaining[0].id).toBe(linked.id);

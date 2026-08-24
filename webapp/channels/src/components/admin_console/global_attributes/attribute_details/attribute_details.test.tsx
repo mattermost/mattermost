@@ -1283,6 +1283,15 @@ describe('AttributeDetails', () => {
             expect(screen.queryByTestId('attributeTypeLockWrap')).not.toBeInTheDocument();
         });
 
+        it('locks Name editing while the attribute is currently applied to a resource', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+            renderEdit();
+            await waitForForm();
+
+            expect(screen.getByTestId('attributeNameEditLink')).toBeDisabled();
+            expect(screen.getByTestId('attributeNameEditLinkLockWrap')).toBeInTheDocument();
+        });
+
         it('does not DELETE a persisted resource until Save, then DELETEs only removed types', async () => {
             mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field'), makeLinked('channel', 'channel-field')]);
             const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
@@ -1298,11 +1307,33 @@ describe('AttributeDetails', () => {
             expect(deletePropertyField).not.toHaveBeenCalled();
 
             await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(await screen.findByRole('button', {name: /remove and save/i}));
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
 
             expect(deletePropertyField).toHaveBeenCalledTimes(1);
             expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field');
             expect(createPropertyField).not.toHaveBeenCalled();
+        });
+
+        it('aborts the save without deleting anything when the remove-applies-to confirmation is declined', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+            const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField');
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+            await waitFor(() => expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument());
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(await screen.findByRole('button', {name: /^cancel$/i}));
+
+            expect(deletePropertyField).not.toHaveBeenCalled();
+            expect(patchPropertyField).not.toHaveBeenCalled();
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+            expect(screen.getByTestId('saveSetting')).toBeEnabled();
         });
 
         it('POSTs only newly added resource types and skips types that were already persisted', async () => {
@@ -1368,11 +1399,41 @@ describe('AttributeDetails', () => {
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
             await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering{Enter}');
             await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(await screen.findByRole('button', {name: /remove and save/i}));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(deletePropertyField).toHaveBeenCalled();
             expect(patchPropertyField).toHaveBeenCalled();
             expect(callOrder).toEqual(['delete', 'patch']);
+        });
+
+        it('PATCHes before DELETEing when the type has not changed, and does not delete on PATCH failure', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+            const callOrder: string[] = [];
+            const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockImplementation(async () => {
+                callOrder.push('delete');
+                return {status: 'OK'};
+            });
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation(async () => {
+                callOrder.push('patch');
+                throw makeClientError('app.property_field.update.name_conflict.app_error');
+            });
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+            await waitFor(() => expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument());
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(await screen.findByRole('button', {name: /remove and save/i}));
+
+            expect(await screen.findByTestId('attributeSaveError')).toBeInTheDocument();
+            expect(patchPropertyField).toHaveBeenCalledTimes(1);
+            expect(deletePropertyField).not.toHaveBeenCalled();
+            expect(callOrder).toEqual(['patch']);
+            expect(mockHistoryPush).not.toHaveBeenCalled();
         });
 
         it('redirects to the listing when the field is plugin-owned', async () => {

@@ -37,6 +37,7 @@ import AttributeExternalSource from './attribute_external_source';
 import type {ExternalSource} from './attribute_external_source';
 import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
+import {useConfirmRemoveAppliesTo} from './attribute_remove_applies_to_warning_modal';
 
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField, typeLabels} from '../global_attributes_table';
@@ -310,6 +311,14 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const persistedLinkedFieldsRef = useRef<Partial<Record<ResourceObjectType, PropertyField>>>({});
     const originalNameRef = useRef('');
 
+    // Compared against the live fieldType at Save time to pick which order
+    // DELETE/PATCH run in (see handleSave) -- the server rejects a type-changing
+    // PATCH while linked fields of the old type still exist
+    // (type_change_with_dependents), so that case must delete first, but doing
+    // so unconditionally would delete linked values on a PATCH failure that has
+    // nothing to do with type (e.g. a name conflict).
+    const originalFieldTypeRef = useRef<AttributeFieldType>('text');
+
     const [saving, setSaving] = useState(false);
     const [errorKind, setErrorKind] = useState<ErrorKind | null>(null);
 
@@ -365,11 +374,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 const linkedByType = linkedFieldsByResourceType(linkedFields);
                 persistedLinkedFieldsRef.current = linkedByType;
                 originalNameRef.current = field.name;
+                const loadedFieldType = isAttributeFieldType(field.type) ? field.type : 'text';
+                originalFieldTypeRef.current = loadedFieldType;
 
                 setDisplayName((field.attrs?.display_name as string | undefined) || '');
                 setManualName(field.name);
                 setIsNameManuallyEdited(true);
-                setFieldType(isAttributeFieldType(field.type) ? field.type : 'text');
+                setFieldType(loadedFieldType);
                 setOptions(optionsFromField(field));
                 setLdapAttr(typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '');
                 setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
@@ -591,7 +602,16 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const hasExternalSource = Boolean(ldapAttr || samlAttr);
     const typeLockedByAppliesTo = isEditMode && appliesTo.length > 0;
     const typeLocked = hasExternalSource || typeLockedByAppliesTo;
+    const typeChanged = isEditMode && fieldType !== originalFieldTypeRef.current;
     const typeSupportsOptions = supportsOptions({type: fieldType} as PropertyField);
+
+    // Unique name is the identifier policies and integrations bind to, and the
+    // server does not copy it onto linked fields. Renaming while any resource
+    // application is persisted would leave those fields on the old identifier,
+    // so the rename is locked until they are removed and saved. Keyed off the
+    // persisted snapshot, not appliesTo, so a pending local remove doesn't
+    // unlock a rename the dependents wouldn't receive.
+    const nameLockedByAppliesTo = isEditMode && Object.keys(persistedLinkedFieldsRef.current).length > 0;
 
     // Defensive re-check, not the primary guard: both options editors already
     // block duplicate names and invalid/duplicate ranks interactively at
@@ -619,6 +639,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     }, [typeSupportsOptions, options, fieldType]);
 
     const canSave = !disabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null && (!isEditMode || isDirty);
+
+    const confirmRemoveAppliesTo = useConfirmRemoveAppliesTo();
 
     // Applies the fully-settled outcome of a save attempt -- the ONLY place in
     // handleSave that reads isMountedRef, checked once after the entire
@@ -656,24 +678,51 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             const toDelete = (Object.keys(persisted) as ResourceObjectType[]).filter((type) => !appliesTo.includes(type));
             const toCreate = appliesTo.filter((type) => !persisted[type]);
 
-            for (const type of toDelete) {
-                const existing = persisted[type];
-                if (!existing) {
-                    continue;
+            // Removing a resource deletes every value stored under its linked
+            // field -- unbounded and irreversible -- so confirm before doing
+            // anything else. Declining aborts the whole save; nothing has been
+            // deleted or patched yet at this point.
+            if (toDelete.length > 0 && !(await confirmRemoveAppliesTo(toDelete))) {
+                setSaving(false);
+                return;
+            }
+
+            // Deletes toDelete's linked fields, stopping (and reporting) at the
+            // first failure. Called from one of two positions below depending on
+            // typeChanged, never both.
+            const deleteRemovedLinkedFields = async (): Promise<boolean> => {
+                for (const type of toDelete) {
+                    const existing = persisted[type];
+                    if (!existing) {
+                        continue;
+                    }
+                    try {
+                        // eslint-disable-next-line no-await-in-loop
+                        await deleteLinkedAttributeField(type, existing.id);
+                        delete persistedLinkedFieldsRef.current[type];
+                    } catch {
+                        finalizeSave({
+                            success: false,
+                            errorKind: 'applies_to_remove_failed',
+                            serverErrorMessage: null,
+                            failedResourceTypes: [type],
+                        });
+                        return false;
+                    }
                 }
-                try {
-                    // eslint-disable-next-line no-await-in-loop
-                    await deleteLinkedAttributeField(type, existing.id);
-                    delete persistedLinkedFieldsRef.current[type];
-                } catch {
-                    finalizeSave({
-                        success: false,
-                        errorKind: 'applies_to_remove_failed',
-                        serverErrorMessage: null,
-                        failedResourceTypes: [type],
-                    });
-                    return;
-                }
+                return true;
+            };
+
+            // A type-changing PATCH 409s server-side while linked fields of the
+            // old type still exist (type_change_with_dependents), so that case
+            // requires DELETE before PATCH. But applying that order
+            // unconditionally means a PATCH failure that has nothing to do with
+            // type (e.g. a name conflict) would still have already deleted every
+            // linked value -- irreversibly, for a save that just failed. So when
+            // the type isn't changing, PATCH runs first and the delete only
+            // happens once it's known to succeed.
+            if (typeChanged && !(await deleteRemovedLinkedFields())) {
+                return;
             }
 
             try {
@@ -692,6 +741,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     serverErrorMessage: (error as ClientError | undefined)?.message ?? null,
                     failedResourceTypes: null,
                 });
+                return;
+            }
+
+            if (!typeChanged && !(await deleteRemovedLinkedFields())) {
                 return;
             }
 
@@ -747,7 +800,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         }
 
         finalizeSave(outcome);
-    }, [canSave, isEditMode, fieldId, nameUnchanged, displayName, currentName, fieldType, options, ldapAttr, samlAttr, appliesTo, finalizeSave]);
+    }, [canSave, isEditMode, fieldId, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, finalizeSave, confirmRemoveAppliesTo]);
 
     const TypeIcon = getTypeIcon(fieldType);
     const typeLockTooltip = hasExternalSource ? formatMessage(messages.typeFieldLockedAriaLabel) : formatMessage(messages.typeLockedAppliesToTooltip);
@@ -920,7 +973,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                     onKeyDown={handleNameKeyDown}
                                                     onBlur={handleDoneClick}
                                                     autoFocus={true}
-                                                    disabled={saving || disabled}
+                                                    disabled={saving || disabled || nameLockedByAppliesTo}
                                                     maxLength={CPA_FIELD_NAME_MAX_RUNES}
                                                     aria-labelledby='attribute-unique-name-prefix'
                                                     aria-describedby={nameDescribedBy}
@@ -936,25 +989,36 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                     {isNameManuallyEdited ? manualName : (autoSlugDisplay ?? '—')}
                                                 </span>
                                             )}
-                                            <button
-                                                type='button'
-                                                className='AttributeDetails__editLink'
-                                                onClick={isEditingName ? handleDoneClick : handleEditClick}
-                                                onMouseDown={(e) => {
-                                                    // Blur runs before click. Without this, Done would
-                                                    // commit on blur and the same click would re-open Edit.
-                                                    if (isEditingName) {
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                disabled={saving || disabled}
-                                                aria-disabled={isDoneBlocked || undefined}
-                                                aria-describedby={isDoneBlocked ? 'attribute-unique-name-error' : undefined}
-                                                aria-label={formatMessage(isEditingName ? messages.doneLinkAriaLabel : messages.editLinkAriaLabel)}
-                                                data-testid='attributeNameEditLink'
-                                            >
-                                                <FormattedMessage {...(isEditingName ? messages.doneLink : messages.editLink)}/>
-                                            </button>
+                                            {(() => {
+                                                const editLinkButton = (
+                                                    <button
+                                                        type='button'
+                                                        className='AttributeDetails__editLink'
+                                                        onClick={isEditingName ? handleDoneClick : handleEditClick}
+                                                        onMouseDown={(e) => {
+                                                            // Blur runs before click. Without this, Done would
+                                                            // commit on blur and the same click would re-open Edit.
+                                                            if (isEditingName) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        disabled={saving || disabled || nameLockedByAppliesTo}
+                                                        aria-disabled={isDoneBlocked || undefined}
+                                                        aria-describedby={isDoneBlocked ? 'attribute-unique-name-error' : undefined}
+                                                        aria-label={nameLockedByAppliesTo ? formatMessage(messages.nameLockedAppliesToAriaLabel) : formatMessage(isEditingName ? messages.doneLinkAriaLabel : messages.editLinkAriaLabel)}
+                                                        data-testid='attributeNameEditLink'
+                                                    >
+                                                        <FormattedMessage {...(isEditingName ? messages.doneLink : messages.editLink)}/>
+                                                    </button>
+                                                );
+                                                return nameLockedByAppliesTo ? (
+                                                    <WithTooltip title={formatMessage(messages.nameLockedAppliesToTooltip)}>
+                                                        <span data-testid='attributeNameEditLinkLockWrap'>
+                                                            {editLinkButton}
+                                                        </span>
+                                                    </WithTooltip>
+                                                ) : editLinkButton;
+                                            })()}
                                         </span>
                                         {nameValidationError && (
                                             <div
@@ -1110,6 +1174,14 @@ const messages = defineMessages({
     editLinkAriaLabel: {id: 'admin.global_attributes.attribute_details.unique_name.edit_aria_label', defaultMessage: 'Edit unique name'},
     doneLink: {id: 'admin.global_attributes.attribute_details.unique_name.done', defaultMessage: 'Done'},
     doneLinkAriaLabel: {id: 'admin.global_attributes.attribute_details.unique_name.done_aria_label', defaultMessage: 'Done editing unique name'},
+    nameLockedAppliesToAriaLabel: {
+        id: 'admin.global_attributes.attribute_details.unique_name.locked_applies_to_aria_label',
+        defaultMessage: 'Edit unique name. Locked while this attribute applies to a resource.',
+    },
+    nameLockedAppliesToTooltip: {
+        id: 'admin.global_attributes.attribute_details.unique_name.locked_applies_to_tooltip',
+        defaultMessage: 'Name cannot be changed while this attribute applies to a resource. Remove and save first.',
+    },
     helperText: {
         id: 'admin.global_attributes.attribute_details.unique_name.helper_text',
         defaultMessage: 'Name is the internal identifier for policies and integrations. Display name is what admins and users see.',
