@@ -34,17 +34,21 @@ describe('AttributeExternalSource', () => {
     it('renders no chips and offers both sources when neither is linked', async () => {
         renderComponent();
 
+        expect(screen.queryByTestId('attributeExternalSourceSynced')).not.toBeInTheDocument();
         expect(screen.queryByTestId(/attributeExternalSourceChip-/)).not.toBeInTheDocument();
+        expect(screen.getByRole('separator')).toBeInTheDocument();
 
         await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
         expect(screen.getByRole('menuitem', {name: /AD\/LDAP/})).toBeInTheDocument();
         expect(screen.getByRole('menuitem', {name: /^SAML/})).toBeInTheDocument();
     });
 
-    it('renders a chip for a linked source and offers only the remaining source', async () => {
+    it('renders a chip for a linked source prefixed by Synced with, and offers only the remaining source', async () => {
         renderComponent({ldapAttr: 'department'});
 
+        expect(screen.getByTestId('attributeExternalSourceSynced')).toHaveTextContent(/^Synced with/);
         expect(screen.getByTestId('attributeExternalSourceChip-ldap')).toBeInTheDocument();
+        expect(screen.queryByRole('separator')).not.toBeInTheDocument();
 
         await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
         expect(screen.getByRole('menuitem', {name: /^SAML/})).toBeInTheDocument();
@@ -63,6 +67,7 @@ describe('AttributeExternalSource', () => {
         expect(screen.getByTestId('attributeExternalSourceChip-ldap')).toBeInTheDocument();
         expect(screen.getByTestId('attributeExternalSourceChip-saml')).toBeInTheDocument();
         expect(screen.queryByTestId('attributeExternalSourceTrigger')).not.toBeInTheDocument();
+        expect(screen.queryByRole('separator')).not.toBeInTheDocument();
     });
 
     it('opens the modal pre-filled and empty when adding a new link, with no type-mismatch warning on a Text field', async () => {
