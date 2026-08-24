@@ -179,7 +179,7 @@ jobs:
     secrets: inherit
     with:
       name: "Postgres FIPS (shard ${{ matrix.shard }})"
-      datasource: postgres://mmuser:mostest_password-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: "postgres-server-fips-test-logs-shard-${{ matrix.shard }}"
       go-version: ${{ needs.go.outputs.version }}
@@ -238,7 +238,7 @@ jobs:
     secrets: inherit
     with:
       name: mmctl
-      datasource: postgres://mmuser:mostest_password-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      datasource: postgres://mmuser:mostest_password@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: mmctl-test-logs
       go-version: ${{ needs.go.outputs.version }}
