@@ -239,19 +239,22 @@ func (h *AccessControlHook) exempt(except []model.Identity, callerID string) boo
 
 // maskValue returns what callerID may see of value, given the masking fm
 // already resolved for the field it belongs to: the value as stored when it
-// overlaps what the caller holds, or nil when it does not. One rule per field
+// overlaps what the caller holds, nil when it does not, and an error when
+// what the caller may see could not be established at all -- a nil value and
+// a nil error both mean "the caller holds none of this", so a caller of
+// maskValue must not treat a non-nil error the same way. One rule per field
 // type, and never a clamp, approximation or placeholder -- callers get part
 // of the truth or none of it.
 //
 // This runs only on the branch permissionsAllows already admitted; a caller
 // the gate refused never reaches it, and masking can only narrow that answer
 // further, never grant a read the gate denied.
-func (h *AccessControlHook) maskValue(rctx request.CTX, c maskingContext, field *model.PropertyField, fm fieldMasking, value *model.PropertyValue, callerID string) *model.PropertyValue {
+func (h *AccessControlHook) maskValue(rctx request.CTX, c maskingContext, field *model.PropertyField, fm fieldMasking, value *model.PropertyValue, callerID string) (*model.PropertyValue, error) {
 	switch field.Type {
 	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeMultiselect, model.PropertyFieldTypeRank, model.PropertyFieldTypeGraph:
 		return h.maskOptionValue(rctx, c, field, fm, value, callerID)
 	default:
-		return h.maskScalarValue(rctx, c, field, fm, value, callerID)
+		return h.maskScalarValue(c, field, fm, value, callerID)
 	}
 }
 
@@ -260,12 +263,15 @@ func (h *AccessControlHook) maskValue(rctx request.CTX, c maskingContext, field 
 // don't know" rather than as the ordinary, expected "the caller holds
 // nothing" -- the two look identical to the caller but must not look
 // identical to whoever reads the log. Never logs the value itself or the
-// caller's holdings; that is exactly what masking exists to withhold. Shared
-// by every masking filter regardless of field type. The legacy shared_only
-// path's logHiddenGraphValue logs the equivalent failure for its own
-// graph-only clamp; the two stay separate because masking and shared_only
-// disagree on purpose about what a caller sees when they hold only some of
-// an option's ancestors, and merging the logging would blur that.
+// caller's holdings; that is exactly what masking exists to withhold. Called
+// once, from the read path that hides the value on this error
+// (applyValueReadAccessControl); the write path that refuses on this error
+// reports it as a failure instead, so it has no log line of its own. The
+// legacy shared_only path's logHiddenGraphValue logs the equivalent failure
+// for its own graph-only clamp; the two stay separate because masking and
+// shared_only disagree on purpose about what a caller sees when they hold
+// only some of an option's ancestors, and merging the logging would blur
+// that.
 func logMaskingFailure(rctx request.CTX, field *model.PropertyField, value *model.PropertyValue, err error) {
 	rctx.Logger().Error(
 		"Hiding a masked property value because what the caller may see of it could not be established",
@@ -282,22 +288,22 @@ func logMaskingFailure(rctx request.CTX, field *model.PropertyField, value *mode
 // option-list filters (maskFieldOptions, filterMaskedOptionPage) already use.
 // select and rank hold at most one option, so the narrowed set has at most
 // one element; multiselect's and graph's may have several. A caller holding
-// nothing, or a narrowed set of none, sees nothing.
-func (h *AccessControlHook) maskOptionValue(rctx request.CTX, c maskingContext, field *model.PropertyField, fm fieldMasking, value *model.PropertyValue, callerID string) *model.PropertyValue {
+// nothing, or a narrowed set of none, sees nothing -- reported as (nil, nil),
+// the same as a genuine empty overlap; an error return means visibility could
+// not be established at all, which the caller must not treat the same way.
+func (h *AccessControlHook) maskOptionValue(rctx request.CTX, c maskingContext, field *model.PropertyField, fm fieldMasking, value *model.PropertyValue, callerID string) (*model.PropertyValue, error) {
 	targetOptionIDs, err := h.extractOptionIDsFromValue(field.Type, value.Value)
 	if err != nil {
-		logMaskingFailure(rctx, field, value, err)
-		return nil
+		return nil, err
 	}
 	if len(targetOptionIDs) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	candidateIDs := slices.Collect(maps.Keys(targetOptionIDs))
 	visible, err := c.visibleOptionIDs(h, rctx, field, fm, candidateIDs, callerID)
 	if err != nil {
-		logMaskingFailure(rctx, field, value, err)
-		return nil
+		return nil, err
 	}
 
 	intersection := make([]string, 0, len(candidateIDs))
@@ -307,7 +313,7 @@ func (h *AccessControlHook) maskOptionValue(rctx request.CTX, c maskingContext, 
 		}
 	}
 	if len(intersection) == 0 {
-		return nil
+		return nil, nil
 	}
 	// Sorted so a multiselect or graph value's options come back in the same
 	// order on every read -- they are built by ranging over a map, which
@@ -324,12 +330,11 @@ func (h *AccessControlHook) maskOptionValue(rctx request.CTX, c maskingContext, 
 
 	jsonValue, marshalErr := json.Marshal(toMarshal)
 	if marshalErr != nil {
-		logMaskingFailure(rctx, field, value, marshalErr)
-		return nil
+		return nil, marshalErr
 	}
 	filtered := *value
 	filtered.Value = jsonValue
-	return &filtered
+	return &filtered, nil
 }
 
 // visibleOptionIDs answers, for a field already known to carry masking, which
@@ -478,29 +483,30 @@ func (h *AccessControlHook) filterMaskedOptionPage(rctx request.CTX, c maskingCo
 
 // maskScalarValue applies binary masking to a non-option field's value: the
 // value as stored when it equals one of the caller's own stored values on the
-// holdings field (compared as stored bytes), nil otherwise. Caller and target
-// may legitimately store nothing, in which case the value is hidden.
-func (h *AccessControlHook) maskScalarValue(rctx request.CTX, c maskingContext, field *model.PropertyField, fm fieldMasking, value *model.PropertyValue, callerID string) *model.PropertyValue {
+// holdings field (compared as stored bytes), nil otherwise -- and an error
+// when the caller's holdings could not be searched, which is not the same
+// answer as nil and must not be read as one. Caller and target may
+// legitimately store nothing, in which case the value is hidden.
+func (h *AccessControlHook) maskScalarValue(c maskingContext, field *model.PropertyField, fm fieldMasking, value *model.PropertyValue, callerID string) (*model.PropertyValue, error) {
 	if value == nil || len(value.Value) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	callerValues, err := c.callerValuesForHoldings(h, field.GroupID, fm.holdingsFieldID, callerID)
 	if err != nil {
-		logMaskingFailure(rctx, field, value, err)
-		return nil
+		return nil, err
 	}
 	if len(callerValues) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	for _, cv := range callerValues {
 		if bytes.Equal(cv.Value, value.Value) {
 			filtered := *value
-			return &filtered
+			return &filtered, nil
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 // storedValue returns the value currently stored at (fieldID, targetID), nil
@@ -553,6 +559,14 @@ func (c maskingContext) primeStoredValue(fieldID, targetID string, value *model.
 // overlap rules, so the rule holds for every field type the same way the
 // read filter already does.
 //
+// maskValue answers "cannot see" and "could not establish what they see"
+// both with a nil value, which are not the same situation: the first is
+// ErrAccessDenied, ordinary and fail-closed exactly like the read path; the
+// second is a store or parse failure that gets no fairer a hearing by being
+// told to the caller as a refusal, and a client has no reason to retry a
+// refusal the way it would retry a server error. So that second case is
+// returned wrapped for context and never folded into ErrAccessDenied.
+//
 // Runs only once the permission decision has already admitted the write; it
 // can only refuse a write the gate would otherwise allow, never grant one it
 // denied.
@@ -575,10 +589,13 @@ func (h *AccessControlHook) checkValueWriteVisibility(rctx request.CTX, mc maski
 		return nil
 	}
 
-	masked := h.maskValue(rctx, mc, field, fm, existing, callerID)
+	masked, err := h.maskValue(rctx, mc, field, fm, existing, callerID)
+	if err != nil {
+		return fmt.Errorf("field %s: could not establish what caller %q may see of the value already stored at target %q: %w", field.ID, callerID, valueTargetID, err)
+	}
 	visible, err := h.valueFullyVisible(field, existing, masked)
 	if err != nil {
-		return err
+		return fmt.Errorf("field %s: could not establish what caller %q may see of the value already stored at target %q: %w", field.ID, callerID, valueTargetID, err)
 	}
 	if !visible {
 		return fmt.Errorf("field %s refuses caller %q a write on target %q: the stored value contains data the caller may not read: %w", field.ID, callerID, valueTargetID, ErrAccessDenied)

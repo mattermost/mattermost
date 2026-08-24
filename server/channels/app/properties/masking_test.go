@@ -910,6 +910,23 @@ func TestValueWriteVisibility(t *testing.T) {
 		require.NoError(t, createErr, "no stored value yet means nothing is hidden, so a caller who holds nothing may still tag an untagged object")
 	})
 
+	t.Run("a masking failure during a write is reported as a failure, not a refusal", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Write-MaskingFailure", model.PropertyFieldTypeText, &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		existing := writeValueDirect(t, th, field.ID, "channel", model.NewId(), "secret")
+
+		original := th.service.valueStore
+		th.service.valueStore = &erroringSearchValueStore{PropertyValueStore: original}
+		t.Cleanup(func() { th.service.valueStore = original })
+
+		existing.Value = json.RawMessage(`"changed"`)
+		_, upErr := th.service.UpdatePropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, existing)
+		require.Error(t, upErr)
+		assert.NotErrorIs(t, upErr, ErrAccessDenied, "a masking failure must surface as a server error, not as a refusal")
+	})
+
 	t.Run("a caller listed in except is never refused", func(t *testing.T) {
 		exemptCaller := model.NewId()
 		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Write-Exempt", model.PropertyFieldTypeText, &model.Masking{

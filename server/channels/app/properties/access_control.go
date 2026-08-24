@@ -1935,7 +1935,12 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 				filtered = append(filtered, value)
 				continue
 			}
-			if maskedValue := h.maskValue(rctx, mc, field, fm, value, callerID); maskedValue != nil {
+			maskedValue, err := h.maskValue(rctx, mc, field, fm, value, callerID)
+			if err != nil {
+				// Hide rather than fail the read: what one value's filter could not
+				// establish must not turn into an error for the whole list.
+				logMaskingFailure(rctx, field, value, err)
+			} else if maskedValue != nil {
 				filtered = append(filtered, maskedValue)
 			}
 			continue
