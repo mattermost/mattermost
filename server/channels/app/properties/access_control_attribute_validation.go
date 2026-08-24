@@ -549,12 +549,13 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 }
 
 // optionsMissing checks that every one of optionIDs is in existing, returning
-// an error naming the first one that is not. existing is normally the result
-// of one GetExistingOptionIDs call covering every value in a batch that names
-// options on the same field, so this itself never touches the store.
-func optionsMissing(optionIDs, existing []string) error {
+// an error naming the first one that is not. existing is normally the set of
+// IDs one GetExistingOptionIDs call returned, covering every value in a batch
+// that names options on the same field, so this itself never touches the
+// store.
+func optionsMissing(optionIDs []string, existing map[string]struct{}) error {
 	for _, id := range optionIDs {
-		if !slices.Contains(existing, id) {
+		if _, ok := existing[id]; !ok {
 			return fmt.Errorf("option %q does not exist", id)
 		}
 	}
@@ -743,13 +744,17 @@ func (h *AccessControlAttributeValidationHook) validateValues(values []*model.Pr
 		}
 	}
 
-	existingByField := make(map[string][]string, len(neededByField))
+	existingByField := make(map[string]map[string]struct{}, len(neededByField))
 	for fieldID, optionIDs := range neededByField {
 		existing, err := h.propertyService.fieldStore.GetExistingOptionIDs(fieldMap[fieldID], optionIDs)
 		if err != nil {
 			return fmt.Errorf("failed to look up the options of field %s: %w", fieldID, err)
 		}
-		existingByField[fieldID] = existing
+		existingSet := make(map[string]struct{}, len(existing))
+		for _, id := range existing {
+			existingSet[id] = struct{}{}
+		}
+		existingByField[fieldID] = existingSet
 	}
 
 	for _, p := range pending {
