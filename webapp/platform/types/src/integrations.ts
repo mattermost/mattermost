@@ -217,7 +217,6 @@ export type DialogElement = {
         row_selection?: 'multiple' | 'single';
     };
 
-
     // Action button configuration (type "action_button")
     action_button?: {
         url: string;
