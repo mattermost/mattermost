@@ -7,6 +7,7 @@ exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should
   >
     <img
       alt="completed tasks image"
+      src="completed.svg"
     />
     <h2>
       Well done. You’ve completed all of the tasks!

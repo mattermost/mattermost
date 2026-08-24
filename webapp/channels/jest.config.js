@@ -26,8 +26,6 @@ const config = {
             '<rootDir>/src/packages/mattermost-redux/test/$1',
         '^mattermost-redux/(.*)$': '<rootDir>/src/packages/mattermost-redux/src/$1',
         '^pdfjs-dist/.*': '<rootDir>/src/tests/pdfjs_mock.ts',
-        '^.+\\.(jpg|jpeg|png|apng|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
-            '<rootDir>/src/tests/image_url_mock.json',
         '^.+\\.(css|less|scss)$': 'identity-obj-proxy',
         '^.*i18n.*\\.(json)$': '<rootDir>/src/tests/i18n_mock.json',
     },
@@ -38,6 +36,8 @@ const config = {
     ],
     transform: {
         '^.+\\.(js|jsx|ts|tsx|mjs)$': 'babel-jest',
+        '^.+\\.(jpg|jpeg|png|apng|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
+            '<rootDir>/src/tests/image_url_mock.js',
     },
     setupFiles: ['jest-canvas-mock'],
     setupFilesAfterEnv: ['<rootDir>/src/tests/setup_jest.ts'],

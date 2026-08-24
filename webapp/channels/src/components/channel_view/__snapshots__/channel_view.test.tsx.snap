@@ -20,6 +20,7 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
             alt=""
             class="overlay__files"
             loading="lazy"
+            src="fileOverlay.svg"
           />
           Drop a file to upload it.
         </div>
@@ -73,6 +74,7 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
             alt=""
             class="overlay__files"
             loading="lazy"
+            src="fileOverlay.svg"
           />
           Drop a file to upload it.
         </div>
@@ -125,6 +127,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
             alt=""
             class="overlay__files"
             loading="lazy"
+            src="fileOverlay.svg"
           />
           Drop a file to upload it.
         </div>
