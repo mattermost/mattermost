@@ -977,12 +977,35 @@ func TestFullyQualifiedRedirectURL(t *testing.T) {
 		"https://xxx.yyy/mm/some-path?foo=bar": siteURL + "/some-path?foo=bar",
 		"https://xxx.yyy/mm/some-path#section": siteURL + "/some-path#section",
 		"https://xxx.yyy/mm/../malicious-path": siteURL,
+		"https://xxx.yyy/mmfoo":                siteURL, // segment boundary: /mmfoo is not under /mm
 		":foo":                                 siteURL,
 		"mmauth://callback":                    "mmauth://callback",
 		"mmauth://xxx.yyy/mm":                  siteURL, // invalid mobile URL (wrong host)
 	} {
 		t.Run(target, func(t *testing.T) {
 			require.Equal(t, expected, fullyQualifiedRedirectURL(siteURL, target, []string{"mmauth://"}))
+		})
+	}
+
+	// Root SiteURL (empty path). SetSiteURLHeader strips the trailing slash, so
+	// the site path is "" and path.Clean gives ".". Same-origin relative targets
+	// (e.g. the /oauth/authorize resume after SSO login) must be preserved, while
+	// cross-origin targets must still collapse to the site root.
+	const rootSiteURL = "https://xxx.yyy"
+
+	for target, expected := range map[string]string{
+		"":                         rootSiteURL,
+		"/":                        rootSiteURL + "/",
+		"/oauth/authorize?foo=bar": rootSiteURL + "/oauth/authorize?foo=bar",
+		"/oauth/authorize?response_type=code&client_id=abc&state=x": rootSiteURL + "/oauth/authorize?response_type=code&client_id=abc&state=x",
+		"//evil.com":                rootSiteURL,
+		"https://yyy.zzz/some-path": rootSiteURL,
+		"https://xxx.yyy/some-path": rootSiteURL + "/some-path",
+		"https://xxx.yyy?foo=bar":   rootSiteURL + "?foo=bar",
+		"https://xxx.yyy#section":   rootSiteURL + "#section",
+	} {
+		t.Run("root/"+target, func(t *testing.T) {
+			require.Equal(t, expected, fullyQualifiedRedirectURL(rootSiteURL, target, []string{"mmauth://"}))
 		})
 	}
 }

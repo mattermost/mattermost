@@ -12,7 +12,9 @@
 
 import * as TIMEOUTS from '@/fixtures/timeouts';
 
-describe('Move Thread', () => {
+// Skipped: MoveThreadsEnabled is retired and rejected by Config.IsValid (MM-69646).
+// These specs require the flag and cannot run while the server refuses to enable it.
+describe.skip('Move Thread', () => {
     let user1;
     let user2;
     let testTeam;
