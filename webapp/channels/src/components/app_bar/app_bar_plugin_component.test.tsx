@@ -80,23 +80,21 @@ describe('components/app_bar/app_bar_plugin_component', () => {
     let store: Store;
 
     // Mirrors what plugins do in their action: toggle their own registered RHS component.
-    const toggleRhs = jest.fn(() => {
-        store.dispatch(toggleRHSPlugin(rhsComponentId));
-    });
-
     const channelHeaderButton: ChannelHeaderButtonAction = {
         id: 'the_channel_header_button_id',
         pluginId,
         icon: <i className='icon icon-test'/>,
         dropdownText: 'Test Plugin',
         tooltipText: 'Test Plugin',
-        action: toggleRhs,
+        action: jest.fn(() => {
+            store.dispatch(toggleRHSPlugin(rhsComponentId));
+        }),
     };
 
     const appBarActionWithRhs: AppBarAction = {
         id: 'the_app_bar_action_id',
         pluginId,
-        iconUrl: '',
+        iconUrl: 'http://localhost:8065/plugins/com.mattermost.test-plugin/public/icon.svg',
         supportedProductIds: null,
         tooltipText: 'Test Plugin',
         rhsComponentId,
@@ -119,9 +117,6 @@ describe('components/app_bar/app_bar_plugin_component', () => {
         expect(getIsRhsOpen(store.getState())).toBe(true);
         expect(getRhsState(store.getState())).toBe(RHSStates.PLUGIN);
         expect(getPluggableId(store.getState())).toBe(rhsComponentId);
-
-        // The icon reflects the open panel back to the user.
-        expect(screen.getByRole('button')).toHaveClass('app-bar__old-icon--active');
     };
 
     beforeEach(() => {
@@ -161,11 +156,15 @@ describe('components/app_bar/app_bar_plugin_component', () => {
             expectRhsToBeOpen();
         });
 
-        test('should close the plugin RHS when clicked again with no channel in context', async () => {
+        test('should highlight the icon while its RHS is open and stop highlighting it once closed', async () => {
             renderAppBarIcon(channelHeaderButton, noChannelState);
 
+            expect(screen.getByRole('button')).not.toHaveClass('app-bar__old-icon--active');
+
             await userEvent.click(screen.getByRole('button'));
+
             expectRhsToBeOpen();
+            expect(screen.getByRole('button')).toHaveClass('app-bar__old-icon--active');
 
             await userEvent.click(screen.getByRole('button'));
 
@@ -182,6 +181,7 @@ describe('components/app_bar/app_bar_plugin_component', () => {
             await userEvent.click(screen.getByRole('button'));
 
             expectRhsToBeOpen();
+            expect(screen.getByRole('button').closest('.app-bar__icon')).toHaveClass('app-bar__icon--active');
 
             // The registry wires this action to a toggler which takes no channel context.
             expect(appBarActionWithRhs.action).toHaveBeenCalledWith();
