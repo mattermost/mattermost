@@ -53,11 +53,6 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 	cfg := w.srv.Config()
 	subpath, _ := utils.GetSubpathFromConfig(cfg)
 
-	enableConcurrentReact := false
-	if cfg.FeatureFlags != nil {
-		enableConcurrentReact = cfg.FeatureFlags.EnableConcurrentReact
-	}
-
 	return &Handler{
 		Srv:            w.srv,
 		HandleFunc:     h,
@@ -67,7 +62,7 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 		RequireMfa:     false,
 		IsStatic:       true,
 
-		cspShaDirective: utils.GetStaticScriptHashes(subpath, enableConcurrentReact),
+		cspShaDirective: utils.GetStaticScriptHashes(subpath),
 	}
 }
 
