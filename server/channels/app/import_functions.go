@@ -2567,6 +2567,10 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		var err *model.AppError
 		for _, username := range *line.DirectPost.ChannelMembers {
 			user := users[strings.ToLower(username)]
+			if user == nil {
+				rctx.Logger().Warn("Skipping direct post channel member not found on destination during scoped import", mlog.String("username", username), mlog.Int("line_number", line.LineNumber))
+				continue
+			}
 			userIDs = append(userIDs, user.Id)
 		}
 
@@ -2590,6 +2594,10 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		}
 
 		user := users[strings.ToLower(*line.DirectPost.User)]
+		if user == nil {
+			rctx.Logger().Warn("Skipping direct post from user not found on destination during scoped import", mlog.String("username", *line.DirectPost.User), mlog.Int("line_number", line.LineNumber))
+			continue
+		}
 
 		// Check if this post already exists.
 		posts, nErr := a.Srv().Store().Post().GetPostsCreatedAt(channel.Id, *line.DirectPost.CreateAt)
