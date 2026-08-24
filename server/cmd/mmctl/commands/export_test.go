@@ -396,7 +396,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 
 		err := exportCreateCmdF(s.client, cmd, nil)
 		s.Require().NotNil(err)
-		s.Contains(err.Error(), "does not belong to team")
+		s.Contains(err.Error(), "does not belong to any of the specified teams")
 		s.Empty(printer.GetLines())
 	})
 
@@ -424,7 +424,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 
 		err := exportCreateCmdF(s.client, cmd, nil)
 		s.Require().NotNil(err)
-		s.Contains(err.Error(), "does not belong to team")
+		s.Contains(err.Error(), "does not belong to any of the specified teams")
 		s.Empty(printer.GetLines())
 	})
 

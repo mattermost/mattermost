@@ -1121,6 +1121,32 @@ func TestPreCreateSSOUser(t *testing.T) {
 		assert.Equal(t, ad, *created.AuthData)
 	})
 
+	t.Run("returns error and does not panic on nil Username", func(t *testing.T) {
+		email := model.NewId() + "@example.com"
+		ad := model.NewId()
+		data := &imports.UserImportData{
+			Username:    nil,
+			Email:       &email,
+			AuthService: &authService,
+			AuthData:    authData(ad),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, false)
+		require.NotNil(t, appErr)
+	})
+
+	t.Run("returns error and does not panic on nil Email", func(t *testing.T) {
+		username := model.NewUsername()
+		ad := model.NewId()
+		data := &imports.UserImportData{
+			Username:    &username,
+			Email:       nil,
+			AuthService: &authService,
+			AuthData:    authData(ad),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, false)
+		require.NotNil(t, appErr)
+	})
+
 	t.Run("leaves existing user with conflicting auth_service untouched", func(t *testing.T) {
 		user := th.CreateUser(t)
 		samlService := model.UserAuthServiceSaml

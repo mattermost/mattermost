@@ -18,6 +18,8 @@ import (
 	"text/template"
 	"time"
 
+	"golang.org/x/term"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
 
@@ -379,16 +381,16 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	}
 
 	// Check for a previous failed import of the same file with a checkpoint.
-	// If found, ask the user whether to resume or start fresh.
-	if checkpoint, checkpointFile, totalLines := findImportCheckpoint(c, importFile); checkpoint > 0 && checkpointFile == importFile {
+	// If stdin is not a terminal (CI/pipes) skip the prompt entirely — auto-resuming
+	// on EOF would silently replay a partial import without the user's consent.
+	if checkpoint, checkpointFile, totalLines := findImportCheckpoint(c, importFile); checkpoint > 0 && checkpointFile == importFile && term.IsTerminal(int(os.Stdin.Fd())) {
 		if totalLines > 0 {
 			pct := float64(checkpoint) / float64(totalLines) * 100
-			fmt.Printf("\nA previous import of '%s' was interrupted at line %d of %d (%.0f%% complete).\n",
-				importFile, checkpoint, totalLines, pct)
+			printer.Print(fmt.Sprintf("\nA previous import of '%s' was interrupted at line %d of %d (%.0f%% complete).", importFile, checkpoint, totalLines, pct))
 		} else {
-			fmt.Printf("\nA previous import of '%s' was interrupted at line %d.\n", importFile, checkpoint)
+			printer.Print(fmt.Sprintf("\nA previous import of '%s' was interrupted at line %d.", importFile, checkpoint))
 		}
-		fmt.Println("Resume from that point? Starting fresh will re-import everything from the beginning.")
+		printer.Print("Resume from that point? Starting fresh will re-import everything from the beginning.")
 		fmt.Print("[Y/n]: ")
 		reader := bufio.NewReader(os.Stdin)
 		answer, _ := reader.ReadString('\n')
@@ -396,9 +398,9 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 		if answer == "" || answer == "y" || answer == "yes" {
 			jobData["checkpoint"] = strconv.Itoa(checkpoint)
 			jobData["checkpoint_file"] = checkpointFile
-			fmt.Printf("Resuming from line %d.\n", checkpoint)
+			printer.Print(fmt.Sprintf("Resuming from line %d.", checkpoint))
 		} else {
-			fmt.Println("Starting fresh.")
+			printer.Print("Starting fresh.")
 		}
 	}
 

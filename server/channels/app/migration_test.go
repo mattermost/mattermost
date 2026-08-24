@@ -1879,3 +1879,111 @@ func TestTeamMigrationMultipleChannelsRoundTrip(t *testing.T) {
 			chanName, srcCount, destCount)
 	}
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// IMP-07: --destination-channel-name fails fast when export lacks channel scope
+// ────────────────────────────────────────────────────────────────────────────
+
+// TestDestinationChannelNameFailsWithNoMetadata verifies that specifying
+// --destination-channel-name against an export that has no Additional metadata
+// on the version line returns an error rather than silently doing nothing.
+func TestDestinationChannelNameFailsWithNoMetadata(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	version := 1
+	var sb strings.Builder
+	enc := json.NewEncoder(&sb)
+	// Version line with no Additional field — simulates old or full exports.
+	require.NoError(t, enc.Encode(imports.LineImportData{
+		Type:    "version",
+		Version: &version,
+	}))
+
+	_, appErr := th.App.BulkImportWithPathAndOpts(
+		th.Context,
+		strings.NewReader(sb.String()),
+		nil,
+		false,
+		false,
+		1,
+		"",
+		model.BulkImportOpts{DestinationChannelName: "any-dest-channel"},
+	)
+	require.NotNil(t, appErr, "should fail fast when export has no scope metadata")
+	assert.Equal(t, "app.import.bulk_import.destination_channel_requires_channel_scope.error", appErr.Id)
+}
+
+// TestDestinationChannelNameFailsWithTeamScopedExport verifies that specifying
+// --destination-channel-name against a team-scoped (non-channel-scoped) export
+// returns an error rather than silently doing nothing.
+func TestDestinationChannelNameFailsWithTeamScopedExport(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// Team-only export: ChannelName intentionally left empty.
+	var buf bytes.Buffer
+	appErr := th.App.BulkExport(th.Context, &buf, "", nil, model.BulkExportOpts{
+		TeamName: th.BasicTeam.Name,
+	})
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.BulkImportWithPathAndOpts(
+		th.Context,
+		&buf,
+		nil,
+		false,
+		false,
+		1,
+		"",
+		model.BulkImportOpts{DestinationChannelName: "any-dest-channel"},
+	)
+	require.NotNil(t, appErr, "should fail fast when export is team-scoped but not channel-scoped")
+	assert.Equal(t, "app.import.bulk_import.destination_channel_requires_channel_scope.error", appErr.Id)
+}
+
+// TestDestinationChannelNameRemapsChannel verifies the happy path: a channel-scoped
+// export imported with --destination-channel-name lands under the new channel name.
+func TestDestinationChannelNameRemapsChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+	th1 := Setup(t).InitBasic(t)
+
+	srcTeamName := th1.BasicTeam.Name
+	srcChanName := th1.BasicChannel.Name
+
+	var buf bytes.Buffer
+	appErr := th1.App.BulkExport(th1.Context, &buf, "", nil, model.BulkExportOpts{
+		TeamName:    srcTeamName,
+		ChannelName: srcChanName,
+	})
+	require.Nil(t, appErr)
+
+	var th2 *TestHelper
+	if mainHelper.Options.RunParallel {
+		th1.Store.DropAllTables()
+		th2 = th1
+	} else {
+		th2 = Setup(t)
+	}
+
+	const destChanName = "dst-remap-channel"
+	_, appErr = th2.App.BulkImportWithPathAndOpts(
+		th2.Context,
+		&buf,
+		nil,
+		false,
+		false,
+		1,
+		"",
+		model.BulkImportOpts{DestinationChannelName: destChanName},
+	)
+	require.Nil(t, appErr)
+
+	// The channel must exist under the remapped name on the source team.
+	_, appErr = th2.App.GetChannelByName(th2.Context, destChanName, th2.BasicTeam.Id, false)
+	assert.Nil(t, appErr, "channel must exist under the remapped name after import")
+
+	// The original channel name must not exist (it was rewritten).
+	_, appErr = th2.App.GetChannelByName(th2.Context, srcChanName, th2.BasicTeam.Id, false)
+	assert.NotNil(t, appErr, "source channel name must not exist on destination")
+}

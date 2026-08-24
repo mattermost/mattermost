@@ -299,9 +299,6 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 					if destinationTeam != "" && strings.Contains(sourceTeamName, ",") {
 						return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.destination_team_requires_single_team_scope.error", nil, "--destination-team-name requires a single-team export; this export contains multiple teams", http.StatusBadRequest)
 					}
-					if destinationChannel != "" && sourceChannelName == "" {
-						return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.destination_channel_requires_channel_scope.error", nil, "--destination-channel-name requires a channel-scoped export", http.StatusBadRequest)
-					}
 					if scope.ChannelName != "" || scope.TeamName != "" {
 						deactivateMissingUsers = true
 						if attachmentsReader != nil {
@@ -317,6 +314,13 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 						}
 					}
 				}
+			}
+
+			// Fail fast: if --destination-channel-name was specified but no channel
+			// scope was found in the export metadata (absent, malformed, or team-scoped),
+			// the remap would silently do nothing. Return a clear error instead.
+			if destinationChannel != "" && sourceChannelName == "" {
+				return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.destination_channel_requires_channel_scope.error", nil, "--destination-channel-name requires a channel-scoped export", http.StatusBadRequest)
 			}
 
 			lastLineType = line.Type
@@ -709,10 +713,12 @@ func (a *App) preCreateSSOUsers(rctx request.CTX, zipReader *zip.Reader, dryRun 
 		}
 
 		if line.User == nil ||
+			line.User.Username == nil ||
+			line.User.Email == nil ||
 			line.User.AuthService == nil ||
 			line.User.AuthData == nil ||
 			*line.User.AuthData == "" {
-			continue // skip email-auth users
+			continue // skip email-auth users and malformed lines
 		}
 
 		if dryRun {
@@ -733,6 +739,10 @@ func (a *App) preCreateSSOUsers(rctx request.CTX, zipReader *zip.Reader, dryRun 
 // auth_data set. It tries auth_data first, then username, then creates fresh.
 // Errors are non-fatal — the main import pass will handle unresolved users.
 func (a *App) preCreateSSOUser(rctx request.CTX, data *imports.UserImportData, deactivateMissingUsers bool) *model.AppError {
+	if data == nil || data.Username == nil || data.Email == nil || data.AuthService == nil || data.AuthData == nil {
+		return model.NewAppError("preCreateSSOUser", "app.import.pre_create_sso_user.missing_fields.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	// Already exists by auth_data — nothing to do.
 	if _, nErr := a.Srv().Store().User().GetByAuth(data.AuthData, *data.AuthService); nErr == nil {
 		return nil

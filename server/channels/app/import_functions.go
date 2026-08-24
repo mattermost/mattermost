@@ -1946,10 +1946,15 @@ func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*imports.
 		if _, ok := teamChannels[teamName]; !ok {
 			teamChannels[teamName] = make(map[string]*model.Channel)
 		}
+		team := teams[teamName]
+		if team == nil {
+			// Team not found on destination; caller will nil-check the channel and skip the post.
+			continue
+		}
 		channelName := strings.ToLower(*postData.Channel)
 		if channel, ok := teamChannels[teamName][channelName]; !ok || channel == nil {
 			var err error
-			channel, err = a.Srv().Store().Channel().GetByNameIncludeDeleted(teams[teamName].Id, *postData.Channel, true)
+			channel, err = a.Srv().Store().Channel().GetByNameIncludeDeleted(team.Id, *postData.Channel, true)
 			if err != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]any{"ChannelName": *postData.Channel}, "", http.StatusBadRequest).Wrap(err)
 			}
@@ -2026,11 +2031,21 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 
 	for _, line := range lines {
 		team := teams[strings.ToLower(*line.Post.Team)]
-		channel := channels[*line.Post.Team][*line.Post.Channel]
+		channel := channels[strings.ToLower(*line.Post.Team)][strings.ToLower(*line.Post.Channel)]
 		user := users[strings.ToLower(*line.Post.User)]
 
+		if team == nil {
+			rctx.Logger().Warn("Skipping post for team not found on destination during scoped import", mlog.String("team", *line.Post.Team), mlog.Int("line_number", line.LineNumber))
+			continue
+		}
+
+		if channel == nil {
+			rctx.Logger().Warn("Skipping post for channel not found on destination during scoped import", mlog.String("channel", *line.Post.Channel), mlog.Int("line_number", line.LineNumber))
+			continue
+		}
+
 		if user == nil {
-			rctx.Logger().Warn("Skipping post from user not found on destination during scoped import", mlog.String("username", *line.Post.User))
+			rctx.Logger().Warn("Skipping post from user not found on destination during scoped import", mlog.String("username", *line.Post.User), mlog.Int("line_number", line.LineNumber))
 			continue
 		}
 
