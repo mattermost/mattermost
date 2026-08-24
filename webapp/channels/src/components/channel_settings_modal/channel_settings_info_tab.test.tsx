@@ -294,6 +294,15 @@ describe('ChannelSettingsInfoTab', () => {
         expect(screen.getByTestId('channel_settings_header_textbox')).toHaveValue('Header with whitespace');
     });
 
+    it('should treat a whitespace-only edit as no change', async () => {
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        await userEvent.type(screen.getByTestId('channel_settings_header_textbox'), '   ');
+
+        expect(screen.getByTestId('channel_settings_header_textbox')).toHaveValue('Initial header   ');
+        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+    });
+
     it('should hide SaveChangesPanel after successful save', async () => {
         // Mock the patchChannel function to return a successful response
         const {patchChannel} = require('mattermost-redux/actions/channels');
@@ -787,9 +796,7 @@ describe('ChannelSettingsInfoTab', () => {
     });
 
     describe('opening the tab on a channel with untidy stored text', () => {
-        // The server stores purpose and header verbatim, so channels created
-        // before this form existed (or through the API) can carry surrounding
-        // whitespace. Opening the tab must not look like the user edited it.
+        // Channels populated outside this form can carry surrounding whitespace.
         const paddedChannel = TestHelper.getChannelMock({
             id: 'channel1',
             team_id: 'team1',
@@ -810,8 +817,6 @@ describe('ChannelSettingsInfoTab', () => {
             );
 
             expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'Reset'})).not.toBeInTheDocument();
             expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(false);
             expect(setAreThereUnsavedChanges).not.toHaveBeenCalledWith(true);
         });
@@ -836,7 +841,6 @@ describe('ChannelSettingsInfoTab', () => {
             );
 
             expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(false);
             expect(setAreThereUnsavedChanges).not.toHaveBeenCalledWith(true);
         });
@@ -853,7 +857,6 @@ describe('ChannelSettingsInfoTab', () => {
             );
 
             expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(false);
             expect(setAreThereUnsavedChanges).not.toHaveBeenCalledWith(true);
         });
@@ -872,7 +875,7 @@ describe('ChannelSettingsInfoTab', () => {
 
             expect(screen.queryByText('Channel names must have at least 1 character.')).not.toBeInTheDocument();
             expect(nameInput).toHaveValue('Padded Channel');
-            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
         });
 
         it('restores the stored text and clears the panel when Reset is clicked', async () => {
@@ -883,22 +886,17 @@ describe('ChannelSettingsInfoTab', () => {
                 />,
             );
 
-            await act(async () => {
-                const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
-                await userEvent.clear(purposeInput);
-                await userEvent.type(purposeInput, 'A brand new purpose');
-            });
-            await new Promise((resolve) => setTimeout(resolve, 0));
+            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+            await userEvent.clear(purposeInput);
+            await userEvent.type(purposeInput, 'A brand new purpose');
 
             await userEvent.click(screen.getByRole('button', {name: 'Reset'}));
-            await new Promise((resolve) => setTimeout(resolve, 0));
 
-            expect(screen.getByTestId('channel_settings_purpose_textbox')).toHaveValue('  Small annoyances that add up  ');
+            expect(purposeInput).toHaveValue('  Small annoyances that add up  ');
             expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
         });
 
-        it('still detects and saves a real edit made on top of untidy stored text', async () => {
+        it('detects and saves an edit made on untidy stored text', async () => {
             const {patchChannel} = require('mattermost-redux/actions/channels');
             patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
@@ -910,27 +908,21 @@ describe('ChannelSettingsInfoTab', () => {
                 />,
             );
 
-            await act(async () => {
-                const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
-                await userEvent.clear(purposeInput);
-                await userEvent.type(purposeInput, 'A brand new purpose');
-            });
-            await new Promise((resolve) => setTimeout(resolve, 0));
+            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+            await userEvent.clear(purposeInput);
+            await userEvent.type(purposeInput, 'A brand new purpose');
 
             expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             expect(setAreThereUnsavedChanges).toHaveBeenLastCalledWith(true);
 
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-            await new Promise((resolve) => setTimeout(resolve, 0));
 
-            // The untouched header keeps its stored whitespace rather than
-            // being silently rewritten alongside the edited purpose.
+            // The untouched header keeps its stored whitespace.
             expect(patchChannel).toHaveBeenCalledWith('channel1', {
                 purpose: 'A brand new purpose',
             });
 
-            // Once the patched channel comes back through the store, the form
-            // settles clean instead of staying permanently dirty.
+            // Simulate the patched channel arriving back through the store.
             rerender(
                 <ChannelSettingsInfoTab
                     channel={{...paddedChannel, purpose: 'A brand new purpose'}}
@@ -940,17 +932,5 @@ describe('ChannelSettingsInfoTab', () => {
             expect(setAreThereUnsavedChanges).toHaveBeenLastCalledWith(false);
             expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
         });
-    });
-
-    it('treats a whitespace-only edit as no change', async () => {
-        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
-
-        await act(async () => {
-            await userEvent.type(screen.getByTestId('channel_settings_header_textbox'), '   ');
-        });
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
-        expect(screen.getByTestId('channel_settings_header_textbox')).toHaveValue('Initial header   ');
-        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
     });
 });

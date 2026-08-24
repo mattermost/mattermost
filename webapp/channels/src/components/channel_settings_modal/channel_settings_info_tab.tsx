@@ -45,10 +45,8 @@ type ChannelSettingsInfoTabProps = {
     showTabSwitchError?: boolean;
 };
 
-// This form always saves trimmed values while the server stores channel text
-// verbatim, so both sides have to be trimmed before comparing. Otherwise a
-// channel whose stored name, purpose or header has surrounding whitespace looks
-// edited as soon as the tab opens.
+// This form saves trimmed values while the server stores channel text verbatim,
+// so both sides must be trimmed or an untouched channel looks edited on open.
 function hasTextChanged(value: string, savedValue?: string): boolean {
     return value.trim() !== (savedValue ?? '').trim();
 }
@@ -200,23 +198,23 @@ function ChannelSettingsInfoTab({
     }, [channelNameError, formError, setFormError]);
 
     const hasUnsavedChanges = useMemo(() => {
-        let unsavedChanges = hasTextChanged(channelHeader, channel.header);
-
-        if (!isDMorGroupChannel) {
-            unsavedChanges = unsavedChanges ||
-                hasTextChanged(displayName, channel.display_name) ||
-                hasTextChanged(channelUrl, channel.name) ||
-                hasTextChanged(channelPurpose, channel.purpose) ||
-                channelType !== channel.type ||
-                (defaultCategoryName ?? '') !== (serverDefaultCategoryName ?? '') ||
-                managedCategoryName !== serverManagedCategoryName ||
-                (showDiscoverableToggle && discoverable !== Boolean(channel.discoverable));
+        if (hasTextChanged(channelHeader, channel.header)) {
+            return true;
         }
 
-        return unsavedChanges;
+        if (isDMorGroupChannel) {
+            return false;
+        }
+
+        return hasTextChanged(displayName, channel.display_name) ||
+            hasTextChanged(channelUrl, channel.name) ||
+            hasTextChanged(channelPurpose, channel.purpose) ||
+            channelType !== channel.type ||
+            (defaultCategoryName ?? '') !== (serverDefaultCategoryName ?? '') ||
+            managedCategoryName !== serverManagedCategoryName ||
+            (showDiscoverableToggle && discoverable !== Boolean(channel.discoverable));
     }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, discoverable, showDiscoverableToggle]);
 
-    // Update parent component when changes occur
     useEffect(() => {
         setAreThereUnsavedChanges?.(hasUnsavedChanges);
     }, [hasUnsavedChanges, setAreThereUnsavedChanges]);

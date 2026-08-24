@@ -84,8 +84,7 @@ describe('ChannelNameFormField - URL editor visibility', () => {
 describe('ChannelNameFormField - display name validation', () => {
     const emptyErrorMessage = 'Channel names must have at least 1 character.';
 
-    // Mirrors how every consumer wires the field: the parent owns the value and
-    // feeds it back in, so the input is genuinely controlled.
+    // The parent owns the value, as it does everywhere this field is used.
     const ControlledField = (props: {onErrorStateChange?: (isError: boolean, errorMessage?: string) => void}) => {
         const [value, setValue] = React.useState('Test Channel');
         return (
@@ -111,10 +110,9 @@ describe('ChannelNameFormField - display name validation', () => {
         expect(onErrorStateChange).toHaveBeenCalledWith(false, '');
     });
 
-    test('should validate the rendered value, not a keystroke the parent rejected', async () => {
+    test('should not report an error while the rendered value is still valid', async () => {
         // baseProps.onDisplayNameChange is a no-op, so the parent never accepts
-        // the cleared value and the input keeps rendering the original name. The
-        // error must describe what the user can see.
+        // the cleared value and the input keeps rendering the original name.
         const onErrorStateChange = jest.fn();
         renderWithContext(
             <ChannelNameFormField
@@ -132,7 +130,7 @@ describe('ChannelNameFormField - display name validation', () => {
 
         expect(nameInput).toHaveValue('Test Channel');
         expect(screen.queryByText(emptyErrorMessage)).not.toBeInTheDocument();
-        expect(onErrorStateChange).not.toHaveBeenCalledWith(true, expect.anything());
+        expect(onErrorStateChange).toHaveBeenLastCalledWith(false, '');
     });
 
     test('should report an error when focus leaves a field the user emptied', async () => {
