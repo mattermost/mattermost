@@ -11,11 +11,12 @@ exports[`components/PluginManagement should match snapshot 1`] = `
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -193,29 +194,28 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    class="PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -424,11 +424,12 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -606,29 +607,28 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    class="PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -840,11 +840,12 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -912,11 +913,12 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -1094,29 +1096,28 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    class="PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -1326,11 +1327,12 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -1508,31 +1510,37 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      disabled=""
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      disabled=""
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
+                    aria-describedby="plugin-upload-description"
+                    class="PluginManagement__uploadDropzone"
                     disabled=""
-                    id="uploadPlugin"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Plugin signatures are required. Install plugins through Marketplace instead.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    disabled=""
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -1741,11 +1749,12 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -1923,29 +1932,28 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    class="PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -2155,11 +2163,12 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -2337,29 +2346,28 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    class="PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -2568,11 +2576,12 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -2754,31 +2763,37 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      disabled=""
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      disabled=""
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
+                    aria-describedby="plugin-upload-description"
+                    class="PluginManagement__uploadDropzone"
                     disabled=""
-                    id="uploadPlugin"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Enable plugins before uploading a plugin.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    disabled=""
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -2977,11 +2992,12 @@ exports[`components/PluginManagement should match snapshot, text entered into th
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -3159,29 +3175,28 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    class="PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -3390,11 +3405,12 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -3572,31 +3588,37 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      disabled=""
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      disabled=""
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
+                    aria-describedby="plugin-upload-description"
+                    class="PluginManagement__uploadDropzone"
                     disabled=""
-                    id="uploadPlugin"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
+                    </span>
+                    <span
+                      class="PluginManagement__uploadDropzoneDescription"
+                      id="plugin-upload-description"
+                    >
+                      Plugin uploads are disabled. Enable plugin uploads in config.json before uploading a plugin.
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    disabled=""
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -3817,11 +3839,12 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -3999,29 +4022,28 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    class="PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -4196,16 +4218,35 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                     <div
                       data-testid="plugin_0"
                     >
-                      <div>
+                      <span
+                        class="PluginMetadataPanel"
+                        data-testid="plugin-metadata-panel"
+                      >
                         <strong>
                           Plugin 0
                         </strong>
-                         (
-                        plugin_0
-                         - 
-                        0.1.0
-                        )
-                      </div>
+                        <span
+                          class="PluginMetadataPanel__metadata"
+                        >
+                           (
+                          <span
+                            aria-label="Copy"
+                            class="PluginMetadataPanel__id"
+                            data-testid="plugin-metadata-id"
+                            role="button"
+                            tabindex="0"
+                          >
+                            plugin_0
+                          </span>
+                           - 
+                          <span
+                            data-testid="plugin-metadata-version"
+                          >
+                            v0.1.0
+                          </span>
+                          )
+                        </span>
+                      </span>
                       <div
                         class="pt-2"
                       >
@@ -4303,16 +4344,35 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                     <div
                       data-testid="plugin_1"
                     >
-                      <div>
+                      <span
+                        class="PluginMetadataPanel"
+                        data-testid="plugin-metadata-panel"
+                      >
                         <strong>
                           Plugin 1
                         </strong>
-                         (
-                        plugin_1
-                         - 
-                        0.0.1
-                        )
-                      </div>
+                        <span
+                          class="PluginMetadataPanel__metadata"
+                        >
+                           (
+                          <span
+                            aria-label="Copy"
+                            class="PluginMetadataPanel__id"
+                            data-testid="plugin-metadata-id"
+                            role="button"
+                            tabindex="0"
+                          >
+                            plugin_1
+                          </span>
+                           - 
+                          <span
+                            data-testid="plugin-metadata-version"
+                          >
+                            v0.0.1
+                          </span>
+                          )
+                        </span>
+                      </span>
                       <div
                         class="pt-2"
                       >
@@ -4475,11 +4535,12 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -4657,29 +4718,28 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    class="PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -4854,16 +4914,35 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                     <div
                       data-testid="plugin_0"
                     >
-                      <div>
+                      <span
+                        class="PluginMetadataPanel"
+                        data-testid="plugin-metadata-panel"
+                      >
                         <strong>
                           Plugin 0
                         </strong>
-                         (
-                        plugin_0
-                         - 
-                        0.1.0
-                        )
-                      </div>
+                        <span
+                          class="PluginMetadataPanel__metadata"
+                        >
+                           (
+                          <span
+                            aria-label="Copy"
+                            class="PluginMetadataPanel__id"
+                            data-testid="plugin-metadata-id"
+                            role="button"
+                            tabindex="0"
+                          >
+                            plugin_0
+                          </span>
+                           - 
+                          <span
+                            data-testid="plugin-metadata-version"
+                          >
+                            v0.1.0
+                          </span>
+                          )
+                        </span>
+                      </span>
                       <div
                         class="pt-2"
                       >
@@ -4950,11 +5029,12 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -5132,29 +5212,28 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    class="PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -5329,16 +5408,35 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                     <div
                       data-testid="plugin_0"
                     >
-                      <div>
+                      <span
+                        class="PluginMetadataPanel"
+                        data-testid="plugin-metadata-panel"
+                      >
                         <strong>
                           Plugin 0
                         </strong>
-                         (
-                        plugin_0
-                         - 
-                        0.1.0
-                        )
-                      </div>
+                        <span
+                          class="PluginMetadataPanel__metadata"
+                        >
+                           (
+                          <span
+                            aria-label="Copy"
+                            class="PluginMetadataPanel__id"
+                            data-testid="plugin-metadata-id"
+                            role="button"
+                            tabindex="0"
+                          >
+                            plugin_0
+                          </span>
+                           - 
+                          <span
+                            data-testid="plugin-metadata-version"
+                          >
+                            v0.1.0
+                          </span>
+                          )
+                        </span>
+                      </span>
                       <div
                         class="pt-2"
                       >
@@ -5425,11 +5523,12 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -5607,29 +5706,28 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    class="PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -5804,16 +5902,35 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                     <div
                       data-testid="plugin_0"
                     >
-                      <div>
+                      <span
+                        class="PluginMetadataPanel"
+                        data-testid="plugin-metadata-panel"
+                      >
                         <strong>
                           Plugin 0
                         </strong>
-                         (
-                        plugin_0
-                         - 
-                        0.1.0
-                        )
-                      </div>
+                        <span
+                          class="PluginMetadataPanel__metadata"
+                        >
+                           (
+                          <span
+                            aria-label="Copy"
+                            class="PluginMetadataPanel__id"
+                            data-testid="plugin-metadata-id"
+                            role="button"
+                            tabindex="0"
+                          >
+                            plugin_0
+                          </span>
+                           - 
+                          <span
+                            data-testid="plugin-metadata-version"
+                          >
+                            v0.1.0
+                          </span>
+                          )
+                        </span>
+                      </span>
                       <div
                         class="pt-2"
                       >
@@ -5900,11 +6017,12 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
     >
       <div
         class="admin-console__header"
+        data-testid="admin-console-header"
       >
         Plugin Management
       </div>
       <div
-        class="admin-console__wrapper"
+        class="admin-console__wrapper PluginManagement"
       >
         <div
           class="admin-console__content"
@@ -6082,29 +6200,28 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 <div
                   class="col-sm-8"
                 >
-                  <div
-                    class="file__upload"
-                  >
-                    <button
-                      class="btn btn-tertiary"
-                      type="button"
-                    >
-                      Choose File
-                    </button>
-                    <input
-                      accept=".gz"
-                      type="file"
-                    />
-                  </div>
                   <button
-                    class="btn btn-primary"
-                    disabled=""
-                    id="uploadPlugin"
+                    class="PluginManagement__uploadDropzone"
+                    type="button"
                   >
-                    Upload
+                    <span
+                      class="PluginManagement__uploadDropzoneTitle"
+                    >
+                      <i
+                        aria-hidden="true"
+                        class="icon icon-upload-outline"
+                      />
+                      <span
+                        class="PluginManagement__uploadDropzoneTitleText"
+                      >
+                        Click or drop plugin bundle to upload
+                      </span>
+                    </span>
                   </button>
-                  <div
-                    class="help-text m-0"
+                  <input
+                    accept=".tar.gz,.gz"
+                    class="PluginManagement__fileInput"
+                    type="file"
                   />
                   <div
                     class="help-text"
@@ -6279,16 +6396,35 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                     <div
                       data-testid="plugin_0"
                     >
-                      <div>
+                      <span
+                        class="PluginMetadataPanel"
+                        data-testid="plugin-metadata-panel"
+                      >
                         <strong>
                           Plugin 0
                         </strong>
-                         (
-                        plugin_0
-                         - 
-                        0.1.0
-                        )
-                      </div>
+                        <span
+                          class="PluginMetadataPanel__metadata"
+                        >
+                           (
+                          <span
+                            aria-label="Copy"
+                            class="PluginMetadataPanel__id"
+                            data-testid="plugin-metadata-id"
+                            role="button"
+                            tabindex="0"
+                          >
+                            plugin_0
+                          </span>
+                           - 
+                          <span
+                            data-testid="plugin-metadata-version"
+                          >
+                            v0.1.0
+                          </span>
+                          )
+                        </span>
+                      </span>
                       <div
                         class="pt-2"
                       >
@@ -6378,16 +6514,35 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                     <div
                       data-testid="plugin_1"
                     >
-                      <div>
+                      <span
+                        class="PluginMetadataPanel"
+                        data-testid="plugin-metadata-panel"
+                      >
                         <strong>
                           Plugin 1
                         </strong>
-                         (
-                        plugin_1
-                         - 
-                        0.0.1
-                        )
-                      </div>
+                        <span
+                          class="PluginMetadataPanel__metadata"
+                        >
+                           (
+                          <span
+                            aria-label="Copy"
+                            class="PluginMetadataPanel__id"
+                            data-testid="plugin-metadata-id"
+                            role="button"
+                            tabindex="0"
+                          >
+                            plugin_1
+                          </span>
+                           - 
+                          <span
+                            data-testid="plugin-metadata-version"
+                          >
+                            v0.0.1
+                          </span>
+                          )
+                        </span>
+                      </span>
                       <div
                         class="pt-2"
                       >

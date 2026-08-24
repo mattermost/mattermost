@@ -17,6 +17,8 @@ export const DialogElementTypes = {
     RADIO: 'radio',
     DATE: 'date',
     DATETIME: 'datetime',
+    FILE: 'file',
+    ACTION_BUTTON: 'action_button',
 } as const;
 
 // Dialog element length limits (server-side validation constraints)
@@ -231,6 +233,10 @@ export function getFieldType(element: DialogElement): string | null {
         return AppFieldTypes.DATE;
     case DialogElementTypes.DATETIME:
         return AppFieldTypes.DATETIME;
+    case DialogElementTypes.FILE:
+        return AppFieldTypes.FILE;
+    case DialogElementTypes.ACTION_BUTTON:
+        return AppFieldTypes.ACTION_BUTTON;
     default:
         return null; // Skip unknown field types
     }
@@ -318,6 +324,9 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
         return defaultValue === null ? null : String(defaultValue);
     }
 
+    case DialogElementTypes.ACTION_BUTTON:
+        return null;
+
     case DialogElementTypes.DATE:
     case DialogElementTypes.DATETIME: {
         // Date and datetime values should be passed through as strings (ISO format)
@@ -403,7 +412,7 @@ export function convertElement(element: DialogElement, options: ConversionOption
         label: String(element.display_name),
         description: element.help_text ? String(element.help_text) : undefined,
         hint: element.placeholder ? String(element.placeholder) : undefined,
-        is_required: !element.optional,
+        is_required: element.type === DialogElementTypes.ACTION_BUTTON ? false : !element.optional,
         readonly: false,
         value: getDefaultValue(element),
     };
@@ -413,6 +422,11 @@ export function convertElement(element: DialogElement, options: ConversionOption
         appField.subtype = 'textarea';
     } else if (element.type === DialogElementTypes.TEXT && element.subtype) {
         appField.subtype = element.subtype;
+    }
+
+    // Add allow_multiple support for file fields
+    if (element.type === DialogElementTypes.FILE && element.allow_multiple) {
+        appField.allow_multiple = true;
     }
 
     // Add length constraints for text fields
@@ -455,22 +469,26 @@ export function convertElement(element: DialogElement, options: ConversionOption
         }
     }
 
+    // Add action button specific properties
+    if (element.type === DialogElementTypes.ACTION_BUTTON) {
+        if (element.action_button) {
+            appField.action_button_url = element.action_button.url;
+            appField.action_button_context = element.action_button.context;
+        }
+    }
+
     // Add date/datetime specific properties
     if (element.type === DialogElementTypes.DATE || element.type === DialogElementTypes.DATETIME) {
-        // Merge datetime_config over deprecated top-level fields (datetime_config takes precedence)
-        const minDate = element.datetime_config?.min_date ?? element.min_date;
-        const maxDate = element.datetime_config?.max_date ?? element.max_date;
-        const timeInterval = element.datetime_config?.time_interval ?? element.time_interval;
+        const minDate = element.datetime_config?.min_date;
+        const maxDate = element.datetime_config?.max_date;
+        const timeInterval = element.datetime_config?.time_interval;
 
         const mergedConfig: DateTimeConfig = {};
         if (element.datetime_config?.location_timezone) {
             mergedConfig.location_timezone = element.datetime_config.location_timezone;
         }
 
-        // manual_time_entry supersedes the deprecated allow_manual_time_entry. OR-merge
-        // the two sources into a single normalized key so downstream consumers don't
-        // need to repeat the precedence logic.
-        if (element.datetime_config?.manual_time_entry || element.datetime_config?.allow_manual_time_entry) {
+        if (element.datetime_config?.manual_time_entry) {
             mergedConfig.manual_time_entry = true;
         }
         if (minDate !== undefined) {
@@ -485,17 +503,6 @@ export function convertElement(element: DialogElement, options: ConversionOption
 
         if (Object.keys(mergedConfig).length > 0) {
             appField.datetime_config = mergedConfig;
-        }
-
-        // Also set deprecated top-level fields for backward compatibility with consumers
-        if (minDate !== undefined) {
-            appField.min_date = String(minDate);
-        }
-        if (maxDate !== undefined) {
-            appField.max_date = String(maxDate);
-        }
-        if (timeInterval !== undefined && element.type === DialogElementTypes.DATETIME) {
-            appField.time_interval = Number(timeInterval);
         }
 
         if (element.refresh !== undefined) {
@@ -683,6 +690,13 @@ export function convertAppFormValuesToDialogSubmission(
     }
 
     elements.forEach((element) => {
+        // Action buttons are non-input elements — they never contribute a
+        // submission value, so skip them before the required/null validation
+        // (otherwise an unset action_button could raise a false required error).
+        if (element.type === DialogElementTypes.ACTION_BUTTON) {
+            return;
+        }
+
         const value = values[element.name];
 
         if (value === null || value === undefined) {
@@ -791,11 +805,17 @@ export function convertAppFormValuesToDialogSubmission(
                 submission[element.name] = value;
             }
             break;
-
         case DialogElementTypes.DATE:
         case DialogElementTypes.DATETIME:
             // Date and datetime values should be passed through as strings (ISO format)
             submission[element.name] = String(value);
+            break;
+        case DialogElementTypes.FILE:
+            // File elements store file IDs as strings
+            submission[element.name] = String(value || '');
+            break;
+
+        case DialogElementTypes.ACTION_BUTTON:
             break;
         default:
             submission[element.name] = String(value);

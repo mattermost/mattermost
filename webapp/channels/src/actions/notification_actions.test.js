@@ -211,6 +211,7 @@ describe('notification_actions', () => {
                     body: '@username: Where is Jessica Hyde?',
                     requireInteraction: false,
                     silent: false,
+                    tag: 'post_id',
                     title: 'Utopia',
                     onClick: expect.any(Function),
                 });
@@ -310,6 +311,24 @@ describe('notification_actions', () => {
             });
         });
 
+        test('should not notify user on silent_notification post', () => {
+            const store = testConfigureStore(baseState);
+            post.props.silent_notification = true;
+            return store.dispatch(sendDesktopNotification(post, msgProps)).then((result) => {
+                expect(spy).not.toHaveBeenCalled();
+                expect(result).toEqual({data: {status: 'not_sent', reason: 'silent_notification'}});
+            });
+        });
+
+        test('should notify for silent_notification post when force_notification overrides', () => {
+            const store = testConfigureStore(baseState);
+            post.props.silent_notification = true;
+            post.props.force_notification = 'abc123';
+            return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
+                expect(spy).toHaveBeenCalled();
+            });
+        });
+
         test('should notify user on add to channel', () => {
             const store = testConfigureStore(baseState);
             post.type = 'system_add_to_channel';
@@ -358,6 +377,7 @@ describe('notification_actions', () => {
                     body: '@username: Where is Jessica Hyde?',
                     requireInteraction: false,
                     silent: false,
+                    tag: 'post_id',
                     title: 'Muted Channel',
                     onClick: expect.any(Function),
                 });
@@ -459,6 +479,7 @@ describe('notification_actions', () => {
                         body: '@username: Where is Jessica Hyde?',
                         requireInteraction: false,
                         silent: false,
+                        tag: 'post_id',
                         title: 'Reply in Utopia',
                         onClick: expect.any(Function),
                     });

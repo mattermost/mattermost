@@ -22,6 +22,7 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import type {NewPostMessageProps} from 'actions/new_post';
 
+import type {ChannelSettingsSchema, ChannelSettingsTabBodyProps, ChannelSettingsTabShouldRender} from 'types/plugins/channel_settings';
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -118,6 +119,8 @@ export type PluginsState = {
     userSettings: {
         [pluginId: string]: PluginConfiguration;
     };
+
+    channelSettingsTabs: ChannelSettingsTabComponent[];
 };
 
 export type Menu = {
@@ -145,7 +148,9 @@ type BasePluggableProps = {
 
 export type PluggableText = string | React.ReactNode;
 
-export type AppBarChannelAction = (channel: Channel, member: ChannelMembership) => void;
+// The App Bar is rendered outside of channels too, such as in Threads and Drafts,
+// so these actions can run with no channel in context.
+export type AppBarChannelAction = (channel?: Channel, member?: ChannelMembership) => void;
 export type AppBarAction = PluginComponent & {
     iconUrl: string;
     supportedProductIds: ProductScope;
@@ -181,7 +186,7 @@ export type ChannelHeaderButtonAction = PluginComponent & {
     icon: React.ReactNode;
     dropdownText: PluggableText;
     tooltipText: PluggableText;
-    action: (channel: Channel, member?: ChannelMembership) => void;
+    action: AppBarChannelAction;
 };
 
 export type ChannelHeaderIconComponent = PluginComponent & {
@@ -208,6 +213,24 @@ export type ChannelIntroButtonAction = PluginComponent & {
     action: (channel: Channel, member: ChannelMembership) => void;
     icon: React.ReactNode;
 };
+
+type ChannelSettingsTabBaseComponent = PluginComponent & {
+    uiName: string;
+    icon?: string;
+    shouldRender: ChannelSettingsTabShouldRender;
+};
+
+export type ChannelSettingsSchemaTabComponent = ChannelSettingsTabBaseComponent & {
+    kind: 'schema';
+    schema: ChannelSettingsSchema;
+};
+
+export type ChannelSettingsCustomTabComponent = ChannelSettingsTabBaseComponent & {
+    kind: 'custom';
+    component: React.ComponentType<ChannelSettingsTabBodyProps>;
+};
+
+export type ChannelSettingsTabComponent = ChannelSettingsSchemaTabComponent | ChannelSettingsCustomTabComponent;
 
 export type UserGuideDropdownAction = PluginComponent & {
     text: PluggableText;
@@ -317,6 +340,14 @@ export type ProductComponent = PluginComponent & {
      * @default true
      */
     wrapped: boolean;
+
+    /**
+     * When `true`, the host owns team handling for the product so the plugin doesn't have to:
+     * mounted under `/:team{baseURL}`, it resolves/selects the team and renders only once the
+     * current team matches the URL. When `false`, it mounts at `baseURL` globally.
+     * @default false
+     */
+    isTeamScoped: boolean;
 };
 
 export type NeedsTeamComponent = PluginComponent & {
@@ -350,6 +381,7 @@ export type PostDropdownMenuItemComponent = PluginComponent & {
 export type RightHandSidebarComponent = PluginComponent & {
     title: PluggableText;
     component: React.ComponentType<BasePluggableProps>;
+    showPopout?: boolean;
 };
 
 export type SearchHintsComponent = PluginComponent & {

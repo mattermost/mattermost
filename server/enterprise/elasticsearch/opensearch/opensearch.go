@@ -16,13 +16,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
-	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
-
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/updatebyquery"
@@ -33,8 +26,16 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
+	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
+	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
 
+const opensearchMinVersion = 2
 const opensearchMaxVersion = 3
 
 var (
@@ -117,7 +118,7 @@ func (os *OpensearchInterfaceImpl) IsIndexingSync() bool {
 
 // fetchServerInfo retrieves and stores the server version and plugins from the given client.
 func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *opensearchapi.Client) *model.AppError {
-	version, major, appErr := checkMaxVersion(ctx, client)
+	version, major, appErr := checkVersion(ctx, client, os.Platform.Log())
 	if appErr != nil {
 		return appErr
 	}
@@ -125,16 +126,34 @@ func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *
 	os.version = major
 	os.fullVersion = version
 
-	// Since we are only retrieving plugins for the Support Packet generation, it doesn't make sense to kill the process if we get an error
-	// Instead, we will log it and move forward
-	resp, err := client.Cat.Plugins(ctx, nil)
+	// Query every node because the CAT plugins API omits nodes with no plugins. Plugin information is
+	// also included in Support Packets. If it cannot be retrieved, preserve the existing best-effort
+	// behavior and let template creation report any resulting backend error.
+	resp, err := client.Nodes.Info(ctx, &opensearchapi.NodesInfoReq{Metrics: []string{"plugins"}})
 	if err != nil {
-		os.Platform.Log().Warn("Error retrieving opensearch plugins", mlog.Err(err))
-	} else {
-		os.plugins = nil
-		for _, p := range resp.Plugins {
-			os.plugins = append(os.plugins, p.Component)
+		os.Platform.Log().Warn("Error retrieving opensearch node plugins", mlog.Err(err))
+		return nil
+	}
+	if resp.NodesInfo.Failed > 0 {
+		os.Platform.Log().Warn("Some opensearch nodes failed to return plugin information", mlog.Int("failed_nodes", resp.NodesInfo.Failed))
+		return nil
+	}
+
+	os.plugins = nil
+	analysisICUInstalledOnEveryNode := true
+	for _, node := range resp.Nodes {
+		nodeHasAnalysisICU := false
+		for _, plugin := range node.Plugins {
+			os.plugins = append(os.plugins, plugin.Name)
+			if plugin.Name == "analysis-icu" {
+				nodeHasAnalysisICU = true
+			}
 		}
+		analysisICUInstalledOnEveryNode = analysisICUInstalledOnEveryNode && nodeHasAnalysisICU
+	}
+
+	if len(resp.Nodes) > 0 && !analysisICUInstalledOnEveryNode {
+		return model.NewAppError("Opensearch.fetchServerInfo", "ent.elasticsearch.analysis_icu_required", map[string]any{"Backend": "OpenSearch"}, "", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -165,27 +184,6 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 	}
 
 	esSettings := os.Platform.Config().ElasticsearchSettings
-	if *esSettings.LiveIndexingBatchSize > 1 {
-		os.bulkProcessor = NewBulk(
-			common.BulkSettings{
-				FlushBytes:    0,
-				FlushInterval: common.BulkFlushInterval,
-				FlushNumReqs:  *esSettings.LiveIndexingBatchSize,
-			},
-			os.client,
-			time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
-			os.Platform.Log())
-	}
-	os.syncBulkProcessor = NewBulk(
-		common.BulkSettings{
-			FlushBytes:    common.BulkFlushBytes,
-			FlushInterval: 0,
-			FlushNumReqs:  0,
-		},
-		os.client,
-		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
-		os.Platform.Log())
-
 	opts := []func(*types.IndexTemplateMapping){}
 	// Set up additional analyzers to use in the post index template if CJK analyzers are enabled
 	if *os.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers {
@@ -256,6 +254,27 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	if *esSettings.LiveIndexingBatchSize > 1 {
+		os.bulkProcessor = NewBulk(
+			common.BulkSettings{
+				FlushBytes:    0,
+				FlushInterval: common.BulkFlushInterval,
+				FlushNumReqs:  *esSettings.LiveIndexingBatchSize,
+			},
+			os.client,
+			time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+			os.Platform.Log())
+	}
+	os.syncBulkProcessor = NewBulk(
+		common.BulkSettings{
+			FlushBytes:    common.BulkFlushBytes,
+			FlushInterval: 0,
+			FlushNumReqs:  0,
+		},
+		os.client,
+		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+		os.Platform.Log())
+
 	os.ready.Store(1)
 	os.healthy.Store(1)
 
@@ -296,21 +315,25 @@ func (os *OpensearchInterfaceImpl) Stop() *model.AppError {
 	os.mutex.Lock()
 	defer os.mutex.Unlock()
 
-	if os.ready.Load() == 0 {
-		return nil
-	}
-
-	// Flushing any pending requests
-	if os.bulkProcessor != nil {
-		if err := os.bulkProcessor.Stop(); err != nil {
-			os.Platform.Log().Warn("Error stopping bulk processor", mlog.Err(err))
-		}
-		os.bulkProcessor = nil
-	}
-
-	os.client = nil
 	os.ready.Store(0)
 	os.healthy.Store(0)
+
+	bulkProcessor := os.bulkProcessor
+	syncBulkProcessor := os.syncBulkProcessor
+	os.bulkProcessor = nil
+	os.syncBulkProcessor = nil
+	os.client = nil
+
+	if bulkProcessor != nil {
+		if err := bulkProcessor.Stop(); err != nil && os.Platform != nil {
+			os.Platform.Log().Warn("Error stopping bulk processor", mlog.Err(err))
+		}
+	}
+	if syncBulkProcessor != nil {
+		if err := syncBulkProcessor.Stop(); err != nil && os.Platform != nil {
+			os.Platform.Log().Warn("Error stopping synchronous bulk processor", mlog.Err(err))
+		}
+	}
 
 	return nil
 }
@@ -338,7 +361,7 @@ func (os *OpensearchInterfaceImpl) IndexPost(post *model.Post, teamId string, ch
 	indexName := common.BuildPostIndexName(*os.Platform.Config().ElasticsearchSettings.AggregatePostsAfterDays,
 		*os.Platform.Config().ElasticsearchSettings.IndexPrefix+common.IndexBasePosts, *os.Platform.Config().ElasticsearchSettings.IndexPrefix+common.IndexBasePosts_MONTH, time.Now(), post.CreateAt)
 
-	searchPost, err := common.ESPostFromPost(post, teamId, channelType)
+	searchPost, err := common.ESPostFromPost(post, teamId, channelType, os.Platform.Config().FeatureFlags.MmBlocksEnabled)
 	if err != nil {
 		return model.NewAppError("Opensearch.IndexPost", "ent.elasticsearch.index_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -389,7 +412,7 @@ func (os *OpensearchInterfaceImpl) getPostIndexNames() ([]string, error) {
 		return nil, err
 	}
 	postIndexes := make([]string, 0)
-	for name := range indexes.Indices {
+	for name := range *indexes.IndicesGetRespData {
 		if strings.HasPrefix(name, *os.Platform.Config().ElasticsearchSettings.IndexPrefix+common.IndexBasePosts) {
 			postIndexes = append(postIndexes, name)
 		}
@@ -778,7 +801,7 @@ func (os *OpensearchInterfaceImpl) SearchPosts(channels model.ChannelList, searc
 	}
 
 	var searchResult searchResp
-	_, err = os.client.Client.Do(ctx, &opensearchapi.SearchReq{
+	_, err = os.client.Client.Do(ctx, http.MethodPost, &opensearchapi.SearchReq{
 		Indices: []string{common.SearchIndexName(os.Platform.Config().ElasticsearchSettings, common.IndexBasePosts+"*")},
 		Body:    bytes.NewReader(searchBuf),
 		Params: opensearchapi.SearchParams{
@@ -939,7 +962,7 @@ func (os *OpensearchInterfaceImpl) UpdatePostsChannelTypeByChannelId(rctx reques
 		rctx.Logger().Warn("UpdatePostsChannelTypeByChannelId had partial failures; consider a full bulk reindex to prevent missing posts",
 			mlog.String("channel_id", channelID),
 			mlog.Int("failure_count", len(response.Failures)),
-			mlog.Err(fmt.Errorf("first failure: %s", response.Failures[0])))
+			mlog.Err(fmt.Errorf("first failure: %v", response.Failures[0])))
 	}
 	rctx.Logger().Info("Posts channel_type updated", mlog.String("channel_id", channelID), mlog.String("channel_type", channelType), mlog.Int("updated", response.Updated))
 
@@ -1013,7 +1036,7 @@ func (os *OpensearchInterfaceImpl) BackfillPostsChannelType(rctx request.CTX, ch
 		rctx.Logger().Warn("BackfillPostsChannelType had partial failures; consider a full bulk reindex to prevent missing posts",
 			mlog.String("channel_type", channelType),
 			mlog.Int("failure_count", len(response.Failures)),
-			mlog.Err(fmt.Errorf("first failure: %s", response.Failures[0])))
+			mlog.Err(fmt.Errorf("first failure: %v", response.Failures[0])))
 	}
 	rctx.Logger().Info("Backfilled channel_type on posts", mlog.Int("updated", response.Updated), mlog.String("channel_type", channelType), mlog.Int("channel_count", len(channelIDs)))
 
@@ -1857,7 +1880,7 @@ func (os *OpensearchInterfaceImpl) DataRetentionDeleteIndexes(rctx request.CTX, 
 	if err != nil {
 		return model.NewAppError("Opensearch.DataRetentionDeleteIndexes", "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
-	for index := range postIndexesResult.Indices {
+	for index := range *postIndexesResult.IndicesGetRespData {
 		if indexDate, err := time.Parse(dateFormat, index); err != nil {
 			rctx.Logger().Warn("Failed to parse date from posts index. Ignoring index.", mlog.String("index", index))
 		} else {
@@ -2333,19 +2356,27 @@ func (os *OpensearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime, l
 	return nil
 }
 
-func checkMaxVersion(ctx context.Context, client *opensearchapi.Client) (string, int, *model.AppError) {
+// checkVersion returns the version of the connected OpenSearch server. An
+// unsupported version is logged but not treated as fatal, allowing the server to
+// start regardless.
+func checkVersion(ctx context.Context, client *opensearchapi.Client, logger mlog.LoggerIFace) (string, int, *model.AppError) {
 	resp, err := client.Info(ctx, nil)
 	if err != nil {
-		return "", 0, model.NewAppError("Opensearch.checkMaxVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return "", 0, model.NewAppError("Opensearch.checkVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	major, _, _, esErr := common.GetVersionComponents(resp.Version.Number)
 	if esErr != nil {
-		return "", 0, model.NewAppError("Opensearch.checkMaxVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(esErr)
+		return "", 0, model.NewAppError("Opensearch.checkVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(esErr)
 	}
 
-	if major > opensearchMaxVersion {
-		return "", 0, model.NewAppError("Opensearch.checkMaxVersion", "ent.elasticsearch.max_version.app_error", map[string]any{"Version": major, "MaxVersion": opensearchMaxVersion, "Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusBadRequest)
+	if major < opensearchMinVersion || major > opensearchMaxVersion {
+		logger.Error("Unsupported OpenSearch version. Running an unsupported version may lead to unexpected behaviour.",
+			mlog.String("version", resp.Version.Number),
+			mlog.Int("min_version", opensearchMinVersion),
+			mlog.Int("max_version", opensearchMaxVersion),
+		)
 	}
+
 	return resp.Version.Number, major, nil
 }

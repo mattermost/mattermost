@@ -919,21 +919,39 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	// If the event contains sanitized data, only send to users that don't have permission to
 	// see sensitive data. Prevents admin clients from receiving events with bad data
 	var hasReadPrivateDataPermission *bool
-	if msg.GetBroadcast().ContainsSanitizedData {
-		hasReadPrivateDataPermission = new(wc.Suite.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
+	sessionRoles := wc.GetSession().GetUserRoles()
+	sessionHasPermission := func(permissionId string) bool {
+		if permissionId == model.PermissionManageSystem.Id {
+			// Cache the manage_system lookup because multiple broadcast filters can require it.
+			if hasReadPrivateDataPermission == nil {
+				hasPermission := wc.Suite.RolesGrantPermission(sessionRoles, model.PermissionManageSystem.Id)
+				hasReadPrivateDataPermission = &hasPermission
+			}
+			return *hasReadPrivateDataPermission
+		}
 
-		if *hasReadPrivateDataPermission {
+		return wc.Suite.RolesGrantPermission(sessionRoles, permissionId)
+	}
+
+	if msg.GetBroadcast().ContainsSanitizedData {
+		if sessionHasPermission(model.PermissionManageSystem.Id) {
 			return false
 		}
 	}
 
-	// If the event contains sensitive data, only send to users with permission to see it
-	if msg.GetBroadcast().ContainsSensitiveData {
-		if hasReadPrivateDataPermission == nil {
-			hasReadPrivateDataPermission = new(wc.Suite.RolesGrantPermission(wc.GetSession().GetUserRoles(), model.PermissionManageSystem.Id))
+	// If the event contains sensitive data, only send to users with permission to see it.
+	// RequiredPermissions, when set, takes precedence over this fallback: it is the more
+	// specific check, and ContainsSensitiveData is only kept alongside it so that nodes
+	// running a version that predates RequiredPermissions still fail closed (sysadmin-only)
+	// instead of broadcasting the event unfiltered during a mixed-version cluster rollout.
+	if msg.GetBroadcast().ContainsSensitiveData && len(msg.GetBroadcast().RequiredPermissions) == 0 {
+		if !sessionHasPermission(model.PermissionManageSystem.Id) {
+			return false
 		}
+	}
 
-		if !*hasReadPrivateDataPermission {
+	for _, permissionId := range msg.GetBroadcast().RequiredPermissions {
+		if !sessionHasPermission(permissionId) {
 			return false
 		}
 	}
@@ -963,12 +981,11 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	if chID := msg.GetBroadcast().ChannelId; chID != "" {
 		// For typing/reaction_added/reaction_removed events, we don't send them to users
 		// who don't have that channel or thread opened.
-		if wc.Platform.Config().FeatureFlags.WebSocketEventScope &&
-			slices.Contains([]model.WebsocketEventType{
-				model.WebsocketEventTyping,
-				model.WebsocketEventReactionAdded,
-				model.WebsocketEventReactionRemoved,
-			}, msg.EventType()) && wc.notInChannel(chID) && wc.notInThread(chID) {
+		if slices.Contains([]model.WebsocketEventType{
+			model.WebsocketEventTyping,
+			model.WebsocketEventReactionAdded,
+			model.WebsocketEventReactionRemoved,
+		}, msg.EventType()) && wc.notInChannel(chID) && wc.notInThread(chID) {
 			return false
 		}
 

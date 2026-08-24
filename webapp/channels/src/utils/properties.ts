@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {PropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 /**
  * Returns the user-facing label for a CPA field.
@@ -126,4 +127,28 @@ export function slugifyForCEL(name: string): string {
     }
     slug = slug.replace(/_+/g, '_').replace(/_+$/, '');
     return slug || '_copy';
+}
+
+/**
+ * A plugin-owned attribute is "orphaned" once its source plugin is no longer
+ * installed. The server permits an admin to delete an orphaned field so the
+ * leftovers of an uninstalled plugin can be cleaned up, and refuses the delete
+ * while the plugin is still installed — see checkFieldDeleteAccess in
+ * server/channels/app/properties/access_control.go.
+ *
+ * An empty `installedPluginIds` means "nothing is installed", which reads every
+ * plugin-owned field as orphaned. Callers are responsible for having fetched the
+ * plugin list before acting on the result.
+ */
+export function isFieldOrphaned(
+    field: Pick<PropertyField, 'attrs'>,
+    installedPluginIds: ReadonlySet<string>,
+): boolean {
+    const sourcePluginId = field.attrs?.source_plugin_id as string | undefined;
+
+    if (!sourcePluginId || !field.attrs?.protected) {
+        return false;
+    }
+
+    return !installedPluginIds.has(sourcePluginId);
 }

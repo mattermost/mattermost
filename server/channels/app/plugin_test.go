@@ -648,7 +648,7 @@ func TestPluginPanicLogs(t *testing.T) {
 		th.App.ch.ShutDownPlugins()
 		tearDown()
 
-		testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "panic: some text from panic")
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlError.Name, "panic: some text from panic")
 	})
 }
 
@@ -1266,6 +1266,11 @@ func TestGetPluginStateOverride(t *testing.T) {
 		})
 
 		t.Run("with enabled flag set to true", func(t *testing.T) {
+			// AppsEnabled=true is now rejected by Config.IsValid (MM-69643), so this
+			// override path can no longer be reached at runtime. Kept skipped rather
+			// than deleted so it is removed alongside the rest of the Apps code.
+			t.Skip("AppsEnabled feature flag is retired (MM-69643)")
+
 			mainHelper.Parallel(t)
 			th2 := SetupConfig(t, func(cfg *model.Config) {
 				cfg.FeatureFlags.AppsEnabled = true

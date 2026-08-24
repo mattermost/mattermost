@@ -445,6 +445,26 @@ func (_m *Hooks) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
 	return r0
 }
 
+// MessagesWillBeConsumedWithContext provides a mock function with given fields: c, posts
+func (_m *Hooks) MessagesWillBeConsumedWithContext(c *plugin.Context, posts []*model.Post) []*model.Post {
+	ret := _m.Called(c, posts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MessagesWillBeConsumedWithContext")
+	}
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func(*plugin.Context, []*model.Post) []*model.Post); ok {
+		r0 = rf(c, posts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	return r0
+}
+
 // NotificationWillBePushed provides a mock function with given fields: pushNotification, userID
 func (_m *Hooks) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
 	ret := _m.Called(pushNotification, userID)

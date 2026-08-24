@@ -102,6 +102,15 @@ const Option = (props: any) => {
     );
 };
 
+const Menu = (props: any) => {
+    return (
+        <components.Menu
+            {...props}
+            innerProps={{...props.innerProps, 'data-testid': 'dropdownMenu'}}
+        />
+    );
+};
+
 const DropdownInput = <T extends ValueType>(props: Props<T>) => {
     const {value, placeholder, className, addon, name, textPrefix, legend, onChange, styles, options, error, testId, required, ...otherProps} = props; // types are not inferred correctly for `props` in react-select version v5.
 
@@ -176,6 +185,7 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
                             IndicatorsContainer,
                             Option,
                             Control,
+                            Menu,
                         }}
                         className={classNames('Input', className, {Input__focus: showLegend})}
                         classNamePrefix={'DropDown'}

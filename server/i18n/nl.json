@@ -8202,10 +8202,6 @@
     "translation": "E-mail instellingen heeft niet-ingestelde waarden."
   },
   {
-    "id": "api.file.test_connection_s3_settings_nil.app_error",
-    "translation": "Instellingen voor bestandsopslag heeft niet-ingestelde waarden."
-  },
-  {
     "id": "model.member.is_valid.emails.app_error",
     "translation": "E-maillijst is leeg"
   },
@@ -12566,5 +12562,37 @@
   {
     "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
     "translation": "Scope ID kan niet worden ingesteld zonder scope."
+  },
+  {
+    "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
+    "translation": "De functie voor machtigingsbeleid op kanaalniveau is niet ingeschakeld."
+  },
+  {
+    "id": "api.access_control_policy.policy_simulation.feature_disabled",
+    "translation": "Functie voor beleidsimulatie is niet ingeschakeld."
+  },
+  {
+    "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
+    "translation": "Alle gebruikers in de simulatie moeten lid zijn van het team of het kanaal in het verzoek."
+  },
+  {
+    "id": "api.access_control.assign.team_group_constrained",
+    "translation": "Op een team dat met een groep is gesynchroniseerd, kan geen lidmaatschapsbeleid worden toegepast."
+  },
+  {
+    "id": "api.access_control_policy.team_membership.feature_disabled",
+    "translation": "De functie voor toegangscontrole voor teamleden is niet ingeschakeld."
+  },
+  {
+    "id": "api.admin.test_azure.missing_azure_field",
+    "translation": "Er ontbreekt een instelling voor Azure Blob Storage of deze is ongeldig."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "Dit kanaal wordt niet langer gedeeld met een andere werkruimte."
+  },
+  {
+    "id": "api.channel.board_channel.app_error",
+    "translation": "Board channels zijn niet toegankelijk via /channels eindpunten. Gebruik in plaats daarvan de /boards API."
   }
 ]

@@ -227,6 +227,7 @@ func init() {
 	gob.Register(&model.AutocompleteTextArg{})
 	gob.Register(&model.PreviewPost{})
 	gob.Register(model.PropertyOptions[*model.PluginPropertyOption]{})
+	gob.Register([]model.PropertyOwner{})
 }
 
 // These enforce compile time checks to make sure types implement the interface
@@ -989,6 +990,44 @@ func (s *hooksRPCServer) MessagesWillBeConsumed(args *Z_MessagesWillBeConsumedAr
 		returns.A = hook.MessagesWillBeConsumed(args.A)
 	} else {
 		return encodableError(fmt.Errorf("hook MessagesWillBeConsumed called but not implemented"))
+	}
+	return nil
+}
+
+// MessagesWillBeConsumedWithContext is in this file because of the difficulty of identifying which fields
+// need special behaviour. The special behaviour needed is decoding the returned post into the original one
+// to avoid the unintentional removal of fields by older plugins.
+func init() {
+	hookNameToId["MessagesWillBeConsumedWithContext"] = MessagesWillBeConsumedWithContextID
+}
+
+type Z_MessagesWillBeConsumedWithContextArgs struct {
+	A *Context
+	B []*model.Post
+}
+
+type Z_MessagesWillBeConsumedWithContextReturns struct {
+	A []*model.Post
+}
+
+func (g *hooksRPCClient) MessagesWillBeConsumedWithContext(c *Context, posts []*model.Post) []*model.Post {
+	_args := &Z_MessagesWillBeConsumedWithContextArgs{c, posts}
+	_returns := &Z_MessagesWillBeConsumedWithContextReturns{}
+	if g.implemented[MessagesWillBeConsumedWithContextID] {
+		if err := g.client.Call("Plugin.MessagesWillBeConsumedWithContext", _args, _returns); err != nil {
+			g.log.Error("RPC call MessagesWillBeConsumedWithContext to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) MessagesWillBeConsumedWithContext(args *Z_MessagesWillBeConsumedWithContextArgs, returns *Z_MessagesWillBeConsumedWithContextReturns) error {
+	if hook, ok := s.impl.(interface {
+		MessagesWillBeConsumedWithContext(c *Context, posts []*model.Post) []*model.Post
+	}); ok {
+		returns.A = hook.MessagesWillBeConsumedWithContext(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("hook MessagesWillBeConsumedWithContext called but not implemented"))
 	}
 	return nil
 }

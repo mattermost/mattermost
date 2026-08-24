@@ -114,6 +114,22 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		}
 	}
 
+	// Defense in depth: a team admin must remain within their own team policy's
+	// rules. The api4 handler enforces this for the request path, but guard here
+	// so any internal caller saving a team policy is held to the same invariant
+	// regardless of the masking flag. System admins and sessionless internal
+	// callers may intentionally set rules they don't match, mirroring the
+	// masking self-inclusion exemption below.
+	if policy.Type == model.AccessControlPolicyTypeTeam {
+		if session := rctx.Session(); session != nil && session.UserId != "" && !a.HasPermissionTo(session.UserId, model.PermissionManageSystem) {
+			for _, rule := range policy.Rules {
+				if appErr := a.ValidateTeamAdminSelfInclusion(rctx, session.UserId, rule.Expression); appErr != nil {
+					return nil, appErr
+				}
+			}
+		}
+	}
+
 	// ABAC is gated at route registration; only check masking here. Masking is
 	// attribute-based: edits are allowed with masked values present as long as
 	// the caller doesn't drop a condition holding values they couldn't see.
@@ -754,7 +770,8 @@ func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (map[string]stru
 	}
 
 	propertyFields, appErr := a.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
-		PerPage: model.AccessControlGroupFieldLimit + 5,
+		ObjectTypes: []string{model.PropertyFieldObjectTypeUser},
+		PerPage:     model.AccessControlGroupFieldLimit + 5,
 	})
 	if appErr != nil {
 		return nil, appErr
@@ -1023,6 +1040,41 @@ func clearActualValuesInTree(node *model.PolicySimulationEvaluationNode) {
 	node.ActualValue = ""
 	for i := range node.Children {
 		clearActualValuesInTree(&node.Children[i])
+	}
+}
+
+// SanitizeSimulationEvaluationTracesForCaller strips evaluation trace
+// trees from a PolicySimulationResponse before it is returned to
+// non-system-admin callers. Evaluation traces are sysadmin-only;
+// channel/team admins still receive flat blame expressions where
+// the simulator attached them, and the frontend falls back to
+// rendering those when evaluation_tree is absent.
+func (a *App) SanitizeSimulationEvaluationTracesForCaller(resp *model.PolicySimulationResponse, callerIsSystemAdmin bool) {
+	if resp == nil || callerIsSystemAdmin {
+		return
+	}
+	for i := range resp.Results {
+		r := &resp.Results[i]
+		for action, dec := range r.Decisions {
+			stripEvaluationTracesFromDecision(&dec)
+			r.Decisions[action] = dec
+		}
+		for j := range r.Sessions {
+			for action, dec := range r.Sessions[j].Decisions {
+				stripEvaluationTracesFromDecision(&dec)
+				r.Sessions[j].Decisions[action] = dec
+			}
+		}
+	}
+}
+
+func stripEvaluationTracesFromDecision(dec *model.PolicySimulationActionDecision) {
+	for i := range dec.Blame {
+		b := &dec.Blame[i]
+		b.EvaluationTree = nil
+		for j := range b.MergedRules {
+			b.MergedRules[j].EvaluationTree = nil
+		}
 	}
 }
 
@@ -1658,7 +1710,7 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 	for fieldName := range attributes {
 		// Read directly from the store so this security filter sees the raw
 		// access_mode, unaffected by property read hooks for the request caller.
-		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByName(rctx.Context(), cpaGroup.ID, "", fieldName)
+		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx, cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
 		if fieldErr != nil {
 			delete(attributes, fieldName)
 			continue
@@ -1681,6 +1733,7 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string,
 	// Use property app layer to enforce access control
 	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
 	fields, appErr := a.SearchPropertyFields(rctxWithCaller, group.ID, model.PropertyFieldSearchOpts{
+		ObjectType: model.PropertyFieldObjectTypeUser,
 		Cursor: model.PropertyFieldSearchCursor{
 			PropertyFieldID: after,
 			CreateAt:        1,
@@ -1689,6 +1742,14 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string,
 	})
 	if appErr != nil {
 		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
+	// Native user attributes are synthetic (not persisted), so emit them once on
+	// the first page to keep the cursor-paging contract intact. The API maps an
+	// empty "after" to a 26-zero sentinel cursor (the lowest possible ID), so
+	// treat both as the first page.
+	if after == "" || after == strings.Repeat("0", 26) {
+		fields = append(model.NativeUserAttributeFields(group.ID), fields...)
 	}
 
 	return fields, nil
@@ -1855,6 +1916,32 @@ func (a *App) channelPolicyIDsWithImport(rctx request.CTX, importID string) []st
 		cursor.ID = children[len(children)-1].ID
 	}
 	return channelIDs
+}
+
+// PopulateAccessControlPolicyChildCounts stamps child_ids, channel_count and
+// team_count into a parent policy's Props, mirroring the shape SearchPolicies
+// returns for the policy list. The policy editor loads a single policy via the
+// GET endpoint (which does not run the list's child-count subqueries), so this
+// gives it the assigned-resource counts it needs to disable deletion while any
+// channel OR team is still linked. No-op for non-parent policies.
+func (a *App) PopulateAccessControlPolicyChildCounts(rctx request.CTX, policy *model.AccessControlPolicy) {
+	if policy == nil || policy.Type != model.AccessControlPolicyTypeParent {
+		return
+	}
+
+	channelIDs := a.channelPolicyIDsWithImport(rctx, policy.ID)
+	teamIDs := a.teamPolicyIDsWithImport(rctx, policy.ID)
+
+	childIDs := make([]string, 0, len(channelIDs)+len(teamIDs))
+	childIDs = append(childIDs, channelIDs...)
+	childIDs = append(childIDs, teamIDs...)
+
+	if policy.Props == nil {
+		policy.Props = make(map[string]any)
+	}
+	policy.Props["child_ids"] = childIDs
+	policy.Props["channel_count"] = len(channelIDs)
+	policy.Props["team_count"] = len(teamIDs)
 }
 
 // HydrateChannelPolicyActions populates ch.PolicyActions for a single channel
@@ -2284,6 +2371,34 @@ func (a *App) TestExpressionWithChannelContext(rctx request.CTX, expression stri
 	return a.TestExpression(rctx, expression, opts)
 }
 
+// TestExpressionWithTeamContext tests expressions for team admins with the same
+// info-leak guard as the channel variant: a team admin may only see users who
+// match an expression that they themselves match.
+func (a *App) TestExpressionWithTeamContext(rctx request.CTX, expression string, opts model.SubjectSearchOptions) ([]*model.User, int64, *model.AppError) {
+	session := rctx.Session()
+	if session == nil {
+		return nil, 0, model.NewAppError("TestExpressionWithTeamContext", "api.context.session_expired.app_error", nil, "", http.StatusUnauthorized)
+	}
+
+	currentUserID := session.UserId
+
+	// SECURITY: a team admin who doesn't match the expression must not learn who does.
+	adminMatches, appErr := a.ValidateExpressionAgainstRequester(rctx, expression, currentUserID)
+	if appErr != nil {
+		return nil, 0, appErr
+	}
+	if !adminMatches {
+		return []*model.User{}, 0, nil
+	}
+
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, 0, model.NewAppError("TestExpressionWithTeamContext", "app.pap.check_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	return a.TestExpression(rctx, expression, opts)
+}
+
 // ValidateExpressionAgainstRequester validates an expression directly against a specific user
 func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression string, requesterID string) (bool, *model.AppError) {
 	// Self-exclusion validation should work with any attribute
@@ -2299,6 +2414,10 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 	users, _, appErr := acs.QueryUsersForExpression(rctx, expression, model.SubjectSearchOptions{
 		SubjectID: requesterID, // Only check this specific user
 		Limit:     1,           // Maximum 1 result expected
+		// Native attributes (user.email/verified/isbot/createat) describe the
+		// requester themselves, not who they can include; strip them so the
+		// self-inclusion check validates only the CPA-attribute parts.
+		ExcludeNativeAttributes: true,
 	})
 	if appErr != nil {
 		return false, appErr
@@ -2347,6 +2466,26 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 		}
 	}
 
+	// Populate Mattermost-native user attributes (user.email / user.verified /
+	// user.isbot / user.createat) for runtime PDP evaluation. a.GetUser is the
+	// cached user read and already resolves IsBot via the Bots join, so this is
+	// a single (usually cache-hit) lookup per subject build.
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		// Fail closed: a native-attribute policy must not silently evaluate
+		// against zero-valued natives if the user read fails. The caller
+		// treats a build error as a denial (mirrors the channel-role path).
+		rctx.Logger().Warn("Failed to load user for ABAC native attributes; aborting subject build",
+			mlog.String("user_id", userID),
+			mlog.Err(appErr),
+		)
+		return nil, appErr
+	}
+	subject.Email = user.Email
+	subject.EmailVerified = user.EmailVerified
+	subject.IsBot = user.IsBot
+	subject.CreateAt = user.CreateAt
+
 	subject.Role = roles
 	subject.SetScopedRole(model.AccessControlSubjectScopeSystem, ResolveSystemRole(roles))
 	if channelID != "" {
@@ -2379,7 +2518,7 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 		return nil, appErr
 	}
 
-	attrs, appErr := a.GetSessionAttributes(rctx.Session().Id)
+	attrs, appErr := a.GetSessionAttributes(rctx, rctx.Session().Id)
 	if appErr != nil {
 		return nil, appErr
 	}

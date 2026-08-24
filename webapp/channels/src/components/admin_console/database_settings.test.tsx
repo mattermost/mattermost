@@ -7,7 +7,7 @@ import DatabaseSettings from 'components/admin_console/database_settings';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
-jest.mock('actions/admin_actions.jsx', () => {
+jest.mock('actions/admin_actions', () => {
     const pingFn = () => {
         return jest.fn(() => {
             return {ActiveSearchBackend: 'none'};
@@ -33,7 +33,7 @@ describe('components/DatabaseSettings', () => {
                 MaxOpenConns: 100,
                 Trace: false,
                 DisableDatabaseSearch: true,
-                DataSource: 'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10',
+                DataSource: 'postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10',
                 QueryTimeout: 10,
                 AnalyticsQueryTimeout: 300,
                 ConnMaxLifetimeMilliseconds: 10,

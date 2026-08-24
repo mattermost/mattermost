@@ -100,7 +100,6 @@ var PermissionDeleteOthersPosts *Permission
 var PermissionRemoveUserFromTeam *Permission
 var PermissionCreateTeam *Permission
 var PermissionManageTeam *Permission
-var PermissionImportTeam *Permission
 var PermissionViewTeam *Permission
 var PermissionListUsersWithoutTeam *Permission
 var PermissionReadJobs *Permission
@@ -377,6 +376,8 @@ var PermissionSysconsoleWriteExperimentalFeatureFlags *Permission
 
 var PermissionSysconsoleReadExperimentalBleve *Permission
 var PermissionSysconsoleWriteExperimentalBleve *Permission
+var PermissionSysconsoleReadAiRecaps *Permission
+var PermissionSysconsoleWriteAiRecaps *Permission
 
 var PermissionPublicPlaybookCreate *Permission
 var PermissionPublicPlaybookManageProperties *Permission
@@ -1193,12 +1194,6 @@ func initializePermissions() {
 		"manage_team",
 		"authentication.permissions.manage_team.name",
 		"authentication.permissions.manage_team.description",
-		PermissionScopeTeam,
-	}
-	PermissionImportTeam = &Permission{
-		"import_team",
-		"authentication.permissions.import_team.name",
-		"authentication.permissions.import_team.description",
 		PermissionScopeTeam,
 	}
 	PermissionViewTeam = &Permission{
@@ -2198,6 +2193,19 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PermissionSysconsoleReadAiRecaps = &Permission{
+		"sysconsole_read_ai_recaps",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+	PermissionSysconsoleWriteAiRecaps = &Permission{
+		"sysconsole_write_ai_recaps",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
 	PermissionCreateCustomGroup = &Permission{
 		"create_custom_group",
 		"authentication.permissions.create_custom_group.name",
@@ -2436,6 +2444,7 @@ func initializePermissions() {
 		PermissionSysconsoleReadExperimentalFeatureFlags,
 		PermissionSysconsoleReadProductsBoards,
 		PermissionSysconsoleReadIPFilters,
+		PermissionSysconsoleReadAiRecaps,
 	}
 
 	SysconsoleWritePermissions = []*Permission{
@@ -2495,6 +2504,7 @@ func initializePermissions() {
 		PermissionSysconsoleWriteExperimentalFeatureFlags,
 		PermissionSysconsoleWriteProductsBoards,
 		PermissionSysconsoleWriteIPFilters,
+		PermissionSysconsoleWriteAiRecaps,
 	}
 
 	SystemScopedPermissionsMinusSysconsole := []*Permission{
@@ -2601,7 +2611,6 @@ func initializePermissions() {
 		PermissionDeleteOthersEmojis,
 		PermissionRemoveUserFromTeam,
 		PermissionManageTeam,
-		PermissionImportTeam,
 		PermissionViewTeam,
 		PermissionViewMembers,
 		PermissionInviteGuest,

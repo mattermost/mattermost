@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -502,28 +501,28 @@ func testTeamStoreSearchAll(t *testing.T, rctx request.CTX, ss store.Store) {
 			[]string{o.Id, p.Id},
 		},
 		{
-			"Search for all 3 teams filter by allow open invite and include group constrained",
+			"Search for all 3 teams filter by allow open invite and group constrained must intersect, not union",
 			&model.TeamSearch{Term: "searchterm", AllowOpenInvite: new(true), GroupConstrained: new(true)},
-			2,
-			[]string{o.Id, g.Id},
+			0,
+			[]string{},
 		},
 		{
-			"Search for all 3 teams filter by group constrained and not open invite",
+			"Search for all 3 teams filter by group constrained and not open invite must intersect, not union",
 			&model.TeamSearch{Term: "searchterm", GroupConstrained: new(true), AllowOpenInvite: new(false)},
-			2,
-			[]string{g.Id, p.Id},
+			0,
+			[]string{},
 		},
 		{
-			"Search for all 3 teams filter by group constrained false and open invite",
+			"Search for all 3 teams filter by group constrained false and open invite must intersect, not union",
 			&model.TeamSearch{Term: "searchterm", GroupConstrained: new(false), AllowOpenInvite: new(true)},
-			2,
-			[]string{o.Id, p.Id},
+			1,
+			[]string{o.Id},
 		},
 		{
-			"Search for all 3 teams filter by group constrained false and open invite false",
+			"Search for all 3 teams filter by group constrained false and open invite false must intersect, not union",
 			&model.TeamSearch{Term: "searchterm", GroupConstrained: new(false), AllowOpenInvite: new(false)},
-			2,
-			[]string{p.Id, o.Id},
+			1,
+			[]string{p.Id},
 		},
 		{
 			"Search for teams which are not part of a data retention policy",
@@ -651,6 +650,19 @@ func testTeamStoreSearchOpen(t *testing.T, rctx request.CTX, ss store.Store) {
 			}
 		})
 	}
+
+	t.Run("Search for a private team with GroupConstrained explicitly false must not bypass the open-invite restriction", func(t *testing.T) {
+		r1, err := ss.Team().SearchOpen(&model.TeamSearch{Term: p.DisplayName, GroupConstrained: new(false)})
+		require.NoError(t, err)
+		require.Empty(t, r1)
+	})
+
+	t.Run("Search for an open team with GroupConstrained explicitly set must still return it, proving GroupConstrained is reset rather than merely intersected", func(t *testing.T) {
+		r1, err := ss.Team().SearchOpen(&model.TeamSearch{Term: o.DisplayName, GroupConstrained: new(true)})
+		require.NoError(t, err)
+		require.Len(t, r1, 1)
+		assert.Equal(t, o.Id, r1[0].Id)
+	})
 }
 
 func testTeamStoreSearchPrivate(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -682,6 +694,17 @@ func testTeamStoreSearchPrivate(t *testing.T, rctx request.CTX, ss store.Store) 
 	q.AllowOpenInvite = false
 
 	_, err = ss.Team().Save(&q)
+	require.NoError(t, err)
+
+	// Invite-only team must also count as private.
+	pi := model.Team{}
+	pi.DisplayName = "ADisplayName" + NewTestID()
+	pi.Name = NewTestID()
+	pi.Email = MakeEmail()
+	pi.Type = model.TeamInvite
+	pi.AllowOpenInvite = false
+
+	_, err = ss.Team().Save(&pi)
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -733,6 +756,18 @@ func testTeamStoreSearchPrivate(t *testing.T, rctx request.CTX, ss store.Store) 
 			p.Id,
 		},
 		{
+			"Search for invite-only (Type I) private team by name",
+			pi.Name,
+			1,
+			pi.Id,
+		},
+		{
+			"Search for invite-only (Type I) private team by displayName",
+			pi.DisplayName,
+			1,
+			pi.Id,
+		},
+		{
 			"Search for private team without results",
 			"nonexistent",
 			0,
@@ -757,6 +792,19 @@ func testTeamStoreSearchPrivate(t *testing.T, rctx request.CTX, ss store.Store) 
 			}
 		})
 	}
+
+	t.Run("Search for an open team with GroupConstrained explicitly set must not bypass the private-only restriction", func(t *testing.T) {
+		r1, err := ss.Team().SearchPrivate(&model.TeamSearch{Term: o.DisplayName, GroupConstrained: new(false)})
+		require.NoError(t, err)
+		require.Empty(t, r1)
+	})
+
+	t.Run("Search for a private team with GroupConstrained explicitly set must still return it, proving GroupConstrained is reset rather than merely intersected", func(t *testing.T) {
+		r1, err := ss.Team().SearchPrivate(&model.TeamSearch{Term: p.DisplayName, GroupConstrained: new(true)})
+		require.NoError(t, err)
+		require.Len(t, r1, 1)
+		assert.Equal(t, p.Id, r1[0].Id)
+	})
 }
 
 func testTeamStoreGetByInviteId(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -3066,7 +3114,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 	require.Equal(t, maxUsersPerTeam, int(totalMemberCount), "should have 5 team members again, had %v instead", totalMemberCount)
 
 	// Deactivating a user should make them stop counting against max members
-	user2, nErr := ss.User().Get(context.Background(), userIds[1])
+	user2, nErr := ss.User().Get(rctx, userIds[1])
 	require.NoError(t, nErr)
 	user2.DeleteAt = 1234
 	_, nErr = ss.User().Update(rctx, user2, true)
@@ -3247,10 +3295,19 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, rctx request.CTX, ss store.S
 	_, err = ss.Channel().SaveMember(rctx, cm2)
 	require.NoError(t, err)
 
+	// A space backing channel with non-zero counters must not surface as an unread.
+	cSpace := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Space", Type: model.ChannelTypeSpace, TotalMsgCount: 100}
+	_, nErr = ss.Channel().Save(rctx, cSpace, -1)
+	require.NoError(t, nErr)
+	cmSpace := &model.ChannelMember{ChannelId: cSpace.Id, UserId: uid, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90, MentionCount: 5}
+	_, err = ss.Channel().SaveMember(rctx, cmSpace)
+	require.NoError(t, err)
+
 	ms1, nErr := ss.Team().GetChannelUnreadsForAllTeams("", uid)
 	require.NoError(t, nErr)
 	membersMap := make(map[string]bool)
 	for i := range ms1 {
+		require.NotEqual(t, cSpace.Id, ms1[i].ChannelId, "space backing channel must not contribute to unreads")
 		id := ms1[i].TeamId
 		if _, ok := membersMap[id]; !ok {
 			membersMap[id] = true
@@ -3301,9 +3358,20 @@ func testGetChannelUnreadsForTeam(t *testing.T, rctx request.CTX, ss store.Store
 	_, nErr = ss.Channel().SaveMember(rctx, cm2)
 	require.NoError(t, nErr)
 
+	// A space backing channel with non-zero counters must not surface as an unread.
+	cSpace := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Space", Type: model.ChannelTypeSpace, TotalMsgCount: 100}
+	_, nErr = ss.Channel().Save(rctx, cSpace, -1)
+	require.NoError(t, nErr)
+	cmSpace := &model.ChannelMember{ChannelId: cSpace.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90, MentionCount: 5}
+	_, nErr = ss.Channel().SaveMember(rctx, cmSpace)
+	require.NoError(t, nErr)
+
 	ms, err := ss.Team().GetChannelUnreadsForTeam(m1.TeamId, m1.UserId)
 	require.NoError(t, err)
 	require.Len(t, ms, 2, "wrong length")
+	for i := range ms {
+		require.NotEqual(t, cSpace.Id, ms[i].ChannelId, "space backing channel must not contribute to unreads")
+	}
 
 	require.Equal(t, 10, int(ms[0].MsgCount), "subtraction failed")
 }

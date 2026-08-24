@@ -4,8 +4,8 @@
 package storetest
 
 import (
-	"context"
 	"fmt"
+	"slices"
 	"testing"
 	"time"
 
@@ -22,10 +22,10 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("GetPropertyField", func(t *testing.T) { testGetPropertyField(t, rctx, ss, s) })
 	t.Run("GetManyPropertyFields", func(t *testing.T) { testGetManyPropertyFields(t, rctx, ss) })
 	t.Run("GetFieldByName", func(t *testing.T) { testGetFieldByName(t, rctx, ss) })
+	t.Run("GetFieldByNameForObjectType", func(t *testing.T) { testGetFieldByNameForObjectType(t, rctx, ss) })
 	t.Run("UpdatePropertyField", func(t *testing.T) { testUpdatePropertyField(t, rctx, ss) })
 	t.Run("DeletePropertyField", func(t *testing.T) { testDeletePropertyField(t, rctx, ss) })
-	t.Run("SearchPropertyFields", func(t *testing.T) { testSearchPropertyFields(t, rctx, ss) })
-	t.Run("SearchPropertyFieldsSince", func(t *testing.T) { testSearchPropertyFieldsSince(t, rctx, ss) })
+	t.Run("SearchPropertyFields", func(t *testing.T) { testSearchPropertyFields(t, rctx, ss, s) })
 	t.Run("CountForGroup", func(t *testing.T) { testCountForGroup(t, rctx, ss) })
 	t.Run("CheckPropertyNameConflict", func(t *testing.T) { testCheckPropertyNameConflict(t, rctx, ss) })
 	t.Run("CountLinkedFields", func(t *testing.T) { testCountLinkedFields(t, rctx, ss) })
@@ -33,7 +33,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("SearchByLinkedFieldID", func(t *testing.T) { testSearchByLinkedFieldID(t, rctx, ss) })
 }
 
-func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
+func testCreatePropertyField(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should fail if the property field already has an ID set", func(t *testing.T) {
 		newField := &model.PropertyField{ID: "sampleid"}
 		field, err := ss.PropertyField().Create(newField)
@@ -113,7 +113,7 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Equal(t, model.PropertyFieldObjectTypeChannel, created.ObjectType)
 
 		// Verify it can be retrieved with ObjectType intact
-		retrieved, err := ss.PropertyField().Get(context.Background(), "", created.ID)
+		retrieved, err := ss.PropertyField().Get(rctx, "", created.ID)
 		require.NoError(t, err)
 		require.Equal(t, model.PropertyFieldObjectTypeChannel, retrieved.ObjectType)
 	})
@@ -132,7 +132,7 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Empty(t, created.ObjectType)
 
 		// Verify it can be retrieved
-		retrieved, err := ss.PropertyField().Get(context.Background(), "", created.ID)
+		retrieved, err := ss.PropertyField().Get(rctx, "", created.ID)
 		require.NoError(t, err)
 		require.Empty(t, retrieved.ObjectType)
 	})
@@ -218,9 +218,9 @@ func insertPropertyFieldWithNullColumns(t *testing.T, ss store.Store, s SqlStore
 	return groupID, fieldID
 }
 
-func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+func testGetPropertyField(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
-		field, err := ss.PropertyField().Get(context.Background(), "", model.NewId())
+		field, err := ss.PropertyField().Get(rctx, "", model.NewId())
 		require.Zero(t, field)
 		var notFoundErr *store.ErrNotFound
 		require.ErrorAs(t, err, &notFoundErr)
@@ -241,14 +241,14 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 	require.NotZero(t, newField.ID)
 
 	t.Run("should be able to retrieve an existing property field", func(t *testing.T) {
-		field, err := ss.PropertyField().Get(context.Background(), groupID, newField.ID)
+		field, err := ss.PropertyField().Get(rctx, groupID, newField.ID)
 		require.NoError(t, err)
 		require.Equal(t, newField.ID, field.ID)
 		require.True(t, field.Attrs["locked"].(bool))
 		require.Equal(t, "value", field.Attrs["special"])
 
 		// should work without specifying the group ID as well
-		field, err = ss.PropertyField().Get(context.Background(), "", newField.ID)
+		field, err = ss.PropertyField().Get(rctx, "", newField.ID)
 		require.NoError(t, err)
 		require.Equal(t, newField.ID, field.ID)
 		require.True(t, field.Attrs["locked"].(bool))
@@ -256,7 +256,7 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 	})
 
 	t.Run("should not be able to retrieve an existing field when specifying a different group ID", func(t *testing.T) {
-		field, err := ss.PropertyField().Get(context.Background(), model.NewId(), newField.ID)
+		field, err := ss.PropertyField().Get(rctx, model.NewId(), newField.ID)
 		require.Zero(t, field)
 		var notFoundErr *store.ErrNotFound
 		require.ErrorAs(t, err, &notFoundErr)
@@ -265,7 +265,7 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 	t.Run("null columns, before createdBy, updatedBy, protected and permissions migrations", func(t *testing.T) {
 		groupID, fieldID := insertPropertyFieldWithNullColumns(t, ss, s)
 
-		field, err := ss.PropertyField().Get(context.Background(), groupID, fieldID)
+		field, err := ss.PropertyField().Get(rctx, groupID, fieldID)
 		require.NoError(t, err)
 		require.Equal(t, fieldID, field.ID)
 		require.Empty(t, field.CreatedBy)
@@ -277,9 +277,9 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 	})
 }
 
-func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
+func testGetManyPropertyFields(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting fields", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetMany(context.Background(), "", []string{model.NewId(), model.NewId()})
+		fields, err := ss.PropertyField().GetMany(rctx, "", []string{model.NewId(), model.NewId()})
 		require.Empty(t, fields)
 		var target *store.ErrResultsMismatch
 		require.ErrorAs(t, err, &target)
@@ -310,36 +310,36 @@ func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 	require.NotZero(t, newFieldOutsideGroup.ID)
 
 	t.Run("should fail if at least one of the ids is nonexistent", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetMany(context.Background(), groupID, []string{newFields[0].ID, newFields[1].ID, model.NewId()})
+		fields, err := ss.PropertyField().GetMany(rctx, groupID, []string{newFields[0].ID, newFields[1].ID, model.NewId()})
 		require.Empty(t, fields)
 		var target *store.ErrResultsMismatch
 		require.ErrorAs(t, err, &target)
 	})
 
 	t.Run("should be able to retrieve existing property fields", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetMany(context.Background(), groupID, []string{newFields[0].ID, newFields[1].ID, newFields[2].ID})
+		fields, err := ss.PropertyField().GetMany(rctx, groupID, []string{newFields[0].ID, newFields[1].ID, newFields[2].ID})
 		require.NoError(t, err)
 		require.Len(t, fields, 3)
 		require.ElementsMatch(t, newFields, fields)
 	})
 
 	t.Run("should fail if asked for valid IDs but outside the group", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetMany(context.Background(), groupID, []string{newFields[0].ID, newFieldOutsideGroup.ID})
+		fields, err := ss.PropertyField().GetMany(rctx, groupID, []string{newFields[0].ID, newFieldOutsideGroup.ID})
 		require.Empty(t, fields)
 		var target *store.ErrResultsMismatch
 		require.ErrorAs(t, err, &target)
 	})
 
 	t.Run("should be able to retrieve existing property fields from multiple groups", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetMany(context.Background(), "", []string{newFields[0].ID, newFieldOutsideGroup.ID})
+		fields, err := ss.PropertyField().GetMany(rctx, "", []string{newFields[0].ID, newFieldOutsideGroup.ID})
 		require.NoError(t, err)
 		require.Len(t, fields, 2)
 	})
 }
 
-func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
+func testGetFieldByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), "", "", "nonexistent-field-name")
+		field, err := ss.PropertyField().GetFieldByName(rctx, "", "", "nonexistent-field-name")
 		require.Zero(t, field)
 		var enf *store.ErrNotFound
 		require.ErrorAs(t, err, &enf)
@@ -362,7 +362,7 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 	require.NotZero(t, newField.ID)
 
 	t.Run("should be able to retrieve an existing property field by name", func(t *testing.T) {
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), groupID, targetID, "unique-field-name")
+		field, err := ss.PropertyField().GetFieldByName(rctx, groupID, targetID, "unique-field-name")
 		require.NoError(t, err)
 		require.Equal(t, newField.ID, field.ID)
 		require.Equal(t, "unique-field-name", field.Name)
@@ -371,14 +371,14 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 
 	t.Run("should not be able to retrieve an existing field when specifying a different group ID", func(t *testing.T) {
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), model.NewId(), targetID, "unique-field-name")
+		field, err := ss.PropertyField().GetFieldByName(rctx, model.NewId(), targetID, "unique-field-name")
 		require.Zero(t, field)
 		var enf *store.ErrNotFound
 		require.ErrorAs(t, err, &enf)
 	})
 
 	t.Run("should not be able to retrieve an existing field when specifying a different target ID", func(t *testing.T) {
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), groupID, model.NewId(), "unique-field-name")
+		field, err := ss.PropertyField().GetFieldByName(rctx, groupID, model.NewId(), "unique-field-name")
 		require.Zero(t, field)
 		var enf *store.ErrNotFound
 		require.ErrorAs(t, err, &enf)
@@ -405,13 +405,13 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 
 	t.Run("should retrieve the correct field when multiple fields have the same name but different groups", func(t *testing.T) {
 		// Get the field from the first group
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), groupID, targetID, "unique-field-name")
+		field, err := ss.PropertyField().GetFieldByName(rctx, groupID, targetID, "unique-field-name")
 		require.NoError(t, err)
 		require.Equal(t, newField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldTypeText, field.Type)
 
 		// Get the field from the second group
-		field, err = ss.PropertyField().GetFieldByName(context.Background(), anotherGroupID, targetID, "unique-field-name")
+		field, err = ss.PropertyField().GetFieldByName(rctx, anotherGroupID, targetID, "unique-field-name")
 		require.NoError(t, err)
 		require.Equal(t, duplicateNameField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldTypeSelect, field.Type)
@@ -435,13 +435,13 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 
 	t.Run("should retrieve the correct field when multiple fields have the same name and group but different target IDs", func(t *testing.T) {
 		// Get the field with the first target ID
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), groupID, targetID, "unique-field-name")
+		field, err := ss.PropertyField().GetFieldByName(rctx, groupID, targetID, "unique-field-name")
 		require.NoError(t, err)
 		require.Equal(t, newField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldTypeText, field.Type)
 
 		// Get the field with the second target ID
-		field, err = ss.PropertyField().GetFieldByName(context.Background(), groupID, anotherTargetID, "unique-field-name")
+		field, err = ss.PropertyField().GetFieldByName(rctx, groupID, anotherTargetID, "unique-field-name")
 		require.NoError(t, err)
 		require.Equal(t, sameGroupDifferentTargetField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldTypeText, field.Type)
@@ -461,7 +461,7 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NotZero(t, deletedField.ID)
 
 		// Verify it can be retrieved before deletion
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), groupID, targetID, "to-be-deleted-field")
+		field, err := ss.PropertyField().GetFieldByName(rctx, groupID, targetID, "to-be-deleted-field")
 		require.NoError(t, err)
 		require.Equal(t, deletedField.ID, field.ID)
 
@@ -470,7 +470,7 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify it can't be retrieved after deletion
-		field, err = ss.PropertyField().GetFieldByName(context.Background(), groupID, targetID, "to-be-deleted-field")
+		field, err = ss.PropertyField().GetFieldByName(rctx, groupID, targetID, "to-be-deleted-field")
 		require.Zero(t, field)
 		var enf *store.ErrNotFound
 		require.ErrorAs(t, err, &enf)
@@ -493,7 +493,7 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NotZero(t, replacementField.ID)
 
 		// Verify only the non-deleted field is retrieved
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), groupID, targetID, "to-be-deleted-field")
+		field, err := ss.PropertyField().GetFieldByName(rctx, groupID, targetID, "to-be-deleted-field")
 		require.NoError(t, err)
 		require.Equal(t, replacementField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldTypeText, field.Type)
@@ -501,7 +501,64 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
+func testGetFieldByNameForObjectType(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Two system-scoped fields share group and name, differing only by
+	// ObjectType — the collision the scoped lookup must disambiguate.
+	groupID := model.NewId()
+	targetType := string(model.PropertyFieldTargetLevelSystem)
+
+	userField := &model.PropertyField{
+		GroupID:    groupID,
+		Name:       "classification",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: targetType,
+	}
+	_, cErr := ss.PropertyField().Create(userField)
+	require.NoError(t, cErr)
+	require.NotZero(t, userField.ID)
+
+	systemField := &model.PropertyField{
+		GroupID:    groupID,
+		Name:       "classification",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeSystem,
+		TargetType: targetType,
+	}
+	_, cErr = ss.PropertyField().Create(systemField)
+	require.NoError(t, cErr)
+	require.NotZero(t, systemField.ID)
+
+	t.Run("should resolve to the field matching the requested object type", func(t *testing.T) {
+		field, err := ss.PropertyField().GetFieldByNameForObjectType(rctx, groupID, "", model.PropertyFieldObjectTypeUser, "classification")
+		require.NoError(t, err)
+		require.Equal(t, userField.ID, field.ID)
+		require.Equal(t, model.PropertyFieldObjectTypeUser, field.ObjectType)
+
+		field, err = ss.PropertyField().GetFieldByNameForObjectType(rctx, groupID, "", model.PropertyFieldObjectTypeSystem, "classification")
+		require.NoError(t, err)
+		require.Equal(t, systemField.ID, field.ID)
+		require.Equal(t, model.PropertyFieldObjectTypeSystem, field.ObjectType)
+	})
+
+	t.Run("should not match a field of a different object type", func(t *testing.T) {
+		field, err := ss.PropertyField().GetFieldByNameForObjectType(rctx, groupID, "", model.PropertyFieldObjectTypeChannel, "classification")
+		require.Zero(t, field)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
+	})
+
+	t.Run("empty object type is matched exactly, not as match-any", func(t *testing.T) {
+		// Neither field has an empty object type, so an empty-object-type lookup
+		// must miss rather than return an arbitrary match.
+		field, err := ss.PropertyField().GetFieldByNameForObjectType(rctx, groupID, "", "", "classification")
+		require.Zero(t, field)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
+	})
+}
+
+func testUpdatePropertyField(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
 		field := &model.PropertyField{
 			ID:       model.NewId(),
@@ -587,7 +644,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify first field
-		updated1, err := ss.PropertyField().Get(context.Background(), "", field1.ID)
+		updated1, err := ss.PropertyField().Get(rctx, "", field1.ID)
 		require.NoError(t, err)
 		require.Equal(t, "Updated first", updated1.Name)
 		require.Equal(t, model.PropertyFieldTypeSelect, updated1.Type)
@@ -597,7 +654,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Greater(t, updated1.UpdateAt, updated1.CreateAt)
 
 		// Verify second field
-		updated2, err := ss.PropertyField().Get(context.Background(), "", field2.ID)
+		updated2, err := ss.PropertyField().Get(rctx, "", field2.ID)
 		require.NoError(t, err)
 		require.Equal(t, "Updated second", updated2.Name)
 		require.Equal(t, model.PropertyFieldTypeSelect, updated2.Type)
@@ -731,12 +788,12 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorContains(t, err, "model.property_field.is_valid.app_error")
 
 		// Check that fields were not updated
-		updated1, err := ss.PropertyField().Get(context.Background(), "", field1.ID)
+		updated1, err := ss.PropertyField().Get(rctx, "", field1.ID)
 		require.NoError(t, err)
 		require.Equal(t, "Field 1", updated1.Name)
 		require.Equal(t, originalUpdateAt1, updated1.UpdateAt)
 
-		updated2, err := ss.PropertyField().Get(context.Background(), "", field2.ID)
+		updated2, err := ss.PropertyField().Get(rctx, "", field2.ID)
 		require.NoError(t, err)
 		require.Equal(t, groupID, updated2.GroupID)
 		require.Equal(t, originalUpdateAt2, updated2.UpdateAt)
@@ -776,7 +833,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorContains(t, err, "failed to update, some property fields were not found")
 
 		// Check that the valid field was not updated
-		updated1, err := ss.PropertyField().Get(context.Background(), "", field1.ID)
+		updated1, err := ss.PropertyField().Get(rctx, "", field1.ID)
 		require.NoError(t, err)
 		require.Equal(t, "First field", updated1.Name)
 		require.Equal(t, originalUpdateAt, updated1.UpdateAt)
@@ -811,7 +868,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 
 		// Verify the fields were updated
 		for _, field := range []*model.PropertyField{field1, field2} {
-			updated, err := ss.PropertyField().Get(context.Background(), "", field.ID)
+			updated, err := ss.PropertyField().Get(rctx, "", field.ID)
 			require.NoError(t, err)
 			require.Contains(t, updated.Name, "Updated Group Field")
 		}
@@ -850,11 +907,11 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorContains(t, err, "failed to update, some property fields were not found")
 
 		// Verify neither field was updated due to transaction rollback
-		updated1, err := ss.PropertyField().Get(context.Background(), "", field1.ID)
+		updated1, err := ss.PropertyField().Get(rctx, "", field1.ID)
 		require.NoError(t, err)
 		require.Equal(t, originalName1, updated1.Name)
 
-		updated2, err := ss.PropertyField().Get(context.Background(), "", field2.ID)
+		updated2, err := ss.PropertyField().Get(rctx, "", field2.ID)
 		require.NoError(t, err)
 		require.Equal(t, originalName2, updated2.Name)
 	})
@@ -882,7 +939,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify CreatedBy stays the same but UpdatedBy changes
-		fetched, err := ss.PropertyField().Get(context.Background(), "", field.ID)
+		fetched, err := ss.PropertyField().Get(rctx, "", field.ID)
 		require.NoError(t, err)
 		require.Equal(t, creatorUserID, fetched.CreatedBy, "CreatedBy should not change on update")
 		require.Equal(t, updaterUserID, fetched.UpdatedBy, "UpdatedBy should change on update")
@@ -925,19 +982,19 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify both fields have correct UpdatedBy
-		fetched1, err := ss.PropertyField().Get(context.Background(), "", field1.ID)
+		fetched1, err := ss.PropertyField().Get(rctx, "", field1.ID)
 		require.NoError(t, err)
 		require.Equal(t, user1, fetched1.UpdatedBy)
 		require.Equal(t, creatorUserID, fetched1.CreatedBy)
 
-		fetched2, err := ss.PropertyField().Get(context.Background(), "", field2.ID)
+		fetched2, err := ss.PropertyField().Get(rctx, "", field2.ID)
 		require.NoError(t, err)
 		require.Equal(t, user2, fetched2.UpdatedBy)
 		require.Equal(t, creatorUserID, fetched2.CreatedBy)
 	})
 }
 
-func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
+func testDeletePropertyField(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
 		err := ss.PropertyField().Delete("", model.NewId())
 		var enf *store.ErrNotFound
@@ -959,7 +1016,7 @@ func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify the field was soft-deleted
-		deletedField, err := ss.PropertyField().Get(context.Background(), "", field.ID)
+		deletedField, err := ss.PropertyField().Get(rctx, "", field.ID)
 		require.NoError(t, err)
 		require.NotZero(t, deletedField.DeleteAt)
 	})
@@ -986,7 +1043,7 @@ func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify the field was soft-deleted
-		deletedField, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		deletedField, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		require.NotZero(t, deletedField.DeleteAt)
 	})
@@ -1009,7 +1066,7 @@ func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorAs(t, err, &enf)
 
 		// Verify the field was not deleted
-		nonDeletedField, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		nonDeletedField, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		require.Zero(t, nonDeletedField.DeleteAt)
 	})
@@ -1106,7 +1163,7 @@ func testCountForGroup(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
+func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
 	groupID := model.NewId()
 	targetID := model.NewId()
 
@@ -1279,41 +1336,48 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			expectedIDs: []string{field1.ID, field2.ID},
 		},
 		{
-			name: "filter by SinceUpdateAt timestamp - no results before",
+			// SinceUpdateAt is inclusive (>=). With since=field5.UpdateAt
+			// the only row in groupID with UpdateAt >= field5.UpdateAt is
+			// field5 itself (delete does not touch UpdateAt, so field4
+			// stays behind in time order).
+			name: "filter by SinceUpdateAt timestamp - returns the boundary row",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
-				SinceUpdateAt: field5.UpdateAt, // After last active field in groupID
+				SinceUpdateAt: field5.UpdateAt,
 				PerPage:       10,
 			},
-			expectedIDs: []string{},
+			expectedIDs: []string{field5.ID},
 		},
 		{
-			name: "filter by SinceUpdateAt timestamp - get fields after specific time",
+			// Using field1.UpdateAt+1 demonstrates the `>=` boundary excludes
+			// anything strictly before it: field1 is dropped while later rows
+			// (including soft-deleted field4 as a tombstone) are surfaced.
+			name: "filter by SinceUpdateAt timestamp - get fields strictly after field1",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
-				SinceUpdateAt: field1.UpdateAt, // After field1, should get field2 and field5 from same group
+				SinceUpdateAt: field1.UpdateAt + 1,
 				PerPage:       10,
 			},
-			expectedIDs: []string{field2.ID, field5.ID},
+			expectedIDs: []string{field2.ID, field4.ID, field5.ID},
 		},
 		{
 			name: "filter by SinceUpdateAt timestamp with group filter",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:       groupID2,
-				SinceUpdateAt: field3.UpdateAt, // After field3, should get field6 from groupID2
+				SinceUpdateAt: field3.UpdateAt, // >= field3, should get field3 + field6 in groupID2
 				PerPage:       10,
 			},
-			expectedIDs: []string{field6.ID},
+			expectedIDs: []string{field3.ID, field6.ID},
 		},
 		{
 			name: "filter by SinceUpdateAt timestamp including deleted",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:        groupID,
-				SinceUpdateAt:  field2.UpdateAt, // After field2, should get field4 (deleted) and field5
+				SinceUpdateAt:  field2.UpdateAt, // >= field2 in groupID: field2, field4 (deleted), field5
 				IncludeDeleted: true,
 				PerPage:        10,
 			},
-			expectedIDs: []string{field4.ID, field5.ID},
+			expectedIDs: []string{field2.ID, field4.ID, field5.ID},
 		},
 		{
 			name: "filter by ObjectType post",
@@ -1380,110 +1444,514 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			require.ElementsMatch(t, tc.expectedIDs, ids)
 		})
 	}
-}
 
-func testSearchPropertyFieldsSince(t *testing.T, _ request.CTX, ss store.Store) {
-	// Create fields with controlled timestamps for precise testing
-	groupID := model.NewId()
+	t.Run("Since", func(t *testing.T) {
+		// Create fields with controlled timestamps for precise testing
+		groupID := model.NewId()
 
-	// Create field 1 (will remain unchanged)
-	field1, err := ss.PropertyField().Create(&model.PropertyField{
-		GroupID:    groupID,
-		Name:       "Field 1",
-		Type:       model.PropertyFieldTypeText,
-		TargetID:   model.NewId(),
-		TargetType: "test_type",
-	})
-	require.NoError(t, err)
-
-	time.Sleep(10 * time.Millisecond) // Ensure different timestamps
-
-	// Create field 2 (will be updated later)
-	field2, err := ss.PropertyField().Create(&model.PropertyField{
-		GroupID:    groupID,
-		Name:       "Field 2",
-		Type:       model.PropertyFieldTypeText,
-		TargetID:   model.NewId(),
-		TargetType: "test_type",
-	})
-	require.NoError(t, err)
-
-	time.Sleep(10 * time.Millisecond)
-
-	// Create field 3 (will remain unchanged)
-	field3, err := ss.PropertyField().Create(&model.PropertyField{
-		GroupID:    groupID,
-		Name:       "Field 3",
-		Type:       model.PropertyFieldTypeText,
-		TargetID:   model.NewId(),
-		TargetType: "test_type",
-	})
-	require.NoError(t, err)
-
-	// Update field2 to change its UpdateAt timestamp
-	time.Sleep(10 * time.Millisecond)
-	field2.Name = "Field 2 Updated"
-	updatedFields, err := ss.PropertyField().Update("", []*model.PropertyField{field2}, nil)
-	require.NoError(t, err)
-	require.Len(t, updatedFields, 1)
-	updatedField2 := updatedFields[0]
-
-	t.Run("SinceUpdateAt filters correctly by UpdateAt", func(t *testing.T) {
-		// Get fields updated after field1 (should get field2 and field3)
-		results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
-			GroupID:       groupID,
-			SinceUpdateAt: field1.UpdateAt,
-			PerPage:       10,
+		// Create field 1 (will remain unchanged)
+		field1, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Field 1",
+			Type:       model.PropertyFieldTypeText,
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
 		})
 		require.NoError(t, err)
-		require.Len(t, results, 2)
 
-		resultIDs := make([]string, len(results))
-		for i, result := range results {
-			resultIDs[i] = result.ID
+		time.Sleep(10 * time.Millisecond) // Ensure different timestamps
+
+		// Create field 2 (will be updated later)
+		field2, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Field 2",
+			Type:       model.PropertyFieldTypeText,
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+		})
+		require.NoError(t, err)
+
+		time.Sleep(10 * time.Millisecond)
+
+		// Create field 3 (will remain unchanged)
+		field3, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Field 3",
+			Type:       model.PropertyFieldTypeText,
+			TargetID:   model.NewId(),
+			TargetType: "test_type",
+		})
+		require.NoError(t, err)
+
+		// Update field2 to change its UpdateAt timestamp
+		time.Sleep(10 * time.Millisecond)
+		field2.Name = "Field 2 Updated"
+		updatedFields, err := ss.PropertyField().Update("", []*model.PropertyField{field2}, nil)
+		require.NoError(t, err)
+		require.Len(t, updatedFields, 1)
+		updatedField2 := updatedFields[0]
+
+		t.Run("SinceUpdateAt filters correctly by UpdateAt", func(t *testing.T) {
+			// Get fields updated at-or-after field1: with `>=` semantics
+			// field1 itself is included, plus field3 and the
+			// post-update field2.
+			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: field1.UpdateAt,
+				PerPage:       10,
+			})
+			require.NoError(t, err)
+			require.Len(t, results, 3)
+
+			resultIDs := make([]string, len(results))
+			for i, result := range results {
+				resultIDs[i] = result.ID
+			}
+			require.ElementsMatch(t, []string{field1.ID, field2.ID, field3.ID}, resultIDs)
+		})
+
+		t.Run("SinceUpdateAt with boundary condition", func(t *testing.T) {
+			// Get fields updated after just before field3's timestamp
+			// Should get both field3 and field2 (which was updated last and now has the most recent UpdateAt), so expect 2 results
+			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: field3.UpdateAt - 1, // Slightly before field3's timestamp
+				PerPage:       10,
+			})
+			require.NoError(t, err)
+			require.Len(t, results, 2)
+
+			resultIDs := make([]string, len(results))
+			for i, result := range results {
+				resultIDs[i] = result.ID
+			}
+			// Should get both field2 (updated with new timestamp) and field3
+			require.ElementsMatch(t, []string{field2.ID, field3.ID}, resultIDs)
+		})
+
+		t.Run("SinceUpdateAt at the most recent update returns just that row", func(t *testing.T) {
+			// `>=` semantics: querying at the highest UpdateAt in the
+			// group returns the row at exactly that timestamp.
+			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: updatedField2.UpdateAt,
+				PerPage:       10,
+			})
+			require.NoError(t, err)
+			require.Len(t, results, 1)
+			require.Equal(t, updatedField2.ID, results[0].ID)
+		})
+
+		t.Run("SinceUpdateAt with very recent timestamp", func(t *testing.T) {
+			// Get fields updated since current time
+			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: model.GetMillis(),
+				PerPage:       10,
+			})
+			require.NoError(t, err)
+			require.Len(t, results, 0)
+		})
+
+		t.Run("same-millisecond rows are paged correctly via (UpdateAt, Id) cursor", func(t *testing.T) {
+			// Three rows must share the same UpdateAt to exercise the
+			// disambiguation clause. The Update store call pins UpdateAt
+			// to a single GetMillis() value across all rows in the batch.
+			tieGroup := model.NewId()
+			tieFields := make([]*model.PropertyField, 0, 3)
+			for range 3 {
+				f, cerr := ss.PropertyField().Create(&model.PropertyField{
+					GroupID:    tieGroup,
+					Name:       model.NewId(),
+					Type:       model.PropertyFieldTypeText,
+					TargetID:   model.NewId(),
+					TargetType: "test_type",
+				})
+				require.NoError(t, cerr)
+				tieFields = append(tieFields, f)
+				time.Sleep(2 * time.Millisecond)
+			}
+
+			// Bulk-update all three to give them the SAME UpdateAt.
+			for _, f := range tieFields {
+				f.Name = f.Name + "-bumped"
+			}
+			updated, err := ss.PropertyField().Update("", tieFields, nil)
+			require.NoError(t, err)
+			require.Len(t, updated, 3)
+			tieUpdateAt := updated[0].UpdateAt
+			require.Equal(t, tieUpdateAt, updated[1].UpdateAt)
+			require.Equal(t, tieUpdateAt, updated[2].UpdateAt)
+
+			// Page 1: include the boundary row at exactly tieUpdateAt.
+			page1, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:       tieGroup,
+				SinceUpdateAt: tieUpdateAt,
+				PerPage:       2,
+			})
+			require.NoError(t, err)
+			require.Len(t, page1, 2, "boundary row + one more must come back on the first page")
+
+			// Page 2: cursor with the last row of page 1 must surface
+			// the third tied row — proving (UpdateAt, Id) disambiguates.
+			last := page1[len(page1)-1]
+			page2, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:       tieGroup,
+				SinceUpdateAt: tieUpdateAt,
+				Cursor: model.PropertyFieldSearchCursor{
+					PropertyFieldID: last.ID,
+					UpdateAt:        last.UpdateAt,
+				},
+				PerPage: 2,
+			})
+			require.NoError(t, err)
+			require.Len(t, page2, 1)
+
+			// All three tied rows surfaced exactly once across both pages.
+			seen := map[string]bool{}
+			for _, r := range append(page1, page2...) {
+				seen[r.ID] = true
+			}
+			require.Len(t, seen, 3)
+			for _, f := range tieFields {
+				require.True(t, seen[f.ID], "all tied rows must be returned exactly once across pagination")
+			}
+		})
+	})
+
+	t.Run("Scope", func(t *testing.T) {
+		groupID := model.NewId()
+		teamA := model.NewId()
+		teamB := model.NewId()
+		channelX := model.NewId()
+		channelY := model.NewId()
+
+		// Mixed fixtures: 1 system, 1 team-A, 1 team-B, 2 channel-X (team-A scoped),
+		// 1 channel-Y (team-A scoped). ObjectType varies to exercise the IN filter.
+		systemField := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "system-field",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			ObjectType: model.PropertyFieldObjectTypeSystem,
 		}
-		require.ElementsMatch(t, []string{field2.ID, field3.ID}, resultIDs)
-	})
-
-	t.Run("SinceUpdateAt with boundary condition", func(t *testing.T) {
-		// Get fields updated after just before field3's timestamp
-		// Should get both field3 and field2 (which was updated last and now has the most recent UpdateAt), so expect 2 results
-		results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
-			GroupID:       groupID,
-			SinceUpdateAt: field3.UpdateAt - 1, // Slightly before field3's timestamp
-			PerPage:       10,
-		})
-		require.NoError(t, err)
-		require.Len(t, results, 2)
-
-		resultIDs := make([]string, len(results))
-		for i, result := range results {
-			resultIDs[i] = result.ID
+		teamAField := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "team-a-field",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelTeam),
+			TargetID:   teamA,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
 		}
-		// Should get both field2 (updated with new timestamp) and field3
-		require.ElementsMatch(t, []string{field2.ID, field3.ID}, resultIDs)
+		teamBField := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "team-b-field",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelTeam),
+			TargetID:   teamB,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+		}
+		channelXField1 := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "channel-x-field-1",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   channelX,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+		}
+		channelXField2 := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "channel-x-field-2",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   channelX,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+		}
+		channelYField := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "channel-y-field",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   channelY,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+		}
+
+		for _, f := range []*model.PropertyField{systemField, teamAField, teamBField, channelXField1, channelXField2, channelYField} {
+			_, err := ss.PropertyField().Create(f)
+			require.NoError(t, err)
+			time.Sleep(2 * time.Millisecond)
+		}
+
+		t.Run("team-only scope returns system + team-A only", func(t *testing.T) {
+			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID: groupID,
+				TeamID:  teamA,
+				PerPage: 50,
+			})
+			require.NoError(t, err)
+
+			ids := make([]string, len(results))
+			for i, f := range results {
+				ids[i] = f.ID
+			}
+			require.ElementsMatch(t, []string{systemField.ID, teamAField.ID}, ids)
+		})
+
+		t.Run("channel + team scope returns system + team-A + both channel-X rows", func(t *testing.T) {
+			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:   groupID,
+				TeamID:    teamA,
+				ChannelID: channelX,
+				PerPage:   50,
+			})
+			require.NoError(t, err)
+
+			ids := make([]string, len(results))
+			for i, f := range results {
+				ids[i] = f.ID
+			}
+			require.ElementsMatch(t,
+				[]string{systemField.ID, teamAField.ID, channelXField1.ID, channelXField2.ID},
+				ids,
+			)
+		})
+
+		t.Run("ObjectTypes IN list returns rows of both kinds", func(t *testing.T) {
+			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:     groupID,
+				ObjectTypes: []string{model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypeSystem},
+				PerPage:     50,
+			})
+			require.NoError(t, err)
+
+			ids := make([]string, len(results))
+			objectTypes := make(map[string]string, len(results))
+			for i, f := range results {
+				ids[i] = f.ID
+				objectTypes[f.ID] = f.ObjectType
+			}
+			// channelXField2 (user) and any non-channel/non-system rows must be absent.
+			require.ElementsMatch(t,
+				[]string{systemField.ID, teamAField.ID, teamBField.ID, channelXField1.ID, channelYField.ID},
+				ids,
+			)
+			for _, ot := range objectTypes {
+				require.Contains(t,
+					[]string{model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypeSystem},
+					ot,
+					"unexpected object_type in IN-list result",
+				)
+			}
+		})
+
+		t.Run("ObjectType=system combined with ChannelID/TeamID still surfaces system rows", func(t *testing.T) {
+			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:    groupID,
+				ObjectType: model.PropertyFieldObjectTypeSystem,
+				TeamID:     teamA,
+				ChannelID:  channelX,
+				PerPage:    50,
+			})
+			require.NoError(t, err)
+
+			// teamAField/channelXField* are not ObjectType=system, so they're filtered
+			// out by the ObjectType clause. The OR scope clause still admits system rows
+			// — the regression we're guarding against is the channel/team filter
+			// accidentally excluding the system row.
+			ids := make([]string, len(results))
+			for i, f := range results {
+				ids[i] = f.ID
+			}
+			require.ElementsMatch(t, []string{systemField.ID}, ids)
+		})
+
+		t.Run("ChannelID without TeamID returns system + channel rows (DM/GM scope)", func(t *testing.T) {
+			// DM/GM channels have no parent team, so the hierarchy
+			// collapses to system → channel. Team-scoped rows must not
+			// leak in even though channelX itself happens to be in
+			// teamA in this fixture.
+			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:   groupID,
+				ChannelID: channelX,
+				PerPage:   50,
+			})
+			require.NoError(t, err)
+
+			ids := make([]string, len(results))
+			for i, f := range results {
+				ids[i] = f.ID
+			}
+			require.ElementsMatch(t,
+				[]string{systemField.ID, channelXField1.ID, channelXField2.ID},
+				ids,
+			)
+		})
+
+		t.Run("scope conflict (TeamID + TargetType) is rejected by IsValid", func(t *testing.T) {
+			_, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:    groupID,
+				TeamID:     teamA,
+				TargetType: string(model.PropertyFieldTargetLevelChannel),
+				PerPage:    50,
+			})
+			require.Error(t, err)
+			require.ErrorContains(t, err, "cannot be combined")
+		})
 	})
 
-	t.Run("SinceUpdateAt after all updates", func(t *testing.T) {
-		// Get fields updated after the most recent update
-		results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
-			GroupID:       groupID,
-			SinceUpdateAt: updatedField2.UpdateAt, // After the update
-			PerPage:       10,
+	t.Run("DeltaTombstones", func(t *testing.T) {
+		// Covers the rule that SinceUpdateAt > 0 auto-includes soft-deleted rows,
+		// while SinceUpdateAt == 0 (and the param being absent entirely) still
+		// excludes them — and that the two "unfiltered" calls behave identically.
+		groupID := model.NewId()
+
+		// Pin the boundary at least one ms before the first create so all three
+		// fields are guaranteed to satisfy UpdateAt > beforeAnyCreate. Without
+		// the sleep the first create can land on the same millisecond and the
+		// strict-greater filter would silently exclude it.
+		beforeAnyCreate := model.GetMillis()
+		time.Sleep(2 * time.Millisecond)
+
+		// Two live fields and one we will tombstone.
+		live1, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID: groupID, Name: "live-1", Type: model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelSystem), ObjectType: model.PropertyFieldObjectTypeSystem,
 		})
 		require.NoError(t, err)
-		require.Len(t, results, 0) // Should be empty
+		time.Sleep(5 * time.Millisecond)
+
+		live2, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID: groupID, Name: "live-2", Type: model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelSystem), ObjectType: model.PropertyFieldObjectTypeSystem,
+		})
+		require.NoError(t, err)
+		time.Sleep(5 * time.Millisecond)
+
+		tombstoned, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID: groupID, Name: "tombstoned", Type: model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelSystem), ObjectType: model.PropertyFieldObjectTypeSystem,
+		})
+		require.NoError(t, err)
+		time.Sleep(5 * time.Millisecond)
+
+		require.NoError(t, ss.PropertyField().Delete("", tombstoned.ID))
+
+		t.Run("since > 0 returns UpdateAt > since including soft-deleted rows", func(t *testing.T) {
+			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: beforeAnyCreate,
+				PerPage:       50,
+			})
+			require.NoError(t, err)
+
+			ids := make([]string, len(results))
+			for i, f := range results {
+				ids[i] = f.ID
+			}
+			require.ElementsMatch(t, []string{live1.ID, live2.ID, tombstoned.ID}, ids)
+		})
+
+		t.Run("since=0 and since absent behave identically and exclude tombstones", func(t *testing.T) {
+			withZeroSince, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: 0,
+				PerPage:       50,
+			})
+			require.NoError(t, err)
+
+			withNoSince, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID: groupID,
+				PerPage: 50,
+			})
+			require.NoError(t, err)
+
+			zeroIDs := make([]string, len(withZeroSince))
+			for i, f := range withZeroSince {
+				zeroIDs[i] = f.ID
+			}
+			noIDs := make([]string, len(withNoSince))
+			for i, f := range withNoSince {
+				noIDs[i] = f.ID
+			}
+
+			// Both calls must exclude the tombstoned row and match each other.
+			require.ElementsMatch(t, []string{live1.ID, live2.ID}, zeroIDs)
+			require.ElementsMatch(t, zeroIDs, noIDs)
+		})
 	})
 
-	t.Run("SinceUpdateAt with very recent timestamp", func(t *testing.T) {
-		// Get fields updated since current time
-		results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
-			GroupID:       groupID,
-			SinceUpdateAt: model.GetMillis(),
-			PerPage:       10,
+	t.Run("DeltaCursor", func(t *testing.T) {
+		// Covers paginated iteration in delta mode when multiple fields share a
+		// single UpdateAt millisecond — the (UpdateAt, Id) cursor tiebreaker must
+		// return every row exactly once, in Id ASC order within the tied bucket.
+		// We pin UpdateAt directly via SQL because Go's wall clock has
+		// sub-millisecond resolution and three model.GetMillis() calls would
+		// generally produce three distinct values.
+		groupID := model.NewId()
+
+		beforeBucket := model.GetMillis()
+		time.Sleep(5 * time.Millisecond)
+
+		f1, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID: groupID, Name: "tied-1", Type: model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelSystem), ObjectType: model.PropertyFieldObjectTypeSystem,
 		})
 		require.NoError(t, err)
-		require.Len(t, results, 0)
+		f2, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID: groupID, Name: "tied-2", Type: model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelSystem), ObjectType: model.PropertyFieldObjectTypeSystem,
+		})
+		require.NoError(t, err)
+		f3, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID: groupID, Name: "tied-3", Type: model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelSystem), ObjectType: model.PropertyFieldObjectTypeSystem,
+		})
+		require.NoError(t, err)
+
+		// Force the three rows to share a single UpdateAt value above beforeBucket.
+		// Without this, postgres millisecond resolution still usually produces
+		// distinct timestamps and the tiebreaker would never fire.
+		sharedUpdateAt := model.GetMillis() + 1
+		updateQuery, updateArgs, err := sq.StatementBuilder.PlaceholderFormat(s.GetQueryPlaceholder()).
+			Update("PropertyFields").
+			Set("UpdateAt", sharedUpdateAt).
+			Where(sq.Eq{"Id": []string{f1.ID, f2.ID, f3.ID}}).
+			ToSql()
+		require.NoError(t, err)
+		_, execErr := s.GetMaster().Exec(updateQuery, updateArgs...)
+		require.NoError(t, execErr)
+
+		// Expected order in delta mode: UpdateAt ASC, then Id ASC. All three share
+		// UpdateAt, so the final order is purely Id ASC.
+		expectedIDsSorted := []string{f1.ID, f2.ID, f3.ID}
+		slices.Sort(expectedIDsSorted)
+
+		// Paginate per_page=1 across the boundary; we must walk all three rows
+		// exactly once, never duplicate, never skip.
+		collected := []string{}
+		cursor := model.PropertyFieldSearchCursor{}
+		for range 5 { // hard cap to avoid runaway loop if the cursor never advances
+			batch, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: beforeBucket,
+				Cursor:        cursor,
+				PerPage:       1,
+			})
+			require.NoError(t, err)
+			if len(batch) == 0 {
+				break
+			}
+			require.Len(t, batch, 1)
+			collected = append(collected, batch[0].ID)
+			cursor = model.PropertyFieldSearchCursor{
+				PropertyFieldID: batch[0].ID,
+				UpdateAt:        batch[0].UpdateAt,
+			}
+		}
+
+		require.Equal(t, expectedIDsSorted, collected,
+			"per_page=1 walk across a tied UpdateAt bucket must return each row exactly once in Id ASC order",
+		)
 	})
 }
 
@@ -2600,7 +3068,7 @@ func testCountLinkedFields(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
+func testUpdateWithPropagation(t *testing.T, rctx request.CTX, ss store.Store) {
 	groupID := model.NewId()
 
 	optA := map[string]any{"id": model.NewId(), "name": "A"}
@@ -2665,12 +3133,12 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Len(t, result, 3)
 
 		// Verify both linked fields now have the updated options
-		retrievedLinked1, gErr := ss.PropertyField().Get(context.Background(), "", linked1.ID)
+		retrievedLinked1, gErr := ss.PropertyField().Get(rctx, "", linked1.ID)
 		require.NoError(t, gErr)
 		options1 := retrievedLinked1.Attrs["options"].([]any)
 		require.Len(t, options1, 3)
 
-		retrievedLinked2, gErr := ss.PropertyField().Get(context.Background(), "", linked2.ID)
+		retrievedLinked2, gErr := ss.PropertyField().Get(rctx, "", linked2.ID)
 		require.NoError(t, gErr)
 		options2 := retrievedLinked2.Attrs["options"].([]any)
 		require.Len(t, options2, 3)
@@ -2690,12 +3158,12 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Len(t, result, 3) // source + 2 linked
 
 		// Verify linked fields have exactly 2 options
-		retrievedLinked1, gErr := ss.PropertyField().Get(context.Background(), "", linked1.ID)
+		retrievedLinked1, gErr := ss.PropertyField().Get(rctx, "", linked1.ID)
 		require.NoError(t, gErr)
 		options1 := retrievedLinked1.Attrs["options"].([]any)
 		require.Len(t, options1, 2)
 
-		retrievedLinked2, gErr := ss.PropertyField().Get(context.Background(), "", linked2.ID)
+		retrievedLinked2, gErr := ss.PropertyField().Get(rctx, "", linked2.ID)
 		require.NoError(t, gErr)
 		options2 := retrievedLinked2.Attrs["options"].([]any)
 		require.Len(t, options2, 2)
@@ -2714,7 +3182,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, uErr)
 
 		// Verify linked fields have the renamed option
-		retrievedLinked1, gErr := ss.PropertyField().Get(context.Background(), "", linked1.ID)
+		retrievedLinked1, gErr := ss.PropertyField().Get(rctx, "", linked1.ID)
 		require.NoError(t, gErr)
 		options1 := retrievedLinked1.Attrs["options"].([]any)
 		require.Len(t, options1, 1)
@@ -2733,7 +3201,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 
 	t.Run("should reject update when expectedUpdateAts do not match (optimistic concurrency)", func(t *testing.T) {
 		// Read the current state of the source field
-		current, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		current, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 
 		// Simulate a concurrent update by directly modifying the field
@@ -2751,14 +3219,14 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorAs(t, uErr, &conflictErr)
 
 		// Verify the field was NOT updated (concurrent update's value persists)
-		after, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		after, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 		require.Equal(t, "Concurrent Update", after.Name)
 	})
 
 	t.Run("should succeed when expectedUpdateAts match current state", func(t *testing.T) {
 		// Read the current state
-		current, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		current, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 
 		// Update with correct expectedUpdateAts
@@ -2783,7 +3251,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, cErr)
 
 		// Get fresh state of batch field
-		freshBatch, gErr := ss.PropertyField().Get(context.Background(), "", batchField.ID)
+		freshBatch, gErr := ss.PropertyField().Get(rctx, "", batchField.ID)
 		require.NoError(t, gErr)
 
 		// Save the pre-update UpdateAt before the concurrent modification
@@ -2798,7 +3266,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, uErr)
 
 		// Re-fetch the source since it wasn't modified (its UpdateAt is still valid)
-		freshSource, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		freshSource, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 
 		// Attempt batch update using stale UpdateAt for batchField but fresh for source
@@ -2815,18 +3283,18 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorAs(t, uErr, &conflictErr)
 
 		// Verify neither field was updated (transaction rolled back)
-		afterSource, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		afterSource, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 		require.NotEqual(t, "Should Not Stick", afterSource.Name)
 
-		afterBatch, gErr := ss.PropertyField().Get(context.Background(), "", batchField.ID)
+		afterBatch, gErr := ss.PropertyField().Get(rctx, "", batchField.ID)
 		require.NoError(t, gErr)
 		require.Equal(t, "Concurrent Batch Change", afterBatch.Name)
 	})
 
 	t.Run("should propagate and enforce optimistic concurrency together", func(t *testing.T) {
 		// Get fresh state of source field for OCC
-		freshSource, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		freshSource, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 
 		optNew := map[string]any{"id": model.NewId(), "name": "PropagateOCC"}
@@ -2840,7 +3308,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Len(t, result, 3)
 
 		// Verify propagation occurred on linked fields
-		retrievedLinked1, gErr := ss.PropertyField().Get(context.Background(), "", linked1.ID)
+		retrievedLinked1, gErr := ss.PropertyField().Get(rctx, "", linked1.ID)
 		require.NoError(t, gErr)
 		opts := retrievedLinked1.Attrs["options"].([]any)
 		require.Len(t, opts, 1)
@@ -2848,7 +3316,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 
 	t.Run("should reject propagation when source has stale expectedUpdateAt", func(t *testing.T) {
-		freshSource, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		freshSource, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 
 		// Save the pre-update UpdateAt
@@ -2872,7 +3340,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorAs(t, uErr, &conflictErr)
 
 		// Verify linked fields were NOT updated (propagation rolled back)
-		retrievedLinked1, gErr := ss.PropertyField().Get(context.Background(), "", linked1.ID)
+		retrievedLinked1, gErr := ss.PropertyField().Get(rctx, "", linked1.ID)
 		require.NoError(t, gErr)
 		opts := retrievedLinked1.Attrs["options"].([]any)
 		firstOpt := opts[0].(map[string]any)
@@ -2880,7 +3348,7 @@ func testUpdateWithPropagation(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 
 	t.Run("nil expectedUpdateAts should skip concurrency check (backwards compat)", func(t *testing.T) {
-		freshSource, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		freshSource, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 
 		// Update without any concurrency check — should always succeed

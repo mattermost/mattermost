@@ -66,7 +66,9 @@ func (a *App) fetchConditionFields(rctx request.CTX, conditions []model.Conditio
 
 	fields := make(map[string]*model.PropertyField, len(seen))
 	for name := range seen {
-		field, appErr := a.GetPropertyFieldByName(rctx, cpaGroupID, "", name)
+		// Scope to user CPA fields so a name shared across object types in this
+		// group resolves deterministically.
+		field, appErr := a.GetPropertyFieldByNameForObjectType(rctx, cpaGroupID, "", model.PropertyFieldObjectTypeUser, name)
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to look up field for masking, failing closed",
 				mlog.String("field_name", name),
@@ -107,7 +109,9 @@ func (r *appMaskingResolver) Resolve(fieldName string) (*model.MaskingFieldInfo,
 	if info, ok := r.cache[fieldName]; ok {
 		return info, nil
 	}
-	field, appErr := r.app.GetPropertyFieldByName(r.rctxWithCaller, r.cpaGroupID, "", fieldName)
+	// Scope to user CPA fields so a name shared across object types in this
+	// group resolves deterministically.
+	field, appErr := r.app.GetPropertyFieldByNameForObjectType(r.rctxWithCaller, r.cpaGroupID, "", model.PropertyFieldObjectTypeUser, fieldName)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -173,7 +177,7 @@ func (a *App) maskConditionValues(rctx request.CTX, callerID string, condition *
 		condition.Value = nil
 		condition.HasMaskedValues = true
 	case model.PropertyAccessModeSharedOnly:
-		if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
+		if field.Type.SupportsOptions() {
 			filterConditionValues(condition, extractVisibleOptionNames(field))
 		} else {
 			filterConditionValues(condition, a.getCallerTextValues(rctx, callerID, field, cpaGroupID))

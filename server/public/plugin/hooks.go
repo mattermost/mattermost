@@ -73,6 +73,7 @@ const (
 	ChannelWillBeRestoredID                   = 53
 	ScheduledPostWillBeCreatedID              = 54
 	DraftWillBeUpsertedID                     = 55
+	MessagesWillBeConsumedWithContextID       = 56
 	TotalHooksID                              = iota
 )
 
@@ -198,6 +199,18 @@ type Hooks interface {
 	//
 	// Minimum server version: 9.3
 	MessagesWillBeConsumed(posts []*model.Post) []*model.Post
+
+	// MessagesWillBeConsumedWithContext is invoked when messages are requested by a client, before
+	// they are returned to the client. It is the context-aware variant of MessagesWillBeConsumed.
+	//
+	// To modify a post, return the replacement post; the returned posts are matched to the originals
+	// by ID. Posts that should be left unchanged may be omitted from the returned slice.
+	//
+	// Note that this method will be called for posts created by plugins, including the plugin that
+	// created the post.
+	//
+	// Minimum server version: 11.9
+	MessagesWillBeConsumedWithContext(c *Context, posts []*model.Post) []*model.Post
 
 	// MessageHasBeenDeleted is invoked after the message has been deleted from the database.
 	// Note that this method will be called for posts deleted by plugins, including the plugin that

@@ -11,7 +11,7 @@ import type {Channel, ChannelModeration as ChannelPermissions, ChannelModeration
 import {SyncableType} from '@mattermost/types/groups';
 import type {SyncablePatch, Group} from '@mattermost/types/groups';
 import type {JobTypeBase} from '@mattermost/types/jobs';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -19,6 +19,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Permissions} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import {excludeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
 import BlockableLink from 'components/admin_console/blockable_link';
 import ChannelAccessRulesConfirmModal from 'components/channel_settings_modal/channel_access_rules_confirm_modal';
 import ConfirmModal from 'components/confirm_modal';
@@ -365,51 +366,53 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
     };
 
     private channelPermissionsChanged = (name: string, channelRole: ChannelModerationRoles) => {
-        const currentValueIndex = this.state.channelPermissions.findIndex((element) => element.name === name);
-        const currentValue = this.state.channelPermissions[currentValueIndex].roles[channelRole]!.value;
-        const newValue = !currentValue;
-        let channelPermissions = [...this.state.channelPermissions];
+        this.setState((state) => {
+            const currentValueIndex = state.channelPermissions.findIndex((element) => element.name === name);
+            const currentValue = state.channelPermissions[currentValueIndex].roles[channelRole]!.value;
+            const newValue = !currentValue;
+            let channelPermissions = [...state.channelPermissions];
 
-        if (name === Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_POST) {
-            const originalObj = this.props.channelPermissions.find((element) => element.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.USE_CHANNEL_MENTIONS)?.roles![channelRole];
-            channelPermissions = channelPermissions.map((permission) => {
-                if (permission.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.USE_CHANNEL_MENTIONS && !newValue) {
-                    return {
-                        name: permission.name,
-                        roles: {
-                            ...permission.roles,
-                            [channelRole]: {
-                                value: false,
-                                enabled: false,
+            if (name === Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_POST) {
+                const originalObj = this.props.channelPermissions.find((element) => element.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.USE_CHANNEL_MENTIONS)?.roles![channelRole];
+                channelPermissions = channelPermissions.map((permission) => {
+                    if (permission.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.USE_CHANNEL_MENTIONS && !newValue) {
+                        return {
+                            name: permission.name,
+                            roles: {
+                                ...permission.roles,
+                                [channelRole]: {
+                                    value: false,
+                                    enabled: false,
+                                },
                             },
-                        },
-                    };
-                } else if (permission.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.USE_CHANNEL_MENTIONS) {
-                    return {
-                        name: permission.name,
-                        roles: {
-                            ...permission.roles,
-                            [channelRole]: {
-                                value: originalObj?.value,
-                                enabled: originalObj?.enabled,
+                        };
+                    } else if (permission.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.USE_CHANNEL_MENTIONS) {
+                        return {
+                            name: permission.name,
+                            roles: {
+                                ...permission.roles,
+                                [channelRole]: {
+                                    value: originalObj?.value,
+                                    enabled: originalObj?.enabled,
+                                },
                             },
-                        },
-                    };
-                }
-                return permission;
-            });
-        }
-        channelPermissions[currentValueIndex] = {
-            ...channelPermissions[currentValueIndex],
-            roles: {
-                ...channelPermissions[currentValueIndex].roles,
-                [channelRole]: {
-                    ...channelPermissions[currentValueIndex].roles[channelRole],
-                    value: newValue,
+                        };
+                    }
+                    return permission;
+                });
+            }
+            channelPermissions[currentValueIndex] = {
+                ...channelPermissions[currentValueIndex],
+                roles: {
+                    ...channelPermissions[currentValueIndex].roles,
+                    [channelRole]: {
+                        ...channelPermissions[currentValueIndex].roles[channelRole],
+                        value: newValue,
+                    },
                 },
-            },
-        };
-        this.setState({channelPermissions, saveNeeded: true});
+            };
+            return {channelPermissions, saveNeeded: true};
+        });
         this.props.actions.setNavigationBlocked(true);
     };
 
@@ -1138,7 +1141,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             }
 
             this.setState({
-                userAttributes: attributes,
+                userAttributes: excludeSessionAttributes(attributes),
                 attributesLoaded: true,
             });
         } catch (error) {
