@@ -142,6 +142,16 @@ func TestStopOnError(t *testing.T) {
 		Error:      model.NewAppError("test", "app.import.validate_direct_channel_import_data.members_too_many.error", nil, "", http.StatusBadRequest),
 		LineNumber: 1,
 	}))
+
+	assert.False(t, stopOnError(th.Context, imports.LineImportWorkerError{
+		Error:      model.NewAppError("test", "app.user.save.email_exists.app_error", nil, "", http.StatusBadRequest),
+		LineNumber: 1,
+	}))
+
+	assert.False(t, stopOnError(th.Context, imports.LineImportWorkerError{
+		Error:      model.NewAppError("test", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest),
+		LineNumber: 1,
+	}))
 }
 
 func TestImportBulkImport(t *testing.T) {
@@ -818,6 +828,22 @@ func TestRewriteTeamNameEndToEnd(t *testing.T) {
 	// The channel should have been created under the destination team.
 	_, appErr = th.App.GetChannelByName(th.Context, channelName, destTeam.Id, false)
 	require.Nil(t, appErr, "channel should exist under the destination team after name remapping")
+}
+
+func TestDestinationTeamRequiresSingleTeamExport(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// A version line with a comma-separated (multi-team) scope combined with
+	// --destination-team-name must be rejected immediately, as remapping to a single
+	// destination is ambiguous when the export spans multiple source teams.
+	data := `{"type":"version","version":1,"info":{"generator":"mattermost-server","version":"test","created":"2026-01-01T00:00:00Z","additional":{"team_name":"team-a,team-b"}}}
+{"type":"team","team":{"type":"O","display_name":"Team A","name":"team-a"}}`
+
+	opts := model.BulkImportOpts{DestinationTeamName: "some-dest-team"}
+	_, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", opts)
+	require.NotNil(t, appErr, "should fail when --destination-team-name is used with a multi-team export")
+	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 }
 
 func TestDeleteImport(t *testing.T) {

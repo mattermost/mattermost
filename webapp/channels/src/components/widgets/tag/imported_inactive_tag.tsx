@@ -22,7 +22,7 @@ const ImportedInactiveTag = ({className = '', size = 'xs'}: Props) => {
             className={classNames('ImportedInactiveTag', className)}
             text={formatMessage({
                 id: 'tag.default.imported_inactive',
-                defaultMessage: 'Imported - Inactive',
+                defaultMessage: 'IMPORTED - INACTIVE',
             })}
         />
     );

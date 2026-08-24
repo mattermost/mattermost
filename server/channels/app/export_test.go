@@ -1854,6 +1854,15 @@ func parseExportLines(t *testing.T, b *bytes.Buffer) map[string][]map[string]any
 	return result
 }
 
+func TestSplitTrimNames(t *testing.T) {
+	assert.Nil(t, splitTrimNames(""))
+	assert.Equal(t, []string{"team-a"}, splitTrimNames("team-a"))
+	assert.Equal(t, []string{"team-a", "team-b"}, splitTrimNames("team-a,team-b"))
+	assert.Equal(t, []string{"team-a", "team-b"}, splitTrimNames("team-a, team-b"))
+	assert.Equal(t, []string{"team-a", "team-b"}, splitTrimNames(" team-a , team-b "))
+	assert.Equal(t, []string{"team-a", "team-b"}, splitTrimNames("team-a,,team-b"))
+}
+
 func TestBulkExportChannelRequiresTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
