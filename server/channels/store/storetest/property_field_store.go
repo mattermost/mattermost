@@ -3365,7 +3365,6 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 	})
 
 	t.Run("name-only update does not return linked fields when options unchanged", func(t *testing.T) {
-		// Update source field name only — the options are untouched
 		sourceField.Name = "Updated Name"
 		result, uErr := ss.PropertyField().Update("", []*model.PropertyField{sourceField}, nil)
 		require.NoError(t, uErr)
@@ -3481,7 +3480,6 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 		// source + 2 linked fields
 		require.Len(t, result, 3)
 
-		// Verify the linked fields serve the new option
 		retrievedLinked1, gErr := ss.PropertyField().Get(context.Background(), "", linked1.ID)
 		require.NoError(t, gErr)
 		opts := retrievedLinked1.Attrs["options"].([]any)
@@ -3501,7 +3499,6 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 		_, uErr := ss.PropertyField().Update("", []*model.PropertyField{freshSource}, nil)
 		require.NoError(t, uErr)
 
-		// Try to change the options with the stale UpdateAt
 		optStale := map[string]any{"id": model.NewId(), "name": "ShouldNotPropagate"}
 		staleOptions := []any{optStale}
 		freshSource.Attrs = map[string]any{"options": staleOptions}
@@ -3513,7 +3510,6 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 		var conflictErr *store.ErrConflict
 		require.ErrorAs(t, uErr, &conflictErr)
 
-		// Verify the option change was rolled back
 		retrievedLinked1, gErr := ss.PropertyField().Get(context.Background(), "", linked1.ID)
 		require.NoError(t, gErr)
 		opts := retrievedLinked1.Attrs["options"].([]any)

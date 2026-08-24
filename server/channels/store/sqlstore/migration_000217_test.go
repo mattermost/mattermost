@@ -46,7 +46,7 @@ func TestMigration000217(t *testing.T) {
 	require.NoError(t, err)
 	defer store.Close()
 
-	// New() applies all migrations, so 000213 is already in effect.
+	// New() applies all migrations, so 000217 is already in effect.
 	require.True(t, tableExists(t, store, "PropertyOptions"), "PropertyOptions should exist after migration")
 
 	group, err := store.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
