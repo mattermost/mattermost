@@ -323,20 +323,32 @@ func (s SqlPreferenceStore) GetDeletedSince(userID string, since int64) ([]model
 	return tombstones, nil
 }
 
-func (s SqlPreferenceStore) DeletePreferenceDeletionsBefore(cutoff int64) error {
+func (s SqlPreferenceStore) DeletePreferenceDeletionsBefore(cutoff int64, limit int) (int64, error) {
+	subQuery := s.getQueryBuilder().
+		Select("UserId, Category, Name").
+		From("PreferenceDeletions").
+		Where(sq.Lt{"DeleteAt": cutoff}).
+		Limit(uint64(limit))
+
 	query, args, err := s.getQueryBuilder().
 		Delete("PreferenceDeletions").
-		Where(sq.Lt{"DeleteAt": cutoff}).
+		Where(sq.Expr("(userid, category, name) IN (?)", subQuery)).
 		ToSql()
 	if err != nil {
-		return errors.Wrap(err, "could not build sql query for DeletePreferenceDeletionsBefore")
+		return 0, errors.Wrap(err, "could not build sql query for DeletePreferenceDeletionsBefore")
 	}
 
-	if _, err = s.GetMaster().Exec(query, args...); err != nil {
-		return errors.Wrap(err, "failed to delete old preference deletions")
+	sqlResult, err := s.GetMaster().Exec(query, args...)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete old preference deletions")
 	}
 
-	return nil
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "unable to get rows affected")
+	}
+
+	return rowsAffected, nil
 }
 
 func (s SqlPreferenceStore) DeleteCategory(userId string, category string) error {

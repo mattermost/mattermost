@@ -175,6 +175,34 @@ func (a *App) getAllChannelMembersForUser(rctx request.CTX, userID string) (mode
 	return all, nil
 }
 
+const dmChannelsPageSize = 2000
+
+// getAllDMGMChannelsForUser pages through GetChannelsForUser so a teamless
+// user's DM/GM history never forces a single unbounded query.
+func (a *App) getAllDMGMChannelsForUser(rctx request.CTX, userID string, includeDeleted bool) (model.ChannelList, *model.AppError) {
+	var all model.ChannelList
+	fromChannelID := ""
+	for {
+		page, appErr := a.GetChannelsForUser(rctx, userID, includeDeleted, 0, dmChannelsPageSize, fromChannelID)
+		if appErr != nil {
+			if appErr.StatusCode == http.StatusNotFound {
+				break
+			}
+			return nil, appErr
+		}
+		for _, ch := range page {
+			if ch.Type == model.ChannelTypeDirect || ch.Type == model.ChannelTypeGroup {
+				all = append(all, ch)
+			}
+		}
+		if len(page) < dmChannelsPageSize {
+			break
+		}
+		fromChannelID = page[len(page)-1].Id
+	}
+	return all, nil
+}
+
 // toExperienceGroupMembershipList returns nil when there is nothing to send
 // (no members and no tombstones), avoiding an empty object in the JSON response.
 func toExperienceGroupMembershipList(list *model.ExperienceGroupMembershipList) *model.ExperienceGroupMembershipList {
@@ -445,7 +473,7 @@ func toExperienceRoles(roles []*model.Role) []*model.ExperienceRole {
 }
 
 // buildDirectProfiles converts the DM/GM profiles map into a flat deduplicated list.
-func buildDirectProfiles(profilesByChannel map[string][]*model.User, showEmail bool) []*model.ExperienceUser {
+func buildDirectProfiles(profilesByChannel map[string][]*model.User, showEmail bool, showFullName bool) []*model.ExperienceUser {
 	if len(profilesByChannel) == 0 {
 		return nil
 	}
@@ -457,7 +485,7 @@ func buildDirectProfiles(profilesByChannel map[string][]*model.User, showEmail b
 				continue
 			}
 			seen[u.Id] = struct{}{}
-			out = append(out, toExperienceUser(u, false, showEmail))
+			out = append(out, toExperienceUser(u, false, showEmail, showFullName))
 		}
 	}
 	return out
@@ -642,9 +670,10 @@ func mergeChannels(a, b model.ChannelList) model.ChannelList {
 	return out
 }
 
-// isSelf preserves Email/NotifyProps (the user's own); otherwise Email is
-// gated on showEmail and NotifyProps is omitted, mirroring User.Sanitize.
-func toExperienceUser(u *model.User, isSelf bool, showEmail bool) *model.ExperienceUser {
+// isSelf preserves Email/NotifyProps/FirstName/LastName (the user's own);
+// otherwise Email is gated on showEmail, FirstName/LastName are gated on
+// showFullName, and NotifyProps is omitted, mirroring User.Sanitize.
+func toExperienceUser(u *model.User, isSelf bool, showEmail bool, showFullName bool) *model.ExperienceUser {
 	if u == nil {
 		return nil
 	}
@@ -656,8 +685,6 @@ func toExperienceUser(u *model.User, isSelf bool, showEmail bool) *model.Experie
 		Username:               u.Username,
 		AuthService:            u.AuthService,
 		Nickname:               u.Nickname,
-		FirstName:              u.FirstName,
-		LastName:               u.LastName,
 		Position:               u.Position,
 		Roles:                  u.Roles,
 		Props:                  u.Props,
@@ -667,11 +694,27 @@ func toExperienceUser(u *model.User, isSelf bool, showEmail bool) *model.Experie
 		TermsOfServiceId:       u.TermsOfServiceId,
 		TermsOfServiceCreateAt: u.TermsOfServiceCreateAt,
 	}
+	if isSelf || showFullName {
+		out.FirstName = u.FirstName
+		out.LastName = u.LastName
+	}
 	if isSelf {
 		out.Email = u.Email
 		out.NotifyProps = u.NotifyProps
 	} else if showEmail {
 		out.Email = u.Email
+	} else if _, ok := u.Props[model.UserPropsKeyRemoteEmail]; ok {
+		// Mirrors User.Sanitize: a shared-channel remote user's real email can
+		// live in Props even when Email itself is blanked, so it must be
+		// stripped the same way whenever email visibility is denied. Copy
+		// first — u.Props is the same map instance as the source User and may
+		// be shared/cached elsewhere.
+		props := make(model.StringMap, len(u.Props))
+		for k, v := range u.Props {
+			props[k] = v
+		}
+		delete(props, model.UserPropsKeyRemoteEmail)
+		out.Props = props
 	}
 	return out
 }
@@ -879,7 +922,7 @@ func dmIsUnread(ch *model.Channel, cm *model.ChannelMemberWithTeamData, isCRT bo
 	return cm.MentionCount > 0 || (!isMuted && ch.TotalMsgCount-cm.MsgCount > 0)
 }
 
-func filterManuallyClosedDMEntries(entries []dmEntry, prefs model.Preferences, userID string, pinnedElsewhere map[string]struct{}) []dmEntry {
+func filterManuallyClosedDMEntries(entries []dmEntry, prefs model.Preferences, userID string, pinnedInOtherCategory map[string]struct{}) []dmEntry {
 	directShowFalse := make(map[string]bool)
 	groupShowFalse := make(map[string]bool)
 	for _, p := range prefs {
@@ -897,7 +940,7 @@ func filterManuallyClosedDMEntries(entries []dmEntry, prefs model.Preferences, u
 			result = append(result, e)
 			continue
 		}
-		if _, pinned := pinnedElsewhere[e.ch.Id]; pinned {
+		if _, pinned := pinnedInOtherCategory[e.ch.Id]; pinned {
 			result = append(result, e)
 			continue
 		}
@@ -929,10 +972,10 @@ func filterAutoclosedDMEntries(
 	userID string,
 	profilesByChannel map[string][]*model.User,
 	dmLimit int,
-	pinnedElsewhere map[string]struct{},
+	pinnedInOtherCategory map[string]struct{},
 ) (dmCat []dmEntry, pinned []*model.Channel) {
 	for _, e := range entries {
-		if _, ok := pinnedElsewhere[e.ch.Id]; ok {
+		if _, ok := pinnedInOtherCategory[e.ch.Id]; ok {
 			pinned = append(pinned, e.ch)
 			continue
 		}
@@ -1010,6 +1053,110 @@ func sortDMEntries(entries []dmEntry, sorting model.SidebarCategorySorting, sort
 	return entries
 }
 
+// buildDMEntries assembles one dmEntry per channel plus the set of channels
+// pinned into a sidebar category other than the default DM one. Shared by
+// limitDMChannelsForProfiles and selectVisibleDMGMChannels so both agree on
+// unread/pinned status without fetching or computing it twice.
+func buildDMEntries(
+	channels model.ChannelList,
+	channelMembers model.ChannelMembersWithTeamData,
+	sidebarCats *model.OrderedSidebarCategories,
+	prefs model.Preferences,
+	isCRT bool,
+) (entries []dmEntry, dmCategory *model.SidebarCategoryWithChannels, pinnedInOtherCategory map[string]struct{}) {
+	cmByChannel := make(map[string]*model.ChannelMemberWithTeamData, len(channelMembers))
+	for i := range channelMembers {
+		if channelMembers[i].TeamName == "" {
+			cmByChannel[channelMembers[i].ChannelId] = &channelMembers[i]
+		}
+	}
+
+	lastViewed := buildDMLastViewedAt(cmByChannel, prefs)
+
+	pinnedInOtherCategory = make(map[string]struct{})
+	if sidebarCats != nil {
+		for _, cat := range sidebarCats.Categories {
+			if cat.Type == model.SidebarCategoryDirectMessages {
+				dmCategory = cat
+				continue
+			}
+			for _, chID := range cat.Channels {
+				pinnedInOtherCategory[chID] = struct{}{}
+			}
+		}
+	}
+
+	entries = make([]dmEntry, 0, len(channels))
+	for _, ch := range channels {
+		cm := cmByChannel[ch.Id]
+		entries = append(entries, dmEntry{
+			ch:         ch,
+			cm:         cm,
+			lastViewed: lastViewed[ch.Id],
+			unread:     dmIsUnread(ch, cm, isCRT),
+		})
+	}
+	return entries, dmCategory, pinnedInOtherCategory
+}
+
+// limitDMChannelsForProfiles bounds how many DM/GM channels get their member
+// profiles fetched, so an account with a very large DM/GM history doesn't
+// force an unbounded query. Unread and pinned-in-another-category channels are
+// always kept (selectVisibleDMGMChannels never drops them either); the rest
+// are ranked by recency and capped to a multiple of dmLimit, wide enough that
+// channels near the actual visibility cutoff still make it through.
+func limitDMChannelsForProfiles(
+	channels model.ChannelList,
+	channelMembers model.ChannelMembersWithTeamData,
+	sidebarCats *model.OrderedSidebarCategories,
+	prefs model.Preferences,
+	dmLimit int,
+	isCRT bool,
+) model.ChannelList {
+	const dmProfileFetchLimitMultiplier = 3
+
+	limit := dmLimit * dmProfileFetchLimitMultiplier
+	if len(channels) <= limit {
+		return channels
+	}
+
+	entries, _, pinnedInOtherCategory := buildDMEntries(channels, channelMembers, sidebarCats, prefs, isCRT)
+
+	var kept, rest []dmEntry
+	for _, e := range entries {
+		if e.unread {
+			kept = append(kept, e)
+			continue
+		}
+		if _, pinned := pinnedInOtherCategory[e.ch.Id]; pinned {
+			kept = append(kept, e)
+			continue
+		}
+		rest = append(rest, e)
+	}
+
+	sort.SliceStable(rest, func(i, j int) bool {
+		a := max(rest[i].ch.LastPostAt, rest[i].ch.CreateAt)
+		b := max(rest[j].ch.LastPostAt, rest[j].ch.CreateAt)
+		return a > b
+	})
+
+	if remaining := limit - len(kept); remaining > 0 && len(rest) > remaining {
+		rest = rest[:remaining]
+	} else if remaining <= 0 {
+		rest = nil
+	}
+
+	out := make(model.ChannelList, 0, len(kept)+len(rest))
+	for _, e := range kept {
+		out = append(out, e.ch)
+	}
+	for _, e := range rest {
+		out = append(out, e.ch)
+	}
+	return out
+}
+
 // selectVisibleDMGMChannels applies the same DM/GM visibility rules clients use:
 // filterManuallyClosedDMs → filterAutoclosedDMs → sortChannels.
 // Server-side replication ensures consistent behaviour across all clients.
@@ -1029,42 +1176,15 @@ func selectVisibleDMGMChannels(
 		return allDMChannels
 	}
 
-	cmByChannel := make(map[string]*model.ChannelMemberWithTeamData, len(channelMembers))
-	for i := range channelMembers {
-		if channelMembers[i].TeamName == "" {
-			cmByChannel[channelMembers[i].ChannelId] = &channelMembers[i]
-		}
+	entries, dmCategory, pinnedInOtherCategory := buildDMEntries(allDMChannels, channelMembers, sidebarCats, prefs, isCRT)
+
+	entryByChannelID := make(map[string]dmEntry, len(entries))
+	for _, e := range entries {
+		entryByChannelID[e.ch.Id] = e
 	}
 
-	lastViewed := buildDMLastViewedAt(cmByChannel, prefs)
-
-	pinnedElsewhere := make(map[string]struct{})
-	var dmCategory *model.SidebarCategoryWithChannels
-	if sidebarCats != nil {
-		for _, cat := range sidebarCats.Categories {
-			if cat.Type == model.SidebarCategoryDirectMessages {
-				dmCategory = cat
-				continue
-			}
-			for _, chID := range cat.Channels {
-				pinnedElsewhere[chID] = struct{}{}
-			}
-		}
-	}
-
-	entries := make([]dmEntry, 0, len(allDMChannels))
-	for _, ch := range allDMChannels {
-		cm := cmByChannel[ch.Id]
-		entries = append(entries, dmEntry{
-			ch:         ch,
-			cm:         cm,
-			lastViewed: lastViewed[ch.Id],
-			unread:     dmIsUnread(ch, cm, isCRT),
-		})
-	}
-
-	entries = filterManuallyClosedDMEntries(entries, prefs, userID, pinnedElsewhere)
-	dmCatEntries, pinnedChannels := filterAutoclosedDMEntries(entries, currentChannelID, userID, profilesByChannel, dmLimit, pinnedElsewhere)
+	entries = filterManuallyClosedDMEntries(entries, prefs, userID, pinnedInOtherCategory)
+	dmCatEntries, pinnedChannels := filterAutoclosedDMEntries(entries, currentChannelID, userID, profilesByChannel, dmLimit, pinnedInOtherCategory)
 
 	seen := make(map[string]struct{}, len(dmCatEntries)+len(pinnedChannels))
 	finalEntries := make([]dmEntry, 0, len(dmCatEntries)+len(pinnedChannels))
@@ -1077,7 +1197,7 @@ func selectVisibleDMGMChannels(
 	for _, ch := range pinnedChannels {
 		if _, ok := seen[ch.Id]; !ok {
 			seen[ch.Id] = struct{}{}
-			finalEntries = append(finalEntries, dmEntry{ch: ch, cm: cmByChannel[ch.Id], lastViewed: lastViewed[ch.Id]})
+			finalEntries = append(finalEntries, entryByChannelID[ch.Id])
 		}
 	}
 

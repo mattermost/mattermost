@@ -152,22 +152,32 @@ func (_m *PreferenceStore) DeleteOrphanedRows(limit int) (int64, error) {
 	return r0, r1
 }
 
-// DeletePreferenceDeletionsBefore provides a mock function with given fields: cutoff
-func (_m *PreferenceStore) DeletePreferenceDeletionsBefore(cutoff int64) error {
-	ret := _m.Called(cutoff)
+// DeletePreferenceDeletionsBefore provides a mock function with given fields: cutoff, limit
+func (_m *PreferenceStore) DeletePreferenceDeletionsBefore(cutoff int64, limit int) (int64, error) {
+	ret := _m.Called(cutoff, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeletePreferenceDeletionsBefore")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(int64) error); ok {
-		r0 = rf(cutoff)
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int64, int) (int64, error)); ok {
+		return rf(cutoff, limit)
+	}
+	if rf, ok := ret.Get(0).(func(int64, int) int64); ok {
+		r0 = rf(cutoff, limit)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(int64, int) error); ok {
+		r1 = rf(cutoff, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // DeletePreferences provides a mock function with given fields: preferences

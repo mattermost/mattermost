@@ -8244,10 +8244,10 @@ func (s *TimerLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, error)
 	return result, err
 }
 
-func (s *TimerLayerPreferenceStore) DeletePreferenceDeletionsBefore(cutoff int64) error {
+func (s *TimerLayerPreferenceStore) DeletePreferenceDeletionsBefore(cutoff int64, limit int) (int64, error) {
 	start := time.Now()
 
-	err := s.PreferenceStore.DeletePreferenceDeletionsBefore(cutoff)
+	result, err := s.PreferenceStore.DeletePreferenceDeletionsBefore(cutoff, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -8257,7 +8257,7 @@ func (s *TimerLayerPreferenceStore) DeletePreferenceDeletionsBefore(cutoff int64
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.DeletePreferenceDeletionsBefore", success, elapsed)
 	}
-	return err
+	return result, err
 }
 
 func (s *TimerLayerPreferenceStore) DeletePreferences(preferences model.Preferences) error {

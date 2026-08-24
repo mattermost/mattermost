@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,6 +32,7 @@ func TestPreferenceStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	t.Run("PreferenceGetDeletedSince", func(t *testing.T) { testPreferenceGetDeletedSince(t, ss) })
 	t.Run("PreferenceSaveClearsTombstones", func(t *testing.T) { testPreferenceSaveClearsTombstones(t, ss) })
 	t.Run("PreferenceDeletePreferenceDeletionsBefore", func(t *testing.T) { testPreferenceDeletePreferenceDeletionsBefore(t, ss, s) })
+	t.Run("PreferenceDeletePreferenceDeletionsBeforeRespectsLimit", func(t *testing.T) { testPreferenceDeletePreferenceDeletionsBeforeRespectsLimit(t, ss, s) })
 	t.Run("PreferenceDeletePreferencesWithDuplicateKeys", func(t *testing.T) { testPreferenceDeletePreferencesWithDuplicateKeys(t, ss) })
 }
 
@@ -752,7 +754,10 @@ func testPreferenceSaveClearsTombstones(t *testing.T, ss store.Store) {
 
 func testPreferenceDeletePreferenceDeletionsBefore(t *testing.T, ss store.Store, s SqlStore) {
 	userID := model.NewId()
-	cutoff := model.GetMillis()
+	// DeletePreferenceDeletionsBefore has no UserId filter (it's a global
+	// retention sweep), so cutoff must sit far in the past to avoid also
+	// matching other tests' tombstones, which are stamped near "now".
+	cutoff := int64(1000000)
 
 	tombstones := []model.PreferenceTombstone{
 		{UserId: userID, Category: "test_tombstone", Name: "expired", DeleteAt: cutoff - 1000},
@@ -768,7 +773,9 @@ func testPreferenceDeletePreferenceDeletionsBefore(t *testing.T, ss store.Store,
 	`, tombstones)
 	require.NoError(t, execErr)
 
-	require.NoError(t, ss.Preference().DeletePreferenceDeletionsBefore(cutoff))
+	deleted, err := ss.Preference().DeletePreferenceDeletionsBefore(cutoff, 1000)
+	require.NoError(t, err)
+	assert.Equal(t, int64(1), deleted)
 
 	remaining, err := ss.Preference().GetDeletedSince(userID, 0)
 	require.NoError(t, err)
@@ -778,4 +785,37 @@ func testPreferenceDeletePreferenceDeletionsBefore(t *testing.T, ss store.Store,
 		names = append(names, ts.Name)
 	}
 	assert.ElementsMatch(t, []string{"at_cutoff", "still_fresh"}, names, "only tombstones strictly older than the cutoff should be removed")
+}
+
+func testPreferenceDeletePreferenceDeletionsBeforeRespectsLimit(t *testing.T, ss store.Store, s SqlStore) {
+	userID := model.NewId()
+	// See comment in testPreferenceDeletePreferenceDeletionsBefore: cutoff must
+	// stay far in the past since the delete has no UserId filter.
+	cutoff := int64(1000000)
+
+	tombstones := make([]model.PreferenceTombstone, 0, 5)
+	for i := range 5 {
+		tombstones = append(tombstones, model.PreferenceTombstone{
+			UserId:   userID,
+			Category: "test_tombstone",
+			Name:     "expired_" + strconv.Itoa(i),
+			DeleteAt: cutoff - 1000,
+		})
+	}
+
+	_, execErr := s.GetMaster().NamedExec(`
+		INSERT INTO
+		    PreferenceDeletions(UserId, Category, Name, DeleteAt)
+		VALUES
+		    (:UserId, :Category, :Name, :DeleteAt);
+	`, tombstones)
+	require.NoError(t, execErr)
+
+	deleted, err := ss.Preference().DeletePreferenceDeletionsBefore(cutoff, 2)
+	require.NoError(t, err)
+	assert.Equal(t, int64(2), deleted, "a single call must not delete more than the given limit")
+
+	remaining, err := ss.Preference().GetDeletedSince(userID, 0)
+	require.NoError(t, err)
+	assert.Len(t, remaining, 3, "rows beyond the limit must survive a single call")
 }

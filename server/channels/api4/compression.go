@@ -308,10 +308,12 @@ func compressionHandler(h http.Handler, useCompression bool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if useCompression && acceptsBrotli(r) {
 			bbw := newBrotliResponseWriter(w)
+			defer func() {
+				if err := bbw.Close(); err != nil {
+					mlog.Warn("Failed to close brotli response writer", mlog.Err(err))
+				}
+			}()
 			h.ServeHTTP(bbw, r)
-			if err := bbw.Close(); err != nil {
-				mlog.Warn("Failed to close brotli response writer", mlog.Err(err))
-			}
 			return
 		}
 		gzipWrapped.ServeHTTP(w, r)

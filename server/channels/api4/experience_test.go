@@ -868,6 +868,35 @@ func TestGetInitialLoad(t *testing.T) {
 		assert.Empty(t, partner.Email, "DM partner's email must be omitted when ShowEmailAddress is disabled")
 	})
 
+	t.Run("direct_profiles omits full name for DM partner when ShowFullName is disabled", func(t *testing.T) {
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = model.NewPointer(false) })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = model.NewPointer(true) })
+
+		_, _, err := th.Client.CreateDirectChannel(context.Background(),
+			th.BasicUser.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+
+		resp, err := th.Client.DoAPIGet(context.Background(), "/users/me/initial_load", "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var r model.InitialLoadResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&r))
+
+		var partner *model.ExperienceUser
+		for _, p := range r.DirectProfiles {
+			if p.Id == th.BasicUser2.Id {
+				partner = p
+				break
+			}
+		}
+		require.NotNil(t, partner, "DM partner should appear in DirectProfiles")
+		assert.Empty(t, partner.FirstName, "DM partner's first name must be omitted when ShowFullName is disabled")
+		assert.Empty(t, partner.LastName, "DM partner's last name must be omitted when ShowFullName is disabled")
+	})
+
 	t.Run("delta direct_profiles includes deactivated users even without visible DM", func(t *testing.T) {
 		// Create a fresh user, DM with them, then deactivate them.
 		deactivatedUser := th.CreateUser(t)

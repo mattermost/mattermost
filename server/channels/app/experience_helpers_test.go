@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -285,6 +286,75 @@ func TestBuildDirectUnreads(t *testing.T) {
 		result := buildDirectUnreads("u1", members, channels, nil, nil, false, false, 0, 0)
 		require.NotNil(t, result)
 		assert.Equal(t, int64(3), result.MentionCount)
+	})
+}
+
+// --- toExperienceUser ---
+
+func TestToExperienceUser(t *testing.T) {
+	baseUser := func() *model.User {
+		return &model.User{
+			Id:        "u1",
+			Email:     "real@example.com",
+			FirstName: "First",
+			LastName:  "Last",
+			Props:     model.StringMap{model.UserPropsKeyRemoteEmail: "remote-real@example.com", "other": "kept"},
+		}
+	}
+
+	t.Run("self always keeps Email and Props, including RemoteEmail", func(t *testing.T) {
+		out := toExperienceUser(baseUser(), true, false, false)
+		require.NotNil(t, out)
+		assert.Equal(t, "real@example.com", out.Email)
+		assert.Equal(t, "remote-real@example.com", out.Props[model.UserPropsKeyRemoteEmail])
+	})
+
+	t.Run("non-self with showEmail keeps Email and Props, including RemoteEmail", func(t *testing.T) {
+		out := toExperienceUser(baseUser(), false, true, true)
+		require.NotNil(t, out)
+		assert.Equal(t, "real@example.com", out.Email)
+		assert.Equal(t, "remote-real@example.com", out.Props[model.UserPropsKeyRemoteEmail])
+	})
+
+	t.Run("non-self without showEmail strips Email and Props.RemoteEmail but keeps other props", func(t *testing.T) {
+		u := baseUser()
+		out := toExperienceUser(u, false, false, true)
+		require.NotNil(t, out)
+		assert.Empty(t, out.Email)
+		_, hasRemoteEmail := out.Props[model.UserPropsKeyRemoteEmail]
+		assert.False(t, hasRemoteEmail, "RemoteEmail must be stripped from Props when email visibility is denied")
+		assert.Equal(t, "kept", out.Props["other"])
+		// The source User's own Props must not be mutated by the strip.
+		assert.Equal(t, "remote-real@example.com", u.Props[model.UserPropsKeyRemoteEmail])
+	})
+
+	t.Run("non-self without showEmail and no RemoteEmail prop leaves Props untouched", func(t *testing.T) {
+		u := baseUser()
+		delete(u.Props, model.UserPropsKeyRemoteEmail)
+		out := toExperienceUser(u, false, false, true)
+		require.NotNil(t, out)
+		assert.Equal(t, "kept", out.Props["other"])
+	})
+
+	t.Run("self always keeps FirstName/LastName regardless of showFullName", func(t *testing.T) {
+		out := toExperienceUser(baseUser(), true, false, false)
+		require.NotNil(t, out)
+		assert.Equal(t, "First", out.FirstName)
+		assert.Equal(t, "Last", out.LastName)
+	})
+
+	t.Run("non-self with showFullName keeps FirstName/LastName", func(t *testing.T) {
+		out := toExperienceUser(baseUser(), false, false, true)
+		require.NotNil(t, out)
+		assert.Equal(t, "First", out.FirstName)
+		assert.Equal(t, "Last", out.LastName)
+	})
+
+	t.Run("non-self without showFullName strips FirstName/LastName", func(t *testing.T) {
+		out := toExperienceUser(baseUser(), false, false, false)
+		require.NotNil(t, out)
+		assert.Empty(t, out.FirstName)
+		assert.Empty(t, out.LastName)
 	})
 }
 
@@ -639,6 +709,71 @@ func TestGetAllChannelMembersForUser(t *testing.T) {
 	assert.Equal(t, seedCount, found, "all seeded channel memberships must be returned, not just the first page")
 }
 
+func TestGetAllDMGMChannelsForUser(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// Seed more DM+GM channels than a single page (dmChannelsPageSize) to prove
+	// the pagination loop crosses page boundaries instead of silently
+	// truncating, as the old pageSize=-1 unbounded-but-single-page fetch could
+	// otherwise mask. Most of the seed is GM channels (cheap: single member,
+	// plain Save); a smaller batch of real DMs is included so both channel
+	// types seen by GetChannelsForUser are exercised.
+	const dmCount = 50
+	const gmCount = dmChannelsPageSize + 5 - dmCount
+
+	seededChannelIDs := make(map[string]struct{}, dmCount+gmCount)
+
+	for range dmCount {
+		partner, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
+			Username: model.NewUsername(),
+			Email:    model.NewId() + "@example.com",
+		})
+		require.NoError(t, err)
+
+		channel, err := th.App.Srv().Store().Channel().SaveDirectChannel(
+			th.Context,
+			&model.Channel{
+				DisplayName: "dn_" + model.NewId(),
+				Name:        model.GetDMNameFromIds(th.BasicUser.Id, partner.Id),
+				Type:        model.ChannelTypeDirect,
+			},
+			&model.ChannelMember{UserId: th.BasicUser.Id, NotifyProps: model.GetDefaultChannelNotifyProps(), SchemeUser: true},
+			&model.ChannelMember{UserId: partner.Id, NotifyProps: model.GetDefaultChannelNotifyProps(), SchemeUser: true},
+		)
+		require.NoError(t, err)
+		seededChannelIDs[channel.Id] = struct{}{}
+	}
+
+	for range gmCount {
+		channel, err := th.App.Srv().Store().Channel().Save(th.Context, &model.Channel{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        "name_" + model.NewId(),
+			Type:        model.ChannelTypeGroup,
+		}, -1)
+		require.NoError(t, err)
+		seededChannelIDs[channel.Id] = struct{}{}
+
+		_, err = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      th.BasicUser.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeUser:  true,
+		})
+		require.NoError(t, err)
+	}
+
+	result, appErr := th.App.getAllDMGMChannelsForUser(th.Context, th.BasicUser.Id, false)
+	require.Nil(t, appErr)
+
+	found := 0
+	for _, ch := range result {
+		if _, ok := seededChannelIDs[ch.Id]; ok {
+			found++
+		}
+	}
+	assert.Equal(t, dmCount+gmCount, found, "all seeded DM and GM channels must be returned, not just the first page")
+}
+
 // --- effectiveNameFormat ---
 
 func TestEffectiveNameFormat(t *testing.T) {
@@ -885,5 +1020,73 @@ func TestSelectVisibleDMGMChannels(t *testing.T) {
 		prefs := model.Preferences{{Category: model.PreferenceCategoryDirectChannelShow, Name: "partner", Value: "false"}}
 		out := selectVisibleDMGMChannels("u1", "", channels, nil, nil, prefs, nil, 20, false, "en")
 		assert.Empty(t, out)
+	})
+}
+
+func TestLimitDMChannelsForProfiles(t *testing.T) {
+	dm := func(id string, lastPostAt int64) *model.Channel {
+		return &model.Channel{Id: id, Name: "partner-" + id + "__u1", Type: model.ChannelTypeDirect, LastPostAt: lastPostAt}
+	}
+	unreadMember := func(chID string) model.ChannelMemberWithTeamData {
+		return model.ChannelMemberWithTeamData{ChannelMember: model.ChannelMember{ChannelId: chID, UserId: "u1", MentionCount: 1}}
+	}
+
+	t.Run("under the limit returns the input unchanged", func(t *testing.T) {
+		channels := model.ChannelList{dm("c1", 100), dm("c2", 200)}
+		out := limitDMChannelsForProfiles(channels, nil, nil, nil, 20, false)
+		assert.Equal(t, channels, out)
+	})
+
+	t.Run("over the limit keeps unread channels and the most recent read ones", func(t *testing.T) {
+		dmLimit := 2
+		limit := dmLimit * 3 // matches dmProfileFetchLimitMultiplier
+
+		channels := make(model.ChannelList, 0, limit+2)
+		var members model.ChannelMembersWithTeamData
+		// One unread channel, deliberately old, that must survive the cap.
+		channels = append(channels, dm("unread", 1))
+		members = append(members, unreadMember("unread"))
+		// limit+1 read channels with increasing recency; only the newest `limit` survive.
+		for i := 0; i < limit+1; i++ {
+			channels = append(channels, dm(fmt.Sprintf("read-%d", i), int64(1000+i)))
+		}
+
+		out := limitDMChannelsForProfiles(channels, members, nil, nil, dmLimit, false)
+
+		ids := make(map[string]struct{}, len(out))
+		for _, ch := range out {
+			ids[ch.Id] = struct{}{}
+		}
+		// 1 unread (always kept) + (limit - 1) most recent read channels.
+		assert.Len(t, out, limit, "unread channel plus the capped read channels")
+		_, hasUnread := ids["unread"]
+		assert.True(t, hasUnread, "unread channel must never be dropped")
+		_, hasOldest := ids["read-0"]
+		assert.False(t, hasOldest, "the least recent read channel beyond the cap must be dropped")
+		_, hasNewest := ids[fmt.Sprintf("read-%d", limit)]
+		assert.True(t, hasNewest, "the most recent read channels must survive the cap")
+	})
+
+	t.Run("channel pinned to another category is kept even when old", func(t *testing.T) {
+		dmLimit := 1
+		limit := dmLimit * 3
+
+		channels := make(model.ChannelList, 0, limit+2)
+		channels = append(channels, dm("pinned", 1))
+		for i := 0; i < limit+1; i++ {
+			channels = append(channels, dm(fmt.Sprintf("read-%d", i), int64(1000+i)))
+		}
+		cats := &model.OrderedSidebarCategories{Categories: []*model.SidebarCategoryWithChannels{
+			{SidebarCategory: model.SidebarCategory{Type: model.SidebarCategoryChannels}, Channels: []string{"pinned"}},
+		}}
+
+		out := limitDMChannelsForProfiles(channels, nil, cats, nil, dmLimit, false)
+
+		ids := make(map[string]struct{}, len(out))
+		for _, ch := range out {
+			ids[ch.Id] = struct{}{}
+		}
+		_, hasPinned := ids["pinned"]
+		assert.True(t, hasPinned, "channel pinned to another category must never be dropped")
 	})
 }

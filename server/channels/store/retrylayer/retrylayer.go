@@ -10330,21 +10330,21 @@ func (s *RetryLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, error)
 
 }
 
-func (s *RetryLayerPreferenceStore) DeletePreferenceDeletionsBefore(cutoff int64) error {
+func (s *RetryLayerPreferenceStore) DeletePreferenceDeletionsBefore(cutoff int64, limit int) (int64, error) {
 
 	tries := 0
 	for {
-		err := s.PreferenceStore.DeletePreferenceDeletionsBefore(cutoff)
+		result, err := s.PreferenceStore.DeletePreferenceDeletionsBefore(cutoff, limit)
 		if err == nil {
-			return nil
+			return result, nil
 		}
 		if !isRepeatableError(err) {
-			return err
+			return result, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

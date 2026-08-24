@@ -160,20 +160,14 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 		})
 	} else {
 		teamDataGroup.Go(func() error {
-			chans, err := a.GetChannelsForUser(rctx, userID, since > 0, 0, -1, "")
+			chans, err := a.getAllDMGMChannelsForUser(rctx, userID, since > 0)
 			if err != nil {
 				if err.StatusCode == http.StatusNotFound {
 					return nil
 				}
 				return err
 			}
-			filtered := make(model.ChannelList, 0, len(chans))
-			for _, ch := range chans {
-				if ch.Type == model.ChannelTypeDirect || ch.Type == model.ChannelTypeGroup {
-					filtered = append(filtered, ch)
-				}
-			}
-			dmChannels = filtered
+			dmChannels = chans
 			return nil
 		})
 	}
@@ -239,6 +233,10 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 		}
 		return nil, model.NewAppError("GetInitialLoad", "app.initial_load.team_data.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Bound the profile fetch below for accounts with a very large DM/GM
+	// history; unread and pinned-elsewhere channels are never dropped.
+	dmChannels = limitDMChannelsForProfiles(dmChannels, channelMembers, sidebarCats, prefs, dmLimit, isCRT)
 
 	var (
 		allChannels           model.ChannelList
@@ -398,7 +396,7 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 		gmMemberCounts[chID] = int64(len(profiles))
 	}
 
-	directProfiles := buildDirectProfiles(dmGMProfilesByChannel, *a.Config().PrivacySettings.ShowEmailAddress)
+	directProfiles := buildDirectProfiles(dmGMProfilesByChannel, *a.Config().PrivacySettings.ShowEmailAddress, *a.Config().PrivacySettings.ShowFullName)
 
 	channelsByID := make(map[string]*model.Channel, len(allChannels))
 	for _, ch := range allChannels {
@@ -422,7 +420,7 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 	}
 
 	return &model.InitialLoadResponse{
-		Me:                   toExperienceUser(me, true, true),
+		Me:                   toExperienceUser(me, true, true, true),
 		Teams:                toExperienceTeams(changedTeams),
 		TeamMembers:          toExperienceTeamMemberList(scopedTeamMembers, tombstonedTeamIDs),
 		ActiveTeam:           toExperienceActiveTeam(resolvedTeamID, teams, allChannels, changedChannels, changedChannelMembers, sidebarCats, removedChIDs, prefs, gmMemberCounts),

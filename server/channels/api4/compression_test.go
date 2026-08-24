@@ -317,4 +317,28 @@ func TestCompressionHandlerBrotli(t *testing.T) {
 		assert.Equal(t, "", resp.Header().Get("Content-Type"),
 			"a handler-set empty Content-Type must not be overwritten by sniffing")
 	})
+
+	t.Run("brotli writer is still closed when the handler panics", func(t *testing.T) {
+		panicHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, err := w.Write([]byte("partial body under minSize"))
+			require.NoError(t, err)
+			panic("boom")
+		})
+		h := compressionHandler(panicHandler, true)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+		req.Header.Set("Accept-Encoding", "br")
+
+		func() {
+			defer func() {
+				r := recover()
+				require.NotNil(t, r, "the handler's panic must still propagate")
+			}()
+			h.ServeHTTP(resp, req)
+		}()
+
+		// Close() must have run despite the panic (via defer) and flushed the
+		// buffered, under-minSize body plainly, proving it wasn't skipped.
+		assert.Equal(t, "partial body under minSize", resp.Body.String())
+	})
 }

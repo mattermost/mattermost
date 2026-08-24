@@ -724,7 +724,7 @@ type PreferenceStore interface {
 	Delete(userID, category, name string) error
 	DeletePreferences(preferences model.Preferences) error
 	GetDeletedSince(userID string, since int64) ([]model.PreferenceTombstone, error)
-	DeletePreferenceDeletionsBefore(cutoff int64) error
+	DeletePreferenceDeletionsBefore(cutoff int64, limit int) (deleted int64, err error)
 	DeleteCategory(userID string, category string) error
 	DeleteCategoryAndName(category string, name string) error
 	PermanentDeleteByUser(userID string) error
