@@ -138,6 +138,7 @@ function PermissionPolicyDetails({
     const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
     const [pageLoaded, setPageLoaded] = useState(false);
+    const [loadFailed, setLoadFailed] = useState(false);
     const [showTest, setShowTest] = useState(false);
 
     const {formatMessage} = useIntl();
@@ -199,6 +200,7 @@ function PermissionPolicyDetails({
         if (policyId) {
             const policyPromise = actions.fetchPolicy(policyId).then((result: ActionResult) => {
                 if (result.error) {
+                    setLoadFailed(true);
                     setServerError(result.error.message || formatMessage({
                         id: 'admin.permission_policies.edit.error.load',
                         defaultMessage: 'Failed to load policy',
@@ -343,7 +345,22 @@ function PermissionPolicyDetails({
                     />
                 </div>
             </AdminHeader>
-            {pageLoaded ? (
+            {pageLoaded && loadFailed && (
+                <div className='admin-console__wrapper'>
+                    <div className='admin-console__content'>
+                        <div className='admin-console__warning-notice'>
+                            <SectionNotice
+                                type='danger'
+                                title={formatMessage({
+                                    id: 'admin.permission_policies.edit.error.load',
+                                    defaultMessage: 'Failed to load policy',
+                                })}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+            {pageLoaded && !loadFailed && (
                 <>
                     <div className='admin-console__wrapper'>
                         <div className='admin-console__content'>
@@ -860,7 +877,8 @@ function PermissionPolicyDetails({
                         )}
                     </div>
                 </>
-            ) : (
+            )}
+            {!pageLoaded && (
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'/>
                 </div>
