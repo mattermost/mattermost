@@ -717,7 +717,8 @@ func requireGraphField(field *model.PropertyField) error {
 // an error -- a value pointing at an option that has since been deleted is
 // tolerated throughout the property system -- but they answer every question
 // about themselves with "no", so a decision that turned on one otherwise leaves
-// no trace of why it went the way it did.
+// no trace of why it went the way it did. Logged at debug: this fires on every
+// read of a value naming a deleted option, for as long as the value stays.
 func logUnresolvedOptions(rctx request.CTX, field *model.PropertyField, requested []string, resolved map[string][]string) {
 	var unresolved []string
 	for _, optionID := range requested {
@@ -729,7 +730,7 @@ func logUnresolvedOptions(rctx request.CTX, field *model.PropertyField, requeste
 		return
 	}
 
-	rctx.Logger().Error(
+	rctx.Logger().Debug(
 		"Property field options could not be resolved in the field's hierarchy; every question asked about them is answered no",
 		mlog.String("field_id", field.ID),
 		mlog.Array("option_ids", unresolved),
