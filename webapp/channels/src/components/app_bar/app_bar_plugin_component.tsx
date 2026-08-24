@@ -108,13 +108,14 @@ const AppBarPluginComponent = ({
                 id={buttonId}
                 className={classNames('app-bar__icon', {'app-bar__icon--active': isButtonActive})}
                 onClick={() => {
-                    if (channel && channelMember) {
-                        component.action?.(channel, channelMember);
-                        return;
-                    }
                     if ('rhsComponentId' in component) {
                         component.action();
+                        return;
                     }
+
+                    // Views such as Threads and Drafts have no channel in context, but the
+                    // App Bar is still shown there, so the action must be invoked regardless.
+                    component.action?.(channel, channelMember);
                 }}
             >
                 {content}
