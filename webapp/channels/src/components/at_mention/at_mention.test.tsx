@@ -5,7 +5,7 @@ import React from 'react';
 
 import {General} from 'mattermost-redux/constants';
 
-import {render, renderWithContext} from 'tests/react_testing_utils';
+import {render, renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AtMention from './at_mention';
@@ -40,6 +40,19 @@ describe('components/AtMention', () => {
         );
 
         expect(container).toMatchSnapshot();
+    });
+
+    test('should render the mention as a non-submit button', () => {
+        render(
+            <AtMention
+                {...baseProps}
+                mentionName='user1'
+            >
+                {'(at)-user1'}
+            </AtMention>,
+        );
+
+        expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
     });
 
     test('should match snapshot when mentioning user with different teammate name display setting', () => {
