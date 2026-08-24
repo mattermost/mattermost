@@ -554,7 +554,9 @@ func TestPropertyFieldOptions(t *testing.T) {
 			{name: "no level lets nobody through", level: noneLevel, admin: true, allow: false},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
-				fields := setupOptionFields(t, th, group.ID, graph, tc.level, nil)
+				fields := setupOptionFields(t, th, group.ID, graph, tc.level, []map[string]any{
+					{"id": model.NewId(), "name": "Seeded Program"},
+				})
 				client := th.Client
 				if tc.admin {
 					client = th.SystemAdminClient
@@ -571,9 +573,22 @@ func TestPropertyFieldOptions(t *testing.T) {
 					// Reading is not gated on the options permission: a field's
 					// options are part of its definition, which is readable at the
 					// field's own scope.
-					_, resp, err = client.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", 100)
+					listed, resp, err := client.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", 100)
 					require.NoError(t, err)
 					CheckOKStatus(t, resp)
+					seeded := optionByName(t, listed, "Seeded Program")
+
+					_, resp, err = client.PatchPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, []*model.PropertyFieldOption{
+						{ID: seeded.ID, Name: "Renamed Program"},
+					})
+					require.Error(t, err)
+					CheckForbiddenStatus(t, resp)
+					CheckErrorID(t, err, "api.property_field.options.no_permission.app_error")
+
+					resp, err = client.DeletePropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, []string{seeded.ID})
+					require.Error(t, err)
+					CheckForbiddenStatus(t, resp)
+					CheckErrorID(t, err, "api.property_field.options.no_permission.app_error")
 					return
 				}
 				require.NoError(t, err)
