@@ -305,7 +305,6 @@ const useSubmit = (
         }
 
         const submittingDraft = setUpdatedFileIds(submittingDraftParam);
-
         setShowPreview(false);
         isDraftSubmitting.current = true;
 
