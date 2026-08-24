@@ -123,7 +123,7 @@ func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) *m
 // exempt, and a hierarchy is normally defined on a template field that user and
 // channel fields link to — narrowing to user objects would leave the definition
 // itself ungated.
-func (a *App) graphPropertyFieldGate(where string, field *model.PropertyField) *model.AppError {
+func (a *App) graphPropertyFieldGate(field *model.PropertyField) *model.AppError {
 	if field == nil || field.Type != model.PropertyFieldTypeGraph {
 		return nil
 	}
@@ -131,7 +131,7 @@ func (a *App) graphPropertyFieldGate(where string, field *model.PropertyField) *
 		return nil
 	}
 	return model.NewAppError(
-		where,
+		"CreatePropertyField",
 		"app.property_field.graph_disabled.app_error",
 		nil,
 		"graph property fields are not enabled",
@@ -153,7 +153,7 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 		return nil, appErr
 	}
 
-	if appErr := a.graphPropertyFieldGate("CreatePropertyField", field); appErr != nil {
+	if appErr := a.graphPropertyFieldGate(field); appErr != nil {
 		return nil, appErr
 	}
 
@@ -173,7 +173,7 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 		case appErr != nil:
 			return nil, appErr
 		default:
-			if appErr := a.graphPropertyFieldGate("CreatePropertyField", source); appErr != nil {
+			if appErr := a.graphPropertyFieldGate(source); appErr != nil {
 				return nil, appErr
 			}
 		}
