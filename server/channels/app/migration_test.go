@@ -1979,11 +1979,17 @@ func TestDestinationChannelNameRemapsChannel(t *testing.T) {
 	)
 	require.Nil(t, appErr)
 
+	// Resolve the imported team by name — th2.BasicTeam is either nil (non-parallel
+	// Setup without InitBasic) or stale (parallel DropAllTables recreates the team
+	// with a new ID), so we look it up by name instead.
+	importedTeam, appErr := th2.App.GetTeamByName(srcTeamName)
+	require.Nil(t, appErr, "imported team must exist on destination")
+
 	// The channel must exist under the remapped name on the source team.
-	_, appErr = th2.App.GetChannelByName(th2.Context, destChanName, th2.BasicTeam.Id, false)
+	_, appErr = th2.App.GetChannelByName(th2.Context, destChanName, importedTeam.Id, false)
 	assert.Nil(t, appErr, "channel must exist under the remapped name after import")
 
 	// The original channel name must not exist (it was rewritten).
-	_, appErr = th2.App.GetChannelByName(th2.Context, srcChanName, th2.BasicTeam.Id, false)
+	_, appErr = th2.App.GetChannelByName(th2.Context, srcChanName, importedTeam.Id, false)
 	assert.NotNil(t, appErr, "source channel name must not exist on destination")
 }
