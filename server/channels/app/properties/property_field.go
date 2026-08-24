@@ -488,6 +488,23 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 			)
 		}
 
+		// The option.read ceiling holds for the life of a linked field, not just
+		// at creation. Only load the template when there is something to check:
+		// a linked field being updated without a Permissions object writes no
+		// restrictions, so it cannot breach the ceiling, and an unlinked field
+		// (checked against field.LinkedFieldID, final as of the canonicalization
+		// above) has no ceiling to hold it to.
+		if newIsLinked && field.Permissions != nil {
+			template, tErr := ps.fieldStore.Get(store.WithMaster(context.Background()), "", *field.LinkedFieldID)
+			if tErr != nil {
+				return nil, nil, nil, fmt.Errorf("failed to get linked template field %q: %w", *field.LinkedFieldID, tErr)
+			}
+
+			if err := validateLinkedFieldOptionReadCeiling("UpdatePropertyFields", field, template); err != nil {
+				return nil, nil, nil, err
+			}
+		}
+
 		// Block type changes on source fields with active linked dependents
 		if field.Type != existing.Type {
 			count, cErr := ps.fieldStore.CountLinkedFields(field.ID)
