@@ -3,6 +3,9 @@
 
 import React from 'react';
 
+import type {PostType} from '@mattermost/types/posts';
+import {PostPriority} from '@mattermost/types/posts';
+
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {onSubmit} from 'actions/views/create_comment';
@@ -13,7 +16,7 @@ import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, userEvent, screen, act, fireEvent} from 'tests/react_testing_utils';
-import Constants, {Locations, StoragePrefixes} from 'utils/constants';
+import Constants, {Locations, PostTypes, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {PostDraft} from 'types/store/draft';
@@ -297,6 +300,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
     it('should submit a destination-owned draft while the textbox still holds the previous channel value', async () => {
         const sourceDraft = 'stale draft from the source channel';
         const destinationMessage = 'new message composed for the destination channel';
+        const sourceFileInfo = TestHelper.getFileInfoMock({id: 'source-file-id', name: 'source-file.txt'});
+        const destinationFileInfo = TestHelper.getFileInfoMock({id: 'destination-file-id', name: 'destination-file.txt'});
+        const sourceMetadata = {priority: {priority: PostPriority.URGENT}, files: [sourceFileInfo]};
+        const destinationMetadata = {priority: {priority: PostPriority.IMPORTANT}, files: [destinationFileInfo]};
+        const sourceProps = {sourceOnly: 'source-prop'};
+        const destinationProps = {destinationOnly: 'destination-prop'};
         const typeOnSwitchRef = {current: false};
 
         function Harness({editorChannelId}: {editorChannelId: string}) {
@@ -347,6 +356,18 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                             value: TestHelper.getPostDraftMock({
                                 message: sourceDraft,
                                 channelId,
+                                metadata: sourceMetadata,
+                                type: PostTypes.BURN_ON_READ as PostType,
+                                props: sourceProps,
+                            }),
+                        },
+                        [StoragePrefixes.DRAFT + otherChannelId]: {
+                            value: TestHelper.getPostDraftMock({
+                                message: '',
+                                channelId: otherChannelId,
+                                metadata: destinationMetadata,
+                                type: PostTypes.ME as PostType,
+                                props: destinationProps,
                             }),
                         },
                     },
@@ -370,6 +391,22 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 message: destinationMessage,
                 channelId: otherChannelId,
                 rootId: '',
+                fileInfos: [destinationFileInfo],
+                metadata: destinationMetadata,
+                type: PostTypes.ME,
+                props: destinationProps,
+            }),
+            expect.anything(),
+            undefined,
+        );
+        expect(mockedOnSubmit).toHaveBeenCalledWith(
+            otherChannelId,
+            '',
+            expect.not.objectContaining({
+                fileInfos: [sourceFileInfo],
+                metadata: sourceMetadata,
+                type: PostTypes.BURN_ON_READ,
+                props: sourceProps,
             }),
             expect.anything(),
             undefined,
@@ -381,6 +418,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         const sourceDraft = 'stale draft from the source channel';
         const destinationMessage = 'new message composed for the destination channel';
+        const sourceFileInfo = TestHelper.getFileInfoMock({id: 'source-file-id', name: 'source-file.txt'});
+        const destinationFileInfo = TestHelper.getFileInfoMock({id: 'destination-file-id', name: 'destination-file.txt'});
+        const sourceMetadata = {priority: {priority: PostPriority.URGENT}, files: [sourceFileInfo]};
+        const destinationMetadata = {priority: {priority: PostPriority.IMPORTANT}, files: [destinationFileInfo]};
+        const sourceProps = {sourceOnly: 'source-prop'};
+        const destinationProps = {destinationOnly: 'destination-prop'};
         const typeOnSwitchRef = {current: false};
 
         function Harness({editorChannelId}: {editorChannelId: string}) {
@@ -412,6 +455,18 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                             value: TestHelper.getPostDraftMock({
                                 message: sourceDraft,
                                 channelId,
+                                metadata: sourceMetadata,
+                                type: PostTypes.BURN_ON_READ as PostType,
+                                props: sourceProps,
+                            }),
+                        },
+                        [StoragePrefixes.DRAFT + otherChannelId]: {
+                            value: TestHelper.getPostDraftMock({
+                                message: '',
+                                channelId: otherChannelId,
+                                metadata: destinationMetadata,
+                                type: PostTypes.ME as PostType,
+                                props: destinationProps,
                             }),
                         },
                     },
@@ -437,12 +492,26 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 message: destinationMessage,
                 channelId: otherChannelId,
                 rootId: '',
+                fileInfos: [destinationFileInfo],
+                metadata: destinationMetadata,
+                type: PostTypes.ME,
+                props: destinationProps,
             }),
             '',
         );
         expect(mockedUpdateDraft).not.toHaveBeenCalledWith(
             StoragePrefixes.DRAFT + channelId,
             expect.objectContaining({message: destinationMessage}),
+            expect.anything(),
+        );
+        expect(mockedUpdateDraft).not.toHaveBeenCalledWith(
+            StoragePrefixes.DRAFT + otherChannelId,
+            expect.objectContaining({
+                fileInfos: [sourceFileInfo],
+                metadata: sourceMetadata,
+                type: PostTypes.BURN_ON_READ,
+                props: sourceProps,
+            }),
             expect.anything(),
         );
 

@@ -225,7 +225,6 @@ const AdvancedTextEditor = ({
     const lastBlurAt = useRef(0);
     const messageStatusRef = useRef<HTMLDivElement | null>(null);
 
-    const [draftContext, setDraftContext] = useState({channelId, rootId});
     const [draft, setDraft] = useState(draftFromStore);
     const [serverError, setServerError] = useState<(ServerError & {submittedMessage?: string}) | null>(null);
     const [postError, setPostError] = useState<React.ReactNode>(null);
@@ -243,8 +242,7 @@ const AdvancedTextEditor = ({
     const codeBlockOnCtrlEnter = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true));
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
 
-    if (draftContext.channelId !== channelId || draftContext.rootId !== rootId) {
-        setDraftContext({channelId, rootId});
+    if (draft.channelId !== channelId || draft.rootId !== rootId) {
         setDraft(draftFromStore);
     }
 

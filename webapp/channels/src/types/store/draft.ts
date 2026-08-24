@@ -36,15 +36,6 @@ export type PostDraft = {
     };
 };
 
-export type DraftDestination = Pick<PostDraft, 'channelId' | 'rootId'>;
-
-export function draftMatchesDestination(
-    draft: DraftDestination,
-    destination: DraftDestination,
-): boolean {
-    return draft.channelId === destination.channelId && draft.rootId === destination.rootId;
-}
-
 export function isPostDraftEmpty(draft: PostDraft): boolean {
     const hasMessage = draft.message.trim() !== '';
     const hasAttachment = draft.fileInfos?.length > 0;

@@ -271,53 +271,5 @@ describe('useSubmit', () => {
             modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
         }));
     });
-
-    // Cmd+K (Find Channels) only history.push-es; SELECT_CHANNEL and the composer
-    // draft swap happen later. A mismatched draft must fail closed.
-    it('should not submit when the draft still belongs to the previous channel', async () => {
-        const sourceChannelId = 'source_channel_id';
-        const destinationChannelId = 'destination_channel_id';
-        const message = 'new message composed for the destination channel';
-
-        const state = getBaseState();
-        state.entities!.channels!.channels = {
-            [sourceChannelId]: {},
-            [destinationChannelId]: {},
-        };
-        state.entities!.channels!.stats = {
-            [sourceChannelId]: {member_count: 1},
-            [destinationChannelId]: {member_count: 1},
-        };
-
-        const staleDraft: PostDraft = {
-            ...mockDraft,
-            message,
-            channelId: sourceChannelId,
-            rootId: '',
-        };
-
-        const {result} = renderHookWithContext(() => useSubmit(
-            staleDraft,
-            mockPostError,
-            destinationChannelId,
-            '',
-            mockServerError,
-            mockLastBlurAt,
-            mockFocusTextbox,
-            mockSetServerError,
-            mockSetShowPreview,
-            mockHandleDraftChange,
-            mockPrioritySubmitCheck,
-            mockAfterOptimisticSubmit,
-            mockAfterSubmit,
-            false,
-            false,
-        ), state);
-
-        const [handleSubmit] = result.current;
-        await handleSubmit();
-
-        expect(onSubmit).not.toHaveBeenCalled();
-    });
 });
 
