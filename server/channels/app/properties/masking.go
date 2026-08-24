@@ -47,18 +47,13 @@ type fieldMasking struct {
 }
 
 // maskingContext memoizes, within one hook call that reads or writes several
-// values on one field, what this phase needs more than once: the
+// values on one field, what the masking filters need more than once: the
 // fieldMasking resolution above and the caller's holdings on whatever field
 // mask_by_field_id names. A batch read or write of 50 values on one field
 // must not load the template or search the caller's holdings 50 times.
 //
-// existingValues does not serve that same purpose: valueWriteAccessCache
-// (access_control.go) already keys the write decision on (field, target) and
-// returns before checkValueWriteVisibility runs a second time for the same
-// pair, so a batch write already reaches storedValue once regardless of this
-// map. What existingValues is for: primeStoredValue lets a delete path that
-// has already loaded the row it is about to delete hand it in, so the
-// visibility check does not read it a second time.
+// existingValues holds a row a delete path already loaded and handed in via
+// primeStoredValue, so the visibility check does not read it a second time.
 type maskingContext struct {
 	fieldMasking      map[string]fieldMasking
 	holdingsValues    map[string][]*model.PropertyValue
@@ -514,14 +509,11 @@ func (h *AccessControlHook) maskScalarValue(c maskingContext, field *model.Prope
 }
 
 // storedValue returns the value currently stored at (fieldID, targetID), nil
-// when there is none. Memoized per (fieldID, targetID) for the lifetime of
-// the maskingContext, but that memoization is not what keeps a batch write
-// from loading the row more than once -- see the maskingContext doc above
-// for why. What primes this cache is primeStoredValue: a delete path that
-// has already loaded the row it is about to delete hands it in, so this
-// does not read it a second time. An empty targetID never has a single row
-// to load (PreDeletePropertyValuesForField's exception passes one in to mean
-// "no single object"), so it short-circuits to nothing stored.
+// when there is none. The row comes from the cache when a delete path
+// primed it with primeStoredValue, and from the store otherwise. An empty
+// targetID never has a single row to load (PreDeletePropertyValuesForField's
+// exception passes one in to mean "no single object"), so it short-circuits
+// to nothing stored.
 func (c maskingContext) storedValue(h *AccessControlHook, groupID, fieldID, targetID string) (*model.PropertyValue, error) {
 	if targetID == "" {
 		return nil, nil
@@ -542,7 +534,6 @@ func (c maskingContext) storedValue(h *AccessControlHook, groupID, fieldID, targ
 	if len(values) > 0 {
 		v = values[0]
 	}
-	c.existingValues[key] = v
 	return v, nil
 }
 
