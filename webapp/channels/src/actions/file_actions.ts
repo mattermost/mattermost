@@ -79,7 +79,7 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
 
         if (onSuccess) {
             xhr.onload = () => {
-                if (xhr.status === 201 && xhr.readyState === 4) {
+                if (xhr.status === 201) {
                     const response = JSON.parse(xhr.response);
                     const data = response.file_infos.map((fileInfo: FileInfo, index: number) => {
                         return {
@@ -101,7 +101,7 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                     ]));
 
                     onSuccess(response, channelId, rootId);
-                } else if (xhr.status >= 400 && xhr.readyState === 4) {
+                } else if (xhr.status >= 400) {
                     let errorMessage = '';
                     let pluginRejected = false;
                     try {
@@ -112,7 +112,9 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
                         pluginRejected = errorResponse?.id === 'app.upload.run_plugins_hook.rejected';
                         errorMessage =
                             (errorResponse?.id && errorResponse?.message) ? localizeMessage({id: errorResponse.id, defaultMessage: errorResponse.message}) : localizeMessage({id: 'file_upload.generic_error', defaultMessage: 'There was a problem uploading your files.'});
-                    } catch {
+                    } catch (e) {
+                        // eslint-disable-next-line no-console
+                        console.error('Failed to parse upload error response:', xhr.response, e);
                         errorMessage = localizeMessage({id: 'file_upload.generic_error', defaultMessage: 'There was a problem uploading your files.'});
                     }
 
