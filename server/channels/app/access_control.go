@@ -544,6 +544,11 @@ func (a *App) TestExpression(rctx request.CTX, expression string, opts model.Sub
 //     system permission policies entirely); this filter drops anything
 //     that isn't a draft-side blame on the editing rule and flips
 //     orphaned denies back to allow.
+//  3. reconcileSimulationWithLiveEvaluation replays each verdict through
+//     the live PDP and appends a divergence blame entry wherever the two
+//     lanes disagree, so a preview that doesn't describe production is
+//     reported instead of silently trusted. It stands down outside the
+//     window where the lanes are comparable — see its own docstring.
 //
 // Returns NotImplemented when the access control service is unavailable
 // (no enterprise license / ABAC disabled).
@@ -604,6 +609,10 @@ func (a *App) SimulateAccessControlPolicyForUsers(rctx request.CTX, params model
 			// before the response leaves the server so the caller never
 			// sees a value they couldn't see via the policy GET path.
 			a.MaskSimulationPolicyLiteralsForCaller(rctx, resp, callerID)
+
+			// The divergence blame this appends carries no expression or
+			// literal, so it is safe to add after masking.
+			a.reconcileSimulationWithLiveEvaluation(rctx, params, resp)
 		}
 
 		return resp, nil
@@ -620,6 +629,7 @@ func (a *App) SimulateAccessControlPolicyForUsers(rctx request.CTX, params model
 		if isThisRuleScope(params.EvaluationScope) {
 			filterResponseToEditingRuleScope(resp, params.RuleName)
 		}
+		a.reconcileSimulationWithLiveEvaluation(rctx, params, resp)
 	}
 
 	return resp, nil

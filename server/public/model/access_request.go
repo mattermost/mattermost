@@ -335,6 +335,17 @@ const (
 	// sibling_saved chip because at that scope the other rule IS
 	// relevant context for the verdict).
 	PolicySimulationBlameSourceNoApplicableRule = "no_applicable_rule"
+	// PolicySimulationBlameSourceDivergence marks a decision the
+	// reconciliation pass replayed through the live PDP
+	// (AccessEvaluation) and found to disagree with the simulator's
+	// verdict for the same subject, resource and action. Simulation and
+	// enforcement are separate lanes, so a disagreement means the
+	// preview the author is looking at does not describe what production
+	// will do — the picker surfaces it as an explicit error state rather
+	// than showing a verdict that cannot be trusted. The entry carries
+	// Outcome = the LIVE verdict so the UI can tell the author which way
+	// production would actually rule.
+	PolicySimulationBlameSourceDivergence = "divergence"
 )
 
 // PolicySimulationBlameOutcome enumerates the per-blame verdict the
