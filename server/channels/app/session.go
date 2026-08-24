@@ -459,7 +459,7 @@ func (a *App) ExtendSessionExpiryIfNeeded(rctx request.CTX, session *model.Sessi
 	rctx.Logger().Debug("Session extended",
 		mlog.String("user_id", session.UserId),
 		mlog.String("session_id", session.Id),
-		mlog.Int("newExpiry", newExpiry),
+		mlog.Int("new_expiry", newExpiry),
 		mlog.Int("session_length", sessionLength),
 	)
 

@@ -370,7 +370,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, nil, false, false, nil, nil)
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, nil, false, false, useCustomPushNotificationServer, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -383,10 +383,15 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	return th
 }
 
+func useCustomPushNotificationServer(config *model.Config) {
+	*config.EmailSettings.PushNotificationServer = "https://push.example.com"
+}
+
 func SetupEnterpriseWithStoreMock(tb testing.TB, options ...app.Option) *TestHelper {
 	removeSpuriousErrors := func(config *model.Config) {
 		// If not set, you will receive an unactionable error in the console
 		*config.ServiceSettings.SiteURL = "http://localhost:8065"
+		useCustomPushNotificationServer(config)
 	}
 
 	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, nil, true, false, removeSpuriousErrors, options)
@@ -777,7 +782,7 @@ func (th *TestHelper) SetupLdapConfig() {
 		*cfg.LdapSettings.LdapServer = "dockerhost"
 		*cfg.LdapSettings.BaseDN = "dc=mm,dc=test,dc=com"
 		*cfg.LdapSettings.BindUsername = "cn=admin,dc=mm,dc=test,dc=com"
-		*cfg.LdapSettings.BindPassword = "mostest"
+		*cfg.LdapSettings.BindPassword = "mostest_password"
 		*cfg.LdapSettings.FirstNameAttribute = "cn"
 		*cfg.LdapSettings.LastNameAttribute = "sn"
 		*cfg.LdapSettings.NicknameAttribute = "cn"

@@ -996,6 +996,10 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 }
 
 func TestMoveThread(t *testing.T) {
+	// Skipped: MoveThreadsEnabled is retired and rejected by Config.IsValid (MM-69646).
+	// This test requires the flag and cannot run while the server refuses to enable it.
+	t.Skip("MoveThreadsEnabled feature flag is retired (MM-69646)")
+
 	th := SetupEnterprise(t).InitBasic(t)
 
 	// Enable MoveThreads feature flag

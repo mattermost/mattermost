@@ -879,10 +879,10 @@ func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Rea
 		if !a.Srv().GoExtraction(func() {
 			err := a.ExtractContentFromFileInfo(rctx, &infoCopy)
 			if err != nil {
-				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("file_info_id", infoCopy.Id))
 			}
 		}) {
-			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until the scheduled content extraction catch-up job runs or an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("fileInfoId", infoCopy.Id))
+			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until the scheduled content extraction catch-up job runs or an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("file_info_id", infoCopy.Id))
 		}
 	}
 
@@ -1148,10 +1148,10 @@ func (a *App) DoUploadFileExpectModification(rctx request.CTX, now time.Time, ra
 		if !a.Srv().GoExtraction(func() {
 			err := a.ExtractContentFromFileInfo(rctx, &infoCopy)
 			if err != nil {
-				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("file_info_id", infoCopy.Id))
 			}
 		}) {
-			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until the scheduled content extraction catch-up job runs or an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("fileInfoId", infoCopy.Id))
+			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until the scheduled content extraction catch-up job runs or an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("file_info_id", infoCopy.Id))
 		}
 	}
 

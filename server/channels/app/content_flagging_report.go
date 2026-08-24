@@ -27,6 +27,7 @@ const (
 	flaggedPostReportPostYAMLFile      = "post.yaml"
 	flaggedPostReportContentReviewFile = "content_review.yaml"
 	flaggedPostReportMetadataFile      = "report_metadata.yaml"
+	flaggedPostReportExposureFile      = "exposure_report.csv"
 	flaggedPostReportTempPattern       = "mm-flag-report-*.zip"
 )
 
@@ -88,8 +89,29 @@ func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, g
 	if appErr := a.writeContentReviewEntry(rctx, zw, rc.Post, generatedByUserID, comment, action); appErr != nil {
 		return appErr
 	}
+	if appErr := a.writeExposureReportEntry(rctx, zw, rc.Post.Id); appErr != nil {
+		return appErr
+	}
 	if appErr := a.writeReportMetadataEntry(rctx, zw, generatedByUserID); appErr != nil {
 		return appErr
+	}
+
+	return nil
+}
+
+func (a *App) writeExposureReportEntry(rctx request.CTX, zw *zip.Writer, postID string) *model.AppError {
+	report, appErr := a.ComputePostExposure(rctx, postID)
+	if appErr != nil {
+		return appErr
+	}
+
+	w, err := zw.Create(flaggedPostReportExposureFile)
+	if err != nil {
+		return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.zip_create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if csvWriteErr := WritePostExposureCSV(w, report, rctx.GetT()); csvWriteErr != nil {
+		return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.write_exposure_csv.app_error", nil, "", http.StatusInternalServerError).Wrap(csvWriteErr)
 	}
 
 	return nil
@@ -233,7 +255,7 @@ func buildPostYAML(post *model.Post, channel *model.Channel, team *model.Team, a
 func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generatedByUserID, actorComment, pendingAction string) (model.FlaggedPostReportContentReview, *model.AppError) {
 	out := model.FlaggedPostReportContentReview{}
 
-	values, appErr := a.GetPostContentFlaggingPropertyValues(post.Id)
+	values, appErr := a.GetPostContentFlaggingPropertyValues(rctx, post.Id)
 	if appErr != nil {
 		return out, appErr
 	}
@@ -242,7 +264,7 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generat
 	if gErr != nil {
 		return out, gErr
 	}
-	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupID)
+	mappedFields, appErr := a.GetContentFlaggingMappedFields(rctx, groupID)
 	if appErr != nil {
 		return out, appErr
 	}
@@ -267,7 +289,7 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post, generat
 	out.ReporterComment = decodePropertyString(rctx, byName, contentFlaggingPropertyNameReportingComment)
 	out.ReportTimestamp = decodePropertyInt64(rctx, byName, contentFlaggingPropertyNameReportingTime)
 
-	contentFlaggingManaged, appErr := a.GetPostContentFlaggingPropertyValue(post.Id, contentFlaggingPropertyManageByContentFlagging)
+	contentFlaggingManaged, appErr := a.GetPostContentFlaggingPropertyValue(rctx, post.Id, contentFlaggingPropertyManageByContentFlagging)
 	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 		return out, appErr
 	}
@@ -426,6 +448,16 @@ func decodePropertyInt64(rctx request.CTX, byName map[string]json.RawMessage, fi
 // reviewer's content review thread to record that a report was generated.
 // Best-effort: errors are logged, never returned.
 func (a *App) NotifyReviewersOfFlaggedPostReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID string) {
+	a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, "@%s generated a report for the quarantined message.")
+}
+
+// NotifyReviewersOfPostExposureReportGeneration is the exposure report counterpart of
+// NotifyReviewersOfFlaggedPostReportGeneration.
+func (a *App) NotifyReviewersOfPostExposureReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID string) {
+	a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, "@%s downloaded an exposure report for the quarantined message.")
+}
+
+func (a *App) notifyReviewersOfReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, messageFormat string) {
 	groupID, err := a.ContentFlaggingGroupId()
 	if err != nil {
 		rctx.Logger().Warn("Failed to get content flagging group id for report generation notification", mlog.Err(err))
@@ -438,7 +470,7 @@ func (a *App) NotifyReviewersOfFlaggedPostReportGeneration(rctx request.CTX, fla
 		return
 	}
 
-	message := fmt.Sprintf("@%s generated a report for the quarantined message.", generator.Username)
+	message := fmt.Sprintf(messageFormat, generator.Username)
 	if _, appErr := a.postReviewerMessage(rctx, message, groupID, flaggedPostID, nil, ""); appErr != nil {
 		rctx.Logger().Warn("Failed to post report generation notification to reviewers", mlog.String("flagged_post_id", flaggedPostID), mlog.Err(appErr))
 	}
