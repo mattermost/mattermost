@@ -139,12 +139,10 @@ const SingleValueSelector = ({
     }
 
     if (!hasOptions && !hasChannelFields && !inTargetMode) {
-        // For attributes without options and no channel targets, show a simple
-        // inline input field. A row already targeting a channel attribute is
-        // excluded: the target list can be empty while the target is set (fields
-        // still loading, the feature turned off, the attribute deleted), and the
-        // bare input would hide the target and silently drop it on the next
-        // keystroke.
+        // A row already targeting a channel attribute is excluded even here: the
+        // target list can be empty while the target is set (fields still loading,
+        // the feature turned off, the attribute deleted), and the bare input would
+        // hide the target and silently drop it on the next keystroke.
         return (
             <div className='values-editor'>
                 <input
