@@ -167,6 +167,8 @@ type CPAAttrs struct {
 	Visibility     string                                                `json:"visibility"`
 	SortOrder      float64                                               `json:"sort_order"`
 	Options        PropertyOptions[*CustomProfileAttributesSelectOption] `json:"options"`
+	OptionsCount   int                                                   `json:"options_count,omitempty"`
+	OptionsOmitted bool                                                  `json:"options_omitted,omitempty"`
 	ValueType      string                                                `json:"value_type"`
 	LDAP           string                                                `json:"ldap"`
 	SAML           string                                                `json:"saml"`
@@ -217,17 +219,11 @@ func (c *CPAField) Patch(patch *PropertyFieldPatch) error {
 }
 
 // ToPropertyField rebuilds a PropertyField whose Attrs hold exactly the keys
-// CPAAttrs models, so any other key the source field carried is dropped. That
-// includes PropertyFieldAttributeOptionsOmitted, which means a field read above
-// PropertyFieldMaxHydratedOptions comes out of the conversion looking like a
-// field with no options.
-//
-// For the read direction that is safe — a caller learns nothing it should not,
-// it just sees no options. For the write direction it is not: a stored field
-// converted to a CPAField and written back takes "no options" literally and
-// deletes every one of them. So do not use this to round-trip a field that came
-// from the store. Building one from a request payload, which is what the CPA
-// REST handlers do, is fine: there is no withheld marker on a payload.
+// CPAAttrs models. A field read above PropertyFieldMaxHydratedOptions carries
+// PropertyFieldAttributeOptionsOmitted and PropertyFieldAttributeOptionsCount
+// instead of an option list, and those two keys round-trip through CPAAttrs
+// like any other: written back only when OptionsOmitted is true, so a field
+// with an inlined list keeps its attrs blob byte-for-byte unchanged.
 func (c *CPAField) ToPropertyField() *PropertyField {
 	pf := c.PropertyField
 
@@ -250,6 +246,14 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 	// false for legacy-managed fields.
 	if len(c.Attrs.Owners) > 0 {
 		pf.Attrs[PropertyAttrsOwners] = c.Attrs.Owners
+	}
+
+	// Only write the withheld-options markers when the list was actually
+	// withheld, so a field with an inlined list keeps its attrs blob
+	// byte-for-byte unchanged.
+	if c.Attrs.OptionsOmitted {
+		pf.Attrs[PropertyFieldAttributeOptionsCount] = c.Attrs.OptionsCount
+		pf.Attrs[PropertyFieldAttributeOptionsOmitted] = c.Attrs.OptionsOmitted
 	}
 
 	return &pf
