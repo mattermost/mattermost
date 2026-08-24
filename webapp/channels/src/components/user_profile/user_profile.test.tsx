@@ -7,7 +7,7 @@ import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 
 import {Preferences} from 'mattermost-redux/constants';
 
-import {render} from 'tests/react_testing_utils';
+import {render, screen} from 'tests/react_testing_utils';
 
 import UserProfile from './user_profile';
 
@@ -69,6 +69,22 @@ describe('components/UserProfile', () => {
                 displayUsername={true}
             />,
         );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should render ImportedInactiveTag for imported inactive user', () => {
+        const props = {
+            ...baseProps,
+            user: {username: 'username', props: {importedInactive: 'true'}} as UserProfileType,
+        };
+        const {container} = render(<UserProfile {...props}/>);
+        expect(screen.getByText('Imported - Inactive')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should not render ImportedInactiveTag for regular user', () => {
+        const {container} = render(<UserProfile {...baseProps}/>);
+        expect(screen.queryByText('Imported - Inactive')).not.toBeInTheDocument();
         expect(container).toMatchSnapshot();
     });
 });

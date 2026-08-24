@@ -790,6 +790,7 @@ func TestDeactivateMissingUsersMode(t *testing.T) {
 	u, err := th.App.Srv().Store().User().GetByUsername(newUsername)
 	require.NoError(t, err, "new user should have been created in deactivateMissingUsers mode")
 	assert.NotZero(t, u.DeleteAt, "newly-created user should be deactivated")
+	assert.Equal(t, "true", u.Props[model.UserPropsKeyImportedInactive], "shell account should have importedInactive prop set")
 }
 
 func TestRewriteTeamNameEndToEnd(t *testing.T) {
@@ -1170,6 +1171,25 @@ func TestPreCreateSSOUser(t *testing.T) {
 		assert.Equal(t, samlService, unchanged.AuthService)
 		require.NotNil(t, unchanged.AuthData)
 		assert.Equal(t, samlData, *unchanged.AuthData, "auth_data should not have been overwritten")
+	})
+
+	t.Run("skips fresh creation when deactivateMissingUsers is true", func(t *testing.T) {
+		username := model.NewUsername()
+		email := username + "@example.com"
+		ad := model.NewId()
+
+		data := &imports.UserImportData{
+			Username:    &username,
+			Email:       &email,
+			AuthService: &authService,
+			AuthData:    authData(ad),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, true)
+		require.Nil(t, appErr)
+
+		// With deactivateMissingUsers=true, no user should have been created.
+		_, err := th.App.Srv().Store().User().GetByUsername(username)
+		require.Error(t, err, "user should not have been created when deactivateMissingUsers is true")
 	})
 }
 
