@@ -22,6 +22,7 @@ import {
     ValidationWarningNameRequired,
     ValidationWarningNameTaken,
     ValidationWarningNameUnique,
+    ValidationWarningOptionsRequired,
 } from './user_properties_utils';
 
 function getBaseState(): DeepPartial<GlobalState> {
@@ -403,6 +404,71 @@ describe('useUserPropertyFields', () => {
         expect(pendingIO.hasChanges).toBe(true);
         expect(fields.warnings).toEqual(expect.objectContaining({
             [field0.id]: {name: ValidationWarningNameRequired},
+        }));
+    });
+
+    it('should not warn options required for a select field whose option list was withheld', async () => {
+        const withheldOptionsField: UserPropertyField = {
+            ...baseField,
+            id: 'test-id-withheld',
+            name: 'test_attribute_withheld',
+            type: 'select' as const,
+            attrs: {...baseField.attrs, options_omitted: true},
+        };
+        getFields.mockResolvedValueOnce([withheldOptionsField]);
+
+        const {result, rerender} = renderHookWithContext(() => useUserPropertyFields(), getBaseState());
+
+        act(() => {
+            jest.runAllTimers();
+        });
+        rerender();
+
+        await waitFor(() => {
+            const [, read] = result.current;
+            expect(read.loading).toBe(false);
+        });
+
+        act(() => {
+            const [fields,,, ops] = result.current;
+            ops.update({...fields.data[withheldOptionsField.id], name: 'renamed_attribute_withheld'});
+        });
+        rerender();
+
+        const [fields] = result.current;
+        expect(fields.warnings?.[withheldOptionsField.id]).toBeUndefined();
+    });
+
+    it('should warn options required for a select field with a genuinely empty option list', async () => {
+        const emptyOptionsField: UserPropertyField = {
+            ...baseField,
+            id: 'test-id-empty-options',
+            name: 'test_attribute_empty_options',
+            type: 'select' as const,
+        };
+        getFields.mockResolvedValueOnce([emptyOptionsField]);
+
+        const {result, rerender} = renderHookWithContext(() => useUserPropertyFields(), getBaseState());
+
+        act(() => {
+            jest.runAllTimers();
+        });
+        rerender();
+
+        await waitFor(() => {
+            const [, read] = result.current;
+            expect(read.loading).toBe(false);
+        });
+
+        act(() => {
+            const [fields,,, ops] = result.current;
+            ops.update({...fields.data[emptyOptionsField.id], name: 'renamed_attribute_empty_options'});
+        });
+        rerender();
+
+        const [fields] = result.current;
+        expect(fields.warnings).toEqual(expect.objectContaining({
+            [emptyOptionsField.id]: {attrs: ValidationWarningOptionsRequired},
         }));
     });
 
