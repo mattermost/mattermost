@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -516,5 +517,95 @@ func TestReconcileSimulationWithLiveEvaluation(t *testing.T) {
 			}, resp)
 		})
 		assert.Nil(t, divergenceBlame(resp.Results[0].Decisions[model.AccessControlPolicyActionMembership]))
+	})
+}
+
+// TestSimulateAccessControlPolicyForUsersReconciles exercises the public entry
+// point rather than the reconciliation helper directly, so a future refactor
+// that drops the hook from SimulateAccessControlPolicyForUsers fails here.
+func TestSimulateAccessControlPolicyForUsersReconciles(t *testing.T) {
+	setup := func(t *testing.T, liveDecision bool) (*TestHelper, request.CTX, *mocks.AccessControlServiceInterface, model.PolicySimulationByUsersParams) {
+		t.Helper()
+
+		// Masking is exercised by access_control_masking_test.go; keep the
+		// re-injection path out of scope so this test is about the hook.
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.AttributeValueMasking = false
+		}).InitBasic(t)
+
+		policy := &model.AccessControlPolicy{
+			ID:      th.BasicChannel.Id,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Active:  true,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: `user.attributes.dept == "eng"`},
+			},
+		}
+		stored := *policy
+		stored.Rules = append([]model.AccessControlPolicyRule(nil), policy.Rules...)
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		originalACS := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = originalACS })
+
+		// The simulator allows the user...
+		mockACS.On("SimulatePolicyForUsers", mock.Anything, mock.Anything).Return(&model.PolicySimulationResponse{
+			Total: 1,
+			Results: []model.PolicySimulationUserResult{{
+				User: th.BasicUser,
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					model.AccessControlPolicyActionMembership: {Decision: true},
+				},
+			}},
+		}, nil).Once()
+		mockACS.On("GetPolicy", mock.Anything, policy.ID).Return(&stored, nil).Maybe()
+		mockACS.On("NormalizePolicy", mock.Anything, mock.Anything).Return(&stored, nil).Maybe()
+		// ...while the live PDP rules the other way.
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{Decision: liveDecision}, nil).Once()
+
+		rctx := th.Context.WithSession(&model.Session{
+			Id:     model.NewId(),
+			UserId: th.SystemAdminUser.Id,
+			Roles:  model.SystemUserRoleId + " " + model.SystemAdminRoleId,
+		})
+
+		return th, rctx, mockACS, model.PolicySimulationByUsersParams{
+			Policy:          policy,
+			ChannelID:       th.BasicChannel.Id,
+			Actions:         []string{model.AccessControlPolicyActionMembership},
+			EvaluationScope: model.PolicyEvaluationScopeAll,
+			Users:           []model.PolicySimulationUserOverride{{UserID: th.BasicUser.Id}},
+		}
+	}
+
+	t.Run("a disagreement reaches the response the picker renders", func(t *testing.T) {
+		th, rctx, mockACS, params := setup(t, false)
+
+		resp, appErr := th.App.SimulateAccessControlPolicyForUsers(rctx, params)
+
+		// The request still succeeds — a divergence is a warning about the
+		// preview, not a reason to deny the author the rest of the results.
+		require.Nil(t, appErr)
+		require.NotNil(t, resp)
+		require.Len(t, resp.Results, 1)
+
+		blame := divergenceBlame(resp.Results[0].Decisions[model.AccessControlPolicyActionMembership])
+		require.NotNil(t, blame, "the simulate entry point must reconcile against the live PDP")
+		assert.Equal(t, model.PolicySimulationBlameOutcomeDeny, blame.Outcome)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("agreeing lanes leave the response clean", func(t *testing.T) {
+		th, rctx, mockACS, params := setup(t, true)
+
+		resp, appErr := th.App.SimulateAccessControlPolicyForUsers(rctx, params)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, resp)
+		assert.Nil(t, divergenceBlame(resp.Results[0].Decisions[model.AccessControlPolicyActionMembership]))
+		mockACS.AssertExpectations(t)
 	})
 }
