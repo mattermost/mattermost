@@ -188,6 +188,8 @@ function PermissionPolicyDetails({
     // are recognized as simple and open in table mode.
 
     const loadPage = async (): Promise<void> => {
+        setLoadFailed(false);
+
         // Permission policies can reference resource.attributes.* (the accessed
         // channel), so request channel fields too.
         const fieldsPromise = abacActions.getAccessControlFields('', 100, true).then((result) => {
@@ -355,6 +357,7 @@ function PermissionPolicyDetails({
                                     id: 'admin.permission_policies.edit.error.load',
                                     defaultMessage: 'Failed to load policy',
                                 })}
+                                text={serverError}
                             />
                         </div>
                     </div>

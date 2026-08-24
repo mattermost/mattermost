@@ -170,6 +170,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         );
 
         expect(await screen.findByText('Failed to load policy')).toBeInTheDocument();
+        expect(screen.getByText('failed')).toBeInTheDocument();
         expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
         expect(screen.queryByTestId('cel-editor')).not.toBeInTheDocument();
     });
