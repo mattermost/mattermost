@@ -4,13 +4,13 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"maps"
 	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/require"
 )
@@ -347,7 +347,7 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 
 	// Read back via the store directly to avoid any read-access filtering
 	// the AC layer might apply for a non-source-plugin caller.
-	got, err := th.Store.PropertyField().Get(context.Background(), groupID, created.ID)
+	got, err := th.Store.PropertyField().Get(th.Context, groupID, created.ID)
 	require.NoError(t, err)
 	require.Equal(t, "uas_employee_id", got.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
 		"display_name must be backfilled to the field name even on protected/source_only fields")
@@ -481,13 +481,13 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Restore the pre-conversion shape a server upgrade would find: free
-		// text with no options. Written with a nil request context so
+		// text with no options. Written with a system-caller context so
 		// SessionAttributesHook treats it as a system caller, the same way the
 		// seed itself does.
 		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
 		field.Type = model.PropertyFieldTypeText
 		delete(field.Attrs, model.PropertyFieldAttributeOptions)
-		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{field})
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
 		require.NoError(t, err)
 
 		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
@@ -539,7 +539,7 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 
 		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
 		delete(field.Attrs, model.NativeAttributeAttrOperators)
-		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{field})
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
 		require.NoError(t, err)
 
 		require.NoError(t, th.Server.doSetupSessionAttributesProperties())

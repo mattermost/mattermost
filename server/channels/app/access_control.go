@@ -1740,7 +1740,7 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 	for fieldName := range attributes {
 		// Read directly from the store so this security filter sees the raw
 		// access_mode, unaffected by property read hooks for the request caller.
-		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx.Context(), cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
+		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx, cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
 		if fieldErr != nil {
 			delete(attributes, fieldName)
 			continue
@@ -2565,7 +2565,7 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 		return nil, appErr
 	}
 
-	attrs, appErr := a.GetSessionAttributes(rctx.Session().Id)
+	attrs, appErr := a.GetSessionAttributes(rctx, rctx.Session().Id)
 	if appErr != nil {
 		return nil, appErr
 	}
