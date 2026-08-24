@@ -5,7 +5,6 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import {onSubmit} from 'actions/views/create_comment';
 import {openModal} from 'actions/views/modals';
 
 import {renderHookWithContext} from 'tests/react_testing_utils';
