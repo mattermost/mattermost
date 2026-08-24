@@ -50,6 +50,17 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 
 	// Legacy properties (PSAv1) skip the conflict check.
 	if field.IsPSAv1() {
+		// A legacy field skips the link validation block below entirely, so
+		// without this it could be created carrying both a link and its own
+		// option list: the store still honours the link when hydrating
+		// options, leaving two lists nothing reconciles. Not conditioned on
+		// type -- a flat list collides with an inherited one as badly as a
+		// graph does.
+		if suppliedOptions && field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+			return nil, optionsChangeRefused(
+				"a field linking to field %s takes its option list from that field, so it cannot be created carrying one",
+				*field.LinkedFieldID)
+		}
 		return ps.createFieldWithOptionLinks(field)
 	}
 
@@ -139,9 +150,10 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 		}
 
 		// A linked field serves its template's option list and owns none of its
-		// own. Refused rather than dropped, for the same reason the graph arm
-		// below refuses: a caller that sent options would otherwise be told
-		// they were created, when the list actually saved is the template's.
+		// own. Refused rather than dropped: a caller that sent options would
+		// otherwise be told they were created, when the list actually saved is
+		// the template's. The legacy path above refuses the same combination
+		// for the same reason.
 		if suppliedOptions {
 			return nil, optionsChangeRefused(
 				"a field linking to template %s takes its option list from that template, so it cannot be created carrying one",

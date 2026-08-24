@@ -905,6 +905,79 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Contains(t, err.Error(), "takes its option list from that template")
 	})
 
+	t.Run("create legacy linked field refuses a supplied option list", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+		fakeSourceID := model.NewId()
+
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       legacyGroup.ID,
+			ObjectType:    "", // Legacy
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LegacySuppliedOptsLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeGraph,
+			LinkedFieldID: &fakeSourceID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Own Option"},
+				},
+			},
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "takes its option list from that field")
+
+		_, err = th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       legacyGroup.ID,
+			ObjectType:    "", // Legacy
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LegacySuppliedOptsLinkedSelect-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			LinkedFieldID: &fakeSourceID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Own Option"},
+				},
+			},
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "takes its option list from that field")
+	})
+
+	t.Run("create legacy linked field with no options succeeds", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+		fakeSourceID := model.NewId()
+
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       legacyGroup.ID,
+			ObjectType:    "", // Legacy
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LegacyLinkedNoOpts-" + model.NewId(),
+			Type:          model.PropertyFieldTypeGraph,
+			LinkedFieldID: &fakeSourceID,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.LinkedFieldID)
+		assert.Equal(t, fakeSourceID, *linked.LinkedFieldID)
+	})
+
+	t.Run("create legacy field with options and no link succeeds", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    legacyGroup.ID,
+			ObjectType: "", // Legacy
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "LegacyOptsNoLink-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Own Option"},
+				},
+			},
+		})
+		require.NoError(t, err)
+		assert.NotNil(t, field.Attrs[model.PropertyFieldAttributeOptions])
+	})
+
 	t.Run("create linked field with an empty option list succeeds", func(t *testing.T) {
 		source := createSourceField(t, "EmptyOptsSource-"+model.NewId())
 
