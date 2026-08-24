@@ -161,8 +161,9 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 	// links to — the property service copies the source's type over whatever the
 	// request said — so the check above cannot see what is about to be created.
 	// Gate on the source's type as well, or a graph template hands out new graph
-	// fields while the flag is off. Skipped once the flag is on — this extra
-	// read exists only to enforce a gate that no longer applies then.
+	// fields while the flag is off. Skipped once the flag is on: the gate below
+	// is then a no-op regardless of source, so the read would only fetch an
+	// argument nothing needs.
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" && !a.Config().FeatureFlags.PropertyFieldGraph {
 		source, appErr := a.GetPropertyField(rctx, field.GroupID, *field.LinkedFieldID)
 		switch {
