@@ -318,7 +318,7 @@ func (s *SqlPropertyFieldStore) GetFieldOptions(field *model.PropertyField, curs
 	}
 
 	rows := []*propertyOptionRow{}
-	if err := s.GetMaster().SelectBuilder(&rows, builder); err != nil {
+	if err := s.GetReplica().SelectBuilder(&rows, builder); err != nil {
 		return nil, errors.Wrap(err, "property_options_page_query")
 	}
 
@@ -330,7 +330,7 @@ func (s *SqlPropertyFieldStore) GetFieldOptions(field *model.PropertyField, curs
 	if field.Type != model.PropertyFieldTypeGraph {
 		return options, nil
 	}
-	if err := s.attachOptionParentNames(field, options); err != nil {
+	if err := s.attachOptionParentNames(s.GetReplica(), field, options); err != nil {
 		return nil, err
 	}
 	return options, nil
@@ -340,14 +340,14 @@ func (s *SqlPropertyFieldStore) GetFieldOptions(field *model.PropertyField, curs
 // name. Every option comes back with a parent list even when it is empty: a
 // root option having nothing above it is the answer, and a caller writing the
 // option back has to be able to tell that from having left the key out.
-func (s *SqlPropertyFieldStore) attachOptionParentNames(field *model.PropertyField, options []*model.PropertyFieldOption) error {
+func (s *SqlPropertyFieldStore) attachOptionParentNames(db sqlxExecutor, field *model.PropertyField, options []*model.PropertyFieldOption) error {
 	optionIDs := make([]string, 0, len(options))
 	for _, option := range options {
 		optionIDs = append(optionIDs, option.ID)
 	}
 
 	ownerID := graphOptionOwnerID(field)
-	edges, err := s.GetOptionParentEdges(ownerID, optionIDs)
+	edges, err := s.optionParentEdges(db, ownerID, optionIDs)
 	if err != nil {
 		return err
 	}
@@ -356,7 +356,7 @@ func (s *SqlPropertyFieldStore) attachOptionParentNames(field *model.PropertyFie
 	for _, edge := range edges {
 		parentIDs = append(parentIDs, edge.ParentOptionID)
 	}
-	names, err := s.getOptionNames(s.GetMaster(), ownerID, utils.RemoveDuplicatesFromStringArray(parentIDs))
+	names, err := s.getOptionNames(db, ownerID, utils.RemoveDuplicatesFromStringArray(parentIDs))
 	if err != nil {
 		return err
 	}
@@ -428,7 +428,7 @@ func (s *SqlPropertyFieldStore) GetOptionsByID(field *model.PropertyField, optio
 	if err != nil || len(options) == 0 || field.Type != model.PropertyFieldTypeGraph {
 		return options, err
 	}
-	if err := s.attachOptionParentNames(field, options); err != nil {
+	if err := s.attachOptionParentNames(s.GetMaster(), field, options); err != nil {
 		return nil, err
 	}
 	return options, nil
