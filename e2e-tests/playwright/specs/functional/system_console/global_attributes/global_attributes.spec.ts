@@ -26,6 +26,7 @@ import {
     deleteGlobalAttributeFieldIfExists,
     deleteLinkedDependentField,
     getGlobalAttributeFieldByName,
+    getGlobalAttributeFieldOptions,
     requireGlobalAttributesEnabled,
     requireHierarchicalAttributesEnabled,
     setGlobalAttributesFeatureFlag,
@@ -1125,17 +1126,13 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 await expect(row.getByTestId('global-attribute-type')).toContainText('Hierarchical');
                 await expect(row.getByTestId('global-attribute-options')).toContainText('2 options');
 
-                // * Saved payload carries named parents, including [] on the root
+                // * Saved payload is a graph field; named parents live on the options route
                 const field = await getGlobalAttributeFieldByName(adminClient, expectedName);
                 expect(field?.type).toBe('graph');
-                const options = (field?.attrs?.options ?? []) as Array<{name: string; parents?: string[]}>;
-                expect(options).toEqual(
-                    expect.arrayContaining([
-                        expect.objectContaining({name: 'Air', parents: []}),
-                        expect.objectContaining({name: 'Fighter', parents: ['Air']}),
-                    ]),
-                );
-                expect(JSON.stringify(options.find((option) => option.name === 'Air'))).toContain('"parents":[]');
+                expect(field?.id).toBeTruthy();
+                const options = await getGlobalAttributeFieldOptions(adminClient, field!.id);
+                expect(options.find((option) => option.name === 'Air')?.parents ?? []).toEqual([]);
+                expect(options.find((option) => option.name === 'Fighter')?.parents).toEqual(['Air']);
             } finally {
                 await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
             }
@@ -1254,7 +1251,8 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
 
                 const field = await getGlobalAttributeFieldByName(adminClient, expectedName);
-                const options = (field?.attrs?.options ?? []) as Array<{name: string; parents?: string[]}>;
+                expect(field?.id).toBeTruthy();
+                const options = await getGlobalAttributeFieldOptions(adminClient, field!.id);
                 expect(options.find((option) => option.name === 'Air')?.parents).toEqual(
                     expect.arrayContaining(['Maritime']),
                 );
@@ -1316,7 +1314,8 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
 
                 const field = await getGlobalAttributeFieldByName(adminClient, expectedName);
-                const options = (field?.attrs?.options ?? []) as Array<{name: string}>;
+                expect(field?.id).toBeTruthy();
+                const options = await getGlobalAttributeFieldOptions(adminClient, field!.id);
                 expect(options.map((option) => option.name)).toEqual(['Air']);
             } finally {
                 await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);

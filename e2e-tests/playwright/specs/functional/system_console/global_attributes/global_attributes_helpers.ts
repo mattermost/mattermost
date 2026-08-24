@@ -115,6 +115,22 @@ export async function getGlobalAttributeFieldByName(adminClient: Client4, name: 
 }
 
 /**
+ * Lists a field's options including graph parents. Field GET omits parents from
+ * the inlined attrs.options list on purpose (a field read-modify-write must not
+ * flatten the hierarchy); the dedicated options route is what reports them.
+ */
+export async function getGlobalAttributeFieldOptions(adminClient: Client4, fieldId: string) {
+    const url = `${adminClient.getUrl()}${adminClient.getPropertyFieldRoute(PROPERTY_GROUP, OBJECT_TYPE, fieldId)}/options?per_page=${MAX_PROPERTY_FIELDS_PER_PAGE}`;
+    const response = await fetch(url, {
+        headers: {Authorization: `Bearer ${adminClient.getToken()}`},
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to list property field options: ${response.status}`);
+    }
+    return response.json() as Promise<Array<{id: string; name: string; parents?: string[] | null}>>;
+}
+
+/**
  * Creates an access_control/template property field (the same group/object type/target
  * this ticket's table lists) for E2E seeding. Ensures a clean slate first so reruns don't
  * collide with a field left over from a prior failed run.
