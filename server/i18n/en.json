@@ -8001,6 +8001,10 @@
     "translation": "Could not initialise attribute resolver for policy save."
   },
   {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "Access rules cannot use channel attributes on this server. This capability is not enabled."
+  },
+  {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
     "translation": "Permission rule names must be unique within the policy."
   },
