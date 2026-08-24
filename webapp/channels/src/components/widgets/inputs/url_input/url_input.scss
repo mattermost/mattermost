@@ -55,6 +55,14 @@
         }
     }
 
+    .url-input-help-text {
+        margin-top: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        line-height: 16px;
+        text-align: left;
+    }
+
     .url-input-error {
         display: flex;
         margin-top: 5px;

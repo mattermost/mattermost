@@ -119,6 +119,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                         currentUrl={this.state.channelUrl}
                         readOnly={false}
                         isEditingExistingChannel={true}
+                        isDefaultChannel={this.props.channel.name === Constants.DEFAULT_CHANNEL}
                         onErrorStateChange={(isError, errorMsg) => this.setState({urlError: isError ? (errorMsg || '') : ''})}
                         urlError={this.state.urlError}
                     />

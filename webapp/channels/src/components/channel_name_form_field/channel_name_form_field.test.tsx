@@ -5,7 +5,7 @@ import React from 'react';
 
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {LicenseSkus} from 'utils/constants';
 
 const baseProps = {
@@ -78,5 +78,72 @@ describe('ChannelNameFormField - URL editor visibility', () => {
         );
 
         expect(screen.getByTestId('urlInputLabel')).toBeVisible();
+    });
+});
+
+describe('ChannelNameFormField - default channel URL', () => {
+    const defaultChannelProps = {
+        ...baseProps,
+        value: 'Town Square',
+        currentUrl: 'town-square',
+        isEditingExistingChannel: true,
+        isDefaultChannel: true,
+    };
+
+    const ordinaryChannelProps = {
+        ...baseProps,
+        value: 'Test Channel',
+        currentUrl: 'test-channel',
+        isEditingExistingChannel: true,
+    };
+
+    test('should not offer the URL Edit button for the default channel', () => {
+        renderWithContext(
+            <ChannelNameFormField {...defaultChannelProps}/>,
+            makeState('false'),
+        );
+
+        expect(screen.getByTestId('urlInputLabel')).toHaveTextContent('town-square');
+        expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
+        expect(screen.queryByTestId('channelURLInput')).not.toBeInTheDocument();
+        expect(screen.getByText('The URL of the default channel cannot be changed.')).toBeVisible();
+    });
+
+    test('should keep the default channel URL locked while an error is displayed', () => {
+        renderWithContext(
+            <ChannelNameFormField
+                {...defaultChannelProps}
+                urlError='URL is already taken'
+            />,
+            makeState('false'),
+        );
+
+        expect(screen.getByRole('alert')).toHaveTextContent('URL is already taken');
+        expect(screen.queryByTestId('channelURLInput')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
+    });
+
+    test('should let the user edit the URL of a non-default channel', async () => {
+        const onURLChange = jest.fn();
+
+        renderWithContext(
+            <ChannelNameFormField
+                {...ordinaryChannelProps}
+                onURLChange={onURLChange}
+            />,
+            makeState('false'),
+        );
+
+        expect(screen.queryByText('The URL of the default channel cannot be changed.')).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Edit'}));
+
+        const urlInput = screen.getByTestId('channelURLInput');
+        expect(urlInput).toHaveValue('test-channel');
+
+        await userEvent.type(urlInput, '-renamed');
+
+        expect(urlInput).toHaveValue('test-channel-renamed');
+        expect(onURLChange).toHaveBeenLastCalledWith('test-channel-renamed');
     });
 });

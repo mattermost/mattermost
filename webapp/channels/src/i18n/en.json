@@ -4614,6 +4614,7 @@
   "channel_modal.type.private.title": "Private Channel",
   "channel_modal.type.public.description": "Anyone can join",
   "channel_modal.type.public.title": "Public Channel",
+  "channel_name_form_field.default_channel_url": "The URL of the default channel cannot be changed.",
   "channel_notifications.alertBanner.description": "All other notification preferences for this channel are disabled",
   "channel_notifications.alertBanner.title": "This channel is muted",
   "channel_notifications.autoFollowThreadsDesc": "When enabled, all new replies in this channel will be automatically followed and will appear in your Threads view.",

@@ -526,6 +526,7 @@ function ChannelSettingsInfoTab({
                     currentUrl={channelUrl}
                     readOnly={!canManageChannelProperties}
                     isEditingExistingChannel={true}
+                    isDefaultChannel={channel.name === Constants.DEFAULT_CHANNEL}
                 />
             )}
             {/* Channel Type Section*/}
