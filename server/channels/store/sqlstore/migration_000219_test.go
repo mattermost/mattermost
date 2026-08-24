@@ -46,7 +46,7 @@ func TestMigration000219(t *testing.T) {
 		return defs
 	}
 
-	// New() applies all migrations, so 000215 is already in effect.
+	// New() applies all migrations, so 000219 is already in effect.
 	defs := indexDefs(t)
 	require.Len(t, defs, 2, "the table carries its primary key and one secondary index: %v", defs)
 
