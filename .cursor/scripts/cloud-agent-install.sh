@@ -12,6 +12,10 @@ is_true() {
   esac
 }
 
+is_git_work_tree() {
+  [ "$(git -C "${1:-}" rev-parse --is-inside-work-tree 2>/dev/null)" = "true" ]
+}
+
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$ROOT"
 
@@ -88,7 +92,7 @@ find_enterprise_checkout() {
 
   local candidate
   for candidate in "${candidates[@]}"; do
-    if git -C "$candidate" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    if is_git_work_tree "$candidate"; then
       realpath -m "$candidate"
       return 0
     fi
@@ -124,7 +128,7 @@ clone_enterprise_checkout() {
   fi
 
   if [ -e "$dest" ]; then
-    if git -C "$dest" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    if is_git_work_tree "$dest"; then
       return 0
     fi
     if [ -n "$(ls -A "$dest" 2>/dev/null)" ]; then
@@ -192,7 +196,7 @@ ensure_enterprise_checkout() {
   dest="$(enterprise_clone_dest)"
   clone_enterprise_checkout "$dest"
   target="$(realpath -m "$dest")"
-  if ! git -C "$target" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  if ! is_git_work_tree "$target"; then
     log "Enterprise clone completed but checkout was not found at $dest."
     return 1
   fi
