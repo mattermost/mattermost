@@ -4,6 +4,8 @@
 import React from 'react';
 import type {Store} from 'redux';
 
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {toggleRHSPlugin} from 'actions/views/rhs';
 import {getIsRhsOpen, getPluggableId, getRhsState} from 'selectors/rhs';
 
@@ -12,7 +14,8 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {RHSStates} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import type {AppBarAction, ChannelHeaderButtonAction} from 'types/store/plugins';
+import type {GlobalState} from 'types/store';
+import type {AppBarAction, ChannelHeaderButtonAction, RightHandSidebarComponent} from 'types/store/plugins';
 
 import AppBarPluginComponent from './app_bar_plugin_component';
 
@@ -22,6 +25,13 @@ describe('components/app_bar/app_bar_plugin_component', () => {
 
     const channel = TestHelper.getChannelMock({id: 'channel1'});
     const channelMember = TestHelper.getChannelMembershipMock({channel_id: 'channel1', user_id: 'user1'});
+
+    const rhsComponents: RightHandSidebarComponent[] = [{
+        id: rhsComponentId,
+        pluginId,
+        component: () => null,
+        title: 'Test Plugin',
+    }];
 
     // State while viewing a channel.
     const inChannelState = {
@@ -42,12 +52,7 @@ describe('components/app_bar/app_bar_plugin_component', () => {
         },
         plugins: {
             components: {
-                RightHandSidebarComponent: [{
-                    id: rhsComponentId,
-                    pluginId,
-                    component: () => null,
-                    title: 'Test Plugin',
-                }],
+                RightHandSidebarComponent: rhsComponents,
             },
         },
     };
@@ -58,6 +63,17 @@ describe('components/app_bar/app_bar_plugin_component', () => {
             channels: {
                 currentChannelId: '',
             },
+        },
+    });
+
+    // Arriving in the Threads view from a channel showing pinned posts leaves the RHS suppressed.
+    const suppressedRhsState = mergeObjects(noChannelState, {
+        views: {
+            rhs: {
+                isSidebarOpen: true,
+                rhsState: RHSStates.PIN,
+            },
+            rhsSuppressed: true,
         },
     });
 
@@ -77,17 +93,20 @@ describe('components/app_bar/app_bar_plugin_component', () => {
         action: toggleRhs,
     };
 
-    const appBarActionWithRhs = {
+    const appBarActionWithRhs: AppBarAction = {
         id: 'the_app_bar_action_id',
         pluginId,
         iconUrl: '',
         supportedProductIds: null,
         tooltipText: 'Test Plugin',
         rhsComponentId,
-        action: toggleRhs,
-    } as unknown as AppBarAction;
+        action: jest.fn(() => {
+            store.dispatch(toggleRHSPlugin(rhsComponentId));
+            return {data: true};
+        }),
+    };
 
-    const renderAppBarIcon = (component: ChannelHeaderButtonAction | AppBarAction, state: typeof inChannelState) => {
+    const renderAppBarIcon = (component: ChannelHeaderButtonAction | AppBarAction, state: DeepPartial<GlobalState>) => {
         const rendered = renderWithContext(
             <AppBarPluginComponent component={component}/>,
             state,
@@ -100,10 +119,13 @@ describe('components/app_bar/app_bar_plugin_component', () => {
         expect(getIsRhsOpen(store.getState())).toBe(true);
         expect(getRhsState(store.getState())).toBe(RHSStates.PLUGIN);
         expect(getPluggableId(store.getState())).toBe(rhsComponentId);
+
+        // The icon reflects the open panel back to the user.
+        expect(screen.getByRole('button')).toHaveClass('app-bar__old-icon--active');
     };
 
     beforeEach(() => {
-        toggleRhs.mockClear();
+        jest.clearAllMocks();
     });
 
     describe('plugin registered through registerChannelHeaderButtonAction', () => {
@@ -113,7 +135,9 @@ describe('components/app_bar/app_bar_plugin_component', () => {
             await userEvent.click(screen.getByRole('button'));
 
             expectRhsToBeOpen();
-            expect(toggleRhs).toHaveBeenCalledWith(channel, channelMember);
+
+            // registerChannelHeaderButtonAction documents that the channel and member are passed along.
+            expect(channelHeaderButton.action).toHaveBeenCalledWith(channel, channelMember);
         });
 
         test('should open the plugin RHS when clicked with no channel in context', async () => {
@@ -122,7 +146,19 @@ describe('components/app_bar/app_bar_plugin_component', () => {
             await userEvent.click(screen.getByRole('button'));
 
             expectRhsToBeOpen();
-            expect(toggleRhs).toHaveBeenCalledTimes(1);
+
+            // Plugins must tolerate being invoked without a channel from views such as Threads.
+            expect(channelHeaderButton.action).toHaveBeenCalledWith(undefined, undefined);
+        });
+
+        test('should open the plugin RHS when clicked while the RHS is suppressed', async () => {
+            renderAppBarIcon(channelHeaderButton, suppressedRhsState);
+
+            expect(getIsRhsOpen(store.getState())).toBe(false);
+
+            await userEvent.click(screen.getByRole('button'));
+
+            expectRhsToBeOpen();
         });
 
         test('should close the plugin RHS when clicked again with no channel in context', async () => {
@@ -135,6 +171,7 @@ describe('components/app_bar/app_bar_plugin_component', () => {
 
             expect(getIsRhsOpen(store.getState())).toBe(false);
             expect(getPluggableId(store.getState())).toBe('');
+            expect(screen.getByRole('button')).not.toHaveClass('app-bar__old-icon--active');
         });
     });
 
@@ -147,7 +184,7 @@ describe('components/app_bar/app_bar_plugin_component', () => {
             expectRhsToBeOpen();
 
             // The registry wires this action to a toggler which takes no channel context.
-            expect(toggleRhs).toHaveBeenCalledWith();
+            expect(appBarActionWithRhs.action).toHaveBeenCalledWith();
         });
 
         test('should open the plugin RHS when clicked with no channel in context', async () => {
@@ -156,7 +193,7 @@ describe('components/app_bar/app_bar_plugin_component', () => {
             await userEvent.click(screen.getByRole('button'));
 
             expectRhsToBeOpen();
-            expect(toggleRhs).toHaveBeenCalledWith();
+            expect(appBarActionWithRhs.action).toHaveBeenCalledWith();
         });
     });
 });
