@@ -23,6 +23,8 @@ export default class ChannelsPostCreate {
     readonly suggestionOptions;
     readonly selectedSuggestion;
     readonly filePreview;
+    readonly previewButton;
+    readonly previewArea;
 
     // Burn-on-Read elements
     readonly burnOnReadButton;
@@ -46,6 +48,8 @@ export default class ChannelsPostCreate {
         this.suggestionOptions = this.suggestionList.getByRole('option');
         this.selectedSuggestion = this.suggestionList.getByTestId('suggestion-selected');
         this.filePreview = container.getByTestId('file-preview-container');
+        this.previewButton = container.getByRole('button', {name: 'preview'});
+        this.previewArea = container.locator('.textbox-preview-area');
 
         // Burn-on-Read elements
         // Use a flexible locator that matches the aria-label pattern
@@ -190,6 +194,16 @@ export default class ChannelsPostCreate {
     async openEmojiPicker() {
         await expect(this.emojiButton).toBeVisible();
         await this.emojiButton.click();
+    }
+
+    async togglePreview() {
+        await expect(this.previewButton).toBeVisible();
+        await this.previewButton.click();
+    }
+
+    async clickMentionInPreview() {
+        await expect(this.previewArea).toBeVisible();
+        await this.previewArea.locator('.mention-link').click();
     }
 
     async waitUntilFilePreviewContains(files: string[], timeout = duration.ten_sec) {
