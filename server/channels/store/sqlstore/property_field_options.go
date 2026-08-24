@@ -900,13 +900,6 @@ func storedFieldAttrs(field *model.PropertyField) model.StringInterface {
 	return stored
 }
 
-// optionsWithheld reports whether a field's attrs came from a read that left the
-// option list out because the field has too many. Writing such a field back must
-// not be read as "this field now has no options".
-func optionsWithheld(field *model.PropertyField) bool {
-	return model.PropertyFieldOptionsOmitted(field.Attrs)
-}
-
 // hydratePropertyFieldOptions inlines each field's effective option set into
 // Attrs["options"], in the order the options were last written in. Fields whose
 // type carries no options are left untouched.
@@ -1191,7 +1184,10 @@ func (s *SqlPropertyFieldStore) getPropertyOptions(db sqlxExecutor, fieldIDs []s
 func (s *SqlPropertyFieldStore) syncPropertyFieldOptions(transaction *sqlxTxWrapper, fields []*model.PropertyField, now int64) ([]string, error) {
 	var ownerIDs []string
 	for _, field := range fields {
-		if !field.Type.SupportsOptions() || optionsWithheld(field) {
+		// A field whose attrs came from a read that left the option list out because
+		// the field has too many is skipped: writing such a field back must not be
+		// read as "this field now has no options".
+		if !field.Type.SupportsOptions() || model.PropertyFieldOptionsOmitted(field.Attrs) {
 			continue
 		}
 		for _, ownerID := range optionOwnerIDs(field) {
@@ -1231,7 +1227,7 @@ func (s *SqlPropertyFieldStore) syncPropertyFieldOptions(transaction *sqlxTxWrap
 		// its rows removed: the store cannot tell a type conversion from a
 		// field that never had options, and dropping rows on the guess would
 		// lose the option list of a field converted away and back again.
-		if !field.Type.SupportsOptions() || optionsWithheld(field) {
+		if !field.Type.SupportsOptions() || model.PropertyFieldOptionsOmitted(field.Attrs) {
 			continue
 		}
 
