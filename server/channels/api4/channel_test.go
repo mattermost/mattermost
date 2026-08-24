@@ -6876,6 +6876,11 @@ func TestGetChannelModerations(t *testing.T) {
 		scheme := th.SetupTeamScheme(t)
 		scheme.DefaultChannelGuestRole = ""
 
+		// Restore the real store so helper cleanup (cache invalidation, license reload)
+		// doesn't run against the partial mock.
+		originalStore := th.App.Srv().Store()
+		t.Cleanup(func() { th.App.Srv().SetStore(originalStore) })
+
 		mockStore := mocks.Store{}
 
 		// Playbooks DB job requires a plugin mock
@@ -7031,6 +7036,11 @@ func TestPatchChannelModerations(t *testing.T) {
 		team := th.BasicTeam
 		scheme := th.SetupTeamScheme(t)
 		scheme.DefaultChannelGuestRole = ""
+
+		// Restore the real store so helper cleanup (cache invalidation, license reload)
+		// doesn't run against the partial mock.
+		originalStore := th.App.Srv().Store()
+		t.Cleanup(func() { th.App.Srv().SetStore(originalStore) })
 
 		mockStore := mocks.Store{}
 
