@@ -120,7 +120,7 @@ export async function getGlobalAttributeFieldByName(adminClient: Client4, name: 
  * flatten the hierarchy); the dedicated options route is what reports them.
  */
 export async function getGlobalAttributeFieldOptions(adminClient: Client4, fieldId: string) {
-    const url = `${adminClient.getUrl()}${adminClient.getPropertyFieldRoute(PROPERTY_GROUP, OBJECT_TYPE, fieldId)}/options?per_page=${MAX_PROPERTY_FIELDS_PER_PAGE}`;
+    const url = `${adminClient.getPropertyFieldRoute(PROPERTY_GROUP, OBJECT_TYPE, fieldId)}/options?per_page=${MAX_PROPERTY_FIELDS_PER_PAGE}`;
     const response = await fetch(url, {
         headers: {Authorization: `Bearer ${adminClient.getToken()}`},
     });
