@@ -123,7 +123,7 @@ func TestResolveFieldMasking(t *testing.T) {
 
 	// setMasking persists masking directly through the store rather than the
 	// service, for a template or an unlinked field -- the two object shapes
-	// PropertyField.IsValid still allows to carry masking. A linked field's own
+	// PropertyField.IsValid allows to carry masking. A linked field's own
 	// masking is set on the in-memory struct instead, without going through this
 	// helper; see the subtests that do that for why.
 	setMasking := func(field *model.PropertyField, masking *model.Masking) *model.PropertyField {
@@ -197,10 +197,10 @@ func TestResolveFieldMasking(t *testing.T) {
 			Except:        []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: model.NewId()}},
 		})
 		linked := newLinkedField("Linked-OwnMaskingIgnored", template.ID)
-		// PropertyField.IsValid now rejects a linked field's own masking, so this
+		// PropertyField.IsValid rejects a linked field's own masking, so this
 		// sets it on the in-memory struct without persisting: resolveFieldMasking
 		// reads a linked field's masking off the struct it is handed and only
-		// fetches the template from the store, so this still proves the read path
+		// fetches the template from the store, so this proves the read path
 		// ignores it regardless of what a save would allow.
 		linked.Permissions = &model.Permissions{Masking: &model.Masking{}}
 
@@ -355,12 +355,12 @@ func TestExempt(t *testing.T) {
 		template = updatedTemplate[0]
 
 		attacker := model.NewId()
-		// PropertyField.IsValid now rejects a linked field's own masking, so this
+		// PropertyField.IsValid rejects a linked field's own masking, so this
 		// is created without one and given it on the in-memory struct afterward --
 		// standing in for a stray one from before that lock existed, or a
 		// migration that has not caught up. resolveFieldMasking reads a linked
-		// field's masking off the struct it is handed, so this still exercises
-		// the read path the same way a persisted stray masking would.
+		// field's masking off the struct it is handed, so this exercises the
+		// read path the same way a persisted stray masking would.
 		linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:       th.CPAGroupID,
 			Name:          "Linked-Exfil",
