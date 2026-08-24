@@ -1418,8 +1418,16 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 	return postList, nil
 }
 
-// Cannot collide with a real epoch, which always carries a row count.
+// Cannot collide with a real epoch, which always carries a row count. For when no user is in
+// scope and there is genuinely no attribute component to track.
 const unknownABACEtagEpoch = "unknown"
+
+// degradedABACEtagEpoch stands in for an epoch whose lookup failed, and must miss the cache.
+// Unique per call: a stable sentinel would let two failed lookups either side of a policy change
+// produce identical ETags, and the client would 304 onto the old sanitization.
+func degradedABACEtagEpoch() string {
+	return unknownABACEtagEpoch + "-" + strconv.FormatInt(time.Now().UnixNano(), 10)
+}
 
 // AppendABACEtag folds the policy and user-attribute epochs into a base ETag, so a policy or
 // attribute change misses the cache and SanitizePostListMetadataForUser runs instead of the
@@ -1428,15 +1436,13 @@ const unknownABACEtagEpoch = "unknown"
 // Pass "" for channelID when no channel is in scope; the policy epoch then covers only the
 // system-scoped permission policies.
 func (a *App) AppendABACEtag(base string, userID string, channelID string) string {
-	if !a.Config().FeatureFlags.PermissionPolicies ||
-		a.Config().AccessControlSettings.EnableAttributeBasedAccessControl == nil ||
-		!*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+	if !a.attributeBasedAccessControlEnabled() {
 		return base
 	}
 
 	rctx := request.EmptyContext(a.Log())
 
-	policyEpoch := unknownABACEtagEpoch
+	policyEpoch := degradedABACEtagEpoch()
 	if epoch, err := a.Srv().Store().AccessControlPolicy().GetEtagEpoch(rctx, channelID); err == nil {
 		policyEpoch = epoch
 	} else {
@@ -1446,6 +1452,7 @@ func (a *App) AppendABACEtag(base string, userID string, channelID string) strin
 
 	cpaEpoch := unknownABACEtagEpoch
 	if userID != "" {
+		cpaEpoch = degradedABACEtagEpoch()
 		if epoch, err := a.Srv().Store().Attributes().GetUserPropertyValuesEpoch(rctx, userID); err == nil {
 			cpaEpoch = epoch
 		} else {

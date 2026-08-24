@@ -99,11 +99,7 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 
 	// No active policy — return per-action defaults.
 	acs := a.Srv().Channels().AccessControl
-	abacInactive := acs == nil ||
-		a.Config().AccessControlSettings.EnableAttributeBasedAccessControl == nil ||
-		!*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl ||
-		!a.Config().FeatureFlags.PermissionPolicies
-	if abacInactive {
+	if acs == nil || !a.attributeBasedAccessControlEnabled() {
 		for _, action := range candidates {
 			record(action, model.RenderPermissionDecision{
 				Allowed:   renderableABACActions[action].DefaultWhenInactive,

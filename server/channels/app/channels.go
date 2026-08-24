@@ -306,6 +306,8 @@ func (ch *Channels) Start() error {
 		}
 	})
 
+	ch.AddConfigListener(ch.clearABACRenderCachesOnFlip)
+
 	// TODO: This should be moved to the platform service.
 	if err := ch.srv.platform.EnsureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")

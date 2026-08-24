@@ -968,7 +968,8 @@ func (s *SqlAccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID s
 		MaxCreateAt int64
 		Total       int64
 	}
-	if err := s.GetReplica().Get(&epoch, query, args...); err != nil {
+	// Master, not replica — see the note on SqlAttributesStore.GetUserPropertyValuesEpoch.
+	if err := s.GetMaster().Get(&epoch, query, args...); err != nil {
 		return "", errors.Wrap(err, "GetEtagEpoch: query failed")
 	}
 	return fmt.Sprintf("%d-%d", epoch.MaxCreateAt, epoch.Total), nil

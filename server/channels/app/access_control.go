@@ -19,7 +19,33 @@ import (
 )
 
 const attributeViewRefreshInterval = 30 * time.Second
+
 const accessControlChildPolicySearchLimit = 1000
+
+// attributeBasedAccessControlEnabled must stay the exact predicate the enforcement paths use, with
+// no license check, so the render-ETag and cache-invalidation gates can never be narrower than the
+// sanitization they keep in step with.
+func attributeBasedAccessControlEnabled(cfg *model.Config) bool {
+	return cfg.FeatureFlags.PermissionPolicies &&
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl != nil &&
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl
+}
+
+func (a *App) attributeBasedAccessControlEnabled() bool {
+	return attributeBasedAccessControlEnabled(a.Config())
+}
+
+// clearABACRenderCachesOnFlip drops both render-ETag epoch caches when ABAC is toggled: they are
+// only invalidated while ABAC is active, so a change made while it was off would leave a stale
+// epoch for the switch back on to serve.
+func (ch *Channels) clearABACRenderCachesOnFlip(prevCfg, cfg *model.Config) {
+	if attributeBasedAccessControlEnabled(prevCfg) == attributeBasedAccessControlEnabled(cfg) {
+		return
+	}
+
+	ch.srv.Store().AccessControlPolicy().ClearEtagCache()
+	ch.srv.Store().Attributes().ClearUserPropertyValuesEpochCache()
+}
 
 func (a *App) GetChannelsForPolicy(rctx request.CTX, policyID string, cursor model.AccessControlPolicyCursor, limit int) ([]*model.ChannelWithTeamData, int64, *model.AppError) {
 	policy, appErr := a.GetAccessControlPolicy(rctx, policyID)
@@ -2663,19 +2689,23 @@ func ResolveSystemRole(roles string) string {
 	return model.SystemUserRoleId
 }
 
-// invalidateAttributeViewCache forces the next refreshAttributeViewIfStale call to
-// refresh immediately. If a refresh is already running, the timer reset is lost
-// because TryLock fails, so we set needsRefresh to ensure the follow-up call
-// (once the in-progress refresh completes) still triggers a second refresh.
+// invalidateAttributeViewCache forces the next refreshAttributeViewIfStale call to refresh.
+//
+// Deliberately not rate-limited: the REFRESH happens on the read side, so a bulk writer with no
+// evaluations in between still costs one refresh, while deferring a write loses it — a client asks
+// for a render decision once per change event and never re-asks.
+//
+// The marker is node-local and the matview shared, so in HA only the writing node gets live
+// visibility; elsewhere the bound stays the periodic one until this grows a cluster message.
 func (a *App) invalidateAttributeViewCache() {
 	ch := a.Srv().Channels()
+
 	if ch.attributeViewRefreshMut.TryLock() {
 		ch.attributeViewRefreshLast = time.Time{}
 		ch.attributeViewRefreshMut.Unlock()
 	} else {
-		// A refresh is running and may have started reading the DB before the
-		// attribute write landed. Flag a follow-up so the next caller refreshes
-		// again after the current one finishes.
+		// The in-flight refresh may have read the DB before this write landed, and it will
+		// overwrite the timer on completion, so flag a follow-up for the next caller.
 		ch.attributeViewNeedsRefresh.Store(true)
 	}
 }

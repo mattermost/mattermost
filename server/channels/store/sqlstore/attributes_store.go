@@ -258,7 +258,10 @@ func (s *SqlAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID
 		MaxUpdateAt int64
 		Total       int64
 	}
-	if err := s.GetReplica().Get(&epoch, query, args...); err != nil {
+	// Master, not replica: the caller invalidates this key right after the write commits, so a
+	// lagging replica would re-cache the pre-write epoch and the client would keep 304ing onto
+	// content sanitized under the old attributes until the entry expires.
+	if err := s.GetMaster().Get(&epoch, query, args...); err != nil {
 		return "", errors.Wrap(err, "GetUserPropertyValuesEpoch: query failed")
 	}
 	return fmt.Sprintf("%d-%d", epoch.MaxUpdateAt, epoch.Total), nil

@@ -6765,3 +6765,73 @@ func TestGetPostsForView(t *testing.T) {
 		assert.Empty(t, postList.Posts)
 	})
 }
+
+func TestAppendABACEtag(t *testing.T) {
+	const base = "16.2.3.abcdefghij.1700000000000"
+
+	setup := func(t *testing.T, abacEnabled bool) (*TestHelper, *storemocks.AccessControlPolicyStore, *storemocks.AttributesStore) {
+		th := SetupConfigWithStoreMock(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(abacEnabled)
+		})
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+		mockACP := &storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(mockACP).Maybe()
+
+		mockAttributes := &storemocks.AttributesStore{}
+		mockStore.On("Attributes").Return(mockAttributes).Maybe()
+
+		return th, mockACP, mockAttributes
+	}
+
+	t.Run("returns the base ETag untouched and reads no store when ABAC is off", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, false)
+
+		assert.Equal(t, base, th.App.AppendABACEtag(base, model.NewId(), model.NewId()))
+
+		mockACP.AssertNotCalled(t, "GetEtagEpoch", mock.Anything, mock.Anything)
+		mockAttributes.AssertNotCalled(t, "GetUserPropertyValuesEpoch", mock.Anything, mock.Anything)
+	})
+
+	t.Run("folds both epochs in when ABAC is on", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, true)
+		userID := model.NewId()
+		channelID := model.NewId()
+
+		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("111-2", nil).Once()
+		mockAttributes.On("GetUserPropertyValuesEpoch", mock.Anything, userID).Return("222-3", nil).Once()
+
+		assert.Equal(t, base+".111-2.222-3", th.App.AppendABACEtag(base, userID, channelID))
+
+		mockACP.AssertExpectations(t)
+		mockAttributes.AssertExpectations(t)
+	})
+
+	t.Run("skips the attribute epoch when there is no user in scope", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, true)
+		channelID := model.NewId()
+
+		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("111-2", nil).Once()
+
+		assert.Equal(t, base+".111-2."+unknownABACEtagEpoch, th.App.AppendABACEtag(base, "", channelID))
+
+		mockAttributes.AssertNotCalled(t, "GetUserPropertyValuesEpoch", mock.Anything, mock.Anything)
+	})
+
+	t.Run("a store failure yields an ETag that cannot match the healthy one", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, true)
+		userID := model.NewId()
+		channelID := model.NewId()
+
+		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("", errors.New("boom")).Twice()
+		mockAttributes.On("GetUserPropertyValuesEpoch", mock.Anything, userID).Return("222-3", nil).Twice()
+
+		etag := th.App.AppendABACEtag(base, userID, channelID)
+
+		assert.NotEqual(t, base, etag, "a failed epoch lookup must not collapse back onto the ungated ETag")
+		assert.Contains(t, etag, unknownABACEtagEpoch)
+		assert.NotEqual(t, etag, th.App.AppendABACEtag(base, userID, channelID),
+			"two failed lookups must not produce the same ETag, or a policy change between them would 304")
+	})
+}

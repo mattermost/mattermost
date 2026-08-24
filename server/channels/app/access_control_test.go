@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -5543,5 +5544,102 @@ func TestGetAccessControlFieldsAutocompleteNativeAttributes(t *testing.T) {
 			isNative, _ := f.Attrs[model.NativeAttributeAttrMarker].(bool)
 			assert.False(t, isNative, "native attribute %q must not repeat on later pages", f.Name)
 		}
+	})
+}
+
+func TestInvalidateAttributeViewCache(t *testing.T) {
+	th := SetupWithStoreMock(t)
+	ch := th.App.Srv().Channels()
+
+	th.App.invalidateAttributeViewCache()
+	require.True(t, ch.attributeViewRefreshLast.IsZero(), "a write should mark the view stale")
+
+	// No rate limit: a deferred write is a lost one, because a client asks for a render decision
+	// once per change event and never re-asks.
+	ch.attributeViewRefreshLast = time.Now()
+	for range 100 {
+		th.App.invalidateAttributeViewCache()
+	}
+	require.True(t, ch.attributeViewRefreshLast.IsZero(), "later writes should still mark the view stale")
+
+	// A write landing during an in-flight refresh cannot reset the timer, so it flags a follow-up.
+	ch.attributeViewRefreshLast = time.Now()
+	ch.attributeViewRefreshMut.Lock()
+	th.App.invalidateAttributeViewCache()
+	ch.attributeViewRefreshMut.Unlock()
+	require.False(t, ch.attributeViewRefreshLast.IsZero())
+	require.True(t, ch.attributeViewNeedsRefresh.Load(), "a write during a refresh should flag a follow-up")
+}
+
+func TestAttributeBasedAccessControlEnabled(t *testing.T) {
+	newConfig := func(flag bool, abac *bool) *model.Config {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.FeatureFlags.PermissionPolicies = flag
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = abac
+		return cfg
+	}
+
+	assert.False(t, attributeBasedAccessControlEnabled(newConfig(false, model.NewPointer(true))), "flag off")
+	assert.False(t, attributeBasedAccessControlEnabled(newConfig(true, model.NewPointer(false))), "ABAC off")
+	assert.False(t, attributeBasedAccessControlEnabled(newConfig(true, nil)), "ABAC unset")
+	assert.True(t, attributeBasedAccessControlEnabled(newConfig(true, model.NewPointer(true))), "both on")
+}
+
+func TestClearABACRenderCachesOnFlip(t *testing.T) {
+	newConfig := func(abac bool) *model.Config {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(abac)
+		return cfg
+	}
+
+	setup := func(t *testing.T) (*Channels, *storemocks.AccessControlPolicyStore, *storemocks.AttributesStore) {
+		th := SetupWithStoreMock(t)
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+		mockACP := &storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(mockACP).Maybe()
+
+		mockAttributes := &storemocks.AttributesStore{}
+		mockStore.On("Attributes").Return(mockAttributes).Maybe()
+
+		return th.App.Srv().Channels(), mockACP, mockAttributes
+	}
+
+	t.Run("clears both caches when ABAC is switched on", func(t *testing.T) {
+		ch, mockACP, mockAttributes := setup(t)
+		mockACP.On("ClearEtagCache").Once()
+		mockAttributes.On("ClearUserPropertyValuesEpochCache").Once()
+
+		ch.clearABACRenderCachesOnFlip(newConfig(false), newConfig(true))
+
+		mockACP.AssertExpectations(t)
+		mockAttributes.AssertExpectations(t)
+	})
+
+	t.Run("clears both caches when ABAC is switched off", func(t *testing.T) {
+		ch, mockACP, mockAttributes := setup(t)
+		mockACP.On("ClearEtagCache").Once()
+		mockAttributes.On("ClearUserPropertyValuesEpochCache").Once()
+
+		ch.clearABACRenderCachesOnFlip(newConfig(true), newConfig(false))
+
+		mockACP.AssertExpectations(t)
+		mockAttributes.AssertExpectations(t)
+	})
+
+	t.Run("does nothing for an unrelated config change", func(t *testing.T) {
+		ch, mockACP, mockAttributes := setup(t)
+
+		prev := newConfig(true)
+		next := newConfig(true)
+		next.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065")
+
+		ch.clearABACRenderCachesOnFlip(prev, next)
+
+		mockACP.AssertNotCalled(t, "ClearEtagCache")
+		mockAttributes.AssertNotCalled(t, "ClearUserPropertyValuesEpochCache")
 	})
 }
