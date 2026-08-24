@@ -90,8 +90,6 @@ describe('components/threading/global_threads', () => {
             rhs: {
                 ...baseState.views.rhs,
                 rhsState,
-
-                // Only a plugin RHS has a pluggable in context.
                 pluggableId: rhsState === RHSStates.PLUGIN ? rhsComponentId : '',
             },
         },
@@ -109,7 +107,6 @@ describe('components/threading/global_threads', () => {
         );
         store = rendered.store;
 
-        // Let the initial thread loading settle before asserting.
         await runPostRenderAct();
 
         return rendered;

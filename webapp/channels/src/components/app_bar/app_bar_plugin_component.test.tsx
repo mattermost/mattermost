@@ -33,7 +33,6 @@ describe('components/app_bar/app_bar_plugin_component', () => {
         title: 'Test Plugin',
     }];
 
-    // State while viewing a channel.
     const inChannelState = {
         entities: {
             channels: {
@@ -57,7 +56,7 @@ describe('components/app_bar/app_bar_plugin_component', () => {
         },
     };
 
-    // The Threads and Drafts views clear the current channel, so nothing is in context there.
+    // The Threads and Drafts views clear the current channel.
     const noChannelState = mergeObjects(inChannelState, {
         entities: {
             channels: {
@@ -79,7 +78,6 @@ describe('components/app_bar/app_bar_plugin_component', () => {
 
     let store: Store;
 
-    // Mirrors what plugins do in their action: toggle their own registered RHS component.
     const channelHeaderButton: ChannelHeaderButtonAction = {
         id: 'the_channel_header_button_id',
         pluginId,
@@ -130,8 +128,6 @@ describe('components/app_bar/app_bar_plugin_component', () => {
             await userEvent.click(screen.getByRole('button'));
 
             expectRhsToBeOpen();
-
-            // registerChannelHeaderButtonAction documents that the channel and member are passed along.
             expect(channelHeaderButton.action).toHaveBeenCalledWith(channel, channelMember);
         });
 
@@ -141,8 +137,6 @@ describe('components/app_bar/app_bar_plugin_component', () => {
             await userEvent.click(screen.getByRole('button'));
 
             expectRhsToBeOpen();
-
-            // Plugins must tolerate being invoked without a channel from views such as Threads.
             expect(channelHeaderButton.action).toHaveBeenCalledWith(undefined, undefined);
         });
 
@@ -183,7 +177,7 @@ describe('components/app_bar/app_bar_plugin_component', () => {
             expectRhsToBeOpen();
             expect(screen.getByRole('button').closest('.app-bar__icon')).toHaveClass('app-bar__icon--active');
 
-            // The registry wires this action to a toggler which takes no channel context.
+            // An action with an rhsComponentId is called without any channel context.
             expect(appBarActionWithRhs.action).toHaveBeenCalledWith();
         });
 

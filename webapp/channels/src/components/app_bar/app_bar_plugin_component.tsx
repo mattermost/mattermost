@@ -113,8 +113,6 @@ const AppBarPluginComponent = ({
                         return;
                     }
 
-                    // Views such as Threads and Drafts have no channel in context, but the
-                    // App Bar is still shown there, so the action must be invoked regardless.
                     component.action?.(channel, channelMember);
                 }}
             >
