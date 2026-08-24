@@ -137,6 +137,10 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Set before the permission levels are resolved.
+	field.CreatedBy = c.AppContext.Session().UserId
+	field.UpdatedBy = c.AppContext.Session().UserId
+
 	// Default permission levels: whoever administers the field's scope may
 	// configure them, everyone else has all three pinned to the object type's
 	// default.
@@ -167,8 +171,6 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	field.CreatedBy = c.AppContext.Session().UserId
-	field.UpdatedBy = c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)
 
 	createdField, appErr := c.App.CreatePropertyField(rctx, field, false, connectionID)

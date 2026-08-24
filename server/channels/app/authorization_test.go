@@ -2869,6 +2869,20 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 				}
 				assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(plainMember), postField, post.Id))
 				assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(outsider), postField, post.Id))
+
+				// Administering a DM/GM confers authority over that channel and
+				// nothing else. Value permissions dispatch on the value's own
+				// target regardless of how the field is scoped (see
+				// hasPropertyFieldValuePermissionLevel), so the guarantee that
+				// matters is that a participant's reach stops at their own
+				// conversation.
+				stranger1, stranger2 := th.CreateUser(t), th.CreateUser(t)
+				otherDM, appErr := th.App.GetOrCreateDirectChannel(th.Context, stranger1.Id, stranger2.Id)
+				require.Nil(t, appErr)
+				otherPost := th.CreatePost(t, otherDM)
+
+				assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(plainMember), channelField, otherDM.Id))
+				assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(plainMember), postField, otherPost.Id))
 			})
 		})
 	}

@@ -484,6 +484,7 @@ func TestCreatePropertyField(t *testing.T) {
 			_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
 			require.Error(t, err)
 			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_field.create.creator_cannot_edit.app_error")
 		})
 
 		t.Run("sysadmin and none are allowed on the values and options slots", func(t *testing.T) {
@@ -525,6 +526,7 @@ func TestCreatePropertyField(t *testing.T) {
 			_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
 			require.Error(t, err)
 			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_field.create.creator_cannot_edit.app_error")
 		})
 
 		t.Run("sysadmin submitting permission_field none is refused the same way", func(t *testing.T) {
@@ -537,6 +539,7 @@ func TestCreatePropertyField(t *testing.T) {
 			_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
 			require.Error(t, err)
 			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_field.create.creator_cannot_edit.app_error")
 		})
 	})
 
@@ -628,6 +631,7 @@ func TestCreatePropertyField(t *testing.T) {
 			_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
 			require.Error(t, err)
 			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_field.create.creator_cannot_edit.app_error")
 		})
 	})
 
