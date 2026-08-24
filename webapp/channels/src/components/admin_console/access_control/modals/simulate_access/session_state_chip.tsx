@@ -14,6 +14,7 @@ const sessionStateClass: Record<AggregateDecisionState, string> = {
     allowed: 'SimulateAccessModal__rowChip--allow',
     denied: 'SimulateAccessModal__rowChip--deny',
     mixed: 'SimulateAccessModal__rowChip--mixed',
+    diverged: 'SimulateAccessModal__rowChip--diverged',
 };
 
 type Props = {
@@ -72,6 +73,13 @@ export function sessionStateLabel(state: AggregateDecisionState): JSX.Element {
             <FormattedMessage
                 id='admin.access_control.simulate_access.chip.stacked.denied'
                 defaultMessage='Denied'
+            />
+        );
+    case 'diverged':
+        return (
+            <FormattedMessage
+                id='admin.access_control.simulate_access.chip.stacked.diverged'
+                defaultMessage="Doesn't match enforcement"
             />
         );
     case 'mixed':

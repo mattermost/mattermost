@@ -161,4 +161,62 @@ describe('aggregateDecisions', () => {
             false,
         )).toBe('not-applicable');
     });
+
+    describe('divergence between simulation and live enforcement', () => {
+        const diverged = {
+            decision: true,
+            blame: [{source: POLICY_SIMULATION_BLAME_SOURCES.DIVERGENCE, outcome: 'deny' as const}],
+        };
+
+        test('a single diverged action poisons an otherwise-allowed row', () => {
+            expect(aggregateDecisions(
+                ['a', 'b'],
+                {a: diverged, b: {decision: true}},
+                false,
+            )).toBe('diverged');
+        });
+
+        test('a single diverged action poisons an otherwise-denied row', () => {
+            expect(aggregateDecisions(
+                ['a', 'b'],
+                {a: diverged, b: {decision: false}},
+                false,
+            )).toBe('diverged');
+        });
+
+        test('divergence wins over mixed', () => {
+            expect(aggregateDecisions(
+                ['a', 'b', 'c'],
+                {a: diverged, b: {decision: true}, c: {decision: false}},
+                false,
+            )).toBe('diverged');
+        });
+
+        test('divergence wins over not-applicable', () => {
+            expect(aggregateDecisions(
+                ['a', 'b'],
+                {
+                    a: diverged,
+                    b: {decision: true, blame: [{source: POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY}]},
+                },
+                false,
+            )).toBe('diverged');
+        });
+
+        test('a still-loading row stays pending so the chip does not flicker', () => {
+            expect(aggregateDecisions(
+                ['a', 'b'],
+                {a: diverged},
+                false,
+            )).toBe('pending');
+        });
+
+        test('a diverged allow is counted regardless of the recorded live outcome', () => {
+            expect(aggregateDecisions(
+                ['a'],
+                {a: {decision: false, blame: [{source: POLICY_SIMULATION_BLAME_SOURCES.DIVERGENCE, outcome: 'allow'}]}},
+                false,
+            )).toBe('diverged');
+        });
+    });
 });

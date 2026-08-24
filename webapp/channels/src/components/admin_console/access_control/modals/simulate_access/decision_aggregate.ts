@@ -19,6 +19,12 @@ import {POLICY_SIMULATION_BLAME_SOURCES} from '@mattermost/types/access_control'
  *                       row, so a single chip would be misleading; the
  *                       picker prompts the author to drill into the
  *                       per-permission breakdown modal.
+ *   - 'diverged'      — at least one decision disagreed with the live PDP
+ *                       when the server replayed it. Wins over every other
+ *                       verdict: the row's simulated result doesn't describe
+ *                       production, so rolling it up as allowed/denied/mixed
+ *                       would present an untrustworthy answer as a confident
+ *                       one.
  */
 /**
  * Stable string keys for the rolled-up aggregate state. Re-export the
@@ -31,6 +37,7 @@ export const AGGREGATE_DECISION_STATE = Object.freeze({
     ALLOWED: 'allowed',
     DENIED: 'denied',
     MIXED: 'mixed',
+    DIVERGED: 'diverged',
 } as const);
 
 export type AggregateDecisionState =
@@ -67,11 +74,16 @@ export function aggregateDecisions(
     let denies = 0;
     let inapplicable = 0;
     let missing = 0;
+    let diverged = 0;
 
     for (const action of actions) {
         const dec = decisions[action];
         if (!dec) {
             missing++;
+            continue;
+        }
+        if (dec.blame?.some((b) => b.source === POLICY_SIMULATION_BLAME_SOURCES.DIVERGENCE)) {
+            diverged++;
             continue;
         }
         if (!dec.decision) {
@@ -94,6 +106,13 @@ export function aggregateDecisions(
 
     if (missing > 0) {
         return AGGREGATE_DECISION_STATE.PENDING;
+    }
+
+    // A single untrustworthy verdict poisons the whole rollup — surfacing
+    // "Allowed" next to an action production would deny is exactly the
+    // false confidence the reconciliation exists to catch.
+    if (diverged > 0) {
+        return AGGREGATE_DECISION_STATE.DIVERGED;
     }
     if (inapplicable === actions.length) {
         return AGGREGATE_DECISION_STATE.NOT_APPLICABLE;

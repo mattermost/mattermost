@@ -17,6 +17,7 @@ const stackedStateModifier: Record<AggregateDecisionState, string> = {
     allowed: 'SimulateAccessModal__rowChip--allow',
     denied: 'SimulateAccessModal__rowChip--deny',
     mixed: 'SimulateAccessModal__rowChip--mixed',
+    diverged: 'SimulateAccessModal__rowChip--diverged',
 };
 
 const stackedStateTestId: Record<AggregateDecisionState, string> = {
@@ -25,6 +26,7 @@ const stackedStateTestId: Record<AggregateDecisionState, string> = {
     allowed: 'simulate-access-row-chip-stacked-allow',
     denied: 'simulate-access-row-chip-stacked-deny',
     mixed: 'simulate-access-row-chip-stacked-mixed',
+    diverged: 'simulate-access-row-chip-stacked-diverged',
 };
 
 // Match each aggregate state to the same filled-circle glyph the
@@ -40,6 +42,7 @@ const stackedStateIcon: Record<AggregateDecisionState, React.ComponentType<IconP
     allowed: ChipIcon.Allow,
     denied: ChipIcon.Deny,
     mixed: ChipIcon.Mixed,
+    diverged: ChipIcon.Diverged,
 };
 
 type Props = {

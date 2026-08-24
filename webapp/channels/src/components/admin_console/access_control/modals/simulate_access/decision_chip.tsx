@@ -4,7 +4,7 @@
 import React from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
-import {CheckCircleIcon, CloseCircleIcon, MinusCircleIcon, MinusCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon, CheckCircleIcon, CloseCircleIcon, MinusCircleIcon, MinusCircleOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PolicySimulationActionDecision, PolicySimulationBlame} from '@mattermost/types/access_control';
 import {POLICY_SIMULATION_BLAME_SOURCES} from '@mattermost/types/access_control';
 
@@ -54,6 +54,24 @@ const blameSourceMessages = defineMessages({
     [POLICY_SIMULATION_BLAME_SOURCES.SIBLING_SAVED]: {
         id: 'admin.access_control.simulate_access.blame.sibling_saved',
         defaultMessage: 'another rule',
+    },
+    [POLICY_SIMULATION_BLAME_SOURCES.DIVERGENCE]: {
+        id: 'admin.access_control.simulate_access.blame.divergence',
+        defaultMessage: "doesn't match enforcement",
+    },
+});
+
+// Tooltip copy for a diverged chip. The label alone tells the author the
+// preview can't be trusted; the tooltip tells them which way enforcement
+// would actually rule so they have somewhere to start.
+const divergenceMessages = defineMessages({
+    liveAllow: {
+        id: 'admin.access_control.simulate_access.divergence.live_allow',
+        defaultMessage: 'Simulation and enforcement disagree for this user. Enforcement would allow access.',
+    },
+    liveDeny: {
+        id: 'admin.access_control.simulate_access.divergence.live_deny',
+        defaultMessage: 'Simulation and enforcement disagree for this user. Enforcement would deny access.',
     },
 });
 
@@ -107,6 +125,30 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
                     id='admin.access_control.simulate_access.chip.pending'
                     defaultMessage='Evaluating…'
                 />
+            </span>
+        );
+    }
+
+    // The server replayed this decision through the live PDP and the two
+    // disagreed. Checked before every other branch, and for allows as well as
+    // denies: the simulated verdict doesn't describe what production will do,
+    // so rendering it as a confident green or red chip is worse than useless.
+    // The tooltip names the verdict enforcement would actually produce.
+    const divergence = decision.blame?.find((b) => b.source === POLICY_SIMULATION_BLAME_SOURCES.DIVERGENCE);
+    if (divergence) {
+        return (
+            <span
+                className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--diverged'
+                data-testid='simulate-access-row-chip-diverged'
+                title={formatMessage(
+                    divergence.outcome === 'allow' ? divergenceMessages.liveAllow : divergenceMessages.liveDeny,
+                )}
+            >
+                <AlertOutlineIcon
+                    size={ICON_SIZE}
+                    className='SimulateAccessModal__rowChipIcon'
+                />
+                <FormattedMessage {...blameSourceMessages[POLICY_SIMULATION_BLAME_SOURCES.DIVERGENCE]}/>
             </span>
         );
     }
@@ -304,7 +346,7 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
 // glyph mapping (e.g. the multi-action StackedDecisionChip). Keeps
 // the icon-state mapping in one place — single source of truth for
 // "what does an allow look like in the picker".
-export const ChipIcon = {Allow: CheckCircleIcon, Deny: CloseCircleIcon, Mixed: MinusCircleIcon, NotApplicable: MinusCircleOutlineIcon};
+export const ChipIcon = {Allow: CheckCircleIcon, Deny: CloseCircleIcon, Mixed: MinusCircleIcon, NotApplicable: MinusCircleOutlineIcon, Diverged: AlertOutlineIcon};
 
 // Blame sources that originate at (or below) the editing scope and are
 // safe to expose detail about in the chip tooltip. Upper-scoped sources
