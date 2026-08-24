@@ -618,7 +618,7 @@ func (u *User) SetDefaultNotifications() {
 // returns only the non-empty segments. It does not enforce any size limits.
 func parseMentionKeys(raw string) []string {
 	var keys []string
-	for _, k := range strings.Split(raw, ",") {
+	for k := range strings.SplitSeq(raw, ",") {
 		if t := strings.ToLower(strings.TrimSpace(k)); t != "" {
 			keys = append(keys, t)
 		}
