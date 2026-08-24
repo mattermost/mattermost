@@ -604,12 +604,15 @@ func (a *App) HasPermissionToManagePropertyFieldOptions(rctx request.CTX, userID
 
 // SessionHasPermissionToAdministerPropertyFieldScope reports whether the session
 // administers the scope the field is attached to: manage_system for system
-// targets, manage_team for team targets, manage_channel_roles for channel
-// targets.
+// targets, manage_team for team targets, and channel-property admin for channel
+// targets — see hasChannelPropertyAdmin, which resolves DMs and group channels
+// to non-guest membership.
 //
 // This is the same resolution as PermissionLevelAdmin, and delegates to it
 // rather than restating the cascade, so "who may configure a field's permission
 // levels" and "who the admin level grants" cannot drift apart.
+//
+// Returns false for a nil or protected field.
 func (a *App) SessionHasPermissionToAdministerPropertyFieldScope(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
 	if field == nil || field.Protected {
 		return false
@@ -654,7 +657,7 @@ func (a *App) hasChannelPropertyAdmin(rctx request.CTX, userID, channelID string
 // hasPropertyFieldPermissionLevel checks if the user has the specified permission level for the field.
 // "admin" resolves against the field's target: manage_system on system targets,
 // manage_team on team targets, and channel-property admin on channel targets —
-// manage_channel_roles, or membership on a DM/GM, see hasChannelPropertyAdmin.
+// manage_channel_roles, or non-guest membership on a DM/GM, see hasChannelPropertyAdmin.
 // That is the permission the corresponding built-in admin role grants. Note this
 // is a stricter check than hasTargetAccess (which uses manage_*_channel_properties
 // for channel writes): hasTargetAccess is the outer "may write anything here"
@@ -703,7 +706,7 @@ func (a *App) hasPropertyFieldValuePermissionLevel(rctx request.CTX, userID stri
 // hasPropertyFieldValueAdmin reports whether the user administers the
 // value's target. For channel/post-object fields, this is channel-property
 // admin on the value's channel (or the post's channel) — manage_channel_roles,
-// or membership on a DM/GM, see hasChannelPropertyAdmin.
+// or non-guest membership on a DM/GM, see hasChannelPropertyAdmin.
 // For user/system/template fields the value's target has no admin concept,
 // so the check defers to the field's TargetType (sysadmin / team admin /
 // channel admin) via the field-level dispatch.
