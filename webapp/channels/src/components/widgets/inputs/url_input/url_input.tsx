@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getShortenedURL} from 'utils/url';
@@ -130,16 +131,19 @@ function UrlInput({
                     />
                 )}
                 {!readOnly && (
-                    <button
+                    <Button
                         className={classNames('url-input-button', {disabled: hasError})}
                         disabled={hasError}
+                        emphasis='quaternary'
+                        size='xs'
+                        type='button'
                         onClick={handleOnButtonClick}
                         onKeyDown={handlePropagateKeyDown}
                     >
                         <span className='url-input-button-label'>
                             {editing ? formatMessage({id: 'url_input.buttonLabel.done', defaultMessage: 'Done'}) : formatMessage({id: 'url_input.buttonLabel.edit', defaultMessage: 'Edit'})}
                         </span>
-                    </button>
+                    </Button>
                 )}
             </div>
             {helpText && (

@@ -41,13 +41,27 @@
             }
         }
 
-        .url-input-button {
+        .url-input-button.btn {
             @include mixins.link;
 
+            height: auto;
+            min-height: 0;
             padding: 0;
             border: none;
             background: var(--center-channel-bg);
             box-shadow: none;
+            gap: 0;
+
+            &:hover,
+            &:active,
+            &:focus {
+                background: var(--center-channel-bg);
+                color: var(--link-color);
+            }
+
+            &:disabled {
+                background: var(--center-channel-bg);
+            }
 
             .url-input-button-label {
                 line-height: 9px;
