@@ -13,10 +13,10 @@ Review and manage the following [experimental](/administration-guide/manage/feat
 
 <Tip>
 
-System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, one `LoginButtonColor` value is under `EmailSettings`.
+System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, the `EmailBatchingBufferSize` value is under `EmailSettings`.
 
-- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.EmailSettings.LoginButtonColor'`
-- When working with the `config.json` file manually, look for an object such as `EmailSettings`, then within that object, find the key `LoginButtonColor`.
+- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.EmailSettings.EmailBatchingBufferSize'`
+- When working with the `config.json` file manually, look for an object such as `EmailSettings`, then within that object, find the key `EmailBatchingBufferSize`.
 
 </Tip>
 
@@ -56,50 +56,6 @@ Adds a configurable timeout for requests made to return link metadata. If the me
 </tbody>
 </table>
 
-### Email login button color
-
-Specify the color of the email login button for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### Email login button border color
-
-Specify the color of the email login button border for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonBorderColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### Email login button text color
-
-Specify the color of the email login button text for white labeling purposes. Use a hex code with a \#-sign before the code. This setting only applies to the mobile app.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"LoginButtonTextColor": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
 
 ### Enable account deactivation
 
@@ -134,33 +90,6 @@ Specify the color of the email login button text for white labeling purposes. Us
 </tr>
 </tbody>
 </table>
-
-### Enable channel viewed websocket messages
-
-This setting determines whether `channel_viewed WebSocket` events are sent, which synchronize unread notifications across clients and devices.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"EnableChannelViewedMessages": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-<Note>
-
-Disabling this experimental configuration setting in larger deployments may improve server performance in the following areas:
-
-- Reduced Database Load: When channel_viewed events are disabled, the server no longer needs to log these events in the database. This reduces the number of write and update operations, which can be substantial in a busy server with many users frequently switching channels.
-- Decreased Network Traffic: Disabling these events means there are fewer messages sent between the server and clients. This reduction in network traffic can lower latency and improve the overall responsiveness of the server, especially for users with slower connections.
-- Lower Server CPU Usage: Processing channel_viewed events requires CPU resources to handle database transactions and network communication. Without these events, the server's CPU can be utilized more efficiently for other tasks, improving the overall performance.
-- Improved User Experience: With reduced server load and network traffic, users may experience faster loading times and a more fluid interaction with the application.
-- However, disabling this configuration setting affects some functionality, such as accurate tracking of read and unread messages in channels. It’s important to balance performance improvements with the needs of your organization and users.
-
-</Note>
 
 ### Enable default channel leave/join system messages
 
@@ -229,129 +158,6 @@ Available on [Enterprise Advanced](https://mattermost.com/pricing/) from Matterm
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>"ExperimentalSettings.EnableWatermark": false</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### Enable theme selection
-
-**True**: Enables the **Display \> Theme** tab in **Settings** so users can select their theme.
-
-**False**: Users cannot select a different theme. The **Display \> Theme** tab is hidden in **Settings**.
-
-<table style={{width: '95%'}}>
-<colgroup>
-<col style={{width: '95%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"EnableThemeSelection": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### Allow custom themes
-
-**True**: Enables the **Display \> Theme \> Custom Theme** section in **Settings**.
-
-**False**: Users cannot use a custom theme. The **Display \> Theme \> Custom Theme** section is hidden in **Settings**.
-
-<table style={{width: '92%'}}>
-<colgroup>
-<col style={{width: '92%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"AllowCustomThemes": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### Default theme
-
-Set a default theme that applies to all new users on the system.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"DefaultTheme": "default"</code> with options <code>"default"</code>, <code>"organization"</code>, <code>"mattermostDark"</code>, and <code>"windows10"</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### Enable tutorial
-
-**True**: Users are prompted with a tutorial when they open Mattermost for the first time after account creation.
-
-**False**: The tutorial is disabled. Users are placed in Town Square when they open Mattermost for the first time after account creation.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"ServiceSettings.EnableTutorial": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### Enable onboarding flow
-
-**True**: New Mattermost users are shown key tasks to complete as part of initial onboarding.
-
-**False**: User onboarding tasks are disabled. Users are placed in Town Square when they open Mattermost for the first time after account creation.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"ServiceSettings.EnableOnboardingFlow": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### Enable user typing messages
-
-This setting determines whether "user is typing..." messages are displayed below the message box when using Mattermost in a web browser or the desktop app.
-
-<table style={{width: '98%'}}>
-<colgroup>
-<col style={{width: '98%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"EnableUserTypingMessages": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-<Note>
-
-Disabling this experimental configuration setting in larger deployments may improve server performance in the following areas:
-
-- Reduced Server Load: Typing events generate additional websocket traffic. Disabling them can reduce the amount of data that needs to be handled by the server, improving the overall response time and decreasing server load.
-- Lower Network Traffic: When typing events are enabled, every keystroke generates a network event. This can lead to a significant amount of network traffic, particularly in busy channels. Disabling these events reduces the amount of information transmitted over the network.
-- Client Performance: On the client side, processing typing events requires resources. By not having to handle these events, the client can be more responsive and use less memory and CPU.
-
-</Note>
-
-### User typing timeout
-
-This setting defines how frequently "user is typing..." messages are updated, measured in milliseconds.
-
-<table style={{width: '99%'}}>
-<colgroup>
-<col style={{width: '99%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"TimeBetweenUserTypingUpdatesMilliseconds": 5000</code> with numerical input.</td>
 </tr>
 </tbody>
 </table>
@@ -593,23 +399,6 @@ Each configuration value below includes a JSON path to access the value programm
 - When working with the `config.json` file manually, look for the key `ServiceSettings`, then within that object, find the key `SiteURL`.
 
 </Tip>
-
-### Allowed themes
-
-This setting isn't available in the System Console and can only be set in `config.json`.
-
-Select the themes that can be chosen by users when `EnableThemeSelection` is set to `true`.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"AllowedThemes": []</code> with string array input consisting of the options <code>"default"</code>, <code>"organization"</code>, <code>"mattermostDark"</code>, and <code>"windows10"</code>, such as <code>["mattermostDark", "windows10"]</code>.</td>
-</tr>
-</tbody>
-</table>
 
 ### File Location
 

@@ -34,12 +34,19 @@ describe('AdminConsoleIndex.generateIndex', () => {
         expect(idx.search('nginx')).toEqual([
             'environment/rate_limiting',
         ]);
+        expect(idx.search('channel_viewed')).toEqual([
+            'environment/web_server',
+        ]);
         expect(idx.search('characters')).toEqual([
             'site_config/customization',
             'authentication/password',
         ]);
         expect(idx.search('batching')).toEqual([
             'environment/notifications',
+        ]);
+        expect(idx.search('typing')).toEqual([
+            'experimental/features',
+            'site_config/posts',
         ]);
         expect(idx.search('caracteres')).toEqual([]);
         expect(idx.search('notexistingword')).toEqual([]);
