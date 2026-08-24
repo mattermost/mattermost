@@ -65,6 +65,11 @@ func doGet(t *testing.T, client *http.Client, rawURL string, contextTimeout time
 }
 
 func TestMakeClientTimeout(t *testing.T) {
+	config := &model.Config{}
+	config.SetDefaults()
+	assert.Equal(t, RequestTimeout, MakeHTTPService(&testConfigService{config: config}).MakeClient(false).Timeout,
+		"the production constructor applies the package default")
+
 	service := newTestHTTPService(RequestTimeout)
 
 	assert.Equal(t, RequestTimeout, service.MakeClient(false).Timeout)
@@ -89,7 +94,7 @@ func TestMakeClientWithTimeoutOutlivesDefaultTimeout(t *testing.T) {
 
 	t.Run("the default request timeout caps a longer context deadline", func(t *testing.T) {
 		_, err := doGet(t, service.MakeClient(false), server.URL, 100*defaultTimeout)
-		require.Error(t, err)
+		require.ErrorIs(t, err, context.DeadlineExceeded)
 	})
 
 	t.Run("a client built without a timeout runs to the context deadline", func(t *testing.T) {

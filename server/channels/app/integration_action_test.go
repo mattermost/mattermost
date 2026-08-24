@@ -1745,6 +1745,27 @@ func TestDoActionRequest(t *testing.T) {
 		require.NotNil(t, err)
 		assert.Nil(t, resp)
 	})
+
+	t.Run("should bound a request that arrives without a deadline", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			select {
+			case <-time.After(30 * time.Second):
+			case <-r.Context().Done():
+			}
+		}))
+		defer ts.Close()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(1))
+		})
+
+		start := time.Now()
+		requestBody := []byte(`{"test": "data"}`)
+		resp, err := th.App.DoActionRequest(th.Context, ts.URL, requestBody)
+		require.NotNil(t, err)
+		assert.Nil(t, resp)
+		assert.Less(t, time.Since(start), 10*time.Second, "the configured timeout should bound a request with no deadline")
+	})
 }
 
 func TestGetPostActionClient(t *testing.T) {
@@ -1850,10 +1871,15 @@ func TestGetPostActionClient(t *testing.T) {
 	// httpservice.RequestTimeout. Without a deadline to inherit it falls back to the configured
 	// timeout rather than leaving the request unbounded.
 	t.Run("client timeout", func(t *testing.T) {
+		const configuredTimeout = 60 * time.Second
+
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
-			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(60))
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(configuredTimeout / time.Second))
 		})
+
+		deadlineCtx, cancel := context.WithTimeout(context.Background(), configuredTimeout)
+		defer cancel()
 
 		for _, rawURL := range []string{
 			"http://localhost:8065/plugins/myplugin/action", // trusted plugin route
@@ -1865,13 +1891,11 @@ func TestGetPostActionClient(t *testing.T) {
 			req, err := http.NewRequest("POST", rawURL, nil)
 			require.NoError(t, err)
 
-			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-			client := th.App.getPostActionClient(th.Context.WithContext(ctx), inURL, req)
-			cancel()
+			client := th.App.getPostActionClient(th.Context.WithContext(deadlineCtx), inURL, req)
 			assert.Zero(t, client.Timeout, "url: %s", rawURL)
 
 			client = th.App.getPostActionClient(th.Context, inURL, req)
-			assert.Equal(t, 60*time.Second, client.Timeout, "url: %s", rawURL)
+			assert.Equal(t, configuredTimeout, client.Timeout, "url: %s", rawURL)
 		}
 	})
 }

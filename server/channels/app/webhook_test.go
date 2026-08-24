@@ -1547,6 +1547,8 @@ func TestOutgoingWebhookRequestDeadline(t *testing.T) {
 	resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
+	require.NotNil(t, resp.Text)
+	assert.Equal(t, "Hello, World!", *resp.Text)
 
 	require.True(t, recorder.hasDeadline, "the request should carry the configured deadline")
 	assert.Greater(t, time.Until(recorder.deadline), httpservice.RequestTimeout,
