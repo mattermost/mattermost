@@ -43,9 +43,7 @@ func (s *Server) initPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
 	s.platform.AddConfigListener(func(before, after *model.Config) {
 		if (before.ImageProxySettings.Enable != after.ImageProxySettings.Enable) ||
-			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) ||
-			(before.ImageProxySettings.RemoteImageProxyURL != after.ImageProxySettings.RemoteImageProxyURL) ||
-			(before.ImageProxySettings.RemoteImageProxyOptions != after.ImageProxySettings.RemoteImageProxyOptions) {
+			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) {
 			if err := platform.PurgeLinkCache(); err != nil {
 				mlog.Warn("Failed to remove cached links when the proxy settings changed", mlog.Err(err))
 			}
@@ -182,7 +180,7 @@ func (a *App) OverrideIconURLIfEmoji(rctx request.CTX, post *model.Post) {
 	if emojiURL, err := a.GetEmojiStaticURL(rctx, emojiName); err == nil {
 		post.AddProp(model.PostPropsOverrideIconURL, emojiURL)
 	} else {
-		rctx.Logger().Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
+		rctx.Logger().Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emoji_name", emojiName), mlog.Err(err))
 	}
 }
 
@@ -635,7 +633,7 @@ func (a *App) getImagesForPost(rctx request.CTX, post *model.Post, isNewPost boo
 			if !ok {
 				rctx.Logger().Warn("Could not read the image data: the data could not be casted to OpenGraph",
 					mlog.String("post_id", post.Id),
-					mlog.String("data type", fmt.Sprintf("%t", embed.Data)),
+					mlog.String("data_type", fmt.Sprintf("%t", embed.Data)),
 				)
 				continue
 			}

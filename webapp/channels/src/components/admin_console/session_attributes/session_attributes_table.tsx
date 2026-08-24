@@ -8,6 +8,7 @@ import {FormattedMessage, defineMessages} from 'react-intl';
 
 import {CheckboxMarkedCircleOutlineIcon, ChevronDownCircleOutlineIcon, MenuVariantIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import PlatformIcons from './platform_icons';
 import SessionAttributesDotMenu from './session_attributes_dot_menu';
@@ -78,15 +79,19 @@ export default function SessionAttributesTable({data, onStageChange, disabled = 
                     <span className='SessionAttributes__name-cell'>
                         <span className='SessionAttributes__name-text'>{getValue()}</span>
                         {isServerSourced(row.original.name) && (
-                            <span
-                                className='SessionAttributes__server-badge'
-                                data-testid='session-attribute-server-label'
+                            <WithTooltip
+                                title={messages.serverLabelTooltip}
                             >
-                                <FormattedMessage
-                                    id='admin.session_attributes.table.server_label'
-                                    defaultMessage='Server'
-                                />
-                            </span>
+                                <span
+                                    className='SessionAttributes__server-badge'
+                                    data-testid='session-attribute-server-label'
+                                >
+                                    <FormattedMessage
+                                        id='admin.session_attributes.table.server_label'
+                                        defaultMessage='Server'
+                                    />
+                                </span>
+                            </WithTooltip>
                         )}
                     </span>
                 ),
@@ -154,7 +159,7 @@ export default function SessionAttributesTable({data, onStageChange, disabled = 
                         className='SessionAttributes__duration'
                         data-testid='session-attribute-ttl'
                     >
-                        {formatDuration(getSessionAttrs(row.original).ttl_seconds)}
+                        {isServerSourced(row.original.name) ? '—' : formatDuration(getSessionAttrs(row.original).ttl_seconds)}
                     </span>
                 ),
                 enableHiding: false,
@@ -176,7 +181,7 @@ export default function SessionAttributesTable({data, onStageChange, disabled = 
                         className='SessionAttributes__duration'
                         data-testid='session-attribute-grace'
                     >
-                        {formatDuration(getSessionAttrs(row.original).grace_period_seconds)}
+                        {isServerSourced(row.original.name) ? '—' : formatDuration(getSessionAttrs(row.original).grace_period_seconds)}
                     </span>
                 ),
                 enableHiding: false,
@@ -256,4 +261,11 @@ const typeLabels = defineMessages({
     String: {id: 'admin.session_attributes.type.string', defaultMessage: 'String'},
     Boolean: {id: 'admin.session_attributes.type.boolean', defaultMessage: 'Boolean'},
     Enum: {id: 'admin.session_attributes.type.enum', defaultMessage: 'Enum'},
+});
+
+const messages = defineMessages({
+    serverLabelTooltip: {
+        id: 'admin.session_attributes.table.server_label.tooltip',
+        defaultMessage: 'This attribute is captured by the server for every request a user makes. It is not delivered by the client.',
+    },
 });

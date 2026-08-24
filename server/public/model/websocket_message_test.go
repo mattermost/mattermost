@@ -179,8 +179,11 @@ func TestWebsocketBroadcastCopy(t *testing.T) {
 		ContainsSanitizedData: true,
 		ContainsSensitiveData: true,
 		RecordPostDelivery:    &PostDeliveryMarker{PostId: "ddd", ChannelId: "bbb", UserId: "eee"},
+		RequiredPermissions:   []string{PermissionReadDataRetentionJob.Id},
 	}
-	require.Equal(t, w, w.copy())
+	wCopy := w.copy()
+	require.Equal(t, w, wCopy)
+	require.NotSame(t, &w.RequiredPermissions[0], &wCopy.RequiredPermissions[0])
 }
 
 func TestWebSocketEventWithoutRecordPostDelivery(t *testing.T) {
@@ -276,19 +279,21 @@ func TestWebSocketEventDeepCopy(t *testing.T) {
 		TeamId:                "ccc",
 		ContainsSanitizedData: true,
 		ContainsSensitiveData: true,
+		RequiredPermissions:   []string{PermissionReadDataRetentionJob.Id},
 		OmitConnectionId:      "ddd",
 	}
 
 	ev := NewWebSocketEvent("test", "team", "channel", "user", omitUsers, "ddd")
 
 	ev.Add("post", &Post{})
-	ev.SetBroadcast(broadcast)
+	ev = ev.SetBroadcast(broadcast)
 	ev = ev.PrecomputeJSON()
 
 	evCopy := ev.DeepCopy()
 	require.Equal(t, ev, evCopy)
 	AssertNotSameMap(t, ev.data, evCopy.data)
 	require.NotSame(t, ev.broadcast, evCopy.broadcast)
+	require.NotSame(t, &ev.broadcast.RequiredPermissions[0], &evCopy.broadcast.RequiredPermissions[0])
 	require.NotSame(t, ev.precomputedJSON, evCopy.precomputedJSON)
 
 	ev.Add("post", &Post{
