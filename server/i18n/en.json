@@ -8625,6 +8625,10 @@
     "translation": "Invalid input provided."
   },
   {
+    "id": "app.property_field.linked_option_read_ceiling.app_error",
+    "translation": "A linked field's option.read cannot be more permissive than its template's."
+  },
+  {
     "id": "app.property_field.managed_admin.permission.app_error",
     "translation": "You do not have permission to mark this property field as admin-managed."
   },

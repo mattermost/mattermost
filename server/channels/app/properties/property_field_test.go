@@ -983,6 +983,165 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Contains(t, err.Error(), "target_type")
 	})
 
+	t.Run("create linked field rejects option.read more permissive than template's", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "CeilingSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "CeilingLoose-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}},
+			},
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "option.read")
+	})
+
+	t.Run("create linked field allows option.read equal to or tighter than template's", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "CeilingEqualSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		equal, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "CeilingEqual-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, equal)
+
+		tighter, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "CeilingTighter-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelAdmin}},
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, tighter)
+	})
+
+	t.Run("create linked field rejects any option.read against a template with no permissions object", func(t *testing.T) {
+		source := createSourceField(t, "NoPermsSource-"+model.NewId())
+
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "NoPermsLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "option.read")
+
+		// A linked field that sets no permissions at all has nothing to compare and
+		// is unaffected by the template carrying none either.
+		unset, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "NoPermsUnset-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, unset)
+	})
+
+	t.Run("create linked field ceiling is confined to option.read", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "ConfinedSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelMember}},
+			},
+		})
+
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "ConfinedLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Option: model.ReadWrite{Read: model.PermissionLevelMember},
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone},
+				},
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked)
+	})
+
+	t.Run("create unlinked field with option.read everyone is unaffected", func(t *testing.T) {
+		unlinked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "Unlinked-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Option: model.ReadWrite{Read: model.PermissionLevelEveryone}},
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, unlinked)
+	})
+
 	t.Run("update linked field blocks type change", func(t *testing.T) {
 		source := createSourceField(t, "TypeBlockSource-"+model.NewId())
 

@@ -134,6 +134,10 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 			)
 		}
 
+		if err := validateLinkedFieldOptionReadCeiling("CreatePropertyField", field, source); err != nil {
+			return nil, err
+		}
+
 		// Copy type and options from source
 		field.Type = source.Type
 		if field.Attrs == nil {
@@ -174,6 +178,42 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 	}
 
 	return ps.createFieldWithOptionLinks(field, suppliedOptions)
+}
+
+// validateLinkedFieldOptionReadCeiling refuses a linked field whose option.read
+// tier is more permissive than its template's. option.read on a linked field
+// governs the same list the template owns, so without this check a linked
+// field could be created against a sensitive template with option.read thrown
+// wide open, exposing a scheme the template itself never admitted that widely.
+// A linked field may match its template's tier or tighten it, never loosen it.
+//
+// A template carrying no permissions object at all has a ceiling of none:
+// there is nothing to compare against, and refusing is the recoverable
+// direction — the operator sets the template's option.read first, rather than
+// the linked field being created against a comparison that was never made.
+func validateLinkedFieldOptionReadCeiling(caller string, field, template *model.PropertyField) error {
+	if field.Permissions == nil {
+		return nil
+	}
+
+	fieldTier := field.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead)
+
+	templateTier := model.PermissionLevelNone
+	if template.Permissions != nil {
+		templateTier = template.Permissions.Restrictions.TierFor(model.PropertyActionOptionRead)
+	}
+
+	if fieldTier.AtMostAsPermissiveAs(templateTier) {
+		return nil
+	}
+
+	return model.NewAppError(
+		caller,
+		"app.property_field.linked_option_read_ceiling.app_error",
+		map[string]any{"FieldTier": string(fieldTier), "TemplateID": template.ID, "TemplateTier": string(templateTier)},
+		fmt.Sprintf("option.read tier %q exceeds template %q's tier %q", fieldTier, template.ID, templateTier),
+		http.StatusBadRequest,
+	)
 }
 
 // createFieldWithOptionLinks writes a new field once the hierarchy its option
