@@ -2830,14 +2830,16 @@ func (a *App) populateEditHistoryFileMetadata(rctx request.CTX, editHistoryPosts
 		}
 
 		// Historical versions must redact the same attachments the live post does.
-		if len(fileInfos) > 0 && !a.hasFileAttachmentAccess(rctx, rctx.Session().UserId, post.ChannelId) {
+		// Gate on FileIds rather than the fetched infos so a version referencing a
+		// missing FileInfo row still has its ids cleared for a denied user.
+		if len(post.FileIds) > 0 && !a.hasFileAttachmentAccess(rctx, rctx.Session().UserId, post.ChannelId) {
 			rctx.Logger().Debug("Stripping file attachments from edit history due to ABAC permission policy",
 				mlog.String("user_id", rctx.Session().UserId),
 				mlog.String("post_id", post.Id),
 				mlog.String("channel_id", post.ChannelId),
-				mlog.Int("files_removed", len(fileInfos)),
+				mlog.Int("files_removed", len(post.FileIds)),
 			)
-			post.Metadata.RedactedFileCount = len(fileInfos)
+			post.Metadata.RedactedFileCount = len(post.FileIds)
 			post.Metadata.Files = nil
 			post.FileIds = model.StringArray{}
 			continue

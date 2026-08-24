@@ -23,9 +23,9 @@ import (
 // The policy is switched to deny only after the upload, which is the case Access Control
 // Policies exist to cover: revoking access to content the user could previously reach.
 
-// denyFileDownloads enables ABAC and installs an access control service that denies
-// download_file_attachment while allowing every other action.
-func denyFileDownloads(t *testing.T, th *TestHelper) *eMocks.AccessControlServiceInterface {
+// setFileDownloadPolicy enables ABAC and installs an access control service that returns
+// the given decision for download_file_attachment while allowing every other action.
+func setFileDownloadPolicy(t *testing.T, th *TestHelper, allowed bool) *eMocks.AccessControlServiceInterface {
 	t.Helper()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -39,7 +39,7 @@ func denyFileDownloads(t *testing.T, th *TestHelper) *eMocks.AccessControlServic
 
 	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 		return req.Action == model.AccessControlPolicyActionDownloadFileAttachment
-	})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+	})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
 	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 		Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Maybe()
 
@@ -124,7 +124,7 @@ func TestGetDraftsDoesNotLeakFilesDeniedByPolicy(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	denyFileDownloads(t, th)
+	setFileDownloadPolicy(t, th, false)
 	requireDirectFileEndpointsDenied(t, th, info.Id)
 
 	drafts, _, err := th.Client.GetDrafts(context.Background(), th.BasicUser.Id, th.BasicTeam.Id)
@@ -157,7 +157,7 @@ func TestGetScheduledPostsDoesNotLeakFilesDeniedByPolicy(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, created)
 
-	denyFileDownloads(t, th)
+	setFileDownloadPolicy(t, th, false)
 	requireDirectFileEndpointsDenied(t, th, info.Id)
 
 	scheduledPosts, _, err := th.Client.GetUserScheduledPosts(context.Background(), th.BasicTeam.Id, false)
@@ -189,7 +189,7 @@ func TestGetEditHistoryForPostDoesNotLeakFilesDeniedByPolicy(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	denyFileDownloads(t, th)
+	setFileDownloadPolicy(t, th, false)
 	requireDirectFileEndpointsDenied(t, th, info.Id)
 
 	// The live post is redacted for this user. The historical versions of the same post are
@@ -204,6 +204,91 @@ func TestGetEditHistoryForPostDoesNotLeakFilesDeniedByPolicy(t *testing.T) {
 	require.NotEmpty(t, history)
 
 	for _, version := range history {
+		require.NotNil(t, version.Metadata)
 		requireNoLeakedFileMetadata(t, version.Metadata, "GET /posts/{post_id}/edit_history")
+		require.Empty(t, version.FileIds, "the historical version should not expose file ids either")
+		require.Equal(t, 1, version.Metadata.RedactedFileCount)
+	}
+}
+
+// TestFileMetadataServedWhenPolicyAllows is the other half of the contract. With a policy
+// active but allowing the action, all three endpoints must still serve the metadata and the
+// thumbnail, so enforcement cannot be satisfied by redacting unconditionally.
+func TestFileMetadataServedWhenPolicyAllows(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
+
+	requireFileServed := func(metadata *model.PostMetadata, fileID, where string) {
+		t.Helper()
+
+		require.NotNil(t, metadata, where)
+		require.Len(t, metadata.Files, 1, "%s: should serve the file metadata", where)
+		require.Equal(t, fileID, metadata.Files[0].Id, where)
+		require.NotNil(t, metadata.Files[0].MiniPreview, "%s: should serve the thumbnail", where)
+		require.Zero(t, metadata.RedactedFileCount, where)
+	}
+
+	draftFile := uploadTestImage(t, th, th.BasicChannel.Id, "draft-allowed.png")
+	_, _, err := th.Client.UpsertDraft(context.Background(), &model.Draft{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "draft with an allowed attachment",
+		FileIds:   model.StringArray{draftFile.Id},
+	})
+	require.NoError(t, err)
+
+	scheduledFile := uploadTestImage(t, th, th.BasicChannel.Id, "scheduled-allowed.png")
+	_, _, err = th.Client.CreateScheduledPost(context.Background(), &model.ScheduledPost{
+		Draft: model.Draft{
+			CreateAt:  model.GetMillis(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "scheduled post with an allowed attachment",
+			FileIds:   model.StringArray{scheduledFile.Id},
+		},
+		ScheduledAt: model.GetMillis() + 100000,
+	})
+	require.NoError(t, err)
+
+	postFile := uploadTestImage(t, th, th.BasicChannel.Id, "edit-history-allowed.png")
+	post, _, err := th.Client.CreatePost(context.Background(), &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "post with an allowed attachment",
+		FileIds:   model.StringArray{postFile.Id},
+	})
+	require.NoError(t, err)
+
+	_, _, err = th.Client.PatchPost(context.Background(), post.Id, &model.PostPatch{
+		Message: new("post with an allowed attachment, edited"),
+	})
+	require.NoError(t, err)
+
+	setFileDownloadPolicy(t, th, true)
+
+	_, _, err = th.Client.GetFileThumbnail(context.Background(), postFile.Id)
+	require.NoError(t, err, "precondition: the policy should allow download_file_attachment")
+
+	drafts, _, err := th.Client.GetDrafts(context.Background(), th.BasicUser.Id, th.BasicTeam.Id)
+	require.NoError(t, err)
+	require.Len(t, drafts, 1)
+	requireFileServed(drafts[0].Metadata, draftFile.Id, "GET /users/me/teams/{team_id}/drafts")
+
+	scheduledPosts, _, err := th.Client.GetUserScheduledPosts(context.Background(), th.BasicTeam.Id, false)
+	require.NoError(t, err)
+	require.Len(t, scheduledPosts[th.BasicTeam.Id], 1)
+	requireFileServed(scheduledPosts[th.BasicTeam.Id][0].Metadata, scheduledFile.Id, "GET /posts/scheduled/team/{team_id}")
+
+	history, _, err := th.Client.GetEditHistoryForPost(context.Background(), post.Id)
+	require.NoError(t, err)
+	require.NotEmpty(t, history)
+
+	for _, version := range history {
+		requireFileServed(version.Metadata, postFile.Id, "GET /posts/{post_id}/edit_history")
+		require.Equal(t, model.StringArray{postFile.Id}, version.FileIds)
 	}
 }
