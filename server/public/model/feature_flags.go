@@ -133,9 +133,9 @@ type FeatureFlags struct {
 
 	// FEATURE_FLAG_REMOVAL: PropertyFieldGraph - Remove this when the feature is GA.
 	// Gates the "graph" property field type: when off, the app layer rejects
-	// creating a graph property field and converting an existing field to graph.
-	// It does not restrict a graph field that already exists — see
-	// App.graphPropertyFieldGate for what that means and why.
+	// creating a graph property field. Converting a field to or from graph is
+	// refused whatever this flag says — see App.graphPropertyFieldGate for what
+	// the flag does and does not restrict.
 	PropertyFieldGraph bool
 
 	TeamMembershipAccessControl bool
