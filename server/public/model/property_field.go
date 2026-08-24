@@ -511,25 +511,26 @@ func (pf *PropertyField) IsValid() error {
 			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions", "Reason": err.Error()}, "id="+pf.ID, http.StatusBadRequest)
 		}
 
-		// A linked field inherits its template's masking object whole, so letting it
-		// declare one of its own would let anyone who can create a linked field point
-		// it at a sensitive template and name themselves in that template's except
-		// list. Nothing legitimate is lost: withholding value.read already keeps the
-		// linked field's own readers out, and masking one field of an otherwise open
-		// scheme is done by masking the template instead.
-		if pf.LinkedFieldID != nil && *pf.LinkedFieldID != "" && pf.Permissions.Masking != nil {
-			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions.masking", "Reason": "a linked field cannot declare its own masking"}, "id="+pf.ID, http.StatusBadRequest)
-		}
+		// Both rules below apply only to a linked field, so share the one test for it.
+		if linked := pf.LinkedFieldID != nil && *pf.LinkedFieldID != ""; linked {
+			// A linked field inherits its template's masking object whole, so letting it
+			// declare one of its own would let anyone who can create a linked field point
+			// it at a sensitive template and name themselves in that template's except
+			// list. Nothing legitimate is lost: withholding value.read already keeps the
+			// linked field's own readers out, and masking one field of an otherwise open
+			// scheme is done by masking the template instead.
+			if pf.Permissions.Masking != nil {
+				return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions.masking", "Reason": "a linked field cannot declare its own masking"}, "id="+pf.ID, http.StatusBadRequest)
+			}
 
-		// option.read on a linked field is read access to the template's own scheme,
-		// not the linked field's own, so a grant is just a second way to say it: capping
-		// the ladder alone would leave this door open, and creating a linked field is
-		// cheap enough (it only has to match the template's target type, not its target
-		// ID) that anyone able to reach a sensitive template could grant themselves its
-		// option list. This costs the ability to grant option.read on one linked field
-		// without granting it on the template too; loosen it to "only identities the
-		// template already grants it to" if that's ever needed.
-		if pf.LinkedFieldID != nil && *pf.LinkedFieldID != "" {
+			// option.read on a linked field is read access to the template's own scheme,
+			// not the linked field's own, so a grant is just a second way to say it: capping
+			// the ladder alone would leave this door open, and creating a linked field is
+			// cheap enough (it only has to match the template's target type, not its target
+			// ID) that anyone able to reach a sensitive template could grant themselves its
+			// option list. This costs the ability to grant option.read on one linked field
+			// without granting it on the template too; loosen it to "only identities the
+			// template already grants it to" if that's ever needed.
 			for i, grant := range pf.Permissions.Grants {
 				if slices.Contains(grant.Allow, PropertyActionOptionRead) {
 					return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permissions.grants", "Reason": fmt.Sprintf("grant %d: a linked field cannot grant option.read", i)}, "id="+pf.ID, http.StatusBadRequest)

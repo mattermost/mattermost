@@ -8626,7 +8626,7 @@
   },
   {
     "id": "app.property_field.linked_option_read_ceiling.app_error",
-    "translation": "A linked field's option.read cannot be more permissive than its template's."
+    "translation": "A linked field's option.read tier ({{.FieldTier}}) cannot be more permissive than its template ({{.TemplateID}})'s tier ({{.TemplateTier}})."
   },
   {
     "id": "app.property_field.managed_admin.permission.app_error",
