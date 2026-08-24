@@ -4,13 +4,14 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"maps"
 	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/require"
 )
 
@@ -346,7 +347,7 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 
 	// Read back via the store directly to avoid any read-access filtering
 	// the AC layer might apply for a non-source-plugin caller.
-	got, err := th.Store.PropertyField().Get(context.Background(), groupID, created.ID)
+	got, err := th.Store.PropertyField().Get(th.Context, groupID, created.ID)
 	require.NoError(t, err)
 	require.Equal(t, "uas_employee_id", got.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
 		"display_name must be backfilled to the field name even on protected/source_only fields")
@@ -480,13 +481,13 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Restore the pre-conversion shape a server upgrade would find: free
-		// text with no options. Written with a nil request context so
+		// text with no options. Written with a system-caller context so
 		// SessionAttributesHook treats it as a system caller, the same way the
 		// seed itself does.
 		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
 		field.Type = model.PropertyFieldTypeText
 		delete(field.Attrs, model.PropertyFieldAttributeOptions)
-		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{field})
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
 		require.NoError(t, err)
 
 		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
@@ -538,7 +539,7 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 
 		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
 		delete(field.Attrs, model.NativeAttributeAttrOperators)
-		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{field})
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
 		require.NoError(t, err)
 
 		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
@@ -753,4 +754,60 @@ func stripStatusColors(t *testing.T, attrs model.StringInterface) model.StringIn
 	maps.Copy(out, attrs)
 	out["options"] = options
 	return out
+}
+
+// lockToMasterSpyStore records when doAppMigrations locks and unlocks the store
+// relative to the store access the migrations themselves make.
+type lockToMasterSpyStore struct {
+	store.Store
+
+	mu     sync.Mutex
+	events []string
+}
+
+func (s *lockToMasterSpyStore) record(event string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.events = append(s.events, event)
+}
+
+func (s *lockToMasterSpyStore) snapshot() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append([]string(nil), s.events...)
+}
+
+func (s *lockToMasterSpyStore) LockToMaster() {
+	s.record("lock")
+	s.Store.LockToMaster()
+}
+
+func (s *lockToMasterSpyStore) UnlockFromMaster() {
+	s.record("unlock")
+	s.Store.UnlockFromMaster()
+}
+
+func (s *lockToMasterSpyStore) System() store.SystemStore {
+	s.record("system")
+	return s.Store.System()
+}
+
+// Guard, not a reproduction: storetest configures no replicas, so GetReplica already
+// returns master and the race cannot be staged here. It pins that doAppMigrations
+// brackets its work in the master lock; it does not exercise the routing of individual
+// reads, as propertyService holds store handles captured before the spy wraps them.
+func TestDoAppMigrationsRunsLockedToMaster(t *testing.T) {
+	th := Setup(t)
+
+	spy := &lockToMasterSpyStore{Store: th.Server.Store()}
+	th.Server.SetStore(spy)
+	t.Cleanup(func() { th.Server.SetStore(spy.Store) })
+
+	th.Server.doAppMigrations()
+
+	events := spy.snapshot()
+	require.GreaterOrEqual(t, len(events), 3, "expected migrations to access the store between lock and unlock")
+	require.Equal(t, "lock", events[0], "migrations must lock to master before touching the store")
+	require.Equal(t, "unlock", events[len(events)-1], "migrations must release the lock once finished")
+	require.Contains(t, events[1:len(events)-1], "system", "migration store access must happen while locked to master")
 }

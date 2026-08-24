@@ -365,51 +365,53 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
     };
 
     private channelPermissionsChanged = (name: string, channelRole: ChannelModerationRoles) => {
-        const currentValueIndex = this.state.channelPermissions.findIndex((element) => element.name === name);
-        const currentValue = this.state.channelPermissions[currentValueIndex].roles[channelRole]!.value;
-        const newValue = !currentValue;
-        let channelPermissions = [...this.state.channelPermissions];
+        this.setState((state) => {
+            const currentValueIndex = state.channelPermissions.findIndex((element) => element.name === name);
+            const currentValue = state.channelPermissions[currentValueIndex].roles[channelRole]!.value;
+            const newValue = !currentValue;
+            let channelPermissions = [...state.channelPermissions];
 
-        if (name === Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_POST) {
-            const originalObj = this.props.channelPermissions.find((element) => element.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.USE_CHANNEL_MENTIONS)?.roles![channelRole];
-            channelPermissions = channelPermissions.map((permission) => {
-                if (permission.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.USE_CHANNEL_MENTIONS && !newValue) {
-                    return {
-                        name: permission.name,
-                        roles: {
-                            ...permission.roles,
-                            [channelRole]: {
-                                value: false,
-                                enabled: false,
+            if (name === Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_POST) {
+                const originalObj = this.props.channelPermissions.find((element) => element.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.USE_CHANNEL_MENTIONS)?.roles![channelRole];
+                channelPermissions = channelPermissions.map((permission) => {
+                    if (permission.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.USE_CHANNEL_MENTIONS && !newValue) {
+                        return {
+                            name: permission.name,
+                            roles: {
+                                ...permission.roles,
+                                [channelRole]: {
+                                    value: false,
+                                    enabled: false,
+                                },
                             },
-                        },
-                    };
-                } else if (permission.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.USE_CHANNEL_MENTIONS) {
-                    return {
-                        name: permission.name,
-                        roles: {
-                            ...permission.roles,
-                            [channelRole]: {
-                                value: originalObj?.value,
-                                enabled: originalObj?.enabled,
+                        };
+                    } else if (permission.name === Permissions.CHANNEL_MODERATED_PERMISSIONS.USE_CHANNEL_MENTIONS) {
+                        return {
+                            name: permission.name,
+                            roles: {
+                                ...permission.roles,
+                                [channelRole]: {
+                                    value: originalObj?.value,
+                                    enabled: originalObj?.enabled,
+                                },
                             },
-                        },
-                    };
-                }
-                return permission;
-            });
-        }
-        channelPermissions[currentValueIndex] = {
-            ...channelPermissions[currentValueIndex],
-            roles: {
-                ...channelPermissions[currentValueIndex].roles,
-                [channelRole]: {
-                    ...channelPermissions[currentValueIndex].roles[channelRole],
-                    value: newValue,
+                        };
+                    }
+                    return permission;
+                });
+            }
+            channelPermissions[currentValueIndex] = {
+                ...channelPermissions[currentValueIndex],
+                roles: {
+                    ...channelPermissions[currentValueIndex].roles,
+                    [channelRole]: {
+                        ...channelPermissions[currentValueIndex].roles[channelRole],
+                        value: newValue,
+                    },
                 },
-            },
-        };
-        this.setState({channelPermissions, saveNeeded: true});
+            };
+            return {channelPermissions, saveNeeded: true};
+        });
         this.props.actions.setNavigationBlocked(true);
     };
 
