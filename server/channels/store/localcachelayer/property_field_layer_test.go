@@ -84,8 +84,10 @@ func TestPropertyFieldStoreCache(t *testing.T) {
 		require.NoError(t, err)
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 1)
 
-		// A hierarchy change moves the field's UpdateAt without changing anything
-		// else about the row, so a cached group would keep reporting the old one.
+		// Any call to MutateOptions moves the field's UpdateAt without changing
+		// anything else about the row, so a cached group would keep reporting the
+		// old one -- true even here, where nothing is actually being added,
+		// removed or upserted.
 		err = cachedStore.PropertyField().MutateOptions(groupID, fakeField.ID, 0, nil, nil, nil)
 		require.NoError(t, err)
 
