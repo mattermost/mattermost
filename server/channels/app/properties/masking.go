@@ -248,10 +248,8 @@ func (h *AccessControlHook) exempt(except []model.Identity, callerID string) boo
 // further, never grant a read the gate denied.
 func (h *AccessControlHook) maskValue(rctx request.CTX, c maskingContext, field *model.PropertyField, fm fieldMasking, value *model.PropertyValue, callerID string) *model.PropertyValue {
 	switch field.Type {
-	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeMultiselect, model.PropertyFieldTypeRank:
+	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeMultiselect, model.PropertyFieldTypeRank, model.PropertyFieldTypeGraph:
 		return h.maskOptionValue(rctx, c, field, fm, value, callerID)
-	case model.PropertyFieldTypeGraph:
-		return h.maskGraphValue(rctx, c, field, fm, value, callerID)
 	default:
 		return h.maskScalarValue(rctx, c, field, fm, value, callerID)
 	}
@@ -277,22 +275,15 @@ func logMaskingFailure(rctx request.CTX, field *model.PropertyField, value *mode
 	)
 }
 
-// maskOptionValue answers select, multiselect and rank alike: the value the
-// caller may see is the intersection of the options it names with the
-// options the caller holds on the holdings field, an exact-option-membership
-// rule with no ordering to it. select and rank hold at most one option, so
-// their intersection has at most one element; multiselect's may have several.
-// A caller holding nothing, or an intersection of none, sees nothing.
+// maskOptionValue answers select, multiselect, rank and graph alike: the
+// value the caller may see is the value's own option IDs narrowed to the
+// ones visibleOptionIDs reports true for -- exact membership for select,
+// multiselect and rank, coveredBy for graph, the same rule the two
+// option-list filters (maskFieldOptions, filterMaskedOptionPage) already use.
+// select and rank hold at most one option, so the narrowed set has at most
+// one element; multiselect's and graph's may have several. A caller holding
+// nothing, or a narrowed set of none, sees nothing.
 func (h *AccessControlHook) maskOptionValue(rctx request.CTX, c maskingContext, field *model.PropertyField, fm fieldMasking, value *model.PropertyValue, callerID string) *model.PropertyValue {
-	callerOptionIDs, err := c.callerOptionIDsForHoldings(h, field.GroupID, fm.holdingsFieldID, callerID, field.Type)
-	if err != nil {
-		logMaskingFailure(rctx, field, value, err)
-		return nil
-	}
-	if len(callerOptionIDs) == 0 {
-		return nil
-	}
-
 	targetOptionIDs, err := h.extractOptionIDsFromValue(field.Type, value.Value)
 	if err != nil {
 		logMaskingFailure(rctx, field, value, err)
@@ -302,24 +293,32 @@ func (h *AccessControlHook) maskOptionValue(rctx request.CTX, c maskingContext, 
 		return nil
 	}
 
-	intersection := make([]string, 0, len(targetOptionIDs))
-	for id := range targetOptionIDs {
-		if _, ok := callerOptionIDs[id]; ok {
+	candidateIDs := slices.Collect(maps.Keys(targetOptionIDs))
+	visible, err := c.visibleOptionIDs(h, rctx, field, fm, candidateIDs, callerID)
+	if err != nil {
+		logMaskingFailure(rctx, field, value, err)
+		return nil
+	}
+
+	intersection := make([]string, 0, len(candidateIDs))
+	for _, id := range candidateIDs {
+		if visible[id] {
 			intersection = append(intersection, id)
 		}
 	}
 	if len(intersection) == 0 {
 		return nil
 	}
-	// Sorted so a multiselect value's options come back in the same order on
-	// every read -- they are built by ranging over a map, which promises none.
+	// Sorted so a multiselect or graph value's options come back in the same
+	// order on every read -- they are built by ranging over a map, which
+	// promises none.
 	slices.Sort(intersection)
 
 	// select and rank are select-shaped: exactly one option, so intersection
-	// has at most one element and it is marshaled bare; multiselect's may
-	// have several and is marshaled as the list.
+	// has at most one element and it is marshaled bare; multiselect's and
+	// graph's may have several and are marshaled as the list.
 	toMarshal := any(intersection[0])
-	if field.Type == model.PropertyFieldTypeMultiselect {
+	if field.Type == model.PropertyFieldTypeMultiselect || field.Type == model.PropertyFieldTypeGraph {
 		toMarshal = intersection
 	}
 
@@ -333,73 +332,11 @@ func (h *AccessControlHook) maskOptionValue(rctx request.CTX, c maskingContext, 
 	return &filtered
 }
 
-// maskGraphValue answers a graph field's value with exact coverage: an option
-// the caller covers (holds it or an ancestor of it) stands as it is, and one
-// they do not is dropped outright, never replaced by the covered options
-// below it -- that replacement is the legacy shared_only path's clamp
-// (filterSharedOnlyGraphValue), and handing back a narrower option than the
-// one actually stored would tell a masked caller the object carries a marking
-// weaker than the one it does, which is telling them something false rather
-// than just less than the truth. Reads the caller's holdings from
-// fm.holdingsFieldID rather than always from field itself, since a linked
-// field's holdings can live on the template's mask_by_field_id. Any failure
-// to resolve coverage fails closed and is logged, never falls through to the
-// unfiltered value.
-func (h *AccessControlHook) maskGraphValue(rctx request.CTX, c maskingContext, field *model.PropertyField, fm fieldMasking, value *model.PropertyValue, callerID string) *model.PropertyValue {
-	callerOptionIDs, err := c.callerOptionIDsForHoldings(h, field.GroupID, fm.holdingsFieldID, callerID, field.Type)
-	if err != nil {
-		logMaskingFailure(rctx, field, value, err)
-		return nil
-	}
-	if len(callerOptionIDs) == 0 {
-		return nil
-	}
-
-	targetOptionIDs, err := h.extractOptionIDsFromValue(field.Type, value.Value)
-	if err != nil {
-		logMaskingFailure(rctx, field, value, err)
-		return nil
-	}
-	if len(targetOptionIDs) == 0 {
-		return nil
-	}
-
-	targetIDs := slices.Collect(maps.Keys(targetOptionIDs))
-	covered, err := h.propertyService.coveredBy(rctx, field, targetIDs, slices.Collect(maps.Keys(callerOptionIDs)))
-	if err != nil {
-		logMaskingFailure(rctx, field, value, err)
-		return nil
-	}
-
-	visible := make([]string, 0, len(targetIDs))
-	for _, id := range targetIDs {
-		if covered[id] {
-			visible = append(visible, id)
-		}
-	}
-	if len(visible) == 0 {
-		return nil
-	}
-	// Sorted for the same reason the option-value path is: two reads of an
-	// unchanged value must come back in the same order.
-	slices.Sort(visible)
-
-	jsonValue, err := json.Marshal(visible)
-	if err != nil {
-		logMaskingFailure(rctx, field, value, err)
-		return nil
-	}
-
-	filtered := *value
-	filtered.Value = jsonValue
-	return &filtered
-}
-
 // visibleOptionIDs answers, for a field already known to carry masking, which
 // of candidateOptionIDs callerID may see: a graph field asks coveredBy -- one
 // of the caller's own held options is at-or-above the candidate -- and every
 // other option-supporting type asks exact membership in what the caller
-// holds, the same holdings maskOptionValue and maskGraphValue check a value
+// holds, the same holdings maskOptionValue checks a value's own options
 // against. A caller holding nothing sees nothing, without asking coveredBy at
 // all.
 func (c maskingContext) visibleOptionIDs(h *AccessControlHook, rctx request.CTX, field *model.PropertyField, fm fieldMasking, candidateOptionIDs []string, callerID string) (map[string]bool, error) {
