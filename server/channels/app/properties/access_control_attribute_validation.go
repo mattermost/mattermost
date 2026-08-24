@@ -707,10 +707,13 @@ func (h *AccessControlAttributeValidationHook) validateValues(values []*model.Pr
 	// store; held here rather than checked immediately so every value against the
 	// same field can be checked with one store call instead of one each.
 	type namedOptions struct {
-		value     *model.PropertyValue
+		fieldID   string
 		optionIDs []string
 	}
 	var pending []namedOptions
+
+	neededByField := make(map[string][]string)
+	seenByField := make(map[string]map[string]struct{})
 
 	for _, value := range values {
 		field, ok := fieldMap[value.FieldID]
@@ -721,14 +724,23 @@ func (h *AccessControlAttributeValidationHook) validateValues(values []*model.Pr
 		if err != nil {
 			return fmt.Errorf("field %s: %s: %w", value.FieldID, err.Error(), ErrInvalidValue)
 		}
-		if len(optionIDs) > 0 {
-			pending = append(pending, namedOptions{value: value, optionIDs: optionIDs})
+		if len(optionIDs) == 0 {
+			continue
 		}
-	}
+		pending = append(pending, namedOptions{fieldID: value.FieldID, optionIDs: optionIDs})
 
-	neededByField := make(map[string][]string)
-	for _, p := range pending {
-		neededByField[p.value.FieldID] = append(neededByField[p.value.FieldID], p.optionIDs...)
+		seen, ok := seenByField[value.FieldID]
+		if !ok {
+			seen = make(map[string]struct{})
+			seenByField[value.FieldID] = seen
+		}
+		for _, id := range optionIDs {
+			if _, dup := seen[id]; dup {
+				continue
+			}
+			seen[id] = struct{}{}
+			neededByField[value.FieldID] = append(neededByField[value.FieldID], id)
+		}
 	}
 
 	existingByField := make(map[string][]string, len(neededByField))
@@ -741,8 +753,8 @@ func (h *AccessControlAttributeValidationHook) validateValues(values []*model.Pr
 	}
 
 	for _, p := range pending {
-		if err := optionsMissing(p.optionIDs, existingByField[p.value.FieldID]); err != nil {
-			return fmt.Errorf("field %s: %s: %w", p.value.FieldID, err.Error(), ErrInvalidValue)
+		if err := optionsMissing(p.optionIDs, existingByField[p.fieldID]); err != nil {
+			return fmt.Errorf("field %s: %s: %w", p.fieldID, err.Error(), ErrInvalidValue)
 		}
 	}
 

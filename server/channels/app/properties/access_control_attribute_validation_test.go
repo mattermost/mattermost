@@ -2124,6 +2124,43 @@ func TestAccessControlAttributeValidationHookBatchesOptionLookups(t *testing.T) 
 	mockFieldStore.AssertExpectations(t)
 }
 
+// TestAccessControlAttributeValidationHookDedupesOptionLookup pins that a batch
+// naming the same option on the same field more than once still looks it up
+// only once per ID: a duplicated ID list would eventually push a large batch's
+// store query past PostgreSQL's bind parameter limit.
+func TestAccessControlAttributeValidationHookDedupesOptionLookup(t *testing.T) {
+	groupID := model.NewId()
+
+	field := &model.PropertyField{ID: model.NewId(), GroupID: groupID, Type: model.PropertyFieldTypeSelect}
+	optionID := model.NewId()
+
+	mockFieldStore := &storemocks.PropertyFieldStore{}
+	mockFieldStore.On("GetMany", mock.Anything, groupID, mock.Anything).
+		Return([]*model.PropertyField{field}, nil)
+	mockFieldStore.On("GetExistingOptionIDs", field, []string{optionID}).
+		Return([]string{optionID}, nil).Once()
+
+	ps, err := New(ServiceConfig{
+		PropertyGroupStore: &storemocks.PropertyGroupStore{},
+		PropertyFieldStore: mockFieldStore,
+		PropertyValueStore: &storemocks.PropertyValueStore{},
+	})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(ps, nil, groupID)
+
+	values := []*model.PropertyValue{
+		{GroupID: groupID, FieldID: field.ID, Value: json.RawMessage(`"` + optionID + `"`)},
+		{GroupID: groupID, FieldID: field.ID, Value: json.RawMessage(`"` + optionID + `"`)},
+	}
+
+	require.NoError(t, hook.validateValues(values))
+
+	// The mocked call's exact one-element slice already fails the test if the
+	// duplicate reaches the store; .Once() confirms it was still called at all.
+	mockFieldStore.AssertExpectations(t)
+}
+
 // TestAccessControlAttributeValidationHookOptionLookupStoreFailure pins that a
 // GetExistingOptionIDs failure fails the whole batch with that store error, rather
 // than being read as an empty "existing" set that reports every pending option as
