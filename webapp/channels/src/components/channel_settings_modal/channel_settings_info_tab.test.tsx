@@ -875,15 +875,26 @@ describe('ChannelSettingsInfoTab', () => {
             expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
         });
 
-        it('treats a whitespace-only edit as no change', async () => {
-            renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+        it('restores the stored text and clears the panel when Reset is clicked', async () => {
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={paddedChannel}
+                    setAreThereUnsavedChanges={jest.fn()}
+                />,
+            );
 
             await act(async () => {
-                await userEvent.type(screen.getByTestId('channel_settings_header_textbox'), '   ');
+                const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+                await userEvent.clear(purposeInput);
+                await userEvent.type(purposeInput, 'A brand new purpose');
             });
             await new Promise((resolve) => setTimeout(resolve, 0));
 
-            expect(screen.getByTestId('channel_settings_header_textbox')).toHaveValue('Initial header   ');
+            await userEvent.click(screen.getByRole('button', {name: 'Reset'}));
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect(screen.getByTestId('channel_settings_purpose_textbox')).toHaveValue('  Small annoyances that add up  ');
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
         });
 
@@ -929,5 +940,17 @@ describe('ChannelSettingsInfoTab', () => {
             expect(setAreThereUnsavedChanges).toHaveBeenLastCalledWith(false);
             expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
         });
+    });
+
+    it('treats a whitespace-only edit as no change', async () => {
+        renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+        await act(async () => {
+            await userEvent.type(screen.getByTestId('channel_settings_header_textbox'), '   ');
+        });
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(screen.getByTestId('channel_settings_header_textbox')).toHaveValue('Initial header   ');
+        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
     });
 });

@@ -61,7 +61,8 @@ test(
 
         // # Create a channel whose stored header ends in a newline
         const channel = await adminClient.createPublicChannel(team.id, `Untidy ${pw.random.id()}`);
-        await adminClient.patchChannel(channel.id, {purpose: '  padded purpose  ', header: 'padded header\n'});
+        const paddedHeader = 'padded header\n';
+        await adminClient.patchChannel(channel.id, {purpose: '  padded purpose  ', header: paddedHeader});
         await adminClient.addToChannel(user.id, channel.id);
 
         const {channelsPage} = await pw.testBrowser.login(user);
@@ -89,8 +90,10 @@ test(
         const reopenedSettings = await channelsPage.openChannelSettings();
         const reopenedInfo = await reopenedSettings.openInfoTab();
 
-        // * Verify the saved purpose persisted and the reopened form is clean
+        // * Verify the saved purpose persisted, the untouched header was left exactly as stored, and the
+        // * reopened form is clean
         await expect(reopenedInfo.purposeInput).toHaveValue('A brand new purpose');
+        await expect(reopenedInfo.headerInput).toHaveValue(paddedHeader);
         await expect(reopenedInfo.saveChangesPanel).not.toBeVisible();
     },
 );
