@@ -22,6 +22,12 @@ type HTTPService interface {
 	// MakeClient returns an http client constructed with a RoundTripper as returned by MakeTransport.
 	MakeClient(trustURLs bool) *http.Client
 
+	// MakeClientWithTimeout returns a client like MakeClient, but with the given end-to-end
+	// request timeout instead of the default one. A zero timeout leaves the deadline entirely
+	// to each request's context, which callers whose timeout is configurable beyond
+	// RequestTimeout require to avoid capping it.
+	MakeClientWithTimeout(trustURLs bool, timeout time.Duration) *http.Client
+
 	// MakeTransport returns a RoundTripper that is suitable for making requests to external resources. The default
 	// implementation provides:
 	// - A shorter timeout for dial and TLS handshake (defined as constant "ConnectTimeout")
@@ -65,9 +71,13 @@ func MakeHTTPServicePlugin(configService plugin.API) HTTPService {
 }
 
 func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *http.Client {
+	return h.MakeClientWithTimeout(trustURLs, h.RequestTimeout)
+}
+
+func (h *HTTPServiceImpl) MakeClientWithTimeout(trustURLs bool, timeout time.Duration) *http.Client {
 	return &http.Client{
 		Transport: h.MakeTransport(trustURLs),
-		Timeout:   h.RequestTimeout,
+		Timeout:   timeout,
 	}
 }
 
