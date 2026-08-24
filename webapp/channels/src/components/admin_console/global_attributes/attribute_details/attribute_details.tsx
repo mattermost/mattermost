@@ -475,9 +475,19 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // just-added row's own toggle keeps focus on a real, newly-rendered
     // element instead. Looked up by data-testid (not id) since the row
     // doesn't otherwise need a stable element id.
+    //
+    // Create starts hydrated. Edit skips the first populated commit so
+    // loading all three resource types does not look like "just added the
+    // last type" and steal autoFocus from Display name.
     const prevAppliesToLengthRef = useRef(appliesTo.length);
+    const appliesToHydratedRef = useRef(!isEditMode);
     useEffect(() => {
         if (loading) {
+            prevAppliesToLengthRef.current = appliesTo.length;
+            return;
+        }
+        if (!appliesToHydratedRef.current) {
+            appliesToHydratedRef.current = true;
             prevAppliesToLengthRef.current = appliesTo.length;
             return;
         }
@@ -803,7 +813,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     }, [canSave, isEditMode, fieldId, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, finalizeSave, confirmRemoveAppliesTo]);
 
     const TypeIcon = getTypeIcon(fieldType);
-    const typeLockTooltip = hasExternalSource ? formatMessage(messages.typeFieldLockedAriaLabel) : formatMessage(messages.typeLockedAppliesToTooltip);
+    const typeLockTooltip = hasExternalSource ? formatMessage(messages.typeLockedExternalSourceTooltip) : formatMessage(messages.typeLockedAppliesToTooltip);
     let typeButtonAriaLabel = formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))});
     if (hasExternalSource) {
         typeButtonAriaLabel = formatMessage(messages.typeFieldLockedAriaLabel);
@@ -1201,6 +1211,10 @@ const messages = defineMessages({
     typeLockedAppliesToTooltip: {
         id: 'admin.global_attributes.attribute_details.type.locked_applies_to_tooltip',
         defaultMessage: 'Type cannot be changed while this attribute applies to a resource.',
+    },
+    typeLockedExternalSourceTooltip: {
+        id: 'admin.global_attributes.attribute_details.type.locked_external_source_tooltip',
+        defaultMessage: 'Type cannot be changed while this attribute is linked to an external source.',
     },
     optionsLabel: {id: 'admin.global_attributes.attribute_details.options.label', defaultMessage: 'Options'},
     optionsHelp: {

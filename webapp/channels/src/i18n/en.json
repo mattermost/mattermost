@@ -1500,6 +1500,7 @@
   "admin.global_attributes.attribute_details.type.field_locked_aria_label": "Type: Text. Locked while linked to an external source.",
   "admin.global_attributes.attribute_details.type.label": "Type",
   "admin.global_attributes.attribute_details.type.locked_applies_to_tooltip": "Type cannot be changed while this attribute applies to a resource.",
+  "admin.global_attributes.attribute_details.type.locked_external_source_tooltip": "Type cannot be changed while this attribute is linked to an external source.",
   "admin.global_attributes.attribute_details.type.menu_label": "Select type",
   "admin.global_attributes.attribute_details.unique_name.could_not_generate": "Couldn't generate a unique name from this display name. Click Edit to set one manually.",
   "admin.global_attributes.attribute_details.unique_name.done": "Done",

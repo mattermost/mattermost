@@ -754,6 +754,18 @@ describe('AttributeDetails', () => {
             expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
         });
 
+        it('shows a dedicated tooltip for the external-source type lock, not the accessible name', async () => {
+            renderComponent();
+            await linkViaMenu(/AD\/LDAP/, 'employeeID');
+
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName('Type: Text. Locked while linked to an external source.');
+
+            await userEvent.hover(screen.getByTestId('attributeTypeLockWrap'));
+            const tooltip = await screen.findByRole('tooltip', {}, {timeout: 1000});
+            expect(tooltip).toHaveTextContent('Type cannot be changed while this attribute is linked to an external source.');
+            expect(tooltip).not.toHaveTextContent('Type: Text.');
+        });
+
         it('re-saving a linked chip with the unchanged value is a no-op -- no extra dirty-marking dispatch', async () => {
             renderComponent();
 
@@ -1195,6 +1207,20 @@ describe('AttributeDetails', () => {
             expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
             expect(screen.getByTestId('saveSetting')).toBeDisabled();
             expect(mockSetNavigationBlocked).not.toHaveBeenCalled();
+        });
+
+        it('does not move focus to an Applies-to row when loading a field that already applies to every resource type', async () => {
+            mockLoadedField(makeTemplate(), [
+                makeLinked('user', 'user-field'),
+                makeLinked('channel', 'channel-field'),
+                makeLinked('post', 'post-field'),
+            ]);
+
+            renderEdit();
+            await waitForForm();
+
+            await waitFor(() => expect(screen.getByTestId('attributeDisplayNameInput')).toHaveFocus());
+            expect(screen.getByTestId('attributeAppliesToRow-post-toggle')).not.toHaveFocus();
         });
 
         it('does not re-slug Unique name when Display name changes', async () => {
