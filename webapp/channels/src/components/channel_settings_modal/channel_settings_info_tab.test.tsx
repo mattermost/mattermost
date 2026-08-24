@@ -817,30 +817,48 @@ describe('ChannelSettingsInfoTab', () => {
         });
 
         it('reports no unsaved changes when the channel has no purpose or header at all', () => {
-            const emptyChannel = TestHelper.getChannelMock({
+            const bareChannel = TestHelper.getChannelMock({
                 id: 'channel1',
                 team_id: 'team1',
                 display_name: 'Bare Channel',
                 name: 'bare-channel',
+                purpose: undefined as unknown as string,
+                header: undefined as unknown as string,
                 type: 'O',
             });
-            delete (emptyChannel as Partial<typeof emptyChannel>).purpose;
-            delete (emptyChannel as Partial<typeof emptyChannel>).header;
 
             const setAreThereUnsavedChanges = jest.fn();
             renderWithContext(
                 <ChannelSettingsInfoTab
-                    channel={emptyChannel}
+                    channel={bareChannel}
                     setAreThereUnsavedChanges={setAreThereUnsavedChanges}
                 />,
             );
 
             expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(false);
             expect(setAreThereUnsavedChanges).not.toHaveBeenCalledWith(true);
         });
 
-        it('does not show a channel name validation error when focus leaves the untouched name field', async () => {
+        it('reports no unsaved changes on a DM whose header ends in a newline', () => {
+            const paddedDmChannel = {...mockDirectMessageChannel, header: 'DM initial header\n'};
+
+            const setAreThereUnsavedChanges = jest.fn();
+            renderWithContext(
+                <ChannelSettingsInfoTab
+                    channel={paddedDmChannel}
+                    setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                />,
+            );
+
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+            expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(false);
+            expect(setAreThereUnsavedChanges).not.toHaveBeenCalledWith(true);
+        });
+
+        it('stays clean when focus leaves the untouched name field', async () => {
             renderWithContext(
                 <ChannelSettingsInfoTab
                     channel={paddedChannel}
@@ -854,6 +872,19 @@ describe('ChannelSettingsInfoTab', () => {
 
             expect(screen.queryByText('Channel names must have at least 1 character.')).not.toBeInTheDocument();
             expect(nameInput).toHaveValue('Padded Channel');
+            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+        });
+
+        it('treats a whitespace-only edit as no change', async () => {
+            renderWithContext(<ChannelSettingsInfoTab {...baseProps}/>);
+
+            await act(async () => {
+                await userEvent.type(screen.getByTestId('channel_settings_header_textbox'), '   ');
+            });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect(screen.getByTestId('channel_settings_header_textbox')).toHaveValue('Initial header   ');
+            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
         });
 
         it('still detects and saves a real edit made on top of untidy stored text', async () => {
@@ -861,7 +892,7 @@ describe('ChannelSettingsInfoTab', () => {
             patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
             const setAreThereUnsavedChanges = jest.fn();
-            renderWithContext(
+            const {rerender} = renderWithContext(
                 <ChannelSettingsInfoTab
                     channel={paddedChannel}
                     setAreThereUnsavedChanges={setAreThereUnsavedChanges}
@@ -876,15 +907,27 @@ describe('ChannelSettingsInfoTab', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
 
             expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
-            expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(true);
+            expect(setAreThereUnsavedChanges).toHaveBeenLastCalledWith(true);
 
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            await new Promise((resolve) => setTimeout(resolve, 0));
 
             // The untouched header keeps its stored whitespace rather than
             // being silently rewritten alongside the edited purpose.
             expect(patchChannel).toHaveBeenCalledWith('channel1', {
                 purpose: 'A brand new purpose',
             });
+
+            // Once the patched channel comes back through the store, the form
+            // settles clean instead of staying permanently dirty.
+            rerender(
+                <ChannelSettingsInfoTab
+                    channel={{...paddedChannel, purpose: 'A brand new purpose'}}
+                    setAreThereUnsavedChanges={setAreThereUnsavedChanges}
+                />,
+            );
+            expect(setAreThereUnsavedChanges).toHaveBeenLastCalledWith(false);
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
         });
     });
 });

@@ -84,7 +84,37 @@ describe('ChannelNameFormField - URL editor visibility', () => {
 describe('ChannelNameFormField - display name validation', () => {
     const emptyErrorMessage = 'Channel names must have at least 1 character.';
 
+    // Mirrors how every consumer wires the field: the parent owns the value and
+    // feeds it back in, so the input is genuinely controlled.
+    const ControlledField = (props: {onErrorStateChange?: (isError: boolean, errorMessage?: string) => void}) => {
+        const [value, setValue] = React.useState('Test Channel');
+        return (
+            <ChannelNameFormField
+                {...baseProps}
+                value={value}
+                isEditingExistingChannel={true}
+                currentUrl='test-channel'
+                onDisplayNameChange={setValue}
+                onErrorStateChange={props.onErrorStateChange}
+            />
+        );
+    };
+
     test('should not report an error when focus leaves an untouched pre-filled field', async () => {
+        const onErrorStateChange = jest.fn();
+        renderWithContext(<ControlledField onErrorStateChange={onErrorStateChange}/>, makeState('false'));
+
+        await userEvent.click(screen.getByRole('textbox', {name: 'Channel name'}));
+        await userEvent.tab();
+
+        expect(screen.queryByText(emptyErrorMessage)).not.toBeInTheDocument();
+        expect(onErrorStateChange).toHaveBeenCalledWith(false, '');
+    });
+
+    test('should validate the rendered value, not a keystroke the parent rejected', async () => {
+        // baseProps.onDisplayNameChange is a no-op, so the parent never accepts
+        // the cleared value and the input keeps rendering the original name. The
+        // error must describe what the user can see.
         const onErrorStateChange = jest.fn();
         renderWithContext(
             <ChannelNameFormField
@@ -96,28 +126,18 @@ describe('ChannelNameFormField - display name validation', () => {
             makeState('false'),
         );
 
-        await userEvent.click(screen.getByRole('textbox', {name: 'Channel name'}));
+        const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
+        await userEvent.clear(nameInput);
         await userEvent.tab();
 
+        expect(nameInput).toHaveValue('Test Channel');
         expect(screen.queryByText(emptyErrorMessage)).not.toBeInTheDocument();
         expect(onErrorStateChange).not.toHaveBeenCalledWith(true, expect.anything());
     });
 
     test('should report an error when focus leaves a field the user emptied', async () => {
-        const Wrapper = () => {
-            const [value, setValue] = React.useState('Test Channel');
-            return (
-                <ChannelNameFormField
-                    {...baseProps}
-                    value={value}
-                    isEditingExistingChannel={true}
-                    currentUrl='test-channel'
-                    onDisplayNameChange={setValue}
-                />
-            );
-        };
-
-        renderWithContext(<Wrapper/>, makeState('false'));
+        const onErrorStateChange = jest.fn();
+        renderWithContext(<ControlledField onErrorStateChange={onErrorStateChange}/>, makeState('false'));
 
         const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
         await userEvent.clear(nameInput);
@@ -125,23 +145,11 @@ describe('ChannelNameFormField - display name validation', () => {
 
         expect(nameInput).toHaveValue('');
         expect(screen.getByText(emptyErrorMessage)).toBeInTheDocument();
+        expect(onErrorStateChange).toHaveBeenCalledWith(true, emptyErrorMessage);
     });
 
     test('should clear the error once the user types a valid name again', async () => {
-        const Wrapper = () => {
-            const [value, setValue] = React.useState('Test Channel');
-            return (
-                <ChannelNameFormField
-                    {...baseProps}
-                    value={value}
-                    isEditingExistingChannel={true}
-                    currentUrl='test-channel'
-                    onDisplayNameChange={setValue}
-                />
-            );
-        };
-
-        renderWithContext(<Wrapper/>, makeState('false'));
+        renderWithContext(<ControlledField/>, makeState('false'));
 
         const nameInput = screen.getByRole('textbox', {name: 'Channel name'});
         await userEvent.clear(nameInput);
