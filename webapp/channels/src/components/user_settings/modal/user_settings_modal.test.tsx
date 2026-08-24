@@ -46,7 +46,9 @@ jest.mock('utils/url', () => ({
 }));
 
 jest.mock('utils/utils', () => ({
+    ...jest.requireActual('utils/utils'),
     getDisplayName: jest.fn(() => 'Test User'),
+    applyTheme: jest.fn(),
 }));
 
 describe('do first render to avoid other testing issues', () => {
@@ -375,7 +377,7 @@ describe('discard confirmation for theme changes', () => {
         );
 
         await userEvent.click(screen.getByRole('button', {name: /theme edit/i}));
-        await userEvent.click(screen.getByRole('button', {name: 'Onyx'}));
+        await userEvent.click(screen.getByRole('button', {name: /Onyx/}));
     }
 
     it('keeps Settings open and shows discard confirmation after an unsaved theme change', async () => {
@@ -394,7 +396,9 @@ describe('discard confirmation for theme changes', () => {
         await userEvent.click(screen.getByLabelText('Close'));
         await userEvent.click(screen.getByTestId('cancel-button'));
 
-        expect(screen.queryByText('You have unsaved changes, are you sure you want to discard them?')).not.toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.queryByText('You have unsaved changes, are you sure you want to discard them?')).not.toBeInTheDocument();
+        });
         expect(screen.getByRole('dialog', {name: 'Settings'})).toBeVisible();
         expect(baseProps.onExited).not.toHaveBeenCalled();
     });
@@ -420,7 +424,7 @@ describe('discard confirmation for theme changes', () => {
         );
 
         await userEvent.click(screen.getByRole('button', {name: /theme edit/i}));
-        await userEvent.click(screen.getByRole('button', {name: 'Denim'}));
+        await userEvent.click(screen.getByRole('button', {name: /Denim/}));
         await userEvent.click(screen.getByLabelText('Close'));
 
         expect(screen.queryByText('You have unsaved changes, are you sure you want to discard them?')).not.toBeInTheDocument();

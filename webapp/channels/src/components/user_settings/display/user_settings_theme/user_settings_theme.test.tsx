@@ -134,7 +134,7 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
                 />,
             );
 
-            await userEvent.click(screen.getByRole('button', {name: 'Denim'}));
+            await userEvent.click(screen.getByRole('button', {name: /Denim/}));
 
             expect(setRequireConfirm).toHaveBeenCalledWith(false);
         });
@@ -149,7 +149,7 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
                 />,
             );
 
-            await userEvent.click(screen.getByRole('button', {name: 'Onyx'}));
+            await userEvent.click(screen.getByRole('button', {name: /Onyx/}));
 
             expect(setRequireConfirm).toHaveBeenCalledWith(true);
         });
@@ -164,8 +164,8 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
                 />,
             );
 
-            await userEvent.click(screen.getByRole('button', {name: 'Onyx'}));
-            await userEvent.click(screen.getByRole('button', {name: 'Denim'}));
+            await userEvent.click(screen.getByRole('button', {name: /Onyx/}));
+            await userEvent.click(screen.getByRole('button', {name: /Denim/}));
 
             expect(setRequireConfirm).toHaveBeenLastCalledWith(false);
         });
