@@ -118,6 +118,11 @@ func getPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	auditRec := c.MakeAuditRecord(model.AuditEventGetPropertyFieldOptions, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
+	model.AddEventParameterToAuditRec(auditRec, "field_id", field.ID)
+
 	// A field's options are part of its definition, so seeing them is seeing the
 	// field: the same scope check the field listing runs, against this field's own
 	// scope rather than one from the query string.
@@ -147,11 +152,6 @@ func getPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Request)
 		c.Err = model.NewAppError("getPropertyFieldOptions", "api.property_field.options.invalid_cursor.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
-
-	auditRec := c.MakeAuditRecord(model.AuditEventGetPropertyFieldOptions, model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
-	model.AddEventParameterToAuditRec(auditRec, "field_id", field.ID)
 
 	options, appErr := c.App.GetPropertyFieldOptions(rctx, field, cursorCreateAt, cursorID, c.Params.PerPage)
 	if appErr != nil {
