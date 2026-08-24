@@ -618,11 +618,15 @@ func (a *App) SessionHasPermissionToAdministerPropertyFieldScope(rctx request.CT
 }
 
 // hasChannelPropertyAdmin reports whether the user administers a channel for
-// property purposes: manage_channel_roles normally, or membership on a DM/GM.
-// A DM/GM has no channel-admin tier and cannot acquire one — its member rows
-// are only ever SchemeUser/SchemeGuest, and with no TeamId there is no team
-// scheme to inherit from — so its participants are its administrators,
+// property purposes: manage_channel_roles normally, or non-guest membership on
+// a DM/GM. A DM/GM has no channel-admin tier and cannot acquire one — its
+// member rows are only ever SchemeUser/SchemeGuest, and with no TeamId there is
+// no team scheme to inherit from — so its participants are its administrators,
 // matching how header edits and channel bookmarks are gated there.
+//
+// Guests are excluded. Administering a field is a write capability — it gates
+// editing and deleting the field and managing its options. Guests keep read
+// access through the member level.
 func (a *App) hasChannelPropertyAdmin(rctx request.CTX, userID, channelID string) bool {
 	if hasPermission, _ := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionManageChannelRoles); hasPermission {
 		return true
@@ -636,8 +640,15 @@ func (a *App) hasChannelPropertyAdmin(rctx request.CTX, userID, channelID string
 		return false
 	}
 
-	_, isMember := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel)
-	return isMember
+	if _, isMember := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel); !isMember {
+		return false
+	}
+
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return false
+	}
+	return !user.IsGuest()
 }
 
 // hasPropertyFieldPermissionLevel checks if the user has the specified permission level for the field.

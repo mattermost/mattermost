@@ -2732,6 +2732,14 @@ func TestHasChannelPropertyAdmin(t *testing.T) {
 	dm := th.CreateDmChannel(t, plainMember)
 	gm := th.CreateGroupChannel(t, plainMember, th.CreateUser(t))
 
+	// A guest who really is a participant of both, so the denial below is the
+	// guest check firing rather than a missing membership.
+	guest := th.CreateGuest(t)
+	guestDM, appErr := th.App.GetOrCreateDirectChannel(th.Context, guest.Id, plainMember.Id)
+	require.Nil(t, appErr)
+	guestGM, appErr := th.App.CreateGroupChannel(th.Context, []string{guest.Id, plainMember.Id, th.BasicUser.Id}, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
 	testCases := []struct {
 		name      string
 		userID    string
@@ -2760,6 +2768,13 @@ func TestHasChannelPropertyAdmin(t *testing.T) {
 		{"read-only admin on a DM they are not in", readOnlyAdmin.Id, dm.Id, false},
 		{"read-only admin on a GM they are not in", readOnlyAdmin.Id, gm.Id, false},
 		{"team admin on a DM they are not in", teamAdmin.Id, dm.Id, false},
+
+		// Guests are participants but not administrators, matching the four
+		// channel-bookmark write handlers, which reject guests on DM/GM.
+		{"guest participant of a DM", guest.Id, guestDM.Id, false},
+		{"guest participant of a GM", guest.Id, guestGM.Id, false},
+		{"non-guest participant of the same DM", plainMember.Id, guestDM.Id, true},
+		{"non-guest participant of the same GM", plainMember.Id, guestGM.Id, true},
 
 		// Fail closed.
 		{"nonexistent channel", th.BasicUser.Id, model.NewId(), false},
@@ -2857,6 +2872,54 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 			})
 		})
 	}
+
+	// A guest participates but does not administer. The member level is
+	// unaffected, mirroring channel bookmarks: guests cannot create, update,
+	// reorder or delete them on a DM/GM, but they can still list them.
+	t.Run("guests participate but do not administer", func(t *testing.T) {
+		guest := th.CreateGuest(t)
+		guestDM, appErr := th.App.GetOrCreateDirectChannel(th.Context, guest.Id, plainMember.Id)
+		require.Nil(t, appErr)
+		guestSession := session(guest)
+
+		adminField := &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "guest dm admin " + model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypePost,
+			TargetType:        string(model.PropertyFieldTargetLevelChannel),
+			TargetID:          guestDM.Id,
+			PermissionField:   model.NewPointer(model.PermissionLevelAdmin),
+			PermissionValues:  model.NewPointer(model.PermissionLevelAdmin),
+			PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
+		}
+
+		// Precondition: the guest really is in the channel, so the denials
+		// below are the guest check and not a missing membership.
+		_, isMember := th.App.HasPermissionToChannel(th.Context, guest.Id, guestDM.Id, model.PermissionReadChannel)
+		require.True(t, isMember, "precondition: guest is a member of the DM")
+
+		assert.False(t, th.App.hasChannelPropertyAdmin(th.Context, guest.Id, guestDM.Id))
+		assert.False(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, guestSession, adminField))
+		assert.False(t, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, guestSession, adminField))
+		assert.False(t, th.App.SessionHasPermissionToAdministerPropertyFieldScope(th.Context, guestSession, adminField))
+
+		// The member level is untouched: a guest still reaches a field scoped
+		// to a DM they belong to.
+		memberField := &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "guest dm member " + model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeChannel,
+			TargetType:        string(model.PropertyFieldTargetLevelChannel),
+			TargetID:          guestDM.Id,
+			PermissionField:   model.NewPointer(model.PermissionLevelMember),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelMember),
+		}
+		assert.True(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, guestSession, memberField))
+		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, guestSession, memberField, guestDM.Id))
+	})
 
 	// Regression guard: normal channels must NOT collapse to membership. Each
 	// caller below can read the channel; only the channel admin holds
