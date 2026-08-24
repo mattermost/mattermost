@@ -66,9 +66,12 @@ var propertyOptionReservedAttrs = []string{"id", "name", "color", "rank"}
 //
 // On a write, a key left out is left as it was, so patching one part of an
 // option does not silently discard the rest; send an empty value to clear one.
-// Parents is the key that makes this matter: an option quietly left with no
-// parents becomes a root, covered by nothing but itself, and every rule that
-// granted access through an option above it starts denying.
+// Name is the exception: it is how the payload refers to the option in the
+// first place, so it is required on every write, and a patch that omits it is
+// refused rather than leaving the stored name alone. Parents is the key that
+// makes the rest of this matter: an option quietly left with no parents
+// becomes a root, covered by nothing but itself, and every rule that granted
+// access through an option above it starts denying.
 //
 // ReadOnly and CreateAt are reported, never accepted. Parents is absent
 // entirely for a field whose options form no hierarchy.

@@ -8295,7 +8295,9 @@ func (c *Client4) CreatePropertyFieldOptions(ctx context.Context, groupName, obj
 }
 
 // PatchPropertyFieldOptions changes options a property field owns. Only the
-// options named are touched, and only the parts of each that the option carries.
+// options named are touched, and only the parts of each that the option
+// carries — except Name, which every option must carry, since it is how the
+// payload names the option to begin with.
 func (c *Client4) PatchPropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, options []*PropertyFieldOption) ([]*PropertyFieldOption, *Response, error) {
 	r, err := c.doAPIPatchJSON(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), options)
 	if err != nil {
