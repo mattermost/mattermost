@@ -951,6 +951,55 @@ func TestValueWriteVisibility(t *testing.T) {
 		require.NoError(t, delErr)
 	})
 
+	t.Run("a sync service caller is refused on a masked field it is not exempt from", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Write-MachineNoExempt",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Masking: &model.Masking{},
+				Grants: []model.Grant{
+					{Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP}, Allow: []string{model.PropertyActionValueWrite}},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		existing := writeValueDirect(t, th, field.ID, "channel", model.NewId(), "secret")
+
+		existing.Value = json.RawMessage(`"changed"`)
+		_, upErr := th.service.UpdatePropertyValue(RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync), th.CPAGroupID, existing)
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
+	})
+
+	t.Run("a sync service caller listed in except may update a masked field it writes", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "Write-MachineExempt",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Masking: &model.Masking{
+					Except: []model.Identity{{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP}},
+				},
+				Grants: []model.Grant{
+					{Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP}, Allow: []string{model.PropertyActionValueWrite}},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		existing := writeValueDirect(t, th, field.ID, "channel", model.NewId(), "secret")
+
+		existing.Value = json.RawMessage(`"changed"`)
+		_, upErr := th.service.UpdatePropertyValue(RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync), th.CPAGroupID, existing)
+		require.NoError(t, upErr)
+	})
+
 	t.Run("a batch write on one field and target loads the stored value and the caller's holdings once each", func(t *testing.T) {
 		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Write-BatchLoad", model.PropertyFieldTypeText, &model.Masking{}))
 		require.NoError(t, err)
