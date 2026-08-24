@@ -28,6 +28,52 @@ export function someAction() {
 }
 ```
 
+### no-redundant-admin-config-deps
+
+Enforces that System Console settings in `admin_definition` files do not repeat `isDisabled` config/state checks already implied by a parent setting they depend on.
+
+When setting B disables itself with `it.stateIsFalse('A')`, A is a bool setting, and A already includes condition C (for example `it.configIsTrue('ClusterSettings', 'Enable')`), repeating C on B is redundant and tends to drift. Keep the dependency on A and omit the duplicated checks. Inheritance only follows bool parents (disabled bools are forced false on save). Permission and license helpers are not treated as config dependencies.
+
+Examples of **incorrect** code for this rule:
+```javascript
+{
+    type: 'bool',
+    key: 'EmailSettings.EnableEmailBatching',
+    isDisabled: it.any(
+        it.stateIsFalse('EmailSettings.SendEmailNotifications'),
+        it.configIsTrue('ClusterSettings', 'Enable'),
+    ),
+},
+{
+    type: 'number',
+    key: 'EmailSettings.EmailBatchingBufferSize',
+    isDisabled: it.any(
+        it.stateIsFalse('EmailSettings.SendEmailNotifications'),
+        it.stateIsFalse('EmailSettings.EnableEmailBatching'),
+        it.configIsTrue('ClusterSettings', 'Enable'),
+    ),
+},
+```
+
+Examples of **correct** code for this rule:
+```javascript
+{
+    type: 'bool',
+    key: 'EmailSettings.EnableEmailBatching',
+    isDisabled: it.any(
+        it.stateIsFalse('EmailSettings.SendEmailNotifications'),
+        it.configIsTrue('ClusterSettings', 'Enable'),
+    ),
+},
+{
+    type: 'number',
+    key: 'EmailSettings.EmailBatchingBufferSize',
+    isDisabled: it.any(
+        it.stateIsFalse('EmailSettings.EnableEmailBatching'),
+    ),
+},
+```
+
 ### use-external-link
 
 Ensures that any link which opens a URL outside of Mattermost using `target="_blank"` uses the `ExternalLink` component.

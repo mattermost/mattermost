@@ -41,6 +41,7 @@
   "scripts": {
     "check": "eslint . --quiet",
     "fix": "eslint . --quiet --fix",
+    "test": "node --test rules/*.test.js",
     "clean": "rm -rf node_modules"
   }
 }
