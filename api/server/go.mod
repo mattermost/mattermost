@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost/api/internal
 
-go 1.20
+go 1.26.7
 
 require (
 	github.com/pb33f/libopenapi v0.9.6
