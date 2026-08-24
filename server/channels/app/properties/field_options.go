@@ -332,9 +332,8 @@ func (ps *PropertyService) CreateFieldOptions(rctx request.CTX, field *model.Pro
 		}
 	}
 
-	// Every name in the payload is new, so any option already carrying one is a
-	// collision. Checked against the effective set: a name that an inherited option
-	// already has would make the two indistinguishable as a reference.
+	// Every name in the payload is new, so any option the field already owns under
+	// that name is a collision.
 	names := make([]string, 0, len(options))
 	for _, option := range options {
 		names = append(names, option.Name)

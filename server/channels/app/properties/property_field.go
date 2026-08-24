@@ -322,12 +322,6 @@ func (ps *PropertyService) validateDependentOptionReadCeilings(field, existing *
 // cannot link at all and so has nothing copied over it.
 func (ps *PropertyService) createFieldWithOptionLinks(field *model.PropertyField) (*model.PropertyField, error) {
 	if field.Type == model.PropertyFieldTypeGraph && optionSourceID(field) != "" {
-		// A field linking to a graph template serves that template's hierarchy and
-		// owns no part of it. An option of its own could never be given a parent from
-		// that hierarchy -- an edge never crosses fields -- so it could only form a
-		// second hierarchy permanently disconnected from the one the field exists to
-		// serve: covered by nothing but itself, and so granting nothing.
-
 		// Any list the field carries now is its template's, copied in above so a read
 		// of the new field shows what it serves. None of it is this field's to own,
 		// and the store leaves an option owned by the link source alone.
