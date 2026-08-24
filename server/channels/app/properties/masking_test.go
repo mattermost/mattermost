@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"slices"
 	"strings"
 	"testing"
 
@@ -919,7 +920,7 @@ func TestValueWriteVisibility(t *testing.T) {
 		existing := writeValueDirect(t, th, field.ID, "channel", model.NewId(), "secret")
 
 		original := th.service.valueStore
-		th.service.valueStore = &erroringSearchValueStore{PropertyValueStore: original}
+		th.service.valueStore = &callerHoldingsFailValueStore{PropertyValueStore: original, callerID: caller}
 		t.Cleanup(func() { th.service.valueStore = original })
 
 		existing.Value = json.RawMessage(`"changed"`)
@@ -970,19 +971,11 @@ func TestValueWriteVisibility(t *testing.T) {
 	})
 
 	t.Run("a sync service caller is refused on a masked field it is not exempt from", func(t *testing.T) {
-		field, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
-			GroupID:    th.CPAGroupID,
-			Name:       "Write-MachineNoExempt",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Permissions: &model.Permissions{
-				Masking: &model.Masking{},
-				Grants: []model.Grant{
-					{Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP}, Allow: []string{model.PropertyActionValueWrite}},
-				},
-			},
-		})
+		field := maskedField(th.CPAGroupID, "Write-MachineNoExempt", model.PropertyFieldTypeText, &model.Masking{})
+		field.Permissions.Grants = []model.Grant{
+			{Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP}, Allow: []string{model.PropertyActionValueWrite}},
+		}
+		field, err := th.service.CreatePropertyField(th.Context, field)
 		require.NoError(t, err)
 
 		existing := writeValueDirect(t, th, field.ID, "channel", model.NewId(), "secret")
@@ -994,21 +987,13 @@ func TestValueWriteVisibility(t *testing.T) {
 	})
 
 	t.Run("a sync service caller listed in except may update a masked field it writes", func(t *testing.T) {
-		field, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
-			GroupID:    th.CPAGroupID,
-			Name:       "Write-MachineExempt",
-			Type:       model.PropertyFieldTypeText,
-			ObjectType: model.PropertyFieldObjectTypeUser,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			Permissions: &model.Permissions{
-				Masking: &model.Masking{
-					Except: []model.Identity{{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP}},
-				},
-				Grants: []model.Grant{
-					{Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP}, Allow: []string{model.PropertyActionValueWrite}},
-				},
-			},
+		field := maskedField(th.CPAGroupID, "Write-MachineExempt", model.PropertyFieldTypeText, &model.Masking{
+			Except: []model.Identity{{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP}},
 		})
+		field.Permissions.Grants = []model.Grant{
+			{Identity: model.Identity{Type: model.PropertyOwnerTypeService, ID: model.PropertyFieldAttrLDAP}, Allow: []string{model.PropertyActionValueWrite}},
+		}
+		field, err := th.service.CreatePropertyField(th.Context, field)
 		require.NoError(t, err)
 
 		existing := writeValueDirect(t, th, field.ID, "channel", model.NewId(), "secret")
@@ -1079,6 +1064,24 @@ type erroringSearchValueStore struct {
 
 func (e *erroringSearchValueStore) SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 	return nil, errors.New("forced failure for test")
+}
+
+// callerHoldingsFailValueStore wraps a store.PropertyValueStore and fails
+// only the search for one caller's own holdings, leaving every other search
+// -- including the stored-value lookup at the write's own target -- to pass
+// through. That isolates a masking failure to the caller-holdings half of a
+// write-visibility check, the half erroringSearchValueStore cannot reach on
+// its own because it fails the stored-value lookup first.
+type callerHoldingsFailValueStore struct {
+	store.PropertyValueStore
+	callerID string
+}
+
+func (e *callerHoldingsFailValueStore) SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	if slices.Contains(opts.TargetIDs, e.callerID) {
+		return nil, errors.New("forced failure for test")
+	}
+	return e.PropertyValueStore.SearchPropertyValues(opts)
 }
 
 // TestMaskFieldOptions covers the option list a field read carries inline, on
