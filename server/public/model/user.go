@@ -66,6 +66,11 @@ const (
 	UserTimezoneMaxRunes  = 256
 	UserRolesMaxLength    = 256
 
+	// MentionKeysMaxCount is the maximum number of individual mention keys a user may have.
+	MentionKeysMaxCount = 500
+	// MentionKeysMaxLength is the maximum byte length of the comma-separated mention_keys string.
+	MentionKeysMaxLength = 50000
+
 	DesktopTokenTTL = time.Minute * 3
 
 	UserAuthServiceMagicLink = "magic_link"
@@ -459,6 +464,12 @@ func (u *User) IsValid() *AppError {
 		}
 	}
 
+	if MentionKeysExceedLimits(u.NotifyProps[MentionKeysNotifyProp]) {
+		return NewAppError("User.IsValid", "model.user.is_valid.mention_keys.app_error",
+			map[string]any{"MaxCount": MentionKeysMaxCount, "MaxLength": MentionKeysMaxLength},
+			"user_id="+u.Id+" mention_keys=", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -574,15 +585,7 @@ func (u *User) PreUpdate() {
 	if len(u.NotifyProps) == 0 {
 		u.SetDefaultNotifications()
 	} else if _, ok := u.NotifyProps[MentionKeysNotifyProp]; ok {
-		// Remove any blank mention keys
-		splitKeys := strings.Split(u.NotifyProps[MentionKeysNotifyProp], ",")
-		goodKeys := []string{}
-		for _, key := range splitKeys {
-			if key != "" {
-				goodKeys = append(goodKeys, strings.ToLower(key))
-			}
-		}
-		u.NotifyProps[MentionKeysNotifyProp] = strings.Join(goodKeys, ",")
+		u.NotifyProps[MentionKeysNotifyProp] = joinMentionKeys(capMentionKeys(parseMentionKeys(u.NotifyProps[MentionKeysNotifyProp])))
 	}
 
 	if u.Props != nil {
@@ -611,6 +614,61 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps[ChannelMentionAutoFollowThreadsProp] = "true"
 }
 
+// parseMentionKeys splits raw on commas, trims whitespace, lowercases, and
+// returns only the non-empty segments. It does not enforce any size limits.
+func parseMentionKeys(raw string) []string {
+	var keys []string
+	for _, k := range strings.Split(raw, ",") {
+		if t := strings.ToLower(strings.TrimSpace(k)); t != "" {
+			keys = append(keys, t)
+		}
+	}
+	return keys
+}
+
+// MentionKeysExceedLimits reports whether raw, after normalization, exceeds
+// MentionKeysMaxCount keys or MentionKeysMaxLength total bytes.
+// Normalisation matches PreUpdate: split on commas, trim whitespace, drop blanks.
+func MentionKeysExceedLimits(raw string) bool {
+	keys := parseMentionKeys(raw)
+	if len(keys) > MentionKeysMaxCount {
+		return true
+	}
+	total := 0
+	for i, k := range keys {
+		if i > 0 {
+			total++
+		}
+		total += len(k)
+	}
+	return total > MentionKeysMaxLength
+}
+
+// joinMentionKeys joins keys with commas, the inverse of parseMentionKeys.
+func joinMentionKeys(keys []string) string {
+	return strings.Join(keys, ",")
+}
+
+// capMentionKeys returns a sub-slice of keys capped to at most
+// MentionKeysMaxCount entries and MentionKeysMaxLength total bytes when joined
+// with commas. It never truncates mid-key.
+func capMentionKeys(keys []string) []string {
+	if len(keys) > MentionKeysMaxCount {
+		keys = keys[:MentionKeysMaxCount]
+	}
+	totalLen := 0
+	for i, k := range keys {
+		if i > 0 {
+			totalLen++ // comma separator
+		}
+		totalLen += len(k)
+		if totalLen > MentionKeysMaxLength {
+			return keys[:i]
+		}
+	}
+	return keys
+}
+
 func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
 	nonUsernameKeys := []string{}
 	for _, key := range u.GetMentionKeys() {
@@ -626,19 +684,7 @@ func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {
 }
 
 func (u *User) GetMentionKeys() []string {
-	var keys []string
-
-	for key := range strings.SplitSeq(u.NotifyProps[MentionKeysNotifyProp], ",") {
-		trimmedKey := strings.TrimSpace(key)
-
-		if trimmedKey == "" {
-			continue
-		}
-
-		keys = append(keys, trimmedKey)
-	}
-
-	return keys
+	return capMentionKeys(parseMentionKeys(u.NotifyProps[MentionKeysNotifyProp]))
 }
 
 func (u *User) Patch(patch *UserPatch) {

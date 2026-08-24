@@ -7485,6 +7485,10 @@
     "translation": "Invalid Comments Prop value for user."
   },
   {
+    "id": "app.import.validate_user_import_data.notify_props_mention_keys_invalid.error",
+    "translation": "Invalid mention_keys Notify Prop for user: exceeds the limit of {{.MaxCount}} keys or {{.MaxLength}} bytes."
+  },
+  {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
     "translation": "Invalid Desktop Notify Prop value for user."
   },
@@ -13637,6 +13641,10 @@
   {
     "id": "model.user.is_valid.roles_limit.app_error",
     "translation": "Invalid user roles longer than {{.Limit}} characters."
+  },
+  {
+    "id": "model.user.is_valid.mention_keys.app_error",
+    "translation": "Invalid mention_keys: exceeds the limit of {{.MaxCount}} keys or {{.MaxLength}} bytes."
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
