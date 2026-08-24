@@ -39,7 +39,7 @@ func (o *oAuther) oauth2Complete(w http.ResponseWriter, r *http.Request) {
 
 	if storedState != state {
 		o.logger.Debugf("oauth2Complete: state mismatch")
-		o.logger.Debugf("received state '%s'; expected state '%s%", state, storedState)
+		o.logger.Debugf("received state '%s'; expected state '%s'", state, storedState)
 		http.Error(w, "Not authorized", http.StatusUnauthorized)
 		return
 	}
@@ -62,7 +62,7 @@ func (o *oAuther) oauth2Complete(w http.ResponseWriter, r *http.Request) {
 	var payload []byte
 	err = o.store.Get(o.getPayloadKey(userID), &payload)
 	if err != nil {
-		o.logger.Errorf("oauth2Complete: could not fetch payload, err=&s", err.Error())
+		o.logger.Errorf("oauth2Complete: could not fetch payload, err=%s", err.Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
