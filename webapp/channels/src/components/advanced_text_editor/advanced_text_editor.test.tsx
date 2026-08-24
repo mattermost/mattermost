@@ -261,7 +261,6 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT + 50);
             expect(mockedRemoveDraft).toHaveBeenCalled();
             expect(mockedUpdateDraft).not.toHaveBeenCalled();
-
         });
     });
 
@@ -517,7 +516,6 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
             expect.anything(),
         );
-
     });
 
     it('should save a new draft when changing channels', async () => {
