@@ -29,7 +29,8 @@ type PropertyPermissionBasis struct {
 	GrantWildcard bool
 
 	// Legacy is true when the field carried no Permissions, so the legacy
-	// columns decided instead of the new engine.
+	// columns decided the outcome instead of the field's restrictions tier
+	// or a matching grant.
 	Legacy bool
 
 	// Unrestricted is true when a local-mode session bypassed the check.
