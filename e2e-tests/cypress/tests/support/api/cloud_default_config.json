@@ -174,10 +174,7 @@
         "EmailBatchingInterval": 30,
         "EnablePreviewModeBanner": true,
         "SkipServerCertificateVerification": false,
-        "EmailNotificationContentsType": "full",
-        "LoginButtonColor": "#0000",
-        "LoginButtonBorderColor": "#2389D7",
-        "LoginButtonTextColor": "#2389D7"
+        "EmailNotificationContentsType": "full"
     },
     "PrivacySettings": {
         "ShowEmailAddress": true,
@@ -269,7 +266,7 @@
         "ConnectionSecurity": "",
         "BaseDN": "dc=mm,dc=test,dc=com",
         "BindUsername": "cn=admin,dc=mm,dc=test,dc=com",
-        "BindPassword": "mostest",
+        "BindPassword": "mostest_password",
         "UserFilter": "",
         "GroupFilter": "",
         "GuestFilter": "",

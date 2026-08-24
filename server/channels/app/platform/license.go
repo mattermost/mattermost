@@ -414,7 +414,7 @@ func (ps *PlatformService) logLicense(message string, license *model.License) {
 
 	if license.Features != nil {
 		logger = logger.With(
-			mlog.Int("features.users", *license.Features.Users),
+			mlog.Int("features_users", *license.Features.Users),
 			mlog.Map("features", license.Features.ToMap()),
 		)
 	}

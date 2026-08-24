@@ -143,7 +143,7 @@
     },
     "SqlSettings": {
         "DriverName": "postgres",
-        "DataSource": "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes",
+        "DataSource": "postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes",
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "ConnMaxLifetimeMilliseconds": 3600000,
@@ -256,10 +256,7 @@
         "EmailBatchingInterval": 30,
         "EnablePreviewModeBanner": true,
         "SkipServerCertificateVerification": false,
-        "EmailNotificationContentsType": "full",
-        "LoginButtonColor": "#0000",
-        "LoginButtonBorderColor": "#2389D7",
-        "LoginButtonTextColor": "#2389D7"
+        "EmailNotificationContentsType": "full"
     },
     "RateLimitSettings": {
         "Enable": false,
@@ -360,7 +357,7 @@
         "ConnectionSecurity": "",
         "BaseDN": "dc=mm,dc=test,dc=com",
         "BindUsername": "cn=admin,dc=mm,dc=test,dc=com",
-        "BindPassword": "mostest",
+        "BindPassword": "mostest_password",
         "UserFilter": "",
         "GroupFilter": "",
         "GuestFilter": "",
