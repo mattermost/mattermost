@@ -885,6 +885,44 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, sourceOpts, linkedOpts)
 	})
 
+	t.Run("create linked field refuses a supplied option list", func(t *testing.T) {
+		source := createSourceField(t, "SuppliedOptsSource-"+model.NewId())
+
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "SuppliedOptsLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Own Option"},
+				},
+			},
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "template")
+	})
+
+	t.Run("create linked field with an empty option list succeeds", func(t *testing.T) {
+		source := createSourceField(t, "EmptyOptsSource-"+model.NewId())
+
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "EmptyOptsLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{},
+			},
+		})
+		require.NoError(t, err)
+		assert.Equal(t, source.Attrs[model.PropertyFieldAttributeOptions], linked.Attrs[model.PropertyFieldAttributeOptions])
+	})
+
 	t.Run("create linked field rejects non-existent source", func(t *testing.T) {
 		fakeID := model.NewId()
 		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{

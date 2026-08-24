@@ -138,6 +138,16 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 			return nil, err
 		}
 
+		// A linked field serves its template's option list and owns none of its
+		// own. Refused rather than dropped, for the same reason the graph arm
+		// below refuses: a caller that sent options would otherwise be told
+		// they were created, when the list actually saved is the template's.
+		if suppliedOptions {
+			return nil, optionsChangeRefused(
+				"a field linking to template %s serves that template's option list and cannot own options of its own; add them to template %s instead",
+				*field.LinkedFieldID, *field.LinkedFieldID)
+		}
+
 		// Copy type and options from source
 		field.Type = source.Type
 		if field.Attrs == nil {
