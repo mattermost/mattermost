@@ -2712,6 +2712,23 @@ func TestHasChannelPropertyAdmin(t *testing.T) {
 	outsider := th.CreateUser(t)
 	th.LinkUserToTeam(t, outsider, th.BasicTeam)
 
+	// A read-only admin, deliberately not a member of anything below. This
+	// role holds read_channel as an ancillary of
+	// sysconsole_read_user_management_channels but not manage_channel_roles,
+	// so it is the role that distinguishes "is a member" from "can read".
+	readOnlyAdmin := th.CreateUser(t)
+	_, appErr = th.App.UpdateUserRoles(th.Context, readOnlyAdmin.Id,
+		model.SystemUserRoleId+" "+model.SystemReadOnlyAdminRoleId, false)
+	require.Nil(t, appErr)
+
+	// A team admin who never joins the channel below, so the normal-channel
+	// rows exercise the manage_channel_roles cascade rather than membership.
+	teamAdmin := th.CreateUser(t)
+	th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+	_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id,
+		model.TeamUserRoleId+" "+model.TeamAdminRoleId)
+	require.Nil(t, appErr)
+
 	dm := th.CreateDmChannel(t, plainMember)
 	gm := th.CreateGroupChannel(t, plainMember, th.CreateUser(t))
 
@@ -2721,10 +2738,13 @@ func TestHasChannelPropertyAdmin(t *testing.T) {
 		channelID string
 		want      bool
 	}{
-		// Normal channels keep requiring manage_channel_roles.
+		// Normal channels keep requiring manage_channel_roles. read_channel
+		// must not be enough on any of these rows.
 		{"channel admin on a normal channel", th.BasicUser.Id, th.BasicChannel.Id, true},
 		{"plain member on a normal channel", plainMember.Id, th.BasicChannel.Id, false},
+		{"team admin who is not a channel member", teamAdmin.Id, th.BasicChannel.Id, true},
 		{"sysadmin on a normal channel", th.SystemAdminUser.Id, th.BasicChannel.Id, true},
+		{"read-only admin on a normal channel", readOnlyAdmin.Id, th.BasicChannel.Id, false},
 
 		// DM/GM have no channel-admin tier, so participants administer them.
 		{"DM participant", th.BasicUser.Id, dm.Id, true},
@@ -2734,6 +2754,12 @@ func TestHasChannelPropertyAdmin(t *testing.T) {
 		{"GM participant", th.BasicUser.Id, gm.Id, true},
 		{"other GM participant", plainMember.Id, gm.Id, true},
 		{"non-participant on a GM", outsider.Id, gm.Id, false},
+
+		// A DM/GM has no team, so HasPermissionToChannel falls through to the
+		// caller's system roles.
+		{"read-only admin on a DM they are not in", readOnlyAdmin.Id, dm.Id, false},
+		{"read-only admin on a GM they are not in", readOnlyAdmin.Id, gm.Id, false},
+		{"team admin on a DM they are not in", teamAdmin.Id, dm.Id, false},
 
 		// Fail closed.
 		{"nonexistent channel", th.BasicUser.Id, model.NewId(), false},
@@ -2832,8 +2858,16 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 		})
 	}
 
-	// Regression guard: normal channels must NOT collapse to membership.
-	t.Run("normal channels unaffected", func(t *testing.T) {
+	// Regression guard: normal channels must NOT collapse to membership. Each
+	// caller below can read the channel; only the channel admin holds
+	// manage_channel_roles on it, so any other caller resolving true would mean
+	// the DM/GM rule had leaked into normal channels.
+	t.Run("normal channels still require manage_channel_roles", func(t *testing.T) {
+		readOnlyAdmin := th.CreateUser(t)
+		_, appErr := th.App.UpdateUserRoles(th.Context, readOnlyAdmin.Id,
+			model.SystemUserRoleId+" "+model.SystemReadOnlyAdminRoleId, false)
+		require.Nil(t, appErr)
+
 		field := &model.PropertyField{
 			GroupID:           groupID,
 			Name:              "normal scoped " + model.NewId(),
@@ -2845,12 +2879,10 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 			PermissionValues:  model.NewPointer(model.PermissionLevelAdmin),
 			PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
 		}
-		assert.False(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, session(plainMember), field))
-		assert.False(t, th.App.SessionHasPermissionToAdministerPropertyFieldScope(th.Context, session(plainMember), field))
-		assert.True(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, session(th.BasicUser), field))
 
-		// The post-object value arm resolves against the post's channel, so it
-		// must stay admin-only on a normal channel too.
+		// A system-scoped post-object field: the value arm resolves against the
+		// post's channel rather than the field's target, so it needs its own
+		// assertion even though the channel is the same.
 		postField := &model.PropertyField{
 			GroupID:          groupID,
 			Name:             "normal post values " + model.NewId(),
@@ -2860,7 +2892,32 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 			PermissionValues: model.NewPointer(model.PermissionLevelAdmin),
 		}
 		basicPost := th.CreatePost(t, th.BasicChannel)
-		assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(plainMember), postField, basicPost.Id))
-		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(th.BasicUser), postField, basicPost.Id))
+
+		for _, tc := range []struct {
+			name   string
+			userID string
+			want   bool
+		}{
+			{"plain channel member", plainMember.Id, false},
+			{"read-only admin, not a member", readOnlyAdmin.Id, false},
+			{"channel admin", th.BasicUser.Id, true},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				// Preconditions: every caller can read the channel, so a false
+				// result below is the permission check doing its job rather
+				// than the caller having no access at all.
+				canRead, _ := th.App.HasPermissionToChannel(th.Context, tc.userID, th.BasicChannel.Id, model.PermissionReadChannel)
+				require.True(t, canRead, "precondition: caller can read the channel")
+				canAdmin, _ := th.App.HasPermissionToChannel(th.Context, tc.userID, th.BasicChannel.Id, model.PermissionManageChannelRoles)
+				require.Equal(t, tc.want, canAdmin, "precondition: caller's manage_channel_roles")
+
+				sess := model.Session{UserId: tc.userID, Roles: model.SystemUserRoleId}
+				assert.Equal(t, tc.want, th.App.hasChannelPropertyAdmin(th.Context, tc.userID, th.BasicChannel.Id))
+				assert.Equal(t, tc.want, th.App.SessionHasPermissionToEditPropertyField(th.Context, sess, field))
+				assert.Equal(t, tc.want, th.App.SessionHasPermissionToAdministerPropertyFieldScope(th.Context, sess, field))
+				assert.Equal(t, tc.want, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, sess, postField, basicPost.Id))
+			})
+		}
 	})
+
 }
