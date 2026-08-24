@@ -666,9 +666,12 @@ func (s *SqlPropertyFieldStore) MutateOptions(groupID, fieldID string, expectedU
 		return err
 	}
 
-	if len(remove) > 0 {
+	// Batched for the same reason applyOptionParentLinks batches: one change may
+	// carry a whole hierarchy's worth of edges, and a statement has a hard ceiling
+	// on how many parameters it may take (see maxOptionIDsPerQuery).
+	for batch := range slices.Chunk(remove, maxOptionIDsPerQuery) {
 		matches := sq.Or{}
-		for _, edge := range remove {
+		for _, edge := range batch {
 			matches = append(matches, sq.Eq{
 				"ChildOptionID":  edge.ChildOptionID,
 				"ParentOptionID": edge.ParentOptionID,
@@ -684,11 +687,11 @@ func (s *SqlPropertyFieldStore) MutateOptions(groupID, fieldID string, expectedU
 		}
 	}
 
-	if len(add) > 0 {
+	for batch := range slices.Chunk(add, maxOptionIDsPerQuery) {
 		builder := s.getQueryBuilder().
 			Insert("PropertyOptionEdges").
 			Columns(propertyOptionEdgeColumns...)
-		for _, edge := range add {
+		for _, edge := range batch {
 			builder = builder.Values(edge.FieldID, edge.ChildOptionID, edge.ParentOptionID, now)
 		}
 		// DO NOTHING rather than DO UPDATE: an edge has nothing to update, and the
@@ -1109,16 +1112,20 @@ func (s *SqlPropertyFieldStore) getExistingOptionIDs(db sqlxExecutor, ownerIDs [
 		return nil, nil
 	}
 
-	builder := s.getQueryBuilder().
-		Select("ID").
-		From("PropertyOptions").
-		Where(sq.Eq{"FieldID": ownerIDs}).
-		Where(sq.Eq{"ID": optionIDs}).
-		Where(sq.Eq{"DeleteAt": 0})
-
 	ids := []string{}
-	if err := db.SelectBuilder(&ids, builder); err != nil {
-		return nil, errors.Wrap(err, "property_options_exist_query")
+	for batch := range slices.Chunk(optionIDs, maxOptionIDsPerQuery) {
+		builder := s.getQueryBuilder().
+			Select("ID").
+			From("PropertyOptions").
+			Where(sq.Eq{"FieldID": ownerIDs}).
+			Where(sq.Eq{"ID": batch}).
+			Where(sq.Eq{"DeleteAt": 0})
+
+		batchIDs := []string{}
+		if err := db.SelectBuilder(&batchIDs, builder); err != nil {
+			return nil, errors.Wrap(err, "property_options_exist_query")
+		}
+		ids = append(ids, batchIDs...)
 	}
 	return ids, nil
 }

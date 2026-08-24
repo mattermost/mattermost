@@ -400,9 +400,13 @@ func (s *SqlPropertyFieldStore) requireOwnedOptions(db sqlxExecutor, fieldID str
 	if err != nil {
 		return err
 	}
+	existingSet := make(map[string]bool, len(existing))
+	for _, id := range existing {
+		existingSet[id] = true
+	}
 
 	for _, optionID := range optionIDs {
-		if !slices.Contains(existing, optionID) {
+		if !existingSet[optionID] {
 			return store.NewErrInvalidInput("PropertyOptionEdge", "option_id", optionID).
 				Wrap(errors.Errorf("field %s has no live option %s of its own", fieldID, optionID))
 		}
