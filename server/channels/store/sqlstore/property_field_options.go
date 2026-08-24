@@ -588,7 +588,7 @@ func (s *SqlPropertyFieldStore) CountOptions(fieldID string) (int, error) {
 // numbers of parents and edges -- is not checked here and cannot be: every one of
 // those is a property of the whole hierarchy rather than of the rows in front of
 // it. A caller puts its change through PropertyService.ValidateOptionEdges
-// first, which is what ApplyOptionEdges and the options endpoints do.
+// first, which is what CreateFieldOptions and UpdateFieldOptions do.
 func (s *SqlPropertyFieldStore) MutateOptions(groupID, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add, remove []*model.PropertyOptionEdge) (err error) {
 	if len(upsert) == 0 && len(add) == 0 && len(remove) == 0 {
 		return nil
