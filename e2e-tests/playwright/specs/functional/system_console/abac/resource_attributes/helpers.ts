@@ -204,9 +204,6 @@ export async function setUserMultiselectValue(
     ]);
 }
 
-/**
- * Set a channel's multiselect value (list of option ids) for a channel field.
- */
 export async function setChannelMultiselectValue(
     adminClient: Client4,
     channelId: string,
