@@ -137,11 +137,12 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Default permission levels: pin all three for non-admins, nil-fill for
-	// admins. Stays in API because it is session-bound.
-	isAdmin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	// Default permission levels: whoever administers the field's scope may
+	// configure them, everyone else has all three pinned to the object type's
+	// default.
+	canPin := c.App.SessionHasPermissionToAdministerPropertyFieldScope(c.AppContext, *c.AppContext.Session(), field)
 	defaultLevel := app.DefaultPropertyFieldPermissionLevel(field)
-	if !isAdmin {
+	if !canPin {
 		field.PermissionField = &defaultLevel
 		field.PermissionValues = &defaultLevel
 		field.PermissionOptions = &defaultLevel
@@ -154,6 +155,15 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		if field.PermissionOptions == nil {
 			field.PermissionOptions = &defaultLevel
+		}
+
+		// Anti-lockout: an unlinked field must be editable by whoever creates
+		// it, or they could pin a level that leaves them unable to patch or
+		// delete their own field.
+		isLinked := field.LinkedFieldID != nil && *field.LinkedFieldID != ""
+		if !isLinked && !c.App.SessionHasPermissionToEditPropertyField(c.AppContext, *c.AppContext.Session(), field) {
+			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.creator_cannot_edit.app_error", nil, "", http.StatusForbidden)
+			return
 		}
 	}
 

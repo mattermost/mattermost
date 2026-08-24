@@ -3299,6 +3299,10 @@
     "translation": "The specified property group was not found."
   },
   {
+    "id": "api.property_field.create.creator_cannot_edit.app_error",
+    "translation": "You cannot create a property field with permission levels that would prevent you from editing it."
+  },
+  {
     "id": "api.property_field.create.invalid_target_type.app_error",
     "translation": "The provided target type is not valid."
   },
