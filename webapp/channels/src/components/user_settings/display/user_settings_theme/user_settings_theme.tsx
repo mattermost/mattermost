@@ -20,6 +20,16 @@ import type {ModalData} from 'types/actions';
 import CustomThemeChooser from './custom_theme_chooser/custom_theme_chooser';
 import PremadeThemeChooser from './premade_theme_chooser';
 
+export function hasThemeChanged(originalTheme: Theme, theme: Theme): boolean {
+    const fields = new Set([...Object.keys(originalTheme), ...Object.keys(theme)]);
+    for (const field of fields) {
+        if (originalTheme[field] !== theme[field]) {
+            return true;
+        }
+    }
+    return false;
+}
+
 type Props = {
     currentTeamId: string;
     theme: Theme;
@@ -115,19 +125,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
     };
 
     updateTheme = (theme: Theme): void => {
-        let themeChanged = this.state.theme.length === theme.length;
-        if (!themeChanged) {
-            for (const field in theme) {
-                if (Object.hasOwn(theme, field)) {
-                    if (this.state.theme[field] !== theme[field]) {
-                        themeChanged = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        this.props.setRequireConfirm?.(themeChanged);
+        this.props.setRequireConfirm?.(hasThemeChanged(this.originalTheme, theme));
 
         this.setState({theme});
         applyTheme(theme);

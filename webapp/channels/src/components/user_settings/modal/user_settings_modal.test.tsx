@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
+import {screen, waitFor} from '@testing-library/react';
 import type {ComponentProps} from 'react';
 import React from 'react';
 
@@ -330,5 +330,102 @@ describe('plugin tabs use the correct icon', () => {
         expect(element).toBeInTheDocument();
         expect(element!.nodeName).toBe('I');
         expect(element?.className).toBe('icon icon-phone-in-talk');
+    });
+});
+
+describe('discard confirmation for theme changes', () => {
+    beforeEach(() => {
+        (baseProps.onExited as jest.Mock).mockClear();
+    });
+
+    const themeState: DeepPartial<GlobalState> = mergeObjects(baseState, {
+        entities: {
+            general: {
+                config: {
+                    EnableThemeSelection: 'true',
+                    AllowCustomThemes: 'true',
+                },
+            },
+            teams: {
+                currentTeamId: 'team-id',
+                teams: {
+                    'team-id': {
+                        id: 'team-id',
+                        name: 'team-id',
+                        display_name: 'Team',
+                    },
+                },
+                myMembers: {
+                    'team-id': {
+                        team_id: 'team-id',
+                        user_id: 'id',
+                    },
+                },
+            },
+        },
+    });
+
+    async function openThemeAndSelectOnyx() {
+        renderWithContext(
+            <UserSettingsModal
+                {...baseProps}
+                activeTab='display'
+            />,
+            themeState,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: /theme edit/i}));
+        await userEvent.click(screen.getByRole('button', {name: 'Onyx'}));
+    }
+
+    it('keeps Settings open and shows discard confirmation after an unsaved theme change', async () => {
+        await openThemeAndSelectOnyx();
+
+        await userEvent.click(screen.getByLabelText('Close'));
+
+        expect(screen.getByText('You have unsaved changes, are you sure you want to discard them?')).toBeVisible();
+        expect(screen.getByRole('dialog', {name: 'Settings'})).toBeVisible();
+        expect(baseProps.onExited).not.toHaveBeenCalled();
+    });
+
+    it('keeps Settings open when discard is cancelled', async () => {
+        await openThemeAndSelectOnyx();
+
+        await userEvent.click(screen.getByLabelText('Close'));
+        await userEvent.click(screen.getByTestId('cancel-button'));
+
+        expect(screen.queryByText('You have unsaved changes, are you sure you want to discard them?')).not.toBeInTheDocument();
+        expect(screen.getByRole('dialog', {name: 'Settings'})).toBeVisible();
+        expect(baseProps.onExited).not.toHaveBeenCalled();
+    });
+
+    it('closes Settings when discard is confirmed', async () => {
+        await openThemeAndSelectOnyx();
+
+        await userEvent.click(screen.getByLabelText('Close'));
+        await userEvent.click(screen.getByRole('button', {name: 'Yes, Discard'}));
+
+        await waitFor(() => {
+            expect(baseProps.onExited).toHaveBeenCalled();
+        });
+    });
+
+    it('does not show discard confirmation when closing after clicking the saved theme', async () => {
+        renderWithContext(
+            <UserSettingsModal
+                {...baseProps}
+                activeTab='display'
+            />,
+            themeState,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: /theme edit/i}));
+        await userEvent.click(screen.getByRole('button', {name: 'Denim'}));
+        await userEvent.click(screen.getByLabelText('Close'));
+
+        expect(screen.queryByText('You have unsaved changes, are you sure you want to discard them?')).not.toBeInTheDocument();
+        await waitFor(() => {
+            expect(baseProps.onExited).toHaveBeenCalled();
+        });
     });
 });

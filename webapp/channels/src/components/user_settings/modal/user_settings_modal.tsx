@@ -359,6 +359,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                 show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleHidden}
+                preventClose={true}
                 ariaLabel={modalTitle}
                 compassDesign={true}
                 enforceFocus={this.state.enforceFocus}
@@ -429,6 +430,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                     show={this.state.showConfirmModal}
                     onConfirm={this.handleConfirm}
                     onCancel={this.handleCancelConfirmation}
+                    isStacked={true}
                 />
             </GenericModal>
         );

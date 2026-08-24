@@ -8,7 +8,7 @@ import {Preferences} from 'mattermost-redux/constants';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
-import UserSettingsTheme from './user_settings_theme';
+import UserSettingsTheme, {hasThemeChanged} from './user_settings_theme';
 
 jest.mock('utils/utils', () => ({
     applyTheme: jest.fn(),
@@ -110,6 +110,64 @@ describe('components/user_settings/display/user_settings_theme/user_settings_the
 
         await waitFor(() => {
             expect(props.actions.deleteTeamSpecificThemes).toHaveBeenCalled();
+        });
+    });
+
+    describe('hasThemeChanged', () => {
+        it('returns false when themes are equal', () => {
+            expect(hasThemeChanged(Preferences.THEMES.denim, {...Preferences.THEMES.denim})).toBe(false);
+        });
+
+        it('returns true when a field differs', () => {
+            expect(hasThemeChanged(Preferences.THEMES.denim, Preferences.THEMES.onyx)).toBe(true);
+        });
+    });
+
+    describe('setRequireConfirm', () => {
+        it('does not require confirm when selecting the already saved theme', async () => {
+            const setRequireConfirm = jest.fn();
+            renderWithContext(
+                <UserSettingsTheme
+                    {...requiredProps}
+                    selected={true}
+                    setRequireConfirm={setRequireConfirm}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Denim'}));
+
+            expect(setRequireConfirm).toHaveBeenCalledWith(false);
+        });
+
+        it('requires confirm when selecting a different theme', async () => {
+            const setRequireConfirm = jest.fn();
+            renderWithContext(
+                <UserSettingsTheme
+                    {...requiredProps}
+                    selected={true}
+                    setRequireConfirm={setRequireConfirm}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Onyx'}));
+
+            expect(setRequireConfirm).toHaveBeenCalledWith(true);
+        });
+
+        it('clears confirm when returning to the saved theme', async () => {
+            const setRequireConfirm = jest.fn();
+            renderWithContext(
+                <UserSettingsTheme
+                    {...requiredProps}
+                    selected={true}
+                    setRequireConfirm={setRequireConfirm}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Onyx'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Denim'}));
+
+            expect(setRequireConfirm).toHaveBeenLastCalledWith(false);
         });
     });
 });
