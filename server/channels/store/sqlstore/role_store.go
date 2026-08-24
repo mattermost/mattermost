@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -247,11 +247,11 @@ func (s *SqlRoleStore) GetAll() ([]*model.Role, error) {
 	return roles, nil
 }
 
-func (s *SqlRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
+func (s *SqlRoleStore) GetByName(rctx request.CTX, name string) (*model.Role, error) {
 	dbRole := Role{}
 	query := s.tableSelectQuery.Where(sq.Eq{"Name": name})
 
-	if err := s.DBXFromContext(ctx).GetBuilder(&dbRole, query); err != nil {
+	if err := s.DBXFromContext(rctx.Context()).GetBuilder(&dbRole, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Role", fmt.Sprintf("name=%s", name))
 		}
