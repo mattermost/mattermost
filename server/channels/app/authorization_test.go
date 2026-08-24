@@ -2698,3 +2698,169 @@ func TestSessionHasPermissionToAdministerPropertyFieldScope(t *testing.T) {
 		})
 	}
 }
+
+func TestHasChannelPropertyAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// th.BasicUser created th.BasicChannel and so holds SchemeAdmin there.
+	// th.BasicUser2 is a plain member, added below.
+	plainMember := th.BasicUser2
+	_, appErr := th.App.AddUserToChannel(th.Context, plainMember, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	outsider := th.CreateUser(t)
+	th.LinkUserToTeam(t, outsider, th.BasicTeam)
+
+	dm := th.CreateDmChannel(t, plainMember)
+	gm := th.CreateGroupChannel(t, plainMember, th.CreateUser(t))
+
+	testCases := []struct {
+		name      string
+		userID    string
+		channelID string
+		want      bool
+	}{
+		// Normal channels keep requiring manage_channel_roles.
+		{"channel admin on a normal channel", th.BasicUser.Id, th.BasicChannel.Id, true},
+		{"plain member on a normal channel", plainMember.Id, th.BasicChannel.Id, false},
+		{"sysadmin on a normal channel", th.SystemAdminUser.Id, th.BasicChannel.Id, true},
+
+		// DM/GM have no channel-admin tier, so participants administer them.
+		{"DM participant", th.BasicUser.Id, dm.Id, true},
+		{"other DM participant", plainMember.Id, dm.Id, true},
+		{"non-participant on a DM", outsider.Id, dm.Id, false},
+		{"sysadmin on a DM", th.SystemAdminUser.Id, dm.Id, true},
+		{"GM participant", th.BasicUser.Id, gm.Id, true},
+		{"other GM participant", plainMember.Id, gm.Id, true},
+		{"non-participant on a GM", outsider.Id, gm.Id, false},
+
+		// Fail closed.
+		{"nonexistent channel", th.BasicUser.Id, model.NewId(), false},
+		{"empty channel id", th.BasicUser.Id, "", false},
+		{"empty user id", "", dm.Id, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, th.App.hasChannelPropertyAdmin(th.Context, tc.userID, tc.channelID))
+		})
+	}
+}
+
+func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	plainMember := th.BasicUser2
+	_, appErr := th.App.AddUserToChannel(th.Context, plainMember, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	outsider := th.CreateUser(t)
+	th.LinkUserToTeam(t, outsider, th.BasicTeam)
+
+	session := func(u *model.User) model.Session {
+		return model.Session{UserId: u.Id, Roles: model.SystemUserRoleId}
+	}
+
+	// Both channel types have no channel-admin tier, so both must resolve the
+	// admin level to participation. GMs additionally carry no CreatorId, so
+	// they are the case most likely to diverge from DMs under future changes.
+	for _, tc := range []struct {
+		name    string
+		channel *model.Channel
+	}{
+		{"direct channel", th.CreateDmChannel(t, plainMember)},
+		{"group channel", th.CreateGroupChannel(t, plainMember, th.CreateUser(t))},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			post := th.CreatePost(t, tc.channel)
+
+			// Field-level admin: a field scoped to this channel is administered
+			// by its participants, so pinning permission_field=admin does not
+			// lock them out.
+			t.Run("field level", func(t *testing.T) {
+				field := &model.PropertyField{
+					GroupID:           groupID,
+					Name:              "scoped " + model.NewId(),
+					Type:              model.PropertyFieldTypeText,
+					ObjectType:        model.PropertyFieldObjectTypePost,
+					TargetType:        string(model.PropertyFieldTargetLevelChannel),
+					TargetID:          tc.channel.Id,
+					PermissionField:   model.NewPointer(model.PermissionLevelAdmin),
+					PermissionValues:  model.NewPointer(model.PermissionLevelAdmin),
+					PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
+				}
+
+				assert.True(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, session(plainMember), field))
+				assert.True(t, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, session(plainMember), field))
+				assert.False(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, session(outsider), field))
+
+				// The scope-admin helper agrees, which is what keeps "who may
+				// pin" and "who admin grants" the same set.
+				assert.True(t, th.App.SessionHasPermissionToAdministerPropertyFieldScope(th.Context, session(plainMember), field))
+				assert.False(t, th.App.SessionHasPermissionToAdministerPropertyFieldScope(th.Context, session(outsider), field))
+			})
+
+			// Value-level admin dispatches on the value's own target, so both
+			// the channel-object and post-object arms need covering.
+			t.Run("value level", func(t *testing.T) {
+				channelField := &model.PropertyField{
+					GroupID:          groupID,
+					Name:             "channel values " + model.NewId(),
+					Type:             model.PropertyFieldTypeText,
+					ObjectType:       model.PropertyFieldObjectTypeChannel,
+					TargetType:       string(model.PropertyFieldTargetLevelSystem),
+					PermissionValues: model.NewPointer(model.PermissionLevelAdmin),
+				}
+				assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(plainMember), channelField, tc.channel.Id))
+				assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(outsider), channelField, tc.channel.Id))
+
+				postField := &model.PropertyField{
+					GroupID:          groupID,
+					Name:             "post values " + model.NewId(),
+					Type:             model.PropertyFieldTypeText,
+					ObjectType:       model.PropertyFieldObjectTypePost,
+					TargetType:       string(model.PropertyFieldTargetLevelSystem),
+					PermissionValues: model.NewPointer(model.PermissionLevelAdmin),
+				}
+				assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(plainMember), postField, post.Id))
+				assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(outsider), postField, post.Id))
+			})
+		})
+	}
+
+	// Regression guard: normal channels must NOT collapse to membership.
+	t.Run("normal channels unaffected", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "normal scoped " + model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypePost,
+			TargetType:        string(model.PropertyFieldTargetLevelChannel),
+			TargetID:          th.BasicChannel.Id,
+			PermissionField:   model.NewPointer(model.PermissionLevelAdmin),
+			PermissionValues:  model.NewPointer(model.PermissionLevelAdmin),
+			PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
+		}
+		assert.False(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, session(plainMember), field))
+		assert.False(t, th.App.SessionHasPermissionToAdministerPropertyFieldScope(th.Context, session(plainMember), field))
+		assert.True(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, session(th.BasicUser), field))
+
+		// The post-object value arm resolves against the post's channel, so it
+		// must stay admin-only on a normal channel too.
+		postField := &model.PropertyField{
+			GroupID:          groupID,
+			Name:             "normal post values " + model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			ObjectType:       model.PropertyFieldObjectTypePost,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			PermissionValues: model.NewPointer(model.PermissionLevelAdmin),
+		}
+		basicPost := th.CreatePost(t, th.BasicChannel)
+		assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(plainMember), postField, basicPost.Id))
+		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(th.BasicUser), postField, basicPost.Id))
+	})
+}
