@@ -234,6 +234,8 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore.On("PropertyField").Return(&propertyFieldStore)
 	mockStore.On("PropertyValue").Return(&propertyValueStore)
 	mockStore.On("ChannelGuard").Return(&channelGuardStore)
+	mockStore.On("LockToMaster").Return()
+	mockStore.On("UnlockFromMaster").Return()
 
 	return &mockStore
 }
