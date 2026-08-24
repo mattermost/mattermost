@@ -342,7 +342,7 @@ describe('discarding an unsaved theme preview', () => {
         renderSettingsModal();
 
         await previewOnyxTheme();
-        await user.click(screen.getByRole('button', {name: 'Save', exact: true}));
+        await user.click(screen.getByRole('button', {name: 'Save'}));
         settleTransitions();
 
         // Saving collapses the theme section, and nothing is left to discard
