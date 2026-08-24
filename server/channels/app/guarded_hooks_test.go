@@ -328,7 +328,7 @@ func TestChannelGuardBlocksScheduledPostWhenPluginInactive(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 
 		// A rejection must not persist any row — same bar as the inactive-guard state.
-		rows, storeErr := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicTeam.Id)
+		rows, storeErr := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
 		require.NoError(t, storeErr)
 		for _, row := range rows {
 			assert.NotEqual(t, th.BasicChannel.Id, row.ChannelId, "rejected scheduled post must not be in the store")
@@ -367,7 +367,7 @@ func TestChannelGuardBlocksScheduledPostWhenPluginInactive(t *testing.T) {
 		assert.Equal(t, http.StatusServiceUnavailable, appErr.StatusCode)
 
 		// No row may exist for this channel/user.
-		rows, storeErr := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.BasicUser.Id, th.BasicTeam.Id)
+		rows, storeErr := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
 		require.NoError(t, storeErr)
 		for _, row := range rows {
 			assert.NotEqual(t, th.BasicChannel.Id, row.ChannelId, "rejected scheduled post must not be in the store")
@@ -393,7 +393,7 @@ func TestChannelGuardBlocksScheduledPostWhenPluginInactive(t *testing.T) {
 		require.NotNil(t, saved)
 
 		// Confirm the row actually exists in the store with the expected content.
-		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(saved.Id)
+		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, saved.Id)
 		require.NoError(t, storeErr)
 		assert.Equal(t, "unguarded, should persist", fetched.Message)
 	})
@@ -436,7 +436,7 @@ func TestChannelGuardBlocksScheduledPostWhenPluginInactive(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 
 		// The store row must still have the original message — the rejection must not mutate it.
-		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(saved.Id)
+		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, saved.Id)
 		require.NoError(t, storeErr)
 		assert.Equal(t, "original", fetched.Message, "rejected update must not be persisted")
 	})
@@ -479,7 +479,7 @@ func TestChannelGuardBlocksScheduledPostWhenPluginInactive(t *testing.T) {
 		assert.Equal(t, http.StatusServiceUnavailable, appErr.StatusCode)
 
 		// The store row must still have the original message.
-		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(saved.Id)
+		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, saved.Id)
 		require.NoError(t, storeErr)
 		assert.Equal(t, "original", fetched.Message, "rejected update must not be persisted")
 	})
@@ -508,7 +508,7 @@ func TestChannelGuardBlocksScheduledPostWhenPluginInactive(t *testing.T) {
 		assert.Equal(t, "updated", updated.Message)
 
 		// Confirm the updated message is actually in the store.
-		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(saved.Id)
+		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, saved.Id)
 		require.NoError(t, storeErr)
 		assert.Equal(t, "updated", fetched.Message)
 	})

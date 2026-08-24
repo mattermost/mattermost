@@ -2476,6 +2476,36 @@ func (s SqlChannelStore) GetMemberLastViewedAt(rctx request.CTX, channelID strin
 	return lastViewedAt, nil
 }
 
+func (s SqlChannelStore) GetMembersWithLastViewedAtSince(rctx request.CTX, channelID string, since int64, afterUserID string, limit int) ([]*model.ChannelMemberLastViewed, error) {
+	if limit <= 0 || limit > model.ChannelMemberLastViewedMaxPerPage {
+		limit = model.ChannelMemberLastViewedMaxPerPage
+	}
+
+	query := s.getQueryBuilder().
+		Select("ChannelMembers.UserId", "COALESCE(ChannelMembers.LastViewedAt, 0) AS LastViewedAt").
+		From("ChannelMembers").
+		Where(sq.Eq{"ChannelMembers.ChannelId": channelID}).
+		Where(sq.GtOrEq{"COALESCE(ChannelMembers.LastViewedAt, 0)": since}).
+		OrderBy("ChannelMembers.UserId ASC").
+		Limit(uint64(limit))
+
+	if afterUserID != "" {
+		query = query.Where(sq.Gt{"ChannelMembers.UserId": afterUserID})
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_members_with_last_viewed_at_since_tosql")
+	}
+
+	members := []*model.ChannelMemberLastViewed{}
+	if err := s.DBXFromContext(rctx.Context()).Select(&members, queryString, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find channel members with channelId=%s and lastViewedAt>=%d", channelID, since)
+	}
+
+	return members, nil
+}
+
 func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 }
 

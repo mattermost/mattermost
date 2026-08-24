@@ -19,7 +19,6 @@ export const SERVER_ENV_BASELINE: Record<string, string> = {
     // Feature flags this test suite needs on, off by default in the server
     MM_FEATUREFLAGS_ATTRIBUTEVALUEMASKING: 'true',
     MM_FEATUREFLAGS_ENABLEREMOTECLUSTERSERVICE: 'true',
-    MM_FEATUREFLAGS_MOVETHREADSENABLED: 'true',
     MM_FEATUREFLAGS_PERMISSIONPOLICIES: 'true',
     MM_FEATUREFLAGS_PROPERTYFIELDRANK: 'true',
     MM_FEATUREFLAGS_RECURRINGSCHEDULEDPOSTS: 'true',
