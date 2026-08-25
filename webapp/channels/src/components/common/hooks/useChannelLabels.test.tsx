@@ -61,7 +61,7 @@ function makeState(fields: PropertyField[], values: Array<PropertyValue<unknown>
         entities: {
             general: {
                 config: {FeatureFlagChannelAttributes: flag},
-                license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
+                license: {IsLicensed: 'true', SkuShortName: 'advanced'},
             },
             properties: {
                 groups: {byId: {[GROUP_ID]: {id: GROUP_ID, name: 'access_control'}}, byName: {access_control: {id: GROUP_ID, name: 'access_control'}}},

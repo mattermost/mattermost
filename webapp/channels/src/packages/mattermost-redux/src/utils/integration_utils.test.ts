@@ -149,7 +149,9 @@ describe('integration utils', () => {
         it('should return error when datetime is before min_date', () => {
             const element = TestHelper.getDialogElementMock({
                 type: 'datetime',
-                min_date: '2025-06-01T00:00:00Z',
+                datetime_config: {
+                    min_date: '2025-06-01T00:00:00Z',
+                },
             });
 
             const error = checkDialogElementForError(element, '2025-05-15T12:00:00Z');
@@ -159,7 +161,9 @@ describe('integration utils', () => {
         it('should return error when datetime is after max_date', () => {
             const element = TestHelper.getDialogElementMock({
                 type: 'datetime',
-                max_date: '2025-06-01T00:00:00Z',
+                datetime_config: {
+                    max_date: '2025-06-01T00:00:00Z',
+                },
             });
 
             const error = checkDialogElementForError(element, '2025-06-15T12:00:00Z');
@@ -169,8 +173,10 @@ describe('integration utils', () => {
         it('should return null when datetime is within min_date and max_date bounds', () => {
             const element = TestHelper.getDialogElementMock({
                 type: 'datetime',
-                min_date: '2025-01-01T00:00:00Z',
-                max_date: '2025-12-31T23:59:59Z',
+                datetime_config: {
+                    min_date: '2025-01-01T00:00:00Z',
+                    max_date: '2025-12-31T23:59:59Z',
+                },
             });
 
             expect(checkDialogElementForError(element, '2025-06-15T12:00:00Z')).toBeNull();
@@ -184,51 +190,14 @@ describe('integration utils', () => {
         it('should handle unresolvable min_date/max_date gracefully', () => {
             const element = TestHelper.getDialogElementMock({
                 type: 'datetime',
-                min_date: 'not-a-valid-format',
-                max_date: 'also-invalid',
+                datetime_config: {
+                    min_date: 'not-a-valid-format',
+                    max_date: 'also-invalid',
+                },
             });
 
             // Should skip range check (resolveBoundToDate returns null) and pass
             expect(checkDialogElementForError(element, '2025-06-15T12:00:00Z')).toBeNull();
-        });
-
-        it('should use datetime_config.min_date over legacy min_date', () => {
-            const element = TestHelper.getDialogElementMock({
-                type: 'datetime',
-                min_date: '2020-01-01T00:00:00Z',
-                datetime_config: {
-                    min_date: '2025-06-01T00:00:00Z',
-                },
-            });
-
-            // datetime_config.min_date (2025-06-01) takes precedence over legacy (2020-01-01)
-            const error = checkDialogElementForError(element, '2025-05-15T12:00:00Z');
-            expect(error?.id).toBe('interactive_dialog.error.before_min_date');
-        });
-
-        it('should use datetime_config.max_date over legacy max_date', () => {
-            const element = TestHelper.getDialogElementMock({
-                type: 'datetime',
-                max_date: '2030-12-31T23:59:59Z',
-                datetime_config: {
-                    max_date: '2025-06-01T00:00:00Z',
-                },
-            });
-
-            // datetime_config.max_date (2025-06-01) takes precedence over legacy (2030-12-31)
-            const error = checkDialogElementForError(element, '2025-06-15T12:00:00Z');
-            expect(error?.id).toBe('interactive_dialog.error.after_max_date');
-        });
-
-        it('should fall back to legacy fields when datetime_config not set', () => {
-            const element = TestHelper.getDialogElementMock({
-                type: 'datetime',
-                min_date: '2025-06-01T00:00:00Z',
-                max_date: '2025-12-31T23:59:59Z',
-            });
-
-            expect(checkDialogElementForError(element, '2025-06-15T12:00:00Z')).toBeNull();
-            expect(checkDialogElementForError(element, '2025-05-01T12:00:00Z')?.id).toBe('interactive_dialog.error.before_min_date');
         });
     });
 });

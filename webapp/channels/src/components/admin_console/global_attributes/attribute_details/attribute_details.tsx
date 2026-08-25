@@ -13,8 +13,6 @@ import type {PropertyField, PropertyFieldOption} from '@mattermost/types/propert
 import {supportsOptions} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
-import {Client4} from 'mattermost-redux/client';
-import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
@@ -33,18 +31,20 @@ import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 import {CPA_FIELD_NAME_MAX_RUNES, filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
 import type {CPAFieldNameValidationError} from 'utils/properties';
 
+import AttributeAppliesTo from './attribute_applies_to';
+import {ALL_RESOURCE_TYPES, ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID, resourceTypeLabels} from './attribute_applies_to_constants';
+import type {ResourceObjectType} from './attribute_applies_to_constants';
 import AttributeExternalSource from './attribute_external_source';
 import type {ExternalSource} from './attribute_external_source';
 import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
 
-import AppliesToCard from '../applies_to/applies_to_card';
-import {buildChannelFieldPayload, isOrderedChangePolicy} from '../applies_to/channels';
+import {DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, isOrderedChangePolicy} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
 import {getTypeIcon, getTypeLabel, typeLabels} from '../global_attributes_table';
 import type {AttributeFieldType} from '../utils';
-import {createAttributeField} from '../utils';
+import {createAttributeField, createLinkedAttributeField, deleteAttributeField, deleteLinkedAttributeField} from '../utils';
 
 import './attribute_details.scss';
 
@@ -90,7 +90,17 @@ function computeAutoSlugDisplay(displayName: string): string | null {
     return slug === '_copy' ? null : slug;
 }
 
-type ErrorKind = 'name_conflict' | 'invalid_charset' | 'reserved_word' | 'limit_reached' | 'invalid_options' | 'channel_resource' | 'generic';
+type ErrorKind =
+    | 'name_conflict' |
+    'invalid_charset' |
+    'reserved_word' |
+    'limit_reached' |
+    'invalid_options' |
+    'generic' |
+    'applies_to_failed' |
+    'applies_to_rollback_failed' |
+    'applies_to_name_conflict' |
+    'applies_to_limit_reached';
 
 function errorKindFromError(error: unknown): ErrorKind {
     const serverErrorId = (error as ClientError | undefined)?.server_error_id;
@@ -109,6 +119,103 @@ function errorKindFromError(error: unknown): ErrorKind {
     default:
         return 'generic';
     }
+}
+
+// A linked-field creation failure gets its own mapping rather than reusing
+// errorKindFromError's cases above: the server error ids are identical to the
+// template's own name-conflict/limit-reached ids (both write into the same
+// access_control group), but the actionable copy is different -- a linked
+// 'user'-object-type field conflicts with a Custom Profile Attributes field,
+// not with another Global Attribute (see the plan's CPA-namespace-overlap
+// Decision). Returns null for anything else, so the caller falls back to the
+// generic applies-to-failed message.
+function appliesToErrorKindFromError(error: unknown): 'applies_to_name_conflict' | 'applies_to_limit_reached' | null {
+    const serverErrorId = (error as ClientError | undefined)?.server_error_id;
+    switch (serverErrorId) {
+    case 'app.property_field.create.name_conflict.app_error':
+        return 'applies_to_name_conflict';
+    case 'app.property_field.create.limit_reached.app_error':
+    case 'app.property_field.create.group_limit_reached.app_error':
+        return 'applies_to_limit_reached';
+    default:
+        return null;
+    }
+}
+
+// Formats a resource-type list for interpolation into an error banner, e.g.
+// "Users, Channels" -- reuses the same labels the picker and rows already
+// show, so the banner names resources the same way the UI does.
+function resourceTypeListLabel(types: ResourceObjectType[], formatMessage: IntlShape['formatMessage']): string {
+    return types.map((type) => formatMessage(resourceTypeLabels[type])).join(', ');
+}
+
+// The settled result of a handleSave attempt -- computed synchronously
+// through the create-or-rollback sequence, then applied in one place
+// (finalizeSave) behind the single isMountedRef check (see Decisions).
+type SaveOutcome =
+    | {success: true} |
+    {success: false; errorKind: ErrorKind; serverErrorMessage: string | null; failedResourceTypes: ResourceObjectType[] | null};
+
+// Rolls back everything created in a failed handleSave attempt: deletes every
+// linked field already created so far (continuing through the full list even
+// if one delete fails, so a single stuck field doesn't leave the rest
+// orphaned too), then -- only if every one of those deletes succeeded --
+// attempts to delete the template itself (deletion-order protection
+// guarantees the template delete would 409 otherwise, so it's skipped rather
+// than attempted for a failure this banner can't explain). Returns the
+// settled failure outcome for handleSave to hand to finalizeSave.
+async function rollbackLinkedFields(
+    createdLinkedFields: Array<{type: ResourceObjectType; field: PropertyField}>,
+    templateFieldId: string,
+    failedType: ResourceObjectType,
+    creationError: unknown,
+): Promise<SaveOutcome & {success: false}> {
+    const survivingTypes: ResourceObjectType[] = [];
+    for (const created of createdLinkedFields) {
+        try {
+            // eslint-disable-next-line no-await-in-loop
+            await deleteLinkedAttributeField(created.type, created.field.id);
+        } catch {
+            survivingTypes.push(created.type);
+        }
+    }
+
+    if (survivingTypes.length > 0) {
+        return {
+            success: false,
+            errorKind: 'applies_to_rollback_failed',
+            serverErrorMessage: null,
+            failedResourceTypes: survivingTypes,
+        };
+    }
+
+    try {
+        await deleteAttributeField(templateFieldId);
+    } catch (deleteTemplateError) {
+        // Linked fields are gone, but the template is still on the server.
+        // A retry under the same Unique name will conflict with it, so this
+        // is the same class of leftover as a linked-field that wouldn't
+        // delete -- not "nothing was saved".
+        // eslint-disable-next-line no-console
+        console.error('Failed to delete orphaned attribute template after rolling back its linked fields', deleteTemplateError);
+        return {
+            success: false,
+            errorKind: 'applies_to_rollback_failed',
+            serverErrorMessage: null,
+            failedResourceTypes: [],
+        };
+    }
+
+    // CPA name-conflict / cap banners only make sense for a Users-linked
+    // field (that namespace is shared with Custom Profile Attributes).
+    // Channels/Posts use the generic applies-to-failed copy.
+    const cpaErrorKind = failedType === 'user' ? appliesToErrorKindFromError(creationError) : null;
+    return {
+        success: false,
+        errorKind: cpaErrorKind ?? 'applies_to_failed',
+        serverErrorMessage: null,
+        failedResourceTypes: [failedType],
+    };
 }
 
 function nameErrorMessage(error: CPAFieldNameValidationError, formatMessage: IntlShape['formatMessage']): string {
@@ -164,22 +271,31 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const [ldapAttr, setLdapAttr] = useState('');
     const [samlAttr, setSamlAttr] = useState('');
 
-    // Global Attributes is Enterprise, but the Channels resource writes channel
-    // attributes, which the server refuses below Enterprise Advanced.
+    // Global Attributes is Enterprise, but a channel attribute is refused below
+    // Enterprise Advanced, so Channels is not offered as a resource at all.
     const channelAttributesEnabled = useSelector((state: GlobalState) =>
         getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
+    const allowedResourceTypes = useMemo(
+        () => (channelAttributesEnabled ? ALL_RESOURCE_TYPES : ALL_RESOURCE_TYPES.filter((type) => type !== 'channel')),
+        [channelAttributesEnabled],
+    );
 
-    // null means the attribute does not apply to channels.
-    const [channelResource, setChannelResource] = useState<ChannelResourceConfig | null>(null);
+    // Pending Applies-to selection -- insertion order, not fixed Users/Channels/
+    // Posts order (that fixed order only governs the picker's own offer list).
+    const [appliesTo, setAppliesTo] = useState<ResourceObjectType[]>([]);
 
-    // Held so a Save that failed on the linked channel field retries only that
-    // write instead of colliding with the name the template already took. The
-    // definition locks alongside it: it is saved, and this page cannot edit it.
-    const [createdTemplate, setCreatedTemplate] = useState<PropertyField | null>(null);
-    const definitionLocked = createdTemplate !== null;
+    // What the Channels row edits. Kept whether or not Channels is currently in
+    // appliesTo, so removing the resource and adding it back does not silently
+    // reset the configuration.
+    const [channelResource, setChannelResource] = useState<ChannelResourceConfig>({...DEFAULT_CHANNEL_RESOURCE_CONFIG});
 
     const [saving, setSaving] = useState(false);
     const [errorKind, setErrorKind] = useState<ErrorKind | null>(null);
+
+    // Only populated for the applies_to_* error kinds -- interpolated into
+    // their banners to name which resource(s) failed to create (generic
+    // failure) or which survived a failed rollback (rollback-failed banner).
+    const [failedResourceTypes, setFailedResourceTypes] = useState<ResourceObjectType[] | null>(null);
 
     // Only populated for 'name_conflict' -- the server's own message names the
     // specific conflicting field and the level it conflicts at (e.g. "system"),
@@ -234,7 +350,54 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         dispatch(setNavigationBlocked(true));
         setErrorKind(null);
         setServerErrorMessage(null);
+        setFailedResourceTypes(null);
     }, [dispatch]);
+
+    // Defensive dedupe, independent of the picker's own filtering (which
+    // already only offers not-yet-selected types) -- a genuine no-op if the
+    // type is somehow already present, so it doesn't mark the page dirty or
+    // clear an error banner for nothing.
+    const handleAdd = useCallback((type: ResourceObjectType) => {
+        if (appliesTo.includes(type)) {
+            return;
+        }
+        setAppliesTo((prev) => [...prev, type]);
+        markDirty();
+    }, [appliesTo, markDirty]);
+
+    const handleRemove = useCallback((type: ResourceObjectType) => {
+        setAppliesTo((prev) => prev.filter((existing) => existing !== type));
+        markDirty();
+    }, [markDirty]);
+
+    // Moves focus to the header Add-resource trigger after a pre-save removal
+    // (see the plan's Decisions table) -- via useEffect, not directly inside
+    // handleRemove, since the trigger may have just been re-rendered into
+    // existence this same update (e.g. removing the 3rd of 3 selected types
+    // un-hides both triggers), and a synchronous focus() call in the handler
+    // would run before that re-render commits. Mirrors the sibling external-
+    // source picker's own prevCountRef pattern (attribute_external_source.tsx).
+    //
+    // Also handles the mirror-image case on add: picking the 3rd (last)
+    // resource type unmounts BOTH "Add resource" triggers in this same
+    // render, including whichever one the admin just clicked -- MUI's
+    // Popover restores focus to that trigger once its close transition
+    // finishes, but the trigger is gone from the DOM by then, so focus
+    // silently drops to <body> with no fix here. Landing on the
+    // just-added row's own toggle keeps focus on a real, newly-rendered
+    // element instead. Looked up by data-testid (not id) since the row
+    // doesn't otherwise need a stable element id.
+    const prevAppliesToLengthRef = useRef(appliesTo.length);
+    useEffect(() => {
+        const prevLength = prevAppliesToLengthRef.current;
+        if (appliesTo.length < prevLength) {
+            document.getElementById(ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID)?.focus();
+        } else if (appliesTo.length > prevLength && appliesTo.length === ALL_RESOURCE_TYPES.length) {
+            const lastAddedType = appliesTo[appliesTo.length - 1];
+            document.querySelector<HTMLElement>(`[data-testid="attributeAppliesToRow-${lastAddedType}-toggle"]`)?.focus();
+        }
+        prevAppliesToLengthRef.current = appliesTo.length;
+    }, [appliesTo]);
 
     // Switching into Rank from any other type (re)assigns rank = index + 1 to
     // every current option, overwriting any stale rank values -- mirrors CPA's
@@ -262,7 +425,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         // Raise-only and lower-only compare ranks, so they cannot survive a move off
         // Rank: left in place they would save a policy the server can never evaluate.
         if (newType !== 'rank') {
-            setChannelResource((prev) => (prev && isOrderedChangePolicy(prev.changePolicy) ? {...prev, changePolicy: 'any'} : prev));
+            setChannelResource((prev) => (isOrderedChangePolicy(prev.changePolicy) ? {...prev, changePolicy: 'any'} : prev));
         }
         setFieldType(newType);
     }, [fieldType, markDirty]);
@@ -304,9 +467,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         setIsEditingName(true);
     }, [autoSlugDisplay, isNameManuallyEdited, manualName]);
 
-    // Done (and Enter, which routes here) is inert while the typed Name is
-    // invalid, so a reserved word or bad charset can never be committed into
-    // the field -- the admin must fix it first. This is not a focus trap:
+    // Done, Enter, and blur (clicking away) share this path. Inert while the
+    // typed Name is invalid, so a reserved word or bad charset can never be
+    // committed -- the admin must fix it first. This is not a focus trap:
     // clearing the field makes Done live again (an empty name has no
     // validation error, and Done then applies the revert rules below), and
     // Escape still discards the whole edit outright.
@@ -350,6 +513,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         }
     }, [handleDoneClick, handleCancelEdit]);
 
+    const hasExternalSource = Boolean(ldapAttr || samlAttr);
     const typeSupportsOptions = supportsOptions({type: fieldType} as PropertyField);
 
     // Defensive re-check, not the primary guard: both options editors already
@@ -379,65 +543,109 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     const canSave = !disabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null;
 
+    // Applies the fully-settled outcome of a save attempt -- the ONLY place in
+    // handleSave that reads isMountedRef, checked once after the entire
+    // create-or-rollback sequence below has finished (see the plan's Decisions
+    // table: inserting a mounted-check earlier, e.g. right after the template
+    // create, would skip the linked-field loop and its rollback entirely if
+    // the admin navigated away mid-save, leaving an orphaned template with no
+    // cleanup attempted).
+    const finalizeSave = useCallback((outcome: SaveOutcome) => {
+        if (!isMountedRef.current) {
+            return;
+        }
+        if (outcome.success) {
+            dispatch(setNavigationBlocked(false));
+            getHistory().push(LIST_ROUTE);
+            return;
+        }
+        setErrorKind(outcome.errorKind);
+        setServerErrorMessage(outcome.serverErrorMessage);
+        setFailedResourceTypes(outcome.failedResourceTypes);
+        setSaving(false);
+    }, [dispatch]);
+
     const handleSave = useCallback(async () => {
         if (!canSave) {
             return;
         }
         setSaving(true);
         setErrorKind(null);
+        setServerErrorMessage(null);
+        setFailedResourceTypes(null);
+
+        let templateField: PropertyField;
         try {
-            // Reused when a previous attempt got this far and failed below.
-            let template = createdTemplate;
-            if (!template) {
-                template = await createAttributeField(displayName, currentName, fieldType, options, {ldapAttr, samlAttr});
-                if (!isMountedRef.current) {
-                    return;
-                }
-                setCreatedTemplate(template);
-            }
-
-            // Its own error, and no navigation: the attribute exists but does not
-            // apply to channels yet, and leaving for the list would read as a
-            // clean save.
-            if (channelResource) {
-                try {
-                    await Client4.createPropertyField(
-                        ACCESS_CONTROL_PROPERTY_GROUP,
-                        CHANNEL_OBJECT_TYPE,
-                        buildChannelFieldPayload(template, channelResource),
-                    );
-                } catch (error) {
-                    if (isMountedRef.current) {
-                        setErrorKind('channel_resource');
-                        setServerErrorMessage((error as ClientError | undefined)?.message ?? null);
-                    }
-                    return;
-                }
-            }
-
-            if (!isMountedRef.current) {
-                return;
-            }
-            dispatch(setNavigationBlocked(false));
-            getHistory().push(LIST_ROUTE);
+            templateField = await createAttributeField(displayName, currentName, fieldType, options, {ldapAttr, samlAttr});
         } catch (error) {
-            if (isMountedRef.current) {
-                setErrorKind(errorKindFromError(error));
-                setServerErrorMessage((error as ClientError | undefined)?.message ?? null);
-            }
-        } finally {
-            if (isMountedRef.current) {
-                setSaving(false);
+            finalizeSave({
+                success: false,
+                errorKind: errorKindFromError(error),
+                serverErrorMessage: (error as ClientError | undefined)?.message ?? null,
+                failedResourceTypes: null,
+            });
+            return;
+        }
+
+        // Serial, not Promise.all -- costs nothing at N<=3 calls and is what
+        // makes "which resource failed" deterministic (see Decisions).
+        const createdLinkedFields: Array<{type: ResourceObjectType; field: PropertyField}> = [];
+        let outcome: SaveOutcome = {success: true};
+
+        for (const type of appliesTo) {
+            try {
+                // eslint-disable-next-line no-await-in-loop
+                const linkedField = await createLinkedAttributeField(
+                    type,
+                    currentName,
+                    fieldType,
+                    displayName,
+                    templateField.id,
+                    type === 'channel' ? buildChannelFieldAttrs(channelResource) : undefined,
+                );
+                createdLinkedFields.push({type, field: linkedField});
+            } catch (error) {
+                // eslint-disable-next-line no-await-in-loop
+                outcome = await rollbackLinkedFields(createdLinkedFields, templateField.id, type, error);
+                break;
             }
         }
-    }, [canSave, displayName, currentName, fieldType, options, ldapAttr, samlAttr, channelResource, createdTemplate, dispatch]);
 
-    const handleChannelResourceChange = useCallback((next: ChannelResourceConfig | null) => {
+        finalizeSave(outcome);
+    }, [canSave, displayName, currentName, fieldType, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave]);
+
+    const handleChannelResourceChange = useCallback((next: ChannelResourceConfig) => {
         setChannelResource(next);
         markDirty();
     }, [markDirty]);
 
     const TypeIcon = getTypeIcon(fieldType);
+
+    // The two applies_to_* kinds below that interpolate resource names need
+    // their own copy path -- they can't go through the flat
+    // formatMessage(errorMessages[errorKind]) call every other kind uses,
+    // since that call takes no values. applies_to_name_conflict and
+    // applies_to_limit_reached use canned copy naming the actual cause
+    // ("already used by a User Attribute") rather than the server's raw
+    // message -- unlike the template's own name_conflict case below (which
+    // reuses the server's message because it already names the specific
+    // conflicting field/level), the server's generic name-conflict message
+    // has no notion of "User Attribute" to say, since that framing is
+    // specific to this feature's CPA-namespace overlap.
+    let errorContent: React.ReactNode = null;
+    if (errorKind === 'applies_to_failed') {
+        errorContent = formatMessage(errorMessages.applies_to_failed, {resources: resourceTypeListLabel(failedResourceTypes ?? [], formatMessage)});
+    } else if (errorKind === 'applies_to_rollback_failed') {
+        const resources = resourceTypeListLabel(failedResourceTypes ?? [], formatMessage);
+        errorContent = resources ? formatMessage(errorMessages.applies_to_rollback_failed, {
+            name: displayName,
+            resources,
+        }) : formatMessage(errorMessages.applies_to_template_rollback_failed, {name: displayName});
+    } else if (errorKind === 'name_conflict' && serverErrorMessage) {
+        errorContent = serverErrorMessage;
+    } else if (errorKind) {
+        errorContent = formatMessage(errorMessages[errorKind]);
+    }
 
     return (
         <div
@@ -500,7 +708,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                         value={displayName}
                                         onChange={handleDisplayNameChange}
                                         autoFocus={true}
-                                        disabled={saving || disabled || definitionLocked}
+                                        disabled={saving || disabled}
                                         maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH}
                                         data-testid='attributeDisplayNameInput'
                                     />
@@ -525,8 +733,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                     value={manualName}
                                                     onChange={handleNameChange}
                                                     onKeyDown={handleNameKeyDown}
+                                                    onBlur={handleDoneClick}
                                                     autoFocus={true}
-                                                    disabled={saving || disabled || definitionLocked}
+                                                    disabled={saving || disabled}
                                                     maxLength={CPA_FIELD_NAME_MAX_RUNES}
                                                     aria-labelledby='attribute-unique-name-prefix'
                                                     aria-describedby={nameDescribedBy}
@@ -546,7 +755,14 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 type='button'
                                                 className='AttributeDetails__editLink'
                                                 onClick={isEditingName ? handleDoneClick : handleEditClick}
-                                                disabled={saving || disabled || definitionLocked}
+                                                onMouseDown={(e) => {
+                                                    // Blur runs before click. Without this, Done would
+                                                    // commit on blur and the same click would re-open Edit.
+                                                    if (isEditingName) {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                                disabled={saving || disabled}
                                                 aria-disabled={isDoneBlocked || undefined}
                                                 aria-describedby={isDoneBlocked ? 'attribute-unique-name-error' : undefined}
                                                 aria-label={formatMessage(isEditingName ? messages.doneLinkAriaLabel : messages.editLinkAriaLabel)}
@@ -593,15 +809,17 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                         menuButton={{
                                             id: 'attribute-type-menu-button',
                                             class: 'AttributeDetails__typeButton',
-                                            disabled: saving || disabled || definitionLocked,
-                                            'aria-label': formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))}),
+                                            disabled: saving || disabled || hasExternalSource,
+                                            'aria-label': hasExternalSource ? formatMessage(messages.typeFieldLockedAriaLabel) : formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))}),
                                             children: (
                                                 <>
                                                     <span className='AttributeDetails__typeButtonInner'>
                                                         <TypeIcon size={18}/>
                                                         <FormattedMessage {...getTypeLabel(fieldType)}/>
                                                     </span>
-                                                    <i className='icon icon-chevron-down'/>
+                                                    {!hasExternalSource && (
+                                                        <i className='icon icon-chevron-down'/>
+                                                    )}
                                                 </>
                                             ),
                                             dataTestId: 'attributeTypeMenuButton',
@@ -645,13 +863,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 <AttributeOptionsRankValues
                                                     options={options}
                                                     onOptionsChange={handleOptionsChange}
-                                                    disabled={saving || disabled || definitionLocked}
+                                                    disabled={saving || disabled}
                                                 />
                                             ) : (
                                                 <AttributeOptionsValues
                                                     options={options}
                                                     onOptionsChange={handleOptionsChange}
-                                                    disabled={saving || disabled || definitionLocked}
+                                                    disabled={saving || disabled}
                                                 />
                                             )}
                                             {optionsIssue && (
@@ -665,36 +883,36 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             )}
                                         </>
                                     ) : (
-                                        <p
-                                            className='AttributeDetails__optionsHelp'
-                                            data-testid='attributeOptionsHelp'
-                                        >
-                                            <FormattedMessage {...messages.optionsHelp}/>
-                                        </p>
+                                        !hasExternalSource && (
+                                            <p
+                                                className='AttributeDetails__optionsHelp'
+                                                data-testid='attributeOptionsHelp'
+                                            >
+                                                <FormattedMessage {...messages.optionsHelp}/>
+                                            </p>
+                                        )
                                     )}
                                     <AttributeExternalSource
                                         ldapAttr={ldapAttr}
                                         samlAttr={samlAttr}
                                         fieldType={fieldType}
                                         onLink={handleLink}
-                                        disabled={saving || disabled || definitionLocked}
+                                        disabled={saving || disabled}
                                     />
                                 </div>
                             </div>
                         </Card.Body>
                     </Card>
-                    {channelAttributesEnabled && (
-
-                        // Stays editable once the definition locks: after a failed
-                        // channel write this is the only thing left to change, either
-                        // to retry or to drop the resource and finish without it.
-                        <AppliesToCard
-                            ordered={fieldType === 'rank'}
-                            channelResource={channelResource}
-                            onChannelResourceChange={handleChannelResourceChange}
-                            disabled={saving || disabled}
-                        />
-                    )}
+                    <AttributeAppliesTo
+                        appliesTo={appliesTo}
+                        allowedTypes={allowedResourceTypes}
+                        disabled={saving || disabled}
+                        onAdd={handleAdd}
+                        onRemove={handleRemove}
+                        channelResource={channelResource}
+                        onChannelResourceChange={handleChannelResourceChange}
+                        ordered={fieldType === 'rank'}
+                    />
                 </div>
             </div>
             <div className='admin-console-save'>
@@ -719,7 +937,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         data-testid='attributeSaveError'
                     >
                         <i className='icon icon-alert-outline'/>
-                        {errorKind === 'name_conflict' && serverErrorMessage ? serverErrorMessage : formatMessage(errorMessages[errorKind])}
+                        {errorContent}
                     </span>
                 )}
             </div>
@@ -753,6 +971,7 @@ const messages = defineMessages({
     typeLabel: {id: 'admin.global_attributes.attribute_details.type.label', defaultMessage: 'Type'},
     typeMenuAriaLabel: {id: 'admin.global_attributes.attribute_details.type.menu_label', defaultMessage: 'Select type'},
     typeFieldAriaLabel: {id: 'admin.global_attributes.attribute_details.type.field_aria_label', defaultMessage: 'Type: {value}'},
+    typeFieldLockedAriaLabel: {id: 'admin.global_attributes.attribute_details.type.field_locked_aria_label', defaultMessage: 'Type: Text. Locked while linked to an external source.'},
     optionsLabel: {id: 'admin.global_attributes.attribute_details.options.label', defaultMessage: 'Options'},
     optionsHelp: {
         id: 'admin.global_attributes.attribute_details.options.help',
@@ -813,5 +1032,25 @@ const errorMessages = defineMessages({
     generic: {
         id: 'admin.global_attributes.attribute_details.save_error.generic',
         defaultMessage: 'Something went wrong while saving this attribute. Please try again.',
+    },
+    applies_to_failed: {
+        id: 'admin.global_attributes.attribute_details.save_error.applies_to_failed',
+        defaultMessage: "Couldn't apply this attribute to {resources}. Nothing was saved — please try again.",
+    },
+    applies_to_rollback_failed: {
+        id: 'admin.global_attributes.attribute_details.save_error.applies_to_rollback_failed',
+        defaultMessage: '"{name}" may have been partially created for {resources}. A retry under the same name will likely fail until those are cleaned up.',
+    },
+    applies_to_template_rollback_failed: {
+        id: 'admin.global_attributes.attribute_details.save_error.applies_to_template_rollback_failed',
+        defaultMessage: '"{name}" was created but could not be cleaned up after a failed apply. A retry under the same name will likely fail until it is deleted.',
+    },
+    applies_to_name_conflict: {
+        id: 'admin.global_attributes.attribute_details.save_error.applies_to_name_conflict',
+        defaultMessage: 'This name is already used by a User Attribute. Please choose a different name.',
+    },
+    applies_to_limit_reached: {
+        id: 'admin.global_attributes.attribute_details.save_error.applies_to_limit_reached',
+        defaultMessage: 'The maximum number of User Attributes has been reached. Delete an existing one before applying this attribute to Users.',
     },
 });

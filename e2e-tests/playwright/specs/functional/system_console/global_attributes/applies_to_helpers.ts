@@ -55,7 +55,7 @@ export async function configureChannelAttribute(
     }: ChannelAttributeConfig,
 ): Promise<string> {
     const {globalAttributes} = systemConsolePage;
-    const {appliesToChannels} = globalAttributes;
+    const {attributeAppliesToChannels} = globalAttributes;
 
     await globalAttributes.gotoNewAttribute();
     await globalAttributes.setDisplayName(displayName);
@@ -67,12 +67,12 @@ export async function configureChannelAttribute(
         await globalAttributes.addOptions(options);
     }
 
-    await appliesToChannels.addResource();
-    await appliesToChannels.setRequired(required);
+    await attributeAppliesToChannels.addResource();
+    await attributeAppliesToChannels.setRequired(required);
     if (changePolicy) {
-        await appliesToChannels.setChangePolicy(changePolicy);
+        await attributeAppliesToChannels.setChangePolicy(changePolicy);
     }
-    await appliesToChannels.setDisplayLocations(displayLocations);
+    await attributeAppliesToChannels.setDisplayLocations(displayLocations);
 
     await globalAttributes.save();
 

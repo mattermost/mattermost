@@ -19,20 +19,14 @@ import {CHANNEL_DISPLAY_LOCATIONS} from './types';
 const CHANNEL_VALUE_SETTER: PropertyPermissionLevel = 'admin';
 
 /**
- * Builds the linked channel field for a template attribute.
+ * The attrs a channel resource's configuration contributes to its linked field.
  *
- * The omissions are server rules: options live on the template and are rejected
- * on a linked field, target_type must match the template's, and permission_field
- * and permission_options are left for the server to default.
+ * Written only when they differ from the server default, so a field left at the
+ * defaults is indistinguishable from one created before these keys existed.
  */
-export function buildChannelFieldPayload(
-    template: PropertyField,
-    config: ChannelResourceConfig,
-): Partial<PropertyField> & Record<string, unknown> {
+export function buildChannelFieldAttrs(config: ChannelResourceConfig): Record<string, unknown> {
     const attrs: Record<string, unknown> = {};
 
-    // Written only when they differ from the server default, so a field left at
-    // the defaults is indistinguishable from one created before these keys.
     if (config.required) {
         attrs.required = true;
     }
@@ -48,6 +42,22 @@ export function buildChannelFieldPayload(
     if (config.displayLocations.length > 0) {
         attrs.actions = [...config.displayLocations];
     }
+
+    return attrs;
+}
+
+/**
+ * Builds the linked channel field for a template attribute.
+ *
+ * The omissions are server rules: options live on the template and are rejected
+ * on a linked field, target_type must match the template's, and permission_field
+ * and permission_options are left for the server to default.
+ */
+export function buildChannelFieldPayload(
+    template: PropertyField,
+    config: ChannelResourceConfig,
+): Partial<PropertyField> & Record<string, unknown> {
+    const attrs = buildChannelFieldAttrs(config);
 
     return {
         name: template.name,

@@ -17,25 +17,14 @@ async function setToggle(toggle: Locator, on: boolean) {
 }
 
 /**
- * The Channels row of an attribute's "Applies to" card.
+ * The channel settings themselves — required, display locations, change policy.
+ * Two pages host them, each with its own chrome around this body.
  */
-export class AppliesToChannels {
+class ChannelResourceSettings {
     readonly container: Locator;
 
     constructor(container: Locator) {
         this.container = container;
-    }
-
-    get addResourceButton() {
-        return this.container.getByTestId('appliesToAddResource');
-    }
-
-    get row() {
-        return this.container.getByTestId('channelsResourceRow');
-    }
-
-    get summary() {
-        return this.container.getByTestId('channelsResourceRowSummary');
     }
 
     get requiredToggle() {
@@ -48,11 +37,6 @@ export class AppliesToChannels {
 
     location(location: ChannelDisplayLocation) {
         return this.container.getByTestId(`channelsResourceLocation-${location}`);
-    }
-
-    async addResource() {
-        await this.addResourceButton.click();
-        await expect(this.row).toBeVisible();
     }
 
     async setRequired(required: boolean) {
@@ -72,9 +56,60 @@ export class AppliesToChannels {
             await this.location(location).check();
         }
     }
+}
+
+/**
+ * The Channels row of the Classification page's "Applies to" card.
+ */
+export class AppliesToChannels extends ChannelResourceSettings {
+    get addResourceButton() {
+        return this.container.getByTestId('appliesToAddResource');
+    }
+
+    get row() {
+        return this.container.getByTestId('channelsResourceRow');
+    }
+
+    get summary() {
+        return this.container.getByTestId('channelsResourceRowSummary');
+    }
+
+    async addResource() {
+        await this.addResourceButton.click();
+        await expect(this.row).toBeVisible();
+    }
 
     async removeResource() {
         await this.container.getByTestId('channelsResourceRowRemove').click();
+    }
+}
+
+/**
+ * The Channels row of the New attribute page's "Applies to" card, which offers
+ * one row per resource type and starts collapsed.
+ */
+export class AttributeAppliesToChannels extends ChannelResourceSettings {
+    get row() {
+        return this.container.getByTestId('attributeAppliesToRow-channel');
+    }
+
+    get summary() {
+        return this.container.getByTestId('attributeAppliesToRow-channel-summary');
+    }
+
+    async addResource() {
+        await this.container.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+        await this.container.page().getByRole('menuitem', {name: 'Channels', exact: true}).click();
+        await expect(this.row).toBeVisible();
+
+        // The settings live behind the row's own disclosure, so everything below
+        // needs it open first.
+        await this.row.getByTestId('attributeAppliesToRow-channel-toggle').click();
+        await expect(this.container.getByTestId('channelsResourceSettings')).toBeVisible();
+    }
+
+    async removeResource() {
+        await this.row.getByTestId('attributeAppliesToRow-channel-remove').click();
     }
 }
 
@@ -84,10 +119,12 @@ export class AppliesToChannels {
 export default class GlobalAttributes {
     readonly container: Locator;
     readonly appliesToChannels: AppliesToChannels;
+    readonly attributeAppliesToChannels: AttributeAppliesToChannels;
 
     constructor(container: Locator) {
         this.container = container;
         this.appliesToChannels = new AppliesToChannels(container);
+        this.attributeAppliesToChannels = new AttributeAppliesToChannels(container);
     }
 
     get displayNameInput() {

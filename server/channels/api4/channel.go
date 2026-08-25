@@ -2597,7 +2597,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	var newChannelMembers []model.ChannelMember
 	for _, userId := range userIds {
 		if !model.IsValidId(userId) {
-			c.Logger.Warn("Error adding channel member, invalid UserId", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
+			c.Logger.Warn("Error adding channel member, invalid UserId", mlog.String("user_id", userId), mlog.String("channel_id", channel.Id))
 			c.SetInvalidParam("user_id")
 			lastError = c.Err
 			continue
@@ -2617,7 +2617,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		existingMember, err := c.App.GetChannelMember(c.AppContext, member.ChannelId, member.UserId)
 		if err != nil {
 			if err.Id != app.MissingChannelMemberError {
-				c.Logger.Warn("Error adding channel member, error getting channel member", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id), mlog.Err(err))
+				c.Logger.Warn("Error adding channel member, error getting channel member", mlog.String("user_id", userId), mlog.String("channel_id", channel.Id), mlog.Err(err))
 				lastError = err
 				continue
 			}
@@ -2630,12 +2630,12 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 				newChannelMembers = append(newChannelMembers, *existingMember)
 				continue
 			} else if isSelfAdd && !canAddSelf {
-				c.Logger.Warn("Error adding channel member, Invalid Permission to add self", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
+				c.Logger.Warn("Error adding channel member, Invalid Permission to add self", mlog.String("user_id", userId), mlog.String("channel_id", channel.Id))
 				c.SetPermissionError(model.PermissionJoinPublicChannels)
 				lastError = c.Err
 				continue
 			} else if !isSelfAdd && !canAddOthers {
-				c.Logger.Warn("Error adding channel member, Invalid Permission to add others", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
+				c.Logger.Warn("Error adding channel member, Invalid Permission to add others", mlog.String("user_id", userId), mlog.String("channel_id", channel.Id))
 				c.SetPermissionError(model.PermissionManagePublicChannelMembers)
 				lastError = c.Err
 				continue
@@ -2644,7 +2644,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if existingMember != nil {
 			// user is already a member, go to next
-			c.Logger.Warn("User is already a channel member, skipping", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id))
+			c.Logger.Warn("User is already a channel member, skipping", mlog.String("user_id", userId), mlog.String("channel_id", channel.Id))
 			newChannelMembers = append(newChannelMembers, *existingMember)
 			continue
 		}
@@ -2654,7 +2654,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			PostRootID:      postRootId,
 		})
 		if err != nil {
-			c.Logger.Warn("Error adding channel member", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id), mlog.Err(err))
+			c.Logger.Warn("Error adding channel member", mlog.String("user_id", userId), mlog.String("channel_id", channel.Id), mlog.Err(err))
 			lastError = err
 			continue
 		}
@@ -2663,7 +2663,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		if postRootId != "" {
 			err := c.App.UpdateThreadFollowForUserFromChannelAdd(c.AppContext, cm.UserId, channel.TeamId, postRootId)
 			if err != nil {
-				c.Logger.Warn("Error adding channel member, error updating thread", mlog.String("UserId", userId), mlog.String("ChannelId", channel.Id), mlog.Err(err))
+				c.Logger.Warn("Error adding channel member, error updating thread", mlog.String("user_id", userId), mlog.String("channel_id", channel.Id), mlog.Err(err))
 				lastError = err
 				continue
 			}

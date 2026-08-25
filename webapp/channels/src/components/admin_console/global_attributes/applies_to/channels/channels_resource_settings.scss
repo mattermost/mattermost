@@ -1,0 +1,89 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ChannelsResourceSettings {
+    display: flex;
+    flex-direction: column;
+}
+
+.ChannelsResourceSettings__field {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    gap: 16px;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.ChannelsResourceSettings__label {
+    flex: 0 0 160px;
+    padding-top: 4px;
+    color: var(--center-channel-color);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+}
+
+.ChannelsResourceSettings__control {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ChannelsResourceSettings__locations {
+    display: flex;
+    gap: 24px;
+}
+
+.ChannelsResourceSettings__checkbox {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 400;
+    gap: 8px;
+    line-height: 20px;
+
+    input {
+        margin: 0;
+    }
+}
+
+.ChannelsResourceSettings__help {
+    margin: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 12px;
+    line-height: 16px;
+}
+
+// The state word sits outside the switch, so the switch stays a compact control
+// rather than a full-width labelled bar.
+.ChannelsResourceSettings__switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ChannelsResourceSettings__switchState {
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.ChannelsResourceSettings__selectButton {
+    display: flex;
+    width: 280px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    color: var(--center-channel-color);
+    font-size: 14px;
+    line-height: 20px;
+}
