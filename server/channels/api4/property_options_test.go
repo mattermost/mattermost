@@ -89,6 +89,45 @@ func optionByName(t *testing.T, options []*model.PropertyFieldOption, name strin
 	return nil
 }
 
+// announcedField pairs a websocket event with the field already parsed out of it,
+// so callers don't unmarshal the same payload twice.
+type announcedField struct {
+	event *model.WebSocketEvent
+	field model.PropertyField
+}
+
+// collectFieldEvents drains client's event channel until n property-field-updated
+// events have arrived, one per field ID. Other events may arrive in between, so it
+// collects rather than reading a fixed number. require.Eventually runs its condition
+// on a separate goroutine, where require.FailNow would strand the test rather than
+// fail it, so an unmarshal error is recorded and only asserted after Eventually
+// returns, on the test goroutine.
+func collectFieldEvents(t *testing.T, client *model.WebSocketClient, n int) map[string]announcedField {
+	t.Helper()
+
+	announced := map[string]announcedField{}
+	var unmarshalErr error
+	require.Eventually(t, func() bool {
+		select {
+		case event := <-client.EventChannel:
+			if event.EventType() != model.WebsocketEventPropertyFieldUpdated {
+				return false
+			}
+			var received model.PropertyField
+			if err := json.Unmarshal([]byte(event.GetData()["property_field"].(string)), &received); err != nil {
+				unmarshalErr = err
+				return true
+			}
+			announced[received.ID] = announcedField{event: event, field: received}
+		default:
+		}
+		return len(announced) == n
+	}, 5*time.Second, 100*time.Millisecond)
+	require.NoError(t, unmarshalErr)
+
+	return announced
+}
+
 func TestPropertyFieldOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
@@ -164,22 +203,7 @@ func TestPropertyFieldOptions(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		// One event per field, keyed by the field each one carries. Other events may
-		// arrive in between, so this collects rather than reading a fixed number.
-		announced := map[string]*model.WebSocketEvent{}
-		require.Eventually(t, func() bool {
-			select {
-			case event := <-webSocketClient.EventChannel:
-				if event.EventType() != model.WebsocketEventPropertyFieldUpdated {
-					return false
-				}
-				var received model.PropertyField
-				require.NoError(t, json.Unmarshal([]byte(event.GetData()["property_field"].(string)), &received))
-				announced[received.ID] = event
-			default:
-			}
-			return len(announced) == 2
-		}, 5*time.Second, 100*time.Millisecond)
+		announced := collectFieldEvents(t, webSocketClient, 2)
 
 		for _, tc := range []struct {
 			fieldID    string
@@ -188,16 +212,13 @@ func TestPropertyFieldOptions(t *testing.T) {
 			{fields.template.ID, template},
 			{fields.linked.ID, userObject},
 		} {
-			event := announced[tc.fieldID]
-			require.NotNil(t, event, "no event for field %s", tc.fieldID)
-			require.Equal(t, tc.objectType, event.GetData()["object_type"])
-
-			var received model.PropertyField
-			require.NoError(t, json.Unmarshal([]byte(event.GetData()["property_field"].(string)), &received))
+			announcement := announced[tc.fieldID]
+			require.NotNil(t, announcement.event, "no event for field %s", tc.fieldID)
+			require.Equal(t, tc.objectType, announcement.event.GetData()["object_type"])
 
 			// The renamed option, as this field serves it: the template owns it and
 			// the linked field derives it, and both carry the new name.
-			options, ok := received.Attrs[model.PropertyFieldAttributeOptions].([]any)
+			options, ok := announcement.field.Attrs[model.PropertyFieldAttributeOptions].([]any)
 			require.True(t, ok, "field %s should carry its option list", tc.fieldID)
 			require.Len(t, options, 1)
 			assert.Equal(t, "Aerial Program", options[0].(map[string]any)["name"])
@@ -257,34 +278,18 @@ func TestPropertyFieldOptions(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		announced := map[string]*model.WebSocketEvent{}
-		require.Eventually(t, func() bool {
-			select {
-			case event := <-webSocketClient.EventChannel:
-				if event.EventType() != model.WebsocketEventPropertyFieldUpdated {
-					return false
-				}
-				var received model.PropertyField
-				require.NoError(t, json.Unmarshal([]byte(event.GetData()["property_field"].(string)), &received))
-				announced[received.ID] = event
-			default:
-			}
-			return len(announced) == 2
-		}, 5*time.Second, 100*time.Millisecond)
+		announced := collectFieldEvents(t, webSocketClient, 2)
 
 		for _, fieldID := range []string{sharedTemplate.ID, sharedLinked.ID} {
-			event := announced[fieldID]
-			require.NotNil(t, event, "no event for field %s", fieldID)
+			announcement := announced[fieldID]
+			require.NotNil(t, announcement.event, "no event for field %s", fieldID)
 
-			var received model.PropertyField
-			require.NoError(t, json.Unmarshal([]byte(event.GetData()["property_field"].(string)), &received))
-
-			options, ok := received.Attrs[model.PropertyFieldAttributeOptions].([]any)
+			options, ok := announcement.field.Attrs[model.PropertyFieldAttributeOptions].([]any)
 			require.True(t, ok, "field %s should still carry an options key", fieldID)
 			require.Empty(t, options)
-			_, hasCount := received.Attrs[model.PropertyFieldAttributeOptionsCount]
+			_, hasCount := announcement.field.Attrs[model.PropertyFieldAttributeOptionsCount]
 			require.False(t, hasCount, "field %s should carry no options_count", fieldID)
-			_, hasOmitted := received.Attrs[model.PropertyFieldAttributeOptionsOmitted]
+			_, hasOmitted := announcement.field.Attrs[model.PropertyFieldAttributeOptionsOmitted]
 			require.False(t, hasOmitted, "field %s should carry no options_omitted", fieldID)
 		}
 
