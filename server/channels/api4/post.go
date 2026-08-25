@@ -83,8 +83,8 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 		return
 	}
 
-	postSystemTypeCheckWithContext(where, c, post.Type)
-	if c.Err != nil {
+	if model.IsSystemMessagePostType(post.Type) {
+		c.SetInvalidParam("post.type")
 		return
 	}
 

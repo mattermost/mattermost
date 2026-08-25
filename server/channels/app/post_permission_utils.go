@@ -6,7 +6,6 @@ package app
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -113,15 +112,6 @@ func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, chan
 		return model.MakePermissionErrorForUser(userId, []*model.Permission{model.PermissionCreatePost})
 	}
 
-	return nil
-}
-
-// PostSystemTypeCheck rejects post types reserved for system messages, which users
-// are not allowed to set on posts they create.
-func PostSystemTypeCheck(where string, postType string) *model.AppError {
-	if strings.HasPrefix(postType, model.PostSystemMessagePrefix) {
-		return model.NewAppError(where, "api.context.invalid_param.app_error", map[string]any{"Name": "post.type"}, "", http.StatusBadRequest)
-	}
 	return nil
 }
 

@@ -341,14 +341,13 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 		return model.ScheduledPostErrorCodeNoChannelPermission, nil
 	}
 
-	if appErr := PostSystemTypeCheck("ScheduledPostJob.postChecks", scheduledPost.Type); appErr != nil {
+	if model.IsSystemMessagePostType(scheduledPost.Type) {
 		rctx.Logger().Debug(
 			"canPostScheduledPost post type is reserved for system messages",
 			mlog.String("scheduled_post_id", scheduledPost.Id),
 			mlog.String("user_id", scheduledPost.UserId),
 			mlog.String("channel_id", scheduledPost.ChannelId),
 			mlog.String("error_code", model.ScheduledPostErrorInvalidPost),
-			mlog.Err(appErr),
 		)
 		return model.ScheduledPostErrorInvalidPost, nil
 	}

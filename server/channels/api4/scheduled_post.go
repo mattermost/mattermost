@@ -35,8 +35,8 @@ func scheduledPostChecks(where string, c *Context, scheduledPost *model.Schedule
 		return
 	}
 
-	postSystemTypeCheckWithContext(where, c, scheduledPost.Type)
-	if c.Err != nil {
+	if model.IsSystemMessagePostType(scheduledPost.Type) {
+		c.SetInvalidParam("post.type")
 		return
 	}
 
