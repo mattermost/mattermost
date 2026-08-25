@@ -565,7 +565,7 @@ func optionsMissing(optionIDs []string, existing map[string]struct{}) error {
 // validateValueAgainstField checks a property value against field-type
 // constraints:
 //   - text: max length, value_type format (email, url, phone)
-//   - select: option ID must exist in the field's options
+//   - select, rank: option ID must exist in the field's options
 //   - multiselect: all option IDs must exist
 //   - graph: all option IDs must exist, and none may be repeated
 //   - user: value must be a valid Mattermost ID
