@@ -6766,60 +6766,33 @@ func (s *apiRPCServer) GetSchemeByName(args *Z_GetSchemeByNameArgs, returns *Z_G
 	return nil
 }
 
-type Z_CreateSchemeArgs struct {
-	A *model.Scheme
+type Z_GetOrCreatePluginChannelSchemeArgs struct {
+	A []string
+	B []string
+	C []string
 }
 
-type Z_CreateSchemeReturns struct {
-	A *model.Scheme
-	B *model.AppError
-}
-
-func (g *apiRPCClient) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
-	_args := &Z_CreateSchemeArgs{scheme}
-	_returns := &Z_CreateSchemeReturns{}
-	if err := g.client.Call("Plugin.CreateScheme", _args, _returns); err != nil {
-		log.Printf("RPC call to CreateScheme API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *apiRPCServer) CreateScheme(args *Z_CreateSchemeArgs, returns *Z_CreateSchemeReturns) error {
-	if hook, ok := s.impl.(interface {
-		CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
-	}); ok {
-		returns.A, returns.B = hook.CreateScheme(args.A)
-	} else {
-		return encodableError(fmt.Errorf("API CreateScheme called but not implemented."))
-	}
-	return nil
-}
-
-type Z_DeleteSchemeArgs struct {
-	A string
-}
-
-type Z_DeleteSchemeReturns struct {
+type Z_GetOrCreatePluginChannelSchemeReturns struct {
 	A *model.Scheme
 	B *model.AppError
 }
 
-func (g *apiRPCClient) DeleteScheme(schemeID string) (*model.Scheme, *model.AppError) {
-	_args := &Z_DeleteSchemeArgs{schemeID}
-	_returns := &Z_DeleteSchemeReturns{}
-	if err := g.client.Call("Plugin.DeleteScheme", _args, _returns); err != nil {
-		log.Printf("RPC call to DeleteScheme API failed: %s", err.Error())
+func (g *apiRPCClient) GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError) {
+	_args := &Z_GetOrCreatePluginChannelSchemeArgs{user, admin, guest}
+	_returns := &Z_GetOrCreatePluginChannelSchemeReturns{}
+	if err := g.client.Call("Plugin.GetOrCreatePluginChannelScheme", _args, _returns); err != nil {
+		log.Printf("RPC call to GetOrCreatePluginChannelScheme API failed: %s", err.Error())
 	}
 	return _returns.A, _returns.B
 }
 
-func (s *apiRPCServer) DeleteScheme(args *Z_DeleteSchemeArgs, returns *Z_DeleteSchemeReturns) error {
+func (s *apiRPCServer) GetOrCreatePluginChannelScheme(args *Z_GetOrCreatePluginChannelSchemeArgs, returns *Z_GetOrCreatePluginChannelSchemeReturns) error {
 	if hook, ok := s.impl.(interface {
-		DeleteScheme(schemeID string) (*model.Scheme, *model.AppError)
+		GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.DeleteScheme(args.A)
+		returns.A, returns.B = hook.GetOrCreatePluginChannelScheme(args.A, args.B, args.C)
 	} else {
-		return encodableError(fmt.Errorf("API DeleteScheme called but not implemented."))
+		return encodableError(fmt.Errorf("API GetOrCreatePluginChannelScheme called but not implemented."))
 	}
 	return nil
 }
@@ -6880,36 +6853,6 @@ func (s *apiRPCServer) GetRoleByName(args *Z_GetRoleByNameArgs, returns *Z_GetRo
 		returns.A, returns.B = hook.GetRoleByName(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API GetRoleByName called but not implemented."))
-	}
-	return nil
-}
-
-type Z_PatchRoleArgs struct {
-	A string
-	B *model.RolePatch
-}
-
-type Z_PatchRoleReturns struct {
-	A *model.Role
-	B *model.AppError
-}
-
-func (g *apiRPCClient) PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.AppError) {
-	_args := &Z_PatchRoleArgs{roleID, patch}
-	_returns := &Z_PatchRoleReturns{}
-	if err := g.client.Call("Plugin.PatchRole", _args, _returns); err != nil {
-		log.Printf("RPC call to PatchRole API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *apiRPCServer) PatchRole(args *Z_PatchRoleArgs, returns *Z_PatchRoleReturns) error {
-	if hook, ok := s.impl.(interface {
-		PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.AppError)
-	}); ok {
-		returns.A, returns.B = hook.PatchRole(args.A, args.B)
-	} else {
-		return encodableError(fmt.Errorf("API PatchRole called but not implemented."))
 	}
 	return nil
 }

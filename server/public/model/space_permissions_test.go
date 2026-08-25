@@ -4,6 +4,7 @@
 package model
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,17 +25,16 @@ func TestSpaceChannelScopedPermissions(t *testing.T) {
 
 	// Every space capability role slice is self-contained: read_page plus a
 	// subset of the seven.
-	for _, slice := range [][]*Permission{
-		SpacePageCreatorRolePermissions,
-		SpacePageCommenterRolePermissions,
-		SpacePageEditorRolePermissions,
-		SpacePageDeleterOwnRolePermissions,
-		SpacePageDeleterRolePermissions,
+	slices := [][]*Permission{
 		SpaceAdminRolePermissions,
 		SpaceDefaultContributePermissions,
 		SpaceDefaultCommentPermissions,
 		SpaceDefaultReadOnlyPermissions,
-	} {
+	}
+	for _, perms := range SpaceCapabilityRolePermissions {
+		slices = append(slices, perms)
+	}
+	for _, slice := range slices {
 		require.NotEmpty(t, slice)
 		assert.Equal(t, PermissionReadPage.Id, slice[0].Id, "read_page is the baseline of every capability slice")
 		for _, p := range slice {
@@ -138,14 +138,8 @@ func TestMergeChannelHigherScopedPermissionsSpaceExemption(t *testing.T) {
 func TestMakeDefaultRolesSpaceEntries(t *testing.T) {
 	roles := MakeDefaultRoles()
 
-	expected := map[string][]*Permission{
-		SpacePageCreatorRoleId:    SpacePageCreatorRolePermissions,
-		SpacePageCommenterRoleId:  SpacePageCommenterRolePermissions,
-		SpacePageEditorRoleId:     SpacePageEditorRolePermissions,
-		SpacePageDeleterOwnRoleId: SpacePageDeleterOwnRolePermissions,
-		SpacePageDeleterRoleId:    SpacePageDeleterRolePermissions,
-	}
-	for name, perms := range expected {
+	require.Len(t, SpaceCapabilityRolePermissions, len(SpaceCapabilityRoles))
+	for name, perms := range SpaceCapabilityRolePermissions {
 		role, ok := roles[name]
 		require.True(t, ok, "MakeDefaultRoles must define %q", name)
 		assert.Equal(t, PermissionIDs(perms), role.Permissions)
@@ -181,26 +175,19 @@ func TestIsSpaceSchemeName(t *testing.T) {
 	assert.False(t, IsSpaceSchemeName(NewId()))
 }
 
-// TestSpaceCapabilitySlicesMatchCanonicalSet enforces the invariant the
-// SpaceChannelScopedPermissions doc comment states: every capability slice is a
-// subset of the canonical set, and the admin slice is exactly it. Adding an
-// eighth space permission without extending the admin slice fails here.
-func TestSpaceCapabilitySlicesMatchCanonicalSet(t *testing.T) {
+// TestSpaceSlicesMatchCanonicalSet pins the hand-written preset baselines against
+// the canonical set. The capability slices are derived from it, so they need no
+// pinning; the admin slice is the whole set by construction.
+func TestSpaceSlicesMatchCanonicalSet(t *testing.T) {
 	canonical := make(map[string]bool, len(SpaceChannelScopedPermissions))
 	for _, p := range SpaceChannelScopedPermissions {
 		canonical[p.Id] = true
 	}
 
 	for name, slice := range map[string][]*Permission{
-		"SpacePageCreatorRolePermissions":    SpacePageCreatorRolePermissions,
-		"SpacePageCommenterRolePermissions":  SpacePageCommenterRolePermissions,
-		"SpacePageEditorRolePermissions":     SpacePageEditorRolePermissions,
-		"SpacePageDeleterOwnRolePermissions": SpacePageDeleterOwnRolePermissions,
-		"SpacePageDeleterRolePermissions":    SpacePageDeleterRolePermissions,
-		"SpaceDefaultContributePermissions":  SpaceDefaultContributePermissions,
-		"SpaceDefaultCommentPermissions":     SpaceDefaultCommentPermissions,
-		"SpaceDefaultReadOnlyPermissions":    SpaceDefaultReadOnlyPermissions,
-		"SpaceAdminRolePermissions":          SpaceAdminRolePermissions,
+		"SpaceDefaultContributePermissions": SpaceDefaultContributePermissions,
+		"SpaceDefaultCommentPermissions":    SpaceDefaultCommentPermissions,
+		"SpaceDefaultReadOnlyPermissions":   SpaceDefaultReadOnlyPermissions,
 	} {
 		for _, p := range slice {
 			assert.True(t, canonical[p.Id], "%s carries %q, which is not in SpaceChannelScopedPermissions", name, p.Id)
@@ -208,10 +195,15 @@ func TestSpaceCapabilitySlicesMatchCanonicalSet(t *testing.T) {
 	}
 
 	// The admin role is the full authority: exactly the canonical set.
-	adminIDs := PermissionIDs(SpaceAdminRolePermissions)
-	canonicalIDs := PermissionIDs(SpaceChannelScopedPermissions)
-	assert.ElementsMatch(t, canonicalIDs, adminIDs,
+	assert.ElementsMatch(t, PermissionIDs(SpaceChannelScopedPermissions), PermissionIDs(SpaceAdminRolePermissions),
 		"SpaceAdminRolePermissions must cover every channel-scoped space permission")
+
+	// Each capability role is read_page plus exactly one further capability.
+	for roleID, perms := range SpaceCapabilityRolePermissions {
+		require.Len(t, perms, 2, "%s must be read_page plus one capability", roleID)
+		assert.Equal(t, PermissionReadPage.Id, perms[0].Id, "%s must lead with read_page", roleID)
+		assert.True(t, canonical[perms[1].Id], "%s carries %q, which is not in SpaceChannelScopedPermissions", roleID, perms[1].Id)
+	}
 }
 
 func TestIsSpaceCapabilityRole(t *testing.T) {
@@ -235,4 +227,73 @@ func TestIsSpaceCapabilityRole(t *testing.T) {
 		_, ok := roles[name]
 		assert.True(t, ok, "MakeDefaultRoles must define %q", name)
 	}
+}
+
+func TestPluginChannelSchemeName(t *testing.T) {
+	const pluginID = "com.example.docs"
+	user := []string{PermissionReadPage.Id, PermissionCreatePage.Id}
+	admin := []string{PermissionAdminSpace.Id}
+	guest := []string{PermissionReadPage.Id}
+
+	name := PluginChannelSchemeName(pluginID, user, admin, guest)
+
+	t.Run("fits the name column and stays in the namespace", func(t *testing.T) {
+		assert.LessOrEqual(t, len(name), SchemeNameMaxLength)
+		assert.True(t, IsPluginChannelSchemeName(name))
+		assert.Regexp(t, `^plugin_[0-9a-f]{16}_[0-9a-f]{16}$`, name)
+	})
+
+	t.Run("pools: order and duplicates do not change it", func(t *testing.T) {
+		reordered := PluginChannelSchemeName(pluginID,
+			[]string{PermissionCreatePage.Id, PermissionReadPage.Id, PermissionReadPage.Id}, admin, guest)
+		assert.Equal(t, name, reordered)
+	})
+
+	t.Run("separates: a permission moved between roles is a different scheme", func(t *testing.T) {
+		moved := PluginChannelSchemeName(pluginID,
+			[]string{PermissionReadPage.Id},
+			[]string{PermissionAdminSpace.Id, PermissionCreatePage.Id},
+			guest)
+		assert.NotEqual(t, name, moved)
+	})
+
+	t.Run("isolates: another plugin asking for the same sets gets its own", func(t *testing.T) {
+		other := PluginChannelSchemeName("com.example.other", user, admin, guest)
+		assert.NotEqual(t, name, other)
+	})
+
+	t.Run("an ordinary scheme name is not in the namespace", func(t *testing.T) {
+		assert.False(t, IsPluginChannelSchemeName("some_customer_scheme"))
+		assert.False(t, IsPluginChannelSchemeName(SchemeNameSpaceContribute))
+	})
+
+	// The guards read a true answer as "no write may ever touch this", so a name
+	// this claims becomes permanently uneditable. The prefix alone is a plain
+	// string a customer may already have used, so only a name a digest pair could
+	// have produced is claimed.
+	t.Run("the prefix alone does not put a name in the namespace", func(t *testing.T) {
+		for _, notMinted := range []string{
+			"plugin_",
+			"plugin_com.example.docs",
+			"plugin_incident_response",
+			"plugin_" + strings.Repeat("a", 16), // one digest, no second half
+			"plugin_" + strings.Repeat("a", 16) + "_" + strings.Repeat("a", 15), // second digest too short
+			"plugin_" + strings.Repeat("a", 16) + "_" + strings.Repeat("a", 17), // too long
+			"plugin_" + strings.Repeat("A", 16) + "_" + strings.Repeat("a", 16), // hex is emitted lowercase
+			"plugin_" + strings.Repeat("g", 16) + "_" + strings.Repeat("a", 16), // outside the hex alphabet
+			"prefix_plugin_" + strings.Repeat("a", 16) + "_" + strings.Repeat("a", 16),
+		} {
+			assert.False(t, IsPluginChannelSchemeName(notMinted), "%q is not a minted name", notMinted)
+		}
+	})
+}
+
+func TestIsChannelScopedPermissionID(t *testing.T) {
+	for _, p := range SpaceChannelScopedPermissions {
+		assert.True(t, IsChannelScopedPermissionID(p.Id), "space permission %q is channel-scoped", p.Id)
+	}
+	assert.True(t, IsChannelScopedPermissionID(PermissionCreatePost.Id))
+	assert.False(t, IsChannelScopedPermissionID(PermissionManageSystem.Id))
+	assert.False(t, IsChannelScopedPermissionID(PermissionViewTeam.Id))
+	assert.False(t, IsChannelScopedPermissionID("not_a_permission"))
 }

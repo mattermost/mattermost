@@ -298,6 +298,36 @@ func (_m *SchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error) {
 	return r0, r1
 }
 
+// SaveChannelSchemeWithRoles provides a mock function with given fields: scheme, user, admin, guest
+func (_m *SchemeStore) SaveChannelSchemeWithRoles(scheme *model.Scheme, user []string, admin []string, guest []string) (*model.Scheme, error) {
+	ret := _m.Called(scheme, user, admin, guest)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveChannelSchemeWithRoles")
+	}
+
+	var r0 *model.Scheme
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.Scheme, []string, []string, []string) (*model.Scheme, error)); ok {
+		return rf(scheme, user, admin, guest)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Scheme, []string, []string, []string) *model.Scheme); ok {
+		r0 = rf(scheme, user, admin, guest)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Scheme)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.Scheme, []string, []string, []string) error); ok {
+		r1 = rf(scheme, user, admin, guest)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewSchemeStore creates a new instance of SchemeStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewSchemeStore(t interface {

@@ -1487,8 +1487,19 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 	member.SchemeUser = false
 	member.SchemeAdmin = false
 
-	// Resolved at most once for the whole write; see the capability role check below.
-	var channelIsSpace, spaceLookupDone bool
+	// channelID is the same for every role in the loop, so the lookup is made at
+	// most once, and only when a check below actually needs it.
+	var isSpace *bool
+	channelIsSpace := func() (bool, *model.AppError) {
+		if isSpace == nil {
+			resolved, appErr := a.IsSpaceChannelByID(rctx, channelID)
+			if appErr != nil {
+				return false, appErr
+			}
+			isSpace = &resolved
+		}
+		return *isSpace, nil
+	}
 	var capabilityRoleName string
 
 	for roleName := range strings.FieldsSeq(newRoles) {
@@ -1504,26 +1515,19 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 				err = model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 				return nil, err
 			}
-			// The space capability roles sit outside the built-in check
-			// above, so they reach here as explicit roles. They are the
-			// per-member capability grants on a space's backing channel; on any
-			// other channel they would grant space authority to a member.
-			//
-			// Only a capability role needs this lookup, so an ordinary role write
-			// costs no extra read. channelID is the same for every role in the
-			// loop, so the result is reused rather than re-read once per role.
-			isCapabilityRole := model.IsSpaceCapabilityRole(roleName)
-			if isCapabilityRole && !spaceLookupDone {
-				if channelIsSpace, err = a.IsSpaceChannelByID(rctx, channelID); err != nil {
-					return nil, err
+			// The space capability roles sit outside the built-in check above, so
+			// they reach here as explicit roles. They are the per-member capability
+			// grants on a space's backing channel; on any other channel they would
+			// grant space authority to a member.
+			if model.IsSpaceCapabilityRole(roleName) {
+				inSpace, appErr := channelIsSpace()
+				if appErr != nil {
+					return nil, appErr
 				}
-				spaceLookupDone = true
-			}
-			ownerIsSpaceChannel := isCapabilityRole && channelIsSpace
-			if rejectSpaceCapabilityRoleOutsideSpace(rctx, "UpdateChannelMemberRoles", roleName, ownerIsSpaceChannel) {
-				return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
-			}
-			if isCapabilityRole {
+				if !inSpace {
+					logRefusedSpaceCapabilityRole(rctx, "UpdateChannelMemberRoles", roleName)
+					return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+				}
 				capabilityRoleName = roleName
 			}
 			newExplicitRoles = append(newExplicitRoles, roleName)
@@ -1556,12 +1560,11 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 	}
 
 	if member.SchemeGuest && member.SchemeAdmin {
-		if !spaceLookupDone {
-			if channelIsSpace, err = a.IsSpaceChannelByID(rctx, channelID); err != nil {
-				return nil, err
-			}
+		inSpace, appErr := channelIsSpace()
+		if appErr != nil {
+			return nil, appErr
 		}
-		if channelIsSpace {
+		if inSpace {
 			return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_guest_admin.app_error", nil, "", http.StatusBadRequest)
 		}
 		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.guest_and_admin.app_error", nil, "", http.StatusBadRequest)

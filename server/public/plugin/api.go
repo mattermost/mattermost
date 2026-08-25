@@ -1046,22 +1046,25 @@ type API interface {
 	// Minimum server version: 11.11
 	GetSchemeByName(name string) (*model.Scheme, *model.AppError)
 
-	// CreateScheme creates a scheme and its generated roles. The scheme's role
-	// fields are server-assigned and any caller-supplied values are ignored.
+	// GetOrCreatePluginChannelScheme resolves the channel scheme whose generated
+	// user, admin and guest roles grant exactly the given permission sets,
+	// creating it on first use. Asking twice for the same sets returns the same
+	// scheme, so a plugin configuring many channels the same way creates one
+	// scheme rather than one per channel.
+	//
+	// The scheme is complete when returned — its roles are written with their
+	// final permissions in the transaction that creates it — and immutable
+	// afterwards: no later role write may change what it grants, by this plugin
+	// or anyone else. Attach it to a channel and read it back; there is nothing
+	// to configure.
+	//
+	// The scheme belongs to the calling plugin, which is identified from the
+	// request rather than from an argument, so one plugin cannot resolve or
+	// displace another's. Only channel-scoped permissions are accepted.
 	//
 	// @tag Scheme
 	// Minimum server version: 11.11
-	CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
-
-	// DeleteScheme soft-deletes a scheme and its generated roles, reverting any
-	// teams or channels using it to the system-default roles. The seeded space
-	// preset schemes are refused by identity and can never be deleted. Any other
-	// scheme a space backing channel still references is refused too — detach the
-	// space first.
-	//
-	// @tag Scheme
-	// Minimum server version: 11.11
-	DeleteScheme(schemeID string) (*model.Scheme, *model.AppError)
+	GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError)
 
 	// GetSchemeRolesForChannel returns the generated role names of the scheme
 	// governing the given channel, in guest, user, admin order.
@@ -1076,20 +1079,6 @@ type API interface {
 	// @tag Role
 	// Minimum server version: 11.11
 	GetRoleByName(name string) (*model.Role, *model.AppError)
-
-	// PatchRole partially updates a role. Only the fields set on the patch are
-	// changed.
-	//
-	// Adding a space permission is refused unless the role's scheme already
-	// governs a space, so attach the scheme to the space's channel before
-	// patching its roles, not after. Removing one is always allowed. A scheme
-	// is attached by setting SchemeId on the channel and calling UpdateChannel.
-	//
-	// The patch applies to the current stored role, resolved by id.
-	//
-	// @tag Role
-	// Minimum server version: 11.11
-	PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.AppError)
 
 	// LogDebug writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins

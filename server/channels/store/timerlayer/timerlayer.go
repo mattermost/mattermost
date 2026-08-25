@@ -10611,6 +10611,22 @@ func (s *TimerLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error
 	return result, err
 }
 
+func (s *TimerLayerSchemeStore) SaveChannelSchemeWithRoles(scheme *model.Scheme, user []string, admin []string, guest []string) (*model.Scheme, error) {
+	start := time.Now()
+
+	result, err := s.SchemeStore.SaveChannelSchemeWithRoles(scheme, user, admin, guest)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SchemeStore.SaveChannelSchemeWithRoles", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSessionStore) AnalyticsSessionCount() (int64, error) {
 	start := time.Now()
 

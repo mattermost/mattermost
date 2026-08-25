@@ -4,8 +4,11 @@
 package model
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/utils/timeutils"
 )
@@ -32,9 +35,9 @@ const (
 	SchemeDisplayNameSpaceReadOnly   = "Space Read-Only Scheme"
 )
 
-// SpaceSchemeNames lists the three seeded space preset scheme names. It is the
-// enumeration source; membership tests go through IsSpaceSchemeName, which reads
-// a set frozen at init so a later mutation of this slice cannot widen them.
+// SpaceSchemeNames lists the seeded space preset scheme names. It is the
+// enumeration source; membership tests go through IsSpaceSchemeName, which reads a
+// set frozen at init so mutating this slice cannot widen what the guards accept.
 var SpaceSchemeNames = []string{
 	SchemeNameSpaceContribute,
 	SchemeNameSpaceComment,
@@ -50,20 +53,55 @@ func init() {
 	}
 }
 
-// IsSpaceSchemeName reports whether name is one of the three seeded space preset
-// scheme names. It serves both as the reservation predicate — these names may
-// not be created or renamed into — and as proof that a scheme is a preset: the
-// boot seeding runs unconditionally and the Schemes.Name column is unique, so by
-// the time any request runs the name resolves to exactly one row, and that row
-// either was created by the seeding or passed its adoption checks.
-//
-// The answer comes from a set frozen at init rather than from SpaceSchemeNames
-// itself: checkSpacePermissionScope, checkChannelSchemeAssignment and
-// checkSpaceSchemeDelete read this as proof of space authority, so the accepted
-// names must not be widenable by mutating an exported slice. This
-// matches IsSpaceChannelScopedPermissionID and IsSpaceCapabilityRole.
+// IsSpaceSchemeName reports whether name is one of the seeded space preset scheme
+// names. It is both the reservation predicate — these names may not be created or
+// renamed into — and proof that a scheme is a preset, since Schemes.Name is unique
+// and the seeding runs unconditionally.
 func IsSpaceSchemeName(name string) bool {
 	return spaceSchemeNameSet[name]
+}
+
+// PluginChannelSchemeNamePrefix labels every channel scheme minted on a plugin's
+// behalf. Both suffixes are digests, so the whole name is fixed-length and stays
+// well inside SchemeNameMaxLength.
+const PluginChannelSchemeNamePrefix = "plugin_"
+
+// pluginSchemeDigestLength is how much of each digest a plugin channel scheme name
+// carries. Two of these plus the prefix and separator is 40 characters against a
+// 64-character limit.
+const pluginSchemeDigestLength = 16
+
+// pluginSchemeNamePattern matches exactly what PluginChannelSchemeName produces.
+var pluginSchemeNamePattern = regexp.MustCompile(
+	fmt.Sprintf("^%s[0-9a-f]{%d}_[0-9a-f]{%d}$", PluginChannelSchemeNamePrefix, pluginSchemeDigestLength, pluginSchemeDigestLength))
+
+// PluginChannelSchemeName returns the name of the channel scheme expressing the
+// given generated-role permission sets for pluginID. The name is a pure function of
+// its inputs, so every caller asking for the same sets resolves to one scheme.
+// Both halves are digests because neither a plugin id (scheme names admit only
+// [a-z0-9_]) nor the permission sets fit SchemeNameMaxLength spelled out.
+func PluginChannelSchemeName(pluginID string, user, admin, guest []string) string {
+	// Joined by a character no permission id contains, so moving a permission
+	// between roles yields a different name rather than colliding.
+	permissions := strings.Join([]string{
+		strings.Join(NormalizePermissions(user), " "),
+		strings.Join(NormalizePermissions(admin), " "),
+		strings.Join(NormalizePermissions(guest), " "),
+	}, "|")
+	return PluginChannelSchemeNamePrefix + schemeDigest(pluginID) + "_" + schemeDigest(permissions)
+}
+
+// IsPluginChannelSchemeName reports whether name has the exact shape
+// PluginChannelSchemeName produces. The whole shape is tested, not the prefix
+// alone: a true answer makes the scheme permanently uneditable, and the prefix is
+// a plain string a customer may already have used for a scheme of their own.
+func IsPluginChannelSchemeName(name string) bool {
+	return pluginSchemeNamePattern.MatchString(name)
+}
+
+func schemeDigest(s string) string {
+	sum := sha256.Sum256([]byte(s))
+	return hex.EncodeToString(sum[:])[:pluginSchemeDigestLength]
 }
 
 type Scheme struct {

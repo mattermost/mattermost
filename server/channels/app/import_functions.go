@@ -366,7 +366,8 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	// capability role is wrong whether or not it changes anything.
 	if data.Roles != nil {
 		for roleName := range strings.FieldsSeq(*data.Roles) {
-			if rejectSpaceCapabilityRoleOutsideSpace(rctx, "BulkImport", roleName, false) {
+			if model.IsSpaceCapabilityRole(roleName) {
+				logRefusedSpaceCapabilityRole(rctx, "BulkImport", roleName)
 				return model.NewAppError("BulkImport", "api.user.update_user_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 			}
 		}
@@ -507,7 +508,6 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			hasUserRolesChanged = true
 		}
 	}
-
 	user.Roles = roles
 
 	if data.NotifyProps != nil {

@@ -13408,6 +13408,27 @@ func (s *RetryLayerSchemeStore) Save(scheme *model.Scheme) (*model.Scheme, error
 
 }
 
+func (s *RetryLayerSchemeStore) SaveChannelSchemeWithRoles(scheme *model.Scheme, user []string, admin []string, guest []string) (*model.Scheme, error) {
+
+	tries := 0
+	for {
+		result, err := s.SchemeStore.SaveChannelSchemeWithRoles(scheme, user, admin, guest)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSessionStore) AnalyticsSessionCount() (int64, error) {
 
 	tries := 0

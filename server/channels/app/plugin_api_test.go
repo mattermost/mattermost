@@ -4512,81 +4512,102 @@ func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 	})
 }
 
-func TestPluginAPIPatchRoleGuestLicenseGate(t *testing.T) {
+// A minted scheme's three roles are written inside the scheme's own transaction,
+// below PatchRole and below every role guard, so the guest entitlement has to be
+// applied to the requested set before the mint rather than to the stored role after
+// it. The core-defined space guest tier passes unlicensed; anything past it does not.
+// markPhase2MigrationComplete marks the advanced permissions phase 2 migration
+// done, which GetOrCreatePluginChannelScheme requires before it will mint.
+func markPhase2MigrationComplete(t *testing.T, th *TestHelper) {
+	t.Helper()
+	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, err := th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+		require.NoError(t, err)
+	})
+}
+
+func TestPluginAPIGetOrCreatePluginChannelSchemeGuestLicenseGate(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	guestRoleNames := []string{model.SystemGuestRoleId, model.TeamGuestRoleId, model.ChannelGuestRoleId}
+	user := []string{model.PermissionReadPage.Id}
+	admin := []string{model.PermissionAdminSpace.Id}
 
-	t.Run("unlicensed guest role with Permissions patch is refused", func(t *testing.T) {
-		for _, roleName := range guestRoleNames {
-			t.Run(roleName, func(t *testing.T) {
+	widerThanReadOnly := []struct {
+		name  string
+		guest []string
+	}{
+		{"a page write", []string{model.PermissionReadPage.Id, model.PermissionEditPage.Id}},
+		{"space administration", []string{model.PermissionAdminSpace.Id}},
+		{"an ordinary channel permission", []string{model.PermissionCreatePost.Id}},
+		{"membership management", []string{model.PermissionManagePublicChannelMembers.Id}},
+	}
+
+	t.Run("unlicensed guest set past the space read tier is refused", func(t *testing.T) {
+		for _, tc := range widerThanReadOnly {
+			t.Run(tc.name, func(t *testing.T) {
 				th := Setup(t).InitBasic(t)
 				api := th.SetupPluginAPI()
 
-				role, appErr := api.GetRoleByName(roleName)
-				require.Nil(t, appErr)
-				require.NotNil(t, role)
-
-				patch := &model.RolePatch{Permissions: &[]string{}}
-				updated, appErr := api.PatchRole(role.Id, patch)
+				scheme, appErr := api.GetOrCreatePluginChannelScheme(user, admin, tc.guest)
 				require.NotNil(t, appErr)
-				assert.Nil(t, updated)
-				assert.Equal(t, "api.roles.patch_roles.license.error", appErr.Id)
+				assert.Nil(t, scheme)
+				assert.Equal(t, "app.scheme.plugin_scheme.guest_license.app_error", appErr.Id)
 				assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
 			})
 		}
 	})
 
-	t.Run("unlicensed guest role without Permissions patch is allowed", func(t *testing.T) {
+	t.Run("licensed without GuestAccountsPermissions is refused too", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		api := th.SetupPluginAPI()
 
-		role, appErr := api.GetRoleByName(model.SystemGuestRoleId)
-		require.Nil(t, appErr)
-		require.NotNil(t, role)
+		th.App.Srv().SetLicense(model.NewTestLicenseWithFalseDefaults("guest_accounts_permissions"))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
 
-		patch := &model.RolePatch{}
-		updated, appErr := api.PatchRole(role.Id, patch)
-		require.Nil(t, appErr)
-		require.NotNil(t, updated)
-		assert.Equal(t, role.Permissions, updated.Permissions)
+		scheme, appErr := api.GetOrCreatePluginChannelScheme(user, admin, []string{model.PermissionEditPage.Id})
+		require.NotNil(t, appErr)
+		assert.Nil(t, scheme)
+		assert.Equal(t, "app.scheme.plugin_scheme.guest_license.app_error", appErr.Id)
 	})
 
-	t.Run("licensed without GuestAccountsPermissions feature refuses guest role regardless of Permissions", func(t *testing.T) {
-		for _, roleName := range guestRoleNames {
-			t.Run(roleName, func(t *testing.T) {
-				th := Setup(t).InitBasic(t)
-				api := th.SetupPluginAPI()
+	t.Run("licensed with GuestAccountsPermissions mints the wider guest role", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		api := th.SetupPluginAPI()
+		markPhase2MigrationComplete(t, th)
 
-				th.App.Srv().SetLicense(model.NewTestLicenseWithFalseDefaults("guest_accounts_permissions"))
-				defer func() {
-					appErr := th.App.Srv().RemoveLicense()
-					require.Nil(t, appErr)
-				}()
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts_permissions"))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
 
-				role, appErr := api.GetRoleByName(roleName)
-				require.Nil(t, appErr)
-				require.NotNil(t, role)
+		// An ordinary channel permission, not a space one: what the license admits is
+		// a wider guest role on a channel scheme, and the space guest tier is capped
+		// below by the read-only ceiling whatever the license says.
+		guest := []string{model.PermissionReadPage.Id, model.PermissionCreatePost.Id}
+		scheme, appErr := api.GetOrCreatePluginChannelScheme(user, admin, guest)
+		require.Nil(t, appErr)
+		require.NotNil(t, scheme)
 
-				for _, patch := range []*model.RolePatch{
-					{},
-					{Permissions: &[]string{}},
-				} {
-					updated, appErr := api.PatchRole(role.Id, patch)
-					require.NotNil(t, appErr)
-					assert.Nil(t, updated)
-					assert.Equal(t, "api.roles.patch_roles.license.error", appErr.Id)
-					assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
-				}
-			})
-		}
+		role, appErr := api.GetRoleByName(scheme.DefaultChannelGuestRole)
+		require.Nil(t, appErr)
+		assert.ElementsMatch(t, guest, role.Permissions)
 	})
 
-	t.Run("licensed with GuestAccountsPermissions feature allows guest role", func(t *testing.T) {
-		for _, roleName := range guestRoleNames {
-			t.Run(roleName, func(t *testing.T) {
+	// The guest entitlement buys a wider guest role, never space authority for a
+	// guest. UpdateChannelMemberRoles refuses these grants on the member-assignment
+	// side, so admitting them here would leave the ceiling holding on only one path.
+	t.Run("a space write on the guest role is refused even when licensed", func(t *testing.T) {
+		for _, permission := range []string{model.PermissionEditPage.Id, model.PermissionAdminSpace.Id} {
+			t.Run(permission, func(t *testing.T) {
 				th := Setup(t).InitBasic(t)
 				api := th.SetupPluginAPI()
+				markPhase2MigrationComplete(t, th)
 
 				th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts_permissions"))
 				defer func() {
@@ -4594,248 +4615,77 @@ func TestPluginAPIPatchRoleGuestLicenseGate(t *testing.T) {
 					require.Nil(t, appErr)
 				}()
 
-				role, appErr := api.GetRoleByName(roleName)
-				require.Nil(t, appErr)
-				require.NotNil(t, role)
-
-				permissions := append([]string{}, role.Permissions...)
-				patch := &model.RolePatch{Permissions: &permissions}
-				updated, appErr := api.PatchRole(role.Id, patch)
-				require.Nil(t, appErr)
-				require.NotNil(t, updated)
-				assert.Equal(t, permissions, updated.Permissions)
+				scheme, appErr := api.GetOrCreatePluginChannelScheme(user, admin,
+					[]string{model.PermissionReadPage.Id, permission})
+				require.NotNil(t, appErr)
+				assert.Nil(t, scheme)
+				assert.Equal(t, "app.scheme.plugin_scheme.guest_permission_scope.app_error", appErr.Id)
+				assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 			})
 		}
 	})
 
-	// A scheme's generated guest role carries a unique name, so the gate
-	// recognises it by the scheme row that references it — the three built-in
-	// names alone would let a plugin edit guest permissions through any team or
-	// channel scheme.
-	t.Run("scheme-generated guest roles are gated like the built-ins", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-		api := th.SetupPluginAPI()
-
-		// Store-direct, below the licensed CreateScheme path: the license gate
-		// under test must be the only thing standing between the plugin and
-		// the write.
-		scheme, err := th.App.Srv().Store().Scheme().Save(&model.Scheme{
-			Name:        model.NewId(),
-			DisplayName: "team scheme",
-			Scope:       model.SchemeScopeTeam,
-		})
-		require.NoError(t, err)
-
-		for _, roleName := range []string{scheme.DefaultTeamGuestRole, scheme.DefaultChannelGuestRole} {
-			role, appErr := api.GetRoleByName(roleName)
-			require.Nil(t, appErr)
-
-			updated, appErr := api.PatchRole(role.Id, &model.RolePatch{Permissions: &[]string{}})
-			require.NotNil(t, appErr, "guest role %q must be gated", roleName)
-			assert.Nil(t, updated)
-			assert.Equal(t, "api.roles.patch_roles.license.error", appErr.Id)
-			assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
-		}
-
-		// The scheme's user role shares the SchemeId; only the guest
-		// references are gated.
-		userRole, appErr := api.GetRoleByName(scheme.DefaultChannelUserRole)
-		require.Nil(t, appErr)
-		permissions := []string{model.PermissionAddReaction.Id}
-		updated, appErr := api.PatchRole(userRole.Id, &model.RolePatch{Permissions: &permissions})
-		require.Nil(t, appErr)
-		require.NotNil(t, updated)
-	})
-
-	t.Run("channel scheme guest role without a space is gated", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-		api := th.SetupPluginAPI()
-
-		scheme, err := th.App.Srv().Store().Scheme().Save(&model.Scheme{
-			Name:        model.NewId(),
-			DisplayName: "channel scheme",
-			Scope:       model.SchemeScopeChannel,
-		})
-		require.NoError(t, err)
-
-		role, appErr := api.GetRoleByName(scheme.DefaultChannelGuestRole)
-		require.Nil(t, appErr)
-
-		updated, appErr := api.PatchRole(role.Id, &model.RolePatch{Permissions: &[]string{}})
-		require.NotNil(t, appErr)
-		assert.Nil(t, updated)
-		assert.Equal(t, "api.roles.patch_roles.license.error", appErr.Id)
-	})
-
-	t.Run("space scheme guest role is exempt from the guest gate", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-		api := th.SetupPluginAPI()
-
-		scheme, err := th.App.Srv().Store().Scheme().Save(&model.Scheme{
-			Name:        model.NewId(),
-			DisplayName: "pooled space scheme",
-			Scope:       model.SchemeScopeChannel,
-		})
-		require.NoError(t, err)
-		saveSpaceChannelWithScheme(t, th, scheme.Id)
-
-		role, appErr := api.GetRoleByName(scheme.DefaultChannelGuestRole)
-		require.Nil(t, appErr)
-
-		// The pooled-scheme guest baseline the consumer plugin writes: exactly
-		// the read permission. Unlicensed, and still allowed — the space guest
-		// tier is core-defined, not the licensed guest-permission capability.
-		permissions := []string{model.PermissionReadPage.Id}
-		updated, appErr := api.PatchRole(role.Id, &model.RolePatch{Permissions: &permissions})
-		require.Nil(t, appErr)
-		require.NotNil(t, updated)
-		assert.Equal(t, permissions, updated.Permissions)
-	})
-
-	t.Run("non-guest role is unaffected by the guest license gate in every license state", func(t *testing.T) {
-		licenseStates := []struct {
-			name    string
-			license *model.License
+	t.Run("the space read tier and an empty guest set need no license", func(t *testing.T) {
+		for _, tc := range []struct {
+			name  string
+			guest []string
 		}{
-			{"unlicensed", nil},
-			{"licensed without GuestAccountsPermissions", model.NewTestLicenseWithFalseDefaults("guest_accounts_permissions")},
-			{"licensed with GuestAccountsPermissions", model.NewTestLicense("guest_accounts_permissions")},
-		}
-
-		for _, ls := range licenseStates {
-			t.Run(ls.name, func(t *testing.T) {
+			{"the space read tier", []string{model.PermissionReadPage.Id}},
+			{"nothing at all", nil},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
 				th := Setup(t).InitBasic(t)
 				api := th.SetupPluginAPI()
+				markPhase2MigrationComplete(t, th)
 
-				if ls.license != nil {
-					th.App.Srv().SetLicense(ls.license)
-					defer func() {
-						appErr := th.App.Srv().RemoveLicense()
-						require.Nil(t, appErr)
-					}()
-				}
-
-				role := th.CreateRole(t, "custom_role_"+model.NewId())
-
-				permissions := []string{model.PermissionAddReaction.Id}
-				patch := &model.RolePatch{Permissions: &permissions}
-				updated, appErr := api.PatchRole(role.Id, patch)
+				scheme, appErr := api.GetOrCreatePluginChannelScheme(user, admin, tc.guest)
 				require.Nil(t, appErr)
-				require.NotNil(t, updated)
-				assert.Equal(t, permissions, updated.Permissions)
+				require.NotNil(t, scheme)
+
+				role, appErr := api.GetRoleByName(scheme.DefaultChannelGuestRole)
+				require.Nil(t, appErr)
+				assert.ElementsMatch(t, tc.guest, role.Permissions)
 			})
 		}
 	})
 }
 
-// TestPluginAPIPatchRoleDeniedPermissions covers the blocklist on the plugin API
-// path. The REST handler enforces its own copy and rejects first, so this is the
-// only entry point that reaches the App.PatchRole check.
-func TestPluginAPIPatchRoleDeniedPermissions(t *testing.T) {
+// A minted scheme is an ordinary channel scheme once it exists, and only the grants
+// it carries keep it off an ordinary channel. A set drawn from the space permissions
+// is exempt, since those are core-defined and seeded on every edition; anything past
+// them is the custom-schemes capability CreateScheme charges for.
+func TestPluginAPIGetOrCreatePluginChannelSchemeSchemeLicenseGate(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	deniedPermissions := []string{
-		model.PermissionSysconsoleWriteUserManagementSystemRoles.Id,
-		model.PermissionSysconsoleReadUserManagementSystemRoles.Id,
-		model.PermissionManageRoles.Id,
-		model.PermissionManageSystem.Id,
-	}
+	spaceUser := []string{model.PermissionReadPage.Id}
+	spaceAdmin := []string{model.PermissionAdminSpace.Id}
 
-	t.Run("adding a denied permission is refused", func(t *testing.T) {
-		for _, permission := range deniedPermissions {
-			t.Run(permission, func(t *testing.T) {
+	t.Run("an unlicensed set past the space permissions is refused", func(t *testing.T) {
+		for _, tc := range []struct {
+			name               string
+			user, admin, guest []string
+		}{
+			{"an ordinary channel permission in the user set", []string{model.PermissionCreatePost.Id}, spaceAdmin, nil},
+			{"membership management in the admin set", spaceUser, []string{model.PermissionManagePublicChannelMembers.Id}, nil},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
 				th := Setup(t).InitBasic(t)
 				api := th.SetupPluginAPI()
+				markPhase2MigrationComplete(t, th)
 
-				role := th.CreateRole(t, "custom_role_"+model.NewId())
-
-				updated, appErr := api.PatchRole(role.Id, &model.RolePatch{Permissions: &[]string{permission}})
+				scheme, appErr := api.GetOrCreatePluginChannelScheme(tc.user, tc.admin, tc.guest)
 				require.NotNil(t, appErr)
-				assert.Nil(t, updated)
-				assert.Equal(t, "api.roles.patch_roles.not_allowed_permission.error", appErr.Id)
-				assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
-				assert.Contains(t, appErr.DetailedError, permission,
-					"the error names the permission that was refused")
-			})
-		}
-	})
-
-	t.Run("removing a denied permission is refused", func(t *testing.T) {
-		// The blocklist is a diff over the patch, so dropping a denied permission
-		// a role already carries is refused the same way granting one is.
-		for _, permission := range deniedPermissions {
-			t.Run(permission, func(t *testing.T) {
-				th := Setup(t).InitBasic(t)
-				api := th.SetupPluginAPI()
-
-				role, appErr := th.App.CreateRole(&model.Role{
-					Name:        "custom_role_" + model.NewId(),
-					DisplayName: "custom role",
-					Description: "custom role",
-					Permissions: []string{permission},
-				})
-				require.Nil(t, appErr)
-
-				updated, appErr := api.PatchRole(role.Id, &model.RolePatch{Permissions: &[]string{}})
-				require.NotNil(t, appErr)
-				assert.Nil(t, updated)
-				assert.Equal(t, "api.roles.patch_roles.not_allowed_permission.error", appErr.Id)
+				assert.Nil(t, scheme)
+				assert.Equal(t, "app.scheme.plugin_scheme.scheme_license.app_error", appErr.Id)
 				assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
 			})
 		}
 	})
 
-	t.Run("a permission outside the blocklist is allowed", func(t *testing.T) {
+	t.Run("licensed for custom permissions schemes mints it", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		api := th.SetupPluginAPI()
-
-		role := th.CreateRole(t, "custom_role_"+model.NewId())
-
-		permissions := []string{model.PermissionAddReaction.Id}
-		updated, appErr := api.PatchRole(role.Id, &model.RolePatch{Permissions: &permissions})
-		require.Nil(t, appErr)
-		require.NotNil(t, updated)
-		assert.Equal(t, permissions, updated.Permissions)
-	})
-}
-
-func TestPluginAPISchemeCustomPermissionsLicenseGate(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	t.Run("CreateScheme without a license is refused", func(t *testing.T) {
-		th := Setup(t)
-		api := th.SetupPluginAPI()
-
-		scheme := &model.Scheme{
-			DisplayName: "Test Scheme",
-			Name:        "test_scheme_" + model.NewId(),
-			Scope:       model.SchemeScopeTeam,
-		}
-
-		created, appErr := api.CreateScheme(scheme)
-		require.NotNil(t, appErr)
-		assert.Nil(t, created)
-		assert.Equal(t, "api.scheme.create_scheme.license.error", appErr.Id)
-		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
-	})
-
-	t.Run("DeleteScheme without a license is refused", func(t *testing.T) {
-		th := Setup(t)
-		api := th.SetupPluginAPI()
-
-		deleted, appErr := api.DeleteScheme(model.NewId())
-		require.NotNil(t, appErr)
-		assert.Nil(t, deleted)
-		assert.Equal(t, "api.scheme.delete_scheme.license.error", appErr.Id)
-		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
-	})
-
-	t.Run("CreateScheme with a license covering custom permissions schemes is allowed", func(t *testing.T) {
-		th := Setup(t)
-		api := th.SetupPluginAPI()
-
-		err := th.App.SetPhase2PermissionsMigrationStatus(true)
-		require.NoError(t, err)
+		markPhase2MigrationComplete(t, th)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 		defer func() {
@@ -4843,72 +4693,23 @@ func TestPluginAPISchemeCustomPermissionsLicenseGate(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		scheme := &model.Scheme{
-			DisplayName: "Test Scheme",
-			Name:        "test_scheme_" + model.NewId(),
-			Scope:       model.SchemeScopeTeam,
-		}
-
-		created, appErr := api.CreateScheme(scheme)
+		user := []string{model.PermissionCreatePost.Id}
+		scheme, appErr := api.GetOrCreatePluginChannelScheme(user, spaceAdmin, nil)
 		require.Nil(t, appErr)
-		require.NotNil(t, created)
+		require.NotNil(t, scheme)
 
-		deleted, appErr := api.DeleteScheme(created.Id)
+		role, appErr := api.GetRoleByName(scheme.DefaultChannelUserRole)
 		require.Nil(t, appErr)
-		require.NotNil(t, deleted)
+		assert.ElementsMatch(t, user, role.Permissions)
 	})
 
-	t.Run("CreateScheme on Professional is allowed with the feature flag off", func(t *testing.T) {
-		th := Setup(t)
+	t.Run("a space permission set needs no license", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
 		api := th.SetupPluginAPI()
+		markPhase2MigrationComplete(t, th)
 
-		err := th.App.SetPhase2PermissionsMigrationStatus(true)
-		require.NoError(t, err)
-
-		license := model.NewTestLicenseWithFalseDefaults("custom_permissions_schemes")
-		license.SkuShortName = model.LicenseShortSkuProfessional
-		th.App.Srv().SetLicense(license)
-		defer func() {
-			appErr := th.App.Srv().RemoveLicense()
-			require.Nil(t, appErr)
-		}()
-
-		scheme := &model.Scheme{
-			DisplayName: "Test Scheme",
-			Name:        "test_scheme_" + model.NewId(),
-			Scope:       model.SchemeScopeTeam,
-		}
-
-		created, appErr := api.CreateScheme(scheme)
+		scheme, appErr := api.GetOrCreatePluginChannelScheme(spaceUser, spaceAdmin, spaceUser)
 		require.Nil(t, appErr)
-		require.NotNil(t, created)
-	})
-
-	t.Run("CreateScheme off Professional is refused with the feature flag off", func(t *testing.T) {
-		th := Setup(t)
-		api := th.SetupPluginAPI()
-
-		err := th.App.SetPhase2PermissionsMigrationStatus(true)
-		require.NoError(t, err)
-
-		license := model.NewTestLicenseWithFalseDefaults("custom_permissions_schemes")
-		license.SkuShortName = model.LicenseShortSkuEnterprise
-		th.App.Srv().SetLicense(license)
-		defer func() {
-			appErr := th.App.Srv().RemoveLicense()
-			require.Nil(t, appErr)
-		}()
-
-		scheme := &model.Scheme{
-			DisplayName: "Test Scheme",
-			Name:        "test_scheme_" + model.NewId(),
-			Scope:       model.SchemeScopeTeam,
-		}
-
-		created, appErr := api.CreateScheme(scheme)
-		require.NotNil(t, appErr)
-		assert.Nil(t, created)
-		assert.Equal(t, "api.scheme.create_scheme.license.error", appErr.Id)
-		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+		require.NotNil(t, scheme)
 	})
 }

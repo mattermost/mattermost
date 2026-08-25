@@ -404,9 +404,8 @@ const (
 	ChannelUserRoleId  = "channel_user"
 	ChannelAdminRoleId = "channel_admin"
 
-	// Space capability roles. Each is channel-scoped, self-contained
-	// (read_page plus one capability), assigned per-member via ExplicitRoles on
-	// a space's backing channel in any subset. Deliberately NOT listed in
+	// Space capability roles, assigned per-member via ExplicitRoles on a space's
+	// backing channel in any subset. Deliberately NOT listed in
 	// BuiltInSchemeManagedRoleIDs: membership there would make
 	// UpdateChannelMemberRoles reject every ExplicitRoles assignment of them.
 	SpacePageCreatorRoleId    = "docs_pg_create"
@@ -610,20 +609,11 @@ func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *Role
 		_, presentOnHigherScope := higherScopedPermissionsMap[cp.Id]
 
 		// The channel-scoped space permissions are exempt from the rules below.
-		// A non-moderated permission is decided by the higher-scoped built-in
-		// role alone, and those roles never carry space permissions — space
-		// authority comes only from space schemes — so deciding these the same
+		// The higher-scoped built-in roles never carry space permissions — space
+		// authority comes only from space schemes — so deciding these the usual
 		// way would drop every grant a space preset scheme makes and leave its
-		// members with no page access. A space permission on the role's own
-		// stored set is carried through; the downward direction (higher scope
-		// propagating in) is left intact.
-		//
-		// The test is the permission rather than the owning scheme because a
-		// Role knows only its SchemeId, and resolving that to a scheme name
-		// would need a store read from inside the model. That costs nothing in
-		// precision: a role outside a space scheme carries no space permission
-		// to begin with, so this branch cannot add one that was not already
-		// stored on the role.
+		// members with no page access. A space permission stored on the role
+		// itself is carried through instead.
 		if IsSpaceChannelScopedPermissionID(cp.Id) {
 			_, presentOnRole := rolePermissionsMap[cp.Id]
 			if presentOnRole || presentOnHigherScope {
@@ -938,9 +928,8 @@ func IsChannelScopedBuiltInRole(roleName string) bool {
 	return roleName == ChannelGuestRoleId || roleName == ChannelUserRoleId || roleName == ChannelAdminRoleId
 }
 
-// SpaceCapabilityRoles is the canonical list of the space capability
-// roles. It is the single source of truth for the seeding migration,
-// checkSpacePermissionScope, and rejectSpaceCapabilityRoleOutsideSpace.
+// SpaceCapabilityRoles enumerates the space capability roles in a stable order,
+// which the seeding migration depends on.
 var SpaceCapabilityRoles = []string{
 	SpacePageCreatorRoleId,
 	SpacePageCommenterRoleId,
@@ -951,9 +940,9 @@ var SpaceCapabilityRoles = []string{
 
 var spaceCapabilityRoleSet map[string]bool
 
-// IsSpaceCapabilityRole reports whether roleName is one of the space
-// capability roles in SpaceCapabilityRoles. These carry space authority, so
-// they are only meaningful on a space's backing channel.
+// IsSpaceCapabilityRole reports whether roleName is a space capability role.
+// These carry space authority, so they are only meaningful on a space's
+// backing channel.
 func IsSpaceCapabilityRole(roleName string) bool {
 	return spaceCapabilityRoleSet[roleName]
 }
@@ -1066,49 +1055,17 @@ func MakeDefaultRoles() map[string]*Role {
 		BuiltIn:       true,
 	}
 
-	roles[SpacePageCreatorRoleId] = &Role{
-		Name:          SpacePageCreatorRoleId,
-		DisplayName:   fmt.Sprintf("authentication.roles.%s.name", SpacePageCreatorRoleId),
-		Description:   fmt.Sprintf("authentication.roles.%s.description", SpacePageCreatorRoleId),
-		Permissions:   PermissionIDs(SpacePageCreatorRolePermissions),
-		SchemeManaged: false,
-		BuiltIn:       true,
-	}
-
-	roles[SpacePageCommenterRoleId] = &Role{
-		Name:          SpacePageCommenterRoleId,
-		DisplayName:   fmt.Sprintf("authentication.roles.%s.name", SpacePageCommenterRoleId),
-		Description:   fmt.Sprintf("authentication.roles.%s.description", SpacePageCommenterRoleId),
-		Permissions:   PermissionIDs(SpacePageCommenterRolePermissions),
-		SchemeManaged: false,
-		BuiltIn:       true,
-	}
-
-	roles[SpacePageEditorRoleId] = &Role{
-		Name:          SpacePageEditorRoleId,
-		DisplayName:   fmt.Sprintf("authentication.roles.%s.name", SpacePageEditorRoleId),
-		Description:   fmt.Sprintf("authentication.roles.%s.description", SpacePageEditorRoleId),
-		Permissions:   PermissionIDs(SpacePageEditorRolePermissions),
-		SchemeManaged: false,
-		BuiltIn:       true,
-	}
-
-	roles[SpacePageDeleterOwnRoleId] = &Role{
-		Name:          SpacePageDeleterOwnRoleId,
-		DisplayName:   fmt.Sprintf("authentication.roles.%s.name", SpacePageDeleterOwnRoleId),
-		Description:   fmt.Sprintf("authentication.roles.%s.description", SpacePageDeleterOwnRoleId),
-		Permissions:   PermissionIDs(SpacePageDeleterOwnRolePermissions),
-		SchemeManaged: false,
-		BuiltIn:       true,
-	}
-
-	roles[SpacePageDeleterRoleId] = &Role{
-		Name:          SpacePageDeleterRoleId,
-		DisplayName:   fmt.Sprintf("authentication.roles.%s.name", SpacePageDeleterRoleId),
-		Description:   fmt.Sprintf("authentication.roles.%s.description", SpacePageDeleterRoleId),
-		Permissions:   PermissionIDs(SpacePageDeleterRolePermissions),
-		SchemeManaged: false,
-		BuiltIn:       true,
+	for roleID, permissions := range SpaceCapabilityRolePermissions {
+		roles[roleID] = &Role{
+			Name:        roleID,
+			DisplayName: fmt.Sprintf("authentication.roles.%s.name", roleID),
+			Description: fmt.Sprintf("authentication.roles.%s.description", roleID),
+			Permissions: PermissionIDs(permissions),
+			// Not scheme-managed: these ride in a member's ExplicitRoles on a
+			// space's backing channel rather than being resolved from a scheme.
+			SchemeManaged: false,
+			BuiltIn:       true,
+		}
 	}
 
 	roles[TeamGuestRoleId] = &Role{

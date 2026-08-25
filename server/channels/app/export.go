@@ -410,18 +410,12 @@ func (a *App) exportSchemes(rctx request.CTX, job *model.Job, writer io.Writer, 
 			}
 
 			// Space schemes are skipped. Every server seeds the presets by
-			// migration, so a server importing this file already has its own,
-			// and exporting one would carry a reserved name into an import that
-			// now refuses to create a scheme under it.
-			//
-			// A per-space custom scheme is skipped for a different reason: its
-			// generated roles hold space permissions, which the scope guard only
-			// accepts once the scheme governs a space. Import recreates the
-			// scheme detached — spaces themselves are not exported — so those
-			// roles would be rejected and the whole import would fail, on data
-			// that is orphaned at the destination anyway.
-			//
-			// Their generated roles are recorded above, so skipping the scheme
+			// migration, so exporting one would carry a reserved name into an
+			// import that refuses to create a scheme under it. A per-space custom
+			// scheme is skipped because import recreates it detached — spaces
+			// themselves are not exported — so its space-permission roles would be
+			// rejected and fail the whole import, on data that is orphaned at the
+			// destination anyway. Their generated roles are recorded above, so this
 			// does not leak them into the standalone role export below.
 			if scheme.Scope == model.SchemeScopeChannel &&
 				(model.IsSpaceSchemeName(scheme.Name) || schemeGrantsSpacePermissions(scheme, rolesMap)) {

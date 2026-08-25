@@ -62,7 +62,7 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error)
 		}
 		defer finalizeTransactionX(transaction, &terr)
 
-		newScheme, terr := s.createScheme(scheme, transaction)
+		newScheme, terr := s.createScheme(scheme, nil, transaction)
 		if terr != nil {
 			return nil, terr
 		}
@@ -99,7 +99,60 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error)
 	return scheme, nil
 }
 
-func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxWrapper) (*model.Scheme, error) {
+// channelSchemeRolePermissions carries the final permission sets for a channel
+// scheme's three generated roles. Supplying it makes the scheme complete at
+// insert, so no caller has to patch the roles afterwards and the scheme is never
+// readable in a partially configured state.
+type channelSchemeRolePermissions struct {
+	User  []string
+	Admin []string
+	Guest []string
+}
+
+// SaveChannelSchemeWithRoles creates a channel scheme whose three generated roles
+// carry exactly user, admin and guest, in the transaction that creates the scheme
+// itself. The alternative — create, then patch each role — leaves a window in
+// which the scheme resolves with the wrong permissions, and leaves residue behind
+// when it fails partway.
+//
+// Only for creation: the scheme must carry no Id, and its roles are never
+// rewritten afterwards.
+func (s *SqlSchemeStore) SaveChannelSchemeWithRoles(scheme *model.Scheme, user, admin, guest []string) (_ *model.Scheme, err error) {
+	if scheme.Id != "" {
+		return nil, store.NewErrInvalidInput("Scheme", "Id", scheme.Id)
+	}
+	if scheme.Scope != model.SchemeScopeChannel {
+		return nil, store.NewErrInvalidInput("Scheme", "Scope", scheme.Scope)
+	}
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	newScheme, err := s.createScheme(scheme, &channelSchemeRolePermissions{
+		User:  user,
+		Admin: admin,
+		Guest: guest,
+	}, transaction)
+	if err != nil {
+		return nil, err
+	}
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+	return newScheme, nil
+}
+
+// createScheme creates a scheme and its generated roles inside transaction.
+//
+// rolePermissions is optional. When nil, a channel scheme's generated roles are
+// derived from the global channel roles as they always have been. When supplied,
+// those three sets are written verbatim instead — replacing the derived
+// permissions rather than adding to them, so none of the moderated channel
+// permissions the global roles carry survive onto the new roles.
+func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, rolePermissions *channelSchemeRolePermissions, transaction *sqlxTxWrapper) (*model.Scheme, error) {
 	// Generate the scheme ID up front so it can be recorded on each created role.
 	scheme.Id = model.NewId()
 	if scheme.Name == "" {
@@ -247,7 +300,9 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			SchemeId:      &scheme.Id,
 		}
 
-		if scheme.Scope == model.SchemeScopeChannel {
+		if rolePermissions != nil {
+			channelAdminRole.Permissions = rolePermissions.Admin
+		} else if scheme.Scope == model.SchemeScopeChannel {
 			channelAdminRole.Permissions = []string{}
 		}
 
@@ -266,7 +321,9 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			SchemeId:      &scheme.Id,
 		}
 
-		if scheme.Scope == model.SchemeScopeChannel {
+		if rolePermissions != nil {
+			channelUserRole.Permissions = rolePermissions.User
+		} else if scheme.Scope == model.SchemeScopeChannel {
 			channelUserRole.Permissions = filterModerated(channelUserRole.Permissions)
 		}
 
@@ -285,7 +342,9 @@ func (s *SqlSchemeStore) createScheme(scheme *model.Scheme, transaction *sqlxTxW
 			SchemeId:      &scheme.Id,
 		}
 
-		if scheme.Scope == model.SchemeScopeChannel {
+		if rolePermissions != nil {
+			channelGuestRole.Permissions = rolePermissions.Guest
+		} else if scheme.Scope == model.SchemeScopeChannel {
 			channelGuestRole.Permissions = filterModerated(channelGuestRole.Permissions)
 		}
 

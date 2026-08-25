@@ -536,38 +536,6 @@ func (_m *API) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyV
 	return r0, r1
 }
 
-// CreateScheme provides a mock function with given fields: scheme
-func (_m *API) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
-	ret := _m.Called(scheme)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CreateScheme")
-	}
-
-	var r0 *model.Scheme
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Scheme) (*model.Scheme, *model.AppError)); ok {
-		return rf(scheme)
-	}
-	if rf, ok := ret.Get(0).(func(*model.Scheme) *model.Scheme); ok {
-		r0 = rf(scheme)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Scheme)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(*model.Scheme) *model.AppError); ok {
-		r1 = rf(scheme)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
 // CreateSession provides a mock function with given fields: session
 func (_m *API) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
 	ret := _m.Called(session)
@@ -1205,38 +1173,6 @@ func (_m *API) DeletePropertyValuesForTargetWithOptions(groupID string, targetTy
 	}
 
 	return r0
-}
-
-// DeleteScheme provides a mock function with given fields: schemeID
-func (_m *API) DeleteScheme(schemeID string) (*model.Scheme, *model.AppError) {
-	ret := _m.Called(schemeID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteScheme")
-	}
-
-	var r0 *model.Scheme
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) (*model.Scheme, *model.AppError)); ok {
-		return rf(schemeID)
-	}
-	if rf, ok := ret.Get(0).(func(string) *model.Scheme); ok {
-		r0 = rf(schemeID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Scheme)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(schemeID)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
 }
 
 // DeleteTeam provides a mock function with given fields: teamID
@@ -2775,6 +2711,38 @@ func (_m *API) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
 
 	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
 		r1 = rf(appID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetOrCreatePluginChannelScheme provides a mock function with given fields: user, admin, guest
+func (_m *API) GetOrCreatePluginChannelScheme(user []string, admin []string, guest []string) (*model.Scheme, *model.AppError) {
+	ret := _m.Called(user, admin, guest)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOrCreatePluginChannelScheme")
+	}
+
+	var r0 *model.Scheme
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func([]string, []string, []string) (*model.Scheme, *model.AppError)); ok {
+		return rf(user, admin, guest)
+	}
+	if rf, ok := ret.Get(0).(func([]string, []string, []string) *model.Scheme); ok {
+		r0 = rf(user, admin, guest)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Scheme)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string, []string, []string) *model.AppError); ok {
+		r1 = rf(user, admin, guest)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -4918,38 +4886,6 @@ func (_m *API) PatchChannelMembersNotifications(members []*model.ChannelMemberId
 	}
 
 	return r0
-}
-
-// PatchRole provides a mock function with given fields: roleID, patch
-func (_m *API) PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.AppError) {
-	ret := _m.Called(roleID, patch)
-
-	if len(ret) == 0 {
-		panic("no return value specified for PatchRole")
-	}
-
-	var r0 *model.Role
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, *model.RolePatch) (*model.Role, *model.AppError)); ok {
-		return rf(roleID, patch)
-	}
-	if rf, ok := ret.Get(0).(func(string, *model.RolePatch) *model.Role); ok {
-		r0 = rf(roleID, patch)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Role)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, *model.RolePatch) *model.AppError); ok {
-		r1 = rf(roleID, patch)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
 }
 
 // PermanentDeleteBot provides a mock function with given fields: botUserId

@@ -422,7 +422,8 @@ func (a *App) updateTeamMemberRolesInternal(rctx request.CTX, teamID string, use
 			// they can ride in ExplicitRoles on a space's backing channel. A
 			// team member is never a space backing channel, so the guard always
 			// refuses here.
-			if rejectSpaceCapabilityRoleOutsideSpace(rctx, "UpdateTeamMemberRoles", roleName, false) {
+			if model.IsSpaceCapabilityRole(roleName) {
+				logRefusedSpaceCapabilityRole(rctx, "UpdateTeamMemberRoles", roleName)
 				return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 			}
 			// The role is not scheme-managed, so it's OK to apply it to the explicit roles field.

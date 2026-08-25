@@ -18,6 +18,7 @@ func TestSchemeStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	createDefaultRoles(ss)
 
 	t.Run("Save", func(t *testing.T) { testSchemeStoreSave(t, rctx, ss) })
+	t.Run("SaveChannelSchemeWithRoles", func(t *testing.T) { testSchemeStoreSaveChannelSchemeWithRoles(t, rctx, ss) })
 	t.Run("Get", func(t *testing.T) { testSchemeStoreGet(t, rctx, ss) })
 	t.Run("GetAllPage", func(t *testing.T) { testSchemeStoreGetAllPage(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testSchemeStoreDelete(t, rctx, ss) })
@@ -226,6 +227,120 @@ func testSchemeStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	_, err = ss.Scheme().Save(s3)
 	assert.Error(t, err)
+}
+
+func testSchemeStoreSaveChannelSchemeWithRoles(t *testing.T, rctx request.CTX, ss store.Store) {
+	user := []string{model.PermissionReadPage.Id, model.PermissionCreatePage.Id}
+	admin := []string{model.PermissionAdminSpace.Id}
+	guest := []string{model.PermissionReadPage.Id}
+
+	t.Run("the three generated roles carry exactly what was asked for", func(t *testing.T) {
+		name := model.NewId()
+		saved, err := ss.Scheme().SaveChannelSchemeWithRoles(&model.Scheme{
+			Name:        name,
+			DisplayName: name,
+			Scope:       model.SchemeScopeChannel,
+		}, user, admin, guest)
+		require.NoError(t, err)
+		assert.Len(t, saved.Id, 26)
+		assert.Equal(t, model.SchemeScopeChannel, saved.Scope)
+
+		for _, tc := range []struct {
+			roleName string
+			want     []string
+		}{
+			{saved.DefaultChannelUserRole, user},
+			{saved.DefaultChannelAdminRole, admin},
+			{saved.DefaultChannelGuestRole, guest},
+		} {
+			role, rErr := ss.Role().GetByName(rctx, tc.roleName)
+			require.NoError(t, rErr)
+			// ElementsMatch, not Equal: the scheme is resolved by comparing
+			// permission sets, so what matters is which ids are stored, not the
+			// order they came back in.
+			assert.ElementsMatch(t, tc.want, role.Permissions)
+			assert.True(t, role.SchemeManaged)
+			require.NotNil(t, role.SchemeId)
+			assert.Equal(t, saved.Id, *role.SchemeId)
+		}
+	})
+
+	// Channel scope only: the team and playbook role fields belong to a scope this
+	// never mints into, and a caller reading them would find role names that grant
+	// nothing it asked for.
+	t.Run("only channel roles are generated", func(t *testing.T) {
+		name := model.NewId()
+		saved, err := ss.Scheme().SaveChannelSchemeWithRoles(&model.Scheme{
+			Name:        name,
+			DisplayName: name,
+			Scope:       model.SchemeScopeChannel,
+		}, user, admin, guest)
+		require.NoError(t, err)
+
+		assert.Empty(t, saved.DefaultTeamAdminRole)
+		assert.Empty(t, saved.DefaultTeamUserRole)
+		assert.Empty(t, saved.DefaultTeamGuestRole)
+		assert.Empty(t, saved.DefaultPlaybookAdminRole)
+		assert.Empty(t, saved.DefaultPlaybookMemberRole)
+		assert.Empty(t, saved.DefaultRunAdminRole)
+		assert.Empty(t, saved.DefaultRunMemberRole)
+	})
+
+	t.Run("creation only: an id or another scope is refused", func(t *testing.T) {
+		name := model.NewId()
+
+		_, err := ss.Scheme().SaveChannelSchemeWithRoles(&model.Scheme{
+			Id:          model.NewId(),
+			Name:        name,
+			DisplayName: name,
+			Scope:       model.SchemeScopeChannel,
+		}, user, admin, guest)
+		var invErr *store.ErrInvalidInput
+		require.ErrorAs(t, err, &invErr)
+
+		_, err = ss.Scheme().SaveChannelSchemeWithRoles(&model.Scheme{
+			Name:        name,
+			DisplayName: name,
+			Scope:       model.SchemeScopeTeam,
+		}, user, admin, guest)
+		require.ErrorAs(t, err, &invErr)
+	})
+
+	// The roles are created in the transaction that creates the scheme precisely so
+	// a failure partway leaves nothing behind. The name collision is the failure the
+	// get-or-create path actually meets: two callers racing on one permission set.
+	t.Run("a failed save leaves no scheme and no orphan roles", func(t *testing.T) {
+		name := model.NewId()
+		first, err := ss.Scheme().SaveChannelSchemeWithRoles(&model.Scheme{
+			Name:        name,
+			DisplayName: name,
+			Scope:       model.SchemeScopeChannel,
+		}, user, admin, guest)
+		require.NoError(t, err)
+
+		before, err := ss.Role().GetAll()
+		require.NoError(t, err)
+
+		_, err = ss.Scheme().SaveChannelSchemeWithRoles(&model.Scheme{
+			Name:        name,
+			DisplayName: name,
+			Scope:       model.SchemeScopeChannel,
+		}, []string{model.PermissionDeletePage.Id}, admin, guest)
+		require.Error(t, err, "the name is unique, so the second insert must lose")
+
+		after, err := ss.Role().GetAll()
+		require.NoError(t, err)
+		assert.Len(t, after, len(before), "the rolled-back attempt must leave no roles behind")
+
+		// The winner is untouched: the loser's permission sets must not have
+		// reached the roles every channel on this scheme resolves.
+		stored, err := ss.Scheme().GetByName(name)
+		require.NoError(t, err)
+		assert.Equal(t, first.Id, stored.Id)
+		userRole, err := ss.Role().GetByName(rctx, stored.DefaultChannelUserRole)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, user, userRole.Permissions)
+	})
 }
 
 func testSchemeStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {

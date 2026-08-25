@@ -5,7 +5,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 )
 
-// SchemeService exposes methods to manipulate schemes.
+// SchemeService exposes methods to resolve permission schemes.
 type SchemeService struct {
 	api plugin.API
 }
@@ -19,33 +19,30 @@ func (s *SchemeService) GetByName(name string) (*model.Scheme, error) {
 	return scheme, normalizeAppErr(appErr)
 }
 
-// Create creates a scheme and its generated roles. The scheme's role fields are
-// server-assigned; any caller-supplied values are ignored.
+// GetOrCreateChannelScheme resolves the channel scheme whose generated user,
+// admin and guest roles grant exactly the given permission sets, creating it on
+// first use. Asking twice for the same sets returns the same scheme, so
+// configuring many channels the same way creates one scheme rather than one per
+// channel.
 //
-// Requires a license covering custom permissions schemes; without one the call
-// is refused. The seeded space preset schemes exist on every edition, so
-// pointing a space at one needs no license — this gate covers creating a new one.
+// The scheme is complete when returned and immutable afterwards: its roles are
+// written with their final permissions in the transaction that creates it, and
+// no later role write may change what it grants. Attach it to a channel and read
+// it back; there is nothing to configure.
 //
-// Minimum server version: 11.11
-func (s *SchemeService) Create(scheme *model.Scheme) (*model.Scheme, error) {
-	created, appErr := s.api.CreateScheme(scheme)
-
-	return created, normalizeAppErr(appErr)
-}
-
-// Delete soft-deletes a scheme and its generated roles, reverting any teams or
-// channels using it to the system-default roles. The seeded space preset schemes
-// are refused by identity and can never be deleted. Any other scheme a space
-// backing channel still references is refused too — detach the space first.
+// The scheme belongs to the calling plugin, identified from the request rather
+// than from an argument. Only channel-scoped permissions are accepted.
 //
-// Requires a license covering custom permissions schemes; without one the call
-// is refused.
+// A permission set drawn from the space permissions needs no license: the plugin
+// gets back the configuration it asked for, not a permissions editor. A set
+// reaching past them authors an ordinary channel scheme, and carries the custom
+// permissions schemes entitlement.
 //
 // Minimum server version: 11.11
-func (s *SchemeService) Delete(schemeID string) (*model.Scheme, error) {
-	deleted, appErr := s.api.DeleteScheme(schemeID)
+func (s *SchemeService) GetOrCreateChannelScheme(user, admin, guest []string) (*model.Scheme, error) {
+	scheme, appErr := s.api.GetOrCreatePluginChannelScheme(user, admin, guest)
 
-	return deleted, normalizeAppErr(appErr)
+	return scheme, normalizeAppErr(appErr)
 }
 
 // GetRolesForChannel returns the generated role names of the scheme governing

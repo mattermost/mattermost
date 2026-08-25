@@ -52,35 +52,3 @@ func TestRoleGetByName(t *testing.T) {
 		require.Zero(t, role)
 	})
 }
-
-func TestRolePatch(t *testing.T) {
-	const roleID = "1"
-	perms := []string{"read_page", "create_page"}
-	patch := &model.RolePatch{Permissions: &perms}
-
-	t.Run("success", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
-
-		out := &model.Role{Id: roleID, Name: "u", Permissions: perms}
-		api.On("PatchRole", roleID, patch).Return(out, nil)
-
-		patched, err := client.Role.Patch(roleID, patch)
-		require.NoError(t, err)
-		require.Equal(t, perms, patched.Permissions)
-	})
-
-	t.Run("failure", func(t *testing.T) {
-		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
-		client := pluginapi.NewClient(api, &plugintest.Driver{})
-
-		appErr := model.NewAppError("here", "id", nil, "boom", http.StatusBadRequest)
-		api.On("PatchRole", roleID, patch).Return(nil, appErr)
-
-		patched, err := client.Role.Patch(roleID, patch)
-		require.Equal(t, appErr, err)
-		require.Zero(t, patched)
-	})
-}

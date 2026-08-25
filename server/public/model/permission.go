@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"slices"
 	"strings"
 )
 
@@ -441,15 +442,9 @@ var PermissionManageSpace *Permission
 var PermissionDeleteSpace *Permission
 
 // SpaceChannelScopedPermissions is the canonical membership set of the seven
-// channel-scoped space permissions. The role-write scope guard and the
-// higher-scope merge exemption decide "is this a space permission" through it,
-// and the permissions migration enumerates it to grant the whole set to
-// system_admin.
-//
-// The capability slices below enumerate their own subsets rather than deriving
-// from it, so that each role's grant reads literally. TestSpaceCapabilitySlicesMatchCanonicalSet
-// pins them against this set so a new permission cannot be added here and
-// silently missed there.
+// channel-scoped space permissions. The role-write scope guard, the higher-scope
+// merge exemption and the permissions migration all decide "is this a space
+// permission" through it.
 var SpaceChannelScopedPermissions []*Permission
 
 var spaceChannelScopedPermissionIDs map[string]bool
@@ -458,6 +453,21 @@ var spaceChannelScopedPermissionIDs map[string]bool
 // channel-scoped space permissions in SpaceChannelScopedPermissions.
 func IsSpaceChannelScopedPermissionID(id string) bool {
 	return spaceChannelScopedPermissionIDs[id]
+}
+
+var channelScopedPermissionIDs map[string]bool
+
+// IsChannelScopedPermissionID reports whether id is a channel-scoped permission.
+// A channel scheme's generated roles resolve only where the scheme is attached,
+// so this is the outer bound on what such a role may be asked to grant.
+func IsChannelScopedPermissionID(id string) bool {
+	return channelScopedPermissionIDs[id]
+}
+
+// NormalizePermissions returns the permission ids sorted and deduplicated, so
+// two sets can be compared or hashed without caring how either was assembled.
+func NormalizePermissions(permissions []string) []string {
+	return slices.Compact(slices.Sorted(slices.Values(permissions)))
 }
 
 // PermissionIDs returns the ids of the given permissions, preserving order.
@@ -469,17 +479,20 @@ func PermissionIDs(permissions []*Permission) []string {
 	return ids
 }
 
-// Canonical capability→permission slices for the space capability model.
-// Each space capability role is self-contained: read_page plus its single
-// capability. The default-preset slices are the all-members baselines the
-// seeded schemes grant, and the admin slice is the full authority SchemeAdmin
-// resolves to.
-var SpacePageCreatorRolePermissions []*Permission
-var SpacePageCommenterRolePermissions []*Permission
-var SpacePageEditorRolePermissions []*Permission
-var SpacePageDeleterOwnRolePermissions []*Permission
-var SpacePageDeleterRolePermissions []*Permission
+// SpaceCapabilityRolePermissions maps each space capability role to what it
+// grants. A capability role is self-contained: read_page plus its one capability.
+var SpaceCapabilityRolePermissions map[string][]*Permission
+
+// spaceCapabilityRolePermissions builds the grant of a single capability role.
+func spaceCapabilityRolePermissions(capability *Permission) []*Permission {
+	return []*Permission{PermissionReadPage, capability}
+}
+
+// SpaceAdminRolePermissions is the full space authority SchemeAdmin resolves to,
+// which is every channel-scoped space permission.
 var SpaceAdminRolePermissions []*Permission
+
+// The all-members baselines the seeded preset schemes grant.
 var SpaceDefaultContributePermissions []*Permission
 var SpaceDefaultCommentPermissions []*Permission
 var SpaceDefaultReadOnlyPermissions []*Permission
@@ -2535,35 +2548,14 @@ func initializePermissions() {
 		PermissionManageSystem.Id,
 	}
 
-	SpacePageCreatorRolePermissions = []*Permission{
-		PermissionReadPage,
-		PermissionCreatePage,
+	SpaceCapabilityRolePermissions = map[string][]*Permission{
+		SpacePageCreatorRoleId:    spaceCapabilityRolePermissions(PermissionCreatePage),
+		SpacePageCommenterRoleId:  spaceCapabilityRolePermissions(PermissionCommentPage),
+		SpacePageEditorRoleId:     spaceCapabilityRolePermissions(PermissionEditPage),
+		SpacePageDeleterOwnRoleId: spaceCapabilityRolePermissions(PermissionDeleteOwnPage),
+		SpacePageDeleterRoleId:    spaceCapabilityRolePermissions(PermissionDeletePage),
 	}
-	SpacePageCommenterRolePermissions = []*Permission{
-		PermissionReadPage,
-		PermissionCommentPage,
-	}
-	SpacePageEditorRolePermissions = []*Permission{
-		PermissionReadPage,
-		PermissionEditPage,
-	}
-	SpacePageDeleterOwnRolePermissions = []*Permission{
-		PermissionReadPage,
-		PermissionDeleteOwnPage,
-	}
-	SpacePageDeleterRolePermissions = []*Permission{
-		PermissionReadPage,
-		PermissionDeletePage,
-	}
-	SpaceAdminRolePermissions = []*Permission{
-		PermissionReadPage,
-		PermissionCommentPage,
-		PermissionCreatePage,
-		PermissionEditPage,
-		PermissionDeleteOwnPage,
-		PermissionDeletePage,
-		PermissionAdminSpace,
-	}
+	SpaceAdminRolePermissions = slices.Clone(SpaceChannelScopedPermissions)
 	SpaceDefaultContributePermissions = []*Permission{
 		PermissionReadPage,
 		PermissionCommentPage,
@@ -2936,6 +2928,11 @@ func initializePermissions() {
 	AllPermissions = append(AllPermissions, GroupScopedPermissions...)
 	AllPermissions = append(AllPermissions, PlaybookScopedPermissions...)
 	AllPermissions = append(AllPermissions, RunScopedPermissions...)
+
+	channelScopedPermissionIDs = make(map[string]bool, len(ChannelScopedPermissions))
+	for _, p := range ChannelScopedPermissions {
+		channelScopedPermissionIDs[p.Id] = true
+	}
 
 	ChannelModeratedPermissions = []string{
 		PermissionCreatePost.Id,

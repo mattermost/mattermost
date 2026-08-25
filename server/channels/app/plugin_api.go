@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -40,15 +41,10 @@ func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI
 }
 
 // checkCustomPermissionsSchemesLicense mirrors the license gate the scheme REST
-// handlers apply, so reaching scheme writes through a plugin does not skip it: a
-// license covers a capability, not the transport that reaches it. The condition
-// is copied from Api4.CreateScheme, including its Professional SKU clause —
-// dropping that clause would lock out paying licensees.
-//
-// What this gates is minting a custom scheme, not space permissions. The space
-// preset schemes are seeded by doSpaceSchemesCreationMigration on every edition,
-// and pointing a space at one is an ordinary channel update that never arrives
-// here.
+// handlers apply, so reaching a scheme through a plugin does not skip it: a license
+// covers a capability, not the transport that reaches it. The condition is copied
+// from Api4.CreateScheme, including its Professional SKU clause — dropping that
+// clause would lock out paying licensees.
 func (api *PluginAPI) checkCustomPermissionsSchemesLicense() error {
 	license := api.GetLicense()
 	if license == nil || (!*license.Features.CustomPermissionsSchemes && license.SkuShortName != model.LicenseShortSkuProfessional) {
@@ -57,91 +53,54 @@ func (api *PluginAPI) checkCustomPermissionsSchemesLicense() error {
 	return nil
 }
 
-// checkGuestPermissionsLicense mirrors the guest-role gate Api4.PatchRole
-// applies, for the same reason checkCustomPermissionsSchemesLicense mirrors the
-// scheme one: editing what a guest may do is the licensed capability, and
-// reaching that write through a plugin must not skip it. App.PatchRole carries
-// only the permission blocklist, so this check is what stops the plugin path
-// from granting guest-role permissions on an unlicensed server.
+// checkMintedSchemeScopeLicense applies the custom permissions schemes entitlement
+// to a minted scheme whose roles reach past the space permissions. The scheme this
+// call produces is an ordinary channel scheme — nothing keeps it off an ordinary
+// channel except the grants it carries, and the ordinary-channel guard turns away
+// only the ones carrying space authority — so an unentitled server would otherwise
+// reach custom channel permissions through this API that the REST scheme handlers
+// refuse it.
 //
-// It reaches wider than the REST gate's three built-in names: a scheme's
-// generated guest role carries a unique name, so it is recognised by the scheme
-// row that references it. Matching the names alone would let a plugin edit
-// guest permissions through any team or channel scheme.
-func (api *PluginAPI) checkGuestPermissionsLicense(stored *model.Role, patch *model.RolePatch) *model.AppError {
-	isGuest := stored.Name == model.SystemGuestRoleId ||
-		stored.Name == model.TeamGuestRoleId ||
-		stored.Name == model.ChannelGuestRoleId
-	if !isGuest {
-		var appErr *model.AppError
-		isGuest, appErr = api.isGuestRoleOfNonSpaceScheme(stored)
-		if appErr != nil {
-			return appErr
-		}
-	}
-	if !isGuest {
+// The space tier is exempt: those permissions are core-defined, their preset schemes
+// are seeded on every edition, and a set drawn from them expresses a space's
+// configuration rather than a scheme of the operator's own design.
+func (api *PluginAPI) checkMintedSchemeScopeLicense(sets ...[]string) *model.AppError {
+	beyondSpace := slices.ContainsFunc(sets, func(set []string) bool {
+		return slices.ContainsFunc(set, func(id string) bool {
+			return !model.IsSpaceChannelScopedPermissionID(id)
+		})
+	})
+	if !beyondSpace {
 		return nil
 	}
-
-	license := api.GetLicense()
-	if license == nil {
-		if patch.Permissions != nil {
-			return model.NewAppError("PluginAPI.PatchRole", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
-		}
-		return nil
-	}
-	if !*license.Features.GuestAccountsPermissions {
-		return model.NewAppError("PluginAPI.PatchRole", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
+	if err := api.checkCustomPermissionsSchemesLicense(); err != nil {
+		return model.NewAppError("PluginAPI.GetOrCreatePluginChannelScheme", "app.scheme.plugin_scheme.scheme_license.app_error", nil, "", http.StatusNotImplemented).Wrap(err)
 	}
 	return nil
 }
 
-// isGuestRoleOfNonSpaceScheme reports whether stored is the guest role a team
-// or ordinary channel scheme generated, which is what the guest license gate
-// covers beyond the three built-in names.
+// checkMintedGuestPermissionsLicense gates the guest set of a minted channel
+// scheme. The scheme's three roles are written inside the scheme's own
+// transaction, below every role guard, so the entitlement has to be applied to the
+// requested set before the mint rather than to the stored role after it.
 //
-// The guest role of a scheme that governs spaces is exempt. The space guest
-// tier is core-defined — the seeding migration writes read-only guest roles on
-// every edition, below any license gate — and writing it onto a per-space
-// custom scheme belongs to the capability the custom-schemes license already
-// gates at CreateScheme. Gating it here too would refuse that write on the
-// Professional SKU, which CreateScheme's license clause deliberately admits but
-// whose license does not carry GuestAccountsPermissions. Space scope is proven
-// the way checkSpacePermissionScope proves it — a seeded preset identity, or a
-// space backing channel pointing at a scheme no ordinary channel shares — so a
-// caller cannot mint the exemption by naming or content alone.
-func (api *PluginAPI) isGuestRoleOfNonSpaceScheme(stored *model.Role) (bool, *model.AppError) {
-	if stored.SchemeId == nil || *stored.SchemeId == "" {
-		return false, nil
+// The space guest tier is core-defined and read-only, seeded on every edition, so
+// a guest set within it needs no license. Anything past it is the licensed
+// guest-permission capability.
+func (api *PluginAPI) checkMintedGuestPermissionsLicense(guest []string) *model.AppError {
+	spaceReadTier := model.PermissionIDs(model.SpaceDefaultReadOnlyPermissions)
+	widerThanReadTier := slices.ContainsFunc(guest, func(id string) bool {
+		return !slices.Contains(spaceReadTier, id)
+	})
+	if !widerThanReadTier {
+		return nil
 	}
-	scheme, appErr := api.app.getSchemeFromMaster("PluginAPI.PatchRole", *stored.SchemeId)
-	if appErr != nil {
-		return false, appErr
+
+	license := api.GetLicense()
+	if license == nil || !*license.Features.GuestAccountsPermissions {
+		return model.NewAppError("PluginAPI.GetOrCreatePluginChannelScheme", "app.scheme.plugin_scheme.guest_license.app_error", nil, "", http.StatusNotImplemented)
 	}
-	if scheme == nil {
-		// A dangling SchemeId references no scheme, so it names no guest role.
-		return false, nil
-	}
-	if stored.Name != scheme.DefaultTeamGuestRole && stored.Name != scheme.DefaultChannelGuestRole {
-		return false, nil
-	}
-	if scheme.DeleteAt != 0 || scheme.Scope != model.SchemeScopeChannel {
-		// Only a live channel-scoped scheme can govern a space; every other
-		// scheme's guest role is gated.
-		return true, nil
-	}
-	if model.IsSpaceSchemeName(scheme.Name) {
-		return false, nil
-	}
-	onlySpaces, appErr := api.app.schemeGovernsOnlySpaces("PluginAPI.PatchRole", scheme)
-	if appErr != nil {
-		return false, appErr
-	}
-	// A scheme that belongs exclusively to spaces holds a space guest role, which
-	// the space tier defines read-only below any license gate and
-	// checkSpacePermissionScope caps to that on every write, so its guest role is
-	// exempt. Every other channel scheme's guest role is a licensed capability.
-	return !onlySpaces, nil
+	return nil
 }
 
 func (api *PluginAPI) checkLDAPLicense() error {
@@ -844,9 +803,8 @@ func (api *PluginAPI) UpdateChannelMemberRoles(channelID, userID, newRoles strin
 	}
 	ctx := api.ctx
 	if channel.IsSpace() {
-		// The role update re-reads the member before writing, and the space flows promote a
-		// member added an instant earlier — a replica read can miss that row and fail a valid
-		// promotion.
+		// The role update re-reads the member before writing, and the space flows
+		// promote a member added an instant earlier.
 		ctx = RequestContextWithMaster(api.ctx)
 	}
 	return api.app.UpdateChannelMemberRoles(ctx, channelID, userID, newRoles)
@@ -1384,52 +1342,38 @@ func (api *PluginAPI) GetSchemeByName(name string) (*model.Scheme, *model.AppErr
 	return api.app.GetSchemeByName(name)
 }
 
-func (api *PluginAPI) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
-	if err := api.checkCustomPermissionsSchemesLicense(); err != nil {
-		return nil, model.NewAppError("PluginAPI.CreateScheme", "api.scheme.create_scheme.license.error", nil, "", http.StatusNotImplemented).Wrap(err)
+func (api *PluginAPI) GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError) {
+	// Not gated on the custom permissions schemes entitlement for a space permission
+	// set, unlike CreateScheme: nothing there is authored. The sets come from the
+	// plugin, the name is derived from them, the roles are written once and frozen.
+	// The owning plugin comes from the manifest this API instance was built for, so
+	// one cannot displace another's scheme.
+	//
+	// Two entitlements apply past that. The guest set decides what an account the
+	// operator admitted as a guest may do, so it is answered first and in its own
+	// terms. Any set reaching past the space permissions is authorship of an ordinary
+	// channel scheme, whatever route it arrives by — the resulting scheme may be
+	// attached to any channel — so it carries the same entitlement CreateScheme
+	// applies.
+	if appErr := api.checkMintedGuestPermissionsLicense(guest); appErr != nil {
+		return nil, appErr
 	}
-	return api.app.CreateScheme(scheme)
-}
-
-func (api *PluginAPI) DeleteScheme(schemeID string) (*model.Scheme, *model.AppError) {
-	if err := api.checkCustomPermissionsSchemesLicense(); err != nil {
-		return nil, model.NewAppError("PluginAPI.DeleteScheme", "api.scheme.delete_scheme.license.error", nil, "", http.StatusNotImplemented).Wrap(err)
+	if appErr := api.checkMintedSchemeScopeLicense(user, admin, guest); appErr != nil {
+		return nil, appErr
 	}
-	return api.app.DeleteScheme(schemeID)
+	return api.app.GetOrCreatePluginChannelScheme(api.manifest.Id, user, admin, guest)
 }
 
 func (api *PluginAPI) GetSchemeRolesForChannel(channelID string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
 	return api.app.GetSchemeRolesForChannel(api.ctx, channelID)
 }
 
-// Read from master: a plugin that has just had a scheme created reads back the roles core
-// generated for it, and on a lagging replica the role would read as absent, failing the configure.
-// This narrows the window rather than closing it — the role cache answers ahead of the context, as
-// storedRoleForSpaceGuard records, so a cache hit is served whatever the context asks for.
+// Read from master: a plugin that has just had a scheme created reads back the roles
+// core generated for it, which on a lagging replica would read as absent. This
+// narrows the window rather than closing it — the role cache answers ahead of the
+// context, so a cache hit is served whatever the context asks for.
 func (api *PluginAPI) GetRoleByName(name string) (*model.Role, *model.AppError) {
 	return api.app.GetRoleByName(RequestContextWithMaster(api.ctx), name)
-}
-
-// The role is re-read by id because a RolePatch carries only Permissions: the
-// scope guard reached through UpdateRole resolves the space proof from
-// role.SchemeId, and neither argument here supplies it. Reading the stored row
-// is what puts that field in front of the guard.
-//
-// From the primary, for the same reason GetRoleByName above reads there: the
-// create-then-read-then-patch sequence a plugin performs to configure a scheme
-// it just created would otherwise return a transient not-found on the role core
-// generated for it.
-func (api *PluginAPI) PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.AppError) {
-	stored, appErr := api.app.GetRoleFromMaster(roleID)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	if appErr := api.checkGuestPermissionsLicense(stored, patch); appErr != nil {
-		return nil, appErr
-	}
-
-	return api.app.PatchRole(stored, patch)
 }
 
 func (api *PluginAPI) UpdateUserRoles(userID string, newRoles string) (*model.User, *model.AppError) {

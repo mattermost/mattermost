@@ -1111,17 +1111,10 @@ func (api *apiTimerLayer) GetSchemeByName(name string) (*model.Scheme, *model.Ap
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
+func (api *apiTimerLayer) GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.CreateScheme(scheme)
-	api.recordTime(startTime, "CreateScheme", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
-func (api *apiTimerLayer) DeleteScheme(schemeID string) (*model.Scheme, *model.AppError) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.DeleteScheme(schemeID)
-	api.recordTime(startTime, "DeleteScheme", _returnsB == nil)
+	_returnsA, _returnsB := api.apiImpl.GetOrCreatePluginChannelScheme(user, admin, guest)
+	api.recordTime(startTime, "GetOrCreatePluginChannelScheme", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
@@ -1136,13 +1129,6 @@ func (api *apiTimerLayer) GetRoleByName(name string) (*model.Role, *model.AppErr
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetRoleByName(name)
 	api.recordTime(startTime, "GetRoleByName", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
-func (api *apiTimerLayer) PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.AppError) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.PatchRole(roleID, patch)
-	api.recordTime(startTime, "PatchRole", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 

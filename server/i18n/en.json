@@ -9061,10 +9061,6 @@
     "translation": "The role \"{{.RoleName}}\" is a space capability role and cannot be changed. Its permissions are fixed by the server."
   },
   {
-    "id": "app.role.save.space_guest_permission_scope.app_error",
-    "translation": "The guest role \"{{.RoleName}}\" may only carry read-only space permissions. Space guests read a space and nothing more; grant the wider permissions to the scheme's member or admin role instead."
-  },
-  {
     "id": "app.role.save.space_permission_scope.app_error",
     "translation": "Space permissions cannot be added to the role \"{{.RoleName}}\": they may only be carried by the roles of a scheme that governs a space. If this scheme is meant to govern one, attach it to the space before patching its roles."
   },
@@ -9247,6 +9243,10 @@
     "translation": "Unable to delete this scheme."
   },
   {
+    "id": "app.scheme.delete.plugin_scheme.app_error",
+    "translation": "This scheme was created on a plugin's behalf and cannot be deleted."
+  },
+  {
     "id": "app.scheme.delete.space_scheme.app_error",
     "translation": "This scheme is used by spaces and cannot be deleted."
   },
@@ -9263,12 +9263,48 @@
     "translation": "We could not permanently delete the schemes."
   },
   {
+    "id": "app.role.save.plugin_scheme_role.app_error",
+    "translation": "The roles of a plugin-managed scheme cannot be changed. They are set when the scheme is created and shared by every channel using it."
+  },
+  {
+    "id": "app.scheme.plugin_scheme.conflict.app_error",
+    "translation": "A scheme already exists under the name reserved for this plugin scheme, and it does not grant what that name implies. Rename or remove the conflicting scheme to proceed."
+  },
+  {
+    "id": "app.scheme.plugin_scheme.guest_license.app_error",
+    "translation": "Your license does not support granting guests more than read access."
+  },
+  {
+    "id": "app.scheme.plugin_scheme.guest_permission_scope.app_error",
+    "translation": "A guest may only read pages, so the permission {{.PermissionId}} cannot be granted to the guest role of a space scheme."
+  },
+  {
+    "id": "app.scheme.plugin_scheme.no_plugin_id.app_error",
+    "translation": "Unable to determine which plugin requested the scheme."
+  },
+  {
+    "id": "app.scheme.plugin_scheme.permission_scope.app_error",
+    "translation": "A plugin channel scheme may only grant channel-scoped permissions."
+  },
+  {
+    "id": "app.scheme.plugin_scheme.scheme_license.app_error",
+    "translation": "Your license does not support custom permissions schemes, which are required to grant permissions beyond the space permissions."
+  },
+  {
     "id": "app.scheme.save.app_error",
     "translation": "Unable to create the scheme."
   },
   {
     "id": "app.scheme.save.invalid_scheme.app_error",
     "translation": "The provided scheme is invalid."
+  },
+  {
+    "id": "app.scheme.save.plugin_scheme_name.app_error",
+    "translation": "The scheme name \"{{.SchemeName}}\" is reserved for schemes created on a plugin's behalf."
+  },
+  {
+    "id": "app.scheme.save.plugin_scheme_rename.app_error",
+    "translation": "The plugin scheme \"{{.SchemeName}}\" cannot be renamed."
   },
   {
     "id": "app.scheme.save.space_scheme_name.app_error",
@@ -9881,6 +9917,10 @@
   {
     "id": "app.user.reset_password_failed_attempts.app_error",
     "translation": "Failed to reset login attempts."
+  },
+  {
+    "id": "app.user.revoke_space_capability_roles.app_error",
+    "translation": "Failed to revoke the user's space permissions. No changes were made."
   },
   {
     "id": "app.user.save.app_error",

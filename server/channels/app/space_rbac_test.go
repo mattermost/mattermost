@@ -102,8 +102,8 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		th := setupSpaceRBACMock(t)
 
 		role := &model.Role{Name: model.SpacePageCommenterRoleId, Permissions: append(
-			model.PermissionIDs(model.SpacePageCommenterRolePermissions), model.PermissionAdminSpace.Id)}
-		appErr := th.App.checkSpacePermissionScope(role, model.PermissionIDs(model.SpacePageCommenterRolePermissions))
+			model.PermissionIDs(model.SpaceCapabilityRolePermissions[model.SpacePageCommenterRoleId]), model.PermissionAdminSpace.Id)}
+		appErr := th.App.checkSpacePermissionScope(role, model.PermissionIDs(model.SpaceCapabilityRolePermissions[model.SpacePageCommenterRoleId]))
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.role.save.space_capability_role.app_error", appErr.Id)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -200,84 +200,78 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		require.Nil(t, th.App.checkSpacePermissionScope(role, nil))
 	})
 
-	// A per-space custom scheme carries no reserved name — the caller picks it — so a space
-	// backing channel already pointing at the scheme is what proves space scope instead.
-	t.Run("custom scheme a space references allowed", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		th := setupSpaceRBACMock(t)
+	// No runtime role write adds a space permission, whatever the scheme governs.
+	// A scheme's roles are written with their final permissions in the transaction
+	// that creates the scheme, so there is no legitimate later writer to admit —
+	// and the association counts that used to prove space scope are never read.
+	t.Run("scheme-generated role rejected whatever the scheme governs", func(t *testing.T) {
+		for _, tc := range []struct {
+			name       string
+			guestRole  bool
+			permission string
+		}{
+			{"user role, read grant", false, model.PermissionReadPage.Id},
+			{"user role, write grant", false, model.PermissionEditPage.Id},
+			{"guest role, read grant", true, model.PermissionReadPage.Id},
+			{"guest role, write grant", true, model.PermissionEditPage.Id},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				mainHelper.Parallel(t)
+				th := setupSpaceRBACMock(t)
 
-		schemeID := model.NewId()
-		mockStore := th.App.Srv().Store().(*mocks.Store)
-		mockSchemeStore := mocks.SchemeStore{}
-		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
-		mockStore.On("Scheme").Return(&mockSchemeStore)
-		mockChannelStore := mocks.ChannelStore{}
-		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
-		mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
-		mockStore.On("Channel").Return(&mockChannelStore)
+				schemeID := model.NewId()
+				guestRoleName := model.NewId()
+				mockStore := th.App.Srv().Store().(*mocks.Store)
+				mockSchemeStore := mocks.SchemeStore{}
+				mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{
+					Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel,
+					DefaultChannelGuestRole: guestRoleName,
+				}, nil)
+				mockStore.On("Scheme").Return(&mockSchemeStore)
+				mockChannelStore := mocks.ChannelStore{}
+				mockStore.On("Channel").Return(&mockChannelStore)
 
-		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, SchemeManaged: true, Permissions: []string{guarded}}
-		require.Nil(t, th.App.checkSpacePermissionScope(role, nil))
+				roleName := model.NewId()
+				if tc.guestRole {
+					roleName = guestRoleName
+				}
+				role := &model.Role{Name: roleName, SchemeId: &schemeID, SchemeManaged: true, Permissions: []string{tc.permission}}
+				appErr := th.App.checkSpacePermissionScope(role, nil)
+				require.NotNil(t, appErr)
+				assert.Equal(t, "app.role.save.space_permission_scope.app_error", appErr.Id)
+				mockChannelStore.AssertNotCalled(t, "CountSpaceChannelsByScheme", mock.Anything)
+				mockChannelStore.AssertNotCalled(t, "CountNonSpaceChannelsByScheme", mock.Anything)
+			})
+		}
 	})
 
-	// The guest role of a space scheme is capped to the read-only space tier. The
-	// member-assignment path (UpdateChannelMemberRoles) already refuses to grant a
-	// guest a capability role or the scheme admin role; without this cap a caller
-	// could instead rewrite the guest role itself to carry admin_space or the page
-	// writes, and every guest member of the space would inherit them through the
-	// scheme.
-	t.Run("guest role of a space scheme rejects a non-read-only grant", func(t *testing.T) {
+	// A plugin channel scheme is created complete and shared by every channel its
+	// owner configured the same way, so its roles are frozen against any write —
+	// not only one carrying a space permission.
+	t.Run("plugin scheme role rejected even for an unguarded permission", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
 
 		schemeID := model.NewId()
-		guestRoleName := model.NewId()
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
 		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{
-			Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel,
-			DefaultChannelGuestRole: guestRoleName,
+			Id:    schemeID,
+			Name:  model.PluginChannelSchemeName("com.example.plugin", []string{model.PermissionReadPage.Id}, nil, nil),
+			Scope: model.SchemeScopeChannel,
 		}, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
-		mockChannelStore := mocks.ChannelStore{}
-		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
-		mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
-		mockStore.On("Channel").Return(&mockChannelStore)
 
-		role := &model.Role{Name: guestRoleName, SchemeId: &schemeID, SchemeManaged: true, Permissions: []string{model.PermissionEditPage.Id}}
+		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, SchemeManaged: true, Permissions: []string{model.PermissionInviteUser.Id}}
 		appErr := th.App.checkSpacePermissionScope(role, nil)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.role.save.space_guest_permission_scope.app_error", appErr.Id)
+		assert.Equal(t, "app.role.save.plugin_scheme_role.app_error", appErr.Id)
 	})
 
-	// The read-only space permissions are exactly what the guest tier is seeded
-	// with, so adding one back to a guest role is not an escalation.
-	t.Run("guest role of a space scheme accepts a read-only grant", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		th := setupSpaceRBACMock(t)
-
-		schemeID := model.NewId()
-		guestRoleName := model.NewId()
-		mockStore := th.App.Srv().Store().(*mocks.Store)
-		mockSchemeStore := mocks.SchemeStore{}
-		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{
-			Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel,
-			DefaultChannelGuestRole: guestRoleName,
-		}, nil)
-		mockStore.On("Scheme").Return(&mockSchemeStore)
-		mockChannelStore := mocks.ChannelStore{}
-		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
-		mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
-		mockStore.On("Channel").Return(&mockChannelStore)
-
-		role := &model.Role{Name: guestRoleName, SchemeId: &schemeID, SchemeManaged: true, Permissions: []string{model.PermissionReadPage.Id}}
-		require.Nil(t, th.App.checkSpacePermissionScope(role, nil))
-	})
-
-	// The cap is guest-only: the same scheme's user and admin roles legitimately
-	// carry the wider grants, so an elevated permission on a non-guest role of the
-	// same space scheme is still accepted.
-	t.Run("non-guest role of a space scheme still accepts a wider grant", func(t *testing.T) {
+	// The freeze tests the whole minted shape, not the prefix. A customer scheme
+	// that merely starts with it is theirs to edit, and misreading one as minted
+	// would leave it permanently uneditable.
+	t.Run("a scheme merely prefixed plugin_ is not frozen", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
 
@@ -285,17 +279,14 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
 		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{
-			Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel,
-			DefaultChannelGuestRole: model.NewId(),
+			Id:    schemeID,
+			Name:  "plugin_incident_response",
+			Scope: model.SchemeScopeChannel,
 		}, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
-		mockChannelStore := mocks.ChannelStore{}
-		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
-		mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
-		mockStore.On("Channel").Return(&mockChannelStore)
 
-		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, SchemeManaged: true, Permissions: []string{model.PermissionEditPage.Id}}
-		require.Nil(t, th.App.checkSpacePermissionScope(role, nil))
+		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, SchemeManaged: true, Permissions: []string{model.PermissionInviteUser.Id}}
+		assert.Nil(t, th.App.checkSpacePermissionScope(role, nil))
 	})
 
 	// Scope is half the proof: only a channel-scoped scheme can govern a space,
@@ -319,25 +310,22 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		mockChannelStore.AssertNotCalled(t, "CountSpaceChannelsByScheme", mock.Anything)
 	})
 
-	// An unreadable count cannot prove space scope, and reporting it as a scope
-	// violation would blame the caller for an unreachable database.
-	t.Run("count store error is a server error", func(t *testing.T) {
+	// A scheme that cannot be read is still refused, and as a server error rather
+	// than a scope violation: reporting it as the latter would blame the caller for
+	// an unreachable database.
+	t.Run("scheme read error is a server error", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
 
 		schemeID := model.NewId()
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
-		mockSchemeStore.On("GetFromMaster", schemeID).Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil)
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(nil, errors.New("db down"))
 		mockStore.On("Scheme").Return(&mockSchemeStore)
-		mockChannelStore := mocks.ChannelStore{}
-		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), errors.New("db down"))
-		mockStore.On("Channel").Return(&mockChannelStore)
 
 		role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{guarded}}
 		appErr := th.App.checkSpacePermissionScope(role, nil)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.channel.count_space_channels_by_scheme.app_error", appErr.Id)
 		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 	})
 
@@ -1050,7 +1038,7 @@ func TestSpacePresetResolutionThroughRealSpace(t *testing.T) {
 // in ExplicitRoles unions on top of a read-only default" subtest in
 // TestSpacePresetResolutionThroughRealSpace, which only ever exercised
 // SpacePageCreatorRoleId. Mutation analysis showed
-// SpacePageDeleterOwnRolePermissions and SpacePageDeleterRolePermissions could
+// The delete-own and delete-any capability roles could
 // be swapped in permission.go with no test failing, so each capability role
 // here is pinned by both a permission it must grant and a permission held by
 // its closest sibling that it must not.
@@ -1296,6 +1284,37 @@ func TestSpaceCapabilityRoleConfinedToSystemRoles(t *testing.T) {
 	assert.Equal(t, model.SystemUserRoleId, user.Roles)
 }
 
+// TestUpdateUserRolesToGuestRevokesSpaceCapabilityRoles pins the guest transition
+// that does not go through DemoteUserToGuest. Nothing on the UpdateUserRoles path
+// resets a membership's explicit roles, so a capability role left there would keep
+// resolving page permissions for the new guest.
+func TestUpdateUserRolesToGuestRevokesSpaceCapabilityRoles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
+
+	space := saveSpaceChannelWithScheme(t, th, "")
+	_, err := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:     space.Id,
+		UserId:        user.Id,
+		NotifyProps:   model.GetDefaultChannelNotifyProps(),
+		SchemeUser:    true,
+		ExplicitRoles: model.SpacePageEditorRoleId,
+	})
+	require.NoError(t, err)
+	th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(user.Id)
+
+	updated, appErr := th.App.UpdateUserRoles(th.Context, user.Id, model.SystemGuestRoleId, false)
+	require.Nil(t, appErr)
+	assert.Equal(t, model.SystemGuestRoleId, updated.Roles)
+
+	member, appErr := th.App.GetChannelMember(th.Context, space.Id, user.Id)
+	require.Nil(t, appErr)
+	assert.NotContains(t, member.ExplicitRoles, model.SpacePageEditorRoleId)
+}
+
 // TestImportSchemeRejectsSpacePresetNames pins that bulk import cannot write
 // through a seeded preset. A reserved name resolves to the seeded scheme, which
 // takes the update branch, and the role writes that follow would land on the
@@ -1508,6 +1527,56 @@ func TestDeleteSchemeSpaceGuards(t *testing.T) {
 		mockSchemeStore.AssertNotCalled(t, "Delete", mock.Anything)
 	})
 
+	// Refused by identity, not by reference count: the name is a pure function of
+	// the permission sets and Schemes.Name is unique across deleted rows, so a
+	// deleted one leaves the next get-or-create for that set resolving to a row it
+	// must refuse rather than minting a replacement.
+	t.Run("minted plugin scheme refused even when nothing references it", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+		require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+		schemeID := model.NewId()
+		mintedName := model.PluginChannelSchemeName("com.example.plugin", []string{model.PermissionReadPage.Id}, nil, nil)
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("GetFromMaster", schemeID).
+			Return(&model.Scheme{Id: schemeID, Name: mintedName, Scope: model.SchemeScopeChannel}, nil)
+		mockChannelStore := mocks.ChannelStore{}
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		_, appErr := th.App.DeleteScheme(schemeID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.scheme.delete.plugin_scheme.app_error", appErr.Id)
+		mockSchemeStore.AssertNotCalled(t, "Delete", mock.Anything)
+		mockChannelStore.AssertNotCalled(t, "CountSpaceChannelsByScheme", mock.Anything)
+	})
+
+	// The prefix is a plain string a customer may already have used. Only a name a
+	// digest pair could have produced is claimed, so an ordinary scheme that merely
+	// starts with it stays the customer's to delete.
+	t.Run("a customer scheme merely prefixed plugin_ deletes normally", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+		require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+		schemeID := model.NewId()
+		scheme := &model.Scheme{Id: schemeID, Name: "plugin_incident_response", Scope: model.SchemeScopeChannel}
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(scheme, nil)
+		mockSchemeStore.On("Delete", schemeID).Return(scheme, nil)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		deleted, appErr := th.App.DeleteScheme(schemeID)
+		require.Nil(t, appErr)
+		assert.Equal(t, schemeID, deleted.Id)
+	})
+
 	t.Run("unreferenced non-space scheme deletes normally", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
@@ -1560,6 +1629,34 @@ func TestUpdateSchemeSpaceGuards(t *testing.T) {
 		_, appErr := th.App.UpdateScheme(&model.Scheme{Id: schemeID, Name: model.SchemeNameSpaceReadOnly, Scope: model.SchemeScopeChannel})
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.scheme.save.space_scheme_name.app_error", appErr.Id)
+		mockSchemeStore.AssertNotCalled(t, "Save", mock.Anything)
+	})
+
+	// A minted plugin scheme is identified by its name and nothing else, so a
+	// rename would unfreeze its roles while every channel already pointing at it
+	// keeps resolving them.
+	t.Run("renaming a minted plugin scheme away is rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		mintedName := model.PluginChannelSchemeName("com.example.plugin", []string{model.PermissionReadPage.Id}, nil, nil)
+		th, mockSchemeStore, schemeID := setup(t, mintedName)
+
+		_, appErr := th.App.UpdateScheme(&model.Scheme{Id: schemeID, Name: "renamed_scheme", Scope: model.SchemeScopeChannel})
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.scheme.save.plugin_scheme_rename.app_error", appErr.Id)
+		mockSchemeStore.AssertNotCalled(t, "Save", mock.Anything)
+	})
+
+	// A squat on a minted name cannot be adopted — the get-or-create verifies the
+	// roles grant what the name says — but it permanently denies that permission
+	// set to the plugin that derives it.
+	t.Run("renaming another scheme into the minted namespace is rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, mockSchemeStore, schemeID := setup(t, "ordinary_scheme")
+
+		mintedName := model.PluginChannelSchemeName("com.example.plugin", []string{model.PermissionReadPage.Id}, nil, nil)
+		_, appErr := th.App.UpdateScheme(&model.Scheme{Id: schemeID, Name: mintedName, Scope: model.SchemeScopeChannel})
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.scheme.save.plugin_scheme_name.app_error", appErr.Id)
 		mockSchemeStore.AssertNotCalled(t, "Save", mock.Anything)
 	})
 
@@ -1669,10 +1766,9 @@ func TestCreateBoardChannelRejectsASpaceScheme(t *testing.T) {
 	assert.Equal(t, "app.channel.update_channel_scheme.space_scheme.app_error", appErr.Id)
 }
 
-// The mirror of the case above: once a space points at a custom scheme, that
-// association is what checkSpacePermissionScope accepts as proof the scheme's
-// roles may hold page permissions, so the same scheme must be barred from
-// ordinary channels or those grants would resolve for their members too.
+// The mirror of the case above: once a space points at a custom scheme, that scheme
+// must be barred from ordinary channels. This is the other half of the exclusivity
+// rejectUnusableSpaceScheme enforces.
 func TestRejectSpaceSchemeOnOrdinaryChannelRefusesSchemeUsedByASpace(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupSpaceRBACMock(t)
@@ -1784,8 +1880,8 @@ func TestIsSpaceChannelByIDFailsClosedOnLookupError(t *testing.T) {
 	})
 }
 
-// The scheme lookup inside the preset check is shared by both channel guards, so
-// a failure there has to surface rather than be read as "not a preset".
+// The scheme lookup is shared by both channel guards, so a failure there has to
+// surface rather than be read as "this scheme holds no space authority".
 func TestSpaceChannelGuardsPropagateSchemeLookupErrors(t *testing.T) {
 	setup := func(t *testing.T) (*TestHelper, string) {
 		th := setupSpaceRBACMock(t)
@@ -1794,6 +1890,11 @@ func TestSpaceChannelGuardsPropagateSchemeLookupErrors(t *testing.T) {
 		mockSchemeStore := mocks.SchemeStore{}
 		mockSchemeStore.On("GetFromMaster", schemeID).Return(nil, errors.New("db down"))
 		mockStore.On("Scheme").Return(&mockSchemeStore)
+		// The ordinary-channel guard counts spaces on the scheme before reading it,
+		// so that count has to succeed for the scheme lookup to be reached.
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
+		mockStore.On("Channel").Return(&mockChannelStore)
 		return th, schemeID
 	}
 
@@ -2586,21 +2687,22 @@ func TestCheckSpacePermissionScopeMetadataOnlyWrite(t *testing.T) {
 	})
 }
 
-// TestCheckSpacePermissionScopeAddAndFlipInOneWrite pins the scheme-managed
-// refusal on the add path: a single write that both adds a space grant and
-// clears SchemeManaged never passes through the metadata-only branch, so
-// without a check ahead of the scheme-proof accepts it would ride the proof to
-// an accept and land as a freely assignable role holding space grants. The
-// write is reachable through importRole, the sole role write whose
-// SchemeManaged field is caller-controlled.
+// TestCheckSpacePermissionScopeAddAndFlipInOneWrite pins that a single write
+// adding a space grant while clearing SchemeManaged is refused. The write is
+// reachable through importRole, the sole role write whose SchemeManaged field is
+// caller-controlled, and landing it would produce a freely assignable role
+// holding space grants.
+//
+// It used to be the scheme-managed clause that caught this, because the scheme
+// proof would otherwise have accepted the write. No runtime write adds a space
+// permission at all now, so the blanket refusal catches it earlier and the
+// scheme-managed clause never sees it. Kept as a regression test on the outcome
+// rather than on which clause produces it: this is the shape of write that must
+// not land, whichever rule stops it.
 func TestCheckSpacePermissionScopeAddAndFlipInOneWrite(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupSpaceRBACMock(t)
 
-	// A custom scheme a space backing channel points at genuinely proves space
-	// scope, so only the scheme-managed refusal stands between the write and an
-	// accept. A preset cannot drive this test any more: its roles are frozen
-	// before the proof is consulted.
 	schemeID := model.NewId()
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockSchemeStore := mocks.SchemeStore{}
@@ -2609,14 +2711,12 @@ func TestCheckSpacePermissionScopeAddAndFlipInOneWrite(t *testing.T) {
 	}, nil)
 	mockStore.On("Scheme").Return(&mockSchemeStore)
 	mockChannelStore := mocks.ChannelStore{}
-	mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
-	mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 
 	role := &model.Role{Name: model.NewId(), SchemeId: &schemeID, Permissions: []string{model.PermissionEditPage.Id}}
 	appErr := th.App.checkSpacePermissionScope(role, nil)
 	require.NotNil(t, appErr, "adding a grant while clearing SchemeManaged must be refused")
-	assert.Equal(t, "app.role.save.space_role_scheme_managed.app_error", appErr.Id)
+	assert.Equal(t, "app.role.save.space_permission_scope.app_error", appErr.Id)
 	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 }
 
@@ -2641,6 +2741,19 @@ func TestSpaceGuardsHoldWithFlagOff(t *testing.T) {
 		appErr := th.App.checkSpaceSchemeName("CreateScheme", model.SchemeNameSpaceContribute)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.scheme.save.space_scheme_name.app_error", appErr.Id)
+	})
+
+	t.Run("scheme name guard rejects a minted plugin scheme name", func(t *testing.T) {
+		minted := model.PluginChannelSchemeName("com.example.plugin", []string{model.PermissionReadPage.Id}, nil, nil)
+		appErr := th.App.checkSpaceSchemeName("CreateScheme", minted)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.scheme.save.plugin_scheme_name.app_error", appErr.Id)
+	})
+
+	// The reservation covers the shape, not the prefix: a customer naming a scheme
+	// of their own plugin_something keeps that name.
+	t.Run("scheme name guard admits a name merely prefixed plugin_", func(t *testing.T) {
+		assert.Nil(t, th.App.checkSpaceSchemeName("CreateScheme", "plugin_incident_response"))
 	})
 
 	t.Run("a role adding no space permission is still unaffected", func(t *testing.T) {
@@ -2822,15 +2935,15 @@ func TestSpaceSeedingMigrationsIdempotentWhenMarkerPresent(t *testing.T) {
 	mockSchemeStore.AssertNotCalled(t, "Save", mock.Anything)
 }
 
-// TestRejectSpaceSchemeOnOrdinaryChannelRefusesLingeringGrants pins the second
-// check rejectSpaceSchemeOnOrdinaryChannel runs after the space-count check: a
-// custom scheme no space currently points at (CountSpaceChannelsByScheme == 0)
-// is still refused if its generated channel roles carry a space permission,
-// because that grant is durable state a lapsed association cannot revoke.
+// TestRejectSpaceSchemeOnOrdinaryChannelRefusesLingeringGrants pins the second check
+// rejectSpaceSchemeOnOrdinaryChannel runs after the space-count check: a custom
+// scheme no space currently points at (CountSpaceChannelsByScheme == 0) is still
+// refused if its generated channel roles carry a space permission, because that grant
+// is durable state a lapsed association cannot revoke.
 //
-// Dropping the association is exactly what leaves this the only check standing,
-// so both of its reads go to the primary and neither may be served from a cache
-// a peer node's grant has not yet invalidated.
+// Dropping the association is exactly what leaves this the only check standing, so
+// both of its reads go to the primary and neither may be served from a cache a peer
+// node's grant has not yet invalidated.
 func TestRejectSpaceSchemeOnOrdinaryChannelRefusesLingeringGrants(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupSpaceRBACMock(t)
@@ -2905,7 +3018,7 @@ func TestPatchRoleRejectsCapabilityRoleAheadOfNoOpShortCircuit(t *testing.T) {
 	mockRoleStore := mocks.RoleStore{}
 	mockStore.On("Role").Return(&mockRoleStore)
 
-	permissions := model.PermissionIDs(model.SpacePageCommenterRolePermissions)
+	permissions := model.PermissionIDs(model.SpaceCapabilityRolePermissions[model.SpacePageCommenterRoleId])
 	role := &model.Role{
 		Id:          model.NewId(),
 		Name:        model.SpacePageCommenterRoleId,

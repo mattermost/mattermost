@@ -302,16 +302,13 @@ type ChannelStore interface {
 	ClearCaches()
 	ClearMembersForUserCache()
 	GetChannelsByScheme(schemeID string, offset int, limit int) (model.ChannelList, error)
-	// CountNonSpaceChannelsByScheme counts the ordinary channels carrying the
-	// scheme — the same population GetChannelsByScheme returns, counted rather
-	// than paged. Reads from the primary because the callers are authorization
-	// guards: a scheme that has just been attached to an ordinary channel must
-	// not still look unused to the next guard that consults it.
+	// CountNonSpaceChannelsByScheme counts the ordinary channels carrying the scheme
+	// — the same population GetChannelsByScheme returns, counted rather than paged.
+	// Reads from the primary: the callers are authorization guards.
 	CountNonSpaceChannelsByScheme(schemeID string) (int64, error)
 	// CountSpaceChannelsByScheme counts the space backing channels carrying the
 	// scheme, deliberately including soft-deleted channels: a deleted space is
-	// restorable and keeps its SchemeId. Reads from the primary so a
-	// just-created space is not missed due to replica lag.
+	// restorable and keeps its SchemeId. Reads from the primary.
 	CountSpaceChannelsByScheme(schemeID string) (int64, error)
 	MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error)
 	ResetAllChannelSchemes() error
@@ -901,20 +898,17 @@ type RoleStore interface {
 	// Unrecognized permissions are logged (see MM-68830).
 	SavePreservingUnknownPermissions(role *model.Role) (*model.Role, error)
 	Get(roleID string) (*model.Role, error)
-	// GetFromMaster reads on the primary. No cache layer serves the by-id read,
-	// so it is the freshest baseline available to the space permission scope
-	// guard, which diffs a role write against what is stored: a replica that has
-	// not yet seen a peer node's removal would hand the guard a wider baseline
-	// and let a re-add through unchecked.
+	// GetFromMaster reads on the primary. No cache layer serves the by-id read, so it
+	// is the freshest baseline available to the space permission scope guard, which
+	// diffs a role write against what is stored.
 	GetFromMaster(roleID string) (*model.Role, error)
 	GetAll() ([]*model.Role, error)
 	GetByName(rctx request.CTX, name string) (*model.Role, error)
 	GetByNames(names []string) ([]*model.Role, error)
 	// GetByNamesFromMaster reads on the primary and is served by no cache layer,
 	// where GetByNames is answered from the local role cache before the store is
-	// consulted. The space guard that decides whether a scheme's generated roles
-	// carry space authority needs both: a grant a peer node wrote would otherwise
-	// be hidden by this node's cache entry, or by a lagging replica.
+	// consulted. The space guards need both: a grant a peer node wrote would
+	// otherwise be hidden by this node's cache entry, or by a lagging replica.
 	GetByNamesFromMaster(names []string) ([]*model.Role, error)
 	Delete(roleID string) (*model.Role, error)
 	PermanentDeleteAll() error
@@ -933,18 +927,20 @@ type RoleStore interface {
 
 type SchemeStore interface {
 	Save(scheme *model.Scheme) (*model.Scheme, error)
+	// SaveChannelSchemeWithRoles creates a channel scheme whose three generated
+	// roles carry exactly the given permission sets, in the transaction that
+	// creates the scheme. Creating and then patching the roles would leave the
+	// scheme resolving with the wrong permissions in between, and leave residue
+	// behind on a partial failure.
+	SaveChannelSchemeWithRoles(scheme *model.Scheme, user, admin, guest []string) (*model.Scheme, error)
 	Get(schemeID string) (*model.Scheme, error)
-	// GetFromMaster reads on the primary, so a scheme created moments earlier
-	// cannot be missed. The space guards decide whether a scheme may become a
-	// space's, and a replica that has not yet seen the row would make a
-	// just-created scheme look like it does not exist.
+	// GetFromMaster reads on the primary, so a scheme created moments earlier cannot
+	// be missed and a soft-deleted one cannot read as live.
 	GetFromMaster(schemeID string) (*model.Scheme, error)
 	GetByName(schemeName string) (*model.Scheme, error)
-	// GetByNameFromMaster is GetByName on the primary. A plugin that loses a race
-	// to create a scheme adopts the winner's row by looking it up under the
-	// name both agreed on, which is a read of a row another node wrote moments
-	// earlier; on a replica that has not caught up it would read as absent and
-	// the loser would fail instead of adopting.
+	// GetByNameFromMaster is GetByName on the primary. A plugin that loses a race to
+	// create a scheme adopts the winner's row by name, which on a lagging replica
+	// would read as absent and fail instead of adopting.
 	GetByNameFromMaster(schemeName string) (*model.Scheme, error)
 	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error)
 	Delete(schemeID string) (*model.Scheme, error)

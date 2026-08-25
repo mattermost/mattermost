@@ -11,48 +11,14 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-// getSchemeWithMasterFallback resolves a scheme, re-reading on the primary when
-// the replica has no row: nothing populates the scheme cache on create, so a
-// scheme created moments earlier is absent from the replica, and a guard that
-// resolves one right after it was created would refuse for the wrong reason.
+// getSchemeFromMaster resolves a scheme on the primary only. Every guard deciding
+// whether a scheme may hold space authority uses this rather than the replica-first
+// fallback below: a replica that has not yet seen a delete answers DeleteAt == 0 for
+// a row the primary has already soft-deleted, and the deleted-scheme refusals have
+// to trust that field.
 //
-// A nil scheme with a nil error means the id resolves on neither. Each caller
-// refuses that its own way, because an unresolvable scheme means something
-// different to each of them.
-func (a *App) getSchemeWithMasterFallback(where, schemeId string) (*model.Scheme, *model.AppError) {
-	scheme, err := a.Srv().Store().Scheme().Get(schemeId)
-	if err == nil {
-		return scheme, nil
-	}
-
-	var nfErr *store.ErrNotFound
-	if !errors.As(err, &nfErr) {
-		return nil, model.NewAppError(where, "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	scheme, err = a.Srv().Store().Scheme().GetFromMaster(schemeId)
-	if err != nil {
-		if !errors.As(err, &nfErr) {
-			return nil, model.NewAppError(where, "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-		return nil, nil
-	}
-	return scheme, nil
-}
-
-// getSchemeFromMaster resolves a scheme on the primary only. Every guard that
-// reads a scheme to decide whether it may hold space authority uses this rather
-// than the replica-first fallback above: the fallback re-reads the primary only
-// when the replica has no row, so a replica that has not yet seen a delete
-// answers DeleteAt == 0 for a row the primary has already soft-deleted, and the
-// deleted-scheme refusal passes on stale state. The channel counts those guards
-// fall back on cannot catch it either, because deleting a scheme blanks SchemeId
-// on every channel that used it, so they come back empty and agree. Every caller
-// is sysconsole- or plugin-gated and low frequency, so the replica offload buys
-// nothing.
-//
-// A nil scheme with a nil error means the id resolves to no row. Each caller
-// refuses that its own way.
+// A nil scheme with a nil error means the id resolves to no row; each caller refuses
+// that its own way.
 func (a *App) getSchemeFromMaster(where, schemeId string) (*model.Scheme, *model.AppError) {
 	scheme, err := a.Srv().Store().Scheme().GetFromMaster(schemeId)
 	if err != nil {
@@ -65,47 +31,25 @@ func (a *App) getSchemeFromMaster(where, schemeId string) (*model.Scheme, *model
 	return scheme, nil
 }
 
-// schemeGovernsOnlySpaces reports whether a live channel-scoped scheme is
-// attached to at least one space backing channel and to no ordinary channel —
-// the proof that a scheme belongs exclusively to spaces, so its roles may carry
-// space authority. A scheme of any other scope, a deleted one, or a nil one
-// governs no space and fails without a count. Both counts read the primary, so a
-// scheme that is exclusively a space's cannot look shared through replica lag, or
-// the reverse.
-//
-// checkSpacePermissionScope and PluginAPI.isGuestRoleOfNonSpaceScheme both decide
-// on this same proof; sharing it keeps the two authorization checks from drifting
-// apart.
-func (a *App) schemeGovernsOnlySpaces(where string, scheme *model.Scheme) (bool, *model.AppError) {
-	if scheme == nil || scheme.DeleteAt != 0 || scheme.Scope != model.SchemeScopeChannel {
-		return false, nil
+// getSchemeWithMasterFallback resolves a scheme on the replica, re-reading on the
+// primary when it has no row: nothing populates the scheme cache on create, so a
+// scheme created moments earlier is absent from the replica.
+func (a *App) getSchemeWithMasterFallback(where, schemeId string) (*model.Scheme, *model.AppError) {
+	scheme, err := a.Srv().Store().Scheme().Get(schemeId)
+	if err == nil {
+		return scheme, nil
 	}
-	count, cErr := a.Srv().Store().Channel().CountSpaceChannelsByScheme(scheme.Id)
-	if cErr != nil {
-		return false, model.NewAppError(where, "app.channel.count_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(cErr)
+
+	var nfErr *store.ErrNotFound
+	if !errors.As(err, &nfErr) {
+		return nil, model.NewAppError(where, "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if count == 0 {
-		return false, nil
-	}
-	governed, gErr := a.Srv().Store().Channel().CountNonSpaceChannelsByScheme(scheme.Id)
-	if gErr != nil {
-		return false, model.NewAppError(where, "app.channel.count_non_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(gErr)
-	}
-	return governed == 0, nil
+	return a.getSchemeFromMaster(where, schemeId)
 }
 
-// isSeededSpaceScheme reports whether schemeId is one of the three seeded space
-// preset schemes. Resolving the id and reading its name costs one lookup, where
-// resolving each reserved name in turn would cost three, and the names it is
-// compared against cannot drift because renaming a seeded preset is refused.
-// Identity is the pair (channel scope, one of the three reserved names), not the
+// isSeededSpaceScheme reports whether schemeId is one of the seeded space preset
+// schemes. Identity is the pair (channel scope, one of the reserved names), not the
 // id. A lookup failure other than not-found fails closed.
-//
-// Read on the primary, because preset identity is what the callers refuse on: a
-// preset seeded moments earlier that reads as absent is read as "not a preset",
-// which would let it be deleted or attached to an ordinary channel. The seeding
-// migration marks itself complete, so a preset deleted that way is not restored
-// on the next boot.
 func (a *App) isSeededSpaceScheme(schemeId string) (bool, *model.AppError) {
 	scheme, appErr := a.getSchemeFromMaster("isSeededSpaceScheme", schemeId)
 	if appErr != nil {
@@ -114,29 +58,32 @@ func (a *App) isSeededSpaceScheme(schemeId string) (bool, *model.AppError) {
 	if scheme == nil {
 		return false, nil
 	}
-	// Scope is part of the identity: a scheme of another scope carrying a
-	// reserved name is a conflicting row the seeding migration refuses to adopt,
-	// and deleting it is the operator's remedy. A deleted row is not a preset
-	// either: the read carries no DeleteAt filter, so it comes back like any other.
+	// Scope is part of the identity: a scheme of another scope carrying a reserved
+	// name is a conflicting row the seeding migration refuses to adopt, and deleting
+	// it is the operator's remedy.
 	return scheme.DeleteAt == 0 && scheme.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(scheme.Name), nil
 }
 
+// isPluginChannelScheme reports whether schemeId is a channel scheme minted by
+// GetOrCreatePluginChannelScheme. Identity is the pair (channel scope, minted name
+// shape), the same shape the role-write freeze tests.
+func (a *App) isPluginChannelScheme(schemeId string) (bool, *model.AppError) {
+	scheme, appErr := a.getSchemeFromMaster("isPluginChannelScheme", schemeId)
+	if appErr != nil {
+		return false, appErr
+	}
+	if scheme == nil {
+		return false, nil
+	}
+	return scheme.Scope == model.SchemeScopeChannel && model.IsPluginChannelSchemeName(scheme.Name), nil
+}
+
 // schemeHoldsSpaceGrants reports whether a scheme's generated channel roles
-// currently carry a space permission.
-//
-// This is the durable half of the space-scheme test. Whether a space points at
-// a scheme is live state that can be taken away — repoint the space at a preset,
-// or delete it — but the permissions checkSpacePermissionScope let onto the
-// scheme's roles while that association held stay written. Asking only whether a
-// space points at the scheme today would therefore let a scheme that still
-// grants admin_space and the page permissions move to an ordinary channel once
-// the association lapses, where MergeChannelHigherScopedPermissions carries
-// those grants through to its members.
-//
-// Both reads go to the primary and neither is served by a cache. That is the
-// case the caller's earlier tests cannot cover for this one: dropping the
-// association is exactly what leaves this the only test standing, so a grant a
-// peer node wrote and this node has not yet seen would let the scheme through.
+// currently carry a space permission — the durable half of the space-scheme test.
+// Whether a space points at a scheme can be taken away, but the grants written onto
+// its roles stay written, and MergeChannelHigherScopedPermissions would carry them
+// through to an ordinary channel's members. Both reads go to the primary and
+// neither is served by a cache.
 func (a *App) schemeHoldsSpaceGrants(schemeId string) (bool, *model.AppError) {
 	scheme, appErr := a.getSchemeFromMaster("schemeHoldsSpaceGrants", schemeId)
 	if appErr != nil {
@@ -159,35 +106,31 @@ func (a *App) schemeHoldsSpaceGrants(schemeId string) (bool, *model.AppError) {
 	return schemeGrantsSpacePermissions(scheme, rolesMap), nil
 }
 
-// checkSpaceSchemeName rejects creating or renaming a scheme to one of the
-// three seeded space preset names: a pre-migration name squat would be silently
-// adopted by the seeding migration's get-or-create, and the permission scope
-// guard reads a preset name as proof of space authority.
-//
-// Deliberately not gated on the docs feature flag, for the same reason as
-// checkSpacePermissionScope: the seeding runs unconditionally, so the names are
-// reserved on every server, and a squat planted while the flag was off would
-// still be there when it flips on.
+// checkSpaceSchemeName rejects creating or renaming a scheme into a reserved name:
+// a seeded space preset, or a name of the shape GetOrCreatePluginChannelScheme
+// mints. A preset squat would be adopted by the seeding's get-or-create; a squat on
+// a minted name permanently denies that permission set to the plugin deriving it,
+// since the name is a pure function of the set. Not gated on the docs feature flag,
+// for the same reason as checkSpacePermissionScope.
 func (a *App) checkSpaceSchemeName(where, name string) *model.AppError {
 	if model.IsSpaceSchemeName(name) {
 		return model.NewAppError(where, "app.scheme.save.space_scheme_name.app_error",
+			map[string]any{"SchemeName": name}, "", http.StatusBadRequest)
+	}
+	if model.IsPluginChannelSchemeName(name) {
+		return model.NewAppError(where, "app.scheme.save.plugin_scheme_name.app_error",
 			map[string]any{"SchemeName": name}, "", http.StatusBadRequest)
 	}
 	return nil
 }
 
 // checkSpaceSchemeRename guards a scheme update in both directions: renaming a
-// seeded preset away from its reserved name, and renaming any scheme into one.
-// Space scheme identity is protected here because a name-keyed delete refusal
-// alone would be defeated by renaming the scheme first.
-//
-// The stored row has to be read to see the name the update replaces, so this
-// runs before the save on every update.
+// seeded preset away from its reserved name, and renaming any scheme into one. A
+// name-keyed delete refusal alone would be defeated by renaming the scheme first.
 func (a *App) checkSpaceSchemeRename(scheme *model.Scheme) *model.AppError {
-	// The import path relies on the primary fallback: GetSchemeByName re-reads
-	// on the primary when the replica has no row yet, then passes the id straight
-	// to UpdateScheme — so the stored-row read here has to reach the primary the
-	// same way, or a just-created scheme would look missing.
+	// The import path relies on the primary fallback: GetSchemeByName re-reads on the
+	// primary when the replica has no row yet, then passes the id straight to
+	// UpdateScheme, so the stored-row read here has to reach it the same way.
 	stored, appErr := a.getSchemeWithMasterFallback("UpdateScheme", scheme.Id)
 	if appErr != nil {
 		return appErr
@@ -208,31 +151,54 @@ func (a *App) checkSpaceSchemeRename(scheme *model.Scheme) *model.AppError {
 		return model.NewAppError("UpdateScheme", "app.scheme.save.space_scheme_rename.app_error",
 			map[string]any{"SchemeName": stored.Name}, "", http.StatusBadRequest)
 	}
+	// A minted plugin scheme is identified by its name and nothing else: the role
+	// freeze, the delete refusal and the get-or-create's own lookup all key off it.
+	// Renaming one away unfreezes its roles while every channel already pointing at it
+	// keeps resolving them, and leaves the next get-or-create for the same permission
+	// set minting a second scheme beside it.
+	if stored.Scope == model.SchemeScopeChannel && model.IsPluginChannelSchemeName(stored.Name) {
+		return model.NewAppError("UpdateScheme", "app.scheme.save.plugin_scheme_rename.app_error",
+			map[string]any{"SchemeName": stored.Name}, "", http.StatusBadRequest)
+	}
 	return a.checkSpaceSchemeName("UpdateScheme", scheme.Name)
 }
 
-// checkSpaceSchemeDelete refuses deleting a scheme a space depends on. Deleting
-// one blanks SchemeId on every channel using it, which would drop every member
-// of every space on the scheme to the page-perm-less global roles. The seeded
-// presets are refused by identity, and so is any scheme still referenced by a
-// space backing channel — soft-deleted spaces included, since they are
-// restorable and keep their SchemeId.
+// checkSpaceSchemeDelete refuses deleting a scheme a space depends on. Deleting one
+// blanks SchemeId on every channel using it, which would drop every member of every
+// space on the scheme to the page-perm-less global roles. The seeded presets are
+// refused by identity, and so is any scheme still referenced by a space backing
+// channel — soft-deleted spaces included, since they are restorable and keep their
+// SchemeId.
 func (a *App) checkSpaceSchemeDelete(schemeId string) *model.AppError {
-	refused, appErr := a.isSeededSpaceScheme(schemeId)
+	isPreset, appErr := a.isSeededSpaceScheme(schemeId)
 	if appErr != nil {
 		return appErr
 	}
-	if !refused {
-		// The count-then-delete window is not transactional — a concurrent
-		// repoint can still race the delete; accepted for this
-		// sysconsole-gated, low-frequency path.
-		count, cErr := a.Srv().Store().Channel().CountSpaceChannelsByScheme(schemeId)
-		if cErr != nil {
-			return model.NewAppError("DeleteScheme", "app.scheme.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(cErr)
-		}
-		refused = count > 0
+	if isPreset {
+		return model.NewAppError("DeleteScheme", "app.scheme.delete.space_scheme.app_error", nil, "", http.StatusBadRequest)
 	}
-	if refused {
+
+	// A minted plugin scheme is refused whether or not anything references it today:
+	// Schemes.Name is unique across deleted rows, so a deleted one leaves the next
+	// get-or-create for that permission set resolving to a row it must refuse rather
+	// than minting a replacement. Reported separately from the space-scheme refusal
+	// below: an operator looking at a minted scheme has no space to detach to make
+	// the delete succeed, so the space wording would send them looking for one.
+	isPluginScheme, pErr := a.isPluginChannelScheme(schemeId)
+	if pErr != nil {
+		return pErr
+	}
+	if isPluginScheme {
+		return model.NewAppError("DeleteScheme", "app.scheme.delete.plugin_scheme.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// The count-then-delete window is not transactional — a concurrent repoint can
+	// still race the delete; accepted for this sysconsole-gated, low-frequency path.
+	count, cErr := a.Srv().Store().Channel().CountSpaceChannelsByScheme(schemeId)
+	if cErr != nil {
+		return model.NewAppError("DeleteScheme", "app.scheme.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(cErr)
+	}
+	if count > 0 {
 		return model.NewAppError("DeleteScheme", "app.scheme.delete.space_scheme.app_error", nil, "", http.StatusBadRequest)
 	}
 	return nil
