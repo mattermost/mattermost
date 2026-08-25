@@ -1027,10 +1027,12 @@ func TestCreatePropertyField(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("non-admin cannot pin the creator permission level", func(t *testing.T) {
-		// createPropertyField pins all three slots to the object type's default
-		// for non-admin callers, so a submitted creator level is discarded
-		// rather than honoured.
+	t.Run("a non-scope-admin cannot pin the creator permission level", func(t *testing.T) {
+		// Only a caller who administers the field's scope may configure
+		// permission levels; everyone else has all three pinned to the object
+		// type's default, so a submitted creator level is discarded rather
+		// than honoured. th.BasicUser is a plain channel_user in
+		// th.BasicChannel here.
 		th.LoginBasic(t)
 
 		creatorLevel := model.PermissionLevelCreator
