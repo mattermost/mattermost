@@ -241,6 +241,15 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 	if field == nil {
 		return nil, optionsChangeRefused("no property field to list the options of")
 	}
+
+	// Re-read rather than trust the caller's copy: which rows the store pages,
+	// whether they may be listed at all, and what the post-hook judges all have to
+	// agree with each other, and the only way to guarantee that is to decide all
+	// three from the same field.
+	field, err := ps.getPropertyField(field.GroupID, field.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read the property field a listing is aimed at")
+	}
 	if err := requireOptionsAddressable(field); err != nil {
 		return nil, err
 	}
