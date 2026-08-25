@@ -123,6 +123,22 @@ describe('ChannelNameFormField - default channel URL', () => {
         expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
     });
 
+    test('should not offer the URL Edit button when the form is read-only', () => {
+        renderWithContext(
+            <ChannelNameFormField
+                {...ordinaryChannelProps}
+                readOnly={true}
+            />,
+            makeState('false'),
+        );
+
+        expect(screen.getByRole('textbox', {name: 'Channel name'})).toBeDisabled();
+        expect(screen.getByTestId('urlInputLabel')).toHaveTextContent('test-channel');
+        expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
+        expect(screen.queryByTestId('channelURLInput')).not.toBeInTheDocument();
+        expect(screen.queryByText('The URL of the default channel cannot be changed.')).not.toBeInTheDocument();
+    });
+
     test('should let the user edit the URL of a non-default channel', async () => {
         const onURLChange = jest.fn();
 
