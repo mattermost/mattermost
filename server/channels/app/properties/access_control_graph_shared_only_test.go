@@ -509,12 +509,17 @@ func TestGraphSharedOnly_OptionList(t *testing.T) {
 
 		// The source plugin is told, which is what makes this masking rather than the
 		// endpoint simply never reporting a hierarchy.
-		for _, option := range h.listedOptions(t, "test-plugin", field, 0, "", 100) {
+		unmasked := h.listedOptions(t, "test-plugin", field, 0, "", 100)
+		require.Len(t, unmasked, 4)
+		found := false
+		for _, option := range unmasked {
 			if option.ID == ids["F-18 Program"] {
+				found = true
 				require.NotNil(t, option.Parents)
 				assert.Equal(t, []string{"Fighter Jet Program"}, *option.Parents)
 			}
 		}
+		require.True(t, found, "F-18 Program must be in the unmasked listing")
 	})
 
 	t.Run("a caller with unrestricted read access is not masked at all", func(t *testing.T) {
