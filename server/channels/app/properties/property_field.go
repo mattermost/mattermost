@@ -323,9 +323,13 @@ func (ps *PropertyService) validateDependentOptionReadCeilings(field, existing *
 // anything it links to, even when it carries its own LinkedFieldID.
 func (ps *PropertyService) createFieldWithOptionLinks(field *model.PropertyField) (*model.PropertyField, error) {
 	if field.Type == model.PropertyFieldTypeGraph && optionSourceID(field) != "" {
-		// Any list the field carries now is its template's, copied in above so a read
-		// of the new field shows what it serves. None of it is this field's to own,
-		// and the store leaves an option owned by the link source alone.
+		// Two callers reach this branch and both skip validateOptionBlobLinks, for
+		// different reasons. On the linking path, any list the field carries now is
+		// its template's, copied in above so a read of the new field shows what it
+		// serves — none of it is this field's to own. On the legacy path there is no
+		// list to validate: a legacy field carrying both a link and an option list is
+		// refused before createFieldWithOptionLinks is ever called. Either way the
+		// store leaves an option owned by the link source alone.
 		return ps.fieldStore.Create(field)
 	}
 

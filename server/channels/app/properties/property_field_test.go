@@ -955,8 +955,11 @@ func TestLinkedPropertyFields(t *testing.T) {
 			LinkedFieldID: &fakeSourceID,
 		})
 		require.NoError(t, err)
-		require.NotNil(t, linked.LinkedFieldID)
-		assert.Equal(t, fakeSourceID, *linked.LinkedFieldID)
+
+		reloaded, err := th.service.GetPropertyField(rctx, legacyGroup.ID, linked.ID)
+		require.NoError(t, err)
+		require.NotNil(t, reloaded.LinkedFieldID)
+		assert.Equal(t, fakeSourceID, *reloaded.LinkedFieldID)
 	})
 
 	t.Run("create legacy field with options and no link succeeds", func(t *testing.T) {
@@ -975,7 +978,10 @@ func TestLinkedPropertyFields(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		assert.NotNil(t, field.Attrs[model.PropertyFieldAttributeOptions])
+
+		reloaded, err := th.service.GetPropertyField(rctx, legacyGroup.ID, field.ID)
+		require.NoError(t, err)
+		assert.NotNil(t, reloaded.Attrs[model.PropertyFieldAttributeOptions])
 	})
 
 	t.Run("update refuses linking a legacy field that already carries its own options", func(t *testing.T) {
