@@ -4,13 +4,13 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"maps"
 	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/require"
 )
@@ -347,7 +347,7 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 
 	// Read back via the store directly to avoid any read-access filtering
 	// the AC layer might apply for a non-source-plugin caller.
-	got, err := th.Store.PropertyField().Get(context.Background(), groupID, created.ID)
+	got, err := th.Store.PropertyField().Get(th.Context, groupID, created.ID)
 	require.NoError(t, err)
 	require.Equal(t, "uas_employee_id", got.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
 		"display_name must be backfilled to the field name even on protected/source_only fields")
@@ -397,6 +397,19 @@ func sessionAttributeOptionNames(t *testing.T, field *model.PropertyField) []str
 		names = append(names, option.GetName())
 	}
 	return names
+}
+
+func schemaSessionAttributeOptionNames(t *testing.T, groupID, name string) []string {
+	t.Helper()
+
+	for _, field := range model.SessionAttributeSystemFields(groupID) {
+		if field.Name == name {
+			return sessionAttributeOptionNames(t, field)
+		}
+	}
+
+	require.FailNowf(t, "session attribute field not found", "field %q is not declared by the schema", name)
+	return nil
 }
 
 func sessionAttributeOptionIDsByName(t *testing.T, field *model.PropertyField) map[string]string {
@@ -481,13 +494,13 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Restore the pre-conversion shape a server upgrade would find: free
-		// text with no options. Written with a nil request context so
+		// text with no options. Written with a system-caller context so
 		// SessionAttributesHook treats it as a system caller, the same way the
 		// seed itself does.
 		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
 		field.Type = model.PropertyFieldTypeText
 		delete(field.Attrs, model.PropertyFieldAttributeOptions)
-		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{field})
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
 		require.NoError(t, err)
 
 		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
@@ -511,6 +524,47 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 
 		after := sessionAttributeOptionIDsByName(t, sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform))
 		require.Equal(t, before, after, "re-seeding must not regenerate option IDs")
+	})
+
+	t.Run("adds newly declared options to an already-seeded select", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		// Restore what an upgrading server finds: the field as it was seeded
+		// before "Android" joined the schema.
+		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldUserAgentPlatform)
+		persisted := sessionAttributeOptions(t, field)
+		trimmed := make([]any, 0, len(persisted))
+		for _, option := range persisted {
+			if option.GetName() == "Android" {
+				continue
+			}
+			trimmed = append(trimmed, map[string]any{"id": option.GetID(), "name": option.GetName()})
+		}
+		require.Len(t, trimmed, len(persisted)-1)
+		field.Attrs[model.PropertyFieldAttributeOptions] = trimmed
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
+		require.NoError(t, err)
+
+		before := sessionAttributeOptionIDsByName(t, sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldUserAgentPlatform))
+		require.NotContains(t, before, "Android")
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		updated := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldUserAgentPlatform)
+		require.Equal(t,
+			schemaSessionAttributeOptionNames(t, group.ID, model.SessionAttributesPropertyFieldUserAgentPlatform),
+			sessionAttributeOptionNames(t, updated),
+		)
+		require.True(t, model.IsValidSessionAttributeValue(updated, "Android"))
+
+		after := sessionAttributeOptionIDsByName(t, updated)
+		require.NotEmpty(t, after["Android"], "the new option must be assigned an ID")
+		for name, id := range before {
+			require.Equal(t, id, after[name], "option %q must keep its ID", name)
+		}
 	})
 
 	t.Run("re-running is idempotent", func(t *testing.T) {
@@ -539,7 +593,7 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 
 		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
 		delete(field.Attrs, model.NativeAttributeAttrOperators)
-		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{field})
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
 		require.NoError(t, err)
 
 		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
