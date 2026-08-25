@@ -349,18 +349,18 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 				close(linesChan)
 				wg.Wait()
 
-				// Checkpoint after each completed segment so a crashed import
-				// can resume without restarting from line 1.
-				if onCheckpoint != nil {
-					onCheckpoint(lineNumber - 1)
-				}
-
 				// Check no errors occurred while waiting for the queue to empty.
 				for len(errorsChan) != 0 {
 					err := <-errorsChan
 					if stopOnError(rctx, err) {
 						return err.LineNumber, err.Error
 					}
+				}
+
+				// Checkpoint after each completed segment so a crashed import
+				// can resume without restarting from line 1.
+				if onCheckpoint != nil {
+					onCheckpoint(lineNumber - 1)
 				}
 			}
 
@@ -410,17 +410,17 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 	}
 	wg.Wait()
 
-	// Final checkpoint — all content processed successfully.
-	if onCheckpoint != nil {
-		onCheckpoint(lineNumber)
-	}
-
 	// Check no errors occurred while waiting for the queue to empty.
 	for len(errorsChan) != 0 {
 		err := <-errorsChan
 		if stopOnError(rctx, err) {
 			return err.LineNumber, err.Error
 		}
+	}
+
+	// Final checkpoint — all content processed successfully.
+	if onCheckpoint != nil {
+		onCheckpoint(lineNumber)
 	}
 
 	if err := scanner.Err(); err != nil {
