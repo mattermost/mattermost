@@ -120,6 +120,7 @@ type ErrorKind =
     'type_change_with_dependents' |
     'applies_to_failed' |
     'applies_to_remove_failed' |
+    'applies_to_remove_partial_save' |
     'applies_to_partial_save' |
     'applies_to_rollback_failed' |
     'applies_to_name_conflict' |
@@ -699,8 +700,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
             // Deletes toDelete's linked fields, stopping (and reporting) at the
             // first failure. Called from one of two positions below depending on
-            // typeChanged, never both.
-            const deleteRemovedLinkedFields = async (): Promise<boolean> => {
+            // typeChanged, never both -- errorKind differs by position because
+            // the two failures are not the same: before PATCH, nothing else has
+            // been saved yet; after PATCH has already succeeded, the template
+            // update is not lost, only the removal is.
+            const deleteRemovedLinkedFields = async (errorKind: 'applies_to_remove_failed' | 'applies_to_remove_partial_save'): Promise<boolean> => {
                 for (const type of toDelete) {
                     const existing = persisted[type];
                     if (!existing) {
@@ -713,7 +717,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     } catch {
                         finalizeSave({
                             success: false,
-                            errorKind: 'applies_to_remove_failed',
+                            errorKind,
                             serverErrorMessage: null,
                             failedResourceTypes: [type],
                         });
@@ -731,7 +735,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             // linked value -- irreversibly, for a save that just failed. So when
             // the type isn't changing, PATCH runs first and the delete only
             // happens once it's known to succeed.
-            if (typeChanged && !(await deleteRemovedLinkedFields())) {
+            if (typeChanged && !(await deleteRemovedLinkedFields('applies_to_remove_failed'))) {
                 return;
             }
 
@@ -754,7 +758,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 return;
             }
 
-            if (!typeChanged && !(await deleteRemovedLinkedFields())) {
+            if (!typeChanged && !(await deleteRemovedLinkedFields('applies_to_remove_partial_save'))) {
                 return;
             }
 
@@ -881,7 +885,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // has no notion of "User Attribute" to say, since that framing is
     // specific to this feature's CPA-namespace overlap.
     let errorContent: React.ReactNode = null;
-    if (errorKind === 'applies_to_failed' || errorKind === 'applies_to_remove_failed' || errorKind === 'applies_to_partial_save') {
+    if (errorKind === 'applies_to_failed' || errorKind === 'applies_to_remove_failed' || errorKind === 'applies_to_remove_partial_save' || errorKind === 'applies_to_partial_save') {
         errorContent = formatMessage(errorMessages[errorKind], {resources: resourceTypeListLabel(failedResourceTypes ?? [], formatMessage)});
     } else if (errorKind === 'applies_to_rollback_failed') {
         const resources = resourceTypeListLabel(failedResourceTypes ?? [], formatMessage);
@@ -1284,6 +1288,10 @@ const errorMessages = defineMessages({
     applies_to_remove_failed: {
         id: 'admin.global_attributes.attribute_details.save_error.applies_to_remove_failed',
         defaultMessage: "Couldn't remove this attribute from {resources}. Nothing else was saved — please try again.",
+    },
+    applies_to_remove_partial_save: {
+        id: 'admin.global_attributes.attribute_details.save_error.applies_to_remove_partial_save',
+        defaultMessage: "The attribute was saved, but couldn't be removed from {resources}. Please try again.",
     },
     applies_to_partial_save: {
         id: 'admin.global_attributes.attribute_details.save_error.applies_to_partial_save',

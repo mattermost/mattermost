@@ -1462,6 +1462,30 @@ describe('AttributeDetails', () => {
             expect(mockHistoryPush).not.toHaveBeenCalled();
         });
 
+        it('reports a partial-save error, not "nothing else was saved", when the PATCH succeeds but the DELETE fails', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate());
+            const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockRejectedValue(new Error('delete failed'));
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+            await waitFor(() => expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument());
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(await screen.findByRole('button', {name: /remove and save/i}));
+
+            expect(patchPropertyField).toHaveBeenCalledTimes(1);
+            expect(deletePropertyField).toHaveBeenCalledTimes(1);
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+
+            const banner = await screen.findByTestId('attributeSaveError');
+            expect(banner).toHaveTextContent('The attribute was saved');
+            expect(banner).not.toHaveTextContent('Nothing else was saved');
+        });
+
         it('redirects to the listing when the field is plugin-owned', async () => {
             mockLoadedField(makeTemplate({
                 attrs: {display_name: 'Plugin field', source_plugin_id: 'com.example.plugin', protected: true},

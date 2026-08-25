@@ -1484,6 +1484,7 @@
   "admin.global_attributes.attribute_details.save_error.applies_to_name_conflict": "This name is already used by a User Attribute. Please choose a different name.",
   "admin.global_attributes.attribute_details.save_error.applies_to_partial_save": "The attribute was saved, but couldn't be applied to {resources}. Please try again.",
   "admin.global_attributes.attribute_details.save_error.applies_to_remove_failed": "Couldn't remove this attribute from {resources}. Nothing else was saved — please try again.",
+  "admin.global_attributes.attribute_details.save_error.applies_to_remove_partial_save": "The attribute was saved, but couldn't be removed from {resources}. Please try again.",
   "admin.global_attributes.attribute_details.save_error.applies_to_rollback_failed": "\"{name}\" may have been partially created for {resources}. A retry under the same name will likely fail until those are cleaned up.",
   "admin.global_attributes.attribute_details.save_error.applies_to_template_rollback_failed": "\"{name}\" was created but could not be cleaned up after a failed apply. A retry under the same name will likely fail until it is deleted.",
   "admin.global_attributes.attribute_details.save_error.generic": "Something went wrong while saving this attribute. Please try again.",
