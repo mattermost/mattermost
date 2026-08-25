@@ -907,7 +907,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalEnableHardenedMode = new(false)
 	}
 	if s.EnableHardenedMode == nil {
-		s.EnableHardenedMode = NewBool(*s.ExperimentalEnableHardenedMode)
+		s.EnableHardenedMode = new(*s.ExperimentalEnableHardenedMode)
 	}
 
 	if s.ExperimentalStrictCSRFEnforcement == nil {
