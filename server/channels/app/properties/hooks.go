@@ -97,6 +97,22 @@ type PropertyHook interface {
 	// caller may not see all of them.
 	PostGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)
 
+	// MayShowAnyPropertyFieldOptions answers, once per listing rather than once
+	// per page, whether this caller may see any of a field's options at all. It
+	// is asked before the scan that pages through them, so it takes no page: a
+	// hook that needed a page to answer could not tell "nothing on this page"
+	// from "nothing on any page", which is exactly what the listing needs told
+	// apart to stop early.
+	//
+	// false means no page of this field will ever show this caller anything,
+	// and must never be the answer for a caller who would be shown something --
+	// the listing stops before looking. A hook unsure of the answer returns
+	// true: the caller then pays for the scan and gets the right answer, which
+	// is the safe direction. An error is the listing's own error, not a false --
+	// "the answer could not be worked out" must not look like "there is nothing
+	// here".
+	MayShowAnyPropertyFieldOptions(rctx request.CTX, field *model.PropertyField) (bool, error)
+
 	// Value pre-hooks (write operations)
 
 	PreCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error)
@@ -169,6 +185,9 @@ func (BasePropertyHook) PreChangePropertyFieldOptions(_ request.CTX, _ *model.Pr
 }
 func (BasePropertyHook) PostGetPropertyFieldOptions(_ request.CTX, _ *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
 	return options, nil
+}
+func (BasePropertyHook) MayShowAnyPropertyFieldOptions(_ request.CTX, _ *model.PropertyField) (bool, error) {
+	return true, nil
 }
 func (BasePropertyHook) PreCreatePropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
 	return value, nil

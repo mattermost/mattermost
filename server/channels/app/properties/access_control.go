@@ -413,6 +413,39 @@ func (h *AccessControlHook) filterSharedOnlyGraphOptionPage(rctx request.CTX, fi
 	return shown, nil
 }
 
+// MayShowAnyPropertyFieldOptions answers, without paging through a field's
+// option rows, whether the caller may ever see anything from its listing. It
+// shares hasUnrestrictedFieldReadAccess and getAccessMode with
+// PostGetPropertyFieldOptions rather than restating them, so the two cannot
+// drift into disagreeing about the same caller: false here means exactly what
+// that method would hand back an empty page for, on every page rather than
+// only the one asked.
+//
+// A shared_only graph field is the one case answerable without a page:
+// covering is a relation between the caller's own options and the field's, so
+// whether the caller covers anything does not depend on which page of the
+// hierarchy is asked. Every other caller without unrestricted read access --
+// a source_only field's non-source caller, or a shared_only field of a flat
+// type -- is served nothing regardless of holdings, which
+// PostGetPropertyFieldOptions already answers unconditionally.
+func (h *AccessControlHook) MayShowAnyPropertyFieldOptions(rctx request.CTX, field *model.PropertyField) (bool, error) {
+	if field == nil || !h.isGroupManaged(field.GroupID) {
+		return true, nil
+	}
+	callerID := h.extractCallerID(rctx)
+	if h.hasUnrestrictedFieldReadAccess(field, callerID) {
+		return true, nil
+	}
+	if field.Type != model.PropertyFieldTypeGraph || h.getAccessMode(field) != model.PropertyAccessModeSharedOnly {
+		return false, nil
+	}
+	held, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
+	if err != nil {
+		return false, fmt.Errorf("failed to read the caller's own options of graph field %s: %w", field.ID, err)
+	}
+	return len(held) > 0, nil
+}
+
 // PostGetPropertyField applies read access control to a single field.
 func (h *AccessControlHook) PostGetPropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
 	if !h.isGroupManaged(field.GroupID) {
