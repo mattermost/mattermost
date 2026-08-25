@@ -9057,6 +9057,10 @@
     "translation": "The role was not valid."
   },
   {
+    "id": "app.role.save.plugin_scheme_role.app_error",
+    "translation": "The roles of a plugin-managed scheme cannot be changed. They are set when the scheme is created and shared by every channel using it."
+  },
+  {
     "id": "app.role.save.space_capability_role.app_error",
     "translation": "The role \"{{.RoleName}}\" is a space capability role and cannot be changed. Its permissions are fixed by the server."
   },
@@ -9261,10 +9265,6 @@
   {
     "id": "app.scheme.permanent_delete_all.app_error",
     "translation": "We could not permanently delete the schemes."
-  },
-  {
-    "id": "app.role.save.plugin_scheme_role.app_error",
-    "translation": "The roles of a plugin-managed scheme cannot be changed. They are set when the scheme is created and shared by every channel using it."
   },
   {
     "id": "app.scheme.plugin_scheme.conflict.app_error",
