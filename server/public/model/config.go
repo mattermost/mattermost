@@ -23,6 +23,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/ldap"
 	"github.com/pkg/errors"
+	"golang.org/x/net/http/httpguts"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
@@ -150,7 +151,7 @@ const (
 	TeamSettingsLockProfileFieldsNameAndUsername = "name_and_username"
 	TeamSettingsLockProfileFieldsAll             = "all"
 
-	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
+	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
 
 	FileSettingsDefaultDirectory                   = "./data/"
 	FileSettingsDefaultS3UploadPartSizeBytes       = 5 * 1024 * 1024   // 5MB
@@ -286,6 +287,11 @@ const (
 	GlobalrelayCustomerTypeA10    = "A10"
 	GlobalrelayCustomerTypeCustom = "CUSTOM"
 
+	GlobalRelayMsgTypeHeader     = "X-GlobalRelay-MsgType"
+	GlobalRelayChannelNameHeader = "X-Mattermost-ChannelName"
+	GlobalRelayChannelIDHeader   = "X-Mattermost-ChannelID"
+	GlobalRelayChannelTypeHeader = "X-Mattermost-ChannelType"
+
 	ImageProxyTypeLocal           = "local"
 	ImageProxyTypeLegacyAtmosCamo = "atmos/camo"
 
@@ -333,6 +339,31 @@ const (
 
 func GetDefaultAppCustomURLSchemes() []string {
 	return []string{"mmauth://", "mmauthbeta://"}
+}
+
+// globalRelayReservedHeaders are the headers the Global Relay EML export writes itself.
+// A custom header may not reuse any of them: delivery re-parses From out of the generated
+// EML to set the SMTP envelope sender, Global Relay routes on X-GlobalRelay-MsgType, and a
+// duplicate Content-Type or Mime-Version makes the message unparseable.
+var globalRelayReservedHeaders = map[string]struct{}{
+	"from":                      {},
+	"to":                        {},
+	"subject":                   {},
+	"content-transfer-encoding": {},
+	"auto-submitted":            {},
+	"precedence":                {},
+	strings.ToLower(GlobalRelayMsgTypeHeader):     {},
+	strings.ToLower(GlobalRelayChannelNameHeader): {},
+	strings.ToLower(GlobalRelayChannelIDHeader):   {},
+	strings.ToLower(GlobalRelayChannelTypeHeader): {},
+	"date":         {},
+	"mime-version": {},
+	"content-type": {},
+}
+
+func IsGlobalRelayReservedHeader(name string) bool {
+	_, ok := globalRelayReservedHeaders[strings.ToLower(name)]
+	return ok
 }
 
 var ServerTLSSupportedCiphers = map[string]uint16{
@@ -441,12 +472,12 @@ type ServiceSettings struct {
 	EnableFileSearch                                  *bool   `access:"write_restrictable"`
 	MinimumHashtagLength                              *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
 	EnableUserTypingMessages                          *bool   `access:"site_posts,write_restrictable,cloud_restrictable"`
-	EnableChannelViewedMessages                       *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	EnableChannelViewedMessages                       *bool   `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableUserStatuses                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	ExperimentalEnableAuthenticationTransfer          *bool   `access:"experimental_features"`
 	ClusterLogTimeoutMilliseconds                     *int    `access:"write_restrictable,cloud_restrictable"`
-	EnableTutorial                                    *bool   `access:"experimental_features"`
-	EnableOnboardingFlow                              *bool   `access:"experimental_features"`
+	EnableTutorial                                    *bool   `access:"site_customization"`
+	EnableOnboardingFlow                              *bool   `access:"site_customization"`
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool   `access:"experimental_features"`
 	ExperimentalGroupUnreadChannels                   *string `access:"experimental_features"`
 	EnableAPITeamDeletion                             *bool
@@ -2561,10 +2592,10 @@ func (s *AnnouncementSettings) isValid() *AppError {
 }
 
 type ThemeSettings struct {
-	EnableThemeSelection *bool   `access:"experimental_features"`
-	DefaultTheme         *string `access:"experimental_features"`
-	AllowCustomThemes    *bool   `access:"experimental_features"`
-	AllowedThemes        []string
+	EnableThemeSelection *bool    `access:"site_customization"`
+	DefaultTheme         *string  `access:"site_customization"`
+	AllowCustomThemes    *bool    `access:"site_customization"`
+	AllowedThemes        []string `access:"site_customization"`
 }
 
 func (s *ThemeSettings) SetDefaults() {
@@ -3908,6 +3939,8 @@ type GlobalRelayMessageExportSettings struct {
 	SMTPServerTimeout    *int    `access:"compliance_compliance_export"`
 	CustomSMTPServerName *string `access:"compliance_compliance_export"`
 	CustomSMTPPort       *string `access:"compliance_compliance_export"`
+	CustomHeaderName     *string `access:"compliance_compliance_export"` // optional custom header name added to each exported EML
+	CustomHeaderValue    *string `access:"compliance_compliance_export"` // value sent with the custom header
 }
 
 func (s *GlobalRelayMessageExportSettings) SetDefaults() {
@@ -3932,6 +3965,38 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 	if s.CustomSMTPPort == nil {
 		s.CustomSMTPPort = new("25")
 	}
+	if s.CustomHeaderName == nil {
+		s.CustomHeaderName = new("")
+	}
+	if s.CustomHeaderValue == nil {
+		s.CustomHeaderValue = new("")
+	}
+}
+
+// The custom header name is written verbatim into the exported EML, so it must be a
+// valid header field name; the value must be free of control characters that could
+// inject additional headers.
+func (s *GlobalRelayMessageExportSettings) isValidCustomHeader() *AppError {
+	name := SafeDereference(s.CustomHeaderName)
+	value := strings.TrimSpace(SafeDereference(s.CustomHeaderValue))
+
+	// No custom header configured.
+	if name == "" && value == "" {
+		return nil
+	}
+	if name == "" || value == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !httpguts.ValidHeaderFieldName(name) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_header_name.app_error", nil, "", http.StatusBadRequest)
+	}
+	if IsGlobalRelayReservedHeader(name) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !httpguts.ValidHeaderFieldValue(value) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_header_value.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
 }
 
 type MessageExportSettings struct {
@@ -5495,6 +5560,14 @@ func (s *MessageExportSettings) isValid() *AppError {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.smtp_username.app_error", nil, "", http.StatusBadRequest)
 			} else if s.GlobalRelaySettings.SMTPPassword == nil || *s.GlobalRelaySettings.SMTPPassword == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.smtp_password.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+
+		if (*s.ExportFormat == ComplianceExportTypeGlobalrelay || *s.ExportFormat == ComplianceExportTypeGlobalrelayZip) &&
+			s.GlobalRelaySettings != nil &&
+			SafeDereference(s.GlobalRelaySettings.CustomerType) == GlobalrelayCustomerTypeCustom {
+			if appErr := s.GlobalRelaySettings.isValidCustomHeader(); appErr != nil {
+				return appErr
 			}
 		}
 	}
