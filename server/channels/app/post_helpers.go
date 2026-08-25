@@ -265,6 +265,12 @@ func (a *App) getFilteredAccessiblePosts(posts []*model.Post, options filterPost
 	return filteredPosts, firstInaccessiblePostTime, nil
 }
 
+// isBurnOnReadEnabled reports whether the burn-on-read feature is active, i.e.
+// both the feature flag and the service setting are turned on.
+func (a *App) isBurnOnReadEnabled() bool {
+	return a.Config().FeatureFlags.BurnOnRead && model.SafeDereference(a.Config().ServiceSettings.EnableBurnOnRead)
+}
+
 // filterBurnOnReadPosts filters out burn-on-read posts from a PostList.
 // This should be used for contexts where burn-on-read posts should not appear (e.g., search results).
 func (a *App) filterBurnOnReadPosts(postList *model.PostList) *model.AppError {

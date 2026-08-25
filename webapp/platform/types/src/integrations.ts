@@ -143,7 +143,7 @@ export type IntegrationsState = {
     commands: IDMappedObjects<Command>;
     dialogArguments?: DialogArgs;
     dialogTriggerId: string;
-    dialog?: OpenDialogRequest;
+    dialogs: Record<string, OpenDialogRequest>;
 };
 
 export type OpenDialogRequest = {
@@ -176,6 +176,7 @@ export type DialogSubmission = {
     };
     cancelled: boolean;
     type?: string;
+    file_ids?: string[];
 };
 
 export type DialogElement = {
@@ -192,6 +193,7 @@ export type DialogElement = {
     data_source: string;
     data_source_url?: string;
     multiselect?: boolean;
+    allow_multiple?: boolean;
     options: Array<{
         text: string;
         value: any;
@@ -205,19 +207,13 @@ export type DialogElement = {
         time_interval?: number;
         location_timezone?: string;
         manual_time_entry?: boolean;
-
-        /** @deprecated Use manual_time_entry instead. Kept for backward compatibility. */
-        allow_manual_time_entry?: boolean;
     };
 
-    /** @deprecated Use datetime_config.min_date instead. Kept for backward compatibility. */
-    min_date?: string;
-
-    /** @deprecated Use datetime_config.max_date instead. Kept for backward compatibility. */
-    max_date?: string;
-
-    /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
-    time_interval?: number;
+    // Action button configuration (type "action_button")
+    action_button?: {
+        url: string;
+        context?: Record<string, string>;
+    };
 };
 
 export type SubmitDialogResponse = {
@@ -226,3 +222,6 @@ export type SubmitDialogResponse = {
     type?: string;
     form?: Dialog;
 };
+
+// Keep in sync with server/public/model/integration_action.go MaxDialogFileIds.
+export const MaxDialogFileIds = 10;

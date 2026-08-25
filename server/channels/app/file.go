@@ -59,43 +59,8 @@ func (a *App) ExportFileBackend() filestore.FileBackend {
 	return a.ch.exportFilestore
 }
 
-// UseExportFileStore reports whether the dedicated export filestore is
-// active. When true, callers reading the filestore configuration should
-// resolve the export-side fields (ExportDriverName, ExportAmazonS3*,
-// ExportAzure*, ...) rather than the primary fields.
-func (a *App) UseExportFileStore() bool {
-	if !a.License().IsCloud() {
-		return false
-	}
-	if !a.Config().FeatureFlags.CloudDedicatedExportUI {
-		return false
-	}
-	dedicated := a.Config().FileSettings.DedicatedExportStore
-	return dedicated != nil && *dedicated
-}
-
-// ResolvedFileStoreDriverName returns the driver name that callers should
-// read for the active filestore -- ExportDriverName when the dedicated
-// export filestore is enabled, otherwise the primary DriverName. The empty
-// string is returned when neither pointer is set so callers can produce a
-// dedicated "unsupported driver" error.
-func (a *App) ResolvedFileStoreDriverName(settings *model.FileSettings) string {
-	name := settings.DriverName
-	if a.UseExportFileStore() {
-		name = settings.ExportDriverName
-	}
-
-	if name == nil {
-		return ""
-	}
-	return *name
-}
-
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
 	bucket := settings.AmazonS3Bucket
-	if a.UseExportFileStore() {
-		bucket = settings.ExportAmazonS3Bucket
-	}
 	if bucket == nil || *bucket == "" {
 		return model.NewAppError("CheckMandatoryS3Fields", "api.admin.test_s3.missing_s3_bucket", nil, "", http.StatusBadRequest)
 	}
@@ -107,12 +72,6 @@ func (a *App) CheckMandatoryAzureFields(settings *model.FileSettings) *model.App
 	authMode := settings.AzureAuthMode
 	accessKey := settings.AzureAccessKey
 	container := settings.AzureContainer
-	if a.UseExportFileStore() {
-		storageAccount = settings.ExportAzureStorageAccount
-		authMode = settings.ExportAzureAuthMode
-		accessKey = settings.ExportAzureAccessKey
-		container = settings.ExportAzureContainer
-	}
 	if storageAccount == nil || *storageAccount == "" {
 		return model.NewAppError("CheckMandatoryAzureFields", "api.admin.test_azure.missing_azure_field", nil, "missing azure storage account setting", http.StatusBadRequest)
 	}
@@ -162,11 +121,7 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 	complianceEnabled := license != nil && *license.Features.Compliance
 	allowInsecure := insecure != nil && *insecure
 	allowedUntrustedInternalConnections := model.SafeDereference(a.Config().ServiceSettings.AllowedUntrustedInternalConnections)
-	if a.UseExportFileStore() {
-		backend, err = filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(cfg, complianceEnabled && license.IsCloud(), allowInsecure, allowedUntrustedInternalConnections))
-	} else {
-		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, allowInsecure, allowedUntrustedInternalConnections))
-	}
+	backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, allowInsecure, allowedUntrustedInternalConnections))
 	if err != nil {
 		return model.NewAppError("FileAttachmentBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -853,7 +808,6 @@ func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Rea
 	}
 
 	rctx = rctx.WithLogFields(
-		mlog.String("file_name", name),
 		mlog.String("channel_id", channelID),
 		mlog.String("user_id", t.UserId),
 	)
@@ -866,6 +820,10 @@ func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Rea
 	}
 
 	t.init(a)
+
+	rctx = rctx.WithLogFields(
+		mlog.String("file_info_id", t.fileinfo.Id),
+	)
 
 	var aerr *model.AppError
 	if !t.Raw && t.fileinfo.IsImage() {
@@ -924,10 +882,10 @@ func (a *App) UploadFileX(rctx request.CTX, channelID, name string, input io.Rea
 		if !a.Srv().GoExtraction(func() {
 			err := a.ExtractContentFromFileInfo(rctx, &infoCopy)
 			if err != nil {
-				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				rctx.Logger().Error("Failed to extract file content", mlog.Err(err))
 			}
 		}) {
-			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("fileInfoId", infoCopy.Id))
+			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until the scheduled content extraction catch-up job runs or an admin runs a content extraction job (e.g. mmctl extract)")
 		}
 	}
 
@@ -1193,10 +1151,10 @@ func (a *App) DoUploadFileExpectModification(rctx request.CTX, now time.Time, ra
 		if !a.Srv().GoExtraction(func() {
 			err := a.ExtractContentFromFileInfo(rctx, &infoCopy)
 			if err != nil {
-				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				rctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("file_info_id", infoCopy.Id))
 			}
 		}) {
-			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("fileInfoId", infoCopy.Id))
+			rctx.Logger().Warn("Content extraction queue is full, skipping inline extraction; this file's content will not be searchable until the scheduled content extraction catch-up job runs or an admin runs a content extraction job (e.g. mmctl extract)", mlog.String("file_info_id", infoCopy.Id))
 		}
 	}
 
@@ -1758,6 +1716,9 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 		return nil
 	}
 
+	logger := rctx.Logger().With(mlog.String("file_info_id", fileInfo.Id))
+	logger.Debug("Extracting content from file", mlog.String("extension", fileInfo.Extension))
+
 	file, aerr := a.FileReader(fileInfo.Path)
 	if aerr != nil {
 		return errors.Wrap(aerr, "failed to open file for extract file content")
@@ -1766,7 +1727,8 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 	// ReaderCloser: with a timeout configured, extraction may continue on a
 	// detached goroutine after Extract returns, so closing the file here would
 	// race with that goroutine still reading it.
-	text, err := docextractor.Extract(rctx.Logger(), fileInfo.Name, file, docextractor.ExtractSettings{
+	text, err := docextractor.Extract(logger, fileInfo.Name, file, docextractor.ExtractSettings{
+		Ctx:              rctx.Context(),
 		ArchiveRecursion: *a.Config().FileSettings.ArchiveRecursion,
 		MaxFileSize:      *a.Config().FileSettings.MaxFileSize,
 		Timeout:          time.Duration(*a.Config().FileSettings.ExtractContentTimeout) * time.Second,
@@ -1784,7 +1746,7 @@ func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileI
 		}
 		reloadFileInfo, storeErr := a.Srv().Store().FileInfo().Get(fileInfo.Id)
 		if storeErr != nil {
-			rctx.Logger().Warn("Failed to invalidate the fileInfo cache.", mlog.Err(storeErr), mlog.String("file_info_id", fileInfo.Id))
+			logger.Warn("Failed to invalidate the fileInfo cache.", mlog.Err(storeErr))
 		} else {
 			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(reloadFileInfo.PostId, false)
 		}

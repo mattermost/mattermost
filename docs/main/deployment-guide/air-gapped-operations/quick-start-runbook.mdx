@@ -1,0 +1,32 @@
+---
+title: Deployment Overview
+sidebar_position: 1
+description: The high-level steps to prepare for and complete a self-hosted air-gapped Mattermost deployment.
+---
+
+<EditionAvailability tiers="free,professional,enterprise,enterprise-advanced" />
+<DeploymentAvailability modes="self-hosted,air-gapped" />
+
+# Air-Gapped Deployment Overview
+
+This is a summary of the steps involved in deploying Mattermost in an air-gapped environment.
+
+1.  **Select your preferred Mattermost deployment option.** This step is often dictated by the infrastructure already running in your air-gapped environment. If you're deploying from scratch, review our [server deployment documentation](/deployment-guide/server/server-deployment-planning#deployment-options) to select the optimal option given your organization's needs.
+
+2.  **Set up a private container registry or package mirror.** Ideally the air-gapped environment already has a private container registry or package mirror available. If not, see [Bill of Materials and Registry Mirroring](./mirror-package-repositories) for setup guidance.
+
+3.  **Prepare your Bill of Materials.** Depending on your deployment method, you'll need to download, tag, and push required materials into your private registry or mirror.
+
+4.  **Transfer materials into the air-gapped environment.** If the private registry cannot access the public internet, you can prepare an archive of the registry data on your internet-connected machine and securely transfer it using approved data transfer methods — for example, burning to a disk.
+
+5.  **Install Mattermost Server.** Once you have all the necessary resources in your air-gapped environment, you can move forward with deployment following the instructions for [Linux](/deployment-guide/server/deploy-linux), [Kubernetes](/deployment-guide/server/deploy-kubernetes), or [Docker](/deployment-guide/server/deploy-containers).
+
+6.  **Install Mattermost Desktop Apps.** Since air-gapped devices cannot access the publicly available app stores, you'll need to install the apps directly from the latest [packages available on our GitHub release page](https://github.com/mattermost/desktop/releases). You'll find [installation instructions](/deployment-guide/desktop/desktop-app-deployment) in our documentation based on your desired deployment method.
+
+7.  **Configure Mattermost for air-gapped operation.** See [Configure for Air-Gapped Operation](./disable-phone-home-features) for the settings that accommodate the lack of internet access.
+
+<Tip>
+
+Consider [talking to a Mattermost expert](https://mattermost.com/contact-sales/) if your organization needs support deploying Mattermost and supporting services in an air-gapped environment.
+
+</Tip>

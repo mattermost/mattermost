@@ -23,6 +23,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/ldap"
 	"github.com/pkg/errors"
+	"golang.org/x/net/http/httpguts"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
@@ -146,7 +147,11 @@ const (
 	TeamSettingsDefaultCustomDescriptionText = ""
 	TeamSettingsDefaultUserStatusAwayTimeout = 300
 
-	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
+	TeamSettingsLockProfileFieldsNone            = "none"
+	TeamSettingsLockProfileFieldsNameAndUsername = "name_and_username"
+	TeamSettingsLockProfileFieldsAll             = "all"
+
+	SqlSettingsDefaultDataSource = "postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
 
 	FileSettingsDefaultDirectory                   = "./data/"
 	FileSettingsDefaultS3UploadPartSizeBytes       = 5 * 1024 * 1024   // 5MB
@@ -282,8 +287,13 @@ const (
 	GlobalrelayCustomerTypeA10    = "A10"
 	GlobalrelayCustomerTypeCustom = "CUSTOM"
 
-	ImageProxyTypeLocal     = "local"
-	ImageProxyTypeAtmosCamo = "atmos/camo"
+	GlobalRelayMsgTypeHeader     = "X-GlobalRelay-MsgType"
+	GlobalRelayChannelNameHeader = "X-Mattermost-ChannelName"
+	GlobalRelayChannelIDHeader   = "X-Mattermost-ChannelID"
+	GlobalRelayChannelTypeHeader = "X-Mattermost-ChannelType"
+
+	ImageProxyTypeLocal           = "local"
+	ImageProxyTypeLegacyAtmosCamo = "atmos/camo"
 
 	GoogleSettingsDefaultScope           = "profile email"
 	GoogleSettingsDefaultAuthEndpoint    = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -329,6 +339,31 @@ const (
 
 func GetDefaultAppCustomURLSchemes() []string {
 	return []string{"mmauth://", "mmauthbeta://"}
+}
+
+// globalRelayReservedHeaders are the headers the Global Relay EML export writes itself.
+// A custom header may not reuse any of them: delivery re-parses From out of the generated
+// EML to set the SMTP envelope sender, Global Relay routes on X-GlobalRelay-MsgType, and a
+// duplicate Content-Type or Mime-Version makes the message unparseable.
+var globalRelayReservedHeaders = map[string]struct{}{
+	"from":                      {},
+	"to":                        {},
+	"subject":                   {},
+	"content-transfer-encoding": {},
+	"auto-submitted":            {},
+	"precedence":                {},
+	strings.ToLower(GlobalRelayMsgTypeHeader):     {},
+	strings.ToLower(GlobalRelayChannelNameHeader): {},
+	strings.ToLower(GlobalRelayChannelIDHeader):   {},
+	strings.ToLower(GlobalRelayChannelTypeHeader): {},
+	"date":         {},
+	"mime-version": {},
+	"content-type": {},
+}
+
+func IsGlobalRelayReservedHeader(name string) bool {
+	_, ok := globalRelayReservedHeaders[strings.ToLower(name)]
+	return ok
 }
 
 var ServerTLSSupportedCiphers = map[string]uint16{
@@ -431,18 +466,18 @@ type ServiceSettings struct {
 	EnableCustomEmoji                                 *bool   `access:"site_emoji"`
 	EnableEmojiPicker                                 *bool   `access:"site_emoji"`
 	PostEditTimeLimit                                 *int    `access:"user_management_permissions"`
-	TimeBetweenUserTypingUpdatesMilliseconds          *int64  `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	TimeBetweenUserTypingUpdatesMilliseconds          *int64  `access:"site_posts,write_restrictable,cloud_restrictable"`
 	EnableCrossTeamSearch                             *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnablePostSearch                                  *bool   `access:"write_restrictable,cloud_restrictable"`
 	EnableFileSearch                                  *bool   `access:"write_restrictable"`
 	MinimumHashtagLength                              *int    `access:"environment_database,write_restrictable,cloud_restrictable"`
-	EnableUserTypingMessages                          *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	EnableChannelViewedMessages                       *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	EnableUserTypingMessages                          *bool   `access:"site_posts,write_restrictable,cloud_restrictable"`
+	EnableChannelViewedMessages                       *bool   `access:"environment_web_server,write_restrictable,cloud_restrictable"`
 	EnableUserStatuses                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	ExperimentalEnableAuthenticationTransfer          *bool   `access:"experimental_features"`
 	ClusterLogTimeoutMilliseconds                     *int    `access:"write_restrictable,cloud_restrictable"`
-	EnableTutorial                                    *bool   `access:"experimental_features"`
-	EnableOnboardingFlow                              *bool   `access:"experimental_features"`
+	EnableTutorial                                    *bool   `access:"site_customization"`
+	EnableOnboardingFlow                              *bool   `access:"site_customization"`
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool   `access:"experimental_features"`
 	ExperimentalGroupUnreadChannels                   *string `access:"experimental_features"`
 	EnableAPITeamDeletion                             *bool
@@ -2160,9 +2195,6 @@ type EmailSettings struct {
 	EnablePreviewModeBanner           *bool   `access:"site_notifications"`
 	SkipServerCertificateVerification *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable"`
 	EmailNotificationContentsType     *string `access:"site_notifications"`
-	LoginButtonColor                  *string `access:"experimental_features"`
-	LoginButtonBorderColor            *string `access:"experimental_features"`
-	LoginButtonTextColor              *string `access:"experimental_features"`
 }
 
 func (s *EmailSettings) SetDefaults(isUpdate bool) {
@@ -2292,18 +2324,6 @@ func (s *EmailSettings) SetDefaults(isUpdate bool) {
 
 	if s.EmailNotificationContentsType == nil {
 		s.EmailNotificationContentsType = new(EmailNotificationContentsFull)
-	}
-
-	if s.LoginButtonColor == nil {
-		s.LoginButtonColor = new("#0000")
-	}
-
-	if s.LoginButtonBorderColor == nil {
-		s.LoginButtonBorderColor = new("#2389D7")
-	}
-
-	if s.LoginButtonTextColor == nil {
-		s.LoginButtonTextColor = new("#2389D7")
 	}
 }
 
@@ -2510,10 +2530,10 @@ func (s *AnnouncementSettings) SetDefaults() {
 }
 
 type ThemeSettings struct {
-	EnableThemeSelection *bool   `access:"experimental_features"`
-	DefaultTheme         *string `access:"experimental_features"`
-	AllowCustomThemes    *bool   `access:"experimental_features"`
-	AllowedThemes        []string
+	EnableThemeSelection *bool    `access:"site_customization"`
+	DefaultTheme         *string  `access:"site_customization"`
+	AllowCustomThemes    *bool    `access:"site_customization"`
+	AllowedThemes        []string `access:"site_customization"`
 }
 
 func (s *ThemeSettings) SetDefaults() {
@@ -2559,6 +2579,7 @@ type TeamSettings struct {
 	ExperimentalViewArchivedChannels   *bool    `access:"experimental_features,site_users_and_teams"`
 	ExperimentalEnableAutomaticReplies *bool    `access:"experimental_features"`
 	LockTeammateNameDisplay            *bool    `access:"site_users_and_teams"`
+	LockProfileFieldsForEmailUsers     *string  `access:"site_users_and_teams"`
 	ExperimentalPrimaryTeam            *string  `access:"experimental_features"`
 	ExperimentalDefaultChannels        []string `access:"experimental_features"`
 }
@@ -2659,6 +2680,10 @@ func (s *TeamSettings) SetDefaults() {
 	if s.LockTeammateNameDisplay == nil {
 		s.LockTeammateNameDisplay = new(false)
 	}
+
+	if s.LockProfileFieldsForEmailUsers == nil {
+		s.LockProfileFieldsForEmailUsers = new(TeamSettingsLockProfileFieldsNone)
+	}
 }
 
 type ClientRequirements struct {
@@ -2715,10 +2740,6 @@ type LdapSettings struct {
 
 	// Customization
 	LoginFieldName *string `access:"authentication_ldap"`
-
-	LoginButtonColor       *string `access:"experimental_features"`
-	LoginButtonBorderColor *string `access:"experimental_features"`
-	LoginButtonTextColor   *string `access:"experimental_features"`
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -2855,18 +2876,6 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.LoginFieldName == nil {
 		s.LoginFieldName = new(LdapSettingsDefaultLoginFieldName)
-	}
-
-	if s.LoginButtonColor == nil {
-		s.LoginButtonColor = new("#0000")
-	}
-
-	if s.LoginButtonBorderColor == nil {
-		s.LoginButtonBorderColor = new("#2389D7")
-	}
-
-	if s.LoginButtonTextColor == nil {
-		s.LoginButtonTextColor = new("#2389D7")
 	}
 }
 
@@ -3034,10 +3043,6 @@ type SamlSettings struct {
 	PositionAttribute    *string `access:"authentication_saml"`
 
 	LoginButtonText *string `access:"authentication_saml"`
-
-	LoginButtonColor       *string `access:"experimental_features"`
-	LoginButtonBorderColor *string `access:"experimental_features"`
-	LoginButtonTextColor   *string `access:"experimental_features"`
 }
 
 func (s *SamlSettings) SetDefaults() {
@@ -3165,18 +3170,6 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.LocaleAttribute == nil {
 		s.LocaleAttribute = new(SamlSettingsDefaultLocaleAttribute)
-	}
-
-	if s.LoginButtonColor == nil {
-		s.LoginButtonColor = new("#34a28b")
-	}
-
-	if s.LoginButtonBorderColor == nil {
-		s.LoginButtonBorderColor = new("#2389D7")
-	}
-
-	if s.LoginButtonTextColor == nil {
-		s.LoginButtonTextColor = new("#ffffff")
 	}
 }
 
@@ -3868,6 +3861,8 @@ type GlobalRelayMessageExportSettings struct {
 	SMTPServerTimeout    *int    `access:"compliance_compliance_export"`
 	CustomSMTPServerName *string `access:"compliance_compliance_export"`
 	CustomSMTPPort       *string `access:"compliance_compliance_export"`
+	CustomHeaderName     *string `access:"compliance_compliance_export"` // optional custom header name added to each exported EML
+	CustomHeaderValue    *string `access:"compliance_compliance_export"` // value sent with the custom header
 }
 
 func (s *GlobalRelayMessageExportSettings) SetDefaults() {
@@ -3892,6 +3887,38 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 	if s.CustomSMTPPort == nil {
 		s.CustomSMTPPort = new("25")
 	}
+	if s.CustomHeaderName == nil {
+		s.CustomHeaderName = new("")
+	}
+	if s.CustomHeaderValue == nil {
+		s.CustomHeaderValue = new("")
+	}
+}
+
+// The custom header name is written verbatim into the exported EML, so it must be a
+// valid header field name; the value must be free of control characters that could
+// inject additional headers.
+func (s *GlobalRelayMessageExportSettings) isValidCustomHeader() *AppError {
+	name := SafeDereference(s.CustomHeaderName)
+	value := strings.TrimSpace(SafeDereference(s.CustomHeaderValue))
+
+	// No custom header configured.
+	if name == "" && value == "" {
+		return nil
+	}
+	if name == "" || value == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !httpguts.ValidHeaderFieldName(name) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_header_name.app_error", nil, "", http.StatusBadRequest)
+	}
+	if IsGlobalRelayReservedHeader(name) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error", nil, "", http.StatusBadRequest)
+	}
+	if !httpguts.ValidHeaderFieldValue(value) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.custom_header_value.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
 }
 
 type MessageExportSettings struct {
@@ -4009,10 +4036,8 @@ func (s *GuestAccountsSettings) IsValid() *AppError {
 }
 
 type ImageProxySettings struct {
-	Enable                  *bool   `access:"environment_image_proxy"`
-	ImageProxyType          *string `access:"environment_image_proxy"`
-	RemoteImageProxyURL     *string `access:"environment_image_proxy"`
-	RemoteImageProxyOptions *string `access:"environment_image_proxy"`
+	Enable         *bool   `access:"environment_image_proxy"`
+	ImageProxyType *string `access:"environment_image_proxy"`
 }
 
 func (s *ImageProxySettings) SetDefaults() {
@@ -4022,14 +4047,6 @@ func (s *ImageProxySettings) SetDefaults() {
 
 	if s.ImageProxyType == nil {
 		s.ImageProxyType = new(ImageProxyTypeLocal)
-	}
-
-	if s.RemoteImageProxyURL == nil {
-		s.RemoteImageProxyURL = new("")
-	}
-
-	if s.RemoteImageProxyOptions == nil {
-		s.RemoteImageProxyOptions = new("")
 	}
 }
 
@@ -4098,8 +4115,14 @@ func (s *ExportSettings) SetDefaults() {
 type AccessControlSettings struct {
 	EnableAttributeBasedAccessControl *bool
 	EnableUserManagedAttributes       *bool `access:"write_restrictable"`
+	EnableChannelPolicyIndicators     *bool `access:"write_restrictable"`
 	TrustProxyDeviceIdentityHeader    *bool `access:"write_restrictable,cloud_restrictable"`
 	EnforceDeviceIDConsistency        *bool `access:"write_restrictable,cloud_restrictable"`
+	EnableAccessControlAuditLogging   *bool `access:"write_restrictable,cloud_restrictable"`
+	// Shared interval for both the channel and team membership sync schedulers;
+	// applied at scheduler construction (needs a restart to take effect).
+	SyncJobIntervalSeconds          *int `access:"write_restrictable,cloud_restrictable"`
+	AttributeRefreshIntervalSeconds *int `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -4111,6 +4134,12 @@ func (s *AccessControlSettings) SetDefaults() {
 		s.EnableUserManagedAttributes = new(false)
 	}
 
+	// Channel policy indicators are shown by default to preserve existing
+	// behavior; admins may disable them to avoid leaking policy details.
+	if s.EnableChannelPolicyIndicators == nil {
+		s.EnableChannelPolicyIndicators = new(true)
+	}
+
 	if s.TrustProxyDeviceIdentityHeader == nil {
 		s.TrustProxyDeviceIdentityHeader = new(false)
 	}
@@ -4118,6 +4147,33 @@ func (s *AccessControlSettings) SetDefaults() {
 	if s.EnforceDeviceIDConsistency == nil {
 		s.EnforceDeviceIDConsistency = new(false)
 	}
+
+	if s.EnableAccessControlAuditLogging == nil {
+		s.EnableAccessControlAuditLogging = new(false)
+	}
+
+	if s.SyncJobIntervalSeconds == nil {
+		s.SyncJobIntervalSeconds = new(3600)
+	}
+
+	if s.AttributeRefreshIntervalSeconds == nil {
+		s.AttributeRefreshIntervalSeconds = new(30)
+	}
+}
+
+func (s *AccessControlSettings) isValid() *AppError {
+	// The sync schedulers run at most once per minute; a sub-minute interval
+	// would hammer the store to no effect, so reject it outright.
+	if *s.SyncJobIntervalSeconds < 60 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_sync_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+	// Refresh interval is designed to avoid spamming a refresh of the AttributeView in the database.
+	// Minimum is set to 0, so an operator can effectively disable this protection if desired.
+	if *s.AttributeRefreshIntervalSeconds < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_attribute_refresh_interval.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 type ConfigFunc func() *Config
@@ -4215,6 +4271,7 @@ type Config struct {
 	AccessControlSettings       AccessControlSettings
 	ContentFlaggingSettings     ContentFlaggingSettings
 	AutoTranslationSettings     AutoTranslationSettings
+	AIRecapSettings             AIRecapSettings
 }
 
 func (o *Config) Auditable() map[string]any {
@@ -4335,6 +4392,7 @@ func (o *Config) SetDefaults() {
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
 	o.ContentFlaggingSettings.SetDefaults()
+	o.AIRecapSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -4495,12 +4553,26 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if appErr := o.AIRecapSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
 	if appErr := o.MobileEphemeralModeSettings.isValid(); appErr != nil {
 		return appErr
 	}
 
 	if appErr := o.GuestAccountsSettings.IsValid(); appErr != nil {
 		return appErr
+	}
+
+	if appErr := o.AccessControlSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
+	if o.FeatureFlags != nil {
+		if appErr := o.FeatureFlags.isValid(); appErr != nil {
+			return appErr
+		}
 	}
 
 	return nil
@@ -4537,6 +4609,10 @@ func (s *TeamSettings) isValid() *AppError {
 
 	if !*s.ExperimentalViewArchivedChannels {
 		return NewAppError("Config.IsValid", "model.config.is_valid.experimental_view_archived_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !(*s.LockProfileFieldsForEmailUsers == TeamSettingsLockProfileFieldsNone || *s.LockProfileFieldsForEmailUsers == TeamSettingsLockProfileFieldsNameAndUsername || *s.LockProfileFieldsForEmailUsers == TeamSettingsLockProfileFieldsAll) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.lock_profile_fields.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -5240,6 +5316,14 @@ func (s *MessageExportSettings) isValid() *AppError {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.smtp_password.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
+
+		if (*s.ExportFormat == ComplianceExportTypeGlobalrelay || *s.ExportFormat == ComplianceExportTypeGlobalrelayZip) &&
+			s.GlobalRelaySettings != nil &&
+			SafeDereference(s.GlobalRelaySettings.CustomerType) == GlobalrelayCustomerTypeCustom {
+			if appErr := s.GlobalRelaySettings.isValidCustomHeader(); appErr != nil {
+				return appErr
+			}
+		}
 	}
 	return nil
 }
@@ -5265,24 +5349,14 @@ func (s *DisplaySettings) isValid() *AppError {
 }
 
 func (s *ImageProxySettings) isValid() *AppError {
+	if *s.ImageProxyType == ImageProxyTypeLegacyAtmosCamo {
+		return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_removed.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.Enable {
 		switch *s.ImageProxyType {
 		case ImageProxyTypeLocal:
 			// No other settings to validate
-		case ImageProxyTypeAtmosCamo:
-			if *s.RemoteImageProxyURL == "" {
-				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_url.app_error", nil, "", http.StatusBadRequest)
-			}
-
-			if *s.RemoteImageProxyOptions == "" {
-				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options.app_error", nil, "", http.StatusBadRequest)
-			}
-
-			// RemoteImageProxyOptions is used as the HMAC key for URL signing,
-			// so it is subject to the same FIPS minimum key length as passwords.
-			if FIPSEnabled && len(*s.RemoteImageProxyOptions) < PasswordFIPSMinimumLength {
-				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error", map[string]any{"MinLength": PasswordFIPSMinimumLength}, "", http.StatusBadRequest)
-			}
 		default:
 			return NewAppError("Config.IsValid", "model.config.is_valid.image_proxy_type.app_error", nil, "", http.StatusBadRequest)
 		}

@@ -1,0 +1,66 @@
+{
+  "name": "@mattermost/docs-site",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "docusaurus": "docusaurus",
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "stage:agents-docs": "node scripts/stage-agents-docs.mjs",
+    "build:sidebars": "node scripts/gen-documentation-sidebar.mjs && node scripts/gen-developer-sidebar.mjs",
+    "build:openapi:spec": "node scripts/build-openapi.mjs",
+    "build:openapi:docs": "docusaurus gen-api-docs mattermost",
+    "build:openapi": "npm run build:openapi:spec && npm run build:openapi:docs",
+    "build:plugin-godocs": "mkdir -p data && go run -C scripts/gen-plugin-godocs . > data/plugin-godocs.json.tmp && mv data/plugin-godocs.json.tmp data/plugin-godocs.json",
+    "build:plugin-jsdocs": "node scripts/gen-plugin-jsdocs.mjs",
+    "build:plugin-manifest-docs": "mkdir -p data && go run -C scripts/gen-plugin-manifest-docs . > data/plugin-manifest-docs.json.tmp && mv data/plugin-manifest-docs.json.tmp data/plugin-manifest-docs.json",
+    "build:plugin-docs": "npm run build:plugin-godocs && npm run build:plugin-jsdocs && npm run build:plugin-manifest-docs",
+    "prestart": "npm run stage:agents-docs && npm run build:sidebars && ( [ -f openapi/mattermost-openapi-v4.yaml ] || npm run build:openapi:spec ) && npm run build:openapi:docs && npm run build:plugin-docs",
+    "prebuild": "npm run stage:agents-docs && npm run build:sidebars && npm run build:openapi && npm run build:plugin-docs",
+    "swizzle": "docusaurus swizzle",
+    "deploy": "docusaurus deploy",
+    "clear": "docusaurus clear",
+    "serve": "docusaurus serve",
+    "write-translations": "docusaurus write-translations",
+    "write-heading-ids": "docusaurus write-heading-ids",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.10.1",
+    "@docusaurus/faster": "3.10.1",
+    "@docusaurus/plugin-client-redirects": "^3.10.1",
+    "@docusaurus/preset-classic": "3.10.1",
+    "@docusaurus/theme-mermaid": "^3.10.1",
+    "@mdx-js/react": "^3.0.0",
+    "clsx": "^2.0.0",
+    "docusaurus-plugin-openapi-docs": "^5.0.2",
+    "docusaurus-theme-openapi-docs": "^5.0.2",
+    "prism-react-renderer": "^2.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "yaml": "^2.8.4"
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "3.10.1",
+    "@docusaurus/tsconfig": "3.10.1",
+    "@docusaurus/types": "3.10.1",
+    "@types/react": "^19.0.0",
+    "@typescript-eslint/typescript-estree": "^8.67.0",
+    "typescript": "~6.0.2"
+  },
+  "browserslist": {
+    "production": [
+      ">0.5%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 3 chrome version",
+      "last 3 firefox version",
+      "last 5 safari version"
+    ]
+  },
+  "engines": {
+    "node": ">=20.0"
+  }
+}

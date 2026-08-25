@@ -16,8 +16,8 @@ export default class BurnOnReadConfirmationModal {
         this.container = container;
 
         // Modal elements
-        this.title = container.locator('.modal-title, h1, [role="heading"]').first();
-        this.message = container.locator('.modal-body, .modal-message').first();
+        this.title = container.getByRole('heading').first();
+        this.message = container.locator('#confirmModalBody');
 
         // Action buttons - use flexible selectors
         this.deleteButton = container.getByRole('button', {name: /delete|burn|confirm/i});

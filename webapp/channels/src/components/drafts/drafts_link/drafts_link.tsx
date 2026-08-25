@@ -159,6 +159,7 @@ function DraftsLink() {
                                     icon={scheduleIcon}
                                     className={classNames('scheduledPostBadge', {persistent: scheduledPostsHasError})}
                                     hasUrgent={scheduledPostsHasError}
+                                    data-testid='scheduled-post-badge'
                                 />
                             }
                         </div>

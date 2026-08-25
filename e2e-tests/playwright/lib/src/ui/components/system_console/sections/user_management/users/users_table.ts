@@ -53,8 +53,8 @@ export class UsersTable {
 
     constructor(container: Locator) {
         this.container = container;
-        this.headerRow = container.locator('thead tr');
-        this.bodyRows = container.locator('tbody tr');
+        this.headerRow = container.getByTestId('listTableHeadRow');
+        this.bodyRows = container.getByTestId('listTableBodyRow');
 
         // Column headers
         this.userDetailsHeader = container.locator('#systemUsersTable-header-usernameColumn');
@@ -136,7 +136,7 @@ export class UsersTable {
      * Read all visible email cells in one pass (avoids torn reads while the table re-renders).
      */
     async getVisibleEmails(): Promise<string[]> {
-        const texts = await this.bodyRows.locator('.emailColumn').allTextContents();
+        const texts = await this.bodyRows.getByTestId('emailColumn').allTextContents();
         return texts.map((text) => text.trim()).filter(Boolean);
     }
 }
@@ -175,20 +175,20 @@ export class UserRow {
         this.container = container;
         this.index = index;
 
-        this.userDetailsCell = container.locator('.usernameColumn');
-        this.emailCell = container.locator('.emailColumn');
-        this.memberSinceCell = container.locator('.createAtColumn');
-        this.lastLoginCell = container.locator('.lastLoginColumn');
-        this.lastActivityCell = container.locator('.lastStatusAtColumn');
-        this.lastPostCell = container.locator('.lastPostDateColumn');
-        this.daysActiveCell = container.locator('.daysActiveColumn');
-        this.messagesPostedCell = container.locator('.totalPostsColumn');
-        this.channelCountCell = container.locator('.channelCountColumn');
-        this.actionsCell = container.locator('.actionsColumn');
+        this.userDetailsCell = container.getByTestId('usernameColumn');
+        this.emailCell = container.getByTestId('emailColumn');
+        this.memberSinceCell = container.getByTestId('createAtColumn');
+        this.lastLoginCell = container.getByTestId('lastLoginColumn');
+        this.lastActivityCell = container.getByTestId('lastStatusAtColumn');
+        this.lastPostCell = container.getByTestId('lastPostDateColumn');
+        this.daysActiveCell = container.getByTestId('daysActiveColumn');
+        this.messagesPostedCell = container.getByTestId('totalPostsColumn');
+        this.channelCountCell = container.getByTestId('channelCountColumn');
+        this.actionsCell = container.getByTestId('actionsColumn');
 
-        this.profilePicture = this.userDetailsCell.locator('.profilePicture');
-        this.displayName = this.userDetailsCell.locator('.displayName');
-        this.userName = this.userDetailsCell.locator('.userName');
+        this.profilePicture = this.userDetailsCell.getByTestId('profilePicture');
+        this.displayName = this.userDetailsCell.getByTestId('displayName');
+        this.userName = this.userDetailsCell.getByTestId('userName');
 
         this.actionMenuButton = this.actionsCell.getByRole('button');
 

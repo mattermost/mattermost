@@ -4,7 +4,7 @@
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {UserPropertyValueType} from '@mattermost/types/properties';
+import type {UserPropertyValueType} from '@mattermost/types/properties_user';
 
 import {getCustomProfileAttributeValues} from 'mattermost-redux/actions/users';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
@@ -84,6 +84,8 @@ const ProfilePopoverCustomAttributes = ({
                     <strong
                         id={`user-popover__custom_attributes-title-${attribute.id}`}
                         className='user-popover__subtitle'
+                        role='heading'
+                        aria-level={3}
                     >
                         {getUserPropertyFieldLabel(attribute)}
                     </strong>

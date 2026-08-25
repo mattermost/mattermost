@@ -10,7 +10,7 @@ import {expect, type Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Channel} from '@mattermost/types/channels';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {newTestPassword} from '@mattermost/playwright-lib';
 
@@ -134,6 +134,20 @@ export async function ensureUserAttributes(client: Client4, attributeNames?: str
     }
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
+}
+
+/**
+ * Resolve a user (CPA) attribute field by name. Attribute-picker menu items are
+ * keyed by field id (`#attribute-<id>`), so callers targeting a specific user
+ * attribute must look up its id rather than hardcoding its name.
+ */
+export async function getUserAttributeFieldByName(client: Client4, name: string): Promise<UserPropertyField> {
+    const fields = await client.getCustomProfileAttributeFields();
+    const field = fields.find((f) => f.name === name);
+    if (!field) {
+        throw new Error(`User attribute "${name}" not found`);
+    }
+    return field;
 }
 
 /**

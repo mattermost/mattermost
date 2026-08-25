@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -54,6 +55,7 @@ type PluginChecker func(pluginID string) bool
 // The hook only applies to groups whose IDs are in managedGroupIDs. Operations
 // on other groups pass through without access control checks.
 type AccessControlHook struct {
+	BasePropertyHook
 	propertyService *PropertyService
 	pluginChecker   PluginChecker
 	managedGroupIDs map[string]struct{}
@@ -115,8 +117,14 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 		}
 	}
 
+	// Owners are managed only by administrators via the REST API. Machine
+	// callers (plugins/sync) may not declare owners when creating a field.
+	if h.isMachineCaller(callerID) && model.HasPropertyFieldOwners(field) {
+		return nil, fmt.Errorf("owners can only be set by an administrator: %w", ErrAccessDenied)
+	}
+
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
-		if err := h.validateAndInheritLinkedFieldSecurity(callerID, field); err != nil {
+		if err := h.validateAndInheritLinkedFieldSecurity(rctx, callerID, field); err != nil {
 			return nil, fmt.Errorf("PreCreatePropertyField: %w", err)
 		}
 	}
@@ -132,8 +140,8 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 // the source template's security posture. If the source is protected, only
 // the source plugin may create linked fields. Security attrs (protected,
 // source_plugin_id, access_mode) are copied from the source onto the field.
-func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(callerID string, field *model.PropertyField) error {
-	source, err := h.propertyService.getPropertyFieldFromMaster("", *field.LinkedFieldID)
+func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(rctx request.CTX, callerID string, field *model.PropertyField) error {
+	source, err := h.propertyService.getPropertyFieldFromMaster(rctx, "", *field.LinkedFieldID)
 	if err != nil {
 		if store.IsErrNotFound(err) {
 			return model.NewAppError(
@@ -184,12 +192,12 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 
 	callerID := h.extractCallerID(rctx)
 
-	existingField, err := h.propertyService.getPropertyField(groupID, field.ID)
+	existingField, err := h.propertyService.getPropertyField(rctx, groupID, field.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := h.checkFieldWriteAccess(existingField, callerID); err != nil {
+	if err := h.enforceFieldUpdateAccess(existingField, field, callerID); err != nil {
 		return nil, err
 	}
 
@@ -223,7 +231,7 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 		fieldIDs[i] = field.ID
 	}
 
-	existingFields, err := h.propertyService.getPropertyFields(groupID, fieldIDs)
+	existingFields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +247,7 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 			return nil, fmt.Errorf("field %s: %w", field.ID, ErrFieldNotFound)
 		}
 
-		if err := h.checkFieldWriteAccess(existingField, callerID); err != nil {
+		if err := h.enforceFieldUpdateAccess(existingField, field, callerID); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
@@ -273,7 +281,7 @@ func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID str
 
 	callerID := h.extractCallerID(rctx)
 
-	existingField, err := h.propertyService.getPropertyField(groupID, id)
+	existingField, err := h.propertyService.getPropertyField(rctx, groupID, id)
 	if err != nil {
 		return err
 	}
@@ -324,12 +332,12 @@ func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *mode
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(value.GroupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, value.GroupID, value.FieldID)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := h.checkValueWriteAccess(field, callerID); err != nil {
+	if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
 		return nil, err
 	}
 
@@ -345,7 +353,7 @@ func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*
 
 	callerID := h.extractCallerID(rctx)
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, err
 	}
@@ -355,7 +363,7 @@ func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*
 		if !exists {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
-		if err := h.checkValueWriteAccess(field, callerID); err != nil {
+		if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
 		}
 	}
@@ -371,12 +379,12 @@ func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID str
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(groupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, groupID, value.FieldID)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := h.checkValueWriteAccess(field, callerID); err != nil {
+	if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
 		return nil, err
 	}
 
@@ -392,7 +400,7 @@ func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID st
 
 	callerID := h.extractCallerID(rctx)
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, err
 	}
@@ -402,7 +410,7 @@ func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID st
 		if !exists {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
-		if err := h.checkValueWriteAccess(field, callerID); err != nil {
+		if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
 		}
 	}
@@ -418,12 +426,12 @@ func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *mode
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(value.GroupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, value.GroupID, value.FieldID)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := h.checkValueWriteAccess(field, callerID); err != nil {
+	if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
 		return nil, err
 	}
 
@@ -439,7 +447,7 @@ func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*
 
 	callerID := h.extractCallerID(rctx)
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, err
 	}
@@ -449,7 +457,7 @@ func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*
 		if !exists {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
-		if err := h.checkValueWriteAccess(field, callerID); err != nil {
+		if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
 		}
 	}
@@ -470,12 +478,12 @@ func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID str
 		return err
 	}
 
-	field, err := h.propertyService.getPropertyField(groupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, groupID, value.FieldID)
 	if err != nil {
 		return err
 	}
 
-	return h.checkValueWriteAccess(field, callerID)
+	return h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx))
 }
 
 // PreDeletePropertyValuesForTarget enforces write access for all affected fields
@@ -537,13 +545,13 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 		fieldIDSlice = append(fieldIDSlice, fieldID)
 	}
 
-	fields, err := h.propertyService.getPropertyFields(groupID, fieldIDSlice)
+	fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDSlice)
 	if err != nil {
 		return err
 	}
 
 	for _, field := range fields {
-		if err := h.checkValueWriteAccess(field, callerID); err != nil {
+		if err := h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx)); err != nil {
 			return fmt.Errorf("field %s: %w", field.ID, err)
 		}
 	}
@@ -559,12 +567,12 @@ func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, gr
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(groupID, fieldID)
+	field, err := h.propertyService.getPropertyField(rctx, groupID, fieldID)
 	if err != nil {
 		return err
 	}
 
-	return h.checkValueWriteAccess(field, callerID)
+	return h.checkValueWriteAccess(field, callerID, h.extractActingAsScope(rctx))
 }
 
 // Value Post-Hooks
@@ -581,7 +589,7 @@ func (h *AccessControlHook) PostGetPropertyValue(rctx request.CTX, value *model.
 
 	callerID := h.extractCallerID(rctx)
 
-	filtered, err := h.applyValueReadAccessControl([]*model.PropertyValue{value}, callerID)
+	filtered, err := h.applyValueReadAccessControl(rctx, []*model.PropertyValue{value}, callerID)
 	if err != nil {
 		return nil, err
 	}
@@ -603,7 +611,7 @@ func (h *AccessControlHook) PostGetPropertyValues(rctx request.CTX, values []*mo
 
 	callerID := h.extractCallerID(rctx)
 
-	return h.applyValueReadAccessControl(values, callerID)
+	return h.applyValueReadAccessControl(rctx, values, callerID)
 }
 
 // Access Control Helper Methods
@@ -613,9 +621,130 @@ func (h *AccessControlHook) extractCallerID(rctx request.CTX) string {
 	return h.propertyService.extractCallerID(rctx)
 }
 
+// extractActingAsScope gets the caller's acting-as scope from a request context
+// using the property service's extractor.
+func (h *AccessControlHook) extractActingAsScope(rctx request.CTX) string {
+	return h.propertyService.extractRequestOptions(rctx).ActingAsScope
+}
+
 // isCallerPlugin checks whether the callerID corresponds to an installed plugin.
 func (h *AccessControlHook) isCallerPlugin(callerID string) bool {
 	return callerID != "" && h.pluginChecker != nil && h.pluginChecker(callerID)
+}
+
+// isMachineCaller reports whether the caller is a machine actor (an installed
+// plugin or a built-in sync service) rather than a human. Owner-list
+// enforcement applies only to machine callers; human callers (session users
+// and local admins) are governed by the API-layer permission levels.
+func (h *AccessControlHook) isMachineCaller(callerID string) bool {
+	return h.isCallerPlugin(callerID) ||
+		callerID == model.CallerIDLDAPSync ||
+		callerID == model.CallerIDSAMLSync
+}
+
+// callerOwnerIdentity maps a machine caller (and its acting-as scope) to the
+// owner identity it would match in a field's owners list. A built-in sync
+// service is a singleton (one LDAP, one SAML), so its owner type is "service"
+// and it carries no scope; for a plugin the manifest ID is the owner ID and the
+// scope is whatever the plugin declared on the request context.
+func (h *AccessControlHook) callerOwnerIdentity(callerID, scope string) (ownerID, ownerType, effectiveScope string) {
+	switch callerID {
+	case model.CallerIDLDAPSync:
+		return model.PropertyFieldAttrLDAP, model.PropertyOwnerTypeService, ""
+	case model.CallerIDSAMLSync:
+		return model.PropertyFieldAttrSAML, model.PropertyOwnerTypeService, ""
+	default:
+		return callerID, model.PropertyOwnerTypePlugin, scope
+	}
+}
+
+// effectiveOwners returns the owners list used for value-write access checks on
+// an owner-managed field. Explicit owners from the attrs blob are augmented
+// with implicit service owners derived from attrs.ldap / attrs.saml so a field
+// can be written by both a listed plugin/scope and its legacy sync source.
+// Implicit service owners are only added when explicit owners are present;
+// legacy synced-only fields continue through checkSyncLock instead.
+func (h *AccessControlHook) effectiveOwners(field *model.PropertyField) []model.PropertyOwner {
+	owners := model.GetPropertyFieldOwners(field)
+	if len(owners) == 0 || field.Attrs == nil {
+		return owners
+	}
+
+	if ldap, _ := field.Attrs[model.PropertyFieldAttrLDAP].(string); ldap != "" {
+		owners = append(owners, model.PropertyOwner{
+			ID:   model.PropertyFieldAttrLDAP,
+			Type: model.PropertyOwnerTypeService,
+		})
+	}
+	if saml, _ := field.Attrs[model.PropertyFieldAttrSAML].(string); saml != "" {
+		owners = append(owners, model.PropertyOwner{
+			ID:   model.PropertyFieldAttrSAML,
+			Type: model.PropertyOwnerTypeService,
+		})
+	}
+	return owners
+}
+
+// checkOwnerValueWriteAccess enforces a field's owners list on a value write.
+// A machine caller is allowed only if it is a listed owner (matching ID and
+// type) whose scopes contain the caller's acting-as scope. An owner with an
+// empty scopes list is not restricted by scope and may write for any scope.
+//
+// Human callers are always rejected: an owner-managed field's values are
+// authoritative to the owning integration, so no session user — including
+// sysadmins — may overwrite them. This mirrors checkSyncLock for ldap/saml
+// fields and is the sole write authority for owner-managed fields (their
+// PermissionValues are left at the normal default and are not consulted here).
+func (h *AccessControlHook) checkOwnerValueWriteAccess(field *model.PropertyField, callerID, scope string) error {
+	if !h.isMachineCaller(callerID) {
+		return fmt.Errorf("field %s is owner-managed and cannot be modified by human caller %q: %w", field.ID, callerID, ErrAccessDenied)
+	}
+
+	ownerID, ownerType, effectiveScope := h.callerOwnerIdentity(callerID, scope)
+	for _, owner := range h.effectiveOwners(field) {
+		if owner.Type == ownerType && owner.ID == ownerID &&
+			(len(owner.Scopes) == 0 || slices.Contains(owner.Scopes, effectiveScope)) {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("field %s is owner-managed and caller %q acting as scope %q is not an owner with a matching scope: %w", field.ID, callerID, effectiveScope, ErrAccessDenied)
+}
+
+// isListedOwner reports whether the machine caller matches an explicit owner
+// entry on the field (by id and type). Scope is not consulted: being a listed
+// owner is what authorizes managing the field; scope only gates value writes.
+func (h *AccessControlHook) isListedOwner(field *model.PropertyField, callerID string) bool {
+	ownerID, ownerType, _ := h.callerOwnerIdentity(callerID, "")
+	for _, owner := range model.GetPropertyFieldOwners(field) {
+		if owner.Type == ownerType && owner.ID == ownerID {
+			return true
+		}
+	}
+	return false
+}
+
+// enforceFieldUpdateAccess gates a field-definition update.
+//
+// Owner-managed fields allow a machine caller only if it is a listed owner
+// (checked against the stored owners, so a non-owner cannot add itself). A
+// listed owner may edit the whole definition including the owners attr. Human
+// callers pass through to the API-layer sysadmin pin.
+//
+// For non-owner-managed fields, machine callers may not add owners, and legacy
+// protected / source_plugin_id rules continue to apply.
+func (h *AccessControlHook) enforceFieldUpdateAccess(existing, updated *model.PropertyField, callerID string) error {
+	if model.HasPropertyFieldOwners(existing) {
+		if h.isMachineCaller(callerID) && !h.isListedOwner(existing, callerID) {
+			return fmt.Errorf("field %s is owner-managed and can only be modified by an administrator or a listed owner: %w", existing.ID, ErrAccessDenied)
+		}
+		return nil
+	}
+
+	if h.isMachineCaller(callerID) && model.HasPropertyFieldOwners(updated) {
+		return fmt.Errorf("owners can only be set by an administrator: %w", ErrAccessDenied)
+	}
+	return h.checkLegacyFieldWriteAccess(existing, callerID)
 }
 
 // getSourcePluginID extracts the source_plugin_id from a PropertyField's attrs.
@@ -686,9 +815,12 @@ func (h *AccessControlHook) validateProtectedFieldUpdate(updatedField *model.Pro
 	return nil
 }
 
-// checkFieldWriteAccess checks if the given caller can modify a PropertyField.
+// checkLegacyFieldWriteAccess enforces the protected / source_plugin_id rules on
+// a non-owner-managed field. Owner-managed fields are gated by
+// enforceFieldUpdateAccess; callers must confirm the field has no owners before
+// calling this.
 // IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
-func (h *AccessControlHook) checkFieldWriteAccess(field *model.PropertyField, callerID string) error {
+func (h *AccessControlHook) checkLegacyFieldWriteAccess(field *model.PropertyField, callerID string) error {
 	if !model.IsPropertyFieldProtected(field) {
 		return nil
 	}
@@ -708,6 +840,13 @@ func (h *AccessControlHook) checkFieldWriteAccess(field *model.PropertyField, ca
 // checkFieldDeleteAccess checks if the given caller can delete a PropertyField.
 // IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
 func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, callerID string) error {
+	if model.HasPropertyFieldOwners(field) {
+		if h.isMachineCaller(callerID) && !h.isListedOwner(field, callerID) {
+			return fmt.Errorf("field %s is owner-managed and can only be deleted by an administrator or a listed owner: %w", field.ID, ErrAccessDenied)
+		}
+		return nil
+	}
+
 	if !model.IsPropertyFieldProtected(field) {
 		return nil
 	}
@@ -756,10 +895,16 @@ func (h *AccessControlHook) checkSyncLock(field *model.PropertyField, callerID s
 	return nil
 }
 
-// checkValueWriteAccess combines the protected-field write access check and
-// the sync lock check for value write operations.
-func (h *AccessControlHook) checkValueWriteAccess(field *model.PropertyField, callerID string) error {
-	if err := h.checkFieldWriteAccess(field, callerID); err != nil {
+// checkValueWriteAccess gates a value write. When the field declares an owners
+// list, the owner check (with scope matching) supersedes the legacy
+// protected-field and sync-lock checks. Otherwise it falls back to today's
+// behaviour.
+func (h *AccessControlHook) checkValueWriteAccess(field *model.PropertyField, callerID, scope string) error {
+	if model.HasPropertyFieldOwners(field) {
+		return h.checkOwnerValueWriteAccess(field, callerID, scope)
+	}
+
+	if err := h.checkLegacyFieldWriteAccess(field, callerID); err != nil {
 		return err
 	}
 	return h.checkSyncLock(field, callerID)
@@ -1234,7 +1379,7 @@ func (h *AccessControlHook) applyFieldReadAccessControlToList(fields []*model.Pr
 }
 
 // getFieldsForValues fetches all unique fields associated with the given values.
-func (h *AccessControlHook) getFieldsForValues(values []*model.PropertyValue) (map[string]*model.PropertyField, error) {
+func (h *AccessControlHook) getFieldsForValues(rctx request.CTX, values []*model.PropertyValue) (map[string]*model.PropertyField, error) {
 	if len(values) == 0 {
 		return make(map[string]*model.PropertyField), nil
 	}
@@ -1254,7 +1399,7 @@ func (h *AccessControlHook) getFieldsForValues(values []*model.PropertyValue) (m
 			fieldIDSlice = append(fieldIDSlice, fieldID)
 		}
 
-		fields, err := h.propertyService.getPropertyFields(groupID, fieldIDSlice)
+		fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDSlice)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch fields for values: %w", err)
 		}
@@ -1268,12 +1413,12 @@ func (h *AccessControlHook) getFieldsForValues(values []*model.PropertyValue) (m
 }
 
 // applyValueReadAccessControl applies read access control to a list of values.
-func (h *AccessControlHook) applyValueReadAccessControl(values []*model.PropertyValue, callerID string) ([]*model.PropertyValue, error) {
+func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values []*model.PropertyValue, callerID string) ([]*model.PropertyValue, error) {
 	if len(values) == 0 {
 		return values, nil
 	}
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, fmt.Errorf("applyValueReadAccessControl: %w", err)
 	}

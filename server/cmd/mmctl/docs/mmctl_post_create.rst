@@ -22,16 +22,18 @@ Examples
 
     post create myteam:mychannel --message "some text for the post"
     post create @target-user --message "some text for the direct message"
+    post create myteam:mychannel --message "see attachment" --file ./report.pdf --file ./image.png
 
 Options
 ~~~~~~~
 
 ::
 
-  -b, --burn-on-read      Message will be deleted after a certain time after being read
-  -h, --help              help for create
-  -m, --message string    Message for the post
-  -r, --reply-to string   Post id to reply to
+  -b, --burn-on-read       Message will be deleted after a certain time after being read
+  -f, --file stringArray   Path to a local file to attach to the post. Can be specified multiple times to attach multiple files
+  -h, --help               help for create
+  -m, --message string     Message for the post
+  -r, --reply-to string    Post id to reply to
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

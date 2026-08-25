@@ -13,7 +13,7 @@ export default class MainHeader {
     constructor(container: Locator) {
         this.container = container;
 
-        this.logo = container.locator('.header-logo-link');
+        this.logo = container.getByTestId('header-logo-link');
         this.backButton = container.getByTestId('back_button');
     }
 

@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -331,6 +332,28 @@ func TestCreateChannel(t *testing.T) {
 			CheckForbiddenStatus(t, resp)
 		})
 	})
+}
+
+func TestCreateChannelRejectsSpaceType(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	for _, enableDocs := range []bool{false, true} {
+		t.Run(fmt.Sprintf("EnableDocs=%v", enableDocs), func(t *testing.T) {
+			th := SetupConfig(t, func(cfg *model.Config) {
+				cfg.FeatureFlags.EnableDocs = enableDocs
+			}).InitBasic(t)
+
+			space := &model.Channel{
+				DisplayName: "Space",
+				Name:        "space-" + model.NewId(),
+				Type:        model.ChannelTypeSpace,
+				TeamId:      th.BasicTeam.Id,
+			}
+			_, resp, err := th.Client.CreateChannel(context.Background(), space)
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		})
+	}
 }
 
 func TestCreateChannelManagedCategory(t *testing.T) {
@@ -2307,6 +2330,28 @@ func TestGetChannel(t *testing.T) {
 		_, resp, err = contentReviewClient.GetChannelAsContentReviewer(context.Background(), privateChannel.Id, "", post.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Content reviewer should not be able to get a DM or GM channel", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		contentReviewClient := th.CreateClient()
+		_, _, err := contentReviewClient.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+
+		dmPost := createDmPost(t, th, contentReviewClient)
+		_, resp, err := contentReviewClient.GetChannelAsContentReviewer(context.Background(), dmPost.ChannelId, "", dmPost.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
+
+		gmPost := createGmPost(t, th, contentReviewClient)
+		_, resp, err = contentReviewClient.GetChannelAsContentReviewer(context.Background(), gmPost.ChannelId, "", gmPost.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.data_spillage.error.invalid_channel_type")
 	})
 }
 
@@ -5015,8 +5060,9 @@ func TestUpdateChannelMemberRolesRejectsNonChannelScopedRoles(t *testing.T) {
 	require.Nil(t, appErr)
 
 	invalidRoles := []struct {
-		name  string
-		roles string
+		name        string
+		roles       string
+		expectedErr string
 	}{
 		{name: "system manager with channel user", roles: channelMember + " " + model.SystemManagerRoleId},
 		{name: "system user manager with channel user", roles: channelMember + " " + model.SystemUserManagerRoleId},
@@ -5027,6 +5073,7 @@ func TestUpdateChannelMemberRolesRejectsNonChannelScopedRoles(t *testing.T) {
 		{name: "system post all with channel user", roles: channelMember + " " + model.SystemPostAllRoleId},
 		{name: "system read only admin with channel user", roles: channelMember + " " + model.SystemReadOnlyAdminRoleId},
 		{name: "custom group user with channel user", roles: channelMember + " " + model.CustomGroupUserRoleId},
+		{name: "channel guest with channel admin", roles: model.ChannelGuestRoleId + " " + model.ChannelAdminRoleId, expectedErr: "api.channel.update_channel_member_roles.guest_and_admin.app_error"},
 	}
 
 	for _, tc := range invalidRoles {
@@ -5038,6 +5085,9 @@ func TestUpdateChannelMemberRolesRejectsNonChannelScopedRoles(t *testing.T) {
 			resp, err := client.UpdateChannelRoles(context.Background(), channel.Id, th.BasicUser2.Id, tc.roles)
 			require.Error(t, err)
 			CheckBadRequestStatus(t, resp)
+			if tc.expectedErr != "" {
+				CheckErrorID(t, err, tc.expectedErr)
+			}
 
 			memberAfter, _, err := client.GetChannelMember(context.Background(), channel.Id, th.BasicUser2.Id, "")
 			require.NoError(t, err)
@@ -6828,6 +6878,11 @@ func TestGetChannelModerations(t *testing.T) {
 		scheme := th.SetupTeamScheme(t)
 		scheme.DefaultChannelGuestRole = ""
 
+		// Restore the real store so helper cleanup (cache invalidation, license reload)
+		// doesn't run against the partial mock.
+		originalStore := th.App.Srv().Store()
+		t.Cleanup(func() { th.App.Srv().SetStore(originalStore) })
+
 		mockStore := mocks.Store{}
 
 		// Playbooks DB job requires a plugin mock
@@ -6983,6 +7038,11 @@ func TestPatchChannelModerations(t *testing.T) {
 		team := th.BasicTeam
 		scheme := th.SetupTeamScheme(t)
 		scheme.DefaultChannelGuestRole = ""
+
+		// Restore the real store so helper cleanup (cache invalidation, license reload)
+		// doesn't run against the partial mock.
+		originalStore := th.App.Srv().Store()
+		t.Cleanup(func() { th.App.Srv().SetStore(originalStore) })
 
 		mockStore := mocks.Store{}
 
@@ -7456,73 +7516,162 @@ func TestChannelMemberSanitization(t *testing.T) {
 	_, _, err := client.AddChannelMember(context.Background(), channel.Id, user2.Id)
 	require.NoError(t, err)
 
-	t.Run("getChannelMembers sanitizes LastViewedAt and LastUpdateAt for other users", func(t *testing.T) {
-		members, _, err := client.GetChannelMembers(context.Background(), channel.Id, 0, 60, "")
-		require.NoError(t, err)
+	// Give the current user a real, non-zero last_viewed_at: user2 posts a
+	// message so the channel is unread for the current user, who then views it.
+	// This keeps the current-user assertions realistic; the requester's own
+	// timestamps are never sanitized, so a genuine 0 would still be serialized.
+	user2Client := th.CreateClient()
+	_, _, err = user2Client.Login(context.Background(), user2.Email, user2.Password)
+	require.NoError(t, err)
+	_, _, err = user2Client.CreatePost(context.Background(), &model.Post{ChannelId: channel.Id, Message: "unread message"})
+	require.NoError(t, err)
 
+	_, _, err = client.ViewChannel(context.Background(), user.Id, &model.ChannelView{ChannelId: channel.Id})
+	require.NoError(t, err)
+
+	// decodeRawMembers reads the raw JSON body of a channel member response so the
+	// test can assert whether the timestamp fields are present or omitted, which a
+	// typed model.ChannelMember cannot distinguish from a zero value.
+	decodeRawMembers := func(resp *http.Response, err error) []map[string]json.RawMessage {
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var raw json.RawMessage
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&raw))
+
+		var members []map[string]json.RawMessage
+		if decodeErr := json.Unmarshal(raw, &members); decodeErr != nil {
+			var single map[string]json.RawMessage
+			require.NoError(t, json.Unmarshal(raw, &single))
+			members = []map[string]json.RawMessage{single}
+		}
+		return members
+	}
+
+	// decodeNDJSONMembers reads a newline-delimited JSON stream, as returned by
+	// getChannelMembersForUser when page=-1.
+	decodeNDJSONMembers := func(resp *http.Response, err error) []map[string]json.RawMessage {
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		var members []map[string]json.RawMessage
+		decoder := json.NewDecoder(resp.Body)
+		for {
+			var member map[string]json.RawMessage
+			decodeErr := decoder.Decode(&member)
+			if decodeErr == io.EOF {
+				break
+			}
+			require.NoError(t, decodeErr)
+			members = append(members, member)
+		}
+		return members
+	}
+
+	userIDOf := func(t *testing.T, member map[string]json.RawMessage) string {
+		t.Helper()
+		var id string
+		require.NoError(t, json.Unmarshal(member["user_id"], &id))
+		return id
+	}
+
+	// assertTimestamps verifies that the current user's memberships expose valid
+	// timestamps while other users' timestamps are omitted entirely.
+	assertTimestamps := func(t *testing.T, members []map[string]json.RawMessage) {
+		t.Helper()
 		for _, member := range members {
-			if member.UserId == user.Id {
-				// Current user should see their own timestamps
-				assert.NotEqual(t, int64(-1), member.LastViewedAt, "Current user should see their LastViewedAt")
-				assert.NotEqual(t, int64(-1), member.LastUpdateAt, "Current user should see their LastUpdateAt")
+			rawLastViewedAt, hasLastViewedAt := member["last_viewed_at"]
+			rawLastUpdateAt, hasLastUpdateAt := member["last_update_at"]
+
+			if userIDOf(t, member) == user.Id {
+				require.True(t, hasLastViewedAt, "Current user should see their last_viewed_at")
+				require.True(t, hasLastUpdateAt, "Current user should see their last_update_at")
+
+				var lastViewedAt, lastUpdateAt int64
+				require.NoError(t, json.Unmarshal(rawLastViewedAt, &lastViewedAt))
+				require.NoError(t, json.Unmarshal(rawLastUpdateAt, &lastUpdateAt))
+				assert.GreaterOrEqual(t, lastViewedAt, int64(0), "Current user's last_viewed_at should be a valid timestamp, not the sentinel")
+				assert.GreaterOrEqual(t, lastUpdateAt, int64(0), "Current user's last_update_at should be a valid timestamp, not the sentinel")
 			} else {
-				// Other users' timestamps should be sanitized
-				assert.Equal(t, int64(-1), member.LastViewedAt, "Other users' LastViewedAt should be sanitized")
-				assert.Equal(t, int64(-1), member.LastUpdateAt, "Other users' LastUpdateAt should be sanitized")
+				assert.False(t, hasLastViewedAt, "Other users' last_viewed_at should be omitted, not returned as an invalid value")
+				assert.False(t, hasLastUpdateAt, "Other users' last_update_at should be omitted, not returned as an invalid value")
 			}
 		}
-	})
+	}
 
-	t.Run("getChannelMember sanitizes LastViewedAt and LastUpdateAt for other users", func(t *testing.T) {
-		// Get other user's membership data
-		member, _, err := client.GetChannelMember(context.Background(), channel.Id, user2.Id, "")
-		require.NoError(t, err)
-
-		// Should be sanitized since it's not the current user
-		assert.Equal(t, int64(-1), member.LastViewedAt, "Other user's LastViewedAt should be sanitized")
-		assert.Equal(t, int64(-1), member.LastUpdateAt, "Other user's LastUpdateAt should be sanitized")
-
-		// Get current user's membership data
-		currentMember, _, err := client.GetChannelMember(context.Background(), channel.Id, user.Id, "")
-		require.NoError(t, err)
-
-		// Should not be sanitized since it's the current user
-		assert.NotEqual(t, int64(-1), currentMember.LastViewedAt, "Current user should see their LastViewedAt")
-		assert.NotEqual(t, int64(-1), currentMember.LastUpdateAt, "Current user should see their LastUpdateAt")
-	})
-
-	t.Run("getChannelMembersByIds sanitizes data appropriately", func(t *testing.T) {
-		userIds := []string{user.Id, user2.Id}
-		members, _, err := client.GetChannelMembersByIds(context.Background(), channel.Id, userIds)
-		require.NoError(t, err)
+	t.Run("getChannelMembers omits last_viewed_at and last_update_at for other users", func(t *testing.T) {
+		members := decodeRawMembers(client.DoAPIGet(context.Background(), "/channels/"+channel.Id+"/members?page=0&per_page=60", ""))
 		require.Len(t, members, 2)
-
-		for _, member := range members {
-			if member.UserId == user.Id {
-				// Current user should see their own timestamps
-				assert.NotEqual(t, int64(-1), member.LastViewedAt, "Current user should see their LastViewedAt")
-				assert.NotEqual(t, int64(-1), member.LastUpdateAt, "Current user should see their LastUpdateAt")
-			} else {
-				// Other users' timestamps should be sanitized
-				assert.Equal(t, int64(-1), member.LastViewedAt, "Other users' LastViewedAt should be sanitized")
-				assert.Equal(t, int64(-1), member.LastUpdateAt, "Other users' LastUpdateAt should be sanitized")
-			}
-		}
+		assertTimestamps(t, members)
 	})
 
-	t.Run("addChannelMember sanitizes returned member data", func(t *testing.T) {
+	t.Run("getChannelMember omits timestamps for other users but keeps them for the current user", func(t *testing.T) {
+		otherMembers := decodeRawMembers(client.DoAPIGet(context.Background(), "/channels/"+channel.Id+"/members/"+user2.Id, ""))
+		require.Len(t, otherMembers, 1)
+		_, hasLastViewedAt := otherMembers[0]["last_viewed_at"]
+		_, hasLastUpdateAt := otherMembers[0]["last_update_at"]
+		assert.False(t, hasLastViewedAt, "Other user's last_viewed_at should be omitted")
+		assert.False(t, hasLastUpdateAt, "Other user's last_update_at should be omitted")
+
+		currentMembers := decodeRawMembers(client.DoAPIGet(context.Background(), "/channels/"+channel.Id+"/members/"+user.Id, ""))
+		require.Len(t, currentMembers, 1)
+		assertTimestamps(t, currentMembers)
+	})
+
+	t.Run("getChannelMembersByIds omits timestamps for other users", func(t *testing.T) {
+		members := decodeRawMembers(client.DoAPIPostJSON(context.Background(), "/channels/"+channel.Id+"/members/ids", []string{user.Id, user2.Id}))
+		require.Len(t, members, 2)
+		assertTimestamps(t, members)
+	})
+
+	assertOtherUserMembersOmitted := func(t *testing.T, members []map[string]json.RawMessage, expectTeamData bool) {
+		t.Helper()
+		require.NotEmpty(t, members)
+		for _, member := range members {
+			assert.Equal(t, user2.Id, userIDOf(t, member))
+			assert.NotContains(t, member, "last_viewed_at", "Other user's last_viewed_at should be omitted")
+			assert.NotContains(t, member, "last_update_at", "Other user's last_update_at should be omitted")
+			if expectTeamData {
+				assert.Contains(t, member, "team_name", "Team data should still be present")
+			}
+		}
+	}
+
+	t.Run("getChannelMembersForUser (paginated) omits timestamps for other users", func(t *testing.T) {
+		// Querying another user's channel members requires the edit_other_users
+		// permission, so use the system admin client.
+		members := decodeRawMembers(th.SystemAdminClient.DoAPIGet(context.Background(), "/users/"+user2.Id+"/channel_members?page=0", ""))
+		assertOtherUserMembersOmitted(t, members, true)
+	})
+
+	t.Run("getChannelMembersForUser (NDJSON stream) omits timestamps for other users", func(t *testing.T) {
+		// page=-1 switches the endpoint to the newline-delimited streaming path,
+		// which sanitizes members through a separate code path.
+		members := decodeNDJSONMembers(th.SystemAdminClient.DoAPIGet(context.Background(), "/users/"+user2.Id+"/channel_members?page=-1", ""))
+		assertOtherUserMembersOmitted(t, members, true)
+	})
+
+	t.Run("getChannelMembersForTeamForUser omits timestamps for other users", func(t *testing.T) {
+		// Querying another user's memberships requires manage_system, so use the
+		// system admin client.
+		members := decodeRawMembers(th.SystemAdminClient.DoAPIGet(context.Background(), "/users/"+user2.Id+"/teams/"+th.BasicTeam.Id+"/channels/members", ""))
+		assertOtherUserMembersOmitted(t, members, false)
+	})
+
+	t.Run("addChannelMember omits timestamps in the returned member data", func(t *testing.T) {
 		newUser := th.CreateUser(t)
 		th.LinkUserToTeam(t, newUser, th.BasicTeam)
 
-		// Add new user and check returned member data
-		returnedMember, _, err := client.AddChannelMember(context.Background(), channel.Id, newUser.Id)
-		require.NoError(t, err)
+		members := decodeRawMembers(client.DoAPIPostJSON(context.Background(), "/channels/"+channel.Id+"/members", map[string]string{"user_id": newUser.Id}))
+		require.Len(t, members, 1)
 
-		// The returned member should be sanitized since it's not the current user
-		assert.Equal(t, int64(-1), returnedMember.LastViewedAt, "Returned member LastViewedAt should be sanitized")
-		assert.Equal(t, int64(-1), returnedMember.LastUpdateAt, "Returned member LastUpdateAt should be sanitized")
-		assert.Equal(t, newUser.Id, returnedMember.UserId, "UserId should be preserved")
-		assert.Equal(t, channel.Id, returnedMember.ChannelId, "ChannelId should be preserved")
+		assert.NotContains(t, members[0], "last_viewed_at", "Returned member last_viewed_at should be omitted")
+		assert.NotContains(t, members[0], "last_update_at", "Returned member last_update_at should be omitted")
+		assert.Equal(t, newUser.Id, userIDOf(t, members[0]), "UserId should be preserved")
+
+		var channelID string
+		require.NoError(t, json.Unmarshal(members[0]["channel_id"], &channelID))
+		assert.Equal(t, channel.Id, channelID, "ChannelId should be preserved")
 	})
 }
 
@@ -7792,6 +7941,382 @@ func TestChannelEndpointsExcludeBoards(t *testing.T) {
 		for _, ch := range channels {
 			assert.False(t, ch.IsBoard(), "board channel %s (type %s) should not appear in searchAllChannelsForUser results", ch.Id, ch.Type)
 		}
+	})
+}
+
+// createTestSpaceChannel creates a ChannelTypeSpace ("S") backing channel directly through the
+// store, since spaces have no dedicated REST creation endpoint in this slice.
+func createTestSpaceChannel(t *testing.T, th *TestHelper) *model.Channel {
+	t.Helper()
+	space := &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Space",
+		Name:        "space-" + model.NewId(),
+		Type:        model.ChannelTypeSpace,
+	}
+	space, err := th.App.Srv().Store().Channel().Save(th.Context, space, -1)
+	require.NoError(t, err)
+	return space
+}
+
+// addUserToSpaceChannel makes a user a member of a space backing channel. Membership is written
+// directly through the store, since this slice has no app/REST path for adding members to a
+// space, and the per-user authorization cache is invalidated so SessionHasPermissionToChannel
+// sees the new membership.
+func addUserToSpaceChannel(t *testing.T, th *TestHelper, space *model.Channel, userID string) {
+	t.Helper()
+	_, err := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   space.Id,
+		UserId:      userID,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeUser:  true,
+	})
+	require.NoError(t, err)
+	th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(userID)
+}
+
+// TestChannelEndpointsExcludeSpaces mirrors TestChannelEndpointsExcludeBoards for the space ("S")
+// backing-channel type: it 404s on every /channels endpoint and never leaks into any list, search,
+// or by-name surface, except where rejectSpaceChannelByID guards a member-mutation endpoint or
+// view-state marking no-ops through the store-level type filter.
+func TestChannelEndpointsExcludeSpaces(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	ctx := context.Background()
+
+	space := createTestSpaceChannel(t, th)
+
+	// BasicUser is a member of the space backing channel (e.g. a page collaborator).
+	addUserToSpaceChannel(t, th, space, th.BasicUser.Id)
+
+	assertNoSpacesInList := func(t *testing.T, channels []*model.Channel) {
+		t.Helper()
+		for _, ch := range channels {
+			assert.NotEqual(t, model.ChannelTypeSpace, ch.Type, "space channel %s should not appear in channel list", ch.Id)
+		}
+	}
+
+	// --- Space backing channels never leak into list/search surfaces ---
+
+	t.Run("getPublicChannelsForTeam excludes spaces", func(t *testing.T) {
+		channels, _, err := client.GetPublicChannelsForTeam(ctx, th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+		assertNoSpacesInList(t, channels)
+	})
+
+	t.Run("getPrivateChannelsForTeam excludes spaces", func(t *testing.T) {
+		channels, _, err := th.SystemAdminClient.GetPrivateChannelsForTeam(ctx, th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+		assertNoSpacesInList(t, channels)
+	})
+
+	t.Run("getDeletedChannelsForTeam excludes spaces", func(t *testing.T) {
+		deletedSpace := createTestSpaceChannel(t, th)
+		nErr := th.App.Srv().Store().Channel().Delete(deletedSpace.Id, model.GetMillis())
+		require.NoError(t, nErr)
+
+		channels, _, err := th.SystemAdminClient.GetDeletedChannelsForTeam(ctx, th.BasicTeam.Id, 0, 100, "")
+		require.NoError(t, err)
+		assertNoSpacesInList(t, channels)
+	})
+
+	t.Run("searchChannels excludes spaces", func(t *testing.T) {
+		channels, _, err := client.SearchChannels(ctx, th.BasicTeam.Id, &model.ChannelSearch{Term: "space"})
+		require.NoError(t, err)
+		assertNoSpacesInList(t, channels)
+	})
+
+	t.Run("autocompleteChannelsForTeam excludes spaces", func(t *testing.T) {
+		channels, _, err := client.AutocompleteChannelsForTeam(ctx, th.BasicTeam.Id, "space")
+		require.NoError(t, err)
+		assertNoSpacesInList(t, []*model.Channel(channels))
+	})
+
+	t.Run("searchAllChannels excludes spaces", func(t *testing.T) {
+		channels, _, err := th.SystemAdminClient.SearchAllChannels(ctx, &model.ChannelSearch{Term: "space"})
+		require.NoError(t, err)
+		for _, ch := range channels {
+			assert.NotEqual(t, model.ChannelTypeSpace, ch.Type, "space channel %s should not appear in searchAllChannels results", ch.Id)
+		}
+	})
+
+	t.Run("getAllChannels excludes spaces", func(t *testing.T) {
+		channels, _, err := th.SystemAdminClient.GetAllChannels(ctx, 0, 100, "")
+		require.NoError(t, err)
+		for _, ch := range channels {
+			assert.NotEqual(t, model.ChannelTypeSpace, ch.Type, "space channel %s should not appear in getAllChannels results", ch.Id)
+		}
+	})
+
+	t.Run("getChannelsForTeamForUser excludes spaces", func(t *testing.T) {
+		channels, _, err := client.GetChannelsForTeamForUser(ctx, th.BasicTeam.Id, th.BasicUser.Id, false, "")
+		require.NoError(t, err)
+		assertNoSpacesInList(t, channels)
+	})
+
+	t.Run("getChannelsForUser excludes spaces even for a member", func(t *testing.T) {
+		channels, _, err := client.GetChannelsForUserWithLastDeleteAt(ctx, th.BasicUser.Id, 0)
+		require.NoError(t, err)
+		assertNoSpacesInList(t, channels)
+	})
+
+	t.Run("getChannelsMemberCount excludes spaces", func(t *testing.T) {
+		counts, _, err := client.GetChannelsMemberCount(ctx, []string{th.BasicChannel.Id, space.Id})
+		require.NoError(t, err)
+		_, hasRegular := counts[th.BasicChannel.Id]
+		assert.True(t, hasRegular, "regular channel should be in member count results")
+		_, hasSpace := counts[space.Id]
+		assert.False(t, hasSpace, "space backing channel should not be in member count results")
+	})
+
+	t.Run("getChannelByName 404s for space", func(t *testing.T) {
+		_, resp, err := client.GetChannelByName(ctx, space.Name, th.BasicTeam.Id, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("getChannelByNameForTeamName 404s for space", func(t *testing.T) {
+		_, resp, err := client.GetChannelByNameForTeamName(ctx, space.Name, th.BasicTeam.Name, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("searchAllChannelsForUser excludes spaces", func(t *testing.T) {
+		channels, _, err := client.SearchAllChannelsForUser(ctx, "space")
+		require.NoError(t, err)
+		for _, ch := range channels {
+			assert.NotEqual(t, model.ChannelTypeSpace, ch.Type, "space channel %s should not appear in searchAllChannelsForUser results", ch.Id)
+		}
+	})
+
+	// --- Like boards, a space backing channel is excluded from the generic getChannel and
+	// --- 404s for everyone; it resolves only through the dedicated space APIs. ---
+
+	t.Run("getChannel 404s a space for a member", func(t *testing.T) {
+		_, resp, err := client.GetChannel(ctx, space.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("getChannel 404s a space for system admin", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetChannel(ctx, space.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	// --- Generic destructive/conversion endpoints 404 (Get-resolving) or reject (member-mutation) spaces ---
+
+	t.Run("createChannel rejects a space", func(t *testing.T) {
+		_, resp, err := client.CreateChannel(ctx, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			DisplayName: "Space",
+			Name:        "space-" + model.NewId(),
+			Type:        model.ChannelTypeSpace,
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("deleteChannel 404s a space", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeleteChannel(ctx, space.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("updateChannelPrivacy 404s a space", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.UpdateChannelPrivacy(ctx, space.Id, model.ChannelTypeOpen)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("restoreChannel 404s a space", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.RestoreChannel(ctx, space.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("updateChannelScheme rejects a space", func(t *testing.T) {
+		originalLicense := th.App.Srv().License()
+		th.App.Srv().SetLicense(model.NewTestLicense(""))
+		defer th.App.Srv().SetLicense(originalLicense)
+
+		err := th.App.SetPhase2PermissionsMigrationStatus(true)
+		require.NoError(t, err)
+
+		channelScheme, _, err := th.SystemAdminClient.CreateScheme(ctx, &model.Scheme{
+			DisplayName: "DisplayName",
+			Name:        model.NewId(),
+			Description: "Some description",
+			Scope:       model.SchemeScopeChannel,
+		})
+		require.NoError(t, err)
+
+		resp, err := th.SystemAdminClient.UpdateChannelScheme(ctx, space.Id, channelScheme.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	// --- Generic member/view-state mutation endpoints reject or no-op spaces (managed by the spaces feature) ---
+
+	t.Run("viewChannel silently no-ops a space", func(t *testing.T) {
+		// Spaces carry no chat read-state: GetChannelsWithUnreadsAndWithMentions filters
+		// them out, so viewing one succeeds without marking anything viewed — the same
+		// behavior as a nonexistent channel ID.
+		viewResp, resp, err := client.ViewChannel(ctx, th.BasicUser.Id, &model.ChannelView{ChannelId: space.Id})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotContains(t, viewResp.LastViewedAtTimes, space.Id)
+	})
+
+	t.Run("updateChannelMemberRoles rejects a space", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.UpdateChannelRoles(ctx, space.Id, th.BasicUser.Id, "channel_user")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("updateChannelMemberSchemeRoles rejects a space", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.UpdateChannelMemberSchemeRoles(ctx, space.Id, th.BasicUser.Id, &model.SchemeRoles{SchemeUser: true})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("updateChannelMemberNotifyProps rejects a space", func(t *testing.T) {
+		resp, err := client.UpdateChannelNotifyProps(ctx, space.Id, th.BasicUser.Id, map[string]string{model.MarkUnreadNotifyProp: model.ChannelMarkUnreadAll})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("updateChannelMemberAutotranslation rejects a space", func(t *testing.T) {
+		mockAutotranslation := &einterfacesmocks.AutoTranslationInterface{}
+		mockAutotranslation.On("IsFeatureAvailable").Return(true)
+		originalAutoTranslation := th.Server.AutoTranslation
+		th.Server.AutoTranslation = mockAutotranslation
+		defer func() {
+			th.Server.AutoTranslation = originalAutoTranslation
+		}()
+
+		resp, err := client.UpdateChannelMemberAutotranslation(ctx, space.Id, th.BasicUser.Id, true)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("addChannelMember 404s a space", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.AddChannelMember(ctx, space.Id, th.BasicUser2.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("setChannelMembers 404s a space", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.SetChannelMembers(ctx, space.Id, &model.SetChannelMembersRequest{Members: []string{th.BasicUser2.Id}}, 0, 0)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("moveChannel 404s a space", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.MoveChannel(ctx, space.Id, th.BasicTeam.Id, false)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	// --- Generic read endpoints that resolve the channel via GetChannel return 403 for spaces,
+	// --- because GetChannel returns not-found for space channels, which SessionHasPermissionToChannel
+	// --- treats as no permission. No explicit space guard is needed here. ---
+
+	t.Run("getChannelStats rejects a space", func(t *testing.T) {
+		_, resp, err := client.GetChannelStats(ctx, space.Id, "", false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("getChannelMembers rejects a space", func(t *testing.T) {
+		_, resp, err := client.GetChannelMembers(ctx, space.Id, 0, 100, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("getChannelMembersTimezones rejects a space", func(t *testing.T) {
+		_, resp, err := client.GetChannelMembersTimezones(ctx, space.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("getChannelMembersByIds rejects a space", func(t *testing.T) {
+		_, resp, err := client.GetChannelMembersByIds(ctx, space.Id, []string{th.BasicUser.Id})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("getChannelMember rejects a space", func(t *testing.T) {
+		_, resp, err := client.GetChannelMember(ctx, space.Id, th.BasicUser.Id, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("channelMemberCountsByGroup rejects a space", func(t *testing.T) {
+		originalLicense := th.App.Srv().License()
+		th.App.Srv().SetLicense(model.NewTestLicense())
+		defer th.App.Srv().SetLicense(originalLicense)
+
+		_, resp, err := client.GetChannelMemberCountsByGroup(ctx, space.Id, false, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("channelMembersMinusGroupMembers rejects a space", func(t *testing.T) {
+		_, _, resp, err := th.SystemAdminClient.ChannelMembersMinusGroupMembers(ctx, space.Id, []string{model.NewId()}, 0, 100, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("getChannelAccessControlAttributes rejects a space", func(t *testing.T) {
+		r, err := client.DoAPIGet(ctx, "/channels/"+space.Id+"/access_control/attributes", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, r.StatusCode)
+	})
+
+	t.Run("convertGroupMessageToChannel rejects a space", func(t *testing.T) {
+		resp, err := client.DoAPIPost(ctx, "/channels/"+space.Id+"/convert_to_channel", "{}")
+		require.Error(t, err)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	// --- rejectSpaceChannelByID passes through a not-found result (a nonexistent id is definitely
+	// --- not a space), so the endpoint's own not-found/permission handling surfaces normally ---
+
+	t.Run("updateChannelMemberRoles on a nonexistent channel behaves as before", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.UpdateChannelRoles(ctx, model.NewId(), th.BasicUser.Id, "channel_user")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
+// TestLocalChannelEndpoints404Spaces verifies the local (admin socket) channel endpoints 404 a
+// space, the same as /api/v4: space channels are excluded from the generic GetChannel these
+// handlers resolve through, so they never reach the mutation.
+func TestLocalChannelEndpoints404Spaces(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	ctx := context.Background()
+
+	space := createTestSpaceChannel(t, th)
+
+	t.Run("local deleteChannel 404s a space", func(t *testing.T) {
+		resp, err := th.LocalClient.DeleteChannel(ctx, space.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("local restoreChannel 404s a space", func(t *testing.T) {
+		_, resp, err := th.LocalClient.RestoreChannel(ctx, space.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("local addChannelMember 404s a space", func(t *testing.T) {
+		_, resp, err := th.LocalClient.AddChannelMember(ctx, space.Id, th.BasicUser2.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 	})
 }
 

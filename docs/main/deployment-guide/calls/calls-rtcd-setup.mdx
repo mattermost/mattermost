@@ -1,0 +1,540 @@
+---
+title: "RTCD Setup and Configuration"
+---
+<PlanAvailability slug="ent-plus" />
+
+This guide provides detailed instructions for setting up, configuring, and validating a Mattermost Calls deployment using the dedicated RTCD service.
+
+## Prerequisites
+
+Before deploying RTCD, ensure you have:
+
+- A Mattermost Enterprise license
+- A server or VM with sufficient CPU and network capacity (see the [Performance baselines](calls-metrics-monitoring.mdx#performance-baselines) section for sizing guidance)
+
+## Network Requirements
+
+The following network connectivity is required:
+
+<style>
+  table.network-requirements &#123;
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.95em;
+  &#125;
+  table.network-requirements th, table.network-requirements td &#123;
+    border: 1px solid #888;
+    padding: 6px 8px;
+    vertical-align: top;
+  &#125;
+  /* Dark mode border color */
+  body:not([data-custom-theme="light"]) table.network-requirements th, 
+  body:not([data-custom-theme="light"]) table.network-requirements td &#123;
+    border-color: #666;
+  &#125;
+  table.network-requirements th &#123;
+    background: #f2f2f2;
+    font-weight: bold;
+    text-align: left;
+  &#125;
+  /* Dark mode support for table headers */
+  body:not([data-custom-theme="light"]) table.network-requirements th &#123;
+    background: #444;
+    color: #fff;
+  &#125;
+</style>
+
+<table class="network-requirements">
+<thead>
+<tr>
+<th>Service</th>
+<th>Ports</th>
+<th>Protocols</th>
+<th>Source</th>
+<th>Target</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API (Calls plugin)</td>
+<td>80,443</td>
+<td>TCP (incoming)</td>
+<td>Mattermost clients (web/desktop/mobile)</td>
+<td>Mattermost instance (Calls plugin)</td>
+<td>To allow for HTTP and WebSocket connectivity from clients to Calls plugin. This API is exposed on the same connection as Mattermost, so there's likely no need to change anything.</td>
+</tr>
+<tr>
+<td>RTC (Calls plugin or <code>rtcd</code>)</td>
+<td>8443</td>
+<td>UDP (incoming)</td>
+<td>Mattermost clients (Web/Desktop/Mobile) and calls-offloader</td>
+<td>Mattermost instance or <code>rtcd</code> service</td>
+<td>To allow clients to establish connections that transport calls related media (e.g. audio, video). This should be open on any network component (e.g. NAT, firewalls) in between the instance running the plugin (or <code>rtcd</code>) and the clients joining calls so that UDP traffic is correctly routed both ways (from/to clients).</td>
+</tr>
+<tr>
+<td>RTC (Calls plugin or <code>rtcd</code>)</td>
+<td>8443</td>
+<td>TCP (incoming)</td>
+<td>Mattermost clients (Web/Desktop/Mobile) and calls-offloader</td>
+<td>Mattermost instance or <code>rtcd</code> service</td>
+<td>To allow clients to establish connections that transport calls related media (e.g. audio, video). This should be open on any network component (e.g. NAT, firewalls) in between the instance running the plugin (or <code>rtcd</code>) and the clients joining calls so that TCP traffic is correctly routed both ways (from/to clients). This can be used as a backup channel in case clients are unable to connect using UDP. It requires <code>rtcd</code> version >= v0.11 and Calls version >= v0.17.</td>
+</tr>
+<tr>
+<td>API (<code>rtcd</code>)</td>
+<td>8045</td>
+<td>TCP (incoming)</td>
+<td>Mattermost instance(s) (Calls plugin)</td>
+<td><code>rtcd</code> service</td>
+<td>To allow for HTTP/WebSocket connectivity from Calls plugin to <code>rtcd</code> service. Can be exposed internally as the service only needs to be reachable by the instance(s) running the Mattermost server.</td>
+</tr>
+<tr>
+<td>STUN (Calls plugin or <code>rtcd</code>)</td>
+<td>3478</td>
+<td>UDP (outgoing)</td>
+<td>Mattermost Instance(s) (Calls plugin) or <code>rtcd</code> service</td>
+<td>Configured STUN servers</td>
+<td>(Optional) To allow for either Calls plugin or <code>rtcd</code> service to discover their instance public IP. Only needed if configuring STUN/TURN servers. This requirement does not apply when manually setting an IP or hostname through the <a href="/administration-guide/configure/plugins-configuration-settings#ice-host-override">ICE Host Override</a> config option.</td>
+</tr>
+</tbody>
+</table>
+
+## Installation and Deployment
+
+There are multiple ways to deploy RTCD, depending on your environment. We recommend the following order based on production readiness and operational control:
+
+### Bare Metal or VM Deployment (Recommended)
+
+This is the recommended deployment method for non-Kubernetes production environments, as it provides the best performance and operational control. For Kubernetes deployments, see the [Calls Deployment on Kubernetes](calls-kubernetes.mdx) guide.
+
+<Warning>
+
+These community-maintained scripts aren't published or reviewed by Mattermost. Review the script contents yourself before running them, and confirm they're suitable for your environment.
+
+</Warning>
+
+<Tip>
+
+Looking for an automated setup? Check out these community-maintained [Calls Installation Scripts](https://github.com/bgardner8008/calls-install-scripts) for quick provisioning of the RTCD service on Ubuntu/Debian systems.
+
+</Tip>
+
+1. **Download and install the RTCD binary**:
+
+   Download the latest release from the [RTCD GitHub repository](https://github.com/mattermost/rtcd/releases):
+
+   ```bash
+   # Create the RTCD directory structure
+   sudo mkdir -p /opt/rtcd
+
+   # Download the latest RTCD binary (adjust URL for your architecture)
+   # For Linux x86_64:
+   wget https://github.com/mattermost/rtcd/releases/latest/download/rtcd-linux-amd64
+   
+   # Make the binary executable and move it to the installation directory
+   chmod +x rtcd-linux-amd64
+   sudo mv rtcd-linux-amd64 /opt/rtcd/rtcd
+   ```
+
+   <Note>
+
+   Replace `rtcd-linux-amd64` with the appropriate binary for your system architecture (e.g., `rtcd-linux-arm64` for ARM64 systems). The binary should be placed at `/opt/rtcd/rtcd` as this is the expected location referenced in systemd service files and other documentation.
+
+   </Note>
+
+2. **Create a configuration file** (`/opt/rtcd/rtcd.toml`):
+
+   Mattermost recommends using the official [config.sample.toml](https://github.com/mattermost/rtcd/blob/master/config/config.sample.toml) as a starting point. Download this file and use it as your base configuration.
+
+3. Create a dedicated user for the RTCD service:
+
+   ```bash
+   sudo useradd --system --no-create-home --shell /bin/false mattermost
+   ```
+
+4. Create the data directory and set ownership:
+
+   ```bash
+   sudo mkdir -p /opt/rtcd/data/db
+   sudo chown -R mattermost:mattermost /opt/rtcd
+   ```
+
+5. Create a systemd service file (`/etc/systemd/system/rtcd.service`):
+
+   ```ini
+   [Unit]
+   Description=Mattermost RTCD Server
+   After=network.target
+
+   [Service]
+   Type=simple
+   User=mattermost
+   Group=mattermost
+   ExecStart=/opt/rtcd/rtcd --config /opt/rtcd/rtcd.toml
+   Restart=always
+   RestartSec=10
+   LimitNOFILE=65536
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+6. Enable and start the service:
+
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable rtcd
+   sudo systemctl start rtcd
+   ```
+
+7. Check the service status:
+
+   ```bash
+   sudo systemctl status rtcd
+   ```
+
+### Docker Deployment
+
+Docker deployment is suitable for development, testing, or containerized production environments:
+
+1. Run the RTCD container with basic configuration:
+
+   ```bash
+   docker run -d --name rtcd \
+     -e "RTCD_LOGGER_ENABLEFILE=true" \
+     -p 8443:8443/udp \
+     -p 8443:8443/tcp \
+     -p 8045:8045/tcp \
+     mattermost/rtcd:latest
+   ```
+
+   <Note>
+
+   If you optionally use the `RTCD_API_SECURITY_ALLOWSELFREGISTRATION` setting, please note that it defaults to `false`. If enabled, it allows anyone who can connect to the service on the API port (8045) to successfully initiate calls. Understand the security implications of this setting before enabling it.
+
+   </Note>
+
+2. For debugging purposes, you can enable more detailed logging:
+
+   ```bash
+   docker run -d --name rtcd \
+     -e "RTCD_LOGGER_ENABLEFILE=true" \
+     -e "RTCD_LOGGER_CONSOLELEVEL=DEBUG" \
+     -p 8443:8443/udp \
+     -p 8443:8443/tcp \
+     -p 8045:8045/tcp \
+     mattermost/rtcd:latest
+   ```
+
+   To view the logs:
+
+   ```bash
+   docker logs -f rtcd
+   ```
+
+You can also use a mounted configuration file instead of environment variables:
+
+```bash
+docker run -d --name rtcd \
+  -p 8045:8045 \
+  -p 8443:8443/udp \
+  -p 8443:8443/tcp \
+  -v /path/to/config.toml:/rtcd/config/config.toml \
+  mattermost/rtcd:latest
+```
+
+For a complete sample configuration file, see the [RTCD config.sample.toml](https://github.com/mattermost/rtcd/blob/master/config/config.sample.toml) in the official repository.
+
+### Kubernetes Deployment
+
+For detailed information on deploying RTCD in Kubernetes environments, including Helm chart configurations, resource requirements, and scaling considerations, see the [Calls Deployment on Kubernetes](calls-kubernetes.mdx) guide.
+
+## Configuration
+
+### RTCD Configuration File
+
+The RTCD service uses a TOML configuration file. Mattermost recommends using the official [config.sample.toml](https://github.com/mattermost/rtcd/blob/master/config/config.sample.toml) as your base configuration file.
+
+<Note>
+
+A notable setting to be aware of is `ice_host_override` under the `[rtc]` section. You may need to configure this setting explicitly, particularly when RTCD is deployed behind NAT, in complex network topologies, or when automatic address discovery via STUN is unreliable. Setting `ice_host_override` directly to your server's public IP address or hostname is the preferred approach.
+
+</Note>
+
+### TURN Configuration
+
+For clients behind strict firewalls, you may need to configure TURN servers. In the RTCD configuration file, reference your TURN servers as follows:
+
+```toml
+[rtc]
+# TURN server configuration
+   ice_servers = [
+     { urls = ["turn:turn.example.com:3478"], username = "turnuser", credential = "turnpassword" }
+   ]
+
+```
+
+We recommend using [coturn](https://github.com/coturn/coturn) for your TURN server implementation. 
+
+### System Tuning
+
+For high-volume deployments, tune your Linux system:
+
+1. Add the following to `/etc/sysctl.conf`:
+
+   ```bash
+   # Increase UDP buffer sizes
+   net.core.rmem_max = 16777216
+   net.core.wmem_max = 16777216
+   net.core.optmem_max = 16777216
+   ```
+
+2. Apply the settings:
+
+   ```bash
+   sudo sysctl -p
+   ```
+
+## Validation and Testing
+
+After deploying RTCD, validate the installation:
+
+1. **Check service status and version**:
+
+   ```bash
+   curl http://YOUR_RTCD_SERVER:8045/version
+   # Should return a JSON object with service information
+   # Example: {"build_hash":"abc123","build_date":"2023-01-15T12:00:00Z","build_version":"0.11.0","goVersion":"go1.20.4"}
+   ```
+
+2. **Test UDP connectivity**:
+
+   Before testing, ensure the RTCD service is stopped, as it binds to the same port.
+   
+   ```bash
+   sudo systemctl stop rtcd
+   ```
+
+   On the RTCD server:
+   
+   ```bash
+   sudo ncat -u -l -k -p 8443 -c '/bin/cat'
+   ```
+
+   On a client machine:
+   
+   ```bash
+  sudo nmap -sU -p 8443 RTCD_SERVER_IP
+   ```
+      
+   If UDP connectivity is working, `nmap` reports as `open`.
+
+   Restart RTCD after the test:
+
+   ```bash
+   sudo systemctl start rtcd
+   ```
+
+3. **Test TCP connectivity** (if enabled):
+
+   Run this check from a client machine:
+
+   ```bash
+   nmap -p 8443 RTCD_SERVER_IP
+   ```
+
+   If TCP fallback is enabled and reachable, `nmap` reports as `open`.
+
+4. **Monitor metrics**:
+
+   Refer to [Calls Metrics and Monitoring](calls-metrics-monitoring.mdx) for setting up Calls metrics and monitoring.
+
+## Horizontal Scaling
+
+To scale RTCD horizontally:
+
+1. **Deploy multiple RTCD instances**:
+   
+   Deploy multiple RTCD servers, each with their own unique IP address.
+
+2. **Configure DNS record**:
+   
+   Set up a DNS record that points to multiple RTCD IP addresses:
+   
+   ```bash
+   rtcd.example.com.    IN A    10.0.0.1
+   rtcd.example.com.    IN A    10.0.0.2
+   rtcd.example.com.    IN A    10.0.0.3
+   ```
+
+3. **Configure health checks**:
+   
+   Set up health checks to automatically remove unhealthy RTCD instances from DNS.
+
+4. **Configure Mattermost**:
+   
+   In the Mattermost System Console, set the **RTCD Service URL** to your DNS name (e.g., `rtcd.example.com`).
+
+When a call starts, the Mattermost server examines the available RTCD servers (via the configured DNS record) and starts the call on the RTCD server with the lowest CPU usage. All participants in the call will connect to that RTCD server; a single call cannot be shared across multiple servers.
+
+## Upgrading RTCD
+
+RTCD is released and upgraded independently of the Mattermost server. An upgrade consists of replacing the binary or container image and restarting the service. There's no database or schema migration involved. The two things to plan for are preserving the data store and timing the restart so that calls in progress aren't dropped.
+
+Releases are published to the [RTCD GitHub repository](https://github.com/mattermost/rtcd/releases) as `rtcd-linux-amd64` and `rtcd-linux-arm64` binaries, and to Docker Hub as the [mattermost/rtcd](https://hub.docker.com/r/mattermost/rtcd) image.
+
+### Preserve the Data Store
+
+RTCD keeps a small local store at the path set by `data_source` in the `[store]` section of the configuration file, which defaults to `/tmp/rtcd_db`. It holds the client IDs registered by Mattermost servers along with a bcrypt hash of each client's authentication key. This is the only state RTCD persists, and it has to survive the upgrade:
+
+- **Bare metal or VM.** The store lives outside the binary, so replacing the binary in place preserves it. Verify that `data_source` doesn't point at a location cleared on reboot: the default `/tmp/rtcd_db` is on a temporary filesystem on many distributions.
+- **Docker.** The store is inside the container filesystem unless it's mounted, so recreating the container discards it. Mount a volume over the `data_source` path to keep it across image replacements.
+
+Back the store up by copying its directory while the service is stopped.
+
+<Warning>
+
+If the store is lost, the credentials the Calls plugin holds no longer match anything on the RTCD side, and the plugin can't authenticate. Recovery depends on `allow_self_registration` under `[api.security]`:
+
+- When it's disabled, which is the default, registration itself requires authenticating first, so the plugin can neither authenticate nor re-register. Calls stays broken until the store is restored or new credentials are provisioned.
+- When it's enabled, the plugin detects the failure and registers again automatically, so a lost store recovers on its own.
+
+Enabling `allow_self_registration` lets any client that can reach the API port register without authenticating. Leave it disabled on any RTCD service reachable from the internet, and enable it only on a private, access-controlled network.
+
+</Warning>
+
+<Important>
+
+The Calls plugin opens its connection to RTCD when the plugin starts, and fails to start if the service isn't reachable. The same applies to the `calls-offloader` service when recording, transcription, or live captions are configured. RTCD therefore has to be up and running before the Mattermost server starts, or before Calls is re-enabled.
+
+Failures at startup and failures later on behave differently:
+
+- **During plugin activation**, an initial connection failure leaves Calls deactivated, and the server's plugin health check doesn't retry it, because it only monitors plugins that activated successfully. Once RTCD is reachable, restart the Calls plugin to bring it back.
+- **After a connection is established**, later disconnections are retried automatically, so a brief RTCD restart needs no action on the Mattermost side. The plugin makes up to 8 reconnection attempts for a host before dropping it, and a dropped host that's still advertised in DNS is picked up again by the 10-second host check.
+
+</Important>
+
+### Version Compatibility
+
+The Calls plugin enforces a minimum RTCD version and won't use a server running an older one.
+
+For this reason, upgrade RTCD **before** upgrading the Mattermost server to a release shipping a newer version of Calls. When the plugin finds a server below the minimum version:
+
+- On plugin activation, such as after a Mattermost server restart or upgrade, the failed version check prevents the Calls plugin from starting at all. This happens if *any* of the servers resolved by the **RTCD Service URL** fails the check, not only if all of them do.
+- On a server discovered through DNS while the plugin is already running, the failure is logged as an error and the server isn't used. Calls continue to be routed to the remaining servers.
+
+This means an RTCD server below the minimum version that's left in the DNS record can prevent Calls from starting the next time the Mattermost server restarts, even if calls are working at the time.
+
+See [Important Upgrade Notes](/administration-guide/upgrade/important-upgrade-notes) for version-specific requirements. To check the version a server is running, query it directly with `curl http://YOUR_RTCD_SERVER:8045/version`.
+
+### How RTCD Shuts Down
+
+When RTCD receives a `SIGTERM` or `SIGINT` signal, it drains instead of exiting immediately: it waits for all active call sessions to end before shutting down. Calls in progress are never force-closed, and there's no drain timeout, so the process waits for as long as the last call lasts.
+
+Two things follow from this behavior:
+
+- The HTTP and WebSocket API listeners stay open while the service drains, so a draining server can still be assigned new calls. Remove the server from the DNS record *before* signalling the process; otherwise the plugin can keep sending new calls to it, and the drain may never complete.
+- Any process supervisor that force-kills the service after a timeout cuts off the calls still running on it, and the default timeouts are generally shorter than a call.
+
+`systemctl stop rtcd` sends `SIGTERM` to the service, and with the default `KillMode=control-group`, to every process in the unit's control group. systemd then waits for `TimeoutStopSec` before escalating to `SIGKILL`. When that value isn't set explicitly it inherits `DefaultTimeoutStopSec`, which gives a 90-second timeout on a stock systemd installation, so calls still running when the timeout expires are dropped.
+
+The rolling upgrade below avoids this entirely by draining a server through DNS before stopping it, so the server is already idle by the time the service is stopped and the timeout never comes into play.
+
+### Upgrading a Single Server
+
+With a single RTCD server, an upgrade interrupts the service: no new calls can be started while the process is down, and because the service drains on shutdown, the restart doesn't complete until the existing calls end. There are two options:
+
+- **Wait for the drain to complete.** Send `SIGTERM` and let the service exit after the last call ends. No call is dropped, but the length of the outage depends on how long those calls run, and new calls fail in the meantime. Note that the drain only runs to completion if the process supervisor allows it: with systemd's 90 second default stop timeout, a longer drain is cut short and the remaining calls are dropped.
+- **Stop the service at a set time.** Notify participants, then force the process down with `SIGKILL` after a fixed period. Any calls still running are dropped and clients see those calls end.
+
+Scheduling the upgrade for a period of low usage keeps either option short. See [Communicate scheduled maintenance](/administration-guide/upgrade/communicate-scheduled-maintenance) for templates to notify your users.
+
+### Rolling Upgrade with Multiple Servers
+
+When [horizontal scaling](#horizontal-scaling) is configured, servers can be upgraded one at a time without dropping calls. For each server in turn:
+
+1. **Remove the server from DNS**:
+
+   Remove its IP address from the DNS record that the **RTCD Service URL** resolves to.
+
+2. **Wait for the plugin to pick up the change**:
+
+   The plugin re-resolves the hostname every 10 seconds and flags servers that are no longer advertised. A flagged server is excluded from new calls, while the calls already running on it continue uninterrupted.
+
+3. **Wait for the server to go idle**:
+
+   The `rtcd_rtc_sessions_total` metric reports the number of active RTC sessions per call group (see [RTCD Metrics](calls-metrics-monitoring#rtcd-metrics)). The server can be restarted safely once the sum across all groups reaches zero.
+
+4. **Stop the service**:
+
+   ```bash
+   sudo systemctl stop rtcd
+   ```
+
+   Because the server is already idle at this point, it exits immediately and the stop timeout doesn't come into play.
+
+5. **Install the new version**:
+
+   Replace the binary or container image with the new version and start the service again.
+
+6. **Verify the upgrade**:
+
+   ```bash
+   curl http://YOUR_RTCD_SERVER:8045/version
+   ```
+
+7. **Return the server to DNS**:
+
+   Add its IP address back to the DNS record. The plugin picks the server up on its next resolution cycle and starts assigning new calls to it again.
+
+Once the server is back in rotation, repeat the process for the next one.
+
+<Note>
+
+- Since a call always lives entirely on a single server, restarting one server only ever affects the calls hosted on that server.
+- Keep enough capacity in the fleet to absorb new calls while a server is out of rotation. Waiting for a server to reach zero sessions can take a while when calls are long-running.
+
+</Note>
+
+### Upgrading in Kubernetes
+
+The [RTCD Helm chart](calls-kubernetes#rtcd-helm-chart) defaults to a `RollingUpdate` strategy with `maxUnavailable: 1`, and sets `configuration.terminationGracePeriod` to `18000` seconds (5 hours). That value maps to the pod's `terminationGracePeriodSeconds`, so Kubernetes allows a pod 5 hours to drain its calls before killing it.
+
+Before changing the image, decide how the data store is handled. The chart ships no `PersistentVolumeClaim` template, and the store defaults to a path inside the container, so each replaced pod starts with an empty store. Since the store is a local embedded database with one instance per pod, a single volume can't be shared across replicas. There are two workable approaches:
+
+- **Let pods re-register.** Enable `allow_self_registration` on a private, access-controlled network, as described in the warning above, and the plugin re-registers against each new pod automatically. This is the simpler option and needs no storage configuration.
+- **Give each pod its own storage.** With `deploymentType: daemonset`, one pod runs per node, so a per-node `hostPath` mounted at the `data_source` path through `configuration.extraVolumes` and `configuration.extraVolumeMounts` gives each pod a store that survives image replacement.
+
+To upgrade, set `image.tag` to the new version in your values file and apply the chart. Kubernetes sends `SIGTERM` to each pod it replaces, which starts the drain described above.
+
+The chart doesn't set `maxSurge`, so a `Deployment` rollout uses the Kubernetes default and new pods can be created before the draining ones have exited. Expect old and new pods to run side by side for as long as the drains take, and size the node pool accordingly. `maxUnavailable: 1` bounds how many pods can be unavailable at once; it doesn't serialize the replacements.
+
+<Warning>
+
+Don't reduce `terminationGracePeriod` to a conventional value such as 30 or 60 seconds. When the grace period expires, Kubernetes sends `SIGKILL` and every call still running on that pod is dropped. The default of 5 hours is deliberately long enough to outlast extended meetings.
+
+</Warning>
+
+## Integration with Mattermost
+
+Once RTCD is properly set up and validated, configure Mattermost to use it:
+
+1. Go to **System Console > Plugins > Calls**
+
+2. Set the **RTCD Service URL** to your RTCD service address (either a single server or DNS load-balanced hostname). Ensure you provide any generated credentials formulated in the URI (e.g., `http://clientID:authKey@rtcd.local`).
+
+3. Save the configuration
+
+4. Test by creating a new call in any Mattermost channel
+
+5. Verify that the call is being routed through RTCD by checking the RTCD logs and metrics
+
+## Other Calls Documentation
+
+- [Calls Deployment Guide](calls-deployment-guide.mdx): Overview of deployment options and architecture
+- [Calls Offloader Setup and Configuration](calls-offloader-setup.mdx): Setup guide for call recording and transcription
+- [Calls Metrics and Monitoring](calls-metrics-monitoring.mdx): Guide to monitoring Calls performance using metrics and observability
+- [Calls Deployment on Kubernetes](calls-kubernetes.mdx): Detailed guide for deploying Calls in Kubernetes environments
+- [Calls Logging](calls-logging.mdx): Detailed guidance for collecting Calls logs and client diagnostics
+
+For detailed Mattermost Calls configuration options, see the [Calls Plugin Configuration Settings](/administration-guide/configure/plugins-configuration-settings#calls) documentation.
