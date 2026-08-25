@@ -15,6 +15,8 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 
 import {
+    isLinkedField,
+    newPendingField,
     useUserPropertyFields,
     ValidationWarningNameInvalidCEL,
     ValidationWarningNameRequired,
@@ -621,5 +623,32 @@ describe('useUserPropertyFields', () => {
         const [fields] = result.current;
         const pendingNames = fields.order.slice(-2).map((id) => fields.data[id].name);
         expect(pendingNames).toEqual(['Text', 'Text_2']);
+    });
+});
+
+describe('isLinkedField', () => {
+    it('is true only when the field links to a template field', () => {
+        expect(isLinkedField({})).toBe(false);
+        expect(isLinkedField({linked_field_id: ''})).toBe(false);
+        expect(isLinkedField({linked_field_id: 'template-field-id'})).toBe(true);
+    });
+});
+
+describe('newPendingField', () => {
+    // newPendingField doesn't strip the link, so a pending field keeps whatever
+    // it was handed. That only reaches the collection, not the server: the
+    // commit path sends name/type/attrs, and every linked field is created
+    // directly via Client4.createPropertyField (classification_markings/utils).
+    // Dropping the link is specific to duplication and lives in the dot menu's
+    // handleDuplicate — see user_properties_dot_menu.test.tsx.
+    it('keeps an explicitly requested template link', () => {
+        const pending = newPendingField({
+            name: 'clearance',
+            type: 'rank',
+            linked_field_id: 'template-field-id',
+        } as UserPropertyFieldPatch & Pick<UserPropertyField, 'name'>);
+
+        expect(pending.linked_field_id).toBe('template-field-id');
+        expect(isLinkedField(pending)).toBe(true);
     });
 });
