@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	maxUsersLimit     = 0 // disabled for dev/testing; 200 for production unlicensed builds
-	maxUsersHardLimit = 0 // disabled for dev/testing; 250 for production unlicensed builds
+	maxUsersLimit     = 200
+	maxUsersHardLimit = 250
 )
 
 // GetServerLimits returns the server's seat/post-history limits. The license-derived
