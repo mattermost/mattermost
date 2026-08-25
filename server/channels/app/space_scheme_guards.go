@@ -11,8 +11,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-// getSchemeFromMaster resolves a scheme on the primary only. Every guard deciding
-// whether a scheme may hold space authority uses this rather than the replica-first
+// getSchemeFromMaster resolves a scheme on the primary only. Every guard checking
+// a scheme's space permissions uses this rather than the replica-first
 // fallback below: a replica that has not yet seen a delete answers DeleteAt == 0 for
 // a row the primary has already soft-deleted, and the deleted-scheme refusals have
 // to trust that field.
@@ -64,9 +64,9 @@ func (a *App) isSeededSpaceScheme(schemeId string) (bool, *model.AppError) {
 	return scheme.DeleteAt == 0 && scheme.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(scheme.Name), nil
 }
 
-// isPluginChannelScheme reports whether schemeId is a channel scheme minted by
-// GetOrCreatePluginChannelScheme. Identity is the pair (channel scope, minted name
-// shape), the same shape the role-write freeze tests.
+// isPluginChannelScheme reports whether schemeId identifies a plugin channel scheme
+// created by GetOrCreatePluginChannelScheme. Identity is the pair (channel scope,
+// plugin channel scheme name shape), the same shape the role-write freeze tests.
 func (a *App) isPluginChannelScheme(schemeId string) (bool, *model.AppError) {
 	scheme, appErr := a.getSchemeFromMaster("isPluginChannelScheme", schemeId)
 	if appErr != nil {
@@ -108,10 +108,10 @@ func (a *App) schemeHoldsSpaceGrants(schemeId string) (bool, *model.AppError) {
 
 // checkSpaceSchemeName rejects creating or renaming a scheme into a reserved name:
 // a seeded space preset, or a name of the shape GetOrCreatePluginChannelScheme
-// mints. A preset squat would be adopted by the seeding's get-or-create; a squat on
-// a minted name permanently denies that permission set to the plugin deriving it,
-// since the name is a pure function of the set. Not gated on the docs feature flag,
-// for the same reason as checkSpacePermissionScope.
+// creates. A preset squat would be adopted by the seeding's get-or-create; a squat
+// on a plugin channel scheme name permanently denies that permission set to the
+// plugin deriving it, since the name is a pure function of the set. Not gated on
+// the docs feature flag, for the same reason as checkSpacePermissionScope.
 func (a *App) checkSpaceSchemeName(where, name string) *model.AppError {
 	if model.IsSpaceSchemeName(name) {
 		return model.NewAppError(where, "app.scheme.save.space_scheme_name.app_error",
@@ -151,11 +151,11 @@ func (a *App) checkSpaceSchemeRename(scheme *model.Scheme) *model.AppError {
 		return model.NewAppError("UpdateScheme", "app.scheme.save.space_scheme_rename.app_error",
 			map[string]any{"SchemeName": stored.Name}, "", http.StatusBadRequest)
 	}
-	// A minted plugin scheme is identified by its name and nothing else: the role
+	// A plugin channel scheme is identified by its name and nothing else: the role
 	// freeze, the delete refusal and the get-or-create's own lookup all key off it.
 	// Renaming one away unfreezes its roles while every channel already pointing at it
 	// keeps resolving them, and leaves the next get-or-create for the same permission
-	// set minting a second scheme beside it.
+	// set creating a second scheme beside it.
 	if stored.Scope == model.SchemeScopeChannel && model.IsPluginChannelSchemeName(stored.Name) {
 		return model.NewAppError("UpdateScheme", "app.scheme.save.plugin_scheme_rename.app_error",
 			map[string]any{"SchemeName": stored.Name}, "", http.StatusBadRequest)
@@ -178,12 +178,12 @@ func (a *App) checkSpaceSchemeDelete(schemeId string) *model.AppError {
 		return model.NewAppError("DeleteScheme", "app.scheme.delete.space_scheme.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// A minted plugin scheme is refused whether or not anything references it today:
+	// A plugin channel scheme is refused whether or not anything references it today:
 	// Schemes.Name is unique across deleted rows, so a deleted one leaves the next
 	// get-or-create for that permission set resolving to a row it must refuse rather
-	// than minting a replacement. Reported separately from the space-scheme refusal
-	// below: an operator looking at a minted scheme has no space to detach to make
-	// the delete succeed, so the space wording would send them looking for one.
+	// than creating a replacement. Reported separately from the space-scheme refusal
+	// below: an operator looking at a plugin channel scheme has no space to detach to
+	// make the delete succeed, so the space wording would send them looking for one.
 	isPluginScheme, pErr := a.isPluginChannelScheme(schemeId)
 	if pErr != nil {
 		return pErr

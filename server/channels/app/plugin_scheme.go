@@ -18,7 +18,7 @@ import (
 // same sets resolves to one scheme rather than each owning an identical copy.
 //
 // pluginID is the calling plugin's manifest id, taken at the RPC boundary rather
-// than from an argument, so no plugin can mint inside another's namespace.
+// than from an argument, so no plugin can create a scheme in another's namespace.
 //
 // The returned scheme is complete and never written again: its roles are created
 // with their final permissions in one transaction, and the role-write guard refuses
@@ -46,8 +46,8 @@ func (a *App) GetOrCreatePluginChannelScheme(pluginID string, user, admin, guest
 	// ceiling on the member-assignment side, and the roles below are written
 	// store-direct inside the scheme's own transaction, so nothing downstream would
 	// catch a wider guest set: it has to be refused here. Scoped to the space
-	// permissions, so a scheme minted for ordinary channels keeps whatever guest
-	// permissions its entitlement allows.
+	// permissions, so a plugin channel scheme for ordinary channels keeps whatever
+	// guest permissions its entitlement allows.
 	for _, id := range guest {
 		if model.IsSpaceChannelScopedPermissionID(id) && id != model.PermissionReadPage.Id {
 			return nil, model.NewAppError("GetOrCreatePluginChannelScheme", "app.scheme.plugin_scheme.guest_permission_scope.app_error",
@@ -113,17 +113,16 @@ func (a *App) getPluginChannelScheme(name string, user, admin, guest []string) (
 
 	// A soft-deleted row still occupies the name — the read carries no DeleteAt
 	// filter and Schemes.Name is unique across deleted rows — so it can neither be
-	// returned nor minted over.
+	// returned nor replaced.
 	if scheme.DeleteAt != 0 || scheme.Scope != model.SchemeScopeChannel {
 		return nil, model.NewAppError("getPluginChannelScheme", "app.scheme.plugin_scheme.conflict.app_error",
 			map[string]any{"SchemeName": name}, "", http.StatusInternalServerError)
 	}
 
-	// Read store-direct and on the primary. Both halves are load-bearing for the
-	// comparison below: GetRolesByNames runs mergeChannelHigherScopedPermissions on
-	// the way out, so a role read through it never equals the set the scheme was
-	// minted with; and the caller that lost the create race is reading a row another
-	// node wrote moments ago.
+	// Read directly from the store and on the primary. The comparison below needs
+	// the exact stored permissions; GetRolesByNames returns effective permissions
+	// after applying higher-scope inheritance. The primary read also lets a caller
+	// that lost the create race see the row another node wrote moments ago.
 	roles, nErr := a.Srv().Store().Role().GetByNamesFromMaster([]string{
 		scheme.DefaultChannelUserRole,
 		scheme.DefaultChannelAdminRole,

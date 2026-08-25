@@ -488,8 +488,8 @@ func spaceCapabilityRolePermissions(capability *Permission) []*Permission {
 	return []*Permission{PermissionReadPage, capability}
 }
 
-// SpaceAdminRolePermissions is the full space authority SchemeAdmin resolves to,
-// which is every channel-scoped space permission.
+// SpaceAdminRolePermissions contains every channel-scoped space permission granted
+// to SchemeAdmin.
 var SpaceAdminRolePermissions []*Permission
 
 // The all-members baselines the seeded preset schemes grant.

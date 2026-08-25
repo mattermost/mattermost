@@ -144,9 +144,8 @@ func (a *App) mergeChannelHigherScopedPermissions(roles []*model.Role) *model.Ap
 }
 
 func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
-	// checkSpacePermissionScope refuses these roles on the write path regardless;
-	// repeated here only because the no-op short-circuit below would otherwise
-	// return a 200 that a caller could read as permission.
+	// Reject capability roles before the no-op return. UpdateRole rejects them on
+	// the normal path, but an unchanged permissions patch never reaches UpdateRole.
 	if model.IsSpaceCapabilityRole(role.Name) {
 		return nil, model.NewAppError("PatchRole", "app.role.save.space_capability_role.app_error",
 			map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)

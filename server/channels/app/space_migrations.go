@@ -42,10 +42,10 @@ func validateAdoptableSpaceRole(roleID string, stored, want *model.Role) error {
 	return nil
 }
 
-// validateAdoptableSpaceScheme rejects a scheme row carrying a preset space
-// scheme's name that cannot serve as one. Adopting a foreign row would rewrite that
-// scheme's generated role permission sets, stripping the moderated permissions from
-// a customer's channels.
+// validateAdoptableSpaceScheme rejects a row under a reserved preset name if it is
+// deleted, has the wrong scope or generated-role references, or is already used by
+// an ordinary channel. Adopting such a row would rewrite its generated role
+// permission sets and could strip moderated permissions from customer channels.
 //
 // The shape requirements are the seeding's own: a live channel-scoped row with
 // three distinct generated channel roles. Two references converging on one row
@@ -78,13 +78,11 @@ func (s *Server) validateAdoptableSpaceScheme(existing *model.Scheme) error {
 	return nil
 }
 
-// validateAdoptedSpaceSchemeRoles refuses a row that is shaped like a preset but
-// does not grant like one. validateAdoptableSpaceScheme proves the shape; this
-// proves the authority and the ownership. Both are needed: the seeding only strips
-// the moderated permissions and adds the targets, so any other permission already
-// on a generated role survives; and the scheme row can name a standalone role
-// already assigned outside spaces, which the store-direct seeding would then hand
-// the page and admin permissions, below the runtime scope guard.
+// validateAdoptedSpaceSchemeRoles checks the permissions and ownership of every
+// generated role referenced by an existing preset-named scheme. The seeding only
+// strips moderated permissions and adds target permissions, so any other stored
+// permission would survive. A role must also belong to this scheme; otherwise the
+// store-direct seeding would add page and admin permissions to an unrelated role.
 //
 // Only permissions this build recognises are judged, so a server downgraded from a
 // newer release is not blocked by permissions it merely does not know yet — the

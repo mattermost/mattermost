@@ -1518,7 +1518,7 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 			// The space capability roles sit outside the built-in check above, so
 			// they reach here as explicit roles. They are the per-member capability
 			// grants on a space's backing channel; on any other channel they would
-			// grant space authority to a member.
+			// give the member space permissions.
 			if model.IsSpaceCapabilityRole(roleName) {
 				inSpace, appErr := channelIsSpace()
 				if appErr != nil {

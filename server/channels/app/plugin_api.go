@@ -50,24 +50,21 @@ func (api *PluginAPI) checkCustomPermissionsSchemesLicense() error {
 	return nil
 }
 
-// checkMintedSchemeScopeLicense applies the custom permissions schemes entitlement
-// to a minted scheme whose roles reach past the space permissions. The scheme this
-// call produces is an ordinary channel scheme — nothing keeps it off an ordinary
-// channel except the grants it carries, and the ordinary-channel guard turns away
-// only the ones carrying space authority — so an unentitled server would otherwise
-// reach custom channel permissions through this API that the REST scheme handlers
-// refuse it.
+// checkPluginChannelSchemeScopeLicense applies the custom permissions schemes
+// entitlement when a plugin channel scheme contains permissions outside the space
+// permission set. These schemes can be assigned to ordinary channels, so allowing
+// non-space permissions here without the license would bypass the entitlement
+// enforced by the REST scheme handlers.
 //
-// The space tier is exempt: those permissions are core-defined, their preset schemes
-// are seeded on every edition, and a set drawn from them expresses a space's
-// configuration rather than a scheme of the operator's own design.
-func (api *PluginAPI) checkMintedSchemeScopeLicense(sets ...[]string) *model.AppError {
-	beyondSpace := slices.ContainsFunc(sets, func(set []string) bool {
+// Schemes containing only space permissions are exempt because those permissions
+// and their preset schemes are predefined and available on every edition.
+func (api *PluginAPI) checkPluginChannelSchemeScopeLicense(sets ...[]string) *model.AppError {
+	containsNonSpacePermission := slices.ContainsFunc(sets, func(set []string) bool {
 		return slices.ContainsFunc(set, func(id string) bool {
 			return !model.IsSpaceChannelScopedPermissionID(id)
 		})
 	})
-	if !beyondSpace {
+	if !containsNonSpacePermission {
 		return nil
 	}
 	if err := api.checkCustomPermissionsSchemesLicense(); err != nil {
@@ -76,20 +73,17 @@ func (api *PluginAPI) checkMintedSchemeScopeLicense(sets ...[]string) *model.App
 	return nil
 }
 
-// checkMintedGuestPermissionsLicense gates the guest set of a minted channel
-// scheme. The scheme's three roles are written inside the scheme's own
-// transaction, below every role guard, so the entitlement has to be applied to the
-// requested set before the mint rather than to the stored role after it.
-//
-// The space guest tier is core-defined and read-only, seeded on every edition, so
-// a guest set within it needs no license. Anything past it is the licensed
-// guest-permission capability.
-func (api *PluginAPI) checkMintedGuestPermissionsLicense(guest []string) *model.AppError {
-	spaceReadTier := model.PermissionIDs(model.SpaceDefaultReadOnlyPermissions)
-	widerThanReadTier := slices.ContainsFunc(guest, func(id string) bool {
-		return !slices.Contains(spaceReadTier, id)
+// checkPluginChannelSchemeGuestPermissionsLicense requires the guest-permissions
+// entitlement when the requested guest role contains anything outside the default
+// read-only space permissions. Those default permissions are predefined on every
+// edition. The scheme's roles are written directly in the creation transaction, so
+// this check must run before they are stored.
+func (api *PluginAPI) checkPluginChannelSchemeGuestPermissionsLicense(guest []string) *model.AppError {
+	spaceReadOnlyPermissions := model.PermissionIDs(model.SpaceDefaultReadOnlyPermissions)
+	containsPermissionOutsideReadOnlySet := slices.ContainsFunc(guest, func(id string) bool {
+		return !slices.Contains(spaceReadOnlyPermissions, id)
 	})
-	if !widerThanReadTier {
+	if !containsPermissionOutsideReadOnlySet {
 		return nil
 	}
 
@@ -1340,22 +1334,14 @@ func (api *PluginAPI) GetSchemeByName(name string) (*model.Scheme, *model.AppErr
 }
 
 func (api *PluginAPI) GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError) {
-	// Not gated on the custom permissions schemes entitlement for a space permission
-	// set, unlike CreateScheme: nothing there is authored. The sets come from the
-	// plugin, the name is derived from them, the roles are written once and frozen.
-	// The owning plugin comes from the manifest this API instance was built for, so
-	// one cannot displace another's scheme.
-	//
-	// Two entitlements apply past that. The guest set decides what an account the
-	// operator admitted as a guest may do, so it is answered first and in its own
-	// terms. Any set reaching past the space permissions is authorship of an ordinary
-	// channel scheme, whatever route it arrives by — the resulting scheme may be
-	// attached to any channel — so it carries the same entitlement CreateScheme
-	// applies.
-	if appErr := api.checkMintedGuestPermissionsLicense(guest); appErr != nil {
+	// Predefined space permissions do not require the custom permissions schemes
+	// entitlement. Other permissions do, and guest permissions outside the default
+	// read-only set also require the guest-permissions entitlement. The plugin id
+	// comes from this API instance rather than from caller input.
+	if appErr := api.checkPluginChannelSchemeGuestPermissionsLicense(guest); appErr != nil {
 		return nil, appErr
 	}
-	if appErr := api.checkMintedSchemeScopeLicense(user, admin, guest); appErr != nil {
+	if appErr := api.checkPluginChannelSchemeScopeLicense(user, admin, guest); appErr != nil {
 		return nil, appErr
 	}
 	return api.app.GetOrCreatePluginChannelScheme(api.manifest.Id, user, admin, guest)
@@ -1365,10 +1351,8 @@ func (api *PluginAPI) GetSchemeRolesForChannel(channelID string) (guestRoleName,
 	return api.app.GetSchemeRolesForChannel(api.ctx, channelID)
 }
 
-// Read from master: a plugin that has just had a scheme created reads back the roles
-// core generated for it, which on a lagging replica would read as absent. This
-// narrows the window rather than closing it — the role cache answers ahead of the
-// context, so a cache hit is served whatever the context asks for.
+// Read from master because the plugin may immediately inspect roles returned by
+// GetOrCreatePluginChannelScheme before they are visible on a replica.
 func (api *PluginAPI) GetRoleByName(name string) (*model.Role, *model.AppError) {
 	return api.app.GetRoleByName(RequestContextWithMaster(api.ctx), name)
 }

@@ -33,10 +33,9 @@ func (s *SchemeService) GetByName(name string) (*model.Scheme, error) {
 // The scheme belongs to the calling plugin, identified from the request rather
 // than from an argument. Only channel-scoped permissions are accepted.
 //
-// A permission set drawn from the space permissions needs no license: the plugin
-// gets back the configuration it asked for, not a permissions editor. A set
-// reaching past them authors an ordinary channel scheme, and carries the custom
-// permissions schemes entitlement.
+// A scheme containing only predefined space permissions needs no license. Any
+// generated role containing other permissions requires the custom permissions
+// schemes entitlement.
 //
 // Minimum server version: 11.11
 func (s *SchemeService) GetOrCreateChannelScheme(user, admin, guest []string) (*model.Scheme, error) {

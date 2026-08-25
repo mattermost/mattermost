@@ -194,7 +194,7 @@ func TestSpaceSlicesMatchCanonicalSet(t *testing.T) {
 		}
 	}
 
-	// The admin role is the full authority: exactly the canonical set.
+	// The admin role contains the complete space permission set.
 	assert.ElementsMatch(t, PermissionIDs(SpaceChannelScopedPermissions), PermissionIDs(SpaceAdminRolePermissions),
 		"SpaceAdminRolePermissions must cover every channel-scoped space permission")
 
@@ -272,7 +272,7 @@ func TestPluginChannelSchemeName(t *testing.T) {
 	// string a customer may already have used, so only a name a digest pair could
 	// have produced is claimed.
 	t.Run("the prefix alone does not put a name in the namespace", func(t *testing.T) {
-		for _, notMinted := range []string{
+		for _, otherName := range []string{
 			"plugin_",
 			"plugin_com.example.docs",
 			"plugin_incident_response",
@@ -283,7 +283,7 @@ func TestPluginChannelSchemeName(t *testing.T) {
 			"plugin_" + strings.Repeat("g", 16) + "_" + strings.Repeat("a", 16), // outside the hex alphabet
 			"prefix_plugin_" + strings.Repeat("a", 16) + "_" + strings.Repeat("a", 16),
 		} {
-			assert.False(t, IsPluginChannelSchemeName(notMinted), "%q is not a minted name", notMinted)
+			assert.False(t, IsPluginChannelSchemeName(otherName), "%q is not a plugin channel scheme name", otherName)
 		}
 	})
 }

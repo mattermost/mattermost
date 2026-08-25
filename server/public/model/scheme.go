@@ -61,7 +61,7 @@ func IsSpaceSchemeName(name string) bool {
 	return spaceSchemeNameSet[name]
 }
 
-// PluginChannelSchemeNamePrefix labels every channel scheme minted on a plugin's
+// PluginChannelSchemeNamePrefix labels every channel scheme created on a plugin's
 // behalf. Both suffixes are digests, so the whole name is fixed-length and stays
 // well inside SchemeNameMaxLength.
 const PluginChannelSchemeNamePrefix = "plugin_"

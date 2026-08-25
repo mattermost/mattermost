@@ -145,7 +145,7 @@ func (s *SqlSchemeStore) SaveChannelSchemeWithRoles(scheme *model.Scheme, user, 
 	return newScheme, nil
 }
 
-// createScheme creates a scheme and its generated roles inside transaction.
+// createScheme writes a scheme and all of its generated roles in one transaction.
 //
 // rolePermissions is optional. When nil, a channel scheme's generated roles are
 // derived from the global channel roles as they always have been. When supplied,

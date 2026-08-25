@@ -12,8 +12,8 @@ import (
 
 // checkChannelSchemeAssignment routes a channel's SchemeId to the guard for its
 // type. The two halves enforce opposite rules and together keep a scheme
-// exclusively a space's or exclusively ordinary channels', never both. Callers
-// Creation paths pass the new channel's type; update paths pass the type read from
+// exclusively a space's or exclusively ordinary channels', never both. Creation
+// paths pass the new channel's type; update paths pass the type read from
 // the stored channel, never the caller-supplied one, which could falsely claim to
 // be a space.
 //
@@ -30,11 +30,9 @@ func (a *App) checkChannelSchemeAssignment(where string, channelType model.Chann
 	return a.checkSchemeAssignmentToOrdinaryChannel(where, schemeId)
 }
 
-// checkSchemeAssignmentToOrdinaryChannel refuses to put a scheme carrying space
-// authority on a channel that is not a space, on either of two grounds: a space
-// already points at it, or its generated roles carry space permissions. A scheme
-// neither describes is left alone — it is an ordinary customer scheme, and an id
-// resolving to no scheme is not this guard's business.
+// checkSchemeAssignmentToOrdinaryChannel returns an error if a space already uses
+// the scheme or if its generated roles contain space permissions. An id resolving
+// to no scheme is left to the caller to handle.
 //
 // The seeded presets need no branch of their own: their generated roles always
 // carry read_page, so the grants test below covers them.
@@ -57,7 +55,7 @@ func (a *App) checkSchemeAssignmentToOrdinaryChannel(where string, schemeId *str
 	// The association above is live state; the grants are durable. A scheme whose
 	// roles still carry space permissions is refused even once no space points at
 	// it, so dropping the association cannot make it eligible for an ordinary
-	// channel. This is also what catches a plugin-minted scheme, whose roles may be
+	// channel. This is also what catches a plugin channel scheme, whose roles may be
 	// created carrying page permissions and which no space need reference.
 	grants, gErr := a.schemeHoldsSpaceGrants(*schemeId)
 	if gErr != nil {
@@ -70,16 +68,16 @@ func (a *App) checkSchemeAssignmentToOrdinaryChannel(where string, schemeId *str
 	return nil
 }
 
-// checkSchemeAssignmentToSpace refuses to put a scheme on a space that cannot serve as
-// that space's scheme. A space's SchemeId is taken straight from the caller and is
-// never validated by the ordinary-channel guard above, yet checkSpaceSchemeDelete
-// goes on to read the resulting association as a reason to refuse deletion.
+// checkSchemeAssignmentToSpace accepts a seeded preset or an active channel scheme
+// that no ordinary channel uses. A space's SchemeId is taken straight from the
+// caller and is never validated by the ordinary-channel guard above, yet
+// checkSpaceSchemeDelete uses the resulting association when deciding whether the
+// scheme can be deleted.
 // Pointing a space at an existing customer channel scheme would make that scheme
 // undeletable through the API and break the space/ordinary exclusivity.
 //
-// A seeded preset is accepted by identity. Anything else has to be a channel-scoped
-// scheme that governs no ordinary channel, which is the same predicate the seeding
-// migration uses to decide a scheme is not a customer's.
+// The same checks are used by the seeding migration before it adopts an existing
+// scheme under a reserved preset name.
 func (a *App) checkSchemeAssignmentToSpace(where string, schemeId *string) *model.AppError {
 	if schemeId == nil || *schemeId == "" {
 		return nil

@@ -268,9 +268,9 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 		assert.Equal(t, "app.role.save.plugin_scheme_role.app_error", appErr.Id)
 	})
 
-	// The freeze tests the whole minted shape, not the prefix. A customer scheme
-	// that merely starts with it is theirs to edit, and misreading one as minted
-	// would leave it permanently uneditable.
+	// The freeze tests the whole plugin channel scheme name shape, not the prefix. A
+	// customer scheme that merely starts with it is theirs to edit, and misreading
+	// one as a plugin channel scheme would leave it permanently uneditable.
 	t.Run("a scheme merely prefixed plugin_ is not frozen", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
@@ -445,7 +445,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 	// Deleting a scheme blanks SchemeId on every channel that used it, so the
 	// space-association count below cannot catch a deleted scheme either — the
 	// DeleteAt refusal is the only thing standing between a scheme on its way out
-	// and a role write taking space authority on it.
+	// and a write adding space permissions to one of its roles.
 	t.Run("a soft-deleted scheme proves nothing and fails closed", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
@@ -1242,8 +1242,8 @@ func TestSpaceCapabilityRoleConfinedToSpaces(t *testing.T) {
 // TestSpaceCapabilityRoleConfinedToChannels pins the team-member counterpart of
 // the UpdateChannelMemberRoles guard. A team member's roles are the fallback
 // consulted for every channel in the team, so a capability role accepted here
-// would grant space authority across all of them at once — wider than
-// UpdateChannelMemberRoles refuses one channel at a time.
+// would give the member space permissions in every channel, while
+// UpdateChannelMemberRoles checks one channel at a time.
 func TestSpaceCapabilityRoleConfinedToChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1317,9 +1317,8 @@ func TestUpdateUserRolesToGuestRevokesSpaceCapabilityRoles(t *testing.T) {
 
 // TestImportSchemeRejectsSpacePresetNames pins that bulk import cannot write
 // through a seeded preset. A reserved name resolves to the seeded scheme, which
-// takes the update branch, and the role writes that follow would land on the
-// roles every space on that preset resolves through — the scope guard waves them
-// past because the scheme's name is its own proof of space authority.
+// takes the update branch. Without the name guard, the role writes that follow
+// would modify the generated roles used by every space on that preset.
 func TestImportSchemeRejectsSpacePresetNames(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1530,18 +1529,18 @@ func TestDeleteSchemeSpaceGuards(t *testing.T) {
 	// Refused by identity, not by reference count: the name is a pure function of
 	// the permission sets and Schemes.Name is unique across deleted rows, so a
 	// deleted one leaves the next get-or-create for that set resolving to a row it
-	// must refuse rather than minting a replacement.
-	t.Run("minted plugin scheme refused even when nothing references it", func(t *testing.T) {
+	// must refuse rather than creating a replacement.
+	t.Run("plugin channel scheme refused even when nothing references it", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
 		require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
 
 		schemeID := model.NewId()
-		mintedName := model.PluginChannelSchemeName("com.example.plugin", []string{model.PermissionReadPage.Id}, nil, nil)
+		pluginSchemeName := model.PluginChannelSchemeName("com.example.plugin", []string{model.PermissionReadPage.Id}, nil, nil)
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
 		mockSchemeStore.On("GetFromMaster", schemeID).
-			Return(&model.Scheme{Id: schemeID, Name: mintedName, Scope: model.SchemeScopeChannel}, nil)
+			Return(&model.Scheme{Id: schemeID, Name: pluginSchemeName, Scope: model.SchemeScopeChannel}, nil)
 		mockChannelStore := mocks.ChannelStore{}
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 		mockStore.On("Channel").Return(&mockChannelStore)
@@ -1632,13 +1631,13 @@ func TestUpdateSchemeSpaceGuards(t *testing.T) {
 		mockSchemeStore.AssertNotCalled(t, "Save", mock.Anything)
 	})
 
-	// A minted plugin scheme is identified by its name and nothing else, so a
+	// A plugin channel scheme is identified by its name and nothing else, so a
 	// rename would unfreeze its roles while every channel already pointing at it
 	// keeps resolving them.
-	t.Run("renaming a minted plugin scheme away is rejected", func(t *testing.T) {
+	t.Run("renaming a plugin channel scheme away is rejected", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		mintedName := model.PluginChannelSchemeName("com.example.plugin", []string{model.PermissionReadPage.Id}, nil, nil)
-		th, mockSchemeStore, schemeID := setup(t, mintedName)
+		pluginSchemeName := model.PluginChannelSchemeName("com.example.plugin", []string{model.PermissionReadPage.Id}, nil, nil)
+		th, mockSchemeStore, schemeID := setup(t, pluginSchemeName)
 
 		_, appErr := th.App.UpdateScheme(&model.Scheme{Id: schemeID, Name: "renamed_scheme", Scope: model.SchemeScopeChannel})
 		require.NotNil(t, appErr)
@@ -1646,15 +1645,15 @@ func TestUpdateSchemeSpaceGuards(t *testing.T) {
 		mockSchemeStore.AssertNotCalled(t, "Save", mock.Anything)
 	})
 
-	// A squat on a minted name cannot be adopted — the get-or-create verifies the
-	// roles grant what the name says — but it permanently denies that permission
-	// set to the plugin that derives it.
-	t.Run("renaming another scheme into the minted namespace is rejected", func(t *testing.T) {
+	// A squat on a plugin channel scheme name cannot be adopted — the get-or-create
+	// verifies the roles grant what the name says — but it permanently denies that
+	// permission set to the plugin that derives it.
+	t.Run("renaming another scheme into the plugin channel scheme namespace is rejected", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, mockSchemeStore, schemeID := setup(t, "ordinary_scheme")
 
-		mintedName := model.PluginChannelSchemeName("com.example.plugin", []string{model.PermissionReadPage.Id}, nil, nil)
-		_, appErr := th.App.UpdateScheme(&model.Scheme{Id: schemeID, Name: mintedName, Scope: model.SchemeScopeChannel})
+		pluginSchemeName := model.PluginChannelSchemeName("com.example.plugin", []string{model.PermissionReadPage.Id}, nil, nil)
+		_, appErr := th.App.UpdateScheme(&model.Scheme{Id: schemeID, Name: pluginSchemeName, Scope: model.SchemeScopeChannel})
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.scheme.save.plugin_scheme_name.app_error", appErr.Id)
 		mockSchemeStore.AssertNotCalled(t, "Save", mock.Anything)
@@ -1715,10 +1714,10 @@ func TestCreateSchemeSpaceNameGuard(t *testing.T) {
 	mockSchemeStore.AssertNotCalled(t, "Save", mock.Anything)
 }
 
-// A custom scheme no space points at is not a preset and carries no space
-// authority, so the ordinary-channel guard leaves it alone: only the presets
-// carry the moderated-permission stripping that would silently take create_post
-// away from an ordinary channel's members.
+// A custom scheme no space points at is not a preset and contains no space
+// permissions, so the ordinary-channel guard leaves it alone. Only the presets
+// strip moderated permissions in a way that would silently take create_post away
+// from an ordinary channel's members.
 func TestCheckSchemeAssignmentToOrdinaryChannelIgnoresCustomSchemes(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupSpaceRBACMock(t)
@@ -1881,7 +1880,7 @@ func TestIsSpaceChannelByIDFailsClosedOnLookupError(t *testing.T) {
 }
 
 // The scheme lookup is shared by both channel guards, so a failure there has to
-// surface rather than be read as "this scheme holds no space authority".
+// surface rather than be read as "this scheme contains no space permissions".
 func TestSpaceChannelGuardsPropagateSchemeLookupErrors(t *testing.T) {
 	setup := func(t *testing.T) (*TestHelper, string) {
 		th := setupSpaceRBACMock(t)
@@ -2613,7 +2612,7 @@ func TestUpdateChannelMemberRolesRefusesCapabilityRoleForGuest(t *testing.T) {
 	t.Run("the scheme admin role is refused alongside the guest role", func(t *testing.T) {
 		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, space.Id, th.BasicUser2.Id,
 			scheme.DefaultChannelGuestRole+" "+scheme.DefaultChannelAdminRole)
-		require.NotNil(t, appErr, "a guest must not hold space administrator authority")
+		require.NotNil(t, appErr, "a guest must not have space administrator permissions")
 		assert.Equal(t, "api.channel.update_channel_member_roles.space_guest_admin.app_error", appErr.Id)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
@@ -2680,8 +2679,8 @@ func TestCheckSpacePermissionScopeMetadataOnlyWrite(t *testing.T) {
 	})
 
 	t.Run("removing the grants alongside the flip is allowed", func(t *testing.T) {
-		// The guard is not a freeze: shedding the permissions is how a role
-		// legitimately leaves the scheme's authority behind.
+		// The guard is not a freeze: a role may remove the space permissions while
+		// clearing SchemeManaged.
 		shed := &model.Role{Name: model.NewId(), Permissions: []string{}, SchemeId: &schemeID}
 		require.Nil(t, th.App.checkSpacePermissionScope(shed, storedPermissions))
 	})
@@ -2743,9 +2742,9 @@ func TestSpaceGuardsHoldWithFlagOff(t *testing.T) {
 		assert.Equal(t, "app.scheme.save.space_scheme_name.app_error", appErr.Id)
 	})
 
-	t.Run("scheme name guard rejects a minted plugin scheme name", func(t *testing.T) {
-		minted := model.PluginChannelSchemeName("com.example.plugin", []string{model.PermissionReadPage.Id}, nil, nil)
-		appErr := th.App.checkSpaceSchemeName("CreateScheme", minted)
+	t.Run("scheme name guard rejects a plugin channel scheme name", func(t *testing.T) {
+		pluginSchemeName := model.PluginChannelSchemeName("com.example.plugin", []string{model.PermissionReadPage.Id}, nil, nil)
+		appErr := th.App.checkSpaceSchemeName("CreateScheme", pluginSchemeName)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.scheme.save.plugin_scheme_name.app_error", appErr.Id)
 	})

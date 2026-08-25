@@ -4512,12 +4512,8 @@ func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 	})
 }
 
-// A minted scheme's three roles are written inside the scheme's own transaction,
-// below PatchRole and below every role guard, so the guest entitlement has to be
-// applied to the requested set before the mint rather than to the stored role after
-// it. The core-defined space guest tier passes unlicensed; anything past it does not.
 // markPhase2MigrationComplete marks the advanced permissions phase 2 migration
-// done, which GetOrCreatePluginChannelScheme requires before it will mint.
+// done, which GetOrCreatePluginChannelScheme requires before it will create a scheme.
 func markPhase2MigrationComplete(t *testing.T, th *TestHelper) {
 	t.Helper()
 	err := th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
@@ -4558,10 +4554,15 @@ func TestPluginAPIGetSchemeByNameUsesPrimaryWithoutChangingAppLookup(t *testing.
 func TestPluginAPIGetOrCreatePluginChannelSchemeGuestLicenseGate(t *testing.T) {
 	mainHelper.Parallel(t)
 
+	// A plugin channel scheme's three roles are written inside the scheme's own
+	// transaction without calling the role-update guards, so the guest entitlement
+	// has to be applied to the requested set before creation rather than to the stored
+	// role afterward. The core-defined default read-only space permission set passes
+	// unlicensed; any other guest permission does not.
 	user := []string{model.PermissionReadPage.Id}
 	admin := []string{model.PermissionAdminSpace.Id}
 
-	widerThanReadOnly := []struct {
+	guestPermissionsRequiringLicense := []struct {
 		name  string
 		guest []string
 	}{
@@ -4571,8 +4572,8 @@ func TestPluginAPIGetOrCreatePluginChannelSchemeGuestLicenseGate(t *testing.T) {
 		{"membership management", []string{model.PermissionManagePublicChannelMembers.Id}},
 	}
 
-	t.Run("unlicensed guest set past the space read tier is refused", func(t *testing.T) {
-		for _, tc := range widerThanReadOnly {
+	t.Run("guest permissions outside the default read-only space set require a license", func(t *testing.T) {
+		for _, tc := range guestPermissionsRequiringLicense {
 			t.Run(tc.name, func(t *testing.T) {
 				th := Setup(t).InitBasic(t)
 				api := th.SetupPluginAPI()
@@ -4602,7 +4603,7 @@ func TestPluginAPIGetOrCreatePluginChannelSchemeGuestLicenseGate(t *testing.T) {
 		assert.Equal(t, "app.scheme.plugin_scheme.guest_license.app_error", appErr.Id)
 	})
 
-	t.Run("licensed with GuestAccountsPermissions mints the wider guest role", func(t *testing.T) {
+	t.Run("GuestAccountsPermissions permits an ordinary channel guest permission", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		api := th.SetupPluginAPI()
 		markPhase2MigrationComplete(t, th)
@@ -4613,9 +4614,8 @@ func TestPluginAPIGetOrCreatePluginChannelSchemeGuestLicenseGate(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		// An ordinary channel permission, not a space one: what the license admits is
-		// a wider guest role on a channel scheme, and the space guest tier is capped
-		// below by the read-only ceiling whatever the license says.
+		// The license permits ordinary channel guest permissions, while space guest
+		// permissions remain limited to the default read-only set.
 		guest := []string{model.PermissionReadPage.Id, model.PermissionCreatePost.Id}
 		scheme, appErr := api.GetOrCreatePluginChannelScheme(user, admin, guest)
 		require.Nil(t, appErr)
@@ -4626,9 +4626,10 @@ func TestPluginAPIGetOrCreatePluginChannelSchemeGuestLicenseGate(t *testing.T) {
 		assert.ElementsMatch(t, guest, role.Permissions)
 	})
 
-	// The guest entitlement buys a wider guest role, never space authority for a
-	// guest. UpdateChannelMemberRoles refuses these grants on the member-assignment
-	// side, so admitting them here would leave the ceiling holding on only one path.
+	// The guest entitlement permits ordinary channel permissions, never space write
+	// or administration permissions. UpdateChannelMemberRoles rejects these grants
+	// on the member-assignment side, so admitting them here would enforce the limit
+	// on only one path.
 	t.Run("a space write on the guest role is refused even when licensed", func(t *testing.T) {
 		for _, permission := range []string{model.PermissionEditPage.Id, model.PermissionAdminSpace.Id} {
 			t.Run(permission, func(t *testing.T) {
@@ -4652,12 +4653,12 @@ func TestPluginAPIGetOrCreatePluginChannelSchemeGuestLicenseGate(t *testing.T) {
 		}
 	})
 
-	t.Run("the space read tier and an empty guest set need no license", func(t *testing.T) {
+	t.Run("the default read-only space permissions and an empty guest set need no license", func(t *testing.T) {
 		for _, tc := range []struct {
 			name  string
 			guest []string
 		}{
-			{"the space read tier", []string{model.PermissionReadPage.Id}},
+			{"the default read-only space permissions", []string{model.PermissionReadPage.Id}},
 			{"nothing at all", nil},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
@@ -4677,10 +4678,10 @@ func TestPluginAPIGetOrCreatePluginChannelSchemeGuestLicenseGate(t *testing.T) {
 	})
 }
 
-// A minted scheme is an ordinary channel scheme once it exists, and only the grants
-// it carries keep it off an ordinary channel. A set drawn from the space permissions
-// is exempt, since those are core-defined and seeded on every edition; anything past
-// them is the custom-schemes capability CreateScheme charges for.
+// Plugin-created schemes can be assigned to ordinary channels unless their roles
+// contain space permissions. Space permissions are core-defined and seeded on
+// every edition; a role containing any other permission requires the custom-schemes
+// entitlement enforced by CreateScheme.
 func TestPluginAPIGetOrCreatePluginChannelSchemeSchemeLicenseGate(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -4709,7 +4710,7 @@ func TestPluginAPIGetOrCreatePluginChannelSchemeSchemeLicenseGate(t *testing.T) 
 		}
 	})
 
-	t.Run("licensed for custom permissions schemes mints it", func(t *testing.T) {
+	t.Run("custom permissions schemes license allows creation", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		api := th.SetupPluginAPI()
 		markPhase2MigrationComplete(t, th)

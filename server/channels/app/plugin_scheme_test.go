@@ -108,11 +108,11 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 		}
 	})
 
-	// The space guest tier is read-only, and the roles below are written store-direct
-	// inside the scheme's own transaction, so no later guard would catch a wider
-	// guest set. UpdateChannelMemberRoles refuses the same grants on the
-	// member-assignment side; minting must refuse them too or the ceiling holds on
-	// only one of the two paths.
+	// The default space guest permissions are read-only, and the roles below are
+	// written store-direct inside the scheme's own transaction, so no later guard
+	// would catch additional grants. UpdateChannelMemberRoles refuses the same grants
+	// on the member-assignment side; scheme creation must refuse them too or the
+	// ceiling holds on only one of the two paths.
 	t.Run("a space write permission on the guest role is refused before any store read", func(t *testing.T) {
 		mainHelper.Parallel(t)
 
@@ -140,9 +140,9 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 		}
 	})
 
-	// The cap is scoped to the space permissions: a scheme minted for ordinary
-	// channels keeps whatever guest permissions its entitlement allows, so a
-	// non-space channel permission on the guest role reaches the store.
+	// The cap is scoped to the space permissions: a plugin channel scheme for
+	// ordinary channels keeps whatever guest permissions its entitlement allows, so
+	// a non-space channel permission on the guest role reaches the store.
 	t.Run("a non-space channel permission on the guest role is not capped", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupPluginSchemeMock(t)
@@ -190,7 +190,7 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 
 	// Order and repetition are the caller's, not the scheme's: the name is derived
 	// from the canonical form of the sets, so a caller passing the same permissions
-	// differently must land on the same scheme rather than mint a second one.
+	// differently must land on the same scheme rather than create a second one.
 	t.Run("reordered and repeated permissions resolve the same scheme", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupPluginSchemeMock(t)
@@ -400,7 +400,7 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 	})
 
 	// A read failure is not a missing scheme. Treating it as one would send the
-	// caller into the create path and mint a duplicate of a scheme that is merely
+	// caller into the create path and create a duplicate of a scheme that is merely
 	// unreadable right now.
 	t.Run("a scheme read failure is reported, not read as absent", func(t *testing.T) {
 		mainHelper.Parallel(t)

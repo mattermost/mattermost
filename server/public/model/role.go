@@ -609,8 +609,8 @@ func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *Role
 		_, presentOnHigherScope := higherScopedPermissionsMap[cp.Id]
 
 		// The channel-scoped space permissions are exempt from the rules below.
-		// The higher-scoped built-in roles never carry space permissions — space
-		// authority comes only from space schemes — so deciding these the usual
+		// The higher-scoped built-in roles never contain space permissions; those
+		// permissions come from space schemes. Deciding these the usual
 		// way would drop every grant a space preset scheme makes and leave its
 		// members with no page access. A space permission stored on the role
 		// itself is carried through instead.
@@ -941,8 +941,8 @@ var SpaceCapabilityRoles = []string{
 var spaceCapabilityRoleSet map[string]bool
 
 // IsSpaceCapabilityRole reports whether roleName is a space capability role.
-// These carry space authority, so they are only meaningful on a space's
-// backing channel.
+// These roles contain space permissions, so they only apply to a space's backing
+// channel.
 func IsSpaceCapabilityRole(roleName string) bool {
 	return spaceCapabilityRoleSet[roleName]
 }
