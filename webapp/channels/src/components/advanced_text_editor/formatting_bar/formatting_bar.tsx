@@ -8,6 +8,7 @@ import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, us
 import {useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
+import type {DataAttributes} from 'styled-components';
 
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -19,7 +20,7 @@ import {LayoutModes, useFormattingBarControls} from './hooks';
 import LinkPopover from './link_popover';
 import TextStyleDropdown from './text_style_dropdown';
 
-export const Separator = styled.div.attrs({'data-testid': 'formatting-bar-separator'})`
+export const Separator = styled.div.attrs<DataAttributes>({'data-testid': 'formatting-bar-separator'})`
     display: block;
     position: relative;
     width: 1px;
