@@ -1106,6 +1106,50 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, newName, reloaded.Name)
 	})
 
+	t.Run("update refuses changing the type of a linked legacy field", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+		fakeSourceID := model.NewId()
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       legacyGroup.ID,
+			ObjectType:    "", // Legacy
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LegacyLinkedTypeChange-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			LinkedFieldID: &fakeSourceID,
+		})
+		require.NoError(t, err)
+
+		field.Type = model.PropertyFieldTypeText
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "cannot modify type of a linked field")
+	})
+
+	t.Run("update still allows changing the type of an unlinked legacy field", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    legacyGroup.ID,
+			ObjectType: "", // Legacy
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "LegacyUnlinkedTypeChange-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+		})
+		require.NoError(t, err)
+
+		field.Type = model.PropertyFieldTypeSelect
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
+		require.NoError(t, err)
+
+		reloaded, err := th.service.GetPropertyField(rctx, legacyGroup.ID, field.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PropertyFieldTypeSelect, reloaded.Type)
+	})
+
 	t.Run("create linked field with an empty option list succeeds", func(t *testing.T) {
 		source := createSourceField(t, "EmptyOptsSource-"+model.NewId())
 

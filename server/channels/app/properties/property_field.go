@@ -571,11 +571,9 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 			)
 		}
 
-		// Legacy properties (PSAv1) skip the conflict check.
-		if field.IsPSAv1() {
-			continue
-		}
-
+		// Checked before the PSAv1 skip below: whether a linked field's type may
+		// change does not depend on which property generation the field belongs to.
+		//
 		// Block type changes on linked fields
 		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && field.Type != existing.Type {
 			return nil, nil, nil, model.NewAppError(
@@ -585,6 +583,11 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 				"cannot modify type of a linked field",
 				http.StatusBadRequest,
 			)
+		}
+
+		// Legacy properties (PSAv1) skip the conflict check.
+		if field.IsPSAv1() {
+			continue
 		}
 
 		// The option.read ceiling holds for the life of a linked field, not just

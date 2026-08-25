@@ -354,8 +354,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 	}
 
 	// Load existing fields once. Used for: protected-check (gated by
-	// bypassProtectedCheck), PSAv1 reject (always-on), linked-field diff
-	// invariants (always-on).
+	// bypassProtectedCheck), linked-field diff invariants (always-on).
 
 	existingFields, err := a.Srv().propertyService.GetPropertyFields(rctx, groupID, ids)
 	if err != nil {
@@ -393,7 +392,10 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 
 		// Linked-field diff invariants. "Linked" = LinkedFieldID != nil &&
 		// *LinkedFieldID != "". Unlink (nil or "") is always allowed when
-		// existing was linked.
+		// existing was linked. This is an early refusal for a clean 400; the
+		// property service (property_field.go, updatePropertyFields) enforces
+		// the same four rules on every caller, so removing one here must never
+		// turn a refusal into a write.
 		existingLinked := existing.LinkedFieldID != nil && *existing.LinkedFieldID != ""
 		incomingLinked := f.LinkedFieldID != nil && *f.LinkedFieldID != ""
 
