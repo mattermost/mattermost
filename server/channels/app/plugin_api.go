@@ -1773,22 +1773,14 @@ func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID
 	return count, nil
 }
 
-// propertyFieldForOptions reads the field an option call names, as the caller
-// is allowed to see it. What the caller may then do with its options is decided
-// against the field as the store has it, by the property service.
-func (api *PluginAPI) propertyFieldForOptions(rctx request.CTX, groupID, fieldID string) (*model.PropertyField, error) {
+func (api *PluginAPI) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+	rctx := api.psaPluginContext()
+	// The field read here is the field as the caller may see it. What the caller may
+	// then do with its options is decided against the field as the store has it, by
+	// the property service.
 	field, appErr := api.app.GetPropertyField(rctx, groupID, fieldID)
 	if appErr != nil {
 		return nil, appErr
-	}
-	return field, nil
-}
-
-func (api *PluginAPI) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
-	rctx := api.psaPluginContext()
-	field, err := api.propertyFieldForOptions(rctx, groupID, fieldID)
-	if err != nil {
-		return nil, err
 	}
 
 	options, appErr := api.app.GetPropertyFieldOptions(rctx, field, cursorCreateAt, cursorID, perPage)
@@ -1800,9 +1792,9 @@ func (api *PluginAPI) GetPropertyFieldOptions(groupID, fieldID string, cursorCre
 
 func (api *PluginAPI) CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
 	rctx := api.psaPluginContext()
-	field, err := api.propertyFieldForOptions(rctx, groupID, fieldID)
-	if err != nil {
-		return nil, err
+	field, appErr := api.app.GetPropertyField(rctx, groupID, fieldID)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	// No connection to exclude from the event a change publishes: a plugin is not
@@ -1816,9 +1808,9 @@ func (api *PluginAPI) CreatePropertyFieldOptions(groupID, fieldID string, option
 
 func (api *PluginAPI) UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
 	rctx := api.psaPluginContext()
-	field, err := api.propertyFieldForOptions(rctx, groupID, fieldID)
-	if err != nil {
-		return nil, err
+	field, appErr := api.app.GetPropertyField(rctx, groupID, fieldID)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	// The options as they stood are dropped: they exist for the audit record the
@@ -1832,9 +1824,9 @@ func (api *PluginAPI) UpdatePropertyFieldOptions(groupID, fieldID string, option
 
 func (api *PluginAPI) DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error {
 	rctx := api.psaPluginContext()
-	field, err := api.propertyFieldForOptions(rctx, groupID, fieldID)
-	if err != nil {
-		return err
+	field, appErr := api.app.GetPropertyField(rctx, groupID, fieldID)
+	if appErr != nil {
+		return appErr
 	}
 
 	if _, appErr := api.app.DeletePropertyFieldOptions(rctx, field, optionIDs, ""); appErr != nil {
