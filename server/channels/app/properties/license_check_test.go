@@ -94,6 +94,16 @@ func TestLicenseCheckHook(t *testing.T) {
 		_, createErr := th.service.CreateFieldOptions(th.Context, created, []*model.PropertyFieldOption{{Name: "Sea"}})
 		require.Error(t, createErr)
 		assert.Contains(t, createErr.Error(), "license_error")
+
+		// GetFieldOptions has no hook that answers false, so the early exit this
+		// hook backs is never reached through the service; call it directly.
+		_, mayErr := hook.MayShowAnyPropertyFieldOptions(th.Context, created)
+		require.Error(t, mayErr)
+		assert.Contains(t, mayErr.Error(), "license_error")
+
+		currentLicense = enterpriseLicense
+		_, mayErr = hook.MayShowAnyPropertyFieldOptions(th.Context, created)
+		require.NoError(t, mayErr)
 	})
 
 	t.Run("allows operations on unmanaged groups without license", func(t *testing.T) {

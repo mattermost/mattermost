@@ -84,6 +84,13 @@ func (h *LicenseCheckHook) PostGetPropertyFieldOptions(_ request.CTX, field *mod
 	return options, h.requireLicense(field.GroupID)
 }
 
+func (h *LicenseCheckHook) MayShowAnyPropertyFieldOptions(_ request.CTX, field *model.PropertyField) (bool, error) {
+	if field == nil {
+		return true, nil
+	}
+	return true, h.requireLicense(field.GroupID)
+}
+
 // Field post-hooks
 
 func (h *LicenseCheckHook) PostGetPropertyField(_ request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
