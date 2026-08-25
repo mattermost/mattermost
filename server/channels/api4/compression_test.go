@@ -341,4 +341,41 @@ func TestCompressionHandlerBrotli(t *testing.T) {
 		// buffered, under-minSize body plainly, proving it wasn't skipped.
 		assert.Equal(t, "partial body under minSize", resp.Body.String())
 	})
+
+	t.Run("WriteHeader after a buffered Write cannot override the implicit 200", func(t *testing.T) {
+		lateWriteHeaderHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			_, err := w.Write([]byte(strings.Repeat("x", 1100)))
+			require.NoError(t, err)
+			w.WriteHeader(http.StatusInternalServerError)
+		})
+		h := compressionHandler(lateWriteHeaderHandler, true)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+		req.Header.Set("Accept-Encoding", "br")
+
+		h.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusOK, resp.Code,
+			"a WriteHeader call after Write has already started buffering must be a no-op, matching net/http")
+	})
+
+	t.Run("a ranged response with Content-Range set is not brotli-encoded", func(t *testing.T) {
+		rangedHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set("Content-Type", "text/plain")
+			w.Header().Set("Content-Range", "bytes 0-1099/2000")
+			w.WriteHeader(http.StatusPartialContent)
+			_, err := w.Write([]byte(strings.Repeat("x", 1100)))
+			require.NoError(t, err)
+		})
+		h := compressionHandler(rangedHandler, true)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+		req.Header.Set("Accept-Encoding", "br")
+
+		h.ServeHTTP(resp, req)
+
+		assert.Equal(t, "", resp.Header().Get("Content-Encoding"),
+			"a ranged response must not be brotli-encoded, since the range refers to the uncompressed body")
+		assert.Len(t, resp.Body.Bytes(), 1100)
+	})
 }

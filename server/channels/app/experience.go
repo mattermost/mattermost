@@ -236,7 +236,7 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 
 	// Bound the profile fetch below for accounts with a very large DM/GM
 	// history; unread and pinned-elsewhere channels are never dropped.
-	dmChannels = limitDMChannelsForProfiles(dmChannels, channelMembers, sidebarCats, prefs, dmLimit, isCRT)
+	dmChannels = limitDMChannelsForProfiles(dmChannels, channelMembers, sidebarCats, prefs, dmLimit, isCRT, activeChannelID)
 
 	var (
 		allChannels           model.ChannelList

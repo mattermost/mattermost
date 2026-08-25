@@ -100,6 +100,13 @@ func (b *brotliResponseWriter) Write(p []byte) (int, error) {
 		return b.ResponseWriter.Write(p)
 	}
 
+	// Matches net/http: the first Write without a prior WriteHeader locks in
+	// 200, and any WriteHeader call after that is a no-op on the real
+	// ResponseWriter — so it must be a no-op here too.
+	if b.code == 0 {
+		b.code = http.StatusOK
+	}
+
 	toAdd := len(p)
 	if len(b.buf)+toAdd > brotliMinSize {
 		toAdd = brotliMinSize - len(b.buf)
@@ -132,6 +139,11 @@ func (b *brotliResponseWriter) startCompression(remain []byte) error {
 	// compressing it again would corrupt the response, so pass it through as-is.
 	alreadyEncoded := h.Get("Content-Encoding") != ""
 
+	// A ranged response (e.g. from http.ServeContent) has Content-Range set;
+	// compressing it would corrupt the byte range the client asked for, since
+	// the range refers to the uncompressed body. Matches gzhttp's own check.
+	isRanged := h.Get("Content-Range") != ""
+
 	_, hasContentType := h["Content-Type"]
 	ct := h.Get("Content-Type")
 	if !hasContentType && bodyAllowedForStatus(code) && len(b.buf) > 0 {
@@ -146,7 +158,7 @@ func (b *brotliResponseWriter) startCompression(remain []byte) error {
 		h.Set("Content-Type", ct)
 	}
 
-	if alreadyEncoded || !bodyAllowedForStatus(code) || !brotliContentTypeAllowed(ct) {
+	if alreadyEncoded || isRanged || !bodyAllowedForStatus(code) || !brotliContentTypeAllowed(ct) {
 		return b.startPlain(remain)
 	}
 

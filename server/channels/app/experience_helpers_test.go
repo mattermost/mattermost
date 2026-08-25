@@ -1033,7 +1033,7 @@ func TestLimitDMChannelsForProfiles(t *testing.T) {
 
 	t.Run("under the limit returns the input unchanged", func(t *testing.T) {
 		channels := model.ChannelList{dm("c1", 100), dm("c2", 200)}
-		out := limitDMChannelsForProfiles(channels, nil, nil, nil, 20, false)
+		out := limitDMChannelsForProfiles(channels, nil, nil, nil, 20, false, "")
 		assert.Equal(t, channels, out)
 	})
 
@@ -1051,7 +1051,7 @@ func TestLimitDMChannelsForProfiles(t *testing.T) {
 			channels = append(channels, dm(fmt.Sprintf("read-%d", i), int64(1000+i)))
 		}
 
-		out := limitDMChannelsForProfiles(channels, members, nil, nil, dmLimit, false)
+		out := limitDMChannelsForProfiles(channels, members, nil, nil, dmLimit, false, "")
 
 		ids := make(map[string]struct{}, len(out))
 		for _, ch := range out {
@@ -1080,7 +1080,7 @@ func TestLimitDMChannelsForProfiles(t *testing.T) {
 			{SidebarCategory: model.SidebarCategory{Type: model.SidebarCategoryChannels}, Channels: []string{"pinned"}},
 		}}
 
-		out := limitDMChannelsForProfiles(channels, nil, cats, nil, dmLimit, false)
+		out := limitDMChannelsForProfiles(channels, nil, cats, nil, dmLimit, false, "")
 
 		ids := make(map[string]struct{}, len(out))
 		for _, ch := range out {
@@ -1088,5 +1088,25 @@ func TestLimitDMChannelsForProfiles(t *testing.T) {
 		}
 		_, hasPinned := ids["pinned"]
 		assert.True(t, hasPinned, "channel pinned to another category must never be dropped")
+	})
+
+	t.Run("active channel is kept even when old and unpinned", func(t *testing.T) {
+		dmLimit := 1
+		limit := dmLimit * 3
+
+		channels := make(model.ChannelList, 0, limit+2)
+		channels = append(channels, dm("active", 1))
+		for i := 0; i < limit+1; i++ {
+			channels = append(channels, dm(fmt.Sprintf("read-%d", i), int64(1000+i)))
+		}
+
+		out := limitDMChannelsForProfiles(channels, nil, nil, nil, dmLimit, false, "active")
+
+		ids := make(map[string]struct{}, len(out))
+		for _, ch := range out {
+			ids[ch.Id] = struct{}{}
+		}
+		_, hasActive := ids["active"]
+		assert.True(t, hasActive, "the active channel must never be dropped")
 	})
 }

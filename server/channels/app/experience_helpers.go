@@ -4,6 +4,7 @@
 package app
 
 import (
+	"maps"
 	"net/http"
 	"slices"
 	"sort"
@@ -710,9 +711,7 @@ func toExperienceUser(u *model.User, isSelf bool, showEmail bool, showFullName b
 		// first — u.Props is the same map instance as the source User and may
 		// be shared/cached elsewhere.
 		props := make(model.StringMap, len(u.Props))
-		for k, v := range u.Props {
-			props[k] = v
-		}
+		maps.Copy(props, u.Props)
 		delete(props, model.UserPropsKeyRemoteEmail)
 		out.Props = props
 	}
@@ -1100,11 +1099,9 @@ func buildDMEntries(
 }
 
 // limitDMChannelsForProfiles bounds how many DM/GM channels get their member
-// profiles fetched, so an account with a very large DM/GM history doesn't
-// force an unbounded query. Unread and pinned-in-another-category channels are
-// always kept (selectVisibleDMGMChannels never drops them either); the rest
-// are ranked by recency and capped to a multiple of dmLimit, wide enough that
-// channels near the actual visibility cutoff still make it through.
+// profiles fetched, so a very large DM/GM history doesn't force an unbounded
+// query. Unread, pinned-elsewhere, and the active channel are always kept; the
+// rest are ranked by recency and capped to a multiple of dmLimit.
 func limitDMChannelsForProfiles(
 	channels model.ChannelList,
 	channelMembers model.ChannelMembersWithTeamData,
@@ -1112,6 +1109,7 @@ func limitDMChannelsForProfiles(
 	prefs model.Preferences,
 	dmLimit int,
 	isCRT bool,
+	activeChannelID string,
 ) model.ChannelList {
 	const dmProfileFetchLimitMultiplier = 3
 
@@ -1129,6 +1127,10 @@ func limitDMChannelsForProfiles(
 			continue
 		}
 		if _, pinned := pinnedInOtherCategory[e.ch.Id]; pinned {
+			kept = append(kept, e)
+			continue
+		}
+		if activeChannelID != "" && e.ch.Id == activeChannelID {
 			kept = append(kept, e)
 			continue
 		}
