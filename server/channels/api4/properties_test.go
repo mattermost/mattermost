@@ -1055,11 +1055,10 @@ func TestCreatePropertyField(t *testing.T) {
 		require.Equal(t, model.PermissionLevelMember, *created.PermissionOptions)
 	})
 
-	t.Run("channel admin can create the PostAttributes field shape", func(t *testing.T) {
-		// The motivating use case, end to end: a channel admin defines a post
-		// attribute on their channel whose field and options only the
-		// channel's admins may manage, and whose values each post's author may
-		// set on their own post.
+	t.Run("channel admin can create an admin-managed field with creator-set values", func(t *testing.T) {
+		// A channel admin defines a channel-scoped field whose definition and
+		// options only the channel's admins may manage, and whose values each
+		// object's creator may set on their own object.
 		channelAdmin := th.CreateUser(t)
 		th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
 		_, appErr := th.App.AddUserToChannel(th.Context, channelAdmin, th.BasicChannel, false)
@@ -1115,10 +1114,10 @@ func TestCreatePropertyField(t *testing.T) {
 		require.Equal(t, model.PermissionLevelAdmin, *fetched.PermissionOptions)
 	})
 
-	t.Run("system admin can create the PostAttributes field shape", func(t *testing.T) {
-		// The motivating use case, as it can actually be provisioned today:
-		// field and options managed by the channel's admins, values settable by
-		// each post's author.
+	t.Run("system admin can create an admin-managed field with creator-set values", func(t *testing.T) {
+		// The same shape provisioned by a system admin: definition and options
+		// managed by the channel's admins, values settable by each object's
+		// creator.
 		adminLevel := model.PermissionLevelAdmin
 		creatorLevel := model.PermissionLevelCreator
 		field := &model.PropertyField{

@@ -3005,8 +3005,7 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostCreator(t *testing.T) 
 	groupID := registerTestPropertyGroup(t, th)
 
 	// System-target field so the dispatch is driven purely by ObjectType plus
-	// the value's target — the shape post attributes use: one field, per-post
-	// values.
+	// the value's target — one field definition, one value per object.
 	field := &model.PropertyField{
 		ID:                model.NewId(),
 		GroupID:           groupID,
