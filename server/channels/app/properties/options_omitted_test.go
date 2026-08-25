@@ -418,4 +418,16 @@ func TestOptionsOmitted_PatchThenWrite(t *testing.T) {
 		assert.Equal(t, "Renamed", updated.Attrs["display_name"])
 		requireOptionsWithheld(t, updated)
 	})
+
+	t.Run("a patch that drops the withheld marker is refused, options intact", func(t *testing.T) {
+		field := newOversizedField(t, "patch-drops-marker")
+
+		_, _, err := th.service.UpdatePropertyField(th.Context, group.ID, patched(t, field.ID, model.StringInterface{
+			model.PropertyFieldAttributeOptions:        nil,
+			model.PropertyFieldAttributeOptionsOmitted: nil,
+		}))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "option list of a field whose options were not loaded")
+		requireStoredOptionsWithheld(t, th, group.ID, field.ID)
+	})
 }

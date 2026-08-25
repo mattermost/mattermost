@@ -333,12 +333,17 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 		// supplied *empty* list — a caller echoing back the absent list, which is
 		// what a read-modify-write of any other attr looks like — is not refused,
 		// because that would block renaming such a field; the store leaves the
-		// options alone for it. Editing the options of a field this large needs an
-		// interface that addresses one option at a time.
+		// options alone for it, but only because the store's option reconciliation
+		// skips a field on the options_omitted marker, not on the list being empty.
+		// A write that has lost that marker is refused even with no supplied list,
+		// because nothing downstream can tell it apart from a caller asserting the
+		// field now has no options. Editing the options of a field this large needs
+		// an interface that addresses one option at a time.
 		//
 		// Checked before the PSAv1 skip below: a legacy field's options are just as
 		// destroyable.
-		if model.PropertyFieldOptionsOmitted(existing.Attrs) && model.PropertyFieldSuppliesOptions(field.Attrs) {
+		if model.PropertyFieldOptionsOmitted(existing.Attrs) &&
+			(model.PropertyFieldSuppliesOptions(field.Attrs) || !model.PropertyFieldOptionsOmitted(field.Attrs)) {
 			return nil, nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.options_withheld.app_error",
