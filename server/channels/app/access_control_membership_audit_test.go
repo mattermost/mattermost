@@ -129,3 +129,32 @@ func TestAccessControlTeamRemovalAuditPayloads(t *testing.T) {
 		ParentEventID:  "event7",
 	}, removal.cascadeData("channel1"))
 }
+
+// TestAccessControlMembershipExists covers the checks the *MemberByAccessPolicy
+// methods fall back on when the membership call returns an error, which decide
+// whether a partially failed add or remove is still recorded.
+func TestAccessControlMembershipExists(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("channel membership", func(t *testing.T) {
+		require.True(t, th.App.channelMembershipExists(th.Context, th.BasicChannel.Id, th.BasicUser.Id))
+		require.False(t, th.App.channelMembershipExists(th.Context, th.BasicChannel.Id, model.NewId()))
+
+		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+		require.True(t, th.App.channelMembershipExists(th.Context, th.BasicChannel.Id, th.BasicUser2.Id))
+
+		require.Nil(t, th.App.RemoveUserFromChannel(th.Context, th.BasicUser2.Id, th.SystemAdminUser.Id, th.BasicChannel))
+		require.False(t, th.App.channelMembershipExists(th.Context, th.BasicChannel.Id, th.BasicUser2.Id))
+	})
+
+	t.Run("team membership", func(t *testing.T) {
+		require.True(t, th.App.teamMembershipExists(th.Context, th.BasicTeam.Id, th.BasicUser.Id))
+		require.False(t, th.App.teamMembershipExists(th.Context, th.BasicTeam.Id, model.NewId()))
+
+		// A removed member keeps a soft-deleted row, which must not read as a
+		// live membership or a failed removal would still record an audit.
+		require.Nil(t, th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser2.Id, th.SystemAdminUser.Id))
+		require.False(t, th.App.teamMembershipExists(th.Context, th.BasicTeam.Id, th.BasicUser2.Id))
+	})
+}

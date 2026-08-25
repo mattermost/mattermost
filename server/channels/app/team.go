@@ -1238,13 +1238,14 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 }
 
 func (a *App) RemoveUserFromTeam(rctx request.CTX, teamID string, userID string, requestorId string) *model.AppError {
-	return a.removeUserFromTeam(rctx, teamID, userID, requestorId, "")
+	return a.removeUserFromTeam(rctx, teamID, userID, requestorId, nil)
 }
 
-// removeUserFromTeam is RemoveUserFromTeam with the ABAC sync job id attached, so
-// a policy-driven removal can stamp job_id on the audit records it emits. Callers
-// outside the membership sync pass an empty policyJobID.
-func (a *App) removeUserFromTeam(rctx request.CTX, teamID string, userID string, requestorId string, policyJobID string) *model.AppError {
+// removeUserFromTeam is RemoveUserFromTeam with the ABAC membership sync's audit
+// context attached, so a policy-driven removal can stamp the job id and the
+// revision the sync evaluated against onto the audit records it emits. Callers
+// outside the membership sync pass a nil syncCtx.
+func (a *App) removeUserFromTeam(rctx request.CTX, teamID string, userID string, requestorId string, syncCtx *accessControlSyncContext) *model.AppError {
 	tchan := make(chan store.StoreResult[*model.Team], 1)
 	go func() {
 		team, err := a.Srv().Store().Team().Get(teamID)
@@ -1283,7 +1284,7 @@ func (a *App) removeUserFromTeam(rctx request.CTX, teamID string, userID string,
 	}
 	user := userChanResult.Data
 
-	if err := a.leaveTeam(rctx, team, user, requestorId, policyJobID); err != nil {
+	if err := a.leaveTeam(rctx, team, user, requestorId, syncCtx); err != nil {
 		return err
 	}
 
@@ -1336,12 +1337,12 @@ func (a *App) postProcessTeamMemberLeave(rctx request.CTX, teamMember *model.Tea
 }
 
 func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, requestorId string) *model.AppError {
-	return a.leaveTeam(rctx, team, user, requestorId, "")
+	return a.leaveTeam(rctx, team, user, requestorId, nil)
 }
 
-// leaveTeam is LeaveTeam with the ABAC sync job id attached; see
-// removeUserFromTeam.
-func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, requestorId string, policyJobID string) *model.AppError {
+// leaveTeam is LeaveTeam with the ABAC membership sync's audit context attached;
+// see removeUserFromTeam.
+func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, requestorId string, syncCtx *accessControlSyncContext) *model.AppError {
 	teamMember, err := a.GetTeamMember(rctx, team.Id, user.Id)
 	if err != nil {
 		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -1373,10 +1374,15 @@ func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		removalAudit = accessControlTeamRemovalAudit{
 			teamID:  team.Id,
 			userID:  user.Id,
-			jobID:   policyJobID,
 			eventID: model.NewId(),
 		}
-		if a.accessControlAuditLoggingEnabled() {
+		switch {
+		case syncCtx != nil:
+			// The sync resolved the revision once for the whole team, so every
+			// user it removes in this run records the same one.
+			removalAudit.jobID = syncCtx.jobID
+			removalAudit.policyRevision = syncCtx.policyRevision
+		case a.accessControlAuditLoggingEnabled():
 			removalAudit.policyRevision = a.accessControlPolicyRevision(rctx, team.Id)
 		}
 	}
