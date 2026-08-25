@@ -573,8 +573,6 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 
 		// Checked before the PSAv1 skip below: whether a linked field's type may
 		// change does not depend on which property generation the field belongs to.
-		//
-		// Block type changes on linked fields
 		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && field.Type != existing.Type {
 			return nil, nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
