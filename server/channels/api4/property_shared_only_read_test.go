@@ -212,9 +212,7 @@ func (f *sharedOnlyReadFixture) userByKey(t *testing.T, key string) *model.User 
 
 // makeSharedOnly flips the field to the posture a plugin would have authored it
 // with, in the store, since neither the REST API nor the service will accept it
-// from a session. PermissionValues goes to sysadmin because shared_only and
-// member-writable are a rejected combination -- a member who can self-assign any
-// option can read anyone's.
+// from a session.
 func (f *sharedOnlyReadFixture) makeSharedOnly(t *testing.T) {
 	t.Helper()
 
@@ -368,10 +366,10 @@ func TestSharedOnlyValuesOverPropertiesRoute_Graph(t *testing.T) {
 		assert.Equal(t, []string{fruitBasket}, namesOf(t, ids, f.readTargetValue(t, f.ownerClient)))
 	})
 
-	// The distinguishing case for the graph branch, and the one the reported
-	// symptom named: the target holds an option above the caller's, so the value
-	// is clamped down to the caller's own part of the hierarchy rather than
-	// hidden. A flat type would have shown nothing here.
+	// The distinguishing case for the graph branch: the target holds an option
+	// above the caller's, so the value is clamped down to the caller's own part
+	// of the hierarchy rather than hidden. A flat type would have shown nothing
+	// here.
 	t.Run("a caller below the target's option sees the value clamped to their own", func(t *testing.T) {
 		assert.Equal(t, []string{redFruit}, namesOf(t, ids, f.readTargetValue(t, f.sharerClient)))
 	})
