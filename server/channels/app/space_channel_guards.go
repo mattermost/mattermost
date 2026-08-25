@@ -13,8 +13,9 @@ import (
 // checkChannelSchemeAssignment routes a channel's SchemeId to the guard for its
 // type. The two halves enforce opposite rules and together keep a scheme
 // exclusively a space's or exclusively ordinary channels', never both. Callers
-// pass the type read from the stored channel, never from the caller-supplied one,
-// which could falsely claim to be a space.
+// Creation paths pass the new channel's type; update paths pass the type read from
+// the stored channel, never the caller-supplied one, which could falsely claim to
+// be a space.
 //
 // The counts both guards read are point-in-time, not serialized with the channel
 // save that follows: two writes racing each other — one attaching the scheme to an
@@ -22,14 +23,14 @@ import (
 // lands, leaving the scheme governing both. That state stays inert, because no
 // runtime role write may add a space permission to the scheme's roles
 // (checkSpacePermissionScope); the race is accepted rather than serialized.
-func (a *App) checkChannelSchemeAssignment(where string, isSpace bool, schemeId *string) *model.AppError {
-	if isSpace {
-		return a.rejectUnusableSpaceScheme(where, schemeId)
+func (a *App) checkChannelSchemeAssignment(where string, channelType model.ChannelType, schemeId *string) *model.AppError {
+	if channelType == model.ChannelTypeSpace {
+		return a.checkSchemeAssignmentToSpace(where, schemeId)
 	}
-	return a.rejectSpaceSchemeOnOrdinaryChannel(where, schemeId)
+	return a.checkSchemeAssignmentToOrdinaryChannel(where, schemeId)
 }
 
-// rejectSpaceSchemeOnOrdinaryChannel refuses to put a scheme carrying space
+// checkSchemeAssignmentToOrdinaryChannel refuses to put a scheme carrying space
 // authority on a channel that is not a space, on either of two grounds: a space
 // already points at it, or its generated roles carry space permissions. A scheme
 // neither describes is left alone — it is an ordinary customer scheme, and an id
@@ -37,13 +38,13 @@ func (a *App) checkChannelSchemeAssignment(where string, isSpace bool, schemeId 
 //
 // The seeded presets need no branch of their own: their generated roles always
 // carry read_page, so the grants test below covers them.
-func (a *App) rejectSpaceSchemeOnOrdinaryChannel(where string, schemeId *string) *model.AppError {
+func (a *App) checkSchemeAssignmentToOrdinaryChannel(where string, schemeId *string) *model.AppError {
 	if schemeId == nil || *schemeId == "" {
 		return nil
 	}
 
 	// A scheme a space already points at is barred from ordinary channels, which is
-	// the other half of the exclusivity rejectUnusableSpaceScheme enforces. Without
+	// the other half of the exclusivity checkSchemeAssignmentToSpace enforces. Without
 	// it a scheme's eligibility would depend on which channel attached first.
 	count, cErr := a.Srv().Store().Channel().CountSpaceChannelsByScheme(*schemeId)
 	if cErr != nil {
@@ -69,7 +70,7 @@ func (a *App) rejectSpaceSchemeOnOrdinaryChannel(where string, schemeId *string)
 	return nil
 }
 
-// rejectUnusableSpaceScheme refuses to put a scheme on a space that cannot serve as
+// checkSchemeAssignmentToSpace refuses to put a scheme on a space that cannot serve as
 // that space's scheme. A space's SchemeId is taken straight from the caller and is
 // never validated by the ordinary-channel guard above, yet checkSpaceSchemeDelete
 // goes on to read the resulting association as a reason to refuse deletion.
@@ -79,7 +80,7 @@ func (a *App) rejectSpaceSchemeOnOrdinaryChannel(where string, schemeId *string)
 // A seeded preset is accepted by identity. Anything else has to be a channel-scoped
 // scheme that governs no ordinary channel, which is the same predicate the seeding
 // migration uses to decide a scheme is not a customer's.
-func (a *App) rejectUnusableSpaceScheme(where string, schemeId *string) *model.AppError {
+func (a *App) checkSchemeAssignmentToSpace(where string, schemeId *string) *model.AppError {
 	if schemeId == nil || *schemeId == "" {
 		return nil
 	}

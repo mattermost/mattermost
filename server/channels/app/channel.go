@@ -246,7 +246,7 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 
 	// CreateChannel takes SchemeId straight from the caller; this guard applies
 	// the same check UpdateChannelScheme enforces.
-	if appErr := a.checkChannelSchemeAssignment("CreateChannel", channel.IsSpace(), channel.SchemeId); appErr != nil {
+	if appErr := a.checkChannelSchemeAssignment("CreateChannel", channel.Type, channel.SchemeId); appErr != nil {
 		return nil, appErr
 	}
 
@@ -780,7 +780,7 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 	// SchemeId comparison keeps an ordinary edit from being refused over a scheme
 	// the channel already carries.
 	if model.SafeDereference(oldChannel.SchemeId) != model.SafeDereference(channel.SchemeId) {
-		if appErr := a.checkChannelSchemeAssignment("UpdateChannel", oldChannel.IsSpace(), channel.SchemeId); appErr != nil {
+		if appErr := a.checkChannelSchemeAssignment("UpdateChannel", oldChannel.Type, channel.SchemeId); appErr != nil {
 			return nil, appErr
 		}
 	}

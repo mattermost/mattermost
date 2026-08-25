@@ -486,6 +486,42 @@ func TestLicenseHasSharedChannels(t *testing.T) {
 	}
 }
 
+func TestLicenseHasCustomPermissionsSchemes(t *testing.T) {
+	testCases := []struct {
+		name     string
+		license  *License
+		expected bool
+	}{
+		{name: "no license", license: nil, expected: false},
+		{name: "no features", license: &License{}, expected: false},
+		{name: "feature enabled", license: &License{Features: &Features{CustomPermissionsSchemes: new(true)}}, expected: true},
+		{name: "feature disabled", license: &License{Features: &Features{CustomPermissionsSchemes: new(false)}}, expected: false},
+		{
+			name: "professional license without feature",
+			license: &License{
+				Features:     &Features{CustomPermissionsSchemes: new(false)},
+				SkuShortName: LicenseShortSkuProfessional,
+			},
+			expected: true,
+		},
+		{name: "professional license without features", license: &License{SkuShortName: LicenseShortSkuProfessional}, expected: true},
+		{
+			name: "enterprise license without feature",
+			license: &License{
+				Features:     &Features{CustomPermissionsSchemes: new(false)},
+				SkuShortName: LicenseShortSkuEnterprise,
+			},
+			expected: false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			assert.Equal(t, testCase.expected, testCase.license.HasCustomPermissionsSchemes())
+		})
+	}
+}
+
 func TestLicenseHasMHPNS(t *testing.T) {
 	testCases := []struct {
 		description   string

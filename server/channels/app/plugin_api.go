@@ -40,14 +40,11 @@ func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI
 	}
 }
 
-// checkCustomPermissionsSchemesLicense mirrors the license gate the scheme REST
-// handlers apply, so reaching a scheme through a plugin does not skip it: a license
-// covers a capability, not the transport that reaches it. The condition is copied
-// from Api4.CreateScheme, including its Professional SKU clause — dropping that
-// clause would lock out paying licensees.
+// checkCustomPermissionsSchemesLicense applies the same entitlement as the scheme
+// REST handlers, so reaching a scheme through a plugin does not skip it: a license
+// covers a capability, not the transport that reaches it.
 func (api *PluginAPI) checkCustomPermissionsSchemesLicense() error {
-	license := api.GetLicense()
-	if license == nil || (!*license.Features.CustomPermissionsSchemes && license.SkuShortName != model.LicenseShortSkuProfessional) {
+	if !api.GetLicense().HasCustomPermissionsSchemes() {
 		return errors.New("license does not support custom permissions schemes")
 	}
 	return nil
@@ -1339,7 +1336,7 @@ func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId stri
 }
 
 func (api *PluginAPI) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
-	return api.app.GetSchemeByName(name)
+	return api.app.getSchemeByNameFromMaster(name)
 }
 
 func (api *PluginAPI) GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError) {

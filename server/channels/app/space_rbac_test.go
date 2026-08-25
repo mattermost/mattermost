@@ -1719,7 +1719,7 @@ func TestCreateSchemeSpaceNameGuard(t *testing.T) {
 // authority, so the ordinary-channel guard leaves it alone: only the presets
 // carry the moderated-permission stripping that would silently take create_post
 // away from an ordinary channel's members.
-func TestRejectSpaceSchemeOnOrdinaryChannelIgnoresCustomSchemes(t *testing.T) {
+func TestCheckSchemeAssignmentToOrdinaryChannelIgnoresCustomSchemes(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupSpaceRBACMock(t)
 
@@ -1736,7 +1736,7 @@ func TestRejectSpaceSchemeOnOrdinaryChannelIgnoresCustomSchemes(t *testing.T) {
 	mockRoleStore.On("GetByNamesFromMaster", mock.Anything).Return([]*model.Role{}, nil)
 	mockStore.On("Role").Return(&mockRoleStore)
 
-	require.Nil(t, th.App.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", &schemeID))
+	require.Nil(t, th.App.checkSchemeAssignmentToOrdinaryChannel("UpdateChannelScheme", &schemeID))
 }
 
 // CreateBoardChannel takes SchemeId from the request body the same way
@@ -1768,8 +1768,8 @@ func TestCreateBoardChannelRejectsASpaceScheme(t *testing.T) {
 
 // The mirror of the case above: once a space points at a custom scheme, that scheme
 // must be barred from ordinary channels. This is the other half of the exclusivity
-// rejectUnusableSpaceScheme enforces.
-func TestRejectSpaceSchemeOnOrdinaryChannelRefusesSchemeUsedByASpace(t *testing.T) {
+// checkSchemeAssignmentToSpace enforces.
+func TestCheckSchemeAssignmentToOrdinaryChannelRefusesSchemeUsedByASpace(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupSpaceRBACMock(t)
 
@@ -1783,7 +1783,7 @@ func TestRejectSpaceSchemeOnOrdinaryChannelRefusesSchemeUsedByASpace(t *testing.
 	mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 
-	appErr := th.App.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", &schemeID)
+	appErr := th.App.checkSchemeAssignmentToOrdinaryChannel("UpdateChannelScheme", &schemeID)
 	require.NotNil(t, appErr)
 	assert.Equal(t, "app.channel.update_channel_scheme.space_scheme.app_error", appErr.Id)
 	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -1898,18 +1898,18 @@ func TestSpaceChannelGuardsPropagateSchemeLookupErrors(t *testing.T) {
 		return th, schemeID
 	}
 
-	t.Run("rejectSpaceSchemeOnOrdinaryChannel", func(t *testing.T) {
+	t.Run("checkSchemeAssignmentToOrdinaryChannel", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, schemeID := setup(t)
-		appErr := th.App.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", &schemeID)
+		appErr := th.App.checkSchemeAssignmentToOrdinaryChannel("UpdateChannelScheme", &schemeID)
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 	})
 
-	t.Run("rejectUnusableSpaceScheme", func(t *testing.T) {
+	t.Run("checkSchemeAssignmentToSpace", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, schemeID := setup(t)
-		appErr := th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID)
+		appErr := th.App.checkSchemeAssignmentToSpace("CreateChannel", &schemeID)
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 	})
@@ -1917,7 +1917,7 @@ func TestSpaceChannelGuardsPropagateSchemeLookupErrors(t *testing.T) {
 
 // The space guard on a space's own SchemeId counts ordinary channels on the
 // primary; a failure there cannot prove the scheme is unused, so it refuses.
-func TestRejectUnusableSpaceSchemeFailsClosedOnCountError(t *testing.T) {
+func TestCheckSchemeAssignmentToSpaceFailsClosedOnCountError(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupSpaceRBACMock(t)
 
@@ -1931,14 +1931,14 @@ func TestRejectUnusableSpaceSchemeFailsClosedOnCountError(t *testing.T) {
 	mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), errors.New("db down"))
 	mockStore.On("Channel").Return(&mockChannelStore)
 
-	appErr := th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID)
+	appErr := th.App.checkSchemeAssignmentToSpace("CreateChannel", &schemeID)
 	require.NotNil(t, appErr)
 	assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 }
 
 // A store failure on the space-association read is not proof the scheme is
 // clean, so the guard reports the failure instead of allowing the write.
-func TestRejectSpaceSchemeOnOrdinaryChannelFailsClosedOnCountError(t *testing.T) {
+func TestCheckSchemeAssignmentToOrdinaryChannelFailsClosedOnCountError(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupSpaceRBACMock(t)
 
@@ -1952,27 +1952,27 @@ func TestRejectSpaceSchemeOnOrdinaryChannelFailsClosedOnCountError(t *testing.T)
 	mockChannelStore.On("CountSpaceChannelsByScheme", schemeID).Return(int64(0), errors.New("db down"))
 	mockStore.On("Channel").Return(&mockChannelStore)
 
-	appErr := th.App.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", &schemeID)
+	appErr := th.App.checkSchemeAssignmentToOrdinaryChannel("UpdateChannelScheme", &schemeID)
 	require.NotNil(t, appErr)
 	assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
 }
 
-// TestRejectUnusableSpaceScheme pins the guard on a space's own SchemeId. It is
+// TestCheckSchemeAssignmentToSpace pins the guard on a space's own SchemeId. It is
 // the mirror of the ordinary-channel guard: that one keeps a preset off a
 // channel, this one keeps an arbitrary customer scheme off a space, because a
 // space pointing at a scheme is what checkSpacePermissionScope later reads as
 // proof of space scope and what checkSpaceSchemeDelete reads as a reason to
 // refuse a delete.
-func TestRejectUnusableSpaceScheme(t *testing.T) {
+func TestCheckSchemeAssignmentToSpace(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("no scheme is accepted", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
 
-		require.Nil(t, th.App.rejectUnusableSpaceScheme("CreateChannel", nil))
+		require.Nil(t, th.App.checkSchemeAssignmentToSpace("CreateChannel", nil))
 		empty := ""
-		require.Nil(t, th.App.rejectUnusableSpaceScheme("CreateChannel", &empty))
+		require.Nil(t, th.App.checkSchemeAssignmentToSpace("CreateChannel", &empty))
 	})
 
 	t.Run("a seeded preset is accepted by identity", func(t *testing.T) {
@@ -1987,7 +1987,7 @@ func TestRejectUnusableSpaceScheme(t *testing.T) {
 		}, nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 
-		require.Nil(t, th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID))
+		require.Nil(t, th.App.checkSchemeAssignmentToSpace("CreateChannel", &schemeID))
 	})
 
 	t.Run("a channel scheme governing no ordinary channel is accepted", func(t *testing.T) {
@@ -2004,7 +2004,7 @@ func TestRejectUnusableSpaceScheme(t *testing.T) {
 		mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(0), nil)
 		mockStore.On("Channel").Return(&mockChannelStore)
 
-		require.Nil(t, th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID))
+		require.Nil(t, th.App.checkSchemeAssignmentToSpace("CreateChannel", &schemeID))
 	})
 
 	t.Run("a scheme already governing an ordinary channel is refused", func(t *testing.T) {
@@ -2021,7 +2021,7 @@ func TestRejectUnusableSpaceScheme(t *testing.T) {
 		mockChannelStore.On("CountNonSpaceChannelsByScheme", schemeID).Return(int64(1), nil)
 		mockStore.On("Channel").Return(&mockChannelStore)
 
-		appErr := th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID)
+		appErr := th.App.checkSchemeAssignmentToSpace("CreateChannel", &schemeID)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
 	})
@@ -2036,7 +2036,7 @@ func TestRejectUnusableSpaceScheme(t *testing.T) {
 		mockSchemeStore.On("GetFromMaster", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 
-		appErr := th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID)
+		appErr := th.App.checkSchemeAssignmentToSpace("CreateChannel", &schemeID)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
 	})
@@ -2062,7 +2062,7 @@ func TestRejectUnusableSpaceScheme(t *testing.T) {
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 		mockStore.On("Channel").Return(&mockChannelStore)
 
-		require.Nil(t, th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID))
+		require.Nil(t, th.App.checkSchemeAssignmentToSpace("CreateChannel", &schemeID))
 		mockSchemeStore.AssertNotCalled(t, "Get", mock.Anything)
 	})
 
@@ -2085,7 +2085,7 @@ func TestRejectUnusableSpaceScheme(t *testing.T) {
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 		mockStore.On("Channel").Return(&mockChannelStore)
 
-		appErr := th.App.rejectUnusableSpaceScheme("CreateChannel", &schemeID)
+		appErr := th.App.checkSchemeAssignmentToSpace("CreateChannel", &schemeID)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.channel.update_channel_scheme.space_scheme_unusable.app_error", appErr.Id)
 		mockChannelStore.AssertNotCalled(t, "CountNonSpaceChannelsByScheme", mock.Anything)
@@ -2935,8 +2935,9 @@ func TestSpaceSeedingMigrationsIdempotentWhenMarkerPresent(t *testing.T) {
 	mockSchemeStore.AssertNotCalled(t, "Save", mock.Anything)
 }
 
-// TestRejectSpaceSchemeOnOrdinaryChannelRefusesLingeringGrants pins the second check
-// rejectSpaceSchemeOnOrdinaryChannel runs after the space-count check: a custom
+// TestCheckSchemeAssignmentToOrdinaryChannelRefusesLingeringGrants pins the second
+// check that checkSchemeAssignmentToOrdinaryChannel runs after the space-count
+// check: a custom
 // scheme no space currently points at (CountSpaceChannelsByScheme == 0) is still
 // refused if its generated channel roles carry a space permission, because that grant
 // is durable state a lapsed association cannot revoke.
@@ -2944,7 +2945,7 @@ func TestSpaceSeedingMigrationsIdempotentWhenMarkerPresent(t *testing.T) {
 // Dropping the association is exactly what leaves this the only check standing, so
 // both of its reads go to the primary and neither may be served from a cache a peer
 // node's grant has not yet invalidated.
-func TestRejectSpaceSchemeOnOrdinaryChannelRefusesLingeringGrants(t *testing.T) {
+func TestCheckSchemeAssignmentToOrdinaryChannelRefusesLingeringGrants(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := setupSpaceRBACMock(t)
 
@@ -2970,7 +2971,7 @@ func TestRejectSpaceSchemeOnOrdinaryChannelRefusesLingeringGrants(t *testing.T) 
 	}, nil)
 	mockStore.On("Role").Return(&mockRoleStore)
 
-	appErr := th.App.rejectSpaceSchemeOnOrdinaryChannel("UpdateChannelScheme", &schemeID)
+	appErr := th.App.checkSchemeAssignmentToOrdinaryChannel("UpdateChannelScheme", &schemeID)
 	require.NotNil(t, appErr)
 	assert.Equal(t, "app.channel.update_channel_scheme.space_scheme.app_error", appErr.Id)
 	mockSchemeStore.AssertNotCalled(t, "Get", mock.Anything)
@@ -3033,14 +3034,14 @@ func TestPatchRoleRejectsCapabilityRoleAheadOfNoOpShortCircuit(t *testing.T) {
 	mockRoleStore.AssertNotCalled(t, "Save", mock.Anything)
 }
 
-// TestCreateAndUpdateChannelRejectUnusableSpaceScheme drives the isSpace==true
-// branch of checkChannelSchemeAssignment (rejectUnusableSpaceScheme) end to
-// end through the real CreateChannel and UpdateChannel entry points, using a
-// scheme that already governs an ordinary channel. Every other space fixture
-// in this file writes the channel straight through
+// TestCreateAndUpdateChannelRejectSchemeUnusableForSpace drives the
+// ChannelTypeSpace branch of checkChannelSchemeAssignment end to end through the
+// real CreateChannel and UpdateChannel entry points, using a scheme that already
+// governs an ordinary channel. Every other space fixture in this file writes the
+// channel straight through
 // Store().Channel().Save, which never runs the guard at all, so a mutant
 // that skips it for a real space channel would not be caught anywhere else.
-func TestCreateAndUpdateChannelRejectUnusableSpaceScheme(t *testing.T) {
+func TestCreateAndUpdateChannelRejectSchemeUnusableForSpace(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.EnableDocs = true

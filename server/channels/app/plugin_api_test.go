@@ -4528,6 +4528,33 @@ func markPhase2MigrationComplete(t *testing.T, th *TestHelper) {
 	})
 }
 
+func TestPluginAPIGetSchemeByNameUsesPrimaryWithoutChangingAppLookup(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupWithStoreMock(t)
+	th.App.Srv().phase2PermissionsMigrationComplete = true
+
+	name := model.SchemeNameSpaceContribute
+	replicaScheme := &model.Scheme{Id: model.NewId(), Name: name}
+	primaryScheme := &model.Scheme{Id: model.NewId(), Name: name}
+
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+	mockSchemeStore := storemocks.SchemeStore{}
+	mockStore.On("Scheme").Return(&mockSchemeStore)
+	mockSchemeStore.On("GetByName", name).Return(replicaScheme, nil).Once()
+	mockSchemeStore.On("GetByNameFromMaster", name).Return(primaryScheme, nil).Once()
+
+	scheme, appErr := th.App.GetSchemeByName(name)
+	require.Nil(t, appErr)
+	require.Equal(t, replicaScheme.Id, scheme.Id)
+
+	scheme, appErr = th.SetupPluginAPI().GetSchemeByName(name)
+	require.Nil(t, appErr)
+	require.Equal(t, primaryScheme.Id, scheme.Id)
+
+	mockSchemeStore.AssertExpectations(t)
+}
+
 func TestPluginAPIGetOrCreatePluginChannelSchemeGuestLicenseGate(t *testing.T) {
 	mainHelper.Parallel(t)
 

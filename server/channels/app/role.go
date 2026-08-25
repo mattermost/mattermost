@@ -157,16 +157,6 @@ func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, 
 		return role, nil
 	}
 
-	// In PatchRole rather than only in the REST handler, so every entry point
-	// applies the blocklist, the channel moderation writes included.
-	if patch.Permissions != nil {
-		for _, permission := range model.PermissionsChangedByPatch(role, patch) {
-			if slices.Contains(model.RolePatchDeniedPermissionIDs, permission) {
-				return nil, model.NewAppError("PatchRole", "api.roles.patch_roles.not_allowed_permission.error", nil, "Cannot add or remove permission: "+permission, http.StatusNotImplemented)
-			}
-		}
-	}
-
 	role.Patch(patch)
 	role, err := a.UpdateRole(role)
 	if err != nil {

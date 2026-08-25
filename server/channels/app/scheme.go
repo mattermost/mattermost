@@ -30,25 +30,34 @@ func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {
 }
 
 func (a *App) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
+	return a.getSchemeByName(name, false)
+}
+
+// getSchemeByNameFromMaster is the strongly consistent lookup used at the
+// plugin boundary. A plugin can resolve a preset immediately after startup
+// migrations seed it, before a replica has caught up.
+func (a *App) getSchemeByNameFromMaster(name string) (*model.Scheme, *model.AppError) {
+	return a.getSchemeByName(name, true)
+}
+
+func (a *App) getSchemeByName(name string, fromMaster bool) (*model.Scheme, *model.AppError) {
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
 	}
 
-	scheme, err := a.Srv().Store().Scheme().GetByName(name)
+	schemeStore := a.Srv().Store().Scheme()
+	get := schemeStore.GetByName
+	if fromMaster {
+		get = schemeStore.GetByNameFromMaster
+	}
+	scheme, err := get(name)
 	if err != nil {
 		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
-			return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-		// Re-read on the primary: a scheme another node created moments earlier is
-		// absent from the replica. A caller that loses a race to create a shared
-		// scheme reaches here to adopt the winner's.
-		scheme, err = a.Srv().Store().Scheme().GetByNameFromMaster(name)
-		if err != nil {
-			if !errors.As(err, &nfErr) {
-				return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
+		switch {
+		case errors.As(err, &nfErr):
 			return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetSchemeByName", "app.scheme.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 	return scheme, nil
