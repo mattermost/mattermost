@@ -148,12 +148,12 @@ func TestDecodeWebPFirstFrame(t *testing.T) {
 	var vp8Chunk []byte
 	for off := 12; off+8 <= len(staticData); {
 		id := string(staticData[off : off+4])
-		size := int(binary.LittleEndian.Uint32(staticData[off+4 : off+8]))
+		size := int64(binary.LittleEndian.Uint32(staticData[off+4 : off+8]))
 		if id == "VP8 " {
-			vp8Chunk = staticData[off : off+8+size]
+			vp8Chunk = staticData[off : off+8+int(size)]
 			break
 		}
-		off += 8 + size + (size % 2)
+		off += 8 + int(size) + int(size%2)
 	}
 	require.NotEmpty(t, vp8Chunk, "VP8 chunk not found in testwebp.webp")
 

@@ -32,6 +32,12 @@ const (
 	maxANMFPayload = 64 * 1024 * 1024
 )
 
+// ErrResolutionCapExceeded is returned when an image's declared resolution
+// exceeds the configured MaxDecodedResolution. Callers can use errors.Is to
+// distinguish this from other decode failures and skip retries that cannot
+// possibly succeed under the same cap.
+var ErrResolutionCapExceeded = errors.New("imaging: resolution cap exceeded")
+
 // DecoderOptions holds configuration options for an image decoder.
 type DecoderOptions struct {
 	// The level of concurrency for the decoder. This defines a limit on the
@@ -121,7 +127,8 @@ func (d *Decoder) checkConfigResolution(cfg image.Config, cfgErr error) error {
 		return nil
 	}
 	if exceedsResolution(int64(cfg.Width), int64(cfg.Height), d.opts.MaxDecodedResolution) {
-		return fmt.Errorf("imaging: image resolution %dx%d exceeds the maximum allowed %d pixels", cfg.Width, cfg.Height, d.opts.MaxDecodedResolution)
+		return fmt.Errorf("imaging: image resolution %dx%d exceeds the maximum allowed %d pixels: %w",
+			cfg.Width, cfg.Height, d.opts.MaxDecodedResolution, ErrResolutionCapExceeded)
 	}
 	return nil
 }

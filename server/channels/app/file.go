@@ -1196,9 +1196,21 @@ func prepareImage(rctx request.CTX, imgDecoder *imaging.Decoder, imgData io.Read
 	// Decode image bytes into Image object
 	img, imgType, release, err = imgDecoder.DecodeMemBounded(imgData)
 	if err != nil {
-		if _, seekErr := imgData.Seek(0, io.SeekStart); seekErr == nil {
-			if firstFrame, webpErr := imgDecoder.DecodeWebPFirstFrame(imgData); webpErr == nil {
-				img, imgType, release, err = firstFrame, "webp", func() {}, nil
+		// Only attempt the animated WebP fallback when:
+		// 1. The failure was not a resolution cap rejection — a cap-rejected
+		//    image must never be retried through a second decoder path.
+		// 2. The file header is RIFF/WEBP — non-WebP files gain nothing from
+		//    the retry and DecodeWebPFirstFrame would reject them immediately.
+		if !errors.Is(err, imaging.ErrResolutionCapExceeded) {
+			var magic [12]byte // RIFF(4) + size(4) + WEBP(4)
+			if _, seekErr := imgData.Seek(0, io.SeekStart); seekErr == nil {
+				if n, _ := io.ReadFull(imgData, magic[:]); n == 12 &&
+					string(magic[:4]) == "RIFF" && string(magic[8:]) == "WEBP" {
+					_, _ = imgData.Seek(0, io.SeekStart)
+					if firstFrame, webpErr := imgDecoder.DecodeWebPFirstFrame(imgData); webpErr == nil {
+						img, imgType, release, err = firstFrame, "webp", func() {}, nil
+					}
+				}
 			}
 		}
 		if err != nil {
