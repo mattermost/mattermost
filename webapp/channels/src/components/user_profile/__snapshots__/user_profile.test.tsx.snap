@@ -58,3 +58,36 @@ exports[`components/UserProfile should match snapshot, with colorization 1`] = `
   </button>
 </div>
 `;
+
+exports[`components/UserProfile should not render ImportedInactiveTag for regular user 1`] = `
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="user-popover style--none"
+  >
+    nickname
+  </button>
+</div>
+`;
+
+exports[`components/UserProfile should render ImportedInactiveTag for imported inactive user 1`] = `
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="user-popover style--none"
+  >
+    nickname
+  </button>
+  <div
+    class="TagWrapper-kezsCu cA-dXXM Tag Tag--xs ImportedInactiveTag"
+  >
+    <span
+      class="TagText-bWoQAI beIloY"
+    >
+      IMPORTED - INACTIVE
+    </span>
+  </div>
+</div>
+`;
