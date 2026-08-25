@@ -938,8 +938,8 @@ func TestPropertyField_IsValid(t *testing.T) {
 		})
 
 		t.Run("a type whose options form no hierarchy keeps its repeated names", func(t *testing.T) {
-			// Nothing has ever stopped these, and a field already holding two
-			// options of one name has to stay writable for the name to be fixable.
+			// A field already holding two options of one name has to stay
+			// writable for the name to be fixable.
 			pf := graphField(
 				map[string]any{"id": NewId(), "name": "Air Program"},
 				map[string]any{"id": NewId(), "name": "Air Program"},

@@ -836,7 +836,7 @@ func propertyFieldOptionCount(attrs StringInterface) int {
 }
 
 // decodedInlineOptions returns the field's inline option list as the objects it
-// is made of, for the checks that have to look inside each option.
+// is made of.
 //
 // Decoded through JSON because the options key legitimately holds several
 // shapes (see PropertyFieldSuppliesOptions). A list that will not decode comes
@@ -878,20 +878,19 @@ func optionIndexCarryingRank(options []map[string]any) int {
 // optionIndexRepeatingName returns the position of the first inline option whose
 // name an option earlier in the list already has, with that name, or -1 and "".
 //
-// A name has to identify one option across everything a field serves. A rule
-// naming an option is stored as the identifier that name resolved to, and a
-// lookup over two rows answering to one name keeps whichever the query returned
-// last — so every holder of the other one is denied with nothing reporting a
-// problem. The options endpoints refuse a repeat within their own payload; this
-// is the same rule for the list a field is written with, where the list is the
-// whole of the field's option set.
+// A rule naming an option is stored as the identifier that name resolved to, and
+// a lookup over two rows answering to one name keeps whichever the query
+// returned last — so every holder of the other one is denied with nothing
+// reporting a problem. The options endpoints refuse a repeat within their own
+// payload; this is the same rule for the list a field is written with, which is
+// the whole of the field's option set.
 //
-// Only graph fields are held to it, from the one caller. The types with no
-// hierarchy have never been, and a field whose options were already named
-// ambiguously has to stay writable for the name to be fixable.
+// Only graph fields are held to it. The types with no hierarchy never have been,
+// and a field whose options are already named ambiguously has to stay writable
+// for the name to be fixable.
 //
-// Options with no name are skipped: an option is not required to carry one, and
-// two that do not are not two answers to the same name.
+// An option is not required to carry a name, and two that do not are not two
+// answers to the same name.
 func optionIndexRepeatingName(options []map[string]any) (int, string) {
 	seen := make(map[string]bool, len(options))
 	for i, option := range options {
