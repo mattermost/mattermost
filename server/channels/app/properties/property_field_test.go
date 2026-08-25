@@ -1096,10 +1096,14 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		field.Name = "LegacyRenamed-" + model.NewId()
-		result, _, err := th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
+		newName := "LegacyRenamed-" + model.NewId()
+		field.Name = newName
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
 		require.NoError(t, err)
-		assert.Equal(t, field.Name, result.Name)
+
+		reloaded, err := th.service.GetPropertyField(rctx, legacyGroup.ID, field.ID)
+		require.NoError(t, err)
+		assert.Equal(t, newName, reloaded.Name)
 	})
 
 	t.Run("create linked field with an empty option list succeeds", func(t *testing.T) {
