@@ -536,12 +536,12 @@ func TestImportImportTeam(t *testing.T) {
 	}
 
 	// Try importing an invalid team in dryRun mode.
-	err = th.App.importTeam(th.Context, &data, true)
+	err = th.App.importTeam(th.Context, &data, true, "")
 	require.Error(t, err, "Should have received an error importing an invalid team.")
 
 	// Do a valid team in dry-run mode.
 	data.Type = new("O")
-	appErr := th.App.importTeam(th.Context, &data, true)
+	appErr := th.App.importTeam(th.Context, &data, true, "")
 	require.Nil(t, appErr, "Received an error validating valid team.")
 
 	// Check that no more teams are in the DB.
@@ -549,7 +549,7 @@ func TestImportImportTeam(t *testing.T) {
 
 	// Do an invalid team in apply mode, check db changes.
 	data.Type = new("XYZ")
-	err = th.App.importTeam(th.Context, &data, false)
+	err = th.App.importTeam(th.Context, &data, false, "")
 	require.Error(t, err, "Import should have failed on invalid team.")
 
 	// Check that no more teams are in the DB.
@@ -557,7 +557,7 @@ func TestImportImportTeam(t *testing.T) {
 
 	// Do a valid team in apply mode, check db changes.
 	data.Type = new("O")
-	appErr = th.App.importTeam(th.Context, &data, false)
+	appErr = th.App.importTeam(th.Context, &data, false, "")
 	require.Nil(t, appErr, "Received an error importing valid team: %v", err)
 
 	// Check that one more team is in the DB.
@@ -582,7 +582,7 @@ func TestImportImportTeam(t *testing.T) {
 
 	// Check that the original number of teams are again in the DB (because this query doesn't include deleted).
 	data.Type = new("O")
-	appErr = th.App.importTeam(th.Context, &data, false)
+	appErr = th.App.importTeam(th.Context, &data, false, "")
 	require.Nil(t, appErr, "Received an error importing updated valid team.")
 
 	th.CheckTeamCount(t, teamsCount+1)
@@ -620,7 +620,7 @@ func TestImportImportChannel(t *testing.T) {
 		Name:        &teamName,
 		DisplayName: new("Display Name"),
 		Type:        new("O"),
-	}, false)
+	}, false, "")
 	require.Nil(t, appErr, "Failed to import team.")
 	team, appErr := th.App.GetTeamByName(teamName)
 	require.Nil(t, appErr, "Failed to get team from database.")
@@ -757,7 +757,7 @@ func TestImportChannelArchivedUnarchive(t *testing.T) {
 		Name:        &teamName,
 		DisplayName: new("Unarchive Test"),
 		Type:        new("O"),
-	}, false)
+	}, false, "")
 	require.Nil(t, appErr)
 
 	chanOpen := model.ChannelTypeOpen
@@ -1032,7 +1032,7 @@ func TestImportImportUser(t *testing.T) {
 			Name:        &teamName,
 			DisplayName: new("Display Name"),
 			Type:        new("O"),
-		}, false)
+		}, false, "")
 		require.Nil(t, tAppErr, "Failed to import team.")
 		team, appErr := th.App.GetTeamByName(teamName)
 		require.Nil(t, appErr, "Failed to get team from database.")
@@ -1343,7 +1343,7 @@ func TestImportImportUser(t *testing.T) {
 			Name:        &teamName,
 			DisplayName: new("Display Name"),
 			Type:        new("O"),
-		}, false)
+		}, false, "")
 		require.Nil(t, appErr2, "Failed to import team.")
 
 		channelName := model.NewId()
@@ -1622,7 +1622,7 @@ func TestImportImportUser(t *testing.T) {
 			AllowOpenInvite: new(true),
 			Scheme:          &teamScheme.Name,
 		}
-		appErr2 = th.App.importTeam(th.Context, teamData, false)
+		appErr2 = th.App.importTeam(th.Context, teamData, false, "")
 		assert.Nil(t, appErr2)
 		team, appErr2 := th.App.GetTeamByName(teamName)
 		require.Nil(t, appErr2, "Failed to get team from database.")
@@ -1730,7 +1730,7 @@ func TestImportImportUser(t *testing.T) {
 			Description:     new("The team description."),
 			AllowOpenInvite: new(true),
 		}
-		appErr := th.App.importTeam(th.Context, teamData, false)
+		appErr := th.App.importTeam(th.Context, teamData, false, "")
 		assert.Nil(t, appErr)
 
 		team, appErr2 := th.App.GetTeamByName(*teamData.Name)
@@ -2679,7 +2679,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 		Name:        &teamName,
 		DisplayName: new("Display Name"),
 		Type:        new("O"),
-	}, false)
+	}, false, "")
 	require.Nil(t, appErr, "Failed to import team.")
 	team, err := th.App.GetTeamByName(teamName)
 	require.Nil(t, err, "Failed to get team from database.")
@@ -3378,7 +3378,7 @@ func TestImportimportMultiplePostLines(t *testing.T) {
 			Name:        &teamName2,
 			DisplayName: new("Display Name 2"),
 			Type:        new("O"),
-		}, false)
+		}, false, "")
 		require.Nil(t, appErr, "Failed to import team.")
 		team2, err2 := th.App.GetTeamByName(teamName2)
 		require.Nil(t, err2, "Failed to get team from database.")
@@ -3738,7 +3738,7 @@ func TestImportImportPost(t *testing.T) {
 		Name:        &teamName,
 		DisplayName: new("Display Name"),
 		Type:        new("O"),
-	}, false)
+	}, false, "")
 	require.Nil(t, appErr, "Failed to import team.")
 	team, appErr := th.App.GetTeamByName(teamName)
 	require.Nil(t, appErr, "Failed to get team from database.")
@@ -6178,7 +6178,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 		Name:        &teamName,
 		DisplayName: new("Display Name"),
 		Type:        new("O"),
-	}, false)
+	}, false, "")
 	require.Nil(t, appErr, "Failed to import team.")
 	team, appErr := th.App.GetTeamByName(teamName)
 	require.Nil(t, appErr, "Failed to get team from database.")
@@ -6546,7 +6546,7 @@ func TestZippedImportPostAndRepliesWithAttachments(t *testing.T) {
 		Name:        &teamName,
 		DisplayName: new("Display Name"),
 		Type:        new("O"),
-	}, false)
+	}, false, "")
 	require.Nil(t, appErr, "Failed to import team.")
 	team, appErr := th.App.GetTeamByName(teamName)
 	require.Nil(t, appErr, "Failed to get team from database.")

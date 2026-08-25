@@ -156,7 +156,7 @@ func processAttachments(rctx request.CTX, line *imports.LineImportData, basePath
 	return nil
 }
 
-func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, deactivateMissingUsers bool, report *imports.ImportReport, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
+func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, deactivateMissingUsers bool, destinationTeam string, report *imports.ImportReport, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
 	workerID := model.NewId()
 	processedLines := uint64(0)
 
@@ -195,7 +195,7 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, deactiv
 				directPostLines = []imports.LineImportWorkerData{}
 			}
 		default:
-			if err := a.importLine(rctx, line.LineImportData, dryRun, deactivateMissingUsers, report); err != nil {
+			if err := a.importLine(rctx, line.LineImportData, dryRun, deactivateMissingUsers, destinationTeam, report); err != nil {
 				errors <- imports.LineImportWorkerError{Error: err, LineNumber: line.LineNumber}
 			}
 		}
@@ -376,7 +376,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 			linesChan = make(chan imports.LineImportWorkerData, workers)
 			for range workers {
 				wg.Add(1)
-				go a.bulkImportWorker(rctx, dryRun, extractContent, deactivateMissingUsers, report, &wg, linesChan, errorsChan)
+				go a.bulkImportWorker(rctx, dryRun, extractContent, deactivateMissingUsers, destinationTeam, report, &wg, linesChan, errorsChan)
 			}
 		}
 
@@ -437,9 +437,6 @@ func rewriteTeamName(line *imports.LineImportData, sourceTeam, destTeam string) 
 	case "team":
 		if line.Team != nil && line.Team.Name != nil && *line.Team.Name == sourceTeam {
 			*line.Team.Name = destTeam
-			if line.Team.DisplayName != nil {
-				*line.Team.DisplayName = destTeam
-			}
 		}
 	case "channel":
 		if line.Channel != nil && line.Channel.Team != nil && *line.Channel.Team == sourceTeam {
@@ -499,7 +496,7 @@ func processImportDataFileVersionLine(line imports.LineImportData) (int, *model.
 	return *line.Version, nil
 }
 
-func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun bool, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
+func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun bool, deactivateMissingUsers bool, destinationTeam string, report *imports.ImportReport) *model.AppError {
 	switch {
 	case line.Type == "role":
 		if line.Role == nil {
@@ -515,7 +512,7 @@ func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun b
 		if line.Team == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_team.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importTeam(rctx, line.Team, dryRun)
+		return a.importTeam(rctx, line.Team, dryRun, destinationTeam)
 	case line.Type == "channel":
 		if line.Channel == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_channel.error", nil, "", http.StatusBadRequest)

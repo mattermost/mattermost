@@ -1352,12 +1352,12 @@ func TestDestinationTeamNewTeamUsesSlugAsDisplayName(t *testing.T) {
 
 	destTeam, appErr := th2.App.GetTeamByName(destTeamName)
 	require.Nil(t, appErr, "destination team must exist after import")
-	assert.Equal(t, destTeamName, destTeam.DisplayName,
-		"display name must be the dest slug verbatim, not inherited from the source team")
+	assert.Equal(t, "Large Team (20k)", destTeam.DisplayName,
+		"display name must be preserved from the export, not replaced with the dest slug")
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// DN-06: --destination-team with hyphenated slug uses slug verbatim as display name
+// DN-06: --destination-team with hyphenated slug preserves the exported display name
 //
 // Reason: customers who use multi-word slugs (company naming conventions often
 // use kebab-case) get the slug as-is; no transformation is applied.
@@ -1404,8 +1404,8 @@ func TestDestinationTeamHyphenatedSlugDisplayName(t *testing.T) {
 
 	destTeam, appErr := th2.App.GetTeamByName(destTeamName)
 	require.Nil(t, appErr, "destination team must exist after import")
-	assert.Equal(t, destTeamName, destTeam.DisplayName,
-		"hyphenated slug must be used verbatim as the display name")
+	assert.Equal(t, "Large Team (20k)", destTeam.DisplayName,
+		"display name must be preserved from the export, not replaced with the dest slug")
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -1553,7 +1553,7 @@ func TestDestinationTeamDisplayNameIdempotentAfterRename(t *testing.T) {
 
 	const destTeamName = "engineering"
 
-	// First import creates the team with display name "engineering" (the slug).
+	// First import creates the team with display name from the export ("Large Team (20k)").
 	_, appErr = th2.App.BulkImportWithPathAndOpts(
 		th2.Context,
 		bytes.NewReader(exportBytes),
@@ -1630,6 +1630,7 @@ func TestDestinationTeamInferredWhenAdditionalFieldAbsent(t *testing.T) {
 
 	// Strip "additional" to simulate an older source binary — ExportScopeAdditional absent.
 	stripped := stripAdditionalFromVersionLine(t, buf.Bytes())
+	srcDisplayName := th1.BasicTeam.DisplayName
 
 	var th2 *TestHelper
 	if mainHelper.Options.RunParallel {
@@ -1655,8 +1656,8 @@ func TestDestinationTeamInferredWhenAdditionalFieldAbsent(t *testing.T) {
 
 	team, appErr := th2.App.GetTeamByName(destTeamName)
 	require.Nil(t, appErr, "team %q should exist after import with inferred sourceTeamName", destTeamName)
-	assert.Equal(t, destTeamName, team.DisplayName,
-		"display name should be the dest slug verbatim even when export lacks ExportScopeAdditional")
+	assert.Equal(t, srcDisplayName, team.DisplayName,
+		"display name should be preserved from the export even when export lacks ExportScopeAdditional")
 }
 
 // ────────────────────────────────────────────────────────────────────────────

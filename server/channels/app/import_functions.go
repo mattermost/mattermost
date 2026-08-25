@@ -171,7 +171,7 @@ func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun 
 	return err
 }
 
-func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun bool) *model.AppError {
+func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun bool, destinationTeam string) *model.AppError {
 	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("team_name", *data.Name))
@@ -198,11 +198,12 @@ func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun 
 		}
 	}
 
-	// When DestinationTeamName is used, rewriteTeamName sets DisplayName to the
-	// dest slug. For an existing team that already has a custom DisplayName,
-	// preserve it rather than clobbering it with the slug.
-	preserveDisplayName := team.Id != "" && *data.DisplayName == teamName && team.DisplayName != teamName
-	if !preserveDisplayName {
+	if destinationTeam != "" && team.Id != "" {
+		// Existing team in a dest migration: preserve whatever display name is
+		// already there so a customer's manual rename is not clobbered on
+		// incremental re-runs.
+	} else {
+		// New team (any context) or regular import: use the export display name.
 		team.DisplayName = *data.DisplayName
 	}
 	team.Type = *data.Type
