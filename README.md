@@ -45,8 +45,8 @@ Other install guides:
 - [Ubuntu 20.04 LTS](https://docs.mattermost.com/install/installing-ubuntu-2004-LTS.html)
 - [Kubernetes](https://docs.mattermost.com/install/install-kubernetes.html)
 - [Helm](https://docs.mattermost.com/install/install-kubernetes.html#installing-the-operators-via-helm)
+- [Deploy on RepoCloud](https://repocloud.io/details/Mattermost/)
 - [More server install guides](https://docs.mattermost.com/guides/deployment.html)
-- [Deploy on RepoCloud](https://repocloud.io/details/Mattermost/) [![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/Mattermost/)
 
 ## Native mobile and desktop apps
 
