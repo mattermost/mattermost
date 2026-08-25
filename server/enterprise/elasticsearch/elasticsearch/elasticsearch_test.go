@@ -429,7 +429,7 @@ func TestCJKAnalyzersWithPrefixedPluginNames(t *testing.T) {
 			searchFields := func(t *testing.T, terms string) [][]string {
 				t.Helper()
 
-				recorder.Reset()
+				recorder.ResetSearches()
 				_, _, appErr := es.SearchPosts(channels, model.ParseSearchParams(terms, 0), 0, 20)
 				require.Nil(t, appErr)
 
@@ -446,7 +446,7 @@ func TestCJKAnalyzersWithPrefixedPluginNames(t *testing.T) {
 			})
 
 			t.Run("a non-CJK query only searches the base fields", func(t *testing.T) {
-				common.RequireNoAnalyzerSubFields(t, searchFields(t, "search"))
+				common.RequireOnlyBaseFields(t, searchFields(t, "search"))
 			})
 
 			t.Run("a CJK query only searches the base fields when CJK analyzers are disabled", func(t *testing.T) {
@@ -457,20 +457,31 @@ func TestCJKAnalyzersWithPrefixedPluginNames(t *testing.T) {
 					*cfg.ElasticsearchSettings.EnableCJKAnalyzers = true
 				})
 
-				common.RequireNoAnalyzerSubFields(t, searchFields(t, "검색"))
+				common.RequireOnlyBaseFields(t, searchFields(t, "검색"))
 			})
 		})
 	}
 }
 
-// TestCJKAnalyzersWithoutAnyPlugin covers the diagnostic that made this failure mode hard to spot:
-// the warning only fires when no CJK analyzer plugin is detected at all.
-func TestCJKAnalyzersWithoutAnyPlugin(t *testing.T) {
+// TestCJKAnalyzersWithoutAnyCJKPlugin covers the diagnostic that made this failure mode hard to
+// spot: the warning only fires when no CJK analyzer plugin is detected at all.
+func TestCJKAnalyzersWithoutAnyCJKPlugin(t *testing.T) {
 	recorder := &common.ClusterRecorder{}
 	th, es := setupCJKCluster(t, recorder, []string{"analysis-icu"})
 	require.Nil(t, es.Start(context.Background()))
 
-	require.Empty(t, common.TemplatePropertyFields(t, recorder.PostsTemplate(), "message"))
+	template := recorder.PostsTemplate()
+	require.NotEmpty(t, template, "no posts index template was created")
+	require.Empty(t, common.TemplatePropertyFields(t, template, "message"))
+
+	channels := model.ChannelList{{Id: model.NewId(), TeamId: model.NewId(), Type: model.ChannelTypeOpen}}
+	_, _, appErr := es.SearchPosts(channels, model.ParseSearchParams("검색", 0), 0, 20)
+	require.Nil(t, appErr)
+
+	bodies := recorder.SearchBodies()
+	require.Len(t, bodies, 1)
+	common.RequireOnlyBaseFields(t, common.SimpleQueryStringFields(t, bodies[0]))
+
 	require.NoError(t, th.TestLogger.Flush())
 	testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, missingCJKPluginsWarning)
 }

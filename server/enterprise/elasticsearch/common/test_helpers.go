@@ -6,6 +6,7 @@ package common
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -103,14 +104,13 @@ func (r *ClusterRecorder) SearchBodies() [][]byte {
 	r.mut.Lock()
 	defer r.mut.Unlock()
 
-	return r.searchBodies
+	return slices.Clone(r.searchBodies)
 }
 
-func (r *ClusterRecorder) Reset() {
+func (r *ClusterRecorder) ResetSearches() {
 	r.mut.Lock()
 	defer r.mut.Unlock()
 
-	r.postsTemplate = nil
 	r.searchBodies = nil
 }
 
@@ -222,12 +222,13 @@ func SimpleQueryStringFields(t *testing.T, body []byte) [][]string {
 	return collected
 }
 
-// RequireNoAnalyzerSubFields asserts that none of the given search field lists targets an analyzer
-// sub-field such as message.nori.
-func RequireNoAnalyzerSubFields(t *testing.T, fields [][]string) {
+// RequireOnlyBaseFields asserts that the given search field lists cover the base message and
+// attachments fields and target no analyzer sub-field such as message.nori.
+func RequireOnlyBaseFields(t *testing.T, fields [][]string) {
 	t.Helper()
 
-	require.NotEmpty(t, fields, "the search request had no simple_query_string clause")
+	require.Contains(t, fields, []string{"message"})
+	require.Contains(t, fields, []string{"attachments"})
 	for _, fieldList := range fields {
 		for _, field := range fieldList {
 			require.NotContains(t, field, ".", "unexpected analyzer sub-field in %v", fieldList)
