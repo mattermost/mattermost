@@ -464,19 +464,14 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		return nil, nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Notify the access control service so any per-field metadata it
-	// caches (e.g. the rank-by-name lookup used by the live evaluator)
-	// and any compiled-policy cache entries that depend on this field
-	// are dropped. This runs before the websocket broadcast so a client
-	// reacting to the event never re-reads stale cached metadata (mirrors
-	// the ordering in DeletePropertyField).
-	if acs := a.Srv().ch.AccessControl; acs != nil {
-		for _, field := range updated {
-			acs.OnPropertyFieldOptionsChanged(rctx, field.ID)
-		}
-		for _, field := range propagated {
-			acs.OnPropertyFieldOptionsChanged(rctx, field.ID)
-		}
+	// This runs before the websocket broadcast so a client reacting to the
+	// event never re-reads stale cached metadata (mirrors the ordering in
+	// DeletePropertyField).
+	for _, field := range updated {
+		a.invalidatePolicyCachesForOptionChange(rctx, field.ID)
+	}
+	for _, field := range propagated {
+		a.invalidatePolicyCachesForOptionChange(rctx, field.ID)
 	}
 
 	// Broadcast websocket events for the requested fields and for the linked
@@ -532,14 +527,9 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Notify the access control service so any per-field metadata it caches
-	// (e.g. the rank-by-name lookup used by the live evaluator) and any
-	// compiled-policy cache entries that depend on this field are dropped
-	// cluster-wide. Without this a deleted rank field's stale options would
-	// linger in the per-node cache until restart.
-	if acs := a.Srv().ch.AccessControl; acs != nil {
-		acs.OnPropertyFieldOptionsChanged(rctx, existing.ID)
-	}
+	// Without this a deleted rank field's stale options would linger in the
+	// per-node cache until restart.
+	a.invalidatePolicyCachesForOptionChange(rctx, existing.ID)
 
 	if existing.IsPSAv2() {
 		teamID, channelID, ok := propertyFieldBroadcastParams(rctx, existing)
