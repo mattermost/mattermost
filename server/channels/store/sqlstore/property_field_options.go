@@ -317,8 +317,9 @@ func (s *SqlPropertyFieldStore) GetFieldOptions(field *model.PropertyField, curs
 		})
 	}
 
+	replica := s.GetReplica()
 	rows := []*propertyOptionRow{}
-	if err := s.GetReplica().SelectBuilder(&rows, builder); err != nil {
+	if err := replica.SelectBuilder(&rows, builder); err != nil {
 		return nil, errors.Wrap(err, "property_options_page_query")
 	}
 
@@ -330,7 +331,7 @@ func (s *SqlPropertyFieldStore) GetFieldOptions(field *model.PropertyField, curs
 	if field.Type != model.PropertyFieldTypeGraph {
 		return options, nil
 	}
-	if err := s.attachOptionParentNames(s.GetReplica(), field, options); err != nil {
+	if err := s.attachOptionParentNames(replica, field, options); err != nil {
 		return nil, err
 	}
 	return options, nil

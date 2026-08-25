@@ -157,9 +157,12 @@ func (s *SqlPropertyFieldStore) GetOptionParentEdges(fieldID string, childOption
 	return s.optionParentEdges(s.GetMaster(), fieldID, childOptionIDs)
 }
 
-// optionParentEdges is GetOptionParentEdges against a given connection, for the
-// one caller that asks inside the transaction it is about to write in and so must
-// see that transaction's own uncommitted work.
+// optionParentEdges is GetOptionParentEdges against a given connection. The
+// caller picks the connection because it is the one that knows whether the
+// answer has to include its own uncommitted work (applyOptionParentLinks, inside
+// the transaction it is about to write in), has to match the master
+// (GetOptionsByID), or may lag (GetFieldOptions, reading a page from a
+// replica).
 func (s *SqlPropertyFieldStore) optionParentEdges(db sqlxExecutor, fieldID string, childOptionIDs []string) ([]*model.PropertyOptionEdge, error) {
 	if len(childOptionIDs) == 0 {
 		return nil, nil
