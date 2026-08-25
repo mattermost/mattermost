@@ -1001,6 +1001,88 @@ func TestCheckSSOProviderConfig(t *testing.T) {
 		appErr := th.App.checkSSOProviderConfig(th.Context, emptyZR, false)
 		require.Nil(t, appErr, "empty JSONL should not trigger any failure")
 	})
+
+	t.Run("GitLab disabled — error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.GitLabSettings.Enable = model.NewPointer(false)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceGitlab))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("GitLab enabled — no error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.GitLabSettings.Enable = model.NewPointer(true)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceGitlab))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("Google disabled — error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.GoogleSettings.Enable = model.NewPointer(false)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceGoogle))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("Google enabled — no error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.GoogleSettings.Enable = model.NewPointer(true)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceGoogle))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("Office365 disabled — error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.Office365Settings.Enable = model.NewPointer(false)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceOffice365))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("Office365 enabled — no error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.Office365Settings.Enable = model.NewPointer(true)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceOffice365))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("OpenID disabled — error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.OpenIdSettings.Enable = model.NewPointer(false)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceOpenid))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("OpenID enabled — no error", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.OpenIdSettings.Enable = model.NewPointer(true)
+		})
+		zr := makeZipWithJSONL(t, makeJSONL(model.ServiceOpenid))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("unknown auth_service — passes silently (default case)", func(t *testing.T) {
+		zr := makeZipWithJSONL(t, makeJSONL("some-custom-sso-provider"))
+		appErr := th.App.checkSSOProviderConfig(th.Context, zr, false)
+		require.Nil(t, appErr, "unrecognised auth_service should not block import")
+	})
 }
 
 func TestRewriteChannelName(t *testing.T) {

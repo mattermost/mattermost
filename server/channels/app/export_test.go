@@ -2827,3 +2827,47 @@ func TestBulkExportMultipleTeamsAndChannels(t *testing.T) {
 		assert.True(t, exportedChannels[ch.Name], "channel should be exported from team-a")
 	})
 }
+
+func TestImportLineFromUserMagicLinkSuppression(t *testing.T) {
+	t.Run("magic-link user exported with nil auth_service and nil auth_data", func(t *testing.T) {
+		magicLinkData := model.NewId()
+		user := &model.User{
+			Username:    "ml-user",
+			Email:       "ml@example.com",
+			AuthService: model.UserAuthServiceMagicLink,
+			AuthData:    &magicLinkData,
+		}
+		line := importLineFromUser(user, map[string]*string{})
+		require.NotNil(t, line.User)
+		assert.Nil(t, line.User.AuthService, "magic-link AuthService must be suppressed on export")
+		assert.Nil(t, line.User.AuthData, "magic-link AuthData must be suppressed on export")
+	})
+
+	t.Run("LDAP user exported with auth_service and auth_data set", func(t *testing.T) {
+		ldapData := model.NewId()
+		user := &model.User{
+			Username:    "ldap-user",
+			Email:       "ldap@example.com",
+			AuthService: model.UserAuthServiceLdap,
+			AuthData:    &ldapData,
+		}
+		line := importLineFromUser(user, map[string]*string{})
+		require.NotNil(t, line.User)
+		require.NotNil(t, line.User.AuthService, "LDAP AuthService must be set on export")
+		assert.Equal(t, model.UserAuthServiceLdap, *line.User.AuthService)
+		require.NotNil(t, line.User.AuthData, "LDAP AuthData must be set on export")
+		assert.Equal(t, ldapData, *line.User.AuthData)
+	})
+
+	t.Run("email user exported with nil auth_service", func(t *testing.T) {
+		user := &model.User{
+			Username:    "email-user",
+			Email:       "email@example.com",
+			AuthService: "",
+			AuthData:    nil,
+		}
+		line := importLineFromUser(user, map[string]*string{})
+		require.NotNil(t, line.User)
+		assert.Nil(t, line.User.AuthService, "email user must have nil AuthService on export")
+	})
+}
