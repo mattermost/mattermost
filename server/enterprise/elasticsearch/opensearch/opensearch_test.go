@@ -9,10 +9,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -125,6 +127,136 @@ func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
 		require.Fail(t, "template creation should not be attempted without analysis-icu on every node")
 	default:
 	}
+}
+
+// pluginsHandler serves the endpoints Start and SearchPosts need, reporting the given plugin names
+// from the node info API and recording the posts template and search request bodies.
+func pluginsHandler(t *testing.T, pluginNames []string, postsTemplate *[]byte, searchBodies *[][]byte) http.HandlerFunc {
+	var mut sync.Mutex
+
+	nodesInfo := common.NodesPluginsResponse(pluginNames...)
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/":
+			_, _ = fmt.Fprint(w, `{"version":{"number":"2.11.0"}}`)
+		case r.URL.Path == "/_nodes/plugins":
+			_, _ = fmt.Fprint(w, nodesInfo)
+		case strings.HasPrefix(r.URL.Path, "/_index_template/"):
+			body, err := io.ReadAll(r.Body)
+			require.NoError(t, err)
+			if strings.HasSuffix(r.URL.Path, common.IndexBasePosts) {
+				mut.Lock()
+				*postsTemplate = body
+				mut.Unlock()
+			}
+			_, _ = fmt.Fprint(w, `{"acknowledged":true}`)
+		case strings.HasSuffix(r.URL.Path, "/_search"):
+			body, err := io.ReadAll(r.Body)
+			require.NoError(t, err)
+			mut.Lock()
+			*searchBodies = append(*searchBodies, body)
+			mut.Unlock()
+			_, _ = fmt.Fprint(w, `{"took":1,"timed_out":false,"hits":{"total":{"value":0,"relation":"eq"},"max_score":0,"hits":[]}}`)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}
+}
+
+// TestPrefixedNoriPluginIsDetected covers a cluster that reports the Korean analyzer under the
+// prefixed component name AWS OpenSearch Service assigns to plugins installed through
+// associate-package, while the plugins it bundles keep their unprefixed names.
+func TestPrefixedNoriPluginIsDetected(t *testing.T) {
+	var postsTemplate []byte
+	var searchBodies [][]byte
+
+	server := httptest.NewServer(pluginsHandler(t,
+		[]string{"analysis-icu", "opensearch-analysis-nori", "analysis-kuromoji", "analysis-smartcn"},
+		&postsTemplate, &searchBodies))
+	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+		*cfg.ElasticsearchSettings.EnableSearching = true
+		*cfg.ElasticsearchSettings.EnableCJKAnalyzers = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
+	defer func() { require.Nil(t, impl.Stop()) }()
+	require.Nil(t, impl.Start(context.Background()))
+
+	t.Run("posts index template maps the nori sub-field", func(t *testing.T) {
+		require.NotEmpty(t, postsTemplate, "no posts index template was created")
+
+		fields, analyzers := common.MessageMappingFields(t, postsTemplate)
+		require.Equal(t, map[string]string{
+			"nori":     "mm_nori",
+			"kuromoji": "mm_kuromoji",
+			"smartcn":  "mm_smartcn",
+		}, fields)
+		require.Contains(t, analyzers, "mm_nori")
+	})
+
+	channels := model.ChannelList{{Id: model.NewId(), TeamId: model.NewId(), Type: model.ChannelTypeOpen}}
+
+	t.Run("a Korean query searches the nori sub-fields", func(t *testing.T) {
+		searchBodies = nil
+
+		_, _, appErr := impl.SearchPosts(channels, model.ParseSearchParams("검색", 0), 0, 20)
+		require.Nil(t, appErr)
+		require.Len(t, searchBodies, 1)
+
+		fields := common.SimpleQueryStringFields(t, searchBodies[0])
+		require.Contains(t, fields, []string{"message", "message.nori", "message.kuromoji", "message.smartcn"})
+		require.Contains(t, fields, []string{"attachments", "attachments.nori", "attachments.kuromoji", "attachments.smartcn"})
+	})
+
+	t.Run("a non-CJK query only searches the base fields", func(t *testing.T) {
+		searchBodies = nil
+
+		_, _, appErr := impl.SearchPosts(channels, model.ParseSearchParams("search", 0), 0, 20)
+		require.Nil(t, appErr)
+		require.Len(t, searchBodies, 1)
+
+		fields := common.SimpleQueryStringFields(t, searchBodies[0])
+		require.Contains(t, fields, []string{"message"})
+		for _, fieldList := range fields {
+			require.NotContains(t, fieldList, "message.nori")
+		}
+	})
+}
+
+// TestPrefixedAnalysisICUPluginIsDetected covers the same prefixing applied to analysis-icu, which
+// Mattermost requires on every node.
+func TestPrefixedAnalysisICUPluginIsDetected(t *testing.T) {
+	var postsTemplate []byte
+	var searchBodies [][]byte
+
+	server := httptest.NewServer(pluginsHandler(t,
+		[]string{"opensearch-analysis-icu"}, &postsTemplate, &searchBodies))
+	defer server.Close()
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
+	defer func() { require.Nil(t, impl.Stop()) }()
+	require.Nil(t, impl.Start(context.Background()))
+	require.NotEmpty(t, postsTemplate, "no posts index template was created")
 }
 
 func (s *OpensearchInterfaceTestSuite) SetupSuite() {
