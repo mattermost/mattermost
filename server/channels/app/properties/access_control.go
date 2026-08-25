@@ -1684,10 +1684,7 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 
 	maskedGraphValues := make(map[string]*model.PropertyValue, len(values))
 	for fieldID, fieldValues := range graphValuesByField {
-		masked, err := h.filterSharedOnlyGraphValueBatch(rctx, fieldMap[fieldID], fieldValues, callerID)
-		if err != nil {
-			return nil, fmt.Errorf("applyValueReadAccessControl: %w", err)
-		}
+		masked := h.filterSharedOnlyGraphValueBatch(rctx, fieldMap[fieldID], fieldValues, callerID)
 		maps.Copy(maskedGraphValues, masked)
 	}
 
@@ -1716,11 +1713,12 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 }
 
 // filterSharedOnlyGraphValueBatch masks a batch of shared_only graph values that
-// all belong to the same field: every option the caller covers -- one of their
-// own options is at-or-above it -- shows as it stands, and every option they do
-// not cover is replaced by the options below it that they do cover. An option
-// with nothing covered below it is left out, and a value left with no options
-// at all is left out of the returned map entirely.
+// all belong to the same field, by running each through clampToCoverage: every
+// option the caller covers -- one of their own options is at-or-above it --
+// shows as it stands, and every option they do not cover is replaced by the
+// options below it that they do cover. An option with nothing covered below it
+// is left out, and a value left with no options at all is left out of the
+// returned map entirely.
 //
 // So a caller holding one program in a family sees a target marked with the
 // whole family as marked with their own part of it: enough to know they have
@@ -1729,27 +1727,29 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 //
 // The caller's own held options are read once and reused for every value in the
 // batch, and the coverage question is asked once over the union of every
-// value's option identifiers rather than once per value. Each value is still
+// value's option identifiers rather than once per value, through the
+// graphClampBatch every clampToCoverage call below shares. Each value is still
 // answered on its own -- an option one value holds is never used to decide what
-// is visible in another. The per-option descent below an option the caller does
-// not cover (coveredBelow) still runs once per option: that part genuinely
-// differs per option, not per value, so it is memoized by option ID and reused
-// by every value that shares it.
+// is visible in another.
+//
+// A value that fails to mask -- an unreadable target, a lookup that errors -- is
+// logged and left out of the returned map rather than treated as an error of the
+// batch: hiding the value is the answer, as it is everywhere else in this file.
 //
 // The option list inlined into the field is not consulted, so a field with more
 // options than a read inlines (model.PropertyFieldMaxHydratedOptions) masks
 // exactly like any other: the hierarchy is read from the option rows, and a
 // graph field is expected to be well past that cap.
-func (h *AccessControlHook) filterSharedOnlyGraphValueBatch(rctx request.CTX, field *model.PropertyField, values []*model.PropertyValue, callerID string) (map[string]*model.PropertyValue, error) {
+func (h *AccessControlHook) filterSharedOnlyGraphValueBatch(rctx request.CTX, field *model.PropertyField, values []*model.PropertyValue, callerID string) map[string]*model.PropertyValue {
 	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
 	if err != nil {
 		for _, value := range values {
 			logHiddenGraphValue(rctx, field, value, err)
 		}
-		return nil, nil
+		return nil
 	}
 	if len(callerOptionIDs) == 0 {
-		return nil, nil
+		return nil
 	}
 	heldOptionIDs := slices.Collect(maps.Keys(callerOptionIDs))
 
@@ -1770,7 +1770,7 @@ func (h *AccessControlHook) filterSharedOnlyGraphValueBatch(rctx request.CTX, fi
 		}
 	}
 	if len(union) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	covered, err := h.propertyService.CoveredBy(rctx, field, slices.Collect(maps.Keys(union)), heldOptionIDs)
@@ -1778,10 +1778,10 @@ func (h *AccessControlHook) filterSharedOnlyGraphValueBatch(rctx request.CTX, fi
 		for _, value := range values {
 			logHiddenGraphValue(rctx, field, value, err)
 		}
-		return nil, nil
+		return nil
 	}
+	batch := &graphClampBatch{covered: covered, below: map[string][]string{}}
 
-	belowByOption := make(map[string][]string)
 	masked := make(map[string]*model.PropertyValue, len(values))
 	for _, value := range values {
 		targetOptionIDs, ok := targetOptionIDsByValue[value.ID]
@@ -1789,36 +1789,19 @@ func (h *AccessControlHook) filterSharedOnlyGraphValueBatch(rctx request.CTX, fi
 			continue
 		}
 
-		visible := map[string]bool{}
-		var belowErr error
-		for optionID := range targetOptionIDs {
-			if covered[optionID] {
-				visible[optionID] = true
-				continue
-			}
-			below, ok := belowByOption[optionID]
-			if !ok {
-				below, belowErr = h.propertyService.coveredBelow(rctx, field, optionID, heldOptionIDs)
-				if belowErr != nil {
-					break
-				}
-				belowByOption[optionID] = below
-			}
-			for _, coveredID := range below {
-				visible[coveredID] = true
-			}
-		}
-		if belowErr != nil {
-			logHiddenGraphValue(rctx, field, value, belowErr)
+		visible, err := h.propertyService.clampToCoverage(rctx, field, slices.Collect(maps.Keys(targetOptionIDs)), heldOptionIDs, batch)
+		if err != nil {
+			logHiddenGraphValue(rctx, field, value, err)
 			continue
 		}
 		if len(visible) == 0 {
 			continue
 		}
 
-		// Sorted for the same reason clampToCoverage sorts: the same holdings
-		// must mask the same value to the same answer every time it is read.
-		jsonValue, err := json.Marshal(slices.Sorted(maps.Keys(visible)))
+		// visible is already sorted, by the same rule clampToCoverage gives: the
+		// same holdings must mask the same value to the same answer every time it
+		// is read.
+		jsonValue, err := json.Marshal(visible)
 		if err != nil {
 			logHiddenGraphValue(rctx, field, value, err)
 			continue
@@ -1829,5 +1812,5 @@ func (h *AccessControlHook) filterSharedOnlyGraphValueBatch(rctx request.CTX, fi
 		masked[value.ID] = &filtered
 	}
 
-	return masked, nil
+	return masked
 }

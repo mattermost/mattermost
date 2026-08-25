@@ -135,17 +135,17 @@ func TestGraphClampToCoverage(t *testing.T) {
 		// Alice holds F-18 and is being told about an object marked Fighter Jet.
 		// She has no claim to the rest of the Fighter Jet program, so what she is
 		// told is her own part of it.
-		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("F-18"))
+		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("F-18"), nil)
 		require.NoError(t, err)
 		require.Equal(t, []string{"F-18"}, graph.named(visible))
 
 		// The other way round she covers it outright and it stands as it is.
-		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("F-18"), graph.of("Fighter Jet"))
+		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("F-18"), graph.of("Fighter Jet"), nil)
 		require.NoError(t, err)
 		require.Equal(t, []string{"F-18"}, graph.named(visible))
 
 		// Including when it is exactly what she holds.
-		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("F-18"), graph.of("F-18"))
+		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("F-18"), graph.of("F-18"), nil)
 		require.NoError(t, err)
 		require.Equal(t, []string{"F-18"}, graph.named(visible))
 	})
@@ -160,7 +160,7 @@ func TestGraphClampToCoverage(t *testing.T) {
 		// it, and one with nothing covered below it at all -- which contributes
 		// nothing rather than hiding the other two.
 		visible, err := th.service.clampToCoverage(th.Context, graph.field,
-			graph.of("F-18", "Air", "Sea"), graph.of("Fighter Jet"))
+			graph.of("F-18", "Air", "Sea"), graph.of("Fighter Jet"), nil)
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{"F-18", "Fighter Jet"}, graph.named(visible))
 	})
@@ -172,17 +172,17 @@ func TestGraphClampToCoverage(t *testing.T) {
 
 		// A holder on a separate branch covers no part of the Air program, and the
 		// answer is nothing at all rather than the option they hold.
-		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("Sea"))
+		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Fighter Jet"), graph.of("Sea"), nil)
 		require.NoError(t, err)
 		require.Empty(t, visible)
 
 		// A holder of nothing is the same case, as is an object marked with
 		// nothing.
-		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), nil)
+		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), nil, nil)
 		require.NoError(t, err)
 		require.Empty(t, visible)
 
-		visible, err = th.service.clampToCoverage(th.Context, graph.field, nil, graph.of("Air"))
+		visible, err = th.service.clampToCoverage(th.Context, graph.field, nil, graph.of("Air"), nil)
 		require.NoError(t, err)
 		require.Empty(t, visible)
 	})
@@ -195,12 +195,12 @@ func TestGraphClampToCoverage(t *testing.T) {
 		// A value naming an option that has since been deleted covers nothing and
 		// has nothing below it, so a holder of the root is told nothing about it
 		// -- the one holder who is told everything else.
-		visible, err := th.service.clampToCoverage(th.Context, graph.field, []string{model.NewId()}, graph.of("Air"))
+		visible, err := th.service.clampToCoverage(th.Context, graph.field, []string{model.NewId()}, graph.of("Air"), nil)
 		require.NoError(t, err)
 		require.Empty(t, visible)
 
 		// And a holder of an option the field does not have covers nothing.
-		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), []string{model.NewId()})
+		visible, err = th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), []string{model.NewId()}, nil)
 		require.NoError(t, err)
 		require.Empty(t, visible)
 	})
@@ -215,7 +215,7 @@ func TestGraphClampToCoverage(t *testing.T) {
 			"F-18":        {"Fighter Jet", "Carrier Air"},
 		})
 
-		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), graph.of("F-18"))
+		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), graph.of("F-18"), nil)
 		require.NoError(t, err)
 		require.Equal(t, []string{"F-18"}, graph.named(visible))
 	})
@@ -232,7 +232,7 @@ func TestGraphClampToCoverage(t *testing.T) {
 			"F-18":        {"Air", "Fighter Jet"},
 		})
 
-		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), graph.of("Fighter Jet", "F-18"))
+		visible, err := th.service.clampToCoverage(th.Context, graph.field, graph.of("Air"), graph.of("Fighter Jet", "F-18"), nil)
 		require.NoError(t, err)
 		require.Equal(t, []string{"Fighter Jet"}, graph.named(visible))
 	})
@@ -247,7 +247,7 @@ func TestGraphClampToCoverage(t *testing.T) {
 			Attrs:      model.StringInterface{"options": []any{map[string]any{"id": model.NewId(), "name": "Air"}}},
 		})
 
-		visible, err := th.service.clampToCoverage(th.Context, multiselect, []string{"a"}, []string{"a"})
+		visible, err := th.service.clampToCoverage(th.Context, multiselect, []string{"a"}, []string{"a"}, nil)
 		require.Error(t, err)
 		require.Empty(t, visible, "a refusal shows nothing, not the options it was asked about")
 	})
@@ -522,17 +522,17 @@ func TestGraphResolutionThroughLinkedField(t *testing.T) {
 	derived := &graphFixture{field: linked, ids: graph.ids}
 
 	// A holder of Air is told about F-18 unchanged, since Air is above it.
-	visible, err := th.service.clampToCoverage(th.Context, derived.field, derived.of("F-18"), derived.of("Air"))
+	visible, err := th.service.clampToCoverage(th.Context, derived.field, derived.of("F-18"), derived.of("Air"), nil)
 	require.NoError(t, err)
 	require.Equal(t, []string{"F-18"}, derived.named(visible))
 
 	// The other way round, a holder of F-18 is told only their own part of Air.
-	visible, err = th.service.clampToCoverage(th.Context, derived.field, derived.of("Air"), derived.of("F-18"))
+	visible, err = th.service.clampToCoverage(th.Context, derived.field, derived.of("Air"), derived.of("F-18"), nil)
 	require.NoError(t, err)
 	require.Equal(t, []string{"F-18"}, derived.named(visible))
 
 	// And a holder of Fighter Jet, one level up, sees their own part instead.
-	visible, err = th.service.clampToCoverage(th.Context, derived.field, derived.of("Air"), derived.of("Fighter Jet"))
+	visible, err = th.service.clampToCoverage(th.Context, derived.field, derived.of("Air"), derived.of("Fighter Jet"), nil)
 	require.NoError(t, err)
 	require.Equal(t, []string{"Fighter Jet"}, derived.named(visible))
 }

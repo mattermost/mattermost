@@ -88,6 +88,24 @@ func (ps *PropertyService) CoveredBy(rctx request.CTX, field *model.PropertyFiel
 	return covered, nil
 }
 
+// graphClampBatch holds the two pieces of clampToCoverage's work that are the
+// same for every value in a batch that names options from one field's
+// hierarchy, so a caller masking several values in one pass computes each
+// exactly once:
+//
+//   - covered is the CoveredBy answer, seeded by the caller over the union of
+//     every value's option identifiers. Every option a single clampToCoverage
+//     call asks about is in that union by construction, so it is looked up here
+//     instead of walking again.
+//   - below is the coveredBelow answer, keyed by the option ID it was computed
+//     for. A descent depends only on the option and the holder's own options --
+//     both fixed across the batch -- so two values naming the same uncovered
+//     option share one descent, computed the first time and cached here.
+type graphClampBatch struct {
+	covered map[string]bool
+	below   map[string][]string
+}
+
 // clampToCoverage returns what a holder of the given options may be told about
 // another object's: each of the object's options the holder covers, unchanged,
 // and each one they do not replaced by the options below it that they do cover
@@ -105,7 +123,14 @@ func (ps *PropertyService) CoveredBy(rctx request.CTX, field *model.PropertyFiel
 // An option the field does not have is covered by nothing and has nothing below
 // it, so it drops out -- a value naming an option that has since been deleted
 // masks to nothing rather than to itself.
-func (ps *PropertyService) clampToCoverage(rctx request.CTX, field *model.PropertyField, optionIDs, held []string) ([]string, error) {
+//
+// batch may be nil, in which case this call seeds and discards its own CoveredBy
+// answer and its own descents rather than sharing them with anything else --
+// what every caller outside this package gets, and what every existing test
+// exercises. A caller masking several values against the same field's holdings
+// passes one graphClampBatch across every call instead, so the coverage walk and
+// each descent run once for the whole batch rather than once per value.
+func (ps *PropertyService) clampToCoverage(rctx request.CTX, field *model.PropertyField, optionIDs, held []string, batch *graphClampBatch) ([]string, error) {
 	if err := requireGraphField(field); err != nil {
 		return nil, err
 	}
@@ -115,9 +140,21 @@ func (ps *PropertyService) clampToCoverage(rctx request.CTX, field *model.Proper
 		return nil, nil
 	}
 
-	covered, err := ps.CoveredBy(rctx, field, optionIDs, held)
-	if err != nil {
-		return nil, err
+	var covered map[string]bool
+	if batch != nil {
+		covered = batch.covered
+	}
+	if covered == nil {
+		var err error
+		covered, err = ps.CoveredBy(rctx, field, optionIDs, held)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	below := map[string][]string{}
+	if batch != nil {
+		below = batch.below
 	}
 
 	visible := map[string]bool{}
@@ -126,11 +163,16 @@ func (ps *PropertyService) clampToCoverage(rctx request.CTX, field *model.Proper
 			visible[optionID] = true
 			continue
 		}
-		below, err := ps.coveredBelow(rctx, field, optionID, held)
-		if err != nil {
-			return nil, err
+		belowIDs, ok := below[optionID]
+		if !ok {
+			var err error
+			belowIDs, err = ps.coveredBelow(rctx, field, optionID, held)
+			if err != nil {
+				return nil, err
+			}
+			below[optionID] = belowIDs
 		}
-		for _, coveredID := range below {
+		for _, coveredID := range belowIDs {
 			visible[coveredID] = true
 		}
 	}
