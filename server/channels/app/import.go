@@ -219,8 +219,8 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, deactiv
 }
 
 func (a *App) BulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (int, *model.AppError) {
-	_, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, true, workers, "", "", "", false, 0, nil, &imports.ImportReport{})
-	return 0, err
+	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, true, workers, "", "", "", false, 0, nil, &imports.ImportReport{})
+	return lineNumber, err
 }
 
 func (a *App) BulkImportWithPath(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError) {

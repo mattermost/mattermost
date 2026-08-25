@@ -198,7 +198,13 @@ func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun 
 		}
 	}
 
-	team.DisplayName = *data.DisplayName
+	// When DestinationTeamName is used, rewriteTeamName sets DisplayName to the
+	// dest slug. For an existing team that already has a custom DisplayName,
+	// preserve it rather than clobbering it with the slug.
+	preserveDisplayName := team.Id != "" && *data.DisplayName == teamName && team.DisplayName != teamName
+	if !preserveDisplayName {
+		team.DisplayName = *data.DisplayName
+	}
 	team.Type = *data.Type
 
 	if data.Description != nil {

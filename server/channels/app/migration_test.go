@@ -18,8 +18,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -1850,8 +1850,8 @@ func TestTeamMigrationMultipleChannelsRoundTrip(t *testing.T) {
 
 	srcCounts := map[string]int{
 		th1.BasicChannel.Name: postCountInChannel(t, th1, th1.Context, srcTeamName, th1.BasicChannel.Name),
-		chan2.Name:             postCountInChannel(t, th1, th1.Context, srcTeamName, chan2.Name),
-		chan3.Name:             postCountInChannel(t, th1, th1.Context, srcTeamName, chan3.Name),
+		chan2.Name:            postCountInChannel(t, th1, th1.Context, srcTeamName, chan2.Name),
+		chan3.Name:            postCountInChannel(t, th1, th1.Context, srcTeamName, chan3.Name),
 	}
 
 	var buf bytes.Buffer

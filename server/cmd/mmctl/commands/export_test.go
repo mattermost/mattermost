@@ -112,8 +112,8 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","myteam", "")
-		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("team-name", "myteam", "")
+		cmd.Flags().String("channel-name", "", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
@@ -153,8 +153,8 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","myteam", "")
-		cmd.Flags().String("channel-name","mychannel", "")
+		cmd.Flags().String("team-name", "myteam", "")
+		cmd.Flags().String("channel-name", "mychannel", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
@@ -173,8 +173,8 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","nosuchteam", "")
-		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("team-name", "nosuchteam", "")
+		cmd.Flags().String("channel-name", "", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
 		s.Require().NotNil(err)
@@ -198,8 +198,8 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","myteam", "")
-		cmd.Flags().String("channel-name","nosuchannel", "")
+		cmd.Flags().String("team-name", "myteam", "")
+		cmd.Flags().String("channel-name", "nosuchannel", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
 		s.Require().NotNil(err)
@@ -231,9 +231,9 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","", "")
+		cmd.Flags().String("team-name", "", "")
 		cmd.Flags().String("team-id", "teamid1", "")
-		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-name", "", "")
 		cmd.Flags().String("channel-id", "", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
@@ -274,9 +274,9 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","", "")
+		cmd.Flags().String("team-name", "", "")
 		cmd.Flags().String("team-id", "", "")
-		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-name", "", "")
 		cmd.Flags().String("channel-id", "chanid1", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
@@ -317,9 +317,9 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","", "")
+		cmd.Flags().String("team-name", "", "")
 		cmd.Flags().String("team-id", "teamid1", "")
-		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-name", "", "")
 		cmd.Flags().String("channel-id", "chanid1", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
@@ -360,9 +360,9 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","myteam", "")
+		cmd.Flags().String("team-name", "myteam", "")
 		cmd.Flags().String("team-id", "", "")
-		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-name", "", "")
 		cmd.Flags().String("channel-id", "chanid1", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
@@ -389,9 +389,9 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","otherteam", "")
+		cmd.Flags().String("team-name", "otherteam", "")
 		cmd.Flags().String("team-id", "", "")
-		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-name", "", "")
 		cmd.Flags().String("channel-id", "chanid1", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
@@ -417,9 +417,9 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","", "")
+		cmd.Flags().String("team-name", "", "")
 		cmd.Flags().String("team-id", "teamid2", "")
-		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-name", "", "")
 		cmd.Flags().String("channel-id", "chanid1", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
@@ -444,9 +444,9 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","", "")
+		cmd.Flags().String("team-name", "", "")
 		cmd.Flags().String("team-id", "", "")
-		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-name", "", "")
 		cmd.Flags().String("channel-id", "chanid1", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
@@ -459,9 +459,9 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","myteam", "")
+		cmd.Flags().String("team-name", "myteam", "")
 		cmd.Flags().String("team-id", "teamid1", "")
-		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-name", "", "")
 		cmd.Flags().String("channel-id", "", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
@@ -474,9 +474,9 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","myteam", "")
+		cmd.Flags().String("team-name", "myteam", "")
 		cmd.Flags().String("team-id", "", "")
-		cmd.Flags().String("channel-name","mychannel", "")
+		cmd.Flags().String("channel-name", "mychannel", "")
 		cmd.Flags().String("channel-id", "chanid1", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
@@ -495,9 +495,9 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","", "")
+		cmd.Flags().String("team-name", "", "")
 		cmd.Flags().String("team-id", "nosuchid", "")
-		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-name", "", "")
 		cmd.Flags().String("channel-id", "", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
@@ -516,9 +516,9 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","", "")
+		cmd.Flags().String("team-name", "", "")
 		cmd.Flags().String("team-id", "", "")
-		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("channel-name", "", "")
 		cmd.Flags().String("channel-id", "nosuchid", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
@@ -544,8 +544,8 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team-name","", "")
-		cmd.Flags().String("channel-name","", "")
+		cmd.Flags().String("team-name", "", "")
+		cmd.Flags().String("channel-name", "", "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)

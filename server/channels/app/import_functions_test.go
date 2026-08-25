@@ -1846,7 +1846,6 @@ func TestImportUserScopedMatching(t *testing.T) {
 		updated, err := th.App.Srv().Store().User().Get(th.Context, savedDest.Id)
 		require.NoError(t, err)
 		assert.Equal(t, savedDest.Username, updated.Username, "username should be preserved on auth_data match")
-
 	})
 
 	t.Run("SSO user not matched by auth_data — deactivated shell created, report records mismatch", func(t *testing.T) {
@@ -1903,7 +1902,6 @@ func TestImportUserScopedMatching(t *testing.T) {
 		u, err := th.App.Srv().Store().User().GetByUsername(username)
 		require.NoError(t, err, "deactivated shell should exist")
 		assert.NotZero(t, u.DeleteAt, "shell account should be deactivated")
-
 	})
 
 	t.Run("email user not on dest in regular import — created fresh and active", func(t *testing.T) {
@@ -1919,7 +1917,6 @@ func TestImportUserScopedMatching(t *testing.T) {
 		u, err := th.App.Srv().Store().User().GetByUsername(username)
 		require.NoError(t, err, "user should have been created")
 		assert.Zero(t, u.DeleteAt, "user should be active")
-
 	})
 
 	t.Run("dry run — no DB writes and report stays empty", func(t *testing.T) {
