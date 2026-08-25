@@ -63,6 +63,12 @@ function literalValue(node) {
 }
 
 function serializeArg(node) {
+    // Regex literals must be keyed by pattern+flags. literalValue returns a
+    // RegExp whose JSON.stringify is "{}", which would collapse distinct patterns.
+    if (node?.type === 'Literal' && node.regex) {
+        return `re:${JSON.stringify(node.regex.pattern)}:${JSON.stringify(node.regex.flags)}`;
+    }
+
     const value = literalValue(node);
     if (value === undefined) {
         if (node?.type === 'Identifier') {
@@ -73,9 +79,6 @@ function serializeArg(node) {
         }
         if (node?.type === 'UnaryExpression' && node.operator === '!' && node.argument?.type === 'Literal') {
             return `!${JSON.stringify(node.argument.value)}`;
-        }
-        if (node?.type === 'Literal' && node.regex) {
-            return String(node.raw);
         }
         return null;
     }
@@ -169,22 +172,31 @@ function getSettingType(objectExpression) {
     return literalValue(typeProp.value);
 }
 
+function parseSerializedStringArg(serialized) {
+    try {
+        const value = JSON.parse(serialized);
+        return typeof value === 'string' ? value : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
 function dependencyParentKeys(conditions) {
     const parents = [];
     for (const {key} of conditions) {
         // stateIsFalse:"Section.Setting" or not:stateIsTrue:"Section.Setting"
         let match = (/^stateIsFalse:(.*)$/).exec(key);
         if (match) {
-            const value = JSON.parse(match[1]);
-            if (typeof value === 'string') {
+            const value = parseSerializedStringArg(match[1]);
+            if (value !== undefined) {
                 parents.push(value);
             }
             continue;
         }
         match = (/^not:stateIsTrue:(.*)$/).exec(key);
         if (match) {
-            const value = JSON.parse(match[1]);
-            if (typeof value === 'string') {
+            const value = parseSerializedStringArg(match[1]);
+            if (value !== undefined) {
                 parents.push(value);
             }
         }

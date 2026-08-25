@@ -103,6 +103,54 @@ ruleTester.run('no-redundant-admin-config-deps', rule, {
         },
         {
 
+            // Distinct regex patterns on the same helper+key are not the same condition.
+
+            filename,
+            code: `
+                const AdminDefinition = {
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'SupportSettings.Enable',
+                            isDisabled: it.stateMatches('SupportSettings.ReportAProblemType', /link/),
+                        },
+                        {
+                            type: 'text',
+                            key: 'SupportSettings.Mail',
+                            isDisabled: it.any(
+                                it.stateIsFalse('SupportSettings.Enable'),
+                                it.stateMatches('SupportSettings.ReportAProblemType', /email/),
+                            ),
+                        },
+                    ],
+                };
+            `,
+        },
+        {
+
+            // Identifier parent keys must not throw during canonicalize/JSON.parse.
+
+            filename,
+            code: `
+                const PARENT_KEY = 'ServiceSettings.EnableOAuthServiceProvider';
+                const AdminDefinition = {
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableDynamicClientRegistration',
+                            isDisabled: it.stateIsFalse(PARENT_KEY),
+                        },
+                        {
+                            type: 'text',
+                            key: 'ServiceSettings.DCRRedirectURIAllowlist',
+                            isDisabled: it.stateIsFalse('ServiceSettings.EnableDynamicClientRegistration'),
+                        },
+                    ],
+                };
+            `,
+        },
+        {
+
             // Non-admin_definition files are ignored
 
             filename: 'other_file.tsx',
@@ -257,6 +305,34 @@ ruleTester.run('no-redundant-admin-config-deps', rule, {
                 {messageId: 'redundant', data: {condition: 'configIsTrue:"ClusterSettings","Enable"', setting: 'FeatureSettings.Mid', parent: 'FeatureSettings.Root'}},
                 {messageId: 'redundant', data: {condition: 'stateIsFalse:"FeatureSettings.Root"', setting: 'FeatureSettings.Leaf', parent: 'FeatureSettings.Mid'}},
                 {messageId: 'redundant', data: {condition: 'configIsTrue:"ClusterSettings","Enable"', setting: 'FeatureSettings.Leaf', parent: 'FeatureSettings.Mid'}},
+            ],
+        },
+        {
+
+            // Same regex on parent and child is redundant; distinct patterns are not.
+
+            filename,
+            code: `
+                const AdminDefinition = {
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'SupportSettings.Enable',
+                            isDisabled: it.stateMatches('SupportSettings.ReportAProblemType', /link/),
+                        },
+                        {
+                            type: 'text',
+                            key: 'SupportSettings.Mail',
+                            isDisabled: it.any(
+                                it.stateIsFalse('SupportSettings.Enable'),
+                                it.stateMatches('SupportSettings.ReportAProblemType', /link/),
+                            ),
+                        },
+                    ],
+                };
+            `,
+            errors: [
+                {messageId: 'redundant', data: {condition: 'stateMatches:"SupportSettings.ReportAProblemType",re:"link":""', setting: 'SupportSettings.Mail', parent: 'SupportSettings.Enable'}},
             ],
         },
     ],
