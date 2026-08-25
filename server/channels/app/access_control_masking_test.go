@@ -1758,3 +1758,125 @@ func TestAppMaskingResolver_GraphWithheldOptionList(t *testing.T) {
 	assert.False(t, info.IsValueHidden("F-18 Program"), "an option below the one the caller holds")
 	assert.True(t, info.IsValueHidden("Air Program"), "an option above the one the caller holds")
 }
+
+// TestGetMaskedVisualAST_GraphWithheldOptionList covers the policy editor's
+// masking path (maskConditionValues -> graphConditionVisibleNames) for the
+// same withheld-option-list graph field TestAppMaskingResolver_GraphWithheldOptionList
+// covers on the resolver path. The two paths resolve the same question with
+// different code and can disagree, so both need their own coverage.
+func TestGetMaskedVisualAST_GraphWithheldOptionList(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+	groupID := cpaGroup.ID
+
+	air, jet, f18 := model.NewId(), model.NewId(), model.NewId()
+	// One chain of three at the front, and filler past the cap behind it —
+	// the shape a real graph field is expected to have.
+	options := []any{
+		map[string]any{"id": air, "name": "Air Program"},
+		map[string]any{"id": jet, "name": "Fighter Jet Program"},
+		map[string]any{"id": f18, "name": "F-18 Program"},
+	}
+	for i := len(options); i <= model.PropertyFieldMaxHydratedOptions; i++ {
+		options = append(options, map[string]any{"id": model.NewId(), "name": fmt.Sprintf("Program %04d", i)})
+	}
+
+	fieldName := celSafeName()
+	field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       fieldName,
+		Type:       model.PropertyFieldTypeGraph,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: options,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+		},
+	})
+	require.NoError(t, sErr)
+
+	//	Air Program ── Fighter Jet Program ── F-18 Program
+	require.NoError(t, th.Store.PropertyField().MutateOptions(groupID, field.ID, field.UpdateAt, nil, []*model.PropertyOptionEdge{
+		{FieldID: field.ID, ChildOptionID: jet, ParentOptionID: air},
+		{FieldID: field.ID, ChildOptionID: f18, ParentOptionID: jet},
+	}, nil))
+
+	callerID := model.NewId()
+	_, vErr := th.Store.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   callerID,
+		TargetType: model.PropertyValueTargetTypeUser,
+		GroupID:    groupID,
+		FieldID:    field.ID,
+		Value:      json.RawMessage(`["` + jet + `"]`),
+	})
+	require.NoError(t, vErr)
+
+	// Confirm the size actually pushed this read past the cap, rather than
+	// silently exercising the already-covered inlined path.
+	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
+	readField, appErr := th.App.GetPropertyFieldByNameForObjectType(rctxWithCaller, groupID, "", model.PropertyFieldObjectTypeUser, fieldName)
+	require.Nil(t, appErr)
+	require.True(t, model.PropertyFieldOptionsOmitted(readField.Attrs), "field must read back with its option list withheld")
+
+	attribute := "user.attributes." + fieldName
+
+	t.Run("single-literal condition on the held option survives", func(t *testing.T) {
+		visualAST := &model.VisualExpression{
+			Conditions: []model.Condition{
+				{Attribute: attribute, Operator: "==", Value: "Fighter Jet Program", ValueType: model.LiteralValue},
+			},
+		}
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(visualAST, nil).Once()
+
+		result, err := th.App.GetMaskedVisualAST(rctx, "irrelevant", callerID)
+		require.Nil(t, err)
+		require.Len(t, result.Conditions, 1)
+		assert.Equal(t, "Fighter Jet Program", result.Conditions[0].Value)
+		assert.False(t, result.Conditions[0].HasMaskedValues)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("single-literal condition on an option above the held one is removed", func(t *testing.T) {
+		visualAST := &model.VisualExpression{
+			Conditions: []model.Condition{
+				{Attribute: attribute, Operator: "==", Value: "Air Program", ValueType: model.LiteralValue},
+			},
+		}
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(visualAST, nil).Once()
+
+		result, err := th.App.GetMaskedVisualAST(rctx, "irrelevant", callerID)
+		require.Nil(t, err)
+		require.Len(t, result.Conditions, 1)
+		assert.Nil(t, result.Conditions[0].Value)
+		assert.True(t, result.Conditions[0].HasMaskedValues)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("multi-literal condition partially masks", func(t *testing.T) {
+		visualAST := &model.VisualExpression{
+			Conditions: []model.Condition{
+				{Attribute: attribute, Operator: "in", Value: []any{"F-18 Program", "Air Program"}, ValueType: model.LiteralValue},
+			},
+		}
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(visualAST, nil).Once()
+
+		result, err := th.App.GetMaskedVisualAST(rctx, "irrelevant", callerID)
+		require.Nil(t, err)
+		require.Len(t, result.Conditions, 1)
+		assert.Equal(t, []any{"F-18 Program"}, result.Conditions[0].Value, "an option below the held one survives")
+		assert.True(t, result.Conditions[0].HasMaskedValues, "the option above the held one was removed")
+		mockACS.AssertExpectations(t)
+	})
+}
