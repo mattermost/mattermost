@@ -130,7 +130,31 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disable
             className='AttributeExternalSource'
             data-testid='attributeExternalSource'
         >
-            <Divider className='AttributeExternalSource__divider'/>
+            {linkedSources.length === 0 && (
+                <Divider className='AttributeExternalSource__divider'/>
+            )}
+            {linkedSources.length > 0 && (
+                <div
+                    className='AttributeExternalSource__synced'
+                    data-testid='attributeExternalSourceSynced'
+                >
+                    <span className='AttributeExternalSource__syncedLabel'>
+                        <FormattedMessage {...messages.syncedWith}/>
+                    </span>
+                    <div className='AttributeExternalSource__chips'>
+                        {linkedSources.map((source) => (
+                            <ExternalSourceChip
+                                key={source}
+                                source={source}
+                                value={sourceValue(source, ldapAttr, samlAttr)}
+                                onEdit={() => openLinkModal(source)}
+                                onRemove={() => onLink(source, '')}
+                                disabled={disabled}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
             {unlinkedSources.length > 0 && (
                 <Menu.Container
                     menuButton={{
@@ -167,20 +191,6 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disable
                         />
                     ))}
                 </Menu.Container>
-            )}
-            {linkedSources.length > 0 && (
-                <div className='AttributeExternalSource__chips'>
-                    {linkedSources.map((source) => (
-                        <ExternalSourceChip
-                            key={source}
-                            source={source}
-                            value={sourceValue(source, ldapAttr, samlAttr)}
-                            onEdit={() => openLinkModal(source)}
-                            onRemove={() => onLink(source, '')}
-                            disabled={disabled}
-                        />
-                    ))}
-                </div>
             )}
             <span
                 role='status'
@@ -245,6 +255,7 @@ export default AttributeExternalSource;
 
 const messages = defineMessages({
     triggerLabel: {id: 'admin.global_attributes.attribute_details.external_source.trigger_label', defaultMessage: 'Link to external source'},
+    syncedWith: {id: 'admin.global_attributes.attribute_details.external_source.synced_with', defaultMessage: 'Synced with'},
     editLink: {id: 'admin.global_attributes.attribute_details.external_source.edit_link', defaultMessage: 'Edit {source} link'},
     removeLink: {id: 'admin.global_attributes.attribute_details.external_source.remove_link', defaultMessage: 'Remove {source} link'},
     chipLabel: {id: 'admin.global_attributes.attribute_details.external_source.chip_label', defaultMessage: '{source}: {value}'},

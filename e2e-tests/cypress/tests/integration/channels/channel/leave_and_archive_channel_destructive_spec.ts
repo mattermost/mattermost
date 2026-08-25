@@ -47,6 +47,7 @@ describe('Leave and Archive channel actions display as destructive', () => {
 
         // * Move to... close menu option
         cy.findByText('Move to...').should('be.visible').trigger('mouseout');
+        cy.findByRole('menuitem', {name: 'Move to...'}).should('have.attr', 'aria-expanded', 'false');
 
         // * Notification Preferences menu option should be visible
         cy.get('#channelNotificationPreferences').should('be.visible');
