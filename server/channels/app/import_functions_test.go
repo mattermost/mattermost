@@ -598,6 +598,34 @@ func TestImportImportTeam(t *testing.T) {
 	assert.Equal(t, scheme2.Id, *team.SchemeId)
 }
 
+func TestImportImportTeamPreservesDisplayNameWhenDestinationSet(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// Create the team directly so it has a manually-set display name on the destination.
+	existingTeam, err := th.App.CreateTeam(th.Context, &model.Team{
+		Name:        model.NewRandomTeamName(),
+		DisplayName: "Destination Display Name",
+		Type:        model.TeamOpen,
+	})
+	require.Nil(t, err)
+
+	// Import the same team name with a different display name from the export.
+	data := imports.TeamImportData{
+		Name:        &existingTeam.Name,
+		DisplayName: model.NewPointer("Export Display Name"),
+		Type:        model.NewPointer("O"),
+	}
+	appErr := th.App.importTeam(th.Context, &data, false, existingTeam.Name)
+	require.Nil(t, appErr)
+
+	// The destination's display name must be preserved.
+	updated, appErr := th.App.GetTeamByName(existingTeam.Name)
+	require.Nil(t, appErr)
+	assert.Equal(t, "Destination Display Name", updated.DisplayName,
+		"importTeam with a non-empty destinationTeam must not overwrite the existing display name")
+}
+
 func TestImportImportChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)

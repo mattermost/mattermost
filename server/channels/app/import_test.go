@@ -5,6 +5,7 @@ package app
 
 import (
 	"archive/zip"
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -1351,6 +1352,53 @@ func TestCheckpointResume(t *testing.T) {
 	assert.NotContains(t, messages, "before-checkpoint", "post before checkpoint should have been skipped")
 	assert.Contains(t, messages, "after-checkpoint", "post after checkpoint should have been imported")
 }
+
+// TestScanErrorDoesNotAdvanceCheckpoint verifies that a scanner I/O error
+// does not cause onCheckpoint to be called, so a pre-existing checkpoint is
+// never replaced with a lower (or zero) value on resume.
+func TestScanErrorDoesNotAdvanceCheckpoint(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// errReader emits `good` bytes then returns `readErr` on the next Read.
+	type errReader struct {
+		data []byte
+		pos  int
+		err  error
+	}
+	readErr := errors.New("simulated scan error")
+	r := &errReader{
+		data: []byte(`{"type":"version","version":1}` + "\n"),
+		err:  readErr,
+	}
+	readFn := func(p []byte) (int, error) {
+		if r.pos < len(r.data) {
+			n := copy(p, r.data[r.pos:])
+			r.pos += n
+			return n, nil
+		}
+		return 0, r.err
+	}
+
+	checkpointCalled := false
+	opts := model.BulkImportOpts{
+		OnCheckpoint: func(_ int) { checkpointCalled = true },
+	}
+
+	_, appErr := th.App.BulkImportWithPathAndOpts(
+		th.Context,
+		readerFunc(readFn),
+		nil,
+		false, false, 1, "", opts,
+	)
+	require.NotNil(t, appErr, "expected an error from the scan failure")
+	require.False(t, checkpointCalled, "onCheckpoint must not be called when the scanner fails")
+}
+
+// readerFunc adapts a plain func([]byte)(int,error) into an io.Reader.
+type readerFunc func([]byte) (int, error)
+
+func (f readerFunc) Read(p []byte) (int, error) { return f(p) }
 
 // makeZipWithJSONL creates an in-memory zip containing a single import.jsonl
 // entry with the provided content, returning a *zip.Reader over it.

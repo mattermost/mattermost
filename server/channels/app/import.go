@@ -418,13 +418,13 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 		}
 	}
 
+	if err := scanner.Err(); err != nil {
+		return 0, model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	// Final checkpoint — all content processed successfully.
 	if onCheckpoint != nil {
 		onCheckpoint(lineNumber)
-	}
-
-	if err := scanner.Err(); err != nil {
-		return 0, model.NewAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return 0, nil
