@@ -283,7 +283,7 @@ func TestServiceSettingsHardenedModeMigration(t *testing.T) {
 		ss.SetDefaults(false)
 
 		require.False(t, *ss.EnableHardenedMode)
-		require.Nil(t, ss.ExperimentalEnableHardenedMode)
+		require.False(t, *ss.ExperimentalEnableHardenedMode)
 		assert.Nil(t, ss.isValid())
 	})
 
@@ -299,7 +299,7 @@ func TestServiceSettingsHardenedModeMigration(t *testing.T) {
 		ss.SetDefaults(false)
 
 		require.True(t, *ss.EnableHardenedMode)
-		require.Nil(t, ss.ExperimentalEnableHardenedMode)
+		require.True(t, *ss.ExperimentalEnableHardenedMode)
 		assert.Nil(t, ss.isValid())
 	})
 
@@ -311,7 +311,7 @@ func TestServiceSettingsHardenedModeMigration(t *testing.T) {
 		ss.SetDefaults(false)
 
 		require.False(t, *ss.EnableHardenedMode)
-		require.Nil(t, ss.ExperimentalEnableHardenedMode)
+		require.True(t, *ss.ExperimentalEnableHardenedMode)
 		assert.Nil(t, ss.isValid())
 	})
 }
