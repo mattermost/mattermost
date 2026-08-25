@@ -803,6 +803,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     />
                 );
             }
+            case 'graph':
             case 'multiselect': {
                 const options = field.attrs?.options || [];
                 const selectedValues = Array.isArray(value) ? value : [];

@@ -15,7 +15,7 @@ import SystemUserDetail, {getUserAuthenticationTextField} from 'components/admin
 import type {Params, Props} from 'components/admin_console/system_user_detail/system_user_detail';
 
 import type {MockIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext, screen, waitFor, waitForElementToBeRemoved} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, waitForElementToBeRemoved, within} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -564,8 +564,7 @@ describe('SystemUserDetail', () => {
             expect(input).toBeDisabled();
         });
 
-        test('should resolve graph field option ids to names in the change summary', async () => {
-            const userEventInstance = userEvent.setup();
+        test('should render a graph field\'s stored option ids as names in the picker', async () => {
             const graphField = {
                 ...buildCPAField({
                     options: [
@@ -586,15 +585,48 @@ describe('SystemUserDetail', () => {
 
             await waitForLoadingToFinish();
 
-            const input = screen.getByTestId('user-detail-custom-attribute-label-cpa-1').querySelector('input') as HTMLInputElement;
-            await userEventInstance.clear(input);
-            await userEventInstance.type(input, 'opt-3');
+            const fieldContainer = screen.getByTestId('user-detail-custom-attribute-label-cpa-1');
+            expect(fieldContainer).toHaveTextContent('Alpha');
+            expect(fieldContainer).toHaveTextContent('Beta');
+            expect(fieldContainer).not.toHaveTextContent('opt-1');
+            expect(fieldContainer).not.toHaveTextContent('opt-2');
+        });
+
+        test('should resolve graph field option ids to names in the change summary', async () => {
+            const userEventInstance = userEvent.setup();
+            const graphField = {
+                ...buildCPAField({
+                    options: [
+                        {id: 'opt-1', name: 'Alpha'},
+                        {id: 'opt-2', name: 'Beta'},
+                        {id: 'opt-3', name: 'Gamma'},
+                    ],
+                }),
+                type: 'graph',
+            } as UserPropertyField;
+            const props = {
+                ...defaultProps,
+                customProfileAttributeFields: [graphField],
+                getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: [graphField]}),
+                getCustomProfileAttributeValues: jest.fn().mockResolvedValue({data: {[graphField.id]: ['opt-1', 'opt-2']}}),
+            };
+
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForLoadingToFinish();
+
+            const fieldContainer = screen.getByTestId('user-detail-custom-attribute-label-cpa-1');
+            const picker = within(fieldContainer).getByRole('combobox');
+            await userEventInstance.click(picker);
+            await userEventInstance.click(await screen.findByText('Gamma'));
+
             await userEventInstance.click(screen.getByRole('button', {name: 'Save'}));
 
             const changesList = await screen.findByTestId('changesList');
-            expect(changesList).toHaveTextContent('Alpha, Beta');
+            expect(changesList).toHaveTextContent('Alpha, Beta, Gamma');
             expect(changesList).not.toHaveTextContent('opt-1');
             expect(changesList).not.toHaveTextContent('opt-2');
+            expect(changesList).not.toHaveTextContent('opt-3');
         });
     });
 });
