@@ -204,6 +204,96 @@ func TestPropertyFieldOptions(t *testing.T) {
 		}
 	})
 
+	t.Run("an access-controlled field's option list is withheld from the websocket broadcast", func(t *testing.T) {
+		// A broadcast has no recipient to filter options against, so a shared_only
+		// field must go out with none at all -- unlike the public fields above,
+		// which still carry theirs. A client that needs the list reads the field
+		// back, and that read is filtered per caller.
+		none := model.PermissionLevelNone
+		sysadmin := model.PermissionLevelSysadmin
+		sharedTemplate, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       graph,
+			GroupID:    group.ID,
+			ObjectType: template,
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected:  true,
+				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+			},
+			Protected:         true,
+			PermissionField:   &none,
+			PermissionValues:  &sysadmin,
+			PermissionOptions: &memberLevel,
+		}, true, "")
+		require.Nil(t, appErr)
+
+		sharedLinked, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:          model.NewId(),
+			GroupID:       group.ID,
+			ObjectType:    userObject,
+			TargetType:    "system",
+			LinkedFieldID: &sharedTemplate.ID,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsProtected:  true,
+				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+			},
+			Protected:       true,
+			PermissionField: &none,
+		}, true, "")
+		require.Nil(t, appErr)
+
+		created, resp, err := th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), group.Name, template, sharedTemplate.ID, []*model.PropertyFieldOption{
+			namedOption("Air Program"),
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		_, _, err = th.SystemAdminClient.PatchPropertyFieldOptions(context.Background(), group.Name, template, sharedTemplate.ID, []*model.PropertyFieldOption{
+			{ID: created[0].ID, Name: "Aerial Program"},
+		})
+		require.NoError(t, err)
+
+		announced := map[string]*model.WebSocketEvent{}
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() != model.WebsocketEventPropertyFieldUpdated {
+					return false
+				}
+				var received model.PropertyField
+				require.NoError(t, json.Unmarshal([]byte(event.GetData()["property_field"].(string)), &received))
+				announced[received.ID] = event
+			default:
+			}
+			return len(announced) == 2
+		}, 5*time.Second, 100*time.Millisecond)
+
+		for _, fieldID := range []string{sharedTemplate.ID, sharedLinked.ID} {
+			event := announced[fieldID]
+			require.NotNil(t, event, "no event for field %s", fieldID)
+
+			var received model.PropertyField
+			require.NoError(t, json.Unmarshal([]byte(event.GetData()["property_field"].(string)), &received))
+
+			options, ok := received.Attrs[model.PropertyFieldAttributeOptions].([]any)
+			require.True(t, ok, "field %s should still carry an options key", fieldID)
+			require.Empty(t, options)
+			_, hasCount := received.Attrs[model.PropertyFieldAttributeOptionsCount]
+			require.False(t, hasCount, "field %s should carry no options_count", fieldID)
+			_, hasOmitted := received.Attrs[model.PropertyFieldAttributeOptionsOmitted]
+			require.False(t, hasOmitted, "field %s should carry no options_omitted", fieldID)
+		}
+
+		// The rename landed -- the broadcast was masked, not the write rejected.
+		listed, _, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, template, sharedTemplate.ID, 0, "", 100)
+		require.NoError(t, err)
+		require.Equal(t, []string{"Aerial Program"}, optionNames(listed))
+	})
+
 	t.Run("the effective set is listed, with inherited options read-only", func(t *testing.T) {
 		fields := setupOptionFields(t, th, group.ID, graph, memberLevel, nil)
 

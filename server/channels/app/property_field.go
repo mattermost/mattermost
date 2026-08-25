@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"maps"
 	"net/http"
 	"reflect"
 	"strings"
@@ -57,6 +58,16 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	teamID, channelID, ok := propertyFieldBroadcastParams(rctx, field)
 	if !ok {
 		return
+	}
+	// A broadcast has no recipient to filter options against, so any
+	// non-public field must go out with none at all — a caller reads the
+	// field back afterward to get the copy filtered for them.
+	if field.GetAccessMode() != model.PropertyAccessModePublic && field.Type.SupportsOptions() {
+		masked := *field
+		masked.Attrs = make(model.StringInterface, len(field.Attrs))
+		maps.Copy(masked.Attrs, field.Attrs)
+		masked.HideOptions()
+		field = &masked
 	}
 	fieldJSON, err := json.Marshal(field)
 	if err != nil {
