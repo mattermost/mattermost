@@ -114,6 +114,30 @@ func (h *graphSharedOnlyHelper) visibleOptions(t *testing.T, callerID string, va
 	return optionIDs
 }
 
+// visibleOptionsBatch reads several values back in one call as the given
+// caller, the path a batch read of a field's values takes, and reports the
+// options each was shown by target ID. A target left out of the result was
+// hidden from the caller entirely.
+func (h *graphSharedOnlyHelper) visibleOptionsBatch(t *testing.T, callerID string, values ...*model.PropertyValue) map[string][]string {
+	t.Helper()
+
+	ids := make([]string, len(values))
+	for i, value := range values {
+		ids[i] = value.ID
+	}
+
+	retrieved, err := h.th.service.GetPropertyValues(RequestContextWithCallerID(h.th.Context, callerID), h.th.CPAGroupID, ids)
+	require.NoError(t, err)
+
+	byTarget := make(map[string][]string, len(retrieved))
+	for _, value := range retrieved {
+		var optionIDs []string
+		require.NoError(t, json.Unmarshal(value.Value, &optionIDs))
+		byTarget[value.TargetID] = optionIDs
+	}
+	return byTarget
+}
+
 // listedOptions lists one page of a field's options as the given caller, from the
 // option rows rather than from the list a field read carries inline.
 func (h *graphSharedOnlyHelper) listedOptions(t *testing.T, callerID string, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) []*model.PropertyFieldOption {
@@ -271,6 +295,38 @@ func TestGraphSharedOnly_Value(t *testing.T) {
 		assert.ElementsMatch(t, []string{"Air Program", "Sea Program"},
 			namesOf(ids, h.visibleOptions(t, "test-plugin", target)))
 	})
+}
+
+// TestGraphSharedOnly_ValueBatch covers what a single caller sees of several
+// targets' values on one shared_only graph field read in one batch. Reading a
+// batch is what lets the caller's own holdings and the coverage walk be reused
+// across targets instead of redone per target, and this asserts that reuse
+// never leaks one target's options into another's answer or changes what any
+// individual target's value masks to on its own -- see TestGraphSharedOnly_Value
+// for the single-value form of each of these cases.
+func TestGraphSharedOnly_ValueBatch(t *testing.T) {
+	h := setupGraphSharedOnly(t)
+	field, ids := h.newField(t, "programs-value-batch", programHierarchy, programNames...)
+
+	caller := model.NewId()
+	h.assign(t, field.ID, caller, ids["F-18 Program"])
+
+	covered := h.assign(t, field.ID, model.NewId(), ids["F-18 Program"])
+	below := h.assign(t, field.ID, model.NewId(), ids["Fighter Jet Program"])
+	unrelated := h.assign(t, field.ID, model.NewId(), ids["Sea Program"])
+	several := h.assign(t, field.ID, model.NewId(),
+		ids["F-18 Program"], ids["Air Program"], ids["Sea Program"])
+
+	visible := h.visibleOptionsBatch(t, caller, covered, below, unrelated, several)
+
+	assert.Equal(t, []string{"F-18 Program"}, namesOf(ids, visible[covered.TargetID]),
+		"a target the caller covers directly is shown as it stands")
+	assert.Equal(t, []string{"F-18 Program"}, namesOf(ids, visible[below.TargetID]),
+		"a target above the caller's own option is clamped to their own part of it")
+	_, unrelatedVisible := visible[unrelated.TargetID]
+	assert.False(t, unrelatedVisible, "a target on an unrelated branch drops out of the batch")
+	assert.Equal(t, []string{"F-18 Program"}, namesOf(ids, visible[several.TargetID]),
+		"a target holding several options at once is still answered on its own")
 }
 
 // TestGraphSharedOnly_ValueMultiParent covers the shape a hierarchy has once an
