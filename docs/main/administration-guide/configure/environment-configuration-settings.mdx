@@ -330,7 +330,7 @@ Changes made when hardened mode is enabled:
 - Failed login returns a generic error message instead of a specific message for username and password.
 - If [multi-factor authentication (MFA)](/administration-guide/onboard/multi-factor-authentication) is enabled, the route to check if a user has MFA enabled always returns true. This causes the MFA input screen to appear even if the user does not have MFA enabled. The user may enter any value to pass the screen. Note that hardened mode does not affect user experience when MFA is enforced.
 - Password reset does not inform the user that they can not reset their SSO account through Mattermost and instead claims to have sent the password reset email.
-- Mattermost sanitizes all 500 errors before returned to the client. Use the supplied `request_id` to match user facing errors with the server logs.
+- Mattermost sanitizes all 500 errors before returned to the client. Use the supplied `request_id` to match user-facing errors with the server logs.
 - Standard users authenticated via username and password can't use post props reserved for integrations, such as `override_username` or `override_icon_url`.
 
 </Note>
