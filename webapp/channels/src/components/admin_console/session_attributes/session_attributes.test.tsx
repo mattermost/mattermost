@@ -59,7 +59,7 @@ function makeField(name: string, type: 'text' | 'select', sortOrder: number, ext
 }
 
 const representativeFields: UserPropertyField[] = [
-    makeField('ip_address', 'text', 0, {
+    makeField('client_ip_address', 'text', 0, {
         display_name: 'Client IP',
         platforms: ['desktop', 'browser'],
         ttl_seconds: 300,
@@ -212,9 +212,9 @@ describe('SessionAttributesPage', () => {
 
         await screen.findByText('Client IP');
 
-        await userEvent.click(screen.getByTestId('session-attribute-dotmenu-session-ip_address'));
+        await userEvent.click(screen.getByTestId('session-attribute-dotmenu-session-client_ip_address'));
         await userEvent.hover(screen.getByRole('menuitem', {name: /Time-to-live/}));
-        await userEvent.click(await screen.findByTestId('session-attribute-ttl-option-session-ip_address-3600'));
+        await userEvent.click(await screen.findByTestId('session-attribute-ttl-option-session-client_ip_address-3600'));
 
         const saveButton = screen.getByRole('button', {name: /Save/});
         expect(saveButton).toBeEnabled();
@@ -228,7 +228,7 @@ describe('SessionAttributesPage', () => {
             expect(patchPropertyField).toHaveBeenCalledWith(
                 SESSION_ATTRIBUTES_GROUP_ID,
                 SESSION_ATTRIBUTES_OBJECT_TYPE,
-                'session-ip_address',
+                'session-client_ip_address',
                 {attrs: {ttl_seconds: 3600}},
             );
         });
@@ -255,9 +255,9 @@ describe('SessionAttributesPage', () => {
         await screen.findByText('Client IP');
         expect(store.getState().views.admin.navigationBlock.blocked).toBe(false);
 
-        await userEvent.click(screen.getByTestId('session-attribute-dotmenu-session-ip_address'));
+        await userEvent.click(screen.getByTestId('session-attribute-dotmenu-session-client_ip_address'));
         await userEvent.hover(screen.getByRole('menuitem', {name: /Time-to-live/}));
-        await userEvent.click(await screen.findByTestId('session-attribute-ttl-option-session-ip_address-3600'));
+        await userEvent.click(await screen.findByTestId('session-attribute-ttl-option-session-client_ip_address-3600'));
 
         await waitFor(() => {
             expect(store.getState().views.admin.navigationBlock.blocked).toBe(true);
@@ -277,9 +277,9 @@ describe('SessionAttributesPage', () => {
 
         await screen.findByText('Client IP');
 
-        await userEvent.click(screen.getByTestId('session-attribute-dotmenu-session-ip_address'));
+        await userEvent.click(screen.getByTestId('session-attribute-dotmenu-session-client_ip_address'));
         await userEvent.hover(screen.getByRole('menuitem', {name: /Time-to-live/}));
-        await userEvent.click(await screen.findByTestId('session-attribute-ttl-option-session-ip_address-3600'));
+        await userEvent.click(await screen.findByTestId('session-attribute-ttl-option-session-client_ip_address-3600'));
 
         const stagedRow = screen.getAllByText('Client IP')[0].closest('tr') as HTMLElement;
         expect(within(stagedRow).getByTestId('session-attribute-ttl')).toHaveTextContent('1h');

@@ -156,20 +156,21 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.2
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.7.1
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.3
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.8.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.13.0
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.7.1
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.8.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.11.1
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.0
-PLUGIN_PACKAGES += mattermost-plugin-agents-v2.5.0-rc2
+PLUGIN_PACKAGES += mattermost-plugin-agents-v2.5.1
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.3.1
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.7.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
+PLUGIN_PACKAGES += mattermost-plugin-dataminr-v2.0.0
 
 # Overwrite the definition of PLUGIN_PACKAGES with the list of FIPS-ready plugins
 # Note that the '+' in the file name is encoded as %2B for the URL we use to
@@ -177,7 +178,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.11.1%2B329b65c-fips
-	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.5.0-rc2%2B2119bcf-fips
+	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.5.1%2B276cb86-fips
 	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.3.1%2B29b4688-fips
 endif
 
@@ -259,9 +260,9 @@ endif
 	docker compose rm start_dependencies
 	$(GO) run ./build/docker-compose-generator/main.go $(ENABLED_DOCKER_SERVICES) | docker compose -f docker-compose.makefile.yml -f /dev/stdin $(DOCKER_COMPOSE_OVERRIDE) run -T --rm start_dependencies
   ifneq (,$(findstring openldap,$(ENABLED_DOCKER_SERVICES)))
-	cat tests/custom-schema-objectID.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
-	cat tests/custom-schema-cpa.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest || true';
-	cat tests/${LDAP_DATA}-data.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest || true';
+	cat tests/custom-schema-objectID.ldif | docker compose -f docker-compose.makefile.yml $(DOCKER_COMPOSE_OVERRIDE) exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest_password || true';
+	cat tests/custom-schema-cpa.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -Y EXTERNAL -H ldapi:/// -w mostest_password || true';
+	cat tests/${LDAP_DATA}-data.ldif | docker compose -f docker-compose.makefile.yml ${DOCKER_COMPOSE_OVERRIDE} exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest_password || true';
   endif
 endif
 
@@ -621,7 +622,7 @@ inject-test-data: # add test data to the local instance.
 	@echo You may need to restart the Mattermost server before using the following
 	@echo ========================================================================
 	@echo Login with a system admin account username=sysadmin password=Sys@dmin-sample1
-	@echo Login with a regular account username=user-1 password=SampleUs@r-1
+	@echo Login with a regular account username=user-1 password=SampleUs@r-001
 	@echo ========================================================================
 
 .PHONY: test-mmctl-unit
@@ -740,7 +741,7 @@ run-node: export MM_SERVICESETTINGS_LISTENADDRESS=:8066
 run-node: export MM_SERVICESETTINGS_ENABLELOCALMODE=true
 run-node: export MM_SERVICESETTINGS_LOCALMODESOCKETLOCATION=/var/tmp/mattermost_local_node.socket
 run-node: export MM_SQLSETTINGS_DRIVERNAME=postgres
-run-node: export MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest@localhost/mattermost_node_test?sslmode=disable&sslmode=disable&connect_timeout=10&binary_parameters=yes
+run-node: export MM_SQLSETTINGS_DATASOURCE=postgres://mmuser:mostest_password@localhost/mattermost_node_test?sslmode=disable&sslmode=disable&connect_timeout=10&binary_parameters=yes
 
 run-node: setup-go-work start-docker ## Runs a shared channel node.
 	@echo Running mattermost node
@@ -942,6 +943,7 @@ vet: setup-go-work ## Run mattermost go vet specific checks
 	cd ../tools/mattermost-govet && $(GO) install .
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet \
 		-structuredLogging \
+		-mlogFieldNaming \
 		-inconsistentReceiverName \
 		-emptyStrCmp \
 		-tFatal \
@@ -957,7 +959,17 @@ vet: setup-go-work ## Run mattermost go vet specific checks
 		./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -mlogFieldNaming -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
+  endif
+endif
+
+.PHONY: vet-fix
+vet-fix: setup-go-work ## Apply the suggested fixes from mattermost go vet checks
+	cd ../tools/mattermost-govet && $(GO) install .
+	$(GO) fix -fixtool=$(GOBIN)/mattermost-govet -mlogFieldNaming ./...
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+  ifneq ($(MM_NO_ENTERPRISE_LINT),true)
+	$(GO) fix -fixtool=$(GOBIN)/mattermost-govet -mlogFieldNaming $(BUILD_ENTERPRISE_DIR)/...
   endif
 endif
 

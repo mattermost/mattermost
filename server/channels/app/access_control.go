@@ -1043,6 +1043,41 @@ func clearActualValuesInTree(node *model.PolicySimulationEvaluationNode) {
 	}
 }
 
+// SanitizeSimulationEvaluationTracesForCaller strips evaluation trace
+// trees from a PolicySimulationResponse before it is returned to
+// non-system-admin callers. Evaluation traces are sysadmin-only;
+// channel/team admins still receive flat blame expressions where
+// the simulator attached them, and the frontend falls back to
+// rendering those when evaluation_tree is absent.
+func (a *App) SanitizeSimulationEvaluationTracesForCaller(resp *model.PolicySimulationResponse, callerIsSystemAdmin bool) {
+	if resp == nil || callerIsSystemAdmin {
+		return
+	}
+	for i := range resp.Results {
+		r := &resp.Results[i]
+		for action, dec := range r.Decisions {
+			stripEvaluationTracesFromDecision(&dec)
+			r.Decisions[action] = dec
+		}
+		for j := range r.Sessions {
+			for action, dec := range r.Sessions[j].Decisions {
+				stripEvaluationTracesFromDecision(&dec)
+				r.Sessions[j].Decisions[action] = dec
+			}
+		}
+	}
+}
+
+func stripEvaluationTracesFromDecision(dec *model.PolicySimulationActionDecision) {
+	for i := range dec.Blame {
+		b := &dec.Blame[i]
+		b.EvaluationTree = nil
+		for j := range b.MergedRules {
+			b.MergedRules[j].EvaluationTree = nil
+		}
+	}
+}
+
 // enrichBlameForDraftScope walks the simulator response and:
 //   - copies the failing rule's expression into draft-side blame entries
 //     (this_rule / sibling_rule / sibling_saved) using params.Policy.Rules
@@ -1675,7 +1710,7 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 	for fieldName := range attributes {
 		// Read directly from the store so this security filter sees the raw
 		// access_mode, unaffected by property read hooks for the request caller.
-		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx.Context(), cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
+		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx, cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
 		if fieldErr != nil {
 			delete(attributes, fieldName)
 			continue
@@ -2483,7 +2518,7 @@ func (a *App) BuildAccessControlSubjectForSession(rctx request.CTX, channelID st
 		return nil, appErr
 	}
 
-	attrs, appErr := a.GetSessionAttributes(rctx.Session().Id)
+	attrs, appErr := a.GetSessionAttributes(rctx, rctx.Session().Id)
 	if appErr != nil {
 		return nil, appErr
 	}

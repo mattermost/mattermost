@@ -175,10 +175,7 @@
         "EmailBatchingInterval": 30,
         "EnablePreviewModeBanner": true,
         "SkipServerCertificateVerification": false,
-        "EmailNotificationContentsType": "full",
-        "LoginButtonColor": "#0000",
-        "LoginButtonBorderColor": "#2389D7",
-        "LoginButtonTextColor": "#2389D7"
+        "EmailNotificationContentsType": "full"
     },
     "PrivacySettings": {
         "ShowEmailAddress": true,
@@ -270,7 +267,7 @@
         "ConnectionSecurity": "",
         "BaseDN": "dc=mm,dc=test,dc=com",
         "BindUsername": "cn=admin,dc=mm,dc=test,dc=com",
-        "BindPassword": "mostest",
+        "BindPassword": "mostest_password",
         "UserFilter": "",
         "GroupFilter": "",
         "GuestFilter": "",
@@ -294,10 +291,7 @@
         "QueryTimeout": 60,
         "AnalyticsQueryTimeout": 300,
         "MaxPageSize": 500,
-        "LoginFieldName": "",
-        "LoginButtonColor": "#0000",
-        "LoginButtonBorderColor": "#2389D7",
-        "LoginButtonTextColor": "#2389D7"
+        "LoginFieldName": ""
     },
     "ComplianceSettings": {
         "Enable": false,
@@ -341,10 +335,7 @@
         "NicknameAttribute": "",
         "LocaleAttribute": "",
         "PositionAttribute": "",
-        "LoginButtonText": "SAML",
-        "LoginButtonColor": "#34a28b",
-        "LoginButtonBorderColor": "#2389D7",
-        "LoginButtonTextColor": "#ffffff"
+        "LoginButtonText": "SAML"
     },
     "NativeAppSettings": {
         "AppCustomURLSchemes": [
@@ -392,7 +383,9 @@
             "EmailAddress": "",
             "SMTPServerTimeout": 1800,
             "CustomSMTPServerName": "",
-            "CustomSMTPPort": "25"
+            "CustomSMTPPort": "25",
+            "CustomHeaderName": "",
+            "CustomHeaderValue": ""
         }
     },
     "PluginSettings": {
