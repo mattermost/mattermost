@@ -978,6 +978,124 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.NotNil(t, field.Attrs[model.PropertyFieldAttributeOptions])
 	})
 
+	t.Run("update refuses linking a legacy field that already carries its own options", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    legacyGroup.ID,
+			ObjectType: "", // Legacy
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "LegacyOptsThenLink-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Own Option"},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		fakeSourceID := model.NewId()
+		field.LinkedFieldID = &fakeSourceID
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "creation time")
+	})
+
+	t.Run("update refuses giving a linked legacy field its own options", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+		fakeSourceID := model.NewId()
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       legacyGroup.ID,
+			ObjectType:    "", // Legacy
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LegacyLinkThenOpts-" + model.NewId(),
+			Type:          model.PropertyFieldTypeGraph,
+			LinkedFieldID: &fakeSourceID,
+		})
+		require.NoError(t, err)
+
+		field.Attrs = model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": model.NewId(), "name": "New Option"},
+			},
+		}
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "cannot modify options of a linked field")
+	})
+
+	t.Run("update refuses re-linking a legacy field to a different source", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+		fakeSourceID := model.NewId()
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       legacyGroup.ID,
+			ObjectType:    "", // Legacy
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LegacyRelink-" + model.NewId(),
+			Type:          model.PropertyFieldTypeGraph,
+			LinkedFieldID: &fakeSourceID,
+		})
+		require.NoError(t, err)
+
+		otherSourceID := model.NewId()
+		field.LinkedFieldID = &otherSourceID
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "cannot change link target")
+	})
+
+	t.Run("update with an empty LinkedFieldID on an unlinked legacy field still canonicalizes to nil", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    legacyGroup.ID,
+			ObjectType: "", // Legacy
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "LegacyEmptyLink-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+		})
+		require.NoError(t, err)
+
+		empty := ""
+		field.LinkedFieldID = &empty
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
+		require.NoError(t, err)
+
+		reloaded, err := th.service.GetPropertyField(rctx, legacyGroup.ID, field.ID)
+		require.NoError(t, err)
+		assert.Nil(t, reloaded.LinkedFieldID)
+	})
+
+	t.Run("update renaming a legacy field with nothing link-related still succeeds", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+
+		field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    legacyGroup.ID,
+			ObjectType: "", // Legacy
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "LegacyRename-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+		})
+		require.NoError(t, err)
+
+		field.Name = "LegacyRenamed-" + model.NewId()
+		result, _, err := th.service.UpdatePropertyField(rctx, legacyGroup.ID, field)
+		require.NoError(t, err)
+		assert.Equal(t, field.Name, result.Name)
+	})
+
 	t.Run("create linked field with an empty option list succeeds", func(t *testing.T) {
 		source := createSourceField(t, "EmptyOptsSource-"+model.NewId())
 

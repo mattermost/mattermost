@@ -516,21 +516,9 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 			return nil, nil, nil, err
 		}
 
-		// Legacy properties (PSAv1) skip the conflict check.
-		if field.IsPSAv1() {
-			continue
-		}
-
-		// Block type changes on linked fields
-		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && field.Type != existing.Type {
-			return nil, nil, nil, model.NewAppError(
-				"UpdatePropertyFields",
-				"app.property_field.update.linked_type_change.app_error",
-				nil,
-				"cannot modify type of a linked field",
-				http.StatusBadRequest,
-			)
-		}
+		// Checked before the PSAv1 skip below: which field a linked field's
+		// option list belongs to, and whether a link may be created after the
+		// fact, do not depend on which property generation the field belongs to.
 
 		// Block options changes on linked fields
 		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && optionsChanged(existing.Attrs, field.Attrs) {
@@ -575,6 +563,22 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 				"app.property_field.update.cannot_change_link_target.app_error",
 				nil,
 				"cannot change link target; unlink first then create a new linked field",
+				http.StatusBadRequest,
+			)
+		}
+
+		// Legacy properties (PSAv1) skip the conflict check.
+		if field.IsPSAv1() {
+			continue
+		}
+
+		// Block type changes on linked fields
+		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && field.Type != existing.Type {
+			return nil, nil, nil, model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.linked_type_change.app_error",
+				nil,
+				"cannot modify type of a linked field",
 				http.StatusBadRequest,
 			)
 		}
