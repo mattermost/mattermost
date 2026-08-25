@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"regexp"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -49,6 +50,22 @@ var (
 	urlRe          = regexp.MustCompile(URLRegexpRE)
 	markdownLinkRe = regexp.MustCompile(URLMarkdownLinkRE)
 )
+
+// analysisPluginPrefixes lists the prefixes a managed service can prepend to the component name of
+// an analysis plugin. AWS OpenSearch Service reports a plugin installed through associate-package
+// as "opensearch-analysis-nori", while the plugins it bundles keep their unprefixed names.
+var analysisPluginPrefixes = []string{"", "opensearch-", "elasticsearch-"}
+
+// HasAnalysisPlugin reports whether the named analysis plugin is present in the plugin list
+// reported by the cluster, accepting both the bundled and the prefixed component names.
+func HasAnalysisPlugin(plugins []string, name string) bool {
+	for _, prefix := range analysisPluginPrefixes {
+		if slices.Contains(plugins, prefix+name) {
+			return true
+		}
+	}
+	return false
+}
 
 type ESPost struct {
 	Id          string   `json:"id"`
