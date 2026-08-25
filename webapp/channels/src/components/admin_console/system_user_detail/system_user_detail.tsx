@@ -501,7 +501,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         });
     };
 
-    // Resolves option IDs to display names for select/multiselect/rank CPA fields.
+    // Resolves option IDs to display names for option-backed CPA fields.
     private resolveOptionNames = (field: UserPropertyField, value: string | string[] | undefined): string => {
         if (!value) {
             return this.formatEmptyValue();

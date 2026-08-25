@@ -11,7 +11,7 @@ import type {CreatableProps} from 'react-select/creatable';
 import CreatableSelect from 'react-select/creatable';
 
 import {SyncIcon, PowerPlugOutlineIcon} from '@mattermost/compass-icons/components';
-import {supportsOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import {supportsOptions, valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
 import {type UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getPluginDisplayName} from 'selectors/plugins';
@@ -239,7 +239,7 @@ const UserPropertyValues = ({
     // which a graph field whose options the server withheld could not meet.
     const isGraph = field.type === 'graph';
 
-    if (!supportsOptions(field) && !isGraph) {
+    if (!valueRefersToOptions(field)) {
         return (
             <span className='user-property-field-values'>
                 {'-'}
