@@ -53,15 +53,18 @@ func (ps *PropertyService) AncestorsOrSelf(rctx request.CTX, field *model.Proper
 	return resolved, nil
 }
 
-// coveredBy walks up from each of the given options and reports, for each one,
+// CoveredBy walks up from each of the given options and reports, for each one,
 // whether one of the holders is at-or-above it. Every option asked about has an
-// entry, so a false is an answer and not a gap.
+// entry, so a false is an answer and not a gap. A field of any type other than
+// graph is refused by requireGraphField, through AncestorsOrSelf, and an option
+// the field does not have is covered by nothing.
 //
 // One walk for the whole set, because the question built on this is asked about
 // several options at once -- which of the options one object is marked with may
-// be shown to another -- and a walk seeded with a set costs what a walk seeded
-// with one of them costs.
-func (ps *PropertyService) coveredBy(rctx request.CTX, field *model.PropertyField, optionIDs, holders []string) (map[string]bool, error) {
+// be shown to another, and which of the option names a policy names may be
+// shown to the caller reading the policy -- and a walk seeded with a set costs
+// what a walk seeded with one of them costs.
+func (ps *PropertyService) CoveredBy(rctx request.CTX, field *model.PropertyField, optionIDs, holders []string) (map[string]bool, error) {
 	above, err := ps.AncestorsOrSelf(rctx, field, optionIDs)
 	if err != nil {
 		return nil, err
@@ -112,7 +115,7 @@ func (ps *PropertyService) clampToCoverage(rctx request.CTX, field *model.Proper
 		return nil, nil
 	}
 
-	covered, err := ps.coveredBy(rctx, field, optionIDs, held)
+	covered, err := ps.CoveredBy(rctx, field, optionIDs, held)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +181,7 @@ func (ps *PropertyService) coveredBelow(rctx request.CTX, field *model.PropertyF
 	var candidates []string
 	for len(frontier) > 0 {
 		var covered map[string]bool
-		covered, err = ps.coveredBy(rctx, field, frontier, held)
+		covered, err = ps.CoveredBy(rctx, field, frontier, held)
 		if err != nil {
 			return nil, err
 		}

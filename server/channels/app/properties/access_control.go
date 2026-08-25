@@ -386,7 +386,7 @@ func (h *AccessControlHook) filterSharedOnlyGraphOptionPage(rctx request.CTX, fi
 		pageIDs = append(pageIDs, option.ID)
 	}
 
-	covered, err := h.propertyService.coveredBy(rctx, field, pageIDs, slices.Collect(maps.Keys(held)))
+	covered, err := h.propertyService.CoveredBy(rctx, field, pageIDs, slices.Collect(maps.Keys(held)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to establish which of graph field %s's options the caller may see: %w", field.ID, err)
 	}
@@ -1225,7 +1225,7 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(rctx request.CTX, field
 	// hierarchy; every other type asks whether the caller holds the option itself.
 	var visible map[string]bool
 	if field.Type == model.PropertyFieldTypeGraph {
-		covered, err := h.propertyService.coveredBy(rctx, field,
+		covered, err := h.propertyService.CoveredBy(rctx, field,
 			extractOptionIDList(optionsSlice), slices.Collect(maps.Keys(callerOptionIDs)))
 		if err != nil {
 			rctx.Logger().Error(
