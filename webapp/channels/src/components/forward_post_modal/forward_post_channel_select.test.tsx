@@ -4,11 +4,12 @@
 import React from 'react';
 
 import {compassIconForName} from 'components/channel_type_icon';
+import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import {FormattedOption, makeSelectedChannelOption} from './forward_post_channel_select';
+import ForwardPostChannelSelect, {FormattedOption, makeSelectedChannelOption} from './forward_post_channel_select';
 
 jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
     compassIconForName: jest.fn().mockReturnValue(null),
@@ -33,8 +34,21 @@ jest.mock('components/profile_picture', () => () => (
     />
 ));
 jest.mock('components/shared_channel_indicator', () => () => <span data-testid='shared-channel-indicator'/>);
-jest.mock('components/suggestion/suggestion_results', () => ({flattenItems: jest.fn(() => [])}));
+jest.mock('components/suggestion/suggestion_results', () => ({
+    flattenItems: jest.fn(() => []),
+    normalizeResultsFromProvider: jest.requireActual('components/suggestion/suggestion_results').normalizeResultsFromProvider,
+}));
 jest.mock('components/suggestion/switch_channel_provider', () => jest.fn());
+
+// Captures the loadOptions prop from AsyncSelect so tests can invoke it directly.
+let mockAsyncSelectLoadOptions: ((input: string) => Promise<any>) | undefined;
+jest.mock('react-select/async', () => ({
+    __esModule: true,
+    default: (props: any) => {
+        mockAsyncSelectLoadOptions = props.loadOptions;
+        return null;
+    },
+}));
 jest.mock('components/widgets/tag/bot_tag', () => () => <span data-testid='bot-tag'/>);
 jest.mock('components/widgets/tag/guest_tag', () => () => <span data-testid='guest-tag'/>);
 
@@ -281,5 +295,45 @@ describe('forward_post_channel_select/FormattedOption', () => {
 
         expect(screen.getByTestId('profile-picture')).toBeInTheDocument();
         expect(screen.queryByTestId('stub-override-icon')).not.toBeInTheDocument();
+    });
+});
+
+describe('forward_post_channel_select/ForwardPostChannelSelect', () => {
+    const channel = TestHelper.getChannelMock({id: 'ch-1', type: 'O', name: 'town-square', delete_at: 0});
+    const channelItem = {channel, deactivated: false, discoverableNonMember: false};
+
+    beforeEach(() => {
+        mockAsyncSelectLoadOptions = undefined;
+        jest.mocked(SwitchChannelProvider).mockImplementation(() => ({
+            forceDispatch: false,
+            fetchAndFormatRecentlyViewedChannels: jest.fn(),
+            handlePretextChanged: jest.fn((_input, callback) => {
+                const providerResult = {
+                    matchedPretext: 'town',
+                    terms: ['town-square'],
+                    items: [channelItem],
+                    component: () => null,
+                };
+                callback(providerResult);
+                callback(providerResult);
+                return true;
+            }),
+        } as any));
+    });
+
+    it('maps provider results through normalizeResultsFromProvider into channel options', async () => {
+        const {flattenItems} = jest.requireMock('components/suggestion/suggestion_results');
+        flattenItems.mockReturnValue([channelItem]);
+
+        renderWithContext(
+            <ForwardPostChannelSelect
+                onSelect={jest.fn()}
+                currentBodyHeight={400}
+            />,
+            makeState(),
+        );
+
+        const options = await mockAsyncSelectLoadOptions!('town');
+        expect(options).toEqual([makeSelectedChannelOption(channel)]);
     });
 });

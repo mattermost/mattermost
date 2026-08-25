@@ -33,13 +33,10 @@ const SuggestionDate = ({
     }
 
     // This is safe to do because SearchDateProvider only returns ungrouped results
-    const ungroupedResults = results as SuggestionResultsUngrouped;
-
-    const item = ungroupedResults.items[0];
-    const term = ungroupedResults.terms[0];
+    const ungroupedResults = results as SuggestionResultsUngrouped<SuggestionItem>;
 
     // ReactComponent names need to be upper case when used in JSX
-    const Component = ungroupedResults.components[0];
+    const {term, item, component: Component} = ungroupedResults.suggestions[0];
 
     return (
         <Popover

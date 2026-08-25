@@ -1,9 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ElementType} from 'react';
+
 import type {
     Loading,
     ProviderResults,
+    ProviderResultsGroup,
+    ProviderResultsUngrouped,
+    Suggestion,
     SuggestionResults,
 } from '@mattermost/shared/types/global';
 
@@ -11,7 +16,9 @@ export type {
     Loading,
     ProviderResults,
     ProviderResultsGroup,
+    Suggestion,
     SuggestionResults,
+    SuggestionResultsGroup,
     SuggestionResultsUngrouped,
 } from '@mattermost/shared/types/global';
 
@@ -20,12 +27,10 @@ export function isItemLoaded<Item>(item: Item | Loading): item is Item {
 }
 
 export function emptyResults<Item>(): SuggestionResults<Item> {
-    return {
+    return freezeResults({
         matchedPretext: '',
-        terms: [],
-        items: [],
-        components: [],
-    };
+        suggestions: [],
+    });
 }
 
 export function hasResults(results: SuggestionResults): boolean {
@@ -33,125 +38,127 @@ export function hasResults(results: SuggestionResults): boolean {
 }
 
 export function hasLoadedResults(results: SuggestionResults): boolean {
-    if ('groups' in results) {
-        return results.groups.some((group) => group.items.some(isItemLoaded));
-    }
-
-    return results.items.some(isItemLoaded);
+    return flattenSuggestions(results).some((suggestion) => isItemLoaded(suggestion.item));
 }
 
 export function countResults(results: SuggestionResults): number {
-    if ('groups' in results) {
-        return results.groups.reduce((count, group) => count + group.items.length, 0);
-    }
-
-    return results.items.length;
+    return flattenSuggestions(results).length;
 }
 
 export function getItemForTerm<Item>(results: SuggestionResults<Item>, term: string): Item | undefined {
-    if ('groups' in results) {
-        for (const group of results.groups) {
-            const index = group.terms.indexOf(term);
-            if (index !== -1) {
-                return group.items[index] as Item;
-            }
-        }
-
-        return undefined;
-    }
-
-    const index = results.terms.indexOf(term);
-    return index === -1 ? undefined : results.items[index] as Item;
-}
-
-export function flattenTerms(results: SuggestionResults | ProviderResults): string[] {
-    if ('groups' in results) {
-        return results.groups.flatMap((group) => group.terms);
-    }
-
-    return results.terms;
-}
-
-export function flattenItems<Item>(results: SuggestionResults<Item> | ProviderResults<Item>): Item[] {
-    if ('groups' in results) {
-        return results.groups.flatMap((group) => group.items as Item);
-    }
+    const suggestion = flattenSuggestions(results).find((suggestion) => suggestion.term === term);
 
     // This isn't technically true, but the way that loading items are handled makes typing difficult. We should
     // find a better way to represent that in the future
-    return results.items as Item[];
+    return suggestion?.item as Item | undefined;
 }
 
-export function hasSuggestionWithComponent(results: SuggestionResults, componentType: React.ElementType) {
+export function flattenSuggestions<Item>(results: SuggestionResults<Item>): Array<Suggestion<Item>> {
     if ('groups' in results) {
-        return results.groups.some((group) => group.components.includes(componentType));
+        return results.groups.flatMap((group) => group.suggestions);
     }
 
-    return results.components.includes(componentType);
+    return results.suggestions;
 }
 
-export function normalizeResultsFromProvider<Item>(providerResults: ProviderResults<Item>): SuggestionResults<Item> {
-    if ('components' in providerResults) {
-        return providerResults;
-    }
+export function flattenTerms(results: SuggestionResults): string[] {
+    return flattenSuggestions(results).map((suggestion) => suggestion.term);
+}
 
-    if ('groups' in providerResults) {
-        return {
-            matchedPretext: providerResults.matchedPretext,
-            groups: providerResults.groups.map((group) => {
-                if ('components' in group) {
-                    return group;
-                }
+export function flattenItems<Item>(results: SuggestionResults<Item>): Item[] {
+    // This isn't technically true, but the way that loading items are handled makes typing difficult. We should
+    // find a better way to represent that in the future
+    return flattenSuggestions(results).map((suggestion) => suggestion.item) as Item[];
+}
 
-                const {component, ...otherFields} = group;
-
-                return {
-                    ...otherFields,
-                    components: new Array(group.terms.length).fill(component),
-                };
-            }),
-        };
-    }
-
-    const {component, ...otherFields} = providerResults;
-
-    return {
-        ...otherFields,
-        components: new Array(providerResults.terms.length).fill(component),
-    };
+export function hasSuggestionWithComponent(results: SuggestionResults, componentType: ElementType) {
+    return flattenSuggestions(results).some((suggestion) => suggestion.component === componentType);
 }
 
 /**
- * Trims a list of results so that there are at most a maximum number of suggestions in it. If the results are grouped,
- * empty groups are also removed.
+ * Converts the results emitted by a provider into the results rendered by SuggestionList, pairing each term with
+ * its item and the component which renders them.
  *
- * This function modifies the provided results.
+ * Every array returned by this is freshly allocated, so a provider is free to keep mutating whatever it built its
+ * results from without affecting results that have already been rendered.
  */
-export function trimResults(results: SuggestionResults, max: number) {
-    if ('groups' in results) {
-        let remaining = max;
-
-        let i = 0;
-        while (i < results.groups.length && remaining > 0) {
-            const group = results.groups[i];
-
-            group.items = group.items.slice(0, remaining);
-            group.terms = group.terms.slice(0, remaining);
-            group.components = group.components.slice(0, remaining);
-
-            remaining -= group.items.length;
-
-            i += 1;
-        }
-
-        if (i < results.groups.length) {
-            results.groups = results.groups.slice(0, i);
-        }
-    } else {
-        results.items = results.items.slice(0, max);
-        results.terms = results.terms.slice(0, max);
-        results.components = results.components.slice(0, max);
+export function normalizeResultsFromProvider<Item>(providerResults: ProviderResults<Item>): SuggestionResults<Item> {
+    if ('groups' in providerResults) {
+        return freezeResults({
+            matchedPretext: providerResults.matchedPretext,
+            groups: providerResults.groups.map((group) => ({
+                key: group.key,
+                label: group.label,
+                suggestions: toSuggestions(group),
+            })),
+        });
     }
 
-    return results;
+    return freezeResults({
+        matchedPretext: providerResults.matchedPretext,
+        suggestions: toSuggestions(providerResults),
+    });
+}
+
+function toSuggestions<Item>(results: ProviderResultsGroup<Item> | ProviderResultsUngrouped<Item>): Array<Suggestion<Item>> {
+    // Terms are what identify a suggestion, so an item without one can't be selected or completed and is ignored
+    return results.terms.map((term, index) => ({
+        term,
+        item: results.items[index],
+        component: 'components' in results ? results.components[index] : results.component,
+    }));
+}
+
+/**
+ * Returns a copy of the given results containing at most a maximum number of suggestions. If the results are
+ * grouped, any group left without suggestions is removed.
+ */
+export function trimResults<Item>(results: SuggestionResults<Item>, max: number): SuggestionResults<Item> {
+    if ('groups' in results) {
+        const groups = [];
+
+        let remaining = max;
+        for (const group of results.groups) {
+            if (remaining <= 0) {
+                break;
+            }
+
+            const suggestions = group.suggestions.slice(0, remaining);
+            if (suggestions.length === 0) {
+                continue;
+            }
+
+            remaining -= suggestions.length;
+
+            groups.push({...group, suggestions});
+        }
+
+        return freezeResults({...results, groups});
+    }
+
+    return freezeResults({...results, suggestions: results.suggestions.slice(0, max)});
+}
+
+/**
+ * Results are handed to React and may be read by any render, including one which a concurrent update interrupted
+ * partway through. Freeze them outside of production so that anything holding onto results and mutating them fails
+ * at the mutation instead of tearing a later render.
+ */
+function freezeResults<T extends SuggestionResults<unknown>>(results: T): T {
+    // Skip the overhead of freezing in production, as with the Redux store.
+    // eslint-disable-next-line no-process-env
+    if (process.env.NODE_ENV === 'production') {
+        return results;
+    }
+
+    if ('groups' in results) {
+        for (const group of results.groups) {
+            Object.freeze(group.suggestions);
+        }
+        Object.freeze(results.groups);
+    } else {
+        Object.freeze(results.suggestions);
+    }
+
+    return Object.freeze(results);
 }

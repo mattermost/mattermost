@@ -9,7 +9,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {formatAsComponent} from 'utils/i18n';
 
-import {isItemLoaded, type SuggestionResults} from './suggestion_results';
+import {isItemLoaded, type Suggestion, type SuggestionResults} from './suggestion_results';
 
 export type SuggestionListContentsProps = {
     id: string;
@@ -40,7 +40,7 @@ const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionListConte
     onItemHover,
     onMouseDown,
 }, ref) => {
-    function renderItem(item: unknown, term: string, Component: React.ElementType<any>) {
+    function renderSuggestion({term, item, component: Component}: Suggestion) {
         if (!isItemLoaded(item)) {
             return <LoadingSpinner key={term}/>;
         }
@@ -65,13 +65,9 @@ const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionListConte
         const contents = [];
 
         for (const group of results.groups) {
-            if (group.items.length === 0) {
+            if (group.suggestions.length === 0) {
                 continue;
             }
-
-            const items = group.items.map((item, i) => {
-                return renderItem(item, group.terms[i], group.components[i]);
-            });
 
             contents.push(
                 <GroupedSuggestionsGroup
@@ -79,7 +75,7 @@ const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionListConte
                     groupKey={group.key}
                     labelMessage={group.label}
                 >
-                    {items}
+                    {group.suggestions.map(renderSuggestion)}
                 </GroupedSuggestionsGroup>,
             );
         }
@@ -99,10 +95,7 @@ const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionListConte
         );
     }
 
-    const contents = [];
-    for (let i = 0; i < results.items.length; i++) {
-        contents.push(renderItem(results.items[i], results.terms[i], results.components[i]));
-    }
+    const contents = results.suggestions.map(renderSuggestion);
 
     return (
         <UngroupedSuggestions

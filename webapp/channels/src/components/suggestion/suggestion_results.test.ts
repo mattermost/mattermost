@@ -3,11 +3,15 @@
 
 import cloneDeep from 'lodash/cloneDeep';
 
-import type {SuggestionResults} from 'components/suggestion/suggestion_results';
+import type {ProviderResults, Suggestion, SuggestionResults} from 'components/suggestion/suggestion_results';
 
 import {TestHelper} from 'utils/test_helper';
 
-import {countResults, flattenItems, flattenTerms, getItemForTerm, hasLoadedResults, isItemLoaded, trimResults} from './suggestion_results';
+import {countResults, flattenItems, flattenTerms, getItemForTerm, hasLoadedResults, isItemLoaded, normalizeResultsFromProvider, trimResults} from './suggestion_results';
+
+function suggestions(...terms: string[]): Suggestion[] {
+    return terms.map((term) => ({term, item: `item-${term}`, component: 'span'}));
+}
 
 describe('isItemLoaded', () => {
     test('should return whether or not an item is loaded', () => {
@@ -26,9 +30,7 @@ describe('hasLoadedResults', () => {
             name: 'should return false for empty ungrouped results',
             input: {
                 matchedPretext: '',
-                terms: [],
-                items: [],
-                components: [],
+                suggestions: [],
             },
             expected: false,
         },
@@ -44,9 +46,7 @@ describe('hasLoadedResults', () => {
             name: 'should return false for ungrouped results with only a loading item',
             input: {
                 matchedPretext: '',
-                terms: [''],
-                items: [{loading: true}],
-                components: ['span'],
+                suggestions: [{term: '', item: {loading: true}, component: 'span'}],
             },
             expected: false,
         },
@@ -58,9 +58,7 @@ describe('hasLoadedResults', () => {
                     {
                         key: 'test-users',
                         label: {},
-                        terms: [''],
-                        items: [{loading: true}],
-                        components: ['span'],
+                        suggestions: [{term: '', item: {loading: true}, component: 'span'}],
                     },
                 ],
             },
@@ -70,9 +68,7 @@ describe('hasLoadedResults', () => {
             name: 'should return true for ungrouped results with a single loaded user',
             input: {
                 matchedPretext: '',
-                terms: ['test-user'],
-                items: [TestHelper.getUserMock({username: 'test-user'})],
-                components: ['span'],
+                suggestions: [{term: 'test-user', item: TestHelper.getUserMock({username: 'test-user'}), component: 'span'}],
             },
             expected: true,
         },
@@ -84,9 +80,7 @@ describe('hasLoadedResults', () => {
                     {
                         key: 'test-users',
                         label: {},
-                        terms: ['test-user'],
-                        items: [TestHelper.getUserMock({username: 'test-user'})],
-                        components: ['span'],
+                        suggestions: [{term: 'test-user', item: TestHelper.getUserMock({username: 'test-user'}), component: 'span'}],
                     },
                 ],
             },
@@ -111,9 +105,7 @@ describe('countResults', () => {
             name: 'should return 0 for empty ungrouped results',
             input: {
                 matchedPretext: '',
-                terms: [],
-                items: [],
-                components: [],
+                suggestions: [],
             },
             expected: 0,
         },
@@ -129,9 +121,7 @@ describe('countResults', () => {
             name: 'should be able to count ungrouped results',
             input: {
                 matchedPretext: '',
-                terms: ['a', 'b', 'c'],
-                items: ['a', 'b', 'c'],
-                components: ['span', 'span', 'span'],
+                suggestions: suggestions('a', 'b', 'c'),
             },
             expected: 3,
         },
@@ -140,20 +130,8 @@ describe('countResults', () => {
             input: {
                 matchedPretext: '',
                 groups: [
-                    {
-                        key: 'abc',
-                        label: {},
-                        terms: ['a', 'b', 'c'],
-                        items: ['a', 'b', 'c'],
-                        components: ['span', 'span', 'span'],
-                    },
-                    {
-                        key: 'de',
-                        label: {},
-                        terms: ['d', 'e'],
-                        items: ['d', 'e'],
-                        components: ['span', 'span'],
-                    },
+                    {key: 'abc', label: {}, suggestions: suggestions('a', 'b', 'c')},
+                    {key: 'de', label: {}, suggestions: suggestions('d', 'e')},
                 ],
             },
             expected: 5,
@@ -178,9 +156,7 @@ describe('getItemForTerm', () => {
             name: 'should return the item matching a term with ungrouped results',
             inputResults: {
                 matchedPretext: '',
-                terms: ['a', 'b', 'c'],
-                items: ['item-a', 'item-b', 'item-c'],
-                components: ['span', 'span', 'span'],
+                suggestions: suggestions('a', 'b', 'c'),
             },
             inputTerm: 'a',
             expected: 'item-a',
@@ -190,13 +166,7 @@ describe('getItemForTerm', () => {
             inputResults: {
                 matchedPretext: '',
                 groups: [
-                    {
-                        key: 'abc',
-                        label: {},
-                        terms: ['a', 'b', 'c'],
-                        items: ['item-a', 'item-b', 'item-c'],
-                        components: ['span', 'span', 'span'],
-                    },
+                    {key: 'abc', label: {}, suggestions: suggestions('a', 'b', 'c')},
                 ],
             },
             inputTerm: 'c',
@@ -206,9 +176,7 @@ describe('getItemForTerm', () => {
             name: 'should return undefined when a term isn\'t found with ungrouped results',
             inputResults: {
                 matchedPretext: '',
-                terms: ['a', 'b', 'c'],
-                items: ['item-a', 'item-b', 'item-c'],
-                components: ['span', 'span', 'span'],
+                suggestions: suggestions('a', 'b', 'c'),
             },
             inputTerm: 'd',
             expected: undefined,
@@ -218,13 +186,7 @@ describe('getItemForTerm', () => {
             inputResults: {
                 matchedPretext: '',
                 groups: [
-                    {
-                        key: 'abc',
-                        label: {},
-                        terms: ['a', 'b', 'c'],
-                        items: ['item-a', 'item-b', 'item-c'],
-                        components: ['span', 'span', 'span'],
-                    },
+                    {key: 'abc', label: {}, suggestions: suggestions('a', 'b', 'c')},
                 ],
             },
             inputTerm: 'd',
@@ -250,39 +212,19 @@ describe('flattenTerms and flattenItems', () => {
             name: 'should return flattened arrays for ungrouped results',
             input: {
                 matchedPretext: '',
-                terms: ['a', 'b', 'c'],
-                items: ['item-a', 'item-b', 'item-c'],
-                components: ['span', 'span', 'span'],
+                suggestions: suggestions('a', 'b', 'c'),
             },
             expectedTerms: ['a', 'b', 'c'],
             expectedItems: ['item-a', 'item-b', 'item-c'],
         },
         {
-            name: 'should return flattened arrays for ungrouped results',
+            name: 'should return flattened arrays for grouped results',
             input: {
                 matchedPretext: '',
                 groups: [
-                    {
-                        key: 'ab',
-                        label: {},
-                        terms: ['a', 'b'],
-                        items: ['item-a', 'item-b'],
-                        components: ['span', 'span'],
-                    },
-                    {
-                        key: 'c',
-                        label: {},
-                        terms: ['c'],
-                        items: ['item-c'],
-                        components: ['span'],
-                    },
-                    {
-                        key: 'd',
-                        label: {},
-                        terms: [],
-                        items: [],
-                        components: [],
-                    },
+                    {key: 'ab', label: {}, suggestions: suggestions('a', 'b')},
+                    {key: 'c', label: {}, suggestions: suggestions('c')},
+                    {key: 'd', label: {}, suggestions: []},
                 ],
             },
             expectedTerms: ['a', 'b', 'c'],
@@ -298,6 +240,121 @@ describe('flattenTerms and flattenItems', () => {
     }
 });
 
+describe('normalizeResultsFromProvider', () => {
+    test('should pair each term with its item and component for ungrouped results', () => {
+        const results = normalizeResultsFromProvider({
+            matchedPretext: 'a',
+            terms: ['a', 'b'],
+            items: ['item-a', 'item-b'],
+            component: 'span',
+        });
+
+        expect(results).toEqual({
+            matchedPretext: 'a',
+            suggestions: [
+                {term: 'a', item: 'item-a', component: 'span'},
+                {term: 'b', item: 'item-b', component: 'span'},
+            ],
+        });
+    });
+
+    test('should pair each term with its item and component for grouped results', () => {
+        const results = normalizeResultsFromProvider({
+            matchedPretext: 'a',
+            groups: [
+                {
+                    key: 'ab',
+                    terms: ['a', 'b'],
+                    items: ['item-a', 'item-b'],
+                    component: 'span',
+                },
+                {
+                    key: 'c',
+                    terms: ['c'],
+                    items: ['item-c'],
+                    components: ['div'],
+                },
+            ],
+        });
+
+        expect(results).toEqual({
+            matchedPretext: 'a',
+            groups: [
+                {
+                    key: 'ab',
+                    label: undefined,
+                    suggestions: [
+                        {term: 'a', item: 'item-a', component: 'span'},
+                        {term: 'b', item: 'item-b', component: 'span'},
+                    ],
+                },
+                {
+                    key: 'c',
+                    label: undefined,
+                    suggestions: [{term: 'c', item: 'item-c', component: 'div'}],
+                },
+            ],
+        });
+    });
+
+    test('should not be affected by later changes to the results from the provider', () => {
+        const providerResults: ProviderResults<string> = {
+            matchedPretext: 'a',
+            groups: [
+                {
+                    key: 'ab',
+                    terms: ['a'],
+                    items: ['item-a'],
+                    component: 'span',
+                },
+            ],
+        };
+
+        const results = normalizeResultsFromProvider(providerResults);
+
+        // A provider may keep adding to the arrays that it built its results from, which must not change results
+        // that have already been rendered
+        providerResults.groups[0].terms.push('b');
+        providerResults.groups[0].items.push('item-b');
+
+        expect(countResults(results)).toEqual(1);
+        expect(flattenTerms(results)).toEqual(['a']);
+    });
+
+    test('should return results that can\'t be modified outside of production', () => {
+        const results = normalizeResultsFromProvider({
+            matchedPretext: 'a',
+            groups: [
+                {
+                    key: 'ab',
+                    terms: ['a'],
+                    items: ['item-a'],
+                    component: 'span',
+                },
+            ],
+        });
+
+        if (!('groups' in results)) {
+            throw new Error('expected grouped results');
+        }
+
+        expect(() => results.groups[0].suggestions.push({term: 'b', item: 'item-b', component: 'span'})).toThrow();
+        expect(() => results.groups.push({key: 'cd', suggestions: []})).toThrow();
+    });
+
+    test('should ignore items without a term, since a term is what identifies a suggestion', () => {
+        const results = normalizeResultsFromProvider({
+            matchedPretext: 'a',
+            terms: ['a'],
+            items: ['item-a', 'item-b'],
+            component: 'span',
+        });
+
+        expect(flattenTerms(results)).toEqual(['a']);
+        expect(flattenItems(results)).toEqual(['item-a']);
+    });
+});
+
 describe('trimResults', () => {
     const max = 4;
 
@@ -310,9 +367,7 @@ describe('trimResults', () => {
             name: 'should do nothing with empty ungrouped results',
             input: {
                 matchedPretext: '',
-                terms: [],
-                items: [],
-                components: [],
+                suggestions: [],
             },
             expected: undefined,
         },
@@ -328,9 +383,7 @@ describe('trimResults', () => {
             name: 'should do nothing with fewer than max ungrouped results',
             input: {
                 matchedPretext: '',
-                terms: ['a', 'b'],
-                items: ['a', 'b'],
-                components: ['span', 'span'],
+                suggestions: suggestions('a', 'b'),
             },
             expected: undefined,
         },
@@ -339,125 +392,71 @@ describe('trimResults', () => {
             input: {
                 matchedPretext: '',
                 groups: [
-                    {
-                        key: 'ab',
-                        label: {},
-                        terms: ['a', 'b'],
-                        items: ['a', 'b'],
-                        components: ['span', 'span'],
-                    },
-                    {
-                        key: 'c',
-                        label: {},
-                        terms: ['c'],
-                        items: ['c'],
-                        components: ['span'],
-                    },
+                    {key: 'ab', label: {}, suggestions: suggestions('a', 'b')},
+                    {key: 'c', label: {}, suggestions: suggestions('c')},
                 ],
             },
             expected: undefined,
         },
         {
-            name: 'should trim more than max ungrouped results by removing extra terms/items/components',
+            name: 'should trim more than max ungrouped results',
             input: {
                 matchedPretext: '',
-                terms: ['a', 'b', 'c', 'd', 'e', 'f'],
-                items: ['a', 'b', 'c', 'd', 'e', 'f'],
-                components: ['span', 'span', 'span', 'span', 'span', 'span'],
+                suggestions: suggestions('a', 'b', 'c', 'd', 'e', 'f'),
             },
             expected: {
                 matchedPretext: '',
-                terms: ['a', 'b', 'c', 'd'],
-                items: ['a', 'b', 'c', 'd'],
-                components: ['span', 'span', 'span', 'span'],
+                suggestions: suggestions('a', 'b', 'c', 'd'),
             },
         },
         {
-            name: 'should trim more than max grouped results by removing extra terms/items/components',
+            name: 'should trim more than max grouped results',
             input: {
                 matchedPretext: '',
                 groups: [
-                    {
-                        key: 'abc',
-                        label: {},
-                        terms: ['a', 'b', 'c'],
-                        items: ['a', 'b', 'c'],
-                        components: ['span', 'span', 'span'],
-                    },
-                    {
-                        key: 'def',
-                        label: {},
-                        terms: ['d', 'e', 'f'],
-                        items: ['d', 'e', 'f'],
-                        components: ['span', 'span', 'span'],
-                    },
+                    {key: 'abc', label: {}, suggestions: suggestions('a', 'b', 'c')},
+                    {key: 'def', label: {}, suggestions: suggestions('d', 'e', 'f')},
                 ],
             },
             expected: {
                 matchedPretext: '',
                 groups: [
-                    {
-                        key: 'abc',
-                        label: {},
-                        terms: ['a', 'b', 'c'],
-                        items: ['a', 'b', 'c'],
-                        components: ['span', 'span', 'span'],
-                    },
-                    {
-                        key: 'def',
-                        label: {},
-                        terms: ['d'],
-                        items: ['d'],
-                        components: ['span'],
-                    },
+                    {key: 'abc', label: {}, suggestions: suggestions('a', 'b', 'c')},
+                    {key: 'def', label: {}, suggestions: suggestions('d')},
                 ],
             },
         },
         {
-            name: 'should trim more than max grouped results by removing extra terms/items/components and extra groups',
+            name: 'should trim more than max grouped results by removing extra suggestions and extra groups',
             input: {
                 matchedPretext: '',
                 groups: [
-                    {
-                        key: 'abc',
-                        label: {},
-                        terms: ['a', 'b', 'c'],
-                        items: ['a', 'b', 'c'],
-                        components: ['span', 'span', 'span'],
-                    },
-                    {
-                        key: 'def',
-                        label: {},
-                        terms: ['d', 'e', 'f'],
-                        items: ['d', 'e', 'f'],
-                        components: ['span', 'span', 'span'],
-                    },
-                    {
-                        key: 'gh',
-                        label: {},
-                        terms: ['g', 'h'],
-                        items: ['g', 'h'],
-                        components: ['span', 'span'],
-                    },
+                    {key: 'abc', label: {}, suggestions: suggestions('a', 'b', 'c')},
+                    {key: 'def', label: {}, suggestions: suggestions('d', 'e', 'f')},
+                    {key: 'gh', label: {}, suggestions: suggestions('g', 'h')},
                 ],
             },
             expected: {
                 matchedPretext: '',
                 groups: [
-                    {
-                        key: 'abc',
-                        label: {},
-                        terms: ['a', 'b', 'c'],
-                        items: ['a', 'b', 'c'],
-                        components: ['span', 'span', 'span'],
-                    },
-                    {
-                        key: 'def',
-                        label: {},
-                        terms: ['d'],
-                        items: ['d'],
-                        components: ['span'],
-                    },
+                    {key: 'abc', label: {}, suggestions: suggestions('a', 'b', 'c')},
+                    {key: 'def', label: {}, suggestions: suggestions('d')},
+                ],
+            },
+        },
+        {
+            name: 'should remove groups left without any suggestions',
+            input: {
+                matchedPretext: '',
+                groups: [
+                    {key: 'empty', label: {}, suggestions: []},
+                    {key: 'ab', label: {}, suggestions: suggestions('a', 'b')},
+                ],
+            },
+            expected: {
+                matchedPretext: '',
+                groups: [
+                    {key: 'ab', label: {}, suggestions: suggestions('a', 'b')},
                 ],
             },
         },
@@ -471,4 +470,19 @@ describe('trimResults', () => {
             expect(trimResults(input, max)).toEqual(expected);
         });
     }
+
+    test('should not modify the given results', () => {
+        const input: SuggestionResults = {
+            matchedPretext: '',
+            groups: [
+                {key: 'abc', label: {}, suggestions: suggestions('a', 'b', 'c')},
+                {key: 'def', label: {}, suggestions: suggestions('d', 'e', 'f')},
+            ],
+        };
+        const before = cloneDeep(input);
+
+        trimResults(input, max);
+
+        expect(input).toEqual(before);
+    });
 });

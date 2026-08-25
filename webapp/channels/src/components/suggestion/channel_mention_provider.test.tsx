@@ -11,11 +11,16 @@ jest.mock('stores/redux_store');
 
 import React from 'react';
 
-import type {Channel} from '@mattermost/types/channels';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {getMyChannels, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import ChannelMentionProvider, {ChannelMentionSuggestion} from './channel_mention_provider';
+import SuggestionListContents from './suggestion_list_contents';
+import type {SuggestionResults} from './suggestion_results';
+import {normalizeResultsFromProvider} from './suggestion_results';
 
 describe('ChannelMentionProvider.handlePretextChanged', () => {
     const autocompleteChannels = jest.fn();
@@ -307,5 +312,114 @@ describe('ChannelMentionSuggestion', () => {
 
         const span = container.querySelector('.suggestion-list__icon');
         expect(span).toHaveAttribute('aria-label', 'Archived channel');
+    });
+});
+
+describe('ChannelMentionProvider rendering', () => {
+    const salesChannel = {id: 'sales', name: 'sales', display_name: 'Sales', type: 'O', delete_at: 0} as Channel;
+    const sandboxChannel = {id: 'sandbox', name: 'sandbox', display_name: 'Sandbox', type: 'O', delete_at: 0} as Channel;
+
+    const initialState = {plugins: {components: {ChannelIconOverride: []}}};
+
+    const listProps = {
+        id: 'suggestionList',
+        selectedTerm: '',
+        getItemId: (term: string) => `suggestionList_item_${term}`,
+        onItemClick: jest.fn(),
+        onItemHover: jest.fn(),
+    };
+
+    // React reports errors thrown while rendering with console.error, which setup_jest turns into a
+    // second, less useful failure. The error itself still propagates out of render.
+    let consoleError: typeof console.error;
+    beforeEach(() => {
+        consoleError = console.error;
+        console.error = jest.fn();
+    });
+    afterEach(() => {
+        console.error = consoleError;
+    });
+
+    // Starts a search for ~sa which matches the Sales channel that the user is already a member of.
+    // The search for more channels is left in flight until resolveSearch is called.
+    function startSearch() {
+        jest.mocked(getMyChannels).mockReturnValue([salesChannel]);
+        jest.mocked(getMyChannelMemberships).mockReturnValue({
+            sales: {} as ChannelMembership,
+            sandbox: {} as ChannelMembership,
+        });
+
+        let search: (channels: Channel[]) => void = () => {};
+        const provider = new ChannelMentionProvider((term, success) => {
+            search = success;
+            return Promise.resolve({data: true});
+        }, false);
+
+        // SuggestionBox normalizes each set of results as it receives them and stores it in its state
+        const published: SuggestionResults[] = [];
+        provider.handlePretextChanged('~sa', (results) => {
+            published.push(normalizeResultsFromProvider(results));
+        });
+
+        return {
+            published,
+            resolveSearch: (channels: Channel[]) => search(channels),
+        };
+    }
+
+    test('should render results that were published before an in-flight search resolved', () => {
+        const {published, resolveSearch} = startSearch();
+        const firstResults = published[0];
+
+        const {rerender} = renderWithContext(
+            <SuggestionListContents
+                {...listProps}
+                results={firstResults}
+            />,
+            initialState,
+        );
+
+        expect(screen.getAllByRole('option')).toHaveLength(1);
+
+        // The in-flight search resolves, adding another channel that the user is a member of
+        resolveSearch([sandboxChannel]);
+
+        // A render can still read the results that React was already holding, either because it was
+        // interrupted partway through or because it was scheduled before the newer results were
+        // published. Those results must remain internally consistent.
+        rerender(
+            <SuggestionListContents
+                {...listProps}
+                results={firstResults}
+            />,
+        );
+
+        expect(screen.getAllByRole('option')).toHaveLength(1);
+    });
+
+    test('should render results that are published while React is rendering', () => {
+        const {published, resolveSearch} = startSearch();
+
+        // React yields partway through a concurrent render, so anything already queued as a
+        // microtask, such as an in-flight channel search, runs before React resumes. This renders
+        // as a sibling to stand in for that yield.
+        function ResolveSearchWhileRendering() {
+            resolveSearch([sandboxChannel]);
+
+            return null;
+        }
+
+        renderWithContext(
+            <>
+                <ResolveSearchWhileRendering/>
+                <SuggestionListContents
+                    {...listProps}
+                    results={published[0]}
+                />
+            </>,
+            initialState,
+        );
+
+        expect(screen.getAllByRole('option')).toHaveLength(1);
     });
 });

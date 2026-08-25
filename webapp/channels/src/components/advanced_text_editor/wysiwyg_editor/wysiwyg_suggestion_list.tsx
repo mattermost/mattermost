@@ -30,7 +30,7 @@ import CommandProvider from 'components/suggestion/command_provider/command_prov
 import EmoticonProvider from 'components/suggestion/emoticon_provider';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import type {ProviderResults, SuggestionResults} from 'components/suggestion/suggestion_results';
-import {normalizeResultsFromProvider, countResults} from 'components/suggestion/suggestion_results';
+import {countResults, emptyResults, flattenTerms, normalizeResultsFromProvider} from 'components/suggestion/suggestion_results';
 
 import Constants from 'utils/constants';
 
@@ -53,22 +53,7 @@ type AppsModalProvider = {
 const canOpenAppsModal = <T extends object>(provider: T): provider is T & AppsModalProvider =>
     typeof (provider as T & AppsModalProvider).openAppsModalFromCommand === 'function';
 
-const EMPTY_RESULTS: SuggestionResults = {
-    matchedPretext: '',
-    terms: [],
-    items: [],
-    components: [],
-};
-
-function getAllTerms(results: SuggestionResults): string[] {
-    if ('terms' in results) {
-        return results.terms;
-    }
-    if ('groups' in results) {
-        return results.groups.flatMap((group) => group.terms);
-    }
-    return [];
-}
+const EMPTY_RESULTS: SuggestionResults = emptyResults();
 
 function getTextBeforeCursor(editor: Editor): string {
     const {state} = editor;
@@ -141,7 +126,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
 
     const handleReceivedSuggestions = useCallback((suggestions: ProviderResults) => {
         const normalized = normalizeResultsFromProvider(suggestions);
-        const terms = getAllTerms(normalized);
+        const terms = flattenTerms(normalized);
 
         setResults(normalized);
         setPretext(suggestions.matchedPretext || '');
@@ -272,7 +257,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
                 return;
             }
 
-            const allTerms = getAllTerms(resultsRef.current);
+            const allTerms = flattenTerms(resultsRef.current);
             if (allTerms.length === 0) {
                 return;
             }

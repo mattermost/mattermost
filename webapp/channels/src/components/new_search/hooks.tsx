@@ -55,10 +55,7 @@ export const useSearchSuggestions = (searchType: string, searchTerms: string, se
                     return;
                 }
 
-                let trimmedResults = normalizeResultsFromProvider(res);
-                trimmedResults = trimResults(trimmedResults, 10);
-
-                setResults(trimmedResults);
+                setResults(trimResults(normalizeResultsFromProvider(res), 10));
             }, searchTeam);
         });
     }, [searchTerms, searchTeam, searchType, caretPosition]);

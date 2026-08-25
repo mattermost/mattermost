@@ -6,6 +6,16 @@ import type {MessageDescriptor} from 'react-intl';
 
 // Data shapes produced by suggestion providers and consumed by SuggestionList.
 
+/**
+ * A single suggestion as rendered by SuggestionList. The term, the item and the component that
+ * renders them are stored together so that they can't be mistakenly paired with each other.
+ */
+export type Suggestion<Item = unknown> = {
+    term: string;
+    item: Item | Loading;
+    component: ElementType;
+};
+
 export type SuggestionResults<Item = unknown> = SuggestionResultsGrouped<Item> | SuggestionResultsUngrouped<Item>;
 
 type SuggestionResultsGrouped<Item = unknown> = {
@@ -13,25 +23,24 @@ type SuggestionResultsGrouped<Item = unknown> = {
     groups: Array<SuggestionResultsGroup<Item>>;
 };
 
-type SuggestionResultsGroup<Item = unknown> = {
+export type SuggestionResultsGroup<Item = unknown> = {
     key: string;
     label?: MessageDescriptor;
-    terms: string[];
-    items: Array<Item | Loading>;
-    components: ElementType[];
+    suggestions: Array<Suggestion<Item>>;
 };
 
 export type SuggestionResultsUngrouped<Item = unknown> = {
     matchedPretext: string;
-    terms: string[];
-    items: Array<Item | Loading>;
-    components: ElementType[];
+    suggestions: Array<Suggestion<Item>>;
 };
 
 export type Loading = {
     loading: boolean;
 };
 
+// Results as emitted by a provider, which may pair a single component with every item to save
+// repeating it. This shape is part of the plugin API, so it can only be changed in a backwards
+// compatible way. normalizeResultsFromProvider converts it into SuggestionResults for rendering.
 export type ProviderResults<Item = unknown> = ProviderResultsGrouped<Item> | ProviderResultsUngrouped<Item>;
 
 type ProviderResultsGrouped<Item = unknown> = {
@@ -46,7 +55,7 @@ export type ProviderResultsGroup<Item = unknown> = {
     items: Array<Item | Loading>;
 } & ComponentOrComponents;
 
-type ProviderResultsUngrouped<Item = unknown> = {
+export type ProviderResultsUngrouped<Item = unknown> = {
     matchedPretext: string;
     terms: string[];
     items: Array<Item | Loading>;

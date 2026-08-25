@@ -63,18 +63,21 @@ jest.mock('components/suggestion/emoticon_provider', () => ({
 
 jest.mock('components/suggestion/suggestion_list', () => ({
     __esModule: true,
-    default: ({open, pretext, results, onCompleteWord}: any) => (open ? (
-        <div>
-            {results.terms.map((term: string) => (
-                <button
-                    key={term}
-                    onClick={() => onCompleteWord(term, pretext)}
-                >
-                    {term}
-                </button>
-            ))}
-        </div>
-    ) : null),
+    default: ({open, pretext, results, onCompleteWord}: any) => {
+        const {flattenTerms} = jest.requireActual('components/suggestion/suggestion_results');
+        return open ? (
+            <div>
+                {flattenTerms(results).map((term: string) => (
+                    <button
+                        key={term}
+                        onClick={() => onCompleteWord(term, pretext)}
+                    >
+                        {term}
+                    </button>
+                ))}
+            </div>
+        ) : null;
+    },
 }));
 
 const setup = (terms: string[]) => {

@@ -45,9 +45,10 @@ describe('components/new_search/SearchBoxHints', () => {
         selectedTerm: '',
         results: {
             matchedPretext: '',
-            terms: ['user1', 'user2'],
-            items: [{username: 'test-username1'}, {username: 'test-username2'}],
-            components: [TestProviderResultComponent, TestProviderResultComponent],
+            suggestions: [
+                {term: 'user1', item: {username: 'test-username1'}, component: TestProviderResultComponent},
+                {term: 'user2', item: {username: 'test-username2'}, component: TestProviderResultComponent},
+            ],
         },
     };
 
