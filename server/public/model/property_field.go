@@ -441,15 +441,20 @@ func (pf *PropertyField) IsValid() error {
 		// The list a field is written with is the whole of its option set, so its
 		// length is the count the limit is about. A field grown past the limit one
 		// option at a time is refused where those options are created instead.
-		// Checked before the rank scan below: this is a slice-length check through
+		// Checked before the scans below: this is a slice-length check through
 		// reflection, so an over-limit list is rejected before paying for the
-		// JSON round-trip that scan needs.
+		// JSON round-trip those scans need.
 		if count := propertyFieldOptionCount(pf.Attrs); count > PropertyGraphMaxOptions {
 			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "attrs.options", "Reason": fmt.Sprintf("a graph field cannot have more than %d options", PropertyGraphMaxOptions)}, "id="+pf.ID, http.StatusBadRequest)
 		}
 
-		if i := optionIndexCarryingRank(pf.Attrs); i >= 0 {
+		options := decodedInlineOptions(pf.Attrs)
+		if i := optionIndexCarryingRank(options); i >= 0 {
 			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": fmt.Sprintf("attrs.options[%d].rank", i), "Reason": "rank is not supported on a graph field"}, "id="+pf.ID, http.StatusBadRequest)
+		}
+
+		if i, name := optionIndexRepeatingName(options); i >= 0 {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": fmt.Sprintf("attrs.options[%d].name", i), "Reason": fmt.Sprintf("two options are called %q, and a name has to identify one option", name)}, "id="+pf.ID, http.StatusBadRequest)
 		}
 	}
 
@@ -830,39 +835,76 @@ func propertyFieldOptionCount(attrs StringInterface) int {
 	}
 }
 
+// decodedInlineOptions returns the field's inline option list as the objects it
+// is made of, for the checks that have to look inside each option.
+//
+// Decoded through JSON because the options key legitimately holds several
+// shapes (see PropertyFieldSuppliesOptions). A list that will not decode comes
+// back empty rather than as an error, so the checks over it report nothing
+// wrong: the field-level callers run EnsureOptionIDs first, which rejects an
+// undecodable list with a message about the real problem.
+func decodedInlineOptions(attrs StringInterface) []map[string]any {
+	raw, ok := attrs[PropertyFieldAttributeOptions]
+	if !ok || raw == nil {
+		return nil
+	}
+
+	encoded, err := json.Marshal(raw)
+	if err != nil {
+		return nil
+	}
+	var options []map[string]any
+	if err := json.Unmarshal(encoded, &options); err != nil {
+		return nil
+	}
+	return options
+}
+
 // optionIndexCarryingRank returns the position of the first inline option that
 // carries a non-null "rank", or -1 if none does. Used to keep ranks off the
 // types they mean nothing for: the option store promotes the key into a column
 // of its own for every option-bearing type, so an unwanted rank does not stay
 // inert — it is persisted, served back, and reads as an ordering the field does
 // not have.
-//
-// Decoded through JSON because the options key legitimately holds several
-// shapes (see PropertyFieldSuppliesOptions). A list that will not decode is
-// reported as carrying no rank rather than as an error: the field-level callers
-// run EnsureOptionIDs first, which rejects an undecodable list with a message
-// about the real problem.
-func optionIndexCarryingRank(attrs StringInterface) int {
-	raw, ok := attrs[PropertyFieldAttributeOptions]
-	if !ok || raw == nil {
-		return -1
-	}
-
-	encoded, err := json.Marshal(raw)
-	if err != nil {
-		return -1
-	}
-	var options []map[string]any
-	if err := json.Unmarshal(encoded, &options); err != nil {
-		return -1
-	}
-
+func optionIndexCarryingRank(options []map[string]any) int {
 	for i, option := range options {
 		if rank, ok := option["rank"]; ok && rank != nil {
 			return i
 		}
 	}
 	return -1
+}
+
+// optionIndexRepeatingName returns the position of the first inline option whose
+// name an option earlier in the list already has, with that name, or -1 and "".
+//
+// A name has to identify one option across everything a field serves. A rule
+// naming an option is stored as the identifier that name resolved to, and a
+// lookup over two rows answering to one name keeps whichever the query returned
+// last — so every holder of the other one is denied with nothing reporting a
+// problem. The options endpoints refuse a repeat within their own payload; this
+// is the same rule for the list a field is written with, where the list is the
+// whole of the field's option set.
+//
+// Only graph fields are held to it, from the one caller. The types with no
+// hierarchy have never been, and a field whose options were already named
+// ambiguously has to stay writable for the name to be fixable.
+//
+// Options with no name are skipped: an option is not required to carry one, and
+// two that do not are not two answers to the same name.
+func optionIndexRepeatingName(options []map[string]any) (int, string) {
+	seen := make(map[string]bool, len(options))
+	for i, option := range options {
+		name, _ := option["name"].(string)
+		if name == "" {
+			continue
+		}
+		if seen[name] {
+			return i, name
+		}
+		seen[name] = true
+	}
+	return -1, ""
 }
 
 type PropertyOption interface {
