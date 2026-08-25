@@ -22,7 +22,7 @@ describe('components/ProfilePopoverTitle', () => {
             />,
         );
 
-        expect(screen.getByText('Imported - Inactive')).toBeInTheDocument();
+        expect(screen.getByText('IMPORTED - INACTIVE')).toBeInTheDocument();
     });
 
     test('should not render ImportedInactiveTag when isImportedInactive is false', () => {
@@ -33,12 +33,12 @@ describe('components/ProfilePopoverTitle', () => {
             />,
         );
 
-        expect(screen.queryByText('Imported - Inactive')).not.toBeInTheDocument();
+        expect(screen.queryByText('IMPORTED - INACTIVE')).not.toBeInTheDocument();
     });
 
     test('should not render ImportedInactiveTag when isImportedInactive is omitted', () => {
         renderWithContext(<ProfilePopoverTitle {...baseProps}/>);
 
-        expect(screen.queryByText('Imported - Inactive')).not.toBeInTheDocument();
+        expect(screen.queryByText('IMPORTED - INACTIVE')).not.toBeInTheDocument();
     });
 });
