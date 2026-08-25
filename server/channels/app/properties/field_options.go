@@ -141,14 +141,13 @@ func requireWritableOptions(field *model.PropertyField) error {
 		return optionsChangeRefused("field %s has been deleted", field.ID)
 	}
 
-	// A rank field's options are the one kind this cannot write. Every option on
-	// one has to carry a positive rank unique within the field, which
-	// PropertyFieldOption does not model and this seam has no way to choose: an
-	// option created here would have none, and the field would be left in the state
-	// the rank validation exists to keep it out of -- unwritable through its own
-	// option list, and read as covering nothing where a policy clamps against it.
-	// A rank field's options are authored as the field's option list, where the
-	// ranks are validated together.
+	// A rank field's options are the one kind this cannot write; they are authored
+	// instead as the field's option list, where the ranks are validated together.
+	// Every option on one has to carry a positive rank unique within the field,
+	// which PropertyFieldOption does not model and this seam has no way to choose:
+	// an option created here would have none, and the field would be left in the
+	// state the rank validation exists to keep it out of -- unwritable through its
+	// own option list, and read as covering nothing where a policy clamps against it.
 	if field.Type == model.PropertyFieldTypeRank {
 		return optionsChangeRefused("the options of a rank field carry an order that is set by writing them as the field's option list")
 	}
