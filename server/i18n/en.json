@@ -12411,6 +12411,22 @@
     "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing."
   },
   {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderName and CustomHeaderValue must both be set, or both left empty."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderName must be a valid header name with no spaces, colons, separators, or line breaks."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderName must not reuse a header that the Global Relay export already writes."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderValue must not contain control characters or line breaks."
+  },
+  {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
     "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9', 'A10' or 'CUSTOM'."
   },
