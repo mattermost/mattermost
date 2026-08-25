@@ -110,9 +110,10 @@ export const supportsOptions = (field: PropertyField) => {
 };
 
 // Whether a field's stored value is a list of option ids that has to be resolved
-// against attrs.options before it is shown. Distinct from supportsOptions, which
-// answers whether an admin may edit the option list here and must keep excluding
-// graph -- a graph field's options carry parent links these cells cannot send back.
+// against attrs.options before it is shown. supportsOptions answers a narrower
+// question -- whether the plain option-list editor can write this field's options
+// -- and excludes graph on purpose: a graph field's options carry parent links
+// that editor has no way to send back.
 export const valueRefersToOptions = (field: PropertyField) => {
     return supportsOptions(field) || field.type === 'graph';
 };

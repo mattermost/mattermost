@@ -812,7 +812,6 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        // Rendered from the stored option id via attrs.options, not as a raw id.
         expect(await screen.findByText('Option 1')).toBeInTheDocument();
         expect(screen.queryByText('opt1')).not.toBeInTheDocument();
     });
