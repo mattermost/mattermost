@@ -269,6 +269,18 @@ func (r *appMaskingResolver) fieldToMaskingInfo(h *maskingHoldings) *model.Maski
 		// can see.
 		if h.field.Type.SupportsOptions() {
 			info.VisibleValues = extractVisibleOptionNames(h.field)
+
+			// A graph field past the hydration cap reads back with its list
+			// withheld rather than empty, so extractVisibleOptionNames alone would
+			// mask every literal on it -- the field is expected to be well past
+			// that cap. Resolve those on demand instead. Scope is graph only: a
+			// rank field's rule needs each option's rank number, and a rank
+			// ladder over that many options isn't a shape anything builds, so a
+			// withheld rank/select/multiselect list keeps failing closed via the
+			// empty VisibleValues above.
+			if h.field.Type == model.PropertyFieldTypeGraph && model.PropertyFieldOptionsOmitted(h.field.Attrs) {
+				info.ResolveVisible = r.app.graphOptionNameResolver(r.rctxWithCaller, h.field, r.callerID, r.cpaGroupID)
+			}
 		} else {
 			info.VisibleValues = r.app.getCallerTextValues(r.rctxWithCaller, r.callerID, h.field, r.cpaGroupID)
 		}
@@ -319,7 +331,15 @@ func (a *App) maskConditionValues(rctx request.CTX, callerID string, condition *
 		condition.HasMaskedValues = true
 	case model.PropertyAccessModeSharedOnly:
 		if h.field.Type.SupportsOptions() {
-			filterConditionValues(condition, extractVisibleOptionNames(h.field))
+			visibleNames := extractVisibleOptionNames(h.field)
+			// See the matching branch in fieldToMaskingInfo: a graph field's
+			// withheld option list resolves on demand instead of masking every
+			// literal. The condition's own literal(s) are already known here, so
+			// resolving just those is enough -- no per-name resolver to memoize.
+			if h.field.Type == model.PropertyFieldTypeGraph && model.PropertyFieldOptionsOmitted(h.field.Attrs) {
+				visibleNames = a.graphConditionVisibleNames(rctx, h.field, callerID, cpaGroupID, condition.Value)
+			}
+			filterConditionValues(condition, visibleNames)
 		} else {
 			filterConditionValues(condition, a.getCallerTextValues(rctx, callerID, h.field, cpaGroupID))
 		}
@@ -395,6 +415,150 @@ func extractVisibleOptionNames(field *model.PropertyField) map[string]struct{} {
 	}
 
 	return names
+}
+
+// getCallerGraphOptionIDs returns the option IDs the caller holds for a graph
+// field, read the way getCallerTextValues reads their text value: a caller has
+// at most one PropertyValue per field. Reading one's own graph value is not
+// lossy the way an inlined option list is -- every option a caller holds is
+// covered by itself -- so this reads the value directly rather than going
+// through the caller-filtered field read path.
+func (a *App) getCallerGraphOptionIDs(rctx request.CTX, callerID string, field *model.PropertyField, cpaGroupID string) ([]string, *model.AppError) {
+	values, appErr := a.SearchPropertyValues(rctx, cpaGroupID, model.PropertyValueSearchOpts{
+		FieldID:   field.ID,
+		TargetIDs: []string{callerID},
+		PerPage:   1,
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	ids := []string{}
+	for _, pv := range values {
+		var valueIDs []string
+		if err := json.Unmarshal(pv.Value, &valueIDs); err != nil {
+			return nil, model.NewAppError("getCallerGraphOptionIDs", "app.pap.masking.graph_value_unmarshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		ids = append(ids, valueIDs...)
+	}
+	return ids, nil
+}
+
+// graphOptionCoverageByName answers, for the given option names on a graph
+// field, which of them heldOptionIDs covers -- one of them is at-or-above it.
+// Used when the field's option list could not be inlined for being oversized,
+// so extractVisibleOptionNames has nothing to read: this resolves each
+// requested name against the store and PropertyService.CoveredBy instead,
+// bounded by the requested names' own ancestors rather than by the size of the
+// caller's down-set. A name with no matching option is simply absent from the
+// result -- hidden, not an error.
+func (a *App) graphOptionCoverageByName(rctx request.CTX, field *model.PropertyField, names, heldOptionIDs []string) (map[string]struct{}, error) {
+	visible := make(map[string]struct{})
+
+	options, err := a.Srv().Store().PropertyField().GetOptionsByName(field, names)
+	if err != nil {
+		return nil, err
+	}
+	if len(options) == 0 {
+		return visible, nil
+	}
+
+	optionIDs := make([]string, len(options))
+	idToName := make(map[string]string, len(options))
+	for i, opt := range options {
+		optionIDs[i] = opt.ID
+		idToName[opt.ID] = opt.Name
+	}
+
+	covered, err := a.Srv().PropertyService().CoveredBy(rctx, field, optionIDs, heldOptionIDs)
+	if err != nil {
+		return nil, err
+	}
+	for optID, isCovered := range covered {
+		if isCovered {
+			visible[idToName[optID]] = struct{}{}
+		}
+	}
+	return visible, nil
+}
+
+// graphConditionVisibleNames answers graphOptionCoverageByName's question for
+// exactly the literal name(s) one condition asks about, when a graph field's
+// option list could not be inlined. Resolving only the names this one
+// condition names -- rather than the per-name resolver fieldToMaskingInfo
+// needs, which answers across many conditions and literals it cannot see in
+// advance -- is enough here because a condition's own literal set is already
+// known and small.
+func (a *App) graphConditionVisibleNames(rctx request.CTX, field *model.PropertyField, callerID, cpaGroupID string, value any) map[string]struct{} {
+	var names []string
+	switch v := value.(type) {
+	case string:
+		names = []string{v}
+	case []any:
+		for _, val := range v {
+			if s, ok := val.(string); ok {
+				names = append(names, s)
+			}
+		}
+	}
+	if len(names) == 0 {
+		return map[string]struct{}{}
+	}
+
+	heldOptionIDs, appErr := a.getCallerGraphOptionIDs(rctx, callerID, field, cpaGroupID)
+	if appErr != nil {
+		rctx.Logger().Error("Hiding a graph field's policy literals because the caller's own held options could not be read",
+			mlog.String("field_id", field.ID), mlog.Err(appErr))
+		return map[string]struct{}{}
+	}
+
+	visible, err := a.graphOptionCoverageByName(rctx, field, names, heldOptionIDs)
+	if err != nil {
+		rctx.Logger().Error("Hiding a graph field's policy literals because coverage could not be resolved",
+			mlog.String("field_id", field.ID), mlog.Err(err))
+		return map[string]struct{}{}
+	}
+	return visible
+}
+
+// graphOptionNameResolver returns a per-name visibility resolver for a
+// shared_only graph field whose option list is withheld for being oversized,
+// for use as MaskingFieldInfo.ResolveVisible. It loads the caller's held
+// options once, on first use, then answers each subsequent name through
+// graphOptionCoverageByName -- IsValueHidden memoizes by name, so a name asked
+// about more than once only reaches this closure the first time. Any error is
+// logged once against the field rather than once per literal, and once one
+// occurs every further name answers hidden.
+func (a *App) graphOptionNameResolver(rctx request.CTX, field *model.PropertyField, callerID, cpaGroupID string) func(name string) bool {
+	var (
+		heldOptionIDs  []string
+		loaded, failed bool
+	)
+	return func(name string) bool {
+		if failed {
+			return false
+		}
+		if !loaded {
+			ids, appErr := a.getCallerGraphOptionIDs(rctx, callerID, field, cpaGroupID)
+			if appErr != nil {
+				failed = true
+				rctx.Logger().Error("Hiding a graph field's policy literals because the caller's own held options could not be read",
+					mlog.String("field_id", field.ID), mlog.Err(appErr))
+				return false
+			}
+			heldOptionIDs, loaded = ids, true
+		}
+
+		visible, err := a.graphOptionCoverageByName(rctx, field, []string{name}, heldOptionIDs)
+		if err != nil {
+			failed = true
+			rctx.Logger().Error("Hiding a graph field's policy literals because an option name's coverage could not be resolved",
+				mlog.String("field_id", field.ID), mlog.Err(err))
+			return false
+		}
+		_, ok := visible[name]
+		return ok
+	}
 }
 
 // getCallerTextValues returns the caller's stored text value(s) for the given

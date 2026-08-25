@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -1679,4 +1680,81 @@ func TestAppMaskingResolver_HierarchyAndLadderUseOptionNames(t *testing.T) {
 		assert.False(t, info.IsValueHidden("Public"), "a rank below the caller's")
 		assert.True(t, info.IsValueHidden("Secret"), "a rank above the caller's")
 	})
+}
+
+// TestAppMaskingResolver_GraphWithheldOptionList covers the graph field this
+// type exists for: one with more options than a read inlines, so the read hook
+// withholds the list entirely instead of handing back an inlined-but-filtered
+// one. extractVisibleOptionNames alone would then see no options at all and
+// mask every literal, including ones the caller does hold — the symptom this
+// resolves by answering each literal through PropertyService.CoveredBy instead
+// of the inlined list.
+func TestAppMaskingResolver_GraphWithheldOptionList(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+	groupID := cpaGroup.ID
+
+	air, jet, f18 := model.NewId(), model.NewId(), model.NewId()
+	// One chain of three at the front, and filler past the cap behind it —
+	// the shape a real graph field is expected to have.
+	options := []any{
+		map[string]any{"id": air, "name": "Air Program"},
+		map[string]any{"id": jet, "name": "Fighter Jet Program"},
+		map[string]any{"id": f18, "name": "F-18 Program"},
+	}
+	for i := len(options); i <= model.PropertyFieldMaxHydratedOptions; i++ {
+		options = append(options, map[string]any{"id": model.NewId(), "name": fmt.Sprintf("Program %04d", i)})
+	}
+
+	field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeGraph,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: options,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+		},
+	})
+	require.NoError(t, sErr)
+
+	//	Air Program ── Fighter Jet Program ── F-18 Program
+	require.NoError(t, th.Store.PropertyField().MutateOptions(groupID, field.ID, field.UpdateAt, nil, []*model.PropertyOptionEdge{
+		{FieldID: field.ID, ChildOptionID: jet, ParentOptionID: air},
+		{FieldID: field.ID, ChildOptionID: f18, ParentOptionID: jet},
+	}, nil))
+
+	callerID := model.NewId()
+	_, vErr := th.Store.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   callerID,
+		TargetType: model.PropertyValueTargetTypeUser,
+		GroupID:    groupID,
+		FieldID:    field.ID,
+		Value:      json.RawMessage(`["` + jet + `"]`),
+	})
+	require.NoError(t, vErr)
+
+	// Confirm the size actually pushed this read past the cap, rather than
+	// silently exercising the already-covered inlined path.
+	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
+	readField, appErr := th.App.GetPropertyFieldByNameForObjectType(rctxWithCaller, groupID, "", model.PropertyFieldObjectTypeUser, field.Name)
+	require.Nil(t, appErr)
+	require.True(t, model.PropertyFieldOptionsOmitted(readField.Attrs), "field must read back with its option list withheld")
+
+	resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
+	require.Nil(t, rErr)
+
+	info, err := resolver.Resolve(model.PropertyFieldObjectTypeUser, field.Name)
+	require.NoError(t, err)
+	require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
+	assert.False(t, info.IsValueHidden("Fighter Jet Program"), "the option the caller holds")
+	assert.False(t, info.IsValueHidden("F-18 Program"), "an option below the one the caller holds")
+	assert.True(t, info.IsValueHidden("Air Program"), "an option above the one the caller holds")
 }
