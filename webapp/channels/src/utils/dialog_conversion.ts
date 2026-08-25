@@ -412,7 +412,7 @@ export function convertElement(element: DialogElement, options: ConversionOption
     // Collapsible: convert children recursively; the section itself has no value.
     if (element.type === DialogElementTypes.COLLAPSIBLE) {
         const childFields: AppField[] = [];
-        (element.elements || []).forEach((child) => {
+        (element.collapsible_config?.elements || []).forEach((child) => {
             const {field: childField, errors: childErrors} = convertElement(child, options);
             errors.push(...childErrors);
             if (childField) {
@@ -426,8 +426,8 @@ export function convertElement(element: DialogElement, options: ConversionOption
             label: String(element.display_name),
             collapsible_config: {
                 fields: childFields,
-                expanded: !element.collapsed,
-                bordered: !element.borderless,
+                expanded: !element.collapsible_config?.collapsed,
+                bordered: !element.collapsible_config?.borderless,
             },
         };
         return {field: collapsibleField, errors};
@@ -721,7 +721,7 @@ export function flattenDialogElements(elements: DialogElement[]): DialogElement[
     return flattenCollapsible(
         elements,
         (element) => element.type === DialogElementTypes.COLLAPSIBLE,
-        (element) => element.elements,
+        (element) => element.collapsible_config?.elements,
     );
 }
 

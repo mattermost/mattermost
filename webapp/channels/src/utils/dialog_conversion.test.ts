@@ -2344,8 +2344,7 @@ describe('dialog_conversion - collapsible', () => {
         name,
         display_name: 'Section ' + name,
         type: DialogElementTypes.COLLAPSIBLE,
-        elements,
-        collapsed,
+        collapsible_config: {elements, collapsed},
     } as DialogElement);
 
     const textEl = (name: string): DialogElement => ({
