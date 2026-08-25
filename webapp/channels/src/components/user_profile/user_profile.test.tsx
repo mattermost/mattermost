@@ -75,16 +75,16 @@ describe('components/UserProfile', () => {
     test('should render ImportedInactiveTag for imported inactive user', () => {
         const props = {
             ...baseProps,
-            user: {username: 'username', props: {importedInactive: 'true'}} as UserProfileType,
+            user: {username: 'username', props: {importedInactive: 'true'}} as unknown as UserProfileType,
         };
         const {container} = render(<UserProfile {...props}/>);
-        expect(screen.getByText('Imported - Inactive')).toBeInTheDocument();
+        expect(screen.getByText('IMPORTED - INACTIVE')).toBeInTheDocument();
         expect(container).toMatchSnapshot();
     });
 
     test('should not render ImportedInactiveTag for regular user', () => {
         const {container} = render(<UserProfile {...baseProps}/>);
-        expect(screen.queryByText('Imported - Inactive')).not.toBeInTheDocument();
+        expect(screen.queryByText('IMPORTED - INACTIVE')).not.toBeInTheDocument();
         expect(container).toMatchSnapshot();
     });
 });
