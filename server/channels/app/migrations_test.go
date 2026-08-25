@@ -545,7 +545,10 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		}
 		require.Len(t, trimmed, len(persisted)-1)
 		field.Attrs[model.PropertyFieldAttributeOptions] = trimmed
-		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(nil, group.ID, []*model.PropertyField{field})
+		// System-caller context, same as the seed and the sibling upgrade
+		// subtests: SessionAttributesHook otherwise reads the existing field
+		// through RequestContextWithMaster, which panics on a nil rctx.
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
 		require.NoError(t, err)
 
 		before := sessionAttributeOptionIDsByName(t, sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldUserAgentPlatform))
