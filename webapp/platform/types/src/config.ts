@@ -47,9 +47,6 @@ export type ClientConfig = {
     DiagnosticsEnabled: string;
     DisableRefetchingOnBrowserFocus: string;
     DisableWakeUpReconnectHandler: string;
-    EmailLoginButtonBorderColor: string;
-    EmailLoginButtonColor: string;
-    EmailLoginButtonTextColor: string;
     EmailNotificationContentsType: string;
     EnableAskCommunityLink: string;
     EnableBanner: string;
@@ -656,9 +653,6 @@ export type EmailSettings = {
     EnablePreviewModeBanner: boolean;
     SkipServerCertificateVerification: boolean;
     EmailNotificationContentsType: string;
-    LoginButtonColor: string;
-    LoginButtonBorderColor: string;
-    LoginButtonTextColor: string;
 };
 
 export type RateLimitSettings = {
@@ -1031,8 +1025,6 @@ export type GuestAccountsSettings = {
 export type ImageProxySettings = {
     Enable: boolean;
     ImageProxyType: string;
-    RemoteImageProxyURL: string;
-    RemoteImageProxyOptions: string;
 };
 
 export type CloudSettings = {

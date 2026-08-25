@@ -536,7 +536,7 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, rctx request.CTX, ss store
 		}
 	}
 
-	err := ss.Reaction().DeleteAllWithEmojiName(emojiToDelete)
+	err := ss.Reaction().DeleteAllWithEmojiName(rctx, emojiToDelete)
 	require.NoError(t, err)
 
 	// check that the reactions were deleted
@@ -621,7 +621,7 @@ func testPermanentDeleteByUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 	}
 
-	err := ss.Reaction().PermanentDeleteByUser(userId)
+	err := ss.Reaction().PermanentDeleteByUser(rctx, userId)
 	require.NoError(t, err)
 
 	// check that the reactions were deleted
@@ -875,7 +875,7 @@ func testReactionDeadlock(t *testing.T, rctx request.CTX, ss store.Store) {
 	// 1st tx
 	go func() {
 		defer wg.Done()
-		err := ss.Reaction().DeleteAllWithEmojiName(reaction1.EmojiName)
+		err := ss.Reaction().DeleteAllWithEmojiName(rctx, reaction1.EmojiName)
 		require.NoError(t, err)
 	}()
 
