@@ -153,7 +153,12 @@ func getPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	options, appErr := c.App.GetPropertyFieldOptions(rctx, field, cursorCreateAt, cursorID, c.Params.PerPage)
+	perPage := c.Params.PerPage
+	if perPage > maxPropertyFieldOptionItems {
+		perPage = maxPropertyFieldOptionItems
+	}
+
+	options, appErr := c.App.GetPropertyFieldOptions(rctx, field, cursorCreateAt, cursorID, perPage)
 	if appErr != nil {
 		c.Err = appErr
 		return

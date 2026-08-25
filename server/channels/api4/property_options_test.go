@@ -363,6 +363,20 @@ func TestPropertyFieldOptions(t *testing.T) {
 		CheckErrorID(t, err, "api.property_field.options.invalid_cursor.app_error")
 	})
 
+	t.Run("a page size above the bound is clamped, not refused", func(t *testing.T) {
+		fields := setupOptionFields(t, th, group.ID, graph, memberLevel, nil)
+
+		_, _, err := th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, []*model.PropertyFieldOption{
+			namedOption("Air Program"),
+		})
+		require.NoError(t, err)
+
+		listed, resp, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", model.PropertyFieldOptionsMaxPerRequest*2)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.LessOrEqual(t, len(listed), model.PropertyFieldOptionsMaxPerRequest)
+	})
+
 	t.Run("a change names the first item it cannot accept", func(t *testing.T) {
 		fields := setupOptionFields(t, th, group.ID, graph, memberLevel, nil)
 
