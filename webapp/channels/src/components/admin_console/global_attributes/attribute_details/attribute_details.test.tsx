@@ -460,7 +460,10 @@ describe('AttributeDetails', () => {
                 <AttributeDetails/>
                 <ModalController/>
             </div>,
-            {entities: {general: {config: {FeatureFlagChannelAttributes: 'true'}}}},
+            {entities: {general: {
+                config: {FeatureFlagChannelAttributes: 'true'},
+                license: {IsLicensed: 'true', SkuShortName: 'advanced'},
+            }}},
         );
 
         const template = {id: 'template_id_1234567890abcdef', name: 'my_attribute', type: 'text', target_type: 'system', target_id: ''} as PropertyField;

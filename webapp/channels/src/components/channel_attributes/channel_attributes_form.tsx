@@ -8,6 +8,7 @@ import type {OnChangeValue} from 'react-select';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
+import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/properties';
 import {isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
 
 import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
@@ -149,6 +150,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                                     name={`channelAttribute-${field.name}`}
                                     type='text'
                                     value={typeof selected === 'string' ? selected : ''}
+                                    maxLength={PROPERTY_TEXT_VALUE_MAX_LENGTH}
                                     onChange={(e) => handleText(field.id, e.target.value)}
                                     placeholder={textPlaceholder}
                                     disabled={disabled}

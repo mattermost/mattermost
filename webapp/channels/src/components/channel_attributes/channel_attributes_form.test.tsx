@@ -7,6 +7,8 @@ import React from 'react';
 
 import type {PropertyField} from '@mattermost/types/properties';
 
+import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/properties';
+
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import ChannelAttributesForm from './channel_attributes_form';
@@ -127,5 +129,19 @@ describe('ChannelAttributesForm', () => {
         await userEvent.clear(screen.getByLabelText('note'));
 
         expect(onChange).toHaveBeenCalledWith('f_note', undefined);
+    });
+
+    test('caps a text value at the length the server accepts', () => {
+        const note = field({id: 'f_note', name: 'note', type: 'text'});
+
+        renderWithContext(
+            <ChannelAttributesForm
+                fields={[note]}
+                values={{}}
+                onChange={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByLabelText('note')).toHaveAttribute('maxLength', String(PROPERTY_TEXT_VALUE_MAX_LENGTH));
     });
 });

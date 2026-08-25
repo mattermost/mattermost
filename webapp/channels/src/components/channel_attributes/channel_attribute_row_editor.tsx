@@ -8,6 +8,7 @@ import type {OnChangeValue} from 'react-select';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
+import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/properties';
 import {canMoveToOption, getPropertyFieldChangePolicy, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 import DropdownInput from 'components/dropdown_input';
@@ -100,6 +101,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}
                 name={`channelAttributeEdit-${field.name}`}
                 type='text'
                 value={text}
+                maxLength={PROPERTY_TEXT_VALUE_MAX_LENGTH}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={handleTextKeyDown}
 

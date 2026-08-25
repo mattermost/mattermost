@@ -340,8 +340,8 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 	}).InitBasic(t)
 
 	// The attribute validation hook is registered against the access_control
-	// group only, and that group is licence-gated.
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	// group only, and channel attributes need Enterprise Advanced.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
 	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
@@ -489,6 +489,20 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.ChannelAttributes = true
 		})
+
+		req, name := newRequest(model.PropertyValuePatchItem{FieldID: field.ID, Value: json.RawMessage(`"x"`)})
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.create_channel.attributes_feature_disabled.app_error")
+		requireNoSuchChannel(t, name)
+	})
+
+	t.Run("values are refused below Enterprise Advanced", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldTypeText, memberLevel, nil)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
 		req, name := newRequest(model.PropertyValuePatchItem{FieldID: field.ID, Value: json.RawMessage(`"x"`)})
 		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)

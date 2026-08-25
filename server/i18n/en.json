@@ -3303,6 +3303,10 @@
     "translation": "Unable to update sidebar to match updated preferences"
   },
   {
+    "id": "api.property.channel_attributes.license.app_error",
+    "translation": "Channel attributes require an Enterprise Advanced license."
+  },
+  {
     "id": "api.property.session_attributes.license.app_error",
     "translation": "Session attributes require an Enterprise Advanced license."
   },

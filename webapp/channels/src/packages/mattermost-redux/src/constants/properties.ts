@@ -14,3 +14,8 @@ export const DISPLAY_BANNER_TOP = 'display_banner_top';
 export const DISPLAY_BANNER_BOTTOM = 'display_banner_bottom';
 export const DISPLAY_LABEL_HEADER = 'display_label_header';
 export const DISPLAY_LABEL_INFO = 'display_label_info';
+
+// Mirrors PropertyFieldValueTypeTextMaxLength on the server, which rejects a
+// longer text value outright. Kept in sync by hand: the inputs cap typing here so
+// the refusal never has to arrive as a save error.
+export const PROPERTY_TEXT_VALUE_MAX_LENGTH = 64;

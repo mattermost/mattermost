@@ -89,11 +89,15 @@ function useClassificationMarkingsReachable(): boolean {
     });
 }
 
-// Mirrors the classification_attribute route's own ChannelAttributes gate, the way
-// the hook above mirrors the Classification Markings one. Without that flag the route
-// is hidden, so Edit must not offer it.
+// Mirrors the classification_attribute route's own gate, the way the hook above
+// mirrors the Classification Markings one. Below Enterprise Advanced, or without
+// the flag, the route is hidden, so Edit must not offer it.
 function useClassificationAttributePageReachable(): boolean {
-    return useSelector((state: GlobalState) => it.configIsTrue('FeatureFlags', 'ChannelAttributes')(getAdminConfig(state)));
+    return useSelector((state: GlobalState) => {
+        const config = getAdminConfig(state);
+        return it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)(config, state, getLicense(state)) &&
+            it.configIsTrue('FeatureFlags', 'ChannelAttributes')(config);
+    });
 }
 
 export function getTypeLabel(fieldType: FieldType): MessageDescriptor {

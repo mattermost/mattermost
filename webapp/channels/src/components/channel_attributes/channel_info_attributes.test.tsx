@@ -9,6 +9,7 @@ import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
+import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/properties';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
@@ -97,7 +98,7 @@ function makeState(fields: PropertyField[], values: Array<PropertyValue<unknown>
         entities: {
             general: {
                 config: {FeatureFlagChannelAttributes: flag},
-                license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
+                license: {IsLicensed: 'true', SkuShortName: 'advanced'},
             },
             channels: {
                 channels: {[CHANNEL_ID]: {id: CHANNEL_ID, team_id: TEAM_ID, type: 'P'}},
@@ -286,6 +287,30 @@ describe('ChannelInfoAttributes', () => {
                 'channel',
                 CHANNEL_ID,
                 [{field_id: 'program', value: 'opt_program'}],
+            ));
+        });
+
+        test('stops a text value at the length the server accepts', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('note', {required: true, type: 'text'})], [value('note', null)]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-note'));
+
+            const input = await screen.findByTestId('channelAttributeEdit-note');
+            expect(input).toHaveAttribute('maxLength', String(PROPERTY_TEXT_VALUE_MAX_LENGTH));
+
+            await userEvent.type(input, 'x'.repeat(PROPERTY_TEXT_VALUE_MAX_LENGTH + 5));
+            await userEvent.type(input, '{Enter}');
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'note', value: 'x'.repeat(PROPERTY_TEXT_VALUE_MAX_LENGTH)}],
             ));
         });
 

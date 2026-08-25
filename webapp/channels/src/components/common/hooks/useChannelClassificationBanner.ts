@@ -26,7 +26,7 @@ import {getChannelAttributeFields, getPropertyValueForTargetField, makeGetResolv
 import {CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
 import {renderBannerTemplate} from 'components/channel_attributes/banner_template';
 
-import {isEnterpriseLicense} from 'utils/license_utils';
+import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
 import useClassificationMarkings from './useClassificationMarkings';
 
@@ -72,17 +72,17 @@ export default function useChannelClassificationBanner(channelId: string): Chann
     const classification = useClassificationMarkings();
 
     const attributesEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'ChannelAttributes') === 'true');
-    const hasEnterpriseLicense = isEnterpriseLicense(useSelector(getLicense));
+    const hasAdvancedLicense = isMinimumEnterpriseAdvancedLicense(useSelector(getLicense));
     const channelFields = useSelector(getChannelAttributeFields);
 
     // First by sort_order, so which attribute wins is configuration rather than
     // field creation order.
     const designated = useMemo(() => {
-        if (!attributesEnabled || !hasEnterpriseLicense) {
+        if (!attributesEnabled || !hasAdvancedLicense) {
             return undefined;
         }
         return channelFields.find((field) => bannerAction(field) !== undefined);
-    }, [attributesEnabled, hasEnterpriseLicense, channelFields]);
+    }, [attributesEnabled, hasAdvancedLicense, channelFields]);
 
     // Only while the channel field carries no display locations at all, which is how
     // a field predating any configuration keeps today's banner. Once an admin has
@@ -111,7 +111,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
     // Loaded here too, so the banner works on surfaces that never mount the header
     // chips — a popout, or a channel where the label component is absent.
     useEffect(() => {
-        if (!attributesEnabled || !hasEnterpriseLicense || channelFields.length > 0) {
+        if (!attributesEnabled || !hasAdvancedLicense || channelFields.length > 0) {
             return;
         }
         dispatch(fetchPropertyFields(
@@ -120,7 +120,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             SYSTEM_TARGET_TYPE,
             SYSTEM_TARGET_ID,
         ));
-    }, [attributesEnabled, hasEnterpriseLicense, channelFields.length, dispatch]);
+    }, [attributesEnabled, hasAdvancedLicense, channelFields.length, dispatch]);
 
     // Returns every access_control value on the channel, so this also feeds the
     // header chips and Channel Info — hence firing with Classification Markings off.
@@ -128,7 +128,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
     // nothing else loads them.
     const shouldLoadValues = Boolean(channelId) && (
         (classification.available && Boolean(classification.channelField)) ||
-        (attributesEnabled && hasEnterpriseLicense)
+        (attributesEnabled && hasAdvancedLicense)
     );
 
     useEffect(() => {

@@ -15,7 +15,7 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {Client4} from 'mattermost-redux/client';
 import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
-import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
@@ -29,6 +29,7 @@ import Input from 'components/widgets/inputs/input/input';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
+import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 import {CPA_FIELD_NAME_MAX_RUNES, filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
 import type {CPAFieldNameValidationError} from 'utils/properties';
 
@@ -163,7 +164,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const [ldapAttr, setLdapAttr] = useState('');
     const [samlAttr, setSamlAttr] = useState('');
 
-    const channelAttributesEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'ChannelAttributes') === 'true');
+    // Global Attributes is Enterprise, but the Channels resource writes channel
+    // attributes, which the server refuses below Enterprise Advanced.
+    const channelAttributesEnabled = useSelector((state: GlobalState) =>
+        getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
 
     // null means the attribute does not apply to channels.
     const [channelResource, setChannelResource] = useState<ChannelResourceConfig | null>(null);

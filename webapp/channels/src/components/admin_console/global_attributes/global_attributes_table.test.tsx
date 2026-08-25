@@ -70,7 +70,7 @@ type EntitiesPartial = NonNullable<DeepPartial<GlobalState>['entities']>;
 // overridden to exercise the AND logic off the all-true/all-false diagonal (e.g. license ok
 // but flag off, or vice versa).
 function getReachableState(overrides: {licenseSku?: string; classificationMarkingsFlagOn?: boolean; channelAttributesFlagOn?: boolean} = {}): DeepPartial<GlobalState> {
-    const {licenseSku = 'enterprise', classificationMarkingsFlagOn = true, channelAttributesFlagOn = true} = overrides;
+    const {licenseSku = 'advanced', classificationMarkingsFlagOn = true, channelAttributesFlagOn = true} = overrides;
     const state = getBaseState();
     state.entities!.general = {
         license: {IsLicensed: 'true', SkuShortName: licenseSku},

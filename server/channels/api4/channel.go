@@ -223,7 +223,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 // Errors never name an attribute: which markings a server defines is itself
 // sensitive, and the caller may not be allowed to see them.
 func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license *model.License, items []model.PropertyValuePatchItem) ([]*model.PropertyValue, *model.AppError) {
-	if !c.App.Config().FeatureFlags.ChannelAttributes || !model.MinimumEnterpriseLicense(license) {
+	if !c.App.Config().FeatureFlags.ChannelAttributes || !model.MinimumEnterpriseAdvancedLicense(license) {
 		if len(items) > 0 {
 			return nil, model.NewAppError("createChannel", "api.channel.create_channel.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
 		}

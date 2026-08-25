@@ -723,8 +723,10 @@ const AdminDefinition: AdminDefinitionType = {
                 // Gated on ChannelAttributes as well: with that flag off the only
                 // editable thing on this page is the Channels resource, so there is
                 // nothing here that the Classification Markings page does not cover.
+                // That resource is also what sets the tier: channel attributes are
+                // Enterprise Advanced even though Global Attributes is not.
                 isHidden: it.not(it.all(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
                     it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
                     it.configIsTrue('FeatureFlags', 'ChannelAttributes'),
                 )),
