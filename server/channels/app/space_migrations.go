@@ -27,8 +27,14 @@ const seedingConflictSuffix = "; rename or delete the conflicting row to proceed
 // The role reads carry no DeleteAt filter, so a deleted row reaches this like any
 // other.
 func validateAdoptableSpaceRole(roleID string, stored, want *model.Role) error {
-	if stored.DeleteAt != 0 || stored.SchemeManaged || (stored.SchemeId != nil && *stored.SchemeId != "") {
-		return fmt.Errorf("role %q already exists and is deleted, scheme-managed, or owned by a scheme"+seedingConflictSuffix, roleID)
+	if stored.DeleteAt != 0 {
+		return fmt.Errorf("role %q already exists and is deleted"+seedingConflictSuffix, roleID)
+	}
+	if stored.SchemeManaged {
+		return fmt.Errorf("role %q already exists and is scheme-managed"+seedingConflictSuffix, roleID)
+	}
+	if stored.SchemeId != nil && *stored.SchemeId != "" {
+		return fmt.Errorf("role %q already exists and is owned by scheme %q"+seedingConflictSuffix, roleID, *stored.SchemeId)
 	}
 	if !slices.Equal(model.NormalizePermissions(stored.Permissions), model.NormalizePermissions(want.Permissions)) {
 		return fmt.Errorf("role %q already exists with a different permission set than the built-in definition"+seedingConflictSuffix, roleID)
@@ -47,15 +53,19 @@ func validateAdoptableSpaceRole(roleID string, stored, want *model.Role) error {
 // an empty role name would fail the role seeding outright. A single non-space
 // channel on the scheme proves it is a customer's.
 func (s *Server) validateAdoptableSpaceScheme(existing *model.Scheme) error {
-	distinctRoles := existing.DefaultChannelUserRole != "" &&
-		existing.DefaultChannelAdminRole != "" &&
-		existing.DefaultChannelGuestRole != "" &&
-		existing.DefaultChannelUserRole != existing.DefaultChannelAdminRole &&
-		existing.DefaultChannelUserRole != existing.DefaultChannelGuestRole &&
-		existing.DefaultChannelAdminRole != existing.DefaultChannelGuestRole
-
-	if existing.DeleteAt != 0 || existing.Scope != model.SchemeScopeChannel || !distinctRoles {
-		return fmt.Errorf("scheme %q already exists and is not shaped like a seeded space preset"+seedingConflictSuffix, existing.Name)
+	if existing.DeleteAt != 0 {
+		return fmt.Errorf("scheme %q already exists and is deleted"+seedingConflictSuffix, existing.Name)
+	}
+	if existing.Scope != model.SchemeScopeChannel {
+		return fmt.Errorf("scheme %q already exists with scope %q instead of %q"+seedingConflictSuffix, existing.Name, existing.Scope, model.SchemeScopeChannel)
+	}
+	if existing.DefaultChannelUserRole == "" || existing.DefaultChannelAdminRole == "" || existing.DefaultChannelGuestRole == "" {
+		return fmt.Errorf("scheme %q already exists without a complete set of generated channel roles"+seedingConflictSuffix, existing.Name)
+	}
+	if existing.DefaultChannelUserRole == existing.DefaultChannelAdminRole ||
+		existing.DefaultChannelUserRole == existing.DefaultChannelGuestRole ||
+		existing.DefaultChannelAdminRole == existing.DefaultChannelGuestRole {
+		return fmt.Errorf("scheme %q already exists with generated channel roles that are not distinct"+seedingConflictSuffix, existing.Name)
 	}
 
 	governed, err := s.Store().Channel().CountNonSpaceChannelsByScheme(existing.Id)
