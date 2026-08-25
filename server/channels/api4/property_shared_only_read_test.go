@@ -16,12 +16,13 @@ import (
 )
 
 // A shared_only field's masking is computed against what the *caller* holds, so
-// every read of one has to say who is asking. The properties REST routes did
-// not: they passed the untagged request context straight to the service, the
-// access control hook read no caller ID, and every caller -- the owner of the
-// values included -- was answered as someone who holds nothing and shown an
-// empty list. Nothing distinguished that from masking working, because "you
-// share nothing" is a legitimate answer.
+// every read of one has to say who is asking. The properties REST routes tag
+// the request context with the caller's ID before it reaches the service, which
+// the access control hook reads to compute the masking; a route that instead
+// passed an untagged context would answer every caller -- the owner of the
+// values included -- as someone who holds nothing, shown an empty list. Nothing
+// distinguishes that from masking working, because "you share nothing" is a
+// legitimate answer.
 //
 // These tests read one target's values back through
 // GET /properties/groups/{group}/{object_type}/values/{target_id} as four
@@ -246,7 +247,7 @@ func (f *sharedOnlyReadFixture) makeSharedOnly(t *testing.T) {
 //
 // The public field is asserted on every read: it is what tells "the caller was
 // shown nothing of this field" apart from "the read returned nothing at all",
-// which is the distinction the original bug hid behind.
+// a distinction an untagged request context would otherwise erase.
 func (f *sharedOnlyReadFixture) readTargetValue(t *testing.T, client *model.Client4) []string {
 	t.Helper()
 
@@ -383,10 +384,9 @@ func TestSharedOnlyValuesOverPropertiesRoute_Graph(t *testing.T) {
 	})
 }
 
-// TestSharedOnlyFieldOptionsOverPropertiesRoute covers the other read the
-// properties route serves untagged: the field listing, whose inlined option list
-// is filtered by the same rule as the values. It emptied that list for every
-// caller for the same reason.
+// TestSharedOnlyFieldOptionsOverPropertiesRoute covers the field listing route,
+// whose inlined option list is filtered by the same shared_only rule as the
+// values: an untagged caller would see that list emptied for the same reason.
 func TestSharedOnlyFieldOptionsOverPropertiesRoute(t *testing.T) {
 	mainHelper.Parallel(t)
 
