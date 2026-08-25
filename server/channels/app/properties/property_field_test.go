@@ -1150,6 +1150,41 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, model.PropertyFieldTypeSelect, reloaded.Type)
 	})
 
+	t.Run("update refuses changing the type of a legacy field other fields link to", func(t *testing.T) {
+		legacyGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+
+		source, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    legacyGroup.ID,
+			ObjectType: "", // Legacy
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "LegacySource-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+		})
+		require.NoError(t, err)
+
+		_, err = th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       legacyGroup.ID,
+			ObjectType:    "", // Legacy
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LegacyDependent-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+
+		source.Type = model.PropertyFieldTypeText
+		_, _, err = th.service.UpdatePropertyField(rctx, legacyGroup.ID, source)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "cannot change type of a field with active linked dependents")
+
+		reloaded, err := th.service.GetPropertyField(rctx, legacyGroup.ID, source.ID)
+		require.NoError(t, err)
+		assert.Equal(t, model.PropertyFieldTypeSelect, reloaded.Type)
+	})
+
 	t.Run("create linked field with an empty option list succeeds", func(t *testing.T) {
 		source := createSourceField(t, "EmptyOptsSource-"+model.NewId())
 

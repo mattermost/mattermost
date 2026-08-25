@@ -573,7 +573,7 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 
 		// Checked before the PSAv1 skip below: whether a linked field's type may
 		// change does not depend on which property generation the field belongs to.
-		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && field.Type != existing.Type {
+		if existingIsLinked && field.Type != existing.Type {
 			return nil, nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.linked_type_change.app_error",
@@ -583,7 +583,32 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 			)
 		}
 
-		// Legacy properties (PSAv1) skip the conflict check.
+		// The same rule seen from the other end: a field that others link to
+		// cannot change type either, because they take their options from it and
+		// would be left serving options of the wrong kind. Above the skip below
+		// because a legacy field can be a link source just as easily.
+		if field.Type != existing.Type {
+			count, cErr := ps.fieldStore.CountLinkedFields(field.ID)
+			if cErr != nil {
+				return nil, nil, nil, fmt.Errorf("failed to count linked fields: %w", cErr)
+			}
+
+			if count > 0 {
+				return nil, nil, nil, model.NewAppError(
+					"UpdatePropertyFields",
+					"app.property_field.update.type_change_with_dependents.app_error",
+					nil,
+					"cannot change type of a field with active linked dependents",
+					http.StatusConflict,
+				)
+			}
+		}
+
+		// Legacy properties (PSAv1) stop here, because nothing below can apply to
+		// them. A legacy field is not allowed a Permissions object at all, so the
+		// two option.read checks have nothing to read; and legacy name uniqueness
+		// is enforced by a database constraint, so CheckPropertyNameConflict
+		// returns early for them anyway.
 		if field.IsPSAv1() {
 			continue
 		}
@@ -614,24 +639,6 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 		// sits at is the same breach reached from the other direction.
 		if err := ps.validateDependentOptionReadCeilings(field, existing, incoming); err != nil {
 			return nil, nil, nil, err
-		}
-
-		// Block type changes on source fields with active linked dependents
-		if field.Type != existing.Type {
-			count, cErr := ps.fieldStore.CountLinkedFields(field.ID)
-			if cErr != nil {
-				return nil, nil, nil, fmt.Errorf("failed to count linked fields: %w", cErr)
-			}
-
-			if count > 0 {
-				return nil, nil, nil, model.NewAppError(
-					"UpdatePropertyFields",
-					"app.property_field.update.type_change_with_dependents.app_error",
-					nil,
-					"cannot change type of a field with active linked dependents",
-					http.StatusConflict,
-				)
-			}
 		}
 
 		// Any change to Name or identity fields (TargetType/TargetID/ObjectType)
