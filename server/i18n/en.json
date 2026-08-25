@@ -2198,6 +2198,10 @@
     "translation": "The user is not a content reviewer."
   },
   {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Failed to write the post exposure report."
+  },
+  {
     "id": "api.data_spillage.report.open.app_error",
     "translation": "Failed to open the generated flagged post report file."
   },
@@ -2699,10 +2703,6 @@
   {
     "id": "api.license.add_license.wrong_environment_test.app_error",
     "translation": "This is a test or development license, but this server is running in a production environment. Test or development licenses can only be used on test or development servers."
-  },
-  {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
   },
   {
     "id": "api.license.load_metric.app_error",
@@ -3659,98 +3659,6 @@
     "translation": "Could not uninvite remote to channel"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email",
-    "translation": "The Integration/Slack Bot user with email {{.Email}} has been imported.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Unable to import the Integration/Slack Bot user {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\nChannels added:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Unable to add Slack user {{.Username}} to channel.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Unable to import Slack channel {{.DisplayName}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "The Slack channel {{.DisplayName}} already exists as an active Mattermost channel. Both channels have been merged.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\nUsers created:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email",
-    "translation": "Slack user with email {{.Email}} has been imported.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_skipped_non_admin",
-    "translation": "Slack user with email {{.Email}} matches existing Mattermost user {{.Username}}. Merging into an existing Mattermost account is only available for imports run by a system admin, so this user's posts and channel memberships will not be imported. Re-run the import as a system admin to merge them.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
-    "translation": "Unable to send password reset email to {{.Username}} at {{.Email}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Unable to import Slack user: {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Mattermost Slack Import Log\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- Some messages may not have been imported because they were not supported by this importer.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- Slack bot messages are currently not supported.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- Additional errors may be found in the server logs.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\nNotes:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Unable to open the file: {{.Filename}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Unable to get the team to import into.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Unable to open the Slack export zip file.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
-  },
-  {
     "id": "api.status.user_not_found.app_error",
     "translation": "User not found."
   },
@@ -3853,38 +3761,6 @@
   {
     "id": "api.team.get_team_icon.read_file.app_error",
     "translation": "Unable to read the team icon file."
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "Empty array under 'file' in request."
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "Filesize not an integer."
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "No file under 'file' in request."
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Malformed request: importFrom field is not present."
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "Could not open file."
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "Could not parse multipart form."
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Malformed request: filesize field is not present."
-  },
-  {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "Unknown import source."
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -6291,6 +6167,114 @@
     "translation": "Unable to save property values for the flagged post."
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "Email"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Deactivated"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Guest"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Remote user"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "User last activity time (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Last viewed channel at (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "User ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Username"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "Was channel member"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Cannot generate an exposure report for an edit history revision. Use the current post ID."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "Failed to retrieve the channel membership history for the flagged post."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Failed to retrieve session activity for the flagged post."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "Failed to retrieve channel read state for the flagged post."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Channel"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Generated at"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "Post ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Report version"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Total users"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "Flagged at"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "Post created at"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "The flagged post has no reporting time recorded, so the exposure window cannot be determined."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "Exposure reports are not supported for direct and group messages."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "N/A"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "No"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "No sessions found"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Unknown"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Yes"
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "Failed to marshal flagging user's comment"
   },
@@ -6539,6 +6523,10 @@
   {
     "id": "app.data_spillage.report.write_edit_yaml.app_error",
     "translation": "Failed to write edit history entry to the flagged post report."
+  },
+  {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Failed to write the exposure report to the flagged post report."
   },
   {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
@@ -11847,16 +11835,8 @@
     "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo: HMAC key must be at least {{.MinLength}} bytes for FIPS compliance."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "The 'atmos/camo' image proxy type was removed in Mattermost v12.0. Set ImageProxySettings.ImageProxyType to 'local', or set ImageProxySettings.Enable to false to disable the image proxy."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -12099,6 +12079,14 @@
     "translation": "Invalid content extraction timeout for file settings. Must be a whole number of seconds greater than or equal to zero."
   },
   {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "The AppsEnabled feature flag is no longer supported and must be disabled."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "The MoveThreadsEnabled feature flag is no longer supported and must be disabled."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Invalid driver name for file settings. Must be 'local', 'amazons3', or 'azureblob'."
   },
@@ -12120,7 +12108,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
+    "translation": "Invalid image proxy type. Must be 'local'."
   },
   {
     "id": "model.config.is_valid.import.directory.app_error",
@@ -12293,6 +12281,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "Message export job ExportFormat is set to 'globalrelay', but GlobalRelaySettings are missing."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderName and CustomHeaderValue must both be set, or both left empty."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderName must be a valid header name with no spaces, colons, separators, or line breaks."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderName must not reuse a header that the Global Relay export already writes."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "Message export GlobalRelaySettings.CustomHeaderValue must not contain control characters or line breaks."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -12833,6 +12837,14 @@
   {
     "id": "model.link_metadata.is_valid.url_length.app_error",
     "translation": "Length of link metadata URL is {{ .Length }} characters long, which exceeds the maximum limit of {{ .MaxLength }} characters."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Invalid date_from filter. Expected the format \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Invalid date_to filter. Expected the format \"{{.Layout}}\"."
   },
   {
     "id": "model.member.is_valid.channel.app_error",

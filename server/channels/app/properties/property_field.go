@@ -4,7 +4,6 @@
 package properties
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -38,7 +37,7 @@ func (ps *PropertyService) enforceFieldGroupVersionMatch(caller string, groupID 
 
 // Private implementation methods (database access)
 
-func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*model.PropertyField, error) {
+func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
 	// Enforce version match between field and group
 	if err := ps.enforceFieldGroupVersionMatch("CreatePropertyField", field.GroupID, field); err != nil {
 		return nil, err
@@ -62,7 +61,7 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 			)
 		}
 
-		source, err := ps.fieldStore.Get(store.WithMaster(context.Background()), "", *field.LinkedFieldID)
+		source, err := ps.fieldStore.Get(store.RequestContextWithMaster(rctx), "", *field.LinkedFieldID)
 		if err != nil {
 			if store.IsErrNotFound(err) {
 				return nil, model.NewAppError(
@@ -172,16 +171,16 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 	return ps.fieldStore.Create(field)
 }
 
-func (ps *PropertyService) getPropertyField(groupID, id string) (*model.PropertyField, error) {
-	return ps.fieldStore.Get(context.Background(), groupID, id)
+func (ps *PropertyService) getPropertyField(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
+	return ps.fieldStore.Get(rctx, groupID, id)
 }
 
-func (ps *PropertyService) getPropertyFieldFromMaster(groupID, id string) (*model.PropertyField, error) {
-	return ps.fieldStore.Get(store.WithMaster(context.Background()), groupID, id)
+func (ps *PropertyService) getPropertyFieldFromMaster(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
+	return ps.fieldStore.Get(store.RequestContextWithMaster(rctx), groupID, id)
 }
 
-func (ps *PropertyService) getPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
-	fields, err := ps.fieldStore.GetMany(context.Background(), groupID, ids)
+func (ps *PropertyService) getPropertyFields(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
+	fields, err := ps.fieldStore.GetMany(rctx, groupID, ids)
 	if err != nil {
 		var resultsMismatchErr *store.ErrResultsMismatch
 		if errors.As(err, &resultsMismatchErr) {
@@ -192,12 +191,12 @@ func (ps *PropertyService) getPropertyFields(groupID string, ids []string) ([]*m
 	return fields, nil
 }
 
-func (ps *PropertyService) getPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
-	return ps.fieldStore.GetFieldByName(context.Background(), groupID, targetID, name)
+func (ps *PropertyService) getPropertyFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error) {
+	return ps.fieldStore.GetFieldByName(rctx, groupID, targetID, name)
 }
 
-func (ps *PropertyService) getPropertyFieldByNameForObjectType(groupID, targetID, objectType, name string) (*model.PropertyField, error) {
-	return ps.fieldStore.GetFieldByNameForObjectType(context.Background(), groupID, targetID, objectType, name)
+func (ps *PropertyService) getPropertyFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error) {
+	return ps.fieldStore.GetFieldByNameForObjectType(rctx, groupID, targetID, objectType, name)
 }
 
 func (ps *PropertyService) countActivePropertyFieldsForGroup(groupID string) (int64, error) {
@@ -254,7 +253,7 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 	// Read from master to avoid replication lag between this read and the
 	// subsequent UPDATE (which also runs against master). This closes the
 	// TOCTOU window that a replica read would leave open.
-	existingFields, err := ps.fieldStore.GetMany(store.WithMaster(context.Background()), groupID, ids)
+	existingFields, err := ps.fieldStore.GetMany(store.RequestContextWithMaster(rctx), groupID, ids)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to get existing fields for update: %w", err)
 	}
@@ -432,10 +431,10 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 	return requested, propagated, clearedFieldIDs, nil
 }
 
-func (ps *PropertyService) deletePropertyField(groupID, id string) error {
+func (ps *PropertyService) deletePropertyField(rctx request.CTX, groupID, id string) error {
 	// if groupID is not empty, we need to check first that the field belongs to the group
 	if groupID != "" {
-		if _, err := ps.getPropertyField(groupID, id); err != nil {
+		if _, err := ps.getPropertyField(rctx, groupID, id); err != nil {
 			return fmt.Errorf("error getting property field %q for group %q: %w", id, groupID, err)
 		}
 	}
@@ -470,11 +469,11 @@ func (ps *PropertyService) CreatePropertyField(rctx request.CTX, field *model.Pr
 		return nil, fmt.Errorf("CreatePropertyField: %w", err)
 	}
 
-	return ps.createPropertyField(field)
+	return ps.createPropertyField(rctx, field)
 }
 
 func (ps *PropertyService) GetPropertyField(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
-	field, err := ps.getPropertyField(groupID, id)
+	field, err := ps.getPropertyField(rctx, groupID, id)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyField: %w", err)
 	}
@@ -483,7 +482,7 @@ func (ps *PropertyService) GetPropertyField(rctx request.CTX, groupID, id string
 }
 
 func (ps *PropertyService) GetPropertyFields(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
-	fields, err := ps.getPropertyFields(groupID, ids)
+	fields, err := ps.getPropertyFields(rctx, groupID, ids)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFields: %w", err)
 	}
@@ -492,7 +491,7 @@ func (ps *PropertyService) GetPropertyFields(rctx request.CTX, groupID string, i
 }
 
 func (ps *PropertyService) GetPropertyFieldsForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error) {
-	fields, err := ps.fieldStore.GetForGroup(context.Background(), groupID)
+	fields, err := ps.fieldStore.GetForGroup(rctx, groupID)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFieldsForGroup: %w", err)
 	}
@@ -505,7 +504,7 @@ func (ps *PropertyService) GetPropertyFieldsForGroup(rctx request.CTX, groupID s
 // Deprecated: name is not unique within a group when fields of different object
 // types share a name. Use GetPropertyFieldByNameForObjectType to disambiguate.
 func (ps *PropertyService) GetPropertyFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error) {
-	field, err := ps.getPropertyFieldByName(groupID, targetID, name)
+	field, err := ps.getPropertyFieldByName(rctx, groupID, targetID, name)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFieldByName: %w", err)
 	}
@@ -514,7 +513,7 @@ func (ps *PropertyService) GetPropertyFieldByName(rctx request.CTX, groupID, tar
 }
 
 func (ps *PropertyService) GetPropertyFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error) {
-	field, err := ps.getPropertyFieldByNameForObjectType(groupID, targetID, objectType, name)
+	field, err := ps.getPropertyFieldByNameForObjectType(rctx, groupID, targetID, objectType, name)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFieldByNameForObjectType: %w", err)
 	}
@@ -592,7 +591,7 @@ func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id str
 		return fmt.Errorf("DeletePropertyField: %w", err)
 	}
 
-	return ps.deletePropertyField(groupID, id)
+	return ps.deletePropertyField(rctx, groupID, id)
 }
 
 // asOptionSlice extracts the options from an attrs map as []map[string]any

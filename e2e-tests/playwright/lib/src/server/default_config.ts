@@ -265,7 +265,7 @@ const defaultServerConfig: AdminConfig = {
     SqlSettings: {
         DriverName: 'postgres',
         DataSource:
-            'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes',
+            'postgres://mmuser:mostest_password@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes',
         DataSourceReplicas: [],
         DataSourceSearchReplicas: [],
         MaxIdleConns: 50,
@@ -405,9 +405,6 @@ const defaultServerConfig: AdminConfig = {
         EnablePreviewModeBanner: true,
         SkipServerCertificateVerification: false,
         EmailNotificationContentsType: 'full',
-        LoginButtonColor: '#0000',
-        LoginButtonBorderColor: '#2389D7',
-        LoginButtonTextColor: '#2389D7',
     },
     RateLimitSettings: {
         Enable: false,
@@ -722,6 +719,8 @@ const defaultServerConfig: AdminConfig = {
             SMTPServerTimeout: 1800,
             CustomSMTPServerName: '',
             CustomSMTPPort: '25',
+            CustomHeaderName: '',
+            CustomHeaderValue: '',
         },
     },
     JobSettings: {
@@ -775,8 +774,6 @@ const defaultServerConfig: AdminConfig = {
     ImageProxySettings: {
         Enable: false,
         ImageProxyType: 'local',
-        RemoteImageProxyURL: '',
-        RemoteImageProxyOptions: '',
     },
     CloudSettings: {
         CWSURL: 'https://customers.mattermost.com',
@@ -821,6 +818,7 @@ const defaultServerConfig: AdminConfig = {
         PropertyFieldRank: false,
         TeamMembershipAccessControl: true,
         MmBlocksEnabled: true,
+        EnableConcurrentReact: true,
     },
     ImportSettings: {
         Directory: './import',
