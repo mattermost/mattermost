@@ -80,7 +80,7 @@ describe('AttributeDetails', () => {
         expect(screen.getByTestId('saveSetting')).toBeDisabled();
     });
 
-    it('reveals a focused editable Name input seeded with the current slug when Edit is clicked, and stops auto-updating it', async () => {
+    it('reveals a focused editable Name input seeded with the current slug when Edit is clicked', async () => {
         renderComponent();
 
         await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
@@ -89,9 +89,6 @@ describe('AttributeDetails', () => {
         const nameInput = screen.getByTestId('attributeNameInput');
         expect(nameInput).toHaveValue('my_attribute');
         expect(nameInput).toHaveFocus();
-
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Extra');
-        expect(nameInput).toHaveValue('my_attribute');
     });
 
     it('swaps the Edit link to Done while editing, and back to Edit (keeping the typed value) when Done is clicked', async () => {
@@ -130,6 +127,39 @@ describe('AttributeDetails', () => {
         // an actual change must not freeze the Name to the seeded snapshot.
         await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Two');
         expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute_two');
+    });
+
+    it('exits edit mode on blur without pinning if the seeded value was not changed', async () => {
+        renderComponent();
+
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.click(screen.getByTestId('attributeDisplayNameInput'));
+
+        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeNameEditLink')).toHaveTextContent('Edit');
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute');
+
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Two');
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute_two');
+    });
+
+    it('commits a typed Name on blur and stops auto-derivation', async () => {
+        renderComponent();
+
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+
+        const nameInput = screen.getByTestId('attributeNameInput');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'custom_name');
+        await userEvent.click(screen.getByTestId('attributeDisplayNameInput'));
+
+        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('custom_name');
+
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Two');
+        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('custom_name');
     });
 
     it('reverts to auto-derived mode if Done is clicked with an empty field on the very first edit', async () => {
@@ -183,7 +213,7 @@ describe('AttributeDetails', () => {
         expect(screen.getByTestId('saveSetting')).toBeDisabled();
     });
 
-    it('refuses to commit an invalid Name via Done or Enter, keeping the editor open', async () => {
+    it('refuses to commit an invalid Name via Done, Enter, or blur, keeping the editor open', async () => {
         renderComponent();
 
         await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
@@ -204,6 +234,10 @@ describe('AttributeDetails', () => {
         await userEvent.type(screen.getByTestId('attributeNameInput'), '{Enter}');
         expect(screen.getByTestId('attributeNameInput')).toHaveValue('for');
         expect(screen.getByTestId('attributeUniqueNameError')).toHaveTextContent('reserved word');
+
+        await userEvent.click(screen.getByTestId('attributeDisplayNameInput'));
+        expect(screen.getByTestId('attributeNameInput')).toHaveValue('for');
+        expect(screen.getByTestId('attributeNameEditLink')).toHaveTextContent('Done');
     });
 
     it('commits the Name once the invalid value is corrected', async () => {
@@ -572,7 +606,7 @@ describe('AttributeDetails', () => {
         expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('committed_name');
     });
 
-    it('disables the Display name input, Name input, and Edit/Done link while saving', async () => {
+    it('disables the Display name input and Edit link while saving', async () => {
         let resolveCreate: (value: PropertyField) => void = () => {};
         jest.spyOn(Client4, 'createPropertyField').mockReturnValue(new Promise((resolve) => {
             resolveCreate = resolve;
@@ -583,8 +617,9 @@ describe('AttributeDetails', () => {
         await userEvent.click(screen.getByTestId('attributeNameEditLink'));
         await userEvent.click(screen.getByTestId('saveSetting'));
 
+        // Clicking Save blurs the Name input first, which commits like Done.
         expect(screen.getByTestId('attributeDisplayNameInput')).toBeDisabled();
-        expect(screen.getByTestId('attributeNameInput')).toBeDisabled();
+        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
         expect(screen.getByTestId('attributeNameEditLink')).toBeDisabled();
 
         resolveCreate({} as PropertyField);
@@ -593,9 +628,10 @@ describe('AttributeDetails', () => {
 
     it('does not navigate or update state if the save resolves after the component has unmounted', async () => {
         let resolveCreate: (value: PropertyField) => void = () => {};
-        jest.spyOn(Client4, 'createPropertyField').mockReturnValue(new Promise((resolve) => {
+        const createPromise = new Promise<PropertyField>((resolve) => {
             resolveCreate = resolve;
-        }));
+        });
+        jest.spyOn(Client4, 'createPropertyField').mockReturnValue(createPromise);
 
         const {unmount} = renderComponent();
         await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
@@ -604,9 +640,11 @@ describe('AttributeDetails', () => {
         unmount();
         resolveCreate({} as PropertyField);
 
-        // Flush the resolved promise's continuation without triggering an
-        // act() warning or a post-unmount navigation/dispatch.
-        await waitFor(() => Promise.resolve());
+        // Await the hanging create, then one extra tick so handleSave's
+        // await resumes and finalizeSave runs -- waitFor(() => Promise.resolve())
+        // returns on the first check and can pass before the mount guard.
+        await createPromise;
+        await Promise.resolve();
         expect(mockHistoryPush).not.toHaveBeenCalled();
         expect(mockSetNavigationBlocked).not.toHaveBeenCalledWith(false);
     });
@@ -670,6 +708,9 @@ describe('AttributeDetails', () => {
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
 
             expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Text');
+            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+            expect(screen.getByTestId('attributeExternalSourceSynced')).toHaveTextContent(/^Synced with/);
+            expect(screen.queryByTestId('attributeOptionsHelp')).not.toBeInTheDocument();
             expect(mockSetNavigationBlocked).toHaveBeenCalledWith(true);
         });
 
@@ -683,16 +724,32 @@ describe('AttributeDetails', () => {
             expect(screen.getByTestId('attributeExternalSourceChip-saml')).toBeInTheDocument();
         });
 
-        it('manually switching Type away from Text clears any linked sources', async () => {
+        it('disables the Type menu while a source is linked, and re-enables it after the last chip is removed', async () => {
             renderComponent();
 
+            expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
+            expect(screen.getByTestId('attributeOptionsHelp')).toBeInTheDocument();
+
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
-            expect(screen.getByTestId('attributeExternalSourceChip-ldap')).toBeInTheDocument();
+            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Text');
+            expect(screen.queryByTestId('attributeOptionsHelp')).not.toBeInTheDocument();
+
+            await linkViaMenu(/^SAML/, 'position');
+            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+
+            // Removing one of two links must keep Type locked
+            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-remove'));
+            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+
+            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-saml-remove'));
+            expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
+            expect(screen.getByTestId('attributeOptionsHelp')).toBeInTheDocument();
+            expect(screen.queryByTestId('attributeExternalSourceSynced')).not.toBeInTheDocument();
 
             await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
-
-            expect(screen.queryByTestId('attributeExternalSourceChip-ldap')).not.toBeInTheDocument();
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
         });
 
         it('re-saving a linked chip with the unchanged value is a no-op -- no extra dirty-marking dispatch', async () => {
@@ -725,6 +782,309 @@ describe('AttributeDetails', () => {
             }));
             const attrs = createPropertyField.mock.calls[0][2].attrs as Record<string, unknown>;
             expect(attrs).not.toHaveProperty('saml');
+        });
+    });
+
+    describe('applies to', () => {
+        // Opens the header Add-resource menu and picks `label` -- a non-
+        // checkbox/radio Menu.Item defers its onClick until after the menu's
+        // close transition (menu_item.tsx), so callers must await the row
+        // actually appearing rather than asserting immediately after the click.
+        const addResource = async (label: string, resourceType: string) => {
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByRole('menuitem', {name: label}));
+            await waitFor(() => expect(screen.getByTestId(`attributeAppliesToRow-${resourceType}`)).toBeInTheDocument());
+        };
+
+        it('creates one linked field per selected resource, in selection order, with linked_field_id and attrs populated', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'user-field-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'channel-field-id'} as PropertyField);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Users', 'user');
+            await addResource('Channels', 'channel');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+
+            expect(createPropertyField).toHaveBeenNthCalledWith(1, 'access_control', 'template', expect.objectContaining({
+                name: 'my_attribute',
+            }));
+            expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'user', expect.objectContaining({
+                name: 'my_attribute',
+                type: 'text',
+                target_type: 'system',
+                target_id: '',
+                linked_field_id: 'template-id',
+                attrs: {display_name: 'My Attribute'},
+            }));
+            expect(createPropertyField).toHaveBeenNthCalledWith(3, 'access_control', 'channel', expect.objectContaining({
+                linked_field_id: 'template-id',
+                attrs: {display_name: 'My Attribute'},
+            }));
+        });
+
+        it('picks up the current appliesTo value even though canSave does not depend on it (stale-closure regression)', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'user-field-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'channel-field-id'} as PropertyField);
+
+            renderComponent();
+
+            // Display name is the only thing typed before resources are
+            // added -- no other handleSave dependency changes after this,
+            // so if appliesTo were missing from the dependency array,
+            // handleSave would still close over the empty array it captured
+            // on an earlier render.
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Users', 'user');
+            await addResource('Channels', 'channel');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(createPropertyField).toHaveBeenCalledTimes(3);
+        });
+
+        it('rolls back the already-created linked field and the template when a later linked-field create fails, and re-enables Save', async () => {
+            const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+            jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'user-field-id'} as PropertyField).
+                mockRejectedValueOnce(new Error('boom'));
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Users', 'user');
+            await addResource('Channels', 'channel');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field-id'));
+            await waitFor(() => expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'template-id'));
+
+            expect(await screen.findByTestId('attributeSaveError')).toHaveTextContent('Channels');
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+        });
+
+        it('continues rolling back every linked field even if one delete fails, skips the template delete, and names the survivor', async () => {
+            const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').
+                mockImplementationOnce(() => Promise.reject(new Error('delete failed'))).
+                mockImplementationOnce(() => Promise.resolve({status: 'OK'}));
+            jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'user-field-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'channel-field-id'} as PropertyField).
+                mockRejectedValueOnce(new Error('boom'));
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Users', 'user');
+            await addResource('Channels', 'channel');
+            await addResource('Posts', 'post');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(deletePropertyField).toHaveBeenCalledTimes(2));
+            expect(deletePropertyField).toHaveBeenNthCalledWith(1, 'access_control', 'user', 'user-field-id');
+            expect(deletePropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'channel', 'channel-field-id');
+            expect(deletePropertyField).not.toHaveBeenCalledWith('access_control', 'template', 'template-id');
+
+            const banner = await screen.findByTestId('attributeSaveError');
+            expect(banner).toHaveTextContent('My Attribute');
+            expect(banner).toHaveTextContent('Users');
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+        });
+
+        it.each([
+            ['app.property_field.create.name_conflict.app_error', /already used by a User Attribute/i],
+            ['app.property_field.create.limit_reached.app_error', /maximum number of User Attributes/i],
+            ['app.property_field.create.group_limit_reached.app_error', /maximum number of User Attributes/i],
+        ])('renders the distinct CPA banner for a Users-linked-field %s', async (serverErrorId, expectedText) => {
+            const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+            jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockRejectedValueOnce(makeClientError(serverErrorId, 'server message'));
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Users', 'user');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            expect(await screen.findByText(expectedText)).toBeInTheDocument();
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+
+            // Rollback still runs even when the very first linked-field
+            // create is the one that fails (createdLinkedFields is empty,
+            // so the inner rollback loop runs zero iterations) -- confirms
+            // the template itself is still cleaned up in this zero-survivor case.
+            expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'template-id');
+        });
+
+        it('renders the generic applies-to banner for a Channels-linked-field name conflict, not the CPA copy', async () => {
+            const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+            jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockRejectedValueOnce(makeClientError('app.property_field.create.name_conflict.app_error', 'server message'));
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Channels', 'channel');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            const banner = await screen.findByTestId('attributeSaveError');
+            expect(banner).toHaveTextContent('Channels');
+            expect(banner).toHaveTextContent('Nothing was saved');
+            expect(banner).not.toHaveTextContent('User Attribute');
+            expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'template-id');
+        });
+
+        it('reports the leftover template when linked-field rollback succeeds but the template delete fails', async () => {
+            jest.spyOn(console, 'error').mockImplementation(() => {});
+            jest.spyOn(Client4, 'deletePropertyField').mockRejectedValue(new Error('template delete failed'));
+            jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockRejectedValueOnce(new Error('boom'));
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Channels', 'channel');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            const banner = await screen.findByTestId('attributeSaveError');
+            expect(banner).toHaveTextContent('My Attribute');
+            expect(banner).toHaveTextContent('could not be cleaned up');
+            expect(banner).not.toHaveTextContent('Nothing was saved');
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+        });
+
+        it('leaves Save enabled with zero Applies-to resources selected (unchanged from current behavior)', async () => {
+            jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({id: 'template-id'} as PropertyField);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+        });
+
+        it('calls markDirty (navigation-blocked, error cleared) when a resource is added', async () => {
+            jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(makeClientError('app.property_field.create.name_conflict.app_error', 'already exists'));
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            expect(await screen.findByText(/already exists/i)).toBeInTheDocument();
+
+            mockSetNavigationBlocked.mockClear();
+            await addResource('Users', 'user');
+
+            expect(mockSetNavigationBlocked).toHaveBeenCalledWith(true);
+            expect(screen.queryByText(/already exists/i)).not.toBeInTheDocument();
+        });
+
+        it('calls markDirty (navigation-blocked, error cleared) when a resource is removed', async () => {
+            jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(makeClientError('app.property_field.create.name_conflict.app_error', 'already exists'));
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Users', 'user');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            expect(await screen.findByText(/already exists/i)).toBeInTheDocument();
+
+            mockSetNavigationBlocked.mockClear();
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+
+            expect(mockSetNavigationBlocked).toHaveBeenCalledWith(true);
+            expect(screen.queryByText(/already exists/i)).not.toBeInTheDocument();
+        });
+
+        it('moves focus to the header Add-resource trigger after removing a resource', async () => {
+            renderComponent();
+            await addResource('Users', 'user');
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+
+            await waitFor(() => expect(screen.getByTestId('attributeAppliesToAddResourceButtonHeader')).toHaveFocus());
+        });
+
+        it('moves focus to the just-added row after adding the 3rd (last) resource, since both triggers unmount in that same render', async () => {
+            renderComponent();
+            await addResource('Users', 'user');
+            await addResource('Channels', 'channel');
+            await addResource('Posts', 'post');
+
+            expect(screen.queryByTestId('attributeAppliesToAddResourceButtonHeader')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('attributeAppliesToAddResourceButtonInline')).not.toBeInTheDocument();
+            await waitFor(() => expect(screen.getByTestId('attributeAppliesToRow-post-toggle')).toHaveFocus());
+        });
+
+        it('does not skip the linked-field loop or rollback when unmounted mid-save, on a failing save', async () => {
+            let resolveUserCreate: (value: PropertyField) => void = () => {};
+            const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+            jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockReturnValueOnce(new Promise((resolve) => {
+                    resolveUserCreate = resolve;
+                })).
+                mockRejectedValueOnce(new Error('boom'));
+
+            const {unmount} = renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Users', 'user');
+            await addResource('Channels', 'channel');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            // Unmount while the first linked-field create is still pending --
+            // the rest of the sequence (this create resolving, the second
+            // linked-field create rejecting, and the full rollback) must
+            // still run to completion afterward.
+            unmount();
+            resolveUserCreate({id: 'user-field-id'} as PropertyField);
+
+            await waitFor(() => expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field-id'));
+            await waitFor(() => expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'template-id'));
+        });
+
+        it('does not navigate or unblock navigation after unmounting mid-save, even when every create ultimately succeeds', async () => {
+            // Unlike the failing-save test above (whose assertions only prove
+            // the loop/rollback ran, since a failure outcome would never reach
+            // navigate/dispatch even without the isMountedRef guard), this
+            // scenario resolves every create successfully -- making
+            // mockHistoryPush/mockSetNavigationBlocked(false) genuinely
+            // load-bearing: without the guard in finalizeSave, both WOULD be
+            // called once the pending create resolves post-unmount.
+            let resolveUserCreate: (value: PropertyField) => void = () => {};
+            const userCreatePromise = new Promise<PropertyField>((resolve) => {
+                resolveUserCreate = resolve;
+            });
+            jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockReturnValueOnce(userCreatePromise);
+
+            const {unmount} = renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Users', 'user');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            unmount();
+            resolveUserCreate({id: 'user-field-id'} as PropertyField);
+
+            // Await the hanging create, then one extra tick so handleSave's
+            // await resumes and finalizeSave runs -- waitFor(() => Promise.resolve())
+            // returns on the first check and can pass before the mount guard.
+            await userCreatePromise;
+            await Promise.resolve();
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+            expect(mockSetNavigationBlocked).not.toHaveBeenCalledWith(false);
         });
     });
 });

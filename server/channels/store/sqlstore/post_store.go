@@ -307,13 +307,13 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 			"count":          count,
 			"countroot":      countRoot,
 		}); err != nil {
-			mlog.Warn("Error updating Channel LastPostAt.", mlog.Err(err))
+			rctx.Logger().Warn("Error updating Channel LastPostAt.", mlog.Err(err))
 		}
 	}
 
 	for rootId := range rootIds {
 		if _, err = s.GetMaster().Exec("UPDATE Posts SET UpdateAt = ? WHERE Id = ?", maxDateRootIds[rootId], rootId); err != nil {
-			mlog.Warn("Error updating Post UpdateAt.", mlog.Err(err))
+			rctx.Logger().Warn("Error updating Post UpdateAt.", mlog.Err(err))
 		}
 	}
 
@@ -331,7 +331,7 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 
 	if len(unknownRepliesPosts) > 0 {
 		if err := s.populateReplyCount(unknownRepliesPosts); err != nil {
-			mlog.Warn("Unable to populate the reply count in some posts.", mlog.Err(err))
+			rctx.Logger().Warn("Unable to populate the reply count in some posts.", mlog.Err(err))
 		}
 	}
 
@@ -1005,7 +1005,7 @@ func (s *SqlPostStore) Delete(rctx request.CTX, postID string, time int64, delet
 			Set("UpdateAt", time).
 			Where(sq.Eq{"Id": id.RootId})
 		if _, err = transaction.ExecBuilder(updatePostQuery); err != nil {
-			mlog.Warn("Error updating Post UpdateAt.", mlog.Err(err))
+			rctx.Logger().Warn("Error updating Post UpdateAt.", mlog.Err(err))
 		}
 	}
 
@@ -2166,7 +2166,7 @@ func (s *SqlPostStore) buildSearchPostFilterClause(teamID string, fromUsers []st
 }
 
 func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, error) {
-	return s.search(teamId, userId, params, true, true)
+	return s.search(s.Logger(), teamId, userId, params, true, true)
 }
 
 // splitCJKSearchTerms splits search terms for LIKE usage.
@@ -2232,7 +2232,7 @@ func (s *SqlPostStore) buildCJKSearchClause(baseQuery sq.SelectBuilder, searchTy
 	return baseQuery
 }
 
-func (s *SqlPostStore) search(teamId string, userId string, params *model.SearchParams, channelsByName bool, userByUsername bool) (*model.PostList, error) {
+func (s *SqlPostStore) search(logger mlog.LoggerIFace, teamId string, userId string, params *model.SearchParams, channelsByName bool, userByUsername bool) (*model.PostList, error) {
 	list := model.NewPostList()
 	if params.Terms == "" && params.ExcludedTerms == "" &&
 		len(params.InChannels) == 0 && len(params.ExcludedChannels) == 0 &&
@@ -2363,7 +2363,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	var posts []*model.Post
 
 	if err := s.GetSearchReplicaX().SelectBuilder(&posts, baseQuery); err != nil {
-		mlog.Warn("Query error searching posts.", mlog.String("error", trimInput(err.Error())))
+		logger.Warn("Query error searching posts.", mlog.String("error", trimInput(err.Error())))
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
 		for _, p := range posts {
@@ -2929,7 +2929,7 @@ func (s *SqlPostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.
 
 		go func(params *model.SearchParams) {
 			defer wg.Done()
-			postList, err := s.search(teamId, userId, params, false, false)
+			postList, err := s.search(rctx.Logger(), teamId, userId, params, false, false)
 			pchan <- store.StoreResult[*model.PostList]{Data: postList, NErr: err}
 		}(params)
 	}
