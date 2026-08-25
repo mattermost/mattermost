@@ -1128,6 +1128,22 @@ func (h *AccessControlHook) copyPropertyField(field *model.PropertyField) *model
 	return &copied
 }
 
+// maskedFieldCopy copies and masks a field the way every read-path masking
+// branch does, except it restores the withheld-options marker HideOptions
+// deletes. The store's option reconciliation keys on that marker to tell "no
+// options" from "options too many to inline", so a masked field that lost it
+// could never be written back — a read-modify-write would look identical to a
+// caller asserting the field has no options. options_count stays deleted: on a
+// shared_only field the count is controlled information too.
+func (h *AccessControlHook) maskedFieldCopy(field *model.PropertyField) *model.PropertyField {
+	masked := h.copyPropertyField(field)
+	masked.HideOptions()
+	if model.PropertyFieldOptionsOmitted(field.Attrs) {
+		masked.Attrs[model.PropertyFieldAttributeOptionsOmitted] = true
+	}
+	return masked
+}
+
 // getCallerOptionIDsForField retrieves the caller's values for a field and extracts all option IDs.
 func (h *AccessControlHook) getCallerOptionIDsForField(groupID, fieldID, callerID string, fieldType model.PropertyFieldType) (map[string]struct{}, error) {
 	callerValues, err := h.getCallerValuesForField(groupID, fieldID, callerID)
@@ -1184,16 +1200,12 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(rctx request.CTX, field
 	// as-is would hand an unentitled caller the option count, which on a
 	// shared_only field is itself controlled information.
 	if model.PropertyFieldOptionsOmitted(field.Attrs) {
-		filteredField := h.copyPropertyField(field)
-		filteredField.HideOptions()
-		return filteredField
+		return h.maskedFieldCopy(field)
 	}
 
 	callerOptionIDs, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
 	if err != nil || len(callerOptionIDs) == 0 {
-		filteredField := h.copyPropertyField(field)
-		filteredField.HideOptions()
-		return filteredField
+		return h.maskedFieldCopy(field)
 	}
 
 	if field.Attrs == nil {
@@ -1221,9 +1233,7 @@ func (h *AccessControlHook) filterSharedOnlyFieldOptions(rctx request.CTX, field
 				mlog.String("field_id", field.ID),
 				mlog.Err(err),
 			)
-			filteredField := h.copyPropertyField(field)
-			filteredField.HideOptions()
-			return filteredField
+			return h.maskedFieldCopy(field)
 		}
 		visible = covered
 	} else {
@@ -1263,9 +1273,7 @@ func (h *AccessControlHook) filterSharedOnlyRankFieldOptions(field *model.Proper
 	// clearance" and hides every option anyway — but it would leave the option
 	// count on the field, so hide explicitly instead.
 	if model.PropertyFieldOptionsOmitted(field.Attrs) {
-		filteredField := h.copyPropertyField(field)
-		filteredField.HideOptions()
-		return filteredField
+		return h.maskedFieldCopy(field)
 	}
 
 	// Bail out before building the rank map or the caller-rank store lookup when
@@ -1623,11 +1631,10 @@ func (h *AccessControlHook) applyFieldReadAccessControl(rctx request.CTX, field 
 	}
 
 	// Source-only or unknown: return with empty options (secure default)
-	filteredField := h.copyPropertyField(field)
 	if field.Type.SupportsOptions() {
-		filteredField.HideOptions()
+		return h.maskedFieldCopy(field)
 	}
-	return filteredField
+	return h.copyPropertyField(field)
 }
 
 // applyFieldReadAccessControlToList applies read access control to a list of fields.

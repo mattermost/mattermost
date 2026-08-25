@@ -60,13 +60,15 @@ func requireStoredOptionsWithheld(t *testing.T, th *TestHelper, groupID, fieldID
 	requireOptionsWithheld(t, field)
 }
 
-// requireOptionsHidden asserts a masked field discloses neither option names nor
-// how many options the field has.
+// requireOptionsHidden asserts a masked field discloses no option names and no
+// count. The withheld marker survives masking, though: it is what the store
+// keys its option reconciliation on, so a masked field that lost it could
+// never be written back at all.
 func requireOptionsHidden(t *testing.T, field *model.PropertyField) {
 	t.Helper()
 	assert.Empty(t, field.Attrs[model.PropertyFieldAttributeOptions], "no option may be visible")
 	assert.NotContains(t, field.Attrs, model.PropertyFieldAttributeOptionsCount, "the option count is controlled information too")
-	assert.NotContains(t, field.Attrs, model.PropertyFieldAttributeOptionsOmitted)
+	require.True(t, model.PropertyFieldOptionsOmitted(field.Attrs))
 }
 
 // TestOptionsOmitted_ReadMasking covers the read-masking consumers of the
@@ -182,6 +184,62 @@ func TestOptionsOmitted_ReadMasking(t *testing.T) {
 		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, userID), th.CPAGroupID, field.ID)
 		require.NoError(t, err)
 		requireOptionsHidden(t, retrieved)
+	})
+
+	t.Run("a masked read keeps the marker, so a write it still refuses is refused for the real reason", func(t *testing.T) {
+		// Protected+owners is a combination no caller can ask the service for --
+		// protected can only be set by the source plugin, and owners only by an
+		// administrator, and neither create nor update takes both from the same
+		// caller. Written straight to the store, as field_options_test.go's
+		// fieldWith does for the same reason.
+		options := oversizedOptions(false)
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "select-owner-managed",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+				model.PropertyAttrsProtected:        true,
+				model.PropertyAttrsSourcePluginID:   "test-plugin",
+				model.PropertyFieldAttributeOptions: options,
+				model.PropertyAttrsOwners: []model.PropertyOwner{
+					{ID: "test-plugin", Type: model.PropertyOwnerTypePlugin},
+				},
+			},
+		})
+		sourceRead, err := th.service.GetPropertyField(rctxSource, th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		requireOptionsWithheld(t, sourceRead)
+
+		// A plain user is neither the source plugin nor a listed owner, so this
+		// read comes back masked -- and the marker must survive that masking,
+		// which is what requireOptionsHidden below checks.
+		userID := model.NewId()
+		rctxUser := RequestContextWithCallerID(th.Context, userID)
+		retrieved, err := th.service.GetPropertyField(rctxUser, th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		requireOptionsHidden(t, retrieved)
+
+		// This field can never be written by anyone but its source plugin --
+		// shared_only implies protected, and a protected field belongs to its
+		// source plugin alone, owner or not. The point here is which error that
+		// produces: with the marker gone, the store would refuse this as an
+		// options-list replacement; with it surviving the mask, the refusal is
+		// the pre-existing protected-field one instead, and every option is left
+		// in place either way.
+		patchAttrs := model.StringInterface{"display_name": "Owner Managed"}
+		retrieved.Patch(&model.PropertyFieldPatch{Attrs: &patchAttrs}, true)
+		_, _, err = th.service.UpdatePropertyField(rctxUser, th.CPAGroupID, retrieved)
+		require.Error(t, err)
+		require.ErrorIs(t, err, ErrAccessDenied)
+		require.ErrorContains(t, err, "only source plugin")
+		assert.NotContains(t, err.Error(), "options were not loaded")
+
+		sourceRead, err = th.service.GetPropertyField(rctxSource, th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		requireOptionsWithheld(t, sourceRead)
 	})
 }
 
