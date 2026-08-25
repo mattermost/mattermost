@@ -170,6 +170,7 @@ PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.7.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
+PLUGIN_PACKAGES += mattermost-plugin-dataminr-v2.0.0
 
 # Overwrite the definition of PLUGIN_PACKAGES with the list of FIPS-ready plugins
 # Note that the '+' in the file name is encoded as %2B for the URL we use to

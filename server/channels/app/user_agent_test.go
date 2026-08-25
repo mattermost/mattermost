@@ -8,6 +8,9 @@ import (
 
 	"github.com/avct/uasurfer"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 type testUserAgent struct {
@@ -39,7 +42,7 @@ var testUserAgents = []testUserAgent{
 	{
 		Name:                   "Chrome Mobile",
 		UserAgent:              "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Mobile Safari/537.36",
-		ExpectedPlatformName:   "Linux",
+		ExpectedPlatformName:   "Android",
 		ExpectedOSName:         "Android",
 		ExpectedBrowserName:    "Chrome",
 		ExpectedBrowserVersion: "60.0.3112",
@@ -47,7 +50,7 @@ var testUserAgents = []testUserAgent{
 	{
 		Name:                   "MM Classic App",
 		UserAgent:              "Mozilla/5.0 (Linux; Android 8.0.0; Nexus 5X Build/OPR6.170623.013; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/61.0.3163.81 Mobile Safari/537.36 Web-Atoms-Mobile-WebView",
-		ExpectedPlatformName:   "Linux",
+		ExpectedPlatformName:   "Android",
 		ExpectedOSName:         "Android",
 		ExpectedBrowserName:    "Chrome",
 		ExpectedBrowserVersion: "61.0.3163",
@@ -151,7 +154,7 @@ var testUserAgents = []testUserAgent{
 	{
 		Name:                   "Mobile App",
 		UserAgent:              "Mattermost Mobile/2.7.0+482 (Android; 13; sdk_gphone64_arm64)",
-		ExpectedPlatformName:   "Linux",
+		ExpectedPlatformName:   "Android",
 		ExpectedOSName:         "Android",
 		ExpectedBrowserName:    "Mobile App",
 		ExpectedBrowserVersion: "2.7.0+482",
@@ -159,7 +162,7 @@ var testUserAgents = []testUserAgent{
 	{
 		Name:                   "Mobile App (long version, truncated)",
 		UserAgent:              "Mattermost Mobile/233.234441.341234223421341234529099823109834440981234+abcdef3214eafeabc3242331129857301afesfffff1930a84e4bd2348fe129ac1309bd929dca3419af934bfe3089fcd (Android; 13; sdk_gphone64_arm64)",
-		ExpectedPlatformName:   "Linux",
+		ExpectedPlatformName:   "Android",
 		ExpectedOSName:         "Android",
 		ExpectedBrowserName:    "Mobile App",
 		ExpectedBrowserVersion: "233.234441.341234223421341234529099823109834440981234+abcdef3214eafeabc3242331129857301afesfffff1930a84e4bd2348fe129ac1309bd929d",
@@ -183,7 +186,7 @@ var testUserAgents = []testUserAgent{
 	{
 		Name:                   "Mobile App (Android, Samsung Galaxy Fold Z)",
 		UserAgent:              "Mattermost Mobile/2.20.0+6000556 (samsung/q4qcsx/q4q:14/UP1A.231005.007/F936WVLU4FXE3:user/release-keys; 14; SM-F936W)",
-		ExpectedPlatformName:   "Linux",
+		ExpectedPlatformName:   "Android",
 		ExpectedOSName:         "Android",
 		ExpectedBrowserName:    "Mobile App",
 		ExpectedBrowserVersion: "2.20.0+6000556",
@@ -191,10 +194,34 @@ var testUserAgents = []testUserAgent{
 	{
 		Name:                   "Chrome (Android)",
 		UserAgent:              "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36",
-		ExpectedPlatformName:   "Linux",
+		ExpectedPlatformName:   "Android",
 		ExpectedOSName:         "Android",
 		ExpectedBrowserName:    "Chrome",
 		ExpectedBrowserVersion: "129.0",
+	},
+	{
+		Name:                   "Chrome (Chrome OS)",
+		UserAgent:              "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+		ExpectedPlatformName:   "Linux",
+		ExpectedOSName:         "Chrome OS",
+		ExpectedBrowserName:    "Chrome",
+		ExpectedBrowserVersion: "129.0",
+	},
+	{
+		Name:                   "Firefox (Linux desktop)",
+		UserAgent:              "Mozilla/5.0 (X11; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0",
+		ExpectedPlatformName:   "Linux",
+		ExpectedOSName:         "Linux",
+		ExpectedBrowserName:    "Firefox",
+		ExpectedBrowserVersion: "132.0",
+	},
+	{
+		Name:                   "Desktop App (Linux)",
+		UserAgent:              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.127 Electron/31.2.1 Safari/537.36 Mattermost/5.9.0",
+		ExpectedPlatformName:   "Linux",
+		ExpectedOSName:         "Linux",
+		ExpectedBrowserName:    "Desktop App",
+		ExpectedBrowserVersion: "5.9.0",
 	},
 	{
 		Name:                   "iOS App (iPhone 13)",
@@ -240,7 +267,7 @@ var testUserAgents = []testUserAgent{
 	{
 		Name:                   "Mobile App (no version)",
 		UserAgent:              "Mattermost Mobile/",
-		ExpectedPlatformName:   "Linux",
+		ExpectedPlatformName:   "Android",
 		ExpectedOSName:         "Android",
 		ExpectedBrowserName:    "Mobile App",
 		ExpectedBrowserVersion: "0.0",
@@ -279,6 +306,44 @@ func TestGetPlatformName(t *testing.T) {
 			actual := getPlatformName(ua, tc.UserAgent)
 			assert.Equal(t, tc.ExpectedPlatformName, actual)
 		})
+	}
+}
+
+// user_agent_platform is a select, so a platform name the server derives but the
+// schema does not offer can neither be stored on a session nor picked in an
+// access policy rule.
+func TestPlatformNamesAreSelectableSessionAttributeValues(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	derived := []string{platformNameAndroid}
+	for _, name := range platformNames {
+		derived = append(derived, name)
+	}
+
+	var field *model.PropertyField
+	for _, f := range model.SessionAttributeSystemFields(model.NewId()) {
+		if f.Name == model.SessionAttributesPropertyFieldUserAgentPlatform {
+			field = f
+			break
+		}
+	}
+	require.NotNil(t, field)
+
+	options, err := model.NewPropertyOptionsFromFieldAttrs[*model.PluginPropertyOption](field.Attrs[model.PropertyFieldAttributeOptions])
+	require.NoError(t, err)
+
+	offered := make([]string, 0, len(options))
+	for _, option := range options {
+		offered = append(offered, option.GetName())
+	}
+
+	assert.ElementsMatch(t, derived, offered)
+
+	// derived only covers the names getPlatformName looks up, not the ones it
+	// returns directly.
+	for _, tc := range testUserAgents {
+		name := getPlatformName(uasurfer.Parse(tc.UserAgent), tc.UserAgent)
+		assert.True(t, model.IsValidSessionAttributeValue(field, name), "%q is not a selectable value", name)
 	}
 }
 
