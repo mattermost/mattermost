@@ -786,6 +786,80 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt3']);
     });
 
+    test('should show admin-managed graph Custom Attribute Field option names read-only', async () => {
+        const graphAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'graph',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                managed: 'admin',
+                options: [
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
+                ],
+            },
+        };
+
+        const testUser = {...user, custom_profile_attributes: {field1: ['opt1']}};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [graphAttribute],
+            user: testUser,
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        // Rendered from the stored option id via attrs.options, not as a raw id.
+        expect(await screen.findByText('Option 1')).toBeInTheDocument();
+        expect(screen.queryByText('opt1')).not.toBeInTheDocument();
+    });
+
+    test('updateSelectAttribute() should handle multi-select changes for a graph attribute', async () => {
+        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
+        const graphAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'graph',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options: [
+                    {id: 'opt1', name: 'Option 1', color: ''},
+                    {id: 'opt2', name: 'Option 2', color: ''},
+                ],
+            },
+        };
+
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [graphAttribute],
+            user: {...user},
+            activeSection: 'customAttribute_field1',
+            actions: {
+                ...requiredProps.actions,
+                saveCustomProfileAttribute,
+            },
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        const select = await screen.findByText('Select');
+        await userEvent.click(select);
+        await userEvent.click(await screen.findByText('Option 1'));
+
+        await userEvent.click(await screen.findByText('Option 1'));
+        await userEvent.click(await screen.findByText('Option 2'));
+
+        const saveButton = screen.getByRole('button', {name: 'Save'});
+        await userEvent.click(saveButton);
+
+        expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt2']);
+    });
+
     test('should not show custom attribute input field when LDAP attribute is set', async () => {
         const props = {
             ...requiredProps,

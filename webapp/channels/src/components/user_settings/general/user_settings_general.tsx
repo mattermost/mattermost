@@ -11,7 +11,7 @@ import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
 import ReactSelect from 'react-select';
 
 import type {LockProfileFieldsSetting} from '@mattermost/types/config';
-import {supportsOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -1494,7 +1494,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     return '';
                 }
 
-                if (supportsOptions(attribute)) {
+                if (valueRefersToOptions(attribute)) {
                     const attribOptions = attribute.attrs.options;
                     if (!attribOptions) {
                         return '';
@@ -1610,14 +1610,14 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         attributeLabel = '';
                     }
 
-                    if (supportsOptions(attribute)) {
+                    if (valueRefersToOptions(attribute)) {
                         const attribOptions: PropertyFieldOption[] = (attribute.attrs!.options as PropertyFieldOption[]) ?? [];
                         const opts = attribOptions.map((o) => {
                             return {label: o.name, value: o.id} as SelectOption;
                         });
                         inputs.push(
                             <ReactSelect
-                                isMulti={attribute.type === 'multiselect' ? true : undefined}
+                                isMulti={attribute.type === 'multiselect' || attribute.type === 'graph' ? true : undefined}
                                 key={sectionName}
                                 id={'customProfileAttribute_' + attribute.id}
                                 inputId={'customProfileAttribute_' + attribute.id + '_input'}
