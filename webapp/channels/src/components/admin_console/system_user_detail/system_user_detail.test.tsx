@@ -563,6 +563,39 @@ describe('SystemUserDetail', () => {
             const input = screen.getByTestId('user-detail-custom-attribute-label-cpa-1').querySelector('input');
             expect(input).toBeDisabled();
         });
+
+        test('should resolve graph field option ids to names in the change summary', async () => {
+            const userEventInstance = userEvent.setup();
+            const graphField = {
+                ...buildCPAField({
+                    options: [
+                        {id: 'opt-1', name: 'Alpha'},
+                        {id: 'opt-2', name: 'Beta'},
+                    ],
+                }),
+                type: 'graph',
+            } as UserPropertyField;
+            const props = {
+                ...defaultProps,
+                customProfileAttributeFields: [graphField],
+                getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: [graphField]}),
+                getCustomProfileAttributeValues: jest.fn().mockResolvedValue({data: {[graphField.id]: ['opt-1', 'opt-2']}}),
+            };
+
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForLoadingToFinish();
+
+            const input = screen.getByTestId('user-detail-custom-attribute-label-cpa-1').querySelector('input') as HTMLInputElement;
+            await userEventInstance.clear(input);
+            await userEventInstance.type(input, 'opt-3');
+            await userEventInstance.click(screen.getByRole('button', {name: 'Save'}));
+
+            const changesList = await screen.findByTestId('changesList');
+            expect(changesList).toHaveTextContent('Alpha, Beta');
+            expect(changesList).not.toHaveTextContent('opt-1');
+            expect(changesList).not.toHaveTextContent('opt-2');
+        });
     });
 });
 

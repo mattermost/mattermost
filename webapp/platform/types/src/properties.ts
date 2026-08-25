@@ -109,6 +109,14 @@ export const supportsOptions = (field: PropertyField) => {
     return field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
 };
 
+// Whether a field's stored value is a list of option ids that has to be resolved
+// against attrs.options before it is shown. Distinct from supportsOptions, which
+// answers whether an admin may edit the option list here and must keep excluding
+// graph -- a graph field's options carry parent links these cells cannot send back.
+export const valueRefersToOptions = (field: PropertyField) => {
+    return supportsOptions(field) || field.type === 'graph';
+};
+
 // PSA v2 state types
 
 export type PropertiesState = {

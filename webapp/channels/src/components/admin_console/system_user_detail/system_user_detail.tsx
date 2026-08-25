@@ -16,7 +16,7 @@ import {SyncIcon, PowerPlugOutlineIcon, CheckIcon, ChevronDownIcon} from '@matte
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ServerError} from '@mattermost/types/errors';
-import {supportsOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -508,7 +508,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
 
         const options = field.attrs?.options || [];
-        if (supportsOptions(field)) {
+        if (valueRefersToOptions(field)) {
             if (!Array.isArray(value)) {
                 // Select: resolve single ID to its name
                 const option = options.find((opt) => opt.id === value);
