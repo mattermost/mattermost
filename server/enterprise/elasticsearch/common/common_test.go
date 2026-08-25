@@ -37,7 +37,7 @@ func TestElasticsearchBuildPostIndexName(t *testing.T) {
 }
 
 func TestHasAnalysisPlugin(t *testing.T) {
-	installed := []string{"analysis-icu", "analysis-kuromoji", "opensearch-analysis-nori", "elasticsearch-analysis-smartcn"}
+	installed := []string{"analysis-icu", "analysis-kuromoji", "opensearch-analysis-nori"}
 
 	testCases := []struct {
 		Name     string
@@ -47,10 +47,10 @@ func TestHasAnalysisPlugin(t *testing.T) {
 	}{
 		{"bundled name", installed, "analysis-kuromoji", true},
 		{"opensearch prefixed name", installed, "analysis-nori", true},
-		{"elasticsearch prefixed name", installed, "analysis-smartcn", true},
 		{"not installed", installed, "analysis-stempel", false},
 		{"no plugins reported", nil, "analysis-nori", false},
 		{"unrelated prefix is not accepted", []string{"vendor-analysis-nori"}, "analysis-nori", false},
+		{"elasticsearch prefix is not accepted", []string{"elasticsearch-analysis-nori"}, "analysis-nori", false},
 		{"a longer name is not a match", []string{"analysis-noris"}, "analysis-nori", false},
 	}
 

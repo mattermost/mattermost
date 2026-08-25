@@ -54,7 +54,7 @@ var (
 // analysisPluginPrefixes lists the prefixes a managed service can prepend to the component name of
 // an analysis plugin. AWS OpenSearch Service reports a plugin installed through associate-package
 // as "opensearch-analysis-nori", while the plugins it bundles keep their unprefixed names.
-var analysisPluginPrefixes = []string{"", "opensearch-", "elasticsearch-"}
+var analysisPluginPrefixes = []string{"", "opensearch-"}
 
 // HasAnalysisPlugin reports whether the named analysis plugin is present in the plugin list
 // reported by the cluster, accepting both the bundled and the prefixed component names.

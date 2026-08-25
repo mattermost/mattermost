@@ -394,8 +394,8 @@ func TestCJKAnalyzersWithPrefixedPluginNames(t *testing.T) {
 		Name    string
 		Plugins []string
 	}{
-		{"only nori prefixed", []string{"analysis-icu", "elasticsearch-analysis-nori", "analysis-kuromoji", "analysis-smartcn"}},
-		{"every analysis plugin prefixed", []string{"elasticsearch-analysis-icu", "elasticsearch-analysis-nori", "elasticsearch-analysis-kuromoji", "elasticsearch-analysis-smartcn"}},
+		{"only nori prefixed", []string{"analysis-icu", "opensearch-analysis-nori", "analysis-kuromoji", "analysis-smartcn"}},
+		{"every analysis plugin prefixed", []string{"opensearch-analysis-icu", "opensearch-analysis-nori", "opensearch-analysis-kuromoji", "opensearch-analysis-smartcn"}},
 	}
 
 	for _, naming := range namings {
@@ -490,7 +490,7 @@ func TestCJKAnalyzersWithoutAnyCJKPlugin(t *testing.T) {
 // only some of the nodes report the plugin under a prefixed name.
 func TestAnalysisICURequirementAcceptsPrefixedNames(t *testing.T) {
 	recorder := &common.ClusterRecorder{}
-	_, es := setupCJKCluster(t, recorder, []string{"elasticsearch-analysis-icu"}, []string{"analysis-icu"})
+	_, es := setupCJKCluster(t, recorder, []string{"opensearch-analysis-icu"}, []string{"analysis-icu"})
 
 	require.Nil(t, es.Start(context.Background()))
 	require.Equal(t, int32(1), es.ready.Load())
