@@ -753,22 +753,6 @@ func inPayloadOrder(payload, stored []*model.PropertyFieldOption) []*model.Prope
 	return ordered
 }
 
-// The option list a field is written with states its hierarchy too: an inline
-// option carries the options directly above it by name, under "parents". That is
-// the only way to create a hierarchy in one call, and it is the reason the checks
-// below exist twice over -- what they check is what the endpoints above check,
-// asked of an open-shaped option list instead of a payload of options.
-//
-// The links themselves are written by the store, inside the same transaction as
-// the option rows they join, so an option never exists without the links the same
-// write gave it. Everything here only decides whether that write may proceed.
-//
-// What is checked against the stored hierarchy stays true when the write lands
-// for the same reason it does at the endpoints: the field write swaps on the
-// UpdateAt of a master read taken before any of this, and every change to a
-// field's options or hierarchy moves that UpdateAt. A field being created has
-// nothing to race with.
-
 // blockingChildBelow reports the first of the given options that cannot be
 // removed, as its position in the list and the identifier of the option still
 // below it. The position is -1 when the whole set can go.
@@ -884,6 +868,22 @@ func (ps *PropertyService) requireDroppedOptionsAreLeaves(submitted, stored *mod
 // validateOptionBlobLinks checks the hierarchy a field's inline option list asks
 // for. stored is the field as the store has it, and is nil for a field being
 // created.
+//
+// The option list a field is written with states its hierarchy too: an inline
+// option carries the options directly above it by name, under "parents". That is
+// the only way to create a hierarchy in one call, and it is the reason this checks
+// what the endpoints above check, asked of an open-shaped option list instead of a
+// payload of options.
+//
+// The links themselves are written by the store, inside the same transaction as
+// the option rows they join, so an option never exists without the links the same
+// write gave it. This only decides whether that write may proceed.
+//
+// What is checked against the stored hierarchy stays true when the write lands
+// for the same reason it does at the endpoints: the field write swaps on the
+// UpdateAt of a master read taken before any of this, and every change to a
+// field's options or hierarchy moves that UpdateAt. A field being created has
+// nothing to race with.
 func (ps *PropertyService) validateOptionBlobLinks(submitted, stored *model.PropertyField) error {
 	// Assigns an identifier to every option that arrived without one, which is what
 	// the links are between. The store runs it again before writing the rows and
