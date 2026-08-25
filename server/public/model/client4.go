@@ -3626,6 +3626,23 @@ func (c *Client4) GetPostIncludeDeleted(ctx context.Context, postId string, etag
 	return DecodeJSONFromResponse[*Post](r)
 }
 
+// GetPostWithOptions gets a single post, applying every option the endpoint supports.
+func (c *Client4) GetPostWithOptions(ctx context.Context, postId string, etag string, opts GetPostOptions) (*Post, *Response, error) {
+	values := url.Values{}
+	if opts.IncludeDeleted {
+		values.Set("include_deleted", c.boolString(true))
+	}
+	if len(opts.IncludePropertyGroups) > 0 {
+		values.Set("include_property_groups", strings.Join(opts.IncludePropertyGroups, ","))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.postRoute(postId), values, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
+}
+
 // DeletePost deletes a post from the provided post id string.
 func (c *Client4) DeletePost(ctx context.Context, postId string) (*Response, error) {
 	r, err := c.doAPIDelete(ctx, c.postRoute(postId))

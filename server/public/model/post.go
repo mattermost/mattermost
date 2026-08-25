@@ -453,6 +453,17 @@ type GetPostsSinceForSyncOptions struct {
 	ExcludedPostTypes                 []string // post types to exclude from sync
 }
 
+// GetPostOptions are the options for fetching a single post. Its plural sibling
+// GetPostsOptions covers the list endpoints.
+type GetPostOptions struct {
+	// IncludeDeleted returns the post even if it is soft-deleted.
+	IncludeDeleted bool
+
+	// IncludePropertyGroups names the property groups whose values should be hydrated onto the
+	// post's metadata.
+	IncludePropertyGroups []string
+}
+
 type GetPostsOptions struct {
 	UserId                   string
 	ChannelId                string

@@ -185,6 +185,13 @@ func (a *App) OverrideIconURLIfEmoji(rctx request.CTX, post *model.Post) {
 }
 
 func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
+	post, _ := a.preparePostForClient(rctx, originalPost, opts)
+	return post
+}
+
+// preparePostForClient additionally reports whether a prepare step deliberately blanked the post's
+// metadata, which callers that batch work across a page need in order to skip those posts.
+func (a *App) preparePostForClient(rctx request.CTX, originalPost *model.Post, opts *model.PreparePostForClientOpts) (*model.Post, bool) {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
@@ -195,11 +202,15 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, o
 		post.Metadata = &model.PostMetadata{}
 	}
 
+	// Set when a prepare step deliberately blanks the metadata without returning, so later steps
+	// can tell "nothing to show yet" from "nothing there".
+	metadataWithheld := false
+
 	if post.DeleteAt > 0 && !opts.RetainContent {
 		// For deleted posts we don't fill out metadata nor do we return the post content
 		post.Message = ""
 		post.Metadata = &model.PostMetadata{}
-		return post
+		return post, true
 	}
 
 	// Emojis and reaction counts
@@ -232,6 +243,7 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, o
 				// if the post is a scheduled post, we don't reset the metadata
 			} else {
 				post.Metadata = &model.PostMetadata{}
+				metadataWithheld = true
 			}
 		}
 	}
@@ -252,7 +264,11 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, o
 		}
 	}
 
-	return post
+	if opts.PropertyGroupID != "" && !metadataWithheld {
+		a.hydratePropertyValues(rctx, []*model.Post{post}, opts.PropertyGroupID)
+	}
+
+	return post, metadataWithheld
 }
 
 func (a *App) preparePostFilesForClient(rctx request.CTX, post *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
@@ -266,10 +282,15 @@ func (a *App) preparePostFilesForClient(rctx request.CTX, post *model.Post, opts
 }
 
 func (a *App) PreparePostForClientWithEmbedsAndImages(rctx request.CTX, originalPost *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
-	post := a.PreparePostForClient(rctx, originalPost, opts)
+	post, _ := a.preparePostForClientWithEmbedsAndImages(rctx, originalPost, opts)
+	return post
+}
+
+func (a *App) preparePostForClientWithEmbedsAndImages(rctx request.CTX, originalPost *model.Post, opts *model.PreparePostForClientOpts) (*model.Post, bool) {
+	post, metadataWithheld := a.preparePostForClient(rctx, originalPost, opts)
 	post = a.getEmbedsAndImages(rctx, post, opts.IsNewPost)
 	post = a.preparePostFilesForClient(rctx, post, opts)
-	return post
+	return post, metadataWithheld
 }
 
 func (a *App) getEmbedsAndImages(rctx request.CTX, post *model.Post, isNewPost bool) *model.Post {

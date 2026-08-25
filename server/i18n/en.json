@@ -3179,6 +3179,10 @@
     "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
   },
   {
+    "id": "api.post.property_groups.too_many.app_error",
+    "translation": "Only one property group can be requested at a time."
+  },
+  {
     "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
     "translation": "You cannot reveal your own burn-on-read post."
   },
@@ -8443,6 +8447,14 @@
   {
     "id": "app.post.permanent_delete_post.error",
     "translation": "Failed to permanently delete post."
+  },
+  {
+    "id": "app.post.property_values.field_bound_exceeded.app_error",
+    "translation": "The number of attributes that apply to this post exceeds the supported limit."
+  },
+  {
+    "id": "app.post.property_values.value_bound_exceeded.app_error",
+    "translation": "The number of attribute values for these posts exceeds the supported limit."
   },
   {
     "id": "app.post.restore_post_version.get_single.app_error",
