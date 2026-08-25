@@ -15,10 +15,14 @@ import (
 	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
-// These tests reproduce the reported gap from the client's point of view: with the channel's
-// Access Control Policy denying download_file_attachment, every direct file endpoint returns
-// 403 while the drafts, scheduled posts and post edit history endpoints still hand back the
-// file's metadata and its mini preview thumbnail for the same file, user and moment in time.
+// These tests cover the endpoints that build their own file metadata instead of going
+// through sanitizeFileAttachmentsForUser. With the channel's Access Control Policy denying
+// download_file_attachment, every direct file endpoint returns 403, and none of these
+// endpoints may hand back the file's rendered thumbnail for the same file, user and moment.
+//
+// Sent posts and their historical versions are redacted outright. Drafts and scheduled posts
+// keep their metadata, because the author still has to see and send their own unsent
+// content, and only the thumbnail is withheld.
 //
 // The policy is switched to deny only after the upload, which is the case Access Control
 // Policies exist to cover: revoking access to content the user could previously reach.
@@ -75,9 +79,9 @@ func requireDirectFileEndpointsDenied(t *testing.T, th *TestHelper, fileID strin
 	CheckForbiddenStatus(t, resp)
 }
 
-// requireNoLeakedFileMetadata asserts that a response carries neither file metadata nor a
-// thumbnail for a user the policy denies.
-func requireNoLeakedFileMetadata(t *testing.T, metadata *model.PostMetadata, where string) {
+// requireNoThumbnailLeaked asserts that no rendered thumbnail reached a user the policy
+// denies. This is the file's actual content, so no endpoint may serve it.
+func requireNoThumbnailLeaked(t *testing.T, metadata *model.PostMetadata, where string) {
 	t.Helper()
 
 	if metadata == nil {
@@ -88,6 +92,18 @@ func requireNoLeakedFileMetadata(t *testing.T, metadata *model.PostMetadata, whe
 		if info.MiniPreview != nil {
 			require.Failf(t, "leaked a thumbnail", "%s: returned a %d byte mini preview for file %s", where, len(*info.MiniPreview), info.Id)
 		}
+	}
+}
+
+// requireNoLeakedFileMetadata additionally asserts that no file metadata survived, which is
+// what sent posts and their historical versions must do.
+func requireNoLeakedFileMetadata(t *testing.T, metadata *model.PostMetadata, where string) {
+	t.Helper()
+
+	requireNoThumbnailLeaked(t, metadata, where)
+
+	if metadata == nil {
+		return
 	}
 	require.Emptyf(t, metadata.Files, "%s: leaked file metadata to a user denied download_file_attachment", where)
 }
@@ -106,7 +122,7 @@ func uploadTestImage(t *testing.T, th *TestHelper, channelID, name string) *mode
 	return uploaded.FileInfos[0]
 }
 
-func TestGetDraftsDoesNotLeakFilesDeniedByPolicy(t *testing.T) {
+func TestGetDraftsWithholdsThumbnailWhenPolicyDenies(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
@@ -131,10 +147,17 @@ func TestGetDraftsDoesNotLeakFilesDeniedByPolicy(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, drafts, 1)
 
-	requireNoLeakedFileMetadata(t, drafts[0].Metadata, "GET /users/me/teams/{team_id}/drafts")
+	requireNoThumbnailLeaked(t, drafts[0].Metadata, "GET /users/me/teams/{team_id}/drafts")
+
+	// The author must still be able to see and send their own unsent draft. The web client
+	// builds the outgoing post's file_ids from metadata.files, so dropping the metadata
+	// would silently strip the attachment when the draft is sent.
+	require.Len(t, drafts[0].Metadata.Files, 1, "the author should still see their own draft attachment")
+	require.Equal(t, info.Id, drafts[0].Metadata.Files[0].Id)
+	require.Equal(t, model.StringArray{info.Id}, drafts[0].FileIds)
 }
 
-func TestGetScheduledPostsDoesNotLeakFilesDeniedByPolicy(t *testing.T) {
+func TestGetScheduledPostsWithholdsThumbnailWhenPolicyDenies(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
@@ -162,11 +185,16 @@ func TestGetScheduledPostsDoesNotLeakFilesDeniedByPolicy(t *testing.T) {
 
 	scheduledPosts, _, err := th.Client.GetUserScheduledPosts(context.Background(), th.BasicTeam.Id, false)
 	require.NoError(t, err)
-	require.NotEmpty(t, scheduledPosts[th.BasicTeam.Id])
+	require.Len(t, scheduledPosts[th.BasicTeam.Id], 1)
 
-	for _, scheduledPost := range scheduledPosts[th.BasicTeam.Id] {
-		requireNoLeakedFileMetadata(t, scheduledPost.Metadata, "GET /posts/scheduled/team/{team_id}")
-	}
+	scheduled := scheduledPosts[th.BasicTeam.Id][0]
+	requireNoThumbnailLeaked(t, scheduled.Metadata, "GET /posts/scheduled/team/{team_id}")
+
+	// The server sends this post from the stored FileIds when it fires, so dropping the
+	// metadata would make a client-side "send now" and the scheduled send disagree.
+	require.Len(t, scheduled.Metadata.Files, 1, "the author should still see their own scheduled attachment")
+	require.Equal(t, info.Id, scheduled.Metadata.Files[0].Id)
+	require.Equal(t, model.StringArray{info.Id}, scheduled.FileIds)
 }
 
 func TestGetEditHistoryForPostDoesNotLeakFilesDeniedByPolicy(t *testing.T) {

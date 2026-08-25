@@ -814,7 +814,7 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 }
 
 func (a *App) deleteEditHistories(rctx request.CTX, postId, deleteByID string, report *model.PostDeletionReport) {
-	editHistories, appErr := a.GetEditHistoryForPost(rctx, postId)
+	editHistories, appErr := a.getEditHistoryForPostUnrestricted(rctx, postId)
 	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to get edit history for post", mlog.Err(appErr), mlog.String("post_id", postId))
 		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.edit_histories"), model.StepFailed, i18n.TranslationId("app.data_spillage.report.detail.failed_retrieve_edit_history"), []string{appErr.Error()})

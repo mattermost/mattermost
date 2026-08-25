@@ -132,16 +132,6 @@ func (a *App) getFileInfosForDraft(rctx request.CTX, draft *model.Draft) ([]*mod
 		return nil, nil
 	}
 
-	// Drafts and scheduled posts build their own file metadata, so the
-	// download_file_attachment policy has to be enforced here too.
-	if !a.hasFileAttachmentAccess(rctx, draft.UserId, draft.ChannelId) {
-		rctx.Logger().Debug("Omitting draft file attachments due to ABAC permission policy",
-			mlog.String("user_id", draft.UserId),
-			mlog.String("channel_id", draft.ChannelId),
-		)
-		return nil, nil
-	}
-
 	allFileInfos, err := a.Srv().Store().FileInfo().GetByIds(draft.FileIds, false, true, false)
 	if err != nil {
 		return nil, model.NewAppError("GetFileInfosForDraft", "app.draft.get_for_draft.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -158,6 +148,21 @@ func (a *App) getFileInfosForDraft(rctx request.CTX, draft *model.Draft) ([]*mod
 
 	if len(fileInfos) == 0 {
 		return nil, nil
+	}
+
+	// A draft is unsent content the author still has to be able to see and send, so the
+	// metadata stays. The rendered thumbnail is the file's actual content, so it is
+	// withheld — and never generated — when the policy denies downloading it.
+	if !a.hasFileAttachmentAccess(rctx, draft.UserId, draft.ChannelId) {
+		rctx.Logger().Debug("Withholding draft file thumbnails due to ABAC permission policy",
+			mlog.String("user_id", draft.UserId),
+			mlog.String("channel_id", draft.ChannelId),
+		)
+		for _, fileInfo := range fileInfos {
+			fileInfo.MiniPreview = nil
+		}
+
+		return fileInfos, nil
 	}
 
 	a.generateMiniPreviewForInfos(rctx, fileInfos)

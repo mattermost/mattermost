@@ -2797,7 +2797,20 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 	return posts, firstInaccessiblePostTime, nil
 }
 
+// GetEditHistoryForPost returns the historical versions of a post, redacting attachments the
+// requesting user is not allowed to download.
 func (a *App) GetEditHistoryForPost(rctx request.CTX, postID string) ([]*model.Post, *model.AppError) {
+	return a.getEditHistoryForPost(rctx, postID, rctx.Session().UserId)
+}
+
+// getEditHistoryForPostUnrestricted returns the historical versions with their attachment
+// metadata intact. Content flagging deletes and reports on this data on the system's behalf
+// rather than serving it to a reader, and enforces reviewer-facing policy itself.
+func (a *App) getEditHistoryForPostUnrestricted(rctx request.CTX, postID string) ([]*model.Post, *model.AppError) {
+	return a.getEditHistoryForPost(rctx, postID, "")
+}
+
+func (a *App) getEditHistoryForPost(rctx request.CTX, postID, requesterID string) ([]*model.Post, *model.AppError) {
 	posts, err := a.Srv().Store().Post().GetEditHistoryForPost(postID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -2809,14 +2822,17 @@ func (a *App) GetEditHistoryForPost(rctx request.CTX, postID string) ([]*model.P
 		}
 	}
 
-	if appErr := a.populateEditHistoryFileMetadata(rctx, posts); appErr != nil {
+	if appErr := a.populateEditHistoryFileMetadata(rctx, posts, requesterID); appErr != nil {
 		return nil, appErr
 	}
 
 	return posts, nil
 }
 
-func (a *App) populateEditHistoryFileMetadata(rctx request.CTX, editHistoryPosts []*model.Post) *model.AppError {
+// populateEditHistoryFileMetadata attaches file metadata to each historical version,
+// redacting it when requesterID is denied the download_file_attachment action. An empty
+// requesterID means there is no reader to authorize and nothing is redacted.
+func (a *App) populateEditHistoryFileMetadata(rctx request.CTX, editHistoryPosts []*model.Post, requesterID string) *model.AppError {
 	for _, post := range editHistoryPosts {
 		fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, true, true, false)
 		if err != nil {
@@ -2832,9 +2848,9 @@ func (a *App) populateEditHistoryFileMetadata(rctx request.CTX, editHistoryPosts
 		// Historical versions must redact the same attachments the live post does.
 		// Gate on FileIds rather than the fetched infos so a version referencing a
 		// missing FileInfo row still has its ids cleared for a denied user.
-		if len(post.FileIds) > 0 && !a.hasFileAttachmentAccess(rctx, rctx.Session().UserId, post.ChannelId) {
+		if len(post.FileIds) > 0 && !a.hasFileAttachmentAccess(rctx, requesterID, post.ChannelId) {
 			rctx.Logger().Debug("Stripping file attachments from edit history due to ABAC permission policy",
-				mlog.String("user_id", rctx.Session().UserId),
+				mlog.String("user_id", requesterID),
 				mlog.String("post_id", post.Id),
 				mlog.String("channel_id", post.ChannelId),
 				mlog.Int("files_removed", len(post.FileIds)),
