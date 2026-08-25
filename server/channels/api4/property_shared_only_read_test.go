@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // A shared_only field's masking is computed against what the *caller* holds, so
@@ -218,7 +219,7 @@ func (f *sharedOnlyReadFixture) makeSharedOnly(t *testing.T) {
 	t.Helper()
 
 	store := f.th.App.Srv().Store().PropertyField()
-	field, err := store.Get(context.Background(), f.groupID, f.fieldID)
+	field, err := store.Get(request.TestContext(t), f.groupID, f.fieldID)
 	require.NoError(t, err)
 
 	// A protected field's definition is the source plugin's alone
@@ -295,7 +296,7 @@ func namesOf(t *testing.T, optionIDs map[string]string, ids []string) []string {
 func (f *sharedOnlyReadFixture) optionIDs(t *testing.T) map[string]string {
 	t.Helper()
 
-	field, err := f.th.App.Srv().Store().PropertyField().Get(context.Background(), f.groupID, f.fieldID)
+	field, err := f.th.App.Srv().Store().PropertyField().Get(request.TestContext(t), f.groupID, f.fieldID)
 	require.NoError(t, err)
 	return optionIDsByName(t, field)
 }

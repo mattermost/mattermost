@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"slices"
@@ -39,7 +38,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("OptionHierarchy", func(t *testing.T) { testPropertyFieldOptionHierarchy(t, rctx, ss) })
 }
 
-func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
+func testCreatePropertyField(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should fail if the property field already has an ID set", func(t *testing.T) {
 		newField := &model.PropertyField{ID: "sampleid"}
 		field, err := ss.PropertyField().Create(newField)
@@ -119,7 +118,7 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Equal(t, model.PropertyFieldObjectTypeChannel, created.ObjectType)
 
 		// Verify it can be retrieved with ObjectType intact
-		retrieved, err := ss.PropertyField().Get(context.Background(), "", created.ID)
+		retrieved, err := ss.PropertyField().Get(rctx, "", created.ID)
 		require.NoError(t, err)
 		require.Equal(t, model.PropertyFieldObjectTypeChannel, retrieved.ObjectType)
 	})
@@ -138,7 +137,7 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Empty(t, created.ObjectType)
 
 		// Verify it can be retrieved
-		retrieved, err := ss.PropertyField().Get(context.Background(), "", created.ID)
+		retrieved, err := ss.PropertyField().Get(rctx, "", created.ID)
 		require.NoError(t, err)
 		require.Empty(t, retrieved.ObjectType)
 	})
@@ -224,9 +223,9 @@ func insertPropertyFieldWithNullColumns(t *testing.T, ss store.Store, s SqlStore
 	return groupID, fieldID
 }
 
-func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+func testGetPropertyField(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
-		field, err := ss.PropertyField().Get(context.Background(), "", model.NewId())
+		field, err := ss.PropertyField().Get(rctx, "", model.NewId())
 		require.Zero(t, field)
 		var notFoundErr *store.ErrNotFound
 		require.ErrorAs(t, err, &notFoundErr)
@@ -247,14 +246,14 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 	require.NotZero(t, newField.ID)
 
 	t.Run("should be able to retrieve an existing property field", func(t *testing.T) {
-		field, err := ss.PropertyField().Get(context.Background(), groupID, newField.ID)
+		field, err := ss.PropertyField().Get(rctx, groupID, newField.ID)
 		require.NoError(t, err)
 		require.Equal(t, newField.ID, field.ID)
 		require.True(t, field.Attrs["locked"].(bool))
 		require.Equal(t, "value", field.Attrs["special"])
 
 		// should work without specifying the group ID as well
-		field, err = ss.PropertyField().Get(context.Background(), "", newField.ID)
+		field, err = ss.PropertyField().Get(rctx, "", newField.ID)
 		require.NoError(t, err)
 		require.Equal(t, newField.ID, field.ID)
 		require.True(t, field.Attrs["locked"].(bool))
@@ -262,7 +261,7 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 	})
 
 	t.Run("should not be able to retrieve an existing field when specifying a different group ID", func(t *testing.T) {
-		field, err := ss.PropertyField().Get(context.Background(), model.NewId(), newField.ID)
+		field, err := ss.PropertyField().Get(rctx, model.NewId(), newField.ID)
 		require.Zero(t, field)
 		var notFoundErr *store.ErrNotFound
 		require.ErrorAs(t, err, &notFoundErr)
@@ -271,7 +270,7 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 	t.Run("null columns, before createdBy, updatedBy, protected and permissions migrations", func(t *testing.T) {
 		groupID, fieldID := insertPropertyFieldWithNullColumns(t, ss, s)
 
-		field, err := ss.PropertyField().Get(context.Background(), groupID, fieldID)
+		field, err := ss.PropertyField().Get(rctx, groupID, fieldID)
 		require.NoError(t, err)
 		require.Equal(t, fieldID, field.ID)
 		require.Empty(t, field.CreatedBy)
@@ -283,9 +282,9 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 	})
 }
 
-func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
+func testGetManyPropertyFields(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting fields", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetMany(context.Background(), "", []string{model.NewId(), model.NewId()})
+		fields, err := ss.PropertyField().GetMany(rctx, "", []string{model.NewId(), model.NewId()})
 		require.Empty(t, fields)
 		var target *store.ErrResultsMismatch
 		require.ErrorAs(t, err, &target)
@@ -316,36 +315,36 @@ func testGetManyPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 	require.NotZero(t, newFieldOutsideGroup.ID)
 
 	t.Run("should fail if at least one of the ids is nonexistent", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetMany(context.Background(), groupID, []string{newFields[0].ID, newFields[1].ID, model.NewId()})
+		fields, err := ss.PropertyField().GetMany(rctx, groupID, []string{newFields[0].ID, newFields[1].ID, model.NewId()})
 		require.Empty(t, fields)
 		var target *store.ErrResultsMismatch
 		require.ErrorAs(t, err, &target)
 	})
 
 	t.Run("should be able to retrieve existing property fields", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetMany(context.Background(), groupID, []string{newFields[0].ID, newFields[1].ID, newFields[2].ID})
+		fields, err := ss.PropertyField().GetMany(rctx, groupID, []string{newFields[0].ID, newFields[1].ID, newFields[2].ID})
 		require.NoError(t, err)
 		require.Len(t, fields, 3)
 		require.ElementsMatch(t, newFields, fields)
 	})
 
 	t.Run("should fail if asked for valid IDs but outside the group", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetMany(context.Background(), groupID, []string{newFields[0].ID, newFieldOutsideGroup.ID})
+		fields, err := ss.PropertyField().GetMany(rctx, groupID, []string{newFields[0].ID, newFieldOutsideGroup.ID})
 		require.Empty(t, fields)
 		var target *store.ErrResultsMismatch
 		require.ErrorAs(t, err, &target)
 	})
 
 	t.Run("should be able to retrieve existing property fields from multiple groups", func(t *testing.T) {
-		fields, err := ss.PropertyField().GetMany(context.Background(), "", []string{newFields[0].ID, newFieldOutsideGroup.ID})
+		fields, err := ss.PropertyField().GetMany(rctx, "", []string{newFields[0].ID, newFieldOutsideGroup.ID})
 		require.NoError(t, err)
 		require.Len(t, fields, 2)
 	})
 }
 
-func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
+func testGetFieldByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), "", "", "nonexistent-field-name")
+		field, err := ss.PropertyField().GetFieldByName(rctx, "", "", "nonexistent-field-name")
 		require.Zero(t, field)
 		var enf *store.ErrNotFound
 		require.ErrorAs(t, err, &enf)
@@ -368,7 +367,7 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 	require.NotZero(t, newField.ID)
 
 	t.Run("should be able to retrieve an existing property field by name", func(t *testing.T) {
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), groupID, targetID, "unique-field-name")
+		field, err := ss.PropertyField().GetFieldByName(rctx, groupID, targetID, "unique-field-name")
 		require.NoError(t, err)
 		require.Equal(t, newField.ID, field.ID)
 		require.Equal(t, "unique-field-name", field.Name)
@@ -377,14 +376,14 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 
 	t.Run("should not be able to retrieve an existing field when specifying a different group ID", func(t *testing.T) {
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), model.NewId(), targetID, "unique-field-name")
+		field, err := ss.PropertyField().GetFieldByName(rctx, model.NewId(), targetID, "unique-field-name")
 		require.Zero(t, field)
 		var enf *store.ErrNotFound
 		require.ErrorAs(t, err, &enf)
 	})
 
 	t.Run("should not be able to retrieve an existing field when specifying a different target ID", func(t *testing.T) {
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), groupID, model.NewId(), "unique-field-name")
+		field, err := ss.PropertyField().GetFieldByName(rctx, groupID, model.NewId(), "unique-field-name")
 		require.Zero(t, field)
 		var enf *store.ErrNotFound
 		require.ErrorAs(t, err, &enf)
@@ -411,13 +410,13 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 
 	t.Run("should retrieve the correct field when multiple fields have the same name but different groups", func(t *testing.T) {
 		// Get the field from the first group
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), groupID, targetID, "unique-field-name")
+		field, err := ss.PropertyField().GetFieldByName(rctx, groupID, targetID, "unique-field-name")
 		require.NoError(t, err)
 		require.Equal(t, newField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldTypeText, field.Type)
 
 		// Get the field from the second group
-		field, err = ss.PropertyField().GetFieldByName(context.Background(), anotherGroupID, targetID, "unique-field-name")
+		field, err = ss.PropertyField().GetFieldByName(rctx, anotherGroupID, targetID, "unique-field-name")
 		require.NoError(t, err)
 		require.Equal(t, duplicateNameField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldTypeSelect, field.Type)
@@ -441,13 +440,13 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 
 	t.Run("should retrieve the correct field when multiple fields have the same name and group but different target IDs", func(t *testing.T) {
 		// Get the field with the first target ID
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), groupID, targetID, "unique-field-name")
+		field, err := ss.PropertyField().GetFieldByName(rctx, groupID, targetID, "unique-field-name")
 		require.NoError(t, err)
 		require.Equal(t, newField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldTypeText, field.Type)
 
 		// Get the field with the second target ID
-		field, err = ss.PropertyField().GetFieldByName(context.Background(), groupID, anotherTargetID, "unique-field-name")
+		field, err = ss.PropertyField().GetFieldByName(rctx, groupID, anotherTargetID, "unique-field-name")
 		require.NoError(t, err)
 		require.Equal(t, sameGroupDifferentTargetField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldTypeText, field.Type)
@@ -467,7 +466,7 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NotZero(t, deletedField.ID)
 
 		// Verify it can be retrieved before deletion
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), groupID, targetID, "to-be-deleted-field")
+		field, err := ss.PropertyField().GetFieldByName(rctx, groupID, targetID, "to-be-deleted-field")
 		require.NoError(t, err)
 		require.Equal(t, deletedField.ID, field.ID)
 
@@ -476,7 +475,7 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify it can't be retrieved after deletion
-		field, err = ss.PropertyField().GetFieldByName(context.Background(), groupID, targetID, "to-be-deleted-field")
+		field, err = ss.PropertyField().GetFieldByName(rctx, groupID, targetID, "to-be-deleted-field")
 		require.Zero(t, field)
 		var enf *store.ErrNotFound
 		require.ErrorAs(t, err, &enf)
@@ -499,7 +498,7 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NotZero(t, replacementField.ID)
 
 		// Verify only the non-deleted field is retrieved
-		field, err := ss.PropertyField().GetFieldByName(context.Background(), groupID, targetID, "to-be-deleted-field")
+		field, err := ss.PropertyField().GetFieldByName(rctx, groupID, targetID, "to-be-deleted-field")
 		require.NoError(t, err)
 		require.Equal(t, replacementField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldTypeText, field.Type)
@@ -507,7 +506,7 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testGetFieldByNameForObjectType(t *testing.T, _ request.CTX, ss store.Store) {
+func testGetFieldByNameForObjectType(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Two system-scoped fields share group and name, differing only by
 	// ObjectType — the collision the scoped lookup must disambiguate.
 	groupID := model.NewId()
@@ -536,19 +535,19 @@ func testGetFieldByNameForObjectType(t *testing.T, _ request.CTX, ss store.Store
 	require.NotZero(t, systemField.ID)
 
 	t.Run("should resolve to the field matching the requested object type", func(t *testing.T) {
-		field, err := ss.PropertyField().GetFieldByNameForObjectType(context.Background(), groupID, "", model.PropertyFieldObjectTypeUser, "classification")
+		field, err := ss.PropertyField().GetFieldByNameForObjectType(rctx, groupID, "", model.PropertyFieldObjectTypeUser, "classification")
 		require.NoError(t, err)
 		require.Equal(t, userField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldObjectTypeUser, field.ObjectType)
 
-		field, err = ss.PropertyField().GetFieldByNameForObjectType(context.Background(), groupID, "", model.PropertyFieldObjectTypeSystem, "classification")
+		field, err = ss.PropertyField().GetFieldByNameForObjectType(rctx, groupID, "", model.PropertyFieldObjectTypeSystem, "classification")
 		require.NoError(t, err)
 		require.Equal(t, systemField.ID, field.ID)
 		require.Equal(t, model.PropertyFieldObjectTypeSystem, field.ObjectType)
 	})
 
 	t.Run("should not match a field of a different object type", func(t *testing.T) {
-		field, err := ss.PropertyField().GetFieldByNameForObjectType(context.Background(), groupID, "", model.PropertyFieldObjectTypeChannel, "classification")
+		field, err := ss.PropertyField().GetFieldByNameForObjectType(rctx, groupID, "", model.PropertyFieldObjectTypeChannel, "classification")
 		require.Zero(t, field)
 		var enf *store.ErrNotFound
 		require.ErrorAs(t, err, &enf)
@@ -557,14 +556,14 @@ func testGetFieldByNameForObjectType(t *testing.T, _ request.CTX, ss store.Store
 	t.Run("empty object type is matched exactly, not as match-any", func(t *testing.T) {
 		// Neither field has an empty object type, so an empty-object-type lookup
 		// must miss rather than return an arbitrary match.
-		field, err := ss.PropertyField().GetFieldByNameForObjectType(context.Background(), groupID, "", "", "classification")
+		field, err := ss.PropertyField().GetFieldByNameForObjectType(rctx, groupID, "", "", "classification")
 		require.Zero(t, field)
 		var enf *store.ErrNotFound
 		require.ErrorAs(t, err, &enf)
 	})
 }
 
-func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
+func testUpdatePropertyField(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
 		field := &model.PropertyField{
 			ID:       model.NewId(),
@@ -650,7 +649,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify first field
-		updated1, err := ss.PropertyField().Get(context.Background(), "", field1.ID)
+		updated1, err := ss.PropertyField().Get(rctx, "", field1.ID)
 		require.NoError(t, err)
 		require.Equal(t, "Updated first", updated1.Name)
 		require.Equal(t, model.PropertyFieldTypeSelect, updated1.Type)
@@ -660,7 +659,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Greater(t, updated1.UpdateAt, updated1.CreateAt)
 
 		// Verify second field
-		updated2, err := ss.PropertyField().Get(context.Background(), "", field2.ID)
+		updated2, err := ss.PropertyField().Get(rctx, "", field2.ID)
 		require.NoError(t, err)
 		require.Equal(t, "Updated second", updated2.Name)
 		require.Equal(t, model.PropertyFieldTypeSelect, updated2.Type)
@@ -794,12 +793,12 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorContains(t, err, "model.property_field.is_valid.app_error")
 
 		// Check that fields were not updated
-		updated1, err := ss.PropertyField().Get(context.Background(), "", field1.ID)
+		updated1, err := ss.PropertyField().Get(rctx, "", field1.ID)
 		require.NoError(t, err)
 		require.Equal(t, "Field 1", updated1.Name)
 		require.Equal(t, originalUpdateAt1, updated1.UpdateAt)
 
-		updated2, err := ss.PropertyField().Get(context.Background(), "", field2.ID)
+		updated2, err := ss.PropertyField().Get(rctx, "", field2.ID)
 		require.NoError(t, err)
 		require.Equal(t, groupID, updated2.GroupID)
 		require.Equal(t, originalUpdateAt2, updated2.UpdateAt)
@@ -839,7 +838,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorContains(t, err, "failed to update, some property fields were not found")
 
 		// Check that the valid field was not updated
-		updated1, err := ss.PropertyField().Get(context.Background(), "", field1.ID)
+		updated1, err := ss.PropertyField().Get(rctx, "", field1.ID)
 		require.NoError(t, err)
 		require.Equal(t, "First field", updated1.Name)
 		require.Equal(t, originalUpdateAt, updated1.UpdateAt)
@@ -874,7 +873,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 
 		// Verify the fields were updated
 		for _, field := range []*model.PropertyField{field1, field2} {
-			updated, err := ss.PropertyField().Get(context.Background(), "", field.ID)
+			updated, err := ss.PropertyField().Get(rctx, "", field.ID)
 			require.NoError(t, err)
 			require.Contains(t, updated.Name, "Updated Group Field")
 		}
@@ -913,11 +912,11 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorContains(t, err, "failed to update, some property fields were not found")
 
 		// Verify neither field was updated due to transaction rollback
-		updated1, err := ss.PropertyField().Get(context.Background(), "", field1.ID)
+		updated1, err := ss.PropertyField().Get(rctx, "", field1.ID)
 		require.NoError(t, err)
 		require.Equal(t, originalName1, updated1.Name)
 
-		updated2, err := ss.PropertyField().Get(context.Background(), "", field2.ID)
+		updated2, err := ss.PropertyField().Get(rctx, "", field2.ID)
 		require.NoError(t, err)
 		require.Equal(t, originalName2, updated2.Name)
 	})
@@ -945,7 +944,7 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify CreatedBy stays the same but UpdatedBy changes
-		fetched, err := ss.PropertyField().Get(context.Background(), "", field.ID)
+		fetched, err := ss.PropertyField().Get(rctx, "", field.ID)
 		require.NoError(t, err)
 		require.Equal(t, creatorUserID, fetched.CreatedBy, "CreatedBy should not change on update")
 		require.Equal(t, updaterUserID, fetched.UpdatedBy, "UpdatedBy should change on update")
@@ -988,19 +987,19 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify both fields have correct UpdatedBy
-		fetched1, err := ss.PropertyField().Get(context.Background(), "", field1.ID)
+		fetched1, err := ss.PropertyField().Get(rctx, "", field1.ID)
 		require.NoError(t, err)
 		require.Equal(t, user1, fetched1.UpdatedBy)
 		require.Equal(t, creatorUserID, fetched1.CreatedBy)
 
-		fetched2, err := ss.PropertyField().Get(context.Background(), "", field2.ID)
+		fetched2, err := ss.PropertyField().Get(rctx, "", field2.ID)
 		require.NoError(t, err)
 		require.Equal(t, user2, fetched2.UpdatedBy)
 		require.Equal(t, creatorUserID, fetched2.CreatedBy)
 	})
 }
 
-func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+func testDeletePropertyField(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
 		err := ss.PropertyField().Delete("", model.NewId())
 		var enf *store.ErrNotFound
@@ -1022,7 +1021,7 @@ func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlS
 		require.NoError(t, err)
 
 		// Verify the field was soft-deleted
-		deletedField, err := ss.PropertyField().Get(context.Background(), "", field.ID)
+		deletedField, err := ss.PropertyField().Get(rctx, "", field.ID)
 		require.NoError(t, err)
 		require.NotZero(t, deletedField.DeleteAt)
 	})
@@ -1049,7 +1048,7 @@ func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlS
 		require.NoError(t, err)
 
 		// Verify the field was soft-deleted
-		deletedField, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		deletedField, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		require.NotZero(t, deletedField.DeleteAt)
 	})
@@ -1072,7 +1071,7 @@ func testDeletePropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlS
 		require.ErrorAs(t, err, &enf)
 
 		// Verify the field was not deleted
-		nonDeletedField, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		nonDeletedField, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		require.Zero(t, nonDeletedField.DeleteAt)
 	})
@@ -3242,7 +3241,7 @@ func testGetLinkedFields(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store) {
+func testUpdateWithLinkedDependents(t *testing.T, rctx request.CTX, ss store.Store) {
 	groupID := model.NewId()
 
 	optA := map[string]any{"id": model.NewId(), "name": "A"}
@@ -3307,12 +3306,12 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 		require.Len(t, result, 3)
 
 		// Verify both linked fields now have the updated options
-		retrievedLinked1, gErr := ss.PropertyField().Get(context.Background(), "", linked1.ID)
+		retrievedLinked1, gErr := ss.PropertyField().Get(rctx, "", linked1.ID)
 		require.NoError(t, gErr)
 		options1 := retrievedLinked1.Attrs["options"].([]any)
 		require.Len(t, options1, 3)
 
-		retrievedLinked2, gErr := ss.PropertyField().Get(context.Background(), "", linked2.ID)
+		retrievedLinked2, gErr := ss.PropertyField().Get(rctx, "", linked2.ID)
 		require.NoError(t, gErr)
 		options2 := retrievedLinked2.Attrs["options"].([]any)
 		require.Len(t, options2, 3)
@@ -3332,12 +3331,12 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 		require.Len(t, result, 3) // source + 2 linked
 
 		// Verify linked fields have exactly 2 options
-		retrievedLinked1, gErr := ss.PropertyField().Get(context.Background(), "", linked1.ID)
+		retrievedLinked1, gErr := ss.PropertyField().Get(rctx, "", linked1.ID)
 		require.NoError(t, gErr)
 		options1 := retrievedLinked1.Attrs["options"].([]any)
 		require.Len(t, options1, 2)
 
-		retrievedLinked2, gErr := ss.PropertyField().Get(context.Background(), "", linked2.ID)
+		retrievedLinked2, gErr := ss.PropertyField().Get(rctx, "", linked2.ID)
 		require.NoError(t, gErr)
 		options2 := retrievedLinked2.Attrs["options"].([]any)
 		require.Len(t, options2, 2)
@@ -3356,7 +3355,7 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 		require.NoError(t, uErr)
 
 		// Verify linked fields have the renamed option
-		retrievedLinked1, gErr := ss.PropertyField().Get(context.Background(), "", linked1.ID)
+		retrievedLinked1, gErr := ss.PropertyField().Get(rctx, "", linked1.ID)
 		require.NoError(t, gErr)
 		options1 := retrievedLinked1.Attrs["options"].([]any)
 		require.Len(t, options1, 1)
@@ -3374,7 +3373,7 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 
 	t.Run("should reject update when expectedUpdateAts do not match (optimistic concurrency)", func(t *testing.T) {
 		// Read the current state of the source field
-		current, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		current, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 
 		// Simulate a concurrent update by directly modifying the field
@@ -3392,14 +3391,14 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 		require.ErrorAs(t, uErr, &conflictErr)
 
 		// Verify the field was NOT updated (concurrent update's value persists)
-		after, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		after, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 		require.Equal(t, "Concurrent Update", after.Name)
 	})
 
 	t.Run("should succeed when expectedUpdateAts match current state", func(t *testing.T) {
 		// Read the current state
-		current, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		current, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 
 		// Update with correct expectedUpdateAts
@@ -3424,7 +3423,7 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 		require.NoError(t, cErr)
 
 		// Get fresh state of batch field
-		freshBatch, gErr := ss.PropertyField().Get(context.Background(), "", batchField.ID)
+		freshBatch, gErr := ss.PropertyField().Get(rctx, "", batchField.ID)
 		require.NoError(t, gErr)
 
 		// Save the pre-update UpdateAt before the concurrent modification
@@ -3439,7 +3438,7 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 		require.NoError(t, uErr)
 
 		// Re-fetch the source since it wasn't modified (its UpdateAt is still valid)
-		freshSource, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		freshSource, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 
 		// Attempt batch update using stale UpdateAt for batchField but fresh for source
@@ -3456,18 +3455,18 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 		require.ErrorAs(t, uErr, &conflictErr)
 
 		// Verify neither field was updated (transaction rolled back)
-		afterSource, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		afterSource, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 		require.NotEqual(t, "Should Not Stick", afterSource.Name)
 
-		afterBatch, gErr := ss.PropertyField().Get(context.Background(), "", batchField.ID)
+		afterBatch, gErr := ss.PropertyField().Get(rctx, "", batchField.ID)
 		require.NoError(t, gErr)
 		require.Equal(t, "Concurrent Batch Change", afterBatch.Name)
 	})
 
 	t.Run("should return linked dependents and enforce optimistic concurrency together", func(t *testing.T) {
 		// Get fresh state of source field for OCC
-		freshSource, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		freshSource, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 
 		optNew := map[string]any{"id": model.NewId(), "name": "PropagateOCC"}
@@ -3480,7 +3479,7 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 		// source + 2 linked fields
 		require.Len(t, result, 3)
 
-		retrievedLinked1, gErr := ss.PropertyField().Get(context.Background(), "", linked1.ID)
+		retrievedLinked1, gErr := ss.PropertyField().Get(rctx, "", linked1.ID)
 		require.NoError(t, gErr)
 		opts := retrievedLinked1.Attrs["options"].([]any)
 		require.Len(t, opts, 1)
@@ -3488,7 +3487,7 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 	})
 
 	t.Run("should reject an option change when source has stale expectedUpdateAt", func(t *testing.T) {
-		freshSource, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		freshSource, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 
 		// Save the pre-update UpdateAt
@@ -3510,7 +3509,7 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 		var conflictErr *store.ErrConflict
 		require.ErrorAs(t, uErr, &conflictErr)
 
-		retrievedLinked1, gErr := ss.PropertyField().Get(context.Background(), "", linked1.ID)
+		retrievedLinked1, gErr := ss.PropertyField().Get(rctx, "", linked1.ID)
 		require.NoError(t, gErr)
 		opts := retrievedLinked1.Attrs["options"].([]any)
 		firstOpt := opts[0].(map[string]any)
@@ -3518,7 +3517,7 @@ func testUpdateWithLinkedDependents(t *testing.T, _ request.CTX, ss store.Store)
 	})
 
 	t.Run("nil expectedUpdateAts should skip concurrency check (backwards compat)", func(t *testing.T) {
-		freshSource, gErr := ss.PropertyField().Get(context.Background(), "", sourceField.ID)
+		freshSource, gErr := ss.PropertyField().Get(rctx, "", sourceField.ID)
 		require.NoError(t, gErr)
 
 		// Update without any concurrency check — should always succeed
@@ -3599,7 +3598,7 @@ func testSearchByLinkedFieldID(t *testing.T, _ request.CTX, ss store.Store) {
 // list and the PropertyOptions rows behind it: the list a caller writes has to
 // read back unchanged, a field's options have to include the ones its link source
 // owns, and a list too large to inline has to degrade instead of erroring.
-func testPropertyFieldOptionStorage(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+func testPropertyFieldOptionStorage(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	groupID := model.NewId()
 
 	newSelectField := func(t *testing.T, name string, options []any) *model.PropertyField {
@@ -3654,7 +3653,7 @@ func testPropertyFieldOptionStorage(t *testing.T, _ request.CTX, ss store.Store,
 		written, err := json.Marshal(field.Attrs)
 		require.NoError(t, err)
 
-		read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		read, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		readBack, err := json.Marshal(read.Attrs)
 		require.NoError(t, err)
@@ -3675,7 +3674,7 @@ func testPropertyFieldOptionStorage(t *testing.T, _ request.CTX, ss store.Store,
 		require.NoError(t, err)
 		require.Len(t, updated, 1)
 
-		reread, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		reread, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		expected, err := json.Marshal(model.StringInterface{"options": reordered})
 		require.NoError(t, err)
@@ -3694,7 +3693,7 @@ func testPropertyFieldOptionStorage(t *testing.T, _ request.CTX, ss store.Store,
 		})
 		require.NoError(t, err)
 
-		read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		read, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		require.NotContains(t, read.Attrs, "options")
 		require.NotContains(t, read.Attrs, "options_omitted")
@@ -3711,7 +3710,7 @@ func testPropertyFieldOptionStorage(t *testing.T, _ request.CTX, ss store.Store,
 		}
 		field := newSelectField(t, "Oversized", options)
 
-		read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		read, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		require.NotContains(t, read.Attrs, "options", "an oversized list must be left out, not truncated")
 		require.Equal(t, true, read.Attrs["options_omitted"])
@@ -3738,7 +3737,7 @@ func testPropertyFieldOptionStorage(t *testing.T, _ request.CTX, ss store.Store,
 		}
 		field := newSelectField(t, "AtCap", options)
 
-		read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		read, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		require.Len(t, read.Attrs["options"].([]any), model.PropertyFieldMaxHydratedOptions)
 		require.NotContains(t, read.Attrs, "options_omitted")
@@ -3771,7 +3770,7 @@ func testPropertyFieldOptionStorage(t *testing.T, _ request.CTX, ss store.Store,
 		for _, field := range linked {
 			require.Zero(t, countOwnedOptions(t, field.ID), "a linked field must not store a copy of its template's options")
 
-			read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+			read, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 			require.NoError(t, err)
 			require.Equal(t, []string{"A", "B"}, optionNames(read))
 		}
@@ -3789,7 +3788,7 @@ func testPropertyFieldOptionStorage(t *testing.T, _ request.CTX, ss store.Store,
 		require.Len(t, returned, 3, "the update must return the template and both dependents")
 
 		for _, field := range linked {
-			read, gErr := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+			read, gErr := ss.PropertyField().Get(rctx, groupID, field.ID)
 			require.NoError(t, gErr)
 			require.Equal(t, []string{"A", "B", "C"}, optionNames(read))
 			require.Equal(t, beforeUpdateAt[field.ID], read.UpdateAt, "a template option change must not write to its dependents")
@@ -3818,11 +3817,11 @@ func testPropertyFieldOptionStorage(t *testing.T, _ request.CTX, ss store.Store,
 		require.Equal(t, 1, countOwnedOptions(t, linked.ID))
 		require.Equal(t, 1, countOwnedOptions(t, template.ID))
 
-		readLinked, err := ss.PropertyField().Get(context.Background(), groupID, linked.ID)
+		readLinked, err := ss.PropertyField().Get(rctx, groupID, linked.ID)
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{"Shared", "Local"}, optionNames(readLinked))
 
-		readTemplate, err := ss.PropertyField().Get(context.Background(), groupID, template.ID)
+		readTemplate, err := ss.PropertyField().Get(rctx, groupID, template.ID)
 		require.NoError(t, err)
 		require.Equal(t, []string{"Shared"}, optionNames(readTemplate), "a linked field's own option must not appear on the template")
 	})
@@ -3853,7 +3852,7 @@ func testPropertyFieldOptionStorage(t *testing.T, _ request.CTX, ss store.Store,
 		require.Equal(t, 2, countOwnedOptions(t, linked.ID))
 		require.Equal(t, 2, countOwnedOptions(t, template.ID))
 
-		read, err := ss.PropertyField().Get(context.Background(), groupID, linked.ID)
+		read, err := ss.PropertyField().Get(rctx, groupID, linked.ID)
 		require.NoError(t, err)
 		require.Equal(t, []string{"A", "B"}, optionNames(read))
 
@@ -3891,7 +3890,7 @@ func testPropertyFieldOptionStorage(t *testing.T, _ request.CTX, ss store.Store,
 
 		// Unlink the way a caller has to: read the field, which comes back with
 		// its option list withheld, then clear the link on what was read.
-		read, err := ss.PropertyField().Get(context.Background(), groupID, linked.ID)
+		read, err := ss.PropertyField().Get(rctx, groupID, linked.ID)
 		require.NoError(t, err)
 		require.Equal(t, true, read.Attrs["options_omitted"], "the field has to be over the cap for this to be the interesting case")
 
@@ -3924,7 +3923,7 @@ func testPropertyFieldOptionStorage(t *testing.T, _ request.CTX, ss store.Store,
 		})
 		require.NoError(t, err)
 
-		read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		read, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		written, err := json.Marshal(attrs)
 		require.NoError(t, err)
@@ -3935,7 +3934,7 @@ func testPropertyFieldOptionStorage(t *testing.T, _ request.CTX, ss store.Store,
 	})
 }
 
-func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+func testPropertyFieldOptionEdges(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	groupID := model.NewId()
 
 	// newField creates a field owning one option per name. The option IDs are
@@ -3989,7 +3988,7 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 	// tripping the check that exists for concurrent writers.
 	mutate := func(t *testing.T, field *model.PropertyField, add, remove []*model.PropertyOptionEdge) error {
 		t.Helper()
-		current, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		current, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		return ss.PropertyField().MutateOptions(groupID, field.ID, current.UpdateAt, nil, add, remove)
 	}
@@ -4120,7 +4119,7 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		require.NoError(t, mutate(t, field, []*model.PropertyOptionEdge{
 			edge(field.ID, ids["Fighter Jet Program"], ids["Air Program"]),
 		}, nil))
-		before, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		before, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 
 		// A change is one thing: this one would have removed a link and added two,
@@ -4141,7 +4140,7 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		require.NoError(t, err)
 		require.Equal(t, [][2]string{{ids["Fighter Jet Program"], ids["Air Program"]}}, asPairs(read))
 
-		after, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		after, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		require.Equal(t, before.UpdateAt, after.UpdateAt)
 	})
@@ -4155,7 +4154,7 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		require.NoError(t, mutate(t, field, []*model.PropertyOptionEdge{
 			edge(field.ID, ids["Fighter Jet Program"], ids["Air Program"]),
 		}, nil))
-		read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		read, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		require.Greater(t, read.UpdateAt, field.UpdateAt)
 
@@ -4171,7 +4170,7 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		require.NoError(t, ss.PropertyField().MutateOptions(groupID, field.ID, ahead, nil, []*model.PropertyOptionEdge{
 			edge(field.ID, ids["F-18 Program"], ids["Fighter Jet Program"]),
 		}, nil))
-		read, err = ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		read, err = ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		require.Greater(t, read.UpdateAt, ahead)
 	})
@@ -4497,7 +4496,7 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 
 		// The parents are not an attribute of the option: they became rows, and the
 		// option reads back exactly as one written without them would.
-		read, err := ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		read, err := ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		for _, raw := range read.Attrs["options"].([]any) {
 			require.NotContains(t, raw.(map[string]any), "parents")
@@ -4523,7 +4522,7 @@ func testPropertyFieldOptionEdges(t *testing.T, _ request.CTX, ss store.Store, s
 		// A list that says nothing about parents leaves the hierarchy as it is, which
 		// is what a read-modify-write of a field looks like: an option reads back
 		// without its parents.
-		read, err = ss.PropertyField().Get(context.Background(), groupID, field.ID)
+		read, err = ss.PropertyField().Get(rctx, groupID, field.ID)
 		require.NoError(t, err)
 		read.Name = "EdgesFromListRenamed-" + model.NewId()
 		_, err = ss.PropertyField().Update(groupID, []*model.PropertyField{read}, nil)

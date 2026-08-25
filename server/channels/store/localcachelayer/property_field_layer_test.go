@@ -4,7 +4,6 @@
 package localcachelayer
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
@@ -20,6 +20,7 @@ func TestPropertyFieldStoreCache(t *testing.T) {
 	fakeField := model.PropertyField{ID: "field-id", GroupID: groupID, Name: "field-name"}
 	fakeFields := []*model.PropertyField{&fakeField}
 	logger := mlog.CreateConsoleTestLogger(t)
+	rctx := request.TestContext(t)
 
 	t.Run("GetForGroup cached on second call", func(t *testing.T) {
 		mockStore := getMockStore(t)
@@ -27,12 +28,12 @@ func TestPropertyFieldStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		fields, err := cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		fields, err := cachedStore.PropertyField().GetForGroup(rctx, groupID)
 		require.NoError(t, err)
 		assert.Equal(t, fakeFields, fields)
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 1)
 
-		fields, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		fields, err = cachedStore.PropertyField().GetForGroup(rctx, groupID)
 		require.NoError(t, err)
 		assert.Equal(t, fakeFields, fields)
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 1)
@@ -44,14 +45,14 @@ func TestPropertyFieldStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		_, err = cachedStore.PropertyField().GetForGroup(rctx, groupID)
 		require.NoError(t, err)
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 1)
 
 		_, err = cachedStore.PropertyField().Create(&fakeField)
 		require.NoError(t, err)
 
-		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		_, err = cachedStore.PropertyField().GetForGroup(rctx, groupID)
 		require.NoError(t, err)
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 2)
 	})
@@ -62,14 +63,14 @@ func TestPropertyFieldStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		_, err = cachedStore.PropertyField().GetForGroup(rctx, groupID)
 		require.NoError(t, err)
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 1)
 
 		_, err = cachedStore.PropertyField().Update(groupID, fakeFields, nil)
 		require.NoError(t, err)
 
-		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		_, err = cachedStore.PropertyField().GetForGroup(rctx, groupID)
 		require.NoError(t, err)
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 2)
 	})
@@ -80,7 +81,7 @@ func TestPropertyFieldStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		_, err = cachedStore.PropertyField().GetForGroup(rctx, groupID)
 		require.NoError(t, err)
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 1)
 
@@ -90,7 +91,7 @@ func TestPropertyFieldStoreCache(t *testing.T) {
 		err = cachedStore.PropertyField().MutateOptions(groupID, fakeField.ID, 0, nil, nil, nil)
 		require.NoError(t, err)
 
-		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		_, err = cachedStore.PropertyField().GetForGroup(rctx, groupID)
 		require.NoError(t, err)
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 2)
 	})
@@ -101,14 +102,14 @@ func TestPropertyFieldStoreCache(t *testing.T) {
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
 
-		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		_, err = cachedStore.PropertyField().GetForGroup(rctx, groupID)
 		require.NoError(t, err)
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 1)
 
 		err = cachedStore.PropertyField().Delete(groupID, fakeField.ID)
 		require.NoError(t, err)
 
-		_, err = cachedStore.PropertyField().GetForGroup(context.Background(), groupID)
+		_, err = cachedStore.PropertyField().GetForGroup(rctx, groupID)
 		require.NoError(t, err)
 		mockStore.PropertyField().(*mocks.PropertyFieldStore).AssertNumberOfCalls(t, "GetForGroup", 2)
 	})

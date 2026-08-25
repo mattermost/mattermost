@@ -16,8 +16,6 @@ import './selector_menus.scss';
 import {channelAttributeMenuItems, SelectedChannelAttributeLabel} from './channel_attribute_target';
 import MaskedChip from './masked_chip';
 
-// MultiValueSelector handles selection of multiple values (operator 'in',
-// 'has any of', 'has all of')
 const MultiValueSelector = ({
     values,
     disabled,

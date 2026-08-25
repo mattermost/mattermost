@@ -267,7 +267,7 @@
         "ConnectionSecurity": "",
         "BaseDN": "dc=mm,dc=test,dc=com",
         "BindUsername": "cn=admin,dc=mm,dc=test,dc=com",
-        "BindPassword": "mostest",
+        "BindPassword": "mostest_password",
         "UserFilter": "",
         "GroupFilter": "",
         "GuestFilter": "",
@@ -383,7 +383,9 @@
             "EmailAddress": "",
             "SMTPServerTimeout": 1800,
             "CustomSMTPServerName": "",
-            "CustomSMTPPort": "25"
+            "CustomSMTPPort": "25",
+            "CustomHeaderName": "",
+            "CustomHeaderValue": ""
         }
     },
     "PluginSettings": {

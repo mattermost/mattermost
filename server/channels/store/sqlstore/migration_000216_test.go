@@ -12,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-// matviewExists reports whether a materialized view of the given name exists.
 func matviewExists(t *testing.T, s *SqlStore, name string) bool {
 	t.Helper()
 	var count int

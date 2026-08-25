@@ -98,7 +98,7 @@ func main() {
 
 #### Hook parameters
 
-Most hook callbacks now contain a leading `plugin.Context` parameter. Consult the [Hooks](/developers/integrate/reference/server/server-reference#Hooks) documentation for more details, but for example, the `ServeHTTP` hook was previously:
+Most hook callbacks now contain a leading `plugin.Context` parameter. Consult the [Hooks](/developers/integrate/reference/server#Hooks) documentation for more details, but for example, the `ServeHTTP` hook was previously:
 
 ```go
 func (p *MyPlugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -116,7 +116,7 @@ func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.R
 
 #### API changes
 
-Most of the previous API calls remain available and unchanged, with the notable exception of removing the `KeyValueStore()`. Use [KVSet](/developers/integrate/reference/server/server-reference#API.KVSet), [KVGet](/developers/integrate/reference/server/server-reference#API.KVGet) and [KVDelete](/developers/integrate/reference/server/server-reference#API.KVDelete) instead test:
+Most of the previous API calls remain available and unchanged, with the notable exception of removing the `KeyValueStore()`. Use [KVSet](/developers/integrate/reference/server#API.KVSet), [KVGet](/developers/integrate/reference/server#API.KVGet) and [KVDelete](/developers/integrate/reference/server#API.KVDelete) instead test:
 
 ```go
 func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
@@ -232,7 +232,7 @@ class MyPlugin {
 }
 ```
 
-The `initialize` callback now receives an instance of the plugin [registry](/developers/integrate/reference/webapp/webapp-reference#registry). In some cases, the registry's API now requires a more discrete breakdown of the registered component to allow the web app to handle various rendering scenarios:
+The `initialize` callback now receives an instance of the plugin [registry](/developers/integrate/reference/webapp#registry). In some cases, the registry's API now requires a more discrete breakdown of the registered component to allow the web app to handle various rendering scenarios:
 
 ```js
 import ChannelHeaderButtonIcon from './components/channel_header_button/icon';

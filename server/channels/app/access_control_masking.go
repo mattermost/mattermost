@@ -91,7 +91,7 @@ func (a *App) fetchConditionFields(rctx request.CTX, conditions []model.Conditio
 			)
 			continue
 		}
-		fields[r.objectType+"/"+r.fieldName] = h
+		fields[holdingsKey(r.objectType, r.fieldName)] = h
 	}
 	return fields
 }
@@ -123,7 +123,7 @@ func newMaskingResolver(a *App, rctx request.CTX, callerID string) (*appMaskingR
 func (r *appMaskingResolver) Resolve(objectType, fieldName string) (*model.MaskingFieldInfo, error) {
 	// The cache key includes the object type: a user field and a channel field
 	// can share a name yet have different visibility.
-	cacheKey := objectType + "/" + fieldName
+	cacheKey := holdingsKey(objectType, fieldName)
 	if info, ok := r.cache[cacheKey]; ok {
 		return info, nil
 	}
@@ -303,7 +303,7 @@ func (a *App) maskConditionValues(rctx request.CTX, callerID string, condition *
 	// h pairs the holdings-bearing field (the user sibling for a channel
 	// attribute) with the authoritative access mode (the channel field's own),
 	// keyed by object type so a shared name does not collide across roots.
-	h, ok := fieldsByKey[objectType+"/"+fieldName]
+	h, ok := fieldsByKey[holdingsKey(objectType, fieldName)]
 	if !ok {
 		// Fail closed: field lookup failed at prefetch time.
 		condition.Value = nil
@@ -334,8 +334,8 @@ func (a *App) maskConditionValues(rctx request.CTX, callerID string, condition *
 // object type whose CPA schema backs it: user.attributes.* is the requesting
 // user, resource.attributes.* is the accessed channel.
 var cpaAttributeRoots = []struct{ prefix, objectType string }{
-	{"user.attributes.", model.PropertyFieldObjectTypeUser},
-	{"resource.attributes.", model.PropertyFieldObjectTypeChannel},
+	{userAttributesPathPrefix, model.PropertyFieldObjectTypeUser},
+	{resourceAttributesPathPrefix, model.PropertyFieldObjectTypeChannel},
 }
 
 // splitCPAAttribute splits a CEL attribute path into its CPA object type and
@@ -349,6 +349,13 @@ func splitCPAAttribute(attribute string) (objectType, fieldName string, ok bool)
 		}
 	}
 	return "", "", false
+}
+
+// holdingsKey keys the prefetched-holdings map and the resolver cache. Object
+// type is part of the key because a user field and a channel field can share
+// a name and differ in visibility.
+func holdingsKey(objectType, fieldName string) string {
+	return objectType + "/" + fieldName
 }
 
 // extractVisibleOptionNames pulls option names from a pre-filtered PropertyField's

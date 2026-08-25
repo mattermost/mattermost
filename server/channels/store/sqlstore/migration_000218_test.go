@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func propertyFieldTypeHasValue(t *testing.T, s *SqlStore, label string) bool {
@@ -63,7 +64,7 @@ func TestMigration000218(t *testing.T) {
 		})
 		require.NoError(t, cErr)
 
-		read, gErr := store.PropertyField().Get(t.Context(), group.ID, field.ID)
+		read, gErr := store.PropertyField().Get(request.TestContext(t), group.ID, field.ID)
 		require.NoError(t, gErr)
 		assert.Equal(t, model.PropertyFieldTypeGraph, read.Type)
 

@@ -108,7 +108,7 @@ func (a *App) DeletePropertyFieldOptions(rctx request.CTX, field *model.Property
 // cannot read back a cache entry the event was announcing the end of. This is the
 // ordering the field write path uses, for the same reason.
 func (a *App) propertyFieldOptionsChanged(rctx request.CTX, field *model.PropertyField, connectionID string) {
-	current, dependents, err := a.Srv().propertyService.FieldWithDependents(field)
+	current, dependents, err := a.Srv().propertyService.FieldWithDependents(rctx, field)
 	if err != nil {
 		// The field the change named is still invalidated, from the caller's copy:
 		// dropping a cache entry that did not need dropping costs a recompile,

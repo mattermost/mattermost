@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
@@ -2117,7 +2118,7 @@ func TestAccessControlAttributeValidationHookBatchesOptionLookups(t *testing.T) 
 		{GroupID: groupID, FieldID: fieldA.ID, Value: json.RawMessage(`"` + optionA2 + `"`)},
 	}
 
-	require.NoError(t, hook.validateValues(values))
+	require.NoError(t, hook.validateValues(request.TestContext(t), values))
 
 	// .Once() above already fails the test if either field is looked up
 	// twice; this additionally confirms both expected calls actually fired.
@@ -2154,7 +2155,7 @@ func TestAccessControlAttributeValidationHookDedupesOptionLookup(t *testing.T) {
 		{GroupID: groupID, FieldID: field.ID, Value: json.RawMessage(`"` + optionID + `"`)},
 	}
 
-	require.NoError(t, hook.validateValues(values))
+	require.NoError(t, hook.validateValues(request.TestContext(t), values))
 
 	// The mocked call's exact one-element slice already fails the test if the
 	// duplicate reaches the store; .Once() confirms it was still called at all.
@@ -2192,7 +2193,7 @@ func TestAccessControlAttributeValidationHookOptionLookupStoreFailure(t *testing
 		{GroupID: groupID, FieldID: field.ID, Value: json.RawMessage(`"` + optionID + `"`)},
 	}
 
-	validateErr := hook.validateValues(values)
+	validateErr := hook.validateValues(request.TestContext(t), values)
 	require.Error(t, validateErr)
 	assert.ErrorIs(t, validateErr, storeErr, "the store failure must remain in the chain")
 	assert.NotErrorIs(t, validateErr, ErrInvalidValue, "a store failure must not be read as a missing option")

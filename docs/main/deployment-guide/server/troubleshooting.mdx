@@ -11,7 +11,7 @@ To have the Mattermost Server start at system boot, the systemd unit file needs 
 sudo systemctl enable mattermost.service
 ```
 
-If your database is on the same system as your Mattermost Server, we recommend editing the default `/lib/systemd/system/mattermost.service` systemd unit file to add `After=postgresql.service` and `BindsTo=postgresql.service` to the `[Unit]` section.
+If your database is on the same system as your Mattermost Server, we recommend editing the default `/etc/systemd/system/mattermost.service` systemd unit file to add `After=postgresql.service` and `BindsTo=postgresql.service` to the `[Unit]` section.
 
 ## Run Mattermost without a proxy
 

@@ -125,7 +125,7 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 	}
 
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
-		if err := h.validateAndInheritLinkedFieldSecurity(callerID, field); err != nil {
+		if err := h.validateAndInheritLinkedFieldSecurity(rctx, callerID, field); err != nil {
 			return nil, fmt.Errorf("PreCreatePropertyField: %w", err)
 		}
 	}
@@ -141,8 +141,8 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 // the source template's security posture. If the source is protected, only
 // the source plugin may create linked fields. Security attrs (protected,
 // source_plugin_id, access_mode) are copied from the source onto the field.
-func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(callerID string, field *model.PropertyField) error {
-	source, err := h.propertyService.getPropertyFieldFromMaster("", *field.LinkedFieldID)
+func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(rctx request.CTX, callerID string, field *model.PropertyField) error {
+	source, err := h.propertyService.getPropertyFieldFromMaster(rctx, "", *field.LinkedFieldID)
 	if err != nil {
 		if store.IsErrNotFound(err) {
 			return model.NewAppError(
@@ -193,7 +193,7 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 
 	callerID := h.extractCallerID(rctx)
 
-	existingField, err := h.propertyService.getPropertyField(groupID, field.ID)
+	existingField, err := h.propertyService.getPropertyField(rctx, groupID, field.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +232,7 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 		fieldIDs[i] = field.ID
 	}
 
-	existingFields, err := h.propertyService.getPropertyFields(groupID, fieldIDs)
+	existingFields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +282,7 @@ func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID str
 
 	callerID := h.extractCallerID(rctx)
 
-	existingField, err := h.propertyService.getPropertyField(groupID, id)
+	existingField, err := h.propertyService.getPropertyField(rctx, groupID, id)
 	if err != nil {
 		return err
 	}
@@ -448,7 +448,7 @@ func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *mode
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(value.GroupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, value.GroupID, value.FieldID)
 	if err != nil {
 		return nil, err
 	}
@@ -469,7 +469,7 @@ func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*
 
 	callerID := h.extractCallerID(rctx)
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, err
 	}
@@ -495,7 +495,7 @@ func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID str
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(groupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, groupID, value.FieldID)
 	if err != nil {
 		return nil, err
 	}
@@ -516,7 +516,7 @@ func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID st
 
 	callerID := h.extractCallerID(rctx)
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, err
 	}
@@ -542,7 +542,7 @@ func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *mode
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(value.GroupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, value.GroupID, value.FieldID)
 	if err != nil {
 		return nil, err
 	}
@@ -563,7 +563,7 @@ func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*
 
 	callerID := h.extractCallerID(rctx)
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, err
 	}
@@ -594,7 +594,7 @@ func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID str
 		return err
 	}
 
-	field, err := h.propertyService.getPropertyField(groupID, value.FieldID)
+	field, err := h.propertyService.getPropertyField(rctx, groupID, value.FieldID)
 	if err != nil {
 		return err
 	}
@@ -661,7 +661,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 		fieldIDSlice = append(fieldIDSlice, fieldID)
 	}
 
-	fields, err := h.propertyService.getPropertyFields(groupID, fieldIDSlice)
+	fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDSlice)
 	if err != nil {
 		return err
 	}
@@ -683,7 +683,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, gr
 
 	callerID := h.extractCallerID(rctx)
 
-	field, err := h.propertyService.getPropertyField(groupID, fieldID)
+	field, err := h.propertyService.getPropertyField(rctx, groupID, fieldID)
 	if err != nil {
 		return err
 	}
@@ -1652,7 +1652,7 @@ func (h *AccessControlHook) applyFieldReadAccessControlToList(rctx request.CTX, 
 }
 
 // getFieldsForValues fetches all unique fields associated with the given values.
-func (h *AccessControlHook) getFieldsForValues(values []*model.PropertyValue) (map[string]*model.PropertyField, error) {
+func (h *AccessControlHook) getFieldsForValues(rctx request.CTX, values []*model.PropertyValue) (map[string]*model.PropertyField, error) {
 	if len(values) == 0 {
 		return make(map[string]*model.PropertyField), nil
 	}
@@ -1672,7 +1672,7 @@ func (h *AccessControlHook) getFieldsForValues(values []*model.PropertyValue) (m
 			fieldIDSlice = append(fieldIDSlice, fieldID)
 		}
 
-		fields, err := h.propertyService.getPropertyFields(groupID, fieldIDSlice)
+		fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDSlice)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch fields for values: %w", err)
 		}
@@ -1691,7 +1691,7 @@ func (h *AccessControlHook) applyValueReadAccessControl(rctx request.CTX, values
 		return values, nil
 	}
 
-	fieldMap, err := h.getFieldsForValues(values)
+	fieldMap, err := h.getFieldsForValues(rctx, values)
 	if err != nil {
 		return nil, fmt.Errorf("applyValueReadAccessControl: %w", err)
 	}

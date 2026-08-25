@@ -104,7 +104,7 @@ func (ps *PropertyService) writableField(rctx request.CTX, field *model.Property
 		return nil, optionsChangeRefused("no property field to change the options of")
 	}
 
-	current, err := ps.getPropertyFieldFromMaster(field.GroupID, field.ID)
+	current, err := ps.getPropertyFieldFromMaster(rctx, field.GroupID, field.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read the property field an option change is aimed at")
 	}
@@ -246,7 +246,7 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 	// whether they may be listed at all, and what the post-hook judges all have to
 	// agree with each other, and the only way to guarantee that is to decide all
 	// three from the same field.
-	field, err := ps.getPropertyField(field.GroupID, field.ID)
+	field, err := ps.getPropertyField(rctx, field.GroupID, field.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read the property field a listing is aimed at")
 	}
@@ -554,12 +554,12 @@ func (ps *PropertyService) DeleteFieldOptions(rctx request.CTX, field *model.Pro
 // The two are kept apart rather than returned as one list because they are not
 // interchangeable to a caller: the field is the one the request named, and the
 // dependents are fields the requester may not even know exist.
-func (ps *PropertyService) FieldWithDependents(field *model.PropertyField) (*model.PropertyField, []*model.PropertyField, error) {
+func (ps *PropertyService) FieldWithDependents(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, []*model.PropertyField, error) {
 	if field == nil {
 		return nil, nil, errors.New("no property field to read the dependents of")
 	}
 
-	current, err := ps.getPropertyFieldFromMaster(field.GroupID, field.ID)
+	current, err := ps.getPropertyFieldFromMaster(rctx, field.GroupID, field.ID)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to re-read a property field whose options changed")
 	}
