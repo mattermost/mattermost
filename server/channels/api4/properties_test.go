@@ -4037,6 +4037,56 @@ func TestPatchPropertyValuesPostCreator(t *testing.T) {
 			require.NotEqual(t, memberField.ID, v.FieldID, "the allowed item of the rejected batch must not have been written")
 		}
 	})
+
+	t.Run("guest who authored the post can set values on it", func(t *testing.T) {
+		prevLicense := th.App.Srv().License()
+		prevGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+		t.Cleanup(func() {
+			th.App.Srv().SetLicense(prevLicense)
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = prevGuestAccounts })
+		})
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+		th.App.Srv().SetLicense(model.NewTestLicense())
+
+		id := model.NewId()
+		guestPassword := model.NewTestPassword()
+		guest, appErr := th.App.CreateGuest(th.Context, &model.User{
+			Email:         "success+" + id + "@simulator.amazonses.com",
+			Username:      "un_" + id,
+			Nickname:      "nn_" + id,
+			Password:      guestPassword,
+			EmailVerified: true,
+		})
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
+		th.AddUserToChannel(t, guest, th.BasicChannel)
+		require.True(t, guest.IsGuest(), "the fixture must be a guest, or this case proves nothing")
+
+		guestPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    guest.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "authored by the guest",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		guestClient := th.CreateClient()
+		_, _, loginErr := guestClient.Login(context.Background(), guest.Email, guestPassword)
+		require.NoError(t, loginErr)
+
+		values, resp, err := guestClient.PatchPropertyValues(context.Background(), group.Name, "post", guestPost.Id, creatorItem)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, len(creatorItem))
+
+		// The grant is authorship, not guest-ness. ownPost is authored by
+		// BasicUser in the same channel, so this denial lands on the inner
+		// values check rather than on channel access — the error id is what
+		// separates the two gates.
+		_, resp, err = guestClient.PatchPropertyValues(context.Background(), group.Name, "post", ownPost.Id, creatorItem)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+	})
 }
 
 func TestPatchPropertyValues(t *testing.T) {

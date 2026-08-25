@@ -711,21 +711,26 @@ components:
           type: string
           description: >
             Permission level for editing (and deleting) the field definition.
-            `creator` resolves to the field's `created_by`.
+            `creator` resolves to the field's `created_by`, in addition to
+            everyone `admin` grants, and is only valid on fields whose object
+            type is `post` or `channel`.
           enum: [none, sysadmin, member, admin, creator]
         permission_values:
           type: string
           description: >
             Permission level for setting values on objects. `creator` resolves
             to the creator of the object the value is attached to (a post's
-            author, a channel's creator) and is only valid on fields whose
-            object type is `post` or `channel`.
+            author, a channel's creator), in addition to everyone `admin`
+            grants, and is only valid on fields whose object type is `post` or
+            `channel`.
           enum: [none, sysadmin, member, admin, creator]
         permission_options:
           type: string
           description: >
             Permission level for managing options on select/multiselect fields.
-            `creator` resolves to the field's `created_by`.
+            `creator` resolves to the field's `created_by`, in addition to
+            everyone `admin` grants, and is only valid on fields whose object
+            type is `post` or `channel`.
           enum: [none, sysadmin, member, admin, creator]
         linked_field_id:
           type: string

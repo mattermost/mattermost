@@ -3055,6 +3055,11 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostCreator(t *testing.T) 
 	outsider := th.CreateUser(t)
 	th.LinkUserToTeam(t, outsider, th.BasicTeam)
 
+	guest := th.CreateGuest(t)
+	th.LinkUserToTeam(t, guest, th.BasicTeam)
+	th.AddUserToChannel(t, guest, th.BasicChannel)
+	guestPost := th.CreatePost(t, th.BasicChannel, func(p *model.Post) { p.UserId = guest.Id })
+
 	// A DM has no channel-admin tier and cannot acquire one, so
 	// hasChannelPropertyAdmin treats its non-guest participants as its
 	// administrators. Both participants therefore pass the admin arm, which
@@ -3064,6 +3069,9 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostCreator(t *testing.T) 
 
 	session := func(u *model.User) model.Session {
 		return model.Session{UserId: u.Id, Roles: model.SystemUserRoleId}
+	}
+	guestSession := func(u *model.User) model.Session {
+		return model.Session{UserId: u.Id, Roles: model.SystemGuestRoleId}
 	}
 
 	testCases := []struct {
@@ -3125,6 +3133,31 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostCreator(t *testing.T) 
 			name:    "empty caller denies",
 			session: model.Session{},
 			postID:  post.Id,
+			allowed: false,
+		},
+		{
+			// authorship is what the creator level grants, so a guest classifies
+			// their own post.
+			name:    "guest author can set values on their own post",
+			session: guestSession(guest),
+			postID:  guestPost.Id,
+			allowed: true,
+		},
+		{
+			// The counterpart: the grant is authorship, not guest-ness. Same
+			// role as the row above, same channel, different post.
+			name:    "guest who did not author the post cannot",
+			session: guestSession(guest),
+			postID:  post.Id,
+			allowed: false,
+		},
+		{
+			// And the reverse direction: a non-guest channel member is still
+			// denied on the guest's post, so the guest grant did not widen the
+			// field for everyone else.
+			name:    "channel member cannot set values on the guest's post",
+			session: session(th.BasicUser2),
+			postID:  guestPost.Id,
 			allowed: false,
 		},
 		{
