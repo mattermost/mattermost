@@ -35,6 +35,7 @@ export default class A11yController {
     manualFocus = false;
 
     enterKeyIsPressed = false;
+    spaceKeyClickTriggered = false;
     f6KeyIsPressed = false;
     upArrowKeyIsPressed = false;
     downArrowKeyIsPressed = false;
@@ -628,6 +629,7 @@ export default class A11yController {
         this.tabKeyIsPressed = false;
         this.tildeKeyIsPressed = false;
         this.enterKeyIsPressed = false;
+        this.spaceKeyClickTriggered = false;
         this.escKeyIsPressed = false;
         this.lKeyIsPressed = false;
         this.lastInputEventIsKeyDown = false;
@@ -854,6 +856,13 @@ export default class A11yController {
             if (event.target.nodeName === 'BUTTON') {
                 event.preventDefault();
                 event.stopPropagation();
+
+                // Synthesizing the click on keydown can move focus to another
+                // element (e.g. opening a menu focuses its first item) before
+                // the Space keyup arrives. MUI activates non-native buttons such
+                // as menu items on the Space keyup, so we flag this press to
+                // suppress that keyup and avoid an unintended second activation.
+                this.spaceKeyClickTriggered = true;
                 event.target.click();
             }
             break;
@@ -865,7 +874,20 @@ export default class A11yController {
         }
     };
 
-    handleKeyUp = () => {
+    handleKeyUp = (event: Event) => {
+        // If we synthesized a click for Space on a <button> during keydown, the
+        // button's action may have moved focus to another element that activates
+        // on the Space keyup (MUI does this for non-native buttons like menu
+        // items). Suppress this keyup so that element isn't unintentionally
+        // activated by the same key press.
+        if (this.spaceKeyClickTriggered) {
+            this.spaceKeyClickTriggered = false;
+            if (event instanceof KeyboardEvent && isKeyPressed(event, Constants.KeyCodes.SPACE)) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        }
+
         this.resetInterractionStates();
     };
 
