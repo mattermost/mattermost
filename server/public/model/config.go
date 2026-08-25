@@ -4167,7 +4167,7 @@ func (s *AccessControlSettings) isValid() *AppError {
 	if *s.SyncJobIntervalSeconds < 60 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_sync_interval.app_error", nil, "", http.StatusBadRequest)
 	}
-	// Refresh interval is designed to avoid spamming a refresh of the AttributeView in the database.
+	// Refresh interval is designed to avoid spamming a refresh of the attribute materialized views in the database.
 	// Minimum is set to 0, so an operator can effectively disable this protection if desired.
 	if *s.AttributeRefreshIntervalSeconds < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.access_control_attribute_refresh_interval.app_error", nil, "", http.StatusBadRequest)
