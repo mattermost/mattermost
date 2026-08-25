@@ -254,27 +254,30 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 		return nil, err
 	}
 
+	// Asked once for the whole listing, before the loop pays for a single row: a
+	// caller of a source_only field but its source plugin, and a caller of a
+	// shared_only field who holds nothing for it, will see nothing on any page,
+	// and a hook can say so without reading one. An empty page answers them
+	// exactly as the scan below would have, at the cost of one call instead of a
+	// scan of the whole field.
+	if may, err := ps.runMayShowAnyPropertyFieldOptions(rctx, field); err != nil {
+		return nil, err
+	} else if !may {
+		return []*model.PropertyFieldOption{}, nil
+	}
+
 	// A page a caller may see only part of is filled from the rows behind it, not
 	// answered short. A caller pages until a page comes back shorter than the size
 	// it asked for, so a page that lost most of its options to the hooks would end
-	// the listing early and one that lost all of them would end it immediately --
-	// and the options the caller may see further down would never be reached. Read
-	// on until the page is full or the rows run out, so a short page means what a
-	// caller reads it as.
+	// the listing early -- and the options the caller may see further down would
+	// never be reached. Read on until the page is full or the rows run out, so a
+	// short page means what a caller reads it as.
 	//
 	// The cost of that is a scan of the whole field whenever little of it is
-	// visible. A caller who may see a handful of a large field's options pays for
-	// the rows in between to find them -- and a caller who may see *none* of them
-	// pays for all of them to establish it, which is the common case rather than
-	// the exotic one: it is every caller of a source_only field but its source
-	// plugin, and every caller of a shared_only field who holds nothing for it,
-	// both of which used to cost a single page. Stopping early for them needs a
-	// hook able to say "nothing here, ever" as distinct from "nothing on this
-	// page", which none of them can express -- and the difference matters, because
-	// "nothing on this page" is exactly what the loop exists to read past. The scan
-	// goes away entirely by asking the rows for the options the caller may see
-	// rather than filtering them afterwards, which for a hierarchy means paging the
-	// options below the ones the caller holds.
+	// visible. A caller who may see a handful of a large field's options still
+	// pays for the rows in between to find them -- the hook above only answers
+	// "nothing, ever", not "not much", and the loop below is what handles the case
+	// it cannot.
 	//
 	// An empty page and no page are not the same answer: a hook building its result
 	// by appending returns nil when it keeps nothing, and nil serializes as null

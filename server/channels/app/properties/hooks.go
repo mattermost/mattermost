@@ -423,6 +423,25 @@ func (ps *PropertyService) runPostGetPropertyFieldOptions(rctx request.CTX, fiel
 	return options, nil
 }
 
+// runMayShowAnyPropertyFieldOptions asks all registered hooks whether the
+// caller may see any of a field's options at all, once for the whole listing
+// rather than once per page. PostGetPropertyFieldOptions runs every hook's
+// filter over the same page in sequence, so one hook emptying it leaves
+// nothing for the rest to show regardless of their own answer -- this mirrors
+// that by returning false as soon as any hook says no.
+func (ps *PropertyService) runMayShowAnyPropertyFieldOptions(rctx request.CTX, field *model.PropertyField) (bool, error) {
+	for _, hook := range ps.hooks {
+		may, err := hook.MayShowAnyPropertyFieldOptions(rctx, field)
+		if err != nil {
+			return false, err
+		}
+		if !may {
+			return false, nil
+		}
+	}
+	return true, nil
+}
+
 // runPreCreatePropertyValue runs all registered pre-hooks for CreatePropertyValue.
 func (ps *PropertyService) runPreCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
 	var err error

@@ -519,6 +519,29 @@ func TestGraphSharedOnly_OptionListPaged(t *testing.T) {
 		"paging one option at a time reaches every option the caller covers, in the field's own order")
 }
 
+// TestGraphSharedOnly_OptionListNothingVisible covers the short circuit that
+// stops the listing before it scans a field nothing in it is visible in: a
+// caller holding nothing for the field gets an empty, non-nil page without a
+// single row read, and a caller who does hold something is unaffected by the
+// short circuit and still pages to everything they cover.
+func TestGraphSharedOnly_OptionListNothingVisible(t *testing.T) {
+	h := setupGraphSharedOnly(t)
+	field, ids := h.newField(t, "programs-options-nothing-visible", programHierarchy, programNames...)
+
+	t.Run("a caller holding nothing for the field is shown an empty, non-nil page", func(t *testing.T) {
+		assert.Empty(t, h.listedOptions(t, model.NewId(), field, 0, "", 100))
+	})
+
+	t.Run("a caller who holds something still pages to everything they cover", func(t *testing.T) {
+		caller := model.NewId()
+		h.assign(t, field.ID, caller, ids["Fighter Jet Program"])
+
+		assert.ElementsMatch(t, []string{"Fighter Jet Program", "F-18 Program"},
+			listedNames(h.listedOptions(t, caller, field, 0, "", 100)),
+			"the short circuit must not fire for a caller the scan would show something to")
+	})
+}
+
 // TestGraphSharedOnly_OptionListOptionsOmitted covers the size this field type
 // exists for: a hierarchy with more options than a field read inlines. The listing
 // comes from the option rows, so it is unaffected — which matters because for such
