@@ -9,10 +9,31 @@ export default class ThreadFooter {
 
     readonly replyButton: Locator;
 
+    readonly avatars: Locator;
+
+    readonly overflowChip: Locator;
+
+    readonly overflowPopover: Locator;
+
     constructor(container: Locator) {
         this.container = container;
 
         this.replyButton = container.getByTestId('thread-footer-reply-button');
+        this.avatars = container.locator('.Avatars');
+
+        // Core renders the "+N" chip as a plain Avatar, distinguishing it from the
+        // participant images by the absence of a src.
+        this.overflowChip = this.avatars.locator('.Avatar-plain');
+        this.overflowPopover = container.page().getByTestId('avatars-overflow-popover');
+    }
+
+    /**
+     * Opens the "+N" overflow list. Requires the Avatars instance to have opted in
+     * via showOverflowPopover.
+     */
+    async openOverflow() {
+        await this.overflowChip.click();
+        await expect(this.overflowPopover).toBeVisible();
     }
 
     async toBeVisible() {

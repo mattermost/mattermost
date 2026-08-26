@@ -20,10 +20,8 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
-import ProfilePopover from 'components/profile_popover';
-import StatusIcon from 'components/status_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import Avatar from 'components/widgets/users/avatar';
+import UserRow from 'components/widgets/users/user_row';
 
 import {UserStatuses} from 'utils/constants';
 import * as Utils from 'utils/utils';
@@ -173,28 +171,14 @@ const GroupMemberList = (props: Props) => {
                     key={user.id}
                     role='listitem'
                 >
-                    <ProfilePopover
+                    <UserRow
                         userId={user.id}
-                        src={Utils.imageURLForUser(user?.id ?? '')}
+                        username={user.username}
+                        displayName={name}
+                        status={status}
                         hideStatus={user.is_bot}
-                    >
-                        <UserButton>
-                            <span className='status-wrapper'>
-                                <Avatar
-                                    username={user.username}
-                                    size={'sm'}
-                                    url={Utils.imageURLForUser(user?.id ?? '')}
-                                    className={'avatar-post-preview'}
-                                    tabIndex={-1}
-                                />
-                                <StatusIcon
-                                    status={status}
-                                />
-                            </span>
-                            <Username className='overflow--ellipsis text-nowrap'>{name}</Username>
-                            <Gap className='group-member-list_gap'/>
-                        </UserButton>
-                    </ProfilePopover>
+                        trailing={<Gap className='group-member-list_gap'/>}
+                    />
                     <DMContainer className='group-member-list_dm-button'>
                         <WithTooltip
                             title={formatMessage({id: 'group_member_list.sendMessageTooltip', defaultMessage: 'Send message'})}
@@ -351,26 +335,11 @@ const UserListItem = styled.div<{first?: boolean; last?: boolean}>`
     }
 `;
 
-const UserButton = styled.button`
-    display: flex;
-    width: 100%;
-    padding: 5px 20px;
-    border: none;
-    background: unset;
-    text-align: unset;
-    align-items: center;
-`;
-
 // A gap to make space for the DM button to be positioned on
 const Gap = styled.span`
     width: 24px;
     flex: 0 0 auto;
     margin-left: 4px;
-`;
-
-const Username = styled.span`
-    padding-left: 12px;
-    flex: 1 1 auto;
 `;
 
 const DMContainer = styled.div`

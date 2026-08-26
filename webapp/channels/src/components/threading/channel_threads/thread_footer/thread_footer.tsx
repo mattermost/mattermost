@@ -112,6 +112,7 @@ function ThreadFooter({
                 <Avatars
                     userIds={participantIds}
                     size='sm'
+                    canOpenOverflow={true}
                 />
             ) : null}
 
