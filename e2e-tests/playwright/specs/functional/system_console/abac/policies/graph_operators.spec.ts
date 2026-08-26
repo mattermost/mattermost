@@ -172,11 +172,13 @@ test.describe('System Console - Membership Policy graph operators', () => {
         page: any,
         policyName: string,
         expectedExpression: string,
+        onPolicyId?: (id: string) => void,
     ): Promise<string> {
         await page.getByRole('button', {name: 'Save'}).last().click();
         await page.waitForLoadState('networkidle');
 
         const policyId = await policyIdByExactName(policyName);
+        onPolicyId?.(policyId);
 
         const saved: any = await (adminClient as any).doFetch(
             `${adminClient.getBaseRoute()}/access_control_policies/${policyId}`,
@@ -266,6 +268,9 @@ test.describe('System Console - Membership Policy graph operators', () => {
                 page,
                 policyName,
                 `user.attributes.${hierarchy!.userFieldName}.coversAll(["${f18Program}"])`,
+                (id) => {
+                    policyId = id;
+                },
             );
 
             // * Same operator and the same option name, by name — the stored form
@@ -323,6 +328,9 @@ test.describe('System Console - Membership Policy graph operators', () => {
                 page,
                 policyName,
                 `user.attributes.${hierarchy!.userFieldName}.coversAll(resource.attributes.${hierarchy!.channelFieldName})`,
+                (id) => {
+                    policyId = id;
+                },
             );
 
             // * The reopened row is the same rule: the predicate, and the channel

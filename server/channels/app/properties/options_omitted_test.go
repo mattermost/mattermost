@@ -161,7 +161,7 @@ func TestOptionsOmitted_ReadMasking(t *testing.T) {
 		// be visible in full. With no ranks loaded there is no way to establish
 		// that, and a masking path with missing data hides.
 		callerID := model.NewId()
-		assignValue(t, field.ID, callerID, optionIDAt(t, options, 900))
+		assignValue(t, field.ID, callerID, optionIDAt(t, options, len(options)-1))
 		targetID := model.NewId()
 		assignValue(t, field.ID, targetID, optionIDAt(t, options, 3))
 

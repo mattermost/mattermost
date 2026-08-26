@@ -413,7 +413,7 @@ describe('useUserPropertyFields', () => {
             id: 'test-id-withheld',
             name: 'test_attribute_withheld',
             type: 'select' as const,
-            attrs: {...baseField.attrs, options_omitted: true},
+            attrs: {...baseField.attrs, options: [], options_omitted: true},
         };
         getFields.mockResolvedValueOnce([withheldOptionsField]);
 
