@@ -469,6 +469,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 }
             }
         }
+        // Graph values are option-id arrays, same as multiselect. An empty string
+        // is not a legal value and would fail server-side attribute validation.
         if ((attributeField.type === 'multiselect' || attributeField.type === 'graph') && !attributeValue) {
             attributeValue = [];
         }

@@ -287,6 +287,7 @@ func (pf *PropertyField) OptionParentLinks() (add []*PropertyOptionEdge, replaci
 		if len(parents) > PropertyGraphMaxParentsPerOption {
 			return nil, nil, fmt.Errorf("the option at index %d would have %d options directly above it, and no option may have more than %d", i, len(parents), PropertyGraphMaxParentsPerOption)
 		}
+		// Duplicate names in this list would write the same parent edge twice.
 		seen := make(map[string]bool, len(parents))
 		for _, parent := range parents {
 			switch {
