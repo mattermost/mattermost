@@ -108,7 +108,9 @@ test.describe('WYSIWYG editor - autocomplete suggestions', TAGS, () => {
         await expect(otherChannels.getByTestId('loadingSpinner')).toBeVisible();
 
         // # Let the held search finish so it isn't left blocked when the test ends
+        const searchResponse = page.waitForResponse((response) => AUTOCOMPLETE_ROUTE.test(response.url()));
         releaseSearch();
+        await searchResponse;
     });
 
     test('emoji shortcode autocomplete opens and closes on Escape', async ({pw}) => {
