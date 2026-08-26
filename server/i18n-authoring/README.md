@@ -19,4 +19,7 @@ The generator keeps the ids and `translation` values in lockstep with
 `en.json`, preserving existing descriptions. New ids land with an empty
 description to fill in.
 
-`make i18n-check` fails if the file is out of date.
+`make i18n-check` runs `mmgotool i18n extract-authoring --check` and fails if
+the file is out of date. It compares the ids, the `translation` values and the
+ordering against `en.json`; editing a `description` is the point of the file,
+so that never counts as drift.

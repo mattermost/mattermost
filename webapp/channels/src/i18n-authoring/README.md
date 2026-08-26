@@ -21,4 +21,7 @@ The generator keeps the key set and `defaultMessage` values in lockstep with
 curated description is preserved. New keys land with an empty description to
 fill in.
 
-`npm run i18n-extract-authoring:check` fails if the file is out of date.
+`npm run i18n-extract-authoring:check` fails if the file is out of date. It
+compares the key set, the `defaultMessage` values and the ordering against the
+source; editing a `description` is the point of the file, so that never counts
+as drift.

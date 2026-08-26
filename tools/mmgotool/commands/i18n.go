@@ -35,6 +35,15 @@ type Item struct {
 	Translation json.RawMessage `json:"translation"`
 }
 
+// AuthoringTranslation is an en.json entry paired with the translator-facing
+// description held in i18n-authoring/en-with-description.json. The description
+// is authoring-tier metadata and is never loaded by the server.
+type AuthoringTranslation struct {
+	Id          string `json:"id"`
+	Translation any    `json:"translation"`
+	Description string `json:"description"`
+}
+
 var I18nCmd = &cobra.Command{
 	Use:   "i18n",
 	Short: "Management of Mattermost translations",
@@ -62,6 +71,16 @@ var CheckEmptySrcCmd = &cobra.Command{
 	Long:    "Check the en.json file for empty translation source strings",
 	Example: "  i18n check-empty-src",
 	RunE:    checkEmptySrcCmdF,
+}
+
+var ExtractAuthoringCmd = &cobra.Command{
+	Use:     "extract-authoring",
+	Short:   "Sync the authoring-tier description file with en.json",
+	Long:    "Rewrites i18n-authoring/en-with-description.json so its ids and translations match i18n/en.json, preserving the description already recorded for each id. Ids added to en.json get an empty description to fill in; ids removed from en.json are dropped.",
+	Example: "  i18n extract-authoring",
+	// The --check failure is a normal outcome, not a usage error.
+	SilenceUsage: true,
+	RunE:         extractAuthoringCmdF,
 }
 
 var CleanEmptyCmd = &cobra.Command{
@@ -92,6 +111,9 @@ func init() {
 	CheckEmptySrcCmd.Flags().String("enterprise-dir", "../../enterprise", "Path to folder with the Mattermost enterprise source code")
 	CheckEmptySrcCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
 
+	ExtractAuthoringCmd.Flags().Bool("check", false, "Throw exit code if the authoring file is out of date instead of rewriting it")
+	ExtractAuthoringCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
+
 	CleanEmptyCmd.Flags().Bool("dry-run", false, "Run without applying changes")
 	CleanEmptyCmd.Flags().Bool("check", false, "Throw exit code on empty translation strings")
 	CleanEmptyCmd.Flags().String("portal-dir", "../customer-web-server", "Path to folder with the Mattermost Customer Portal source code")
@@ -103,6 +125,7 @@ func init() {
 		CheckCmd,
 		CheckEmptySrcCmd,
 		CleanEmptyCmd,
+		ExtractAuthoringCmd,
 	)
 	RootCmd.AddCommand(I18nCmd)
 }
@@ -758,4 +781,80 @@ func JSONMarshal(t any) ([]byte, error) {
 	encoder.SetIndent("", "    ")
 	err := encoder.Encode(t)
 	return buffer.Bytes(), err
+}
+
+const authoringDir = "i18n-authoring"
+const authoringFile = "en-with-description.json"
+
+func marshalAuthoring(translations []AuthoringTranslation) ([]byte, error) {
+	buf := &bytes.Buffer{}
+	encoder := json.NewEncoder(buf)
+	encoder.SetIndent("", "  ")
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(translations); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func extractAuthoringCmdF(command *cobra.Command, args []string) error {
+	check, err := command.Flags().GetBool("check")
+	if err != nil {
+		return errors.New("invalid check parameter")
+	}
+	mattermostDir, err := command.Flags().GetString("server-dir")
+	if err != nil {
+		return errors.New("invalid server-dir parameter")
+	}
+
+	sourceStrings, err := getBaseFileSrcStrings(mattermostDir)
+	if err != nil {
+		return err
+	}
+
+	authoringPath := path.Join(mattermostDir, authoringDir, authoringFile)
+	descriptions := map[string]string{}
+	existing, err := os.ReadFile(authoringPath)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	if err == nil {
+		var previous []AuthoringTranslation
+		if err = json.Unmarshal(existing, &previous); err != nil {
+			return fmt.Errorf("%s: %w", authoringPath, err)
+		}
+		for _, t := range previous {
+			descriptions[t.Id] = t.Description
+		}
+	}
+
+	// en.json is already sorted by extract; keeping its order means the two
+	// files stay diffable side by side.
+	result := make([]AuthoringTranslation, 0, len(sourceStrings))
+	for _, t := range sourceStrings {
+		result = append(result, AuthoringTranslation{
+			Id:          t.Id,
+			Translation: t.Translation,
+			Description: descriptions[t.Id],
+		})
+	}
+
+	updated, err := marshalAuthoring(result)
+	if err != nil {
+		return err
+	}
+
+	if bytes.Equal(existing, updated) {
+		return nil
+	}
+
+	if check {
+		return fmt.Errorf("%s is out of sync with i18n/en.json\nTo update: make i18n-extract-authoring", authoringPath)
+	}
+
+	if err = os.MkdirAll(path.Join(mattermostDir, authoringDir), 0755); err != nil {
+		return err
+	}
+
+	return os.WriteFile(authoringPath, updated, 0644)
 }
