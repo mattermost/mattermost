@@ -45,9 +45,9 @@ func (_m *AttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID
 	return r0, r1
 }
 
-// GetSubject provides a mock function with given fields: rctx, ID, groupID
-func (_m *AttributesStore) GetSubject(rctx request.CTX, ID string, groupID string) (*model.Subject, error) {
-	ret := _m.Called(rctx, ID, groupID)
+// GetSubject provides a mock function with given fields: rctx, ID, groupID, objectType
+func (_m *AttributesStore) GetSubject(rctx request.CTX, ID string, groupID string, objectType string) (*model.Subject, error) {
+	ret := _m.Called(rctx, ID, groupID, objectType)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSubject")
@@ -55,19 +55,19 @@ func (_m *AttributesStore) GetSubject(rctx request.CTX, ID string, groupID strin
 
 	var r0 *model.Subject
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (*model.Subject, error)); ok {
-		return rf(rctx, ID, groupID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string) (*model.Subject, error)); ok {
+		return rf(rctx, ID, groupID, objectType)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.Subject); ok {
-		r0 = rf(rctx, ID, groupID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string) *model.Subject); ok {
+		r0 = rf(rctx, ID, groupID, objectType)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Subject)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string, string) error); ok {
-		r1 = rf(rctx, ID, groupID)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, string) error); ok {
+		r1 = rf(rctx, ID, groupID, objectType)
 	} else {
 		r1 = ret.Error(1)
 	}

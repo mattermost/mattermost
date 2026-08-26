@@ -4,6 +4,12 @@
 .marketplace-modal {
     width: 832px;
 
+    // The centered GenericModal layout makes `.modal-content` a flex item, so without an
+    // explicit minimum it cannot shrink below the widest nowrap plugin description.
+    .modal-content {
+        min-width: 0;
+    }
+
     &.streamlined-marketplace {
         .modal-header {
             padding: 26px 32px 26px !important;
