@@ -922,7 +922,7 @@
   {
     "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
     "translation": "Invalid channel member update: A user must be a guest or an admin but not both.",
-    "description": ""
+    "description": "API error (400) returned from App.UpdateChannelMemberRoles when a request tries to give one channel member both the guest role and the channel admin role. Shown to an admin in the client as the reason the role change was rejected."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
@@ -2708,7 +2708,7 @@
   {
     "id": "api.data_spillage.error.invalid_channel_type",
     "translation": "Data Spillage Handling is not available for direct and group message channels.",
-    "description": ""
+    "description": "API error (400) returned when a reviewer or user tries to flag content in a DM or group message channel. Content Flagging / Data Spillage Handling only applies to open and private channels."
   },
   {
     "id": "api.data_spillage.error.invalid_post_type",
@@ -2748,7 +2748,7 @@
   {
     "id": "api.data_spillage.exposure.write.app_error",
     "translation": "Failed to write the post exposure report.",
-    "description": ""
+    "description": "API error (500) returned to a content reviewer when the post exposure report CSV could not be serialized for download. Short error detail, not a title."
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -4737,7 +4737,7 @@
   {
     "id": "api.team.invite_members.account_deactivated.app_error",
     "translation": "The account associated with {{.Addresses}} has been deactivated. Please contact your System Administrator for details.",
-    "description": ""
+    "description": "API error (400) shown to the inviter when an email invitation targets an existing but deactivated account. {{.Addresses}} is the email address (or a comma-separated list of addresses) that was rejected. Used for team invites, guest invites, and the mmctl/local invite path."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -4937,7 +4937,7 @@
   {
     "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
     "translation": "Invalid team member update: A user must be a guest or an admin but not both.",
-    "description": ""
+    "description": "API error (400) returned from App.UpdateTeamMemberRoles when a request tries to give one team member both the guest role and the team admin role. Shown to an admin as the reason the role change was rejected."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -6187,7 +6187,7 @@
   {
     "id": "api.user.oauth_to_email.integration_session.app_error",
     "translation": "Unable to switch to email authentication using an integration session.",
-    "description": ""
+    "description": "API error (403) returned when a user tries to switch their account from an OAuth/SSO provider to email-and-password authentication while authenticated with an integration (bot/token) session rather than an interactive login session."
   },
   {
     "id": "api.user.oauth_to_email.magic_link.app_error",
@@ -6277,7 +6277,7 @@
   {
     "id": "api.user.saml.relay_state_too_long.app_error",
     "translation": "SAML relay state is too long.",
-    "description": ""
+    "description": "API error (400) returned during SAML login when the RelayState parameter supplied by the identity provider exceeds the allowed length. Seen by an end user as a login failure."
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -6667,42 +6667,42 @@
   {
     "id": "app.access_control.plugin.evaluation_unavailable.app_error",
     "translation": "Access control could not be evaluated for this resource.",
-    "description": ""
+    "description": "API error (503) returned to a plugin when the Access Control / Policy Enforcement Point is not available to decide whether the requested resource may be accessed. The underlying reason is carried in the untranslated error detail."
   },
   {
     "id": "app.access_control.plugin.invalid_acting_user.app_error",
     "translation": "The acting user is invalid or does not exist.",
-    "description": ""
+    "description": "API error (400) returned to a plugin when the user ID it supplied as the actor for an access-control check is empty or does not resolve to an existing user."
   },
   {
     "id": "app.access_control.plugin.invalid_action.app_error",
     "translation": "The action is not a valid access control action.",
-    "description": ""
+    "description": "API error (400) returned to a plugin when the action name passed to an access evaluation request is not one of the recognized access control actions. The rejected action name appears in the untranslated error detail."
   },
   {
     "id": "app.access_control.plugin.invalid_id.app_error",
     "translation": "Invalid identifier supplied to the access control API.",
-    "description": ""
+    "description": "API error (400) returned to a plugin when an ID argument (typically the access control policy ID) passed to the plugin access-control API is empty or malformed."
   },
   {
     "id": "app.access_control.plugin.invalid_resource_type.app_error",
     "translation": "The resource type is not a valid plugin access control resource type.",
-    "description": ""
+    "description": "API error (400) returned to a plugin when the resource type it passed to the plugin access-control API is not one of the supported plugin resource types."
   },
   {
     "id": "app.access_control.plugin.policy_not_found.app_error",
     "translation": "Access control policy not found.",
-    "description": ""
+    "description": "API error (404) returned to a plugin when the access control policy it asked to fetch, update, or delete does not exist."
   },
   {
     "id": "app.access_control.plugin.resource_type_forbidden.app_error",
     "translation": "The calling plugin does not own this resource type.",
-    "description": ""
+    "description": "API error (403) returned when a plugin tries to manage an access control resource type registered by a different plugin. The calling plugin ID appears in the untranslated error detail."
   },
   {
     "id": "app.access_control.plugin.type_conflict.app_error",
     "translation": "An access control policy of a different type already exists for this ID.",
-    "description": ""
+    "description": "API error (400) returned when a plugin saves an access control policy whose ID is already used by a stored policy of another type. The stored type appears in the untranslated error detail."
   },
   {
     "id": "app.acknowledgement.batch_save.app_error",
@@ -6877,7 +6877,7 @@
   {
     "id": "app.bot.update_bot_active.protected_bot.app_error",
     "translation": "Cannot disable a system-owned bot.",
-    "description": ""
+    "description": "API error (403) shown to a system admin who tries to deactivate a bot account that Mattermost itself owns and manages (for example a built-in system bot), which is not permitted."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -7707,137 +7707,137 @@
   {
     "id": "app.data_spillage.exposure.column.email",
     "translation": "Email",
-    "description": ""
+    "description": "Column header in the post exposure report CSV that content reviewers download for a flagged post. Column holds each listed user's email address. Keep it short — it is a spreadsheet header, not a sentence."
   },
   {
     "id": "app.data_spillage.exposure.column.is_deactivated",
     "translation": "Deactivated",
-    "description": ""
+    "description": "Column header in the post exposure report CSV. The cells under it are the translated Yes/No values indicating whether the user account is currently deactivated. Keep it short."
   },
   {
     "id": "app.data_spillage.exposure.column.is_guest",
     "translation": "Guest",
-    "description": ""
+    "description": "Column header in the post exposure report CSV. Cells under it are the translated Yes/No values indicating whether the user is a guest account. Keep it short."
   },
   {
     "id": "app.data_spillage.exposure.column.is_remote",
     "translation": "Remote user",
-    "description": ""
+    "description": "Column header in the post exposure report CSV. Cells under it are Yes/No indicating whether the user comes from a remote server via shared channels. Keep it short."
   },
   {
     "id": "app.data_spillage.exposure.column.last_activity_at",
     "translation": "User last activity time (YYYY-MM-DDTHH:MM:SSZ)",
-    "description": ""
+    "description": "Column header in the post exposure report CSV for the timestamp of the user's most recent session activity. The parenthetical is the literal RFC 3339 timestamp format the cells use and must be left exactly as-is."
   },
   {
     "id": "app.data_spillage.exposure.column.last_viewed_at",
     "translation": "Last viewed channel at (YYYY-MM-DDTHH:MM:SSZ)",
-    "description": ""
+    "description": "Column header in the post exposure report CSV for when the user last viewed the channel containing the flagged post. The parenthetical is the literal RFC 3339 timestamp format the cells use and must be left exactly as-is."
   },
   {
     "id": "app.data_spillage.exposure.column.user_id",
     "translation": "User ID",
-    "description": ""
+    "description": "Column header in the post exposure report CSV holding the user's internal Mattermost ID. Keep it short; \"ID\" is an identifier, not a document."
   },
   {
     "id": "app.data_spillage.exposure.column.username",
     "translation": "Username",
-    "description": ""
+    "description": "Column header in the post exposure report CSV holding the user's Mattermost username. Keep it short."
   },
   {
     "id": "app.data_spillage.exposure.column.was_channel_member",
     "translation": "Was channel member",
-    "description": ""
+    "description": "Column header in the post exposure report CSV. Cells under it are Yes/No indicating whether the user was a member of the channel at any point between the post being created and it being flagged. Keep it short."
   },
   {
     "id": "app.data_spillage.exposure.edit_history_post.app_error",
     "translation": "Cannot generate an exposure report for an edit history revision. Use the current post ID.",
-    "description": ""
+    "description": "API error (400) shown to a content reviewer who requests an exposure report using the ID of an old edit revision of a post rather than the ID of the post itself."
   },
   {
     "id": "app.data_spillage.exposure.get_channel_members.app_error",
     "translation": "Failed to retrieve the channel membership history for the flagged post.",
-    "description": ""
+    "description": "API error (500) shown to a content reviewer when the server could not read the channel member history needed to work out who was in the channel while the flagged post was visible."
   },
   {
     "id": "app.data_spillage.exposure.get_last_activity.app_error",
     "translation": "Failed to retrieve session activity for the flagged post.",
-    "description": ""
+    "description": "API error (500) shown to a content reviewer when the server could not load users' session/last-activity data while building the exposure report."
   },
   {
     "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
     "translation": "Failed to retrieve channel read state for the flagged post.",
-    "description": ""
+    "description": "API error (500) shown to a content reviewer when the server could not load channel members' last-viewed timestamps while building the exposure report."
   },
   {
     "id": "app.data_spillage.exposure.meta.channel",
     "translation": "Channel",
-    "description": ""
+    "description": "Label in the commented metadata preamble at the top of the post exposure report CSV. Its value is the channel display name followed by the channel ID in parentheses. Short label, no trailing colon (the code adds one)."
   },
   {
     "id": "app.data_spillage.exposure.meta.generated_at",
     "translation": "Generated at",
-    "description": ""
+    "description": "Label in the commented metadata preamble of the post exposure report CSV, followed by the RFC 3339 UTC timestamp at which the report was produced. Short label, no trailing colon."
   },
   {
     "id": "app.data_spillage.exposure.meta.post_id",
     "translation": "Post ID",
-    "description": ""
+    "description": "Label in the commented metadata preamble of the post exposure report CSV, followed by the ID of the flagged post the report covers. Short label, no trailing colon."
   },
   {
     "id": "app.data_spillage.exposure.meta.report_version",
     "translation": "Report version",
-    "description": ""
+    "description": "Label in the commented metadata preamble of the post exposure report CSV, followed by the report schema version number (e.g. 1.0). Short label, no trailing colon."
   },
   {
     "id": "app.data_spillage.exposure.meta.total_users",
     "translation": "Total users",
-    "description": ""
+    "description": "Label in the commented metadata preamble of the post exposure report CSV, followed by the number of user rows in the report. Short label, no trailing colon."
   },
   {
     "id": "app.data_spillage.exposure.meta.window_end",
     "translation": "Flagged at",
-    "description": ""
+    "description": "Label in the commented metadata preamble of the post exposure report CSV marking the end of the exposure window — the RFC 3339 time at which the post was flagged. Short label, no trailing colon."
   },
   {
     "id": "app.data_spillage.exposure.meta.window_start",
     "translation": "Post created at",
-    "description": ""
+    "description": "Label in the commented metadata preamble of the post exposure report CSV marking the start of the exposure window — the RFC 3339 time at which the post was created. Short label, no trailing colon."
   },
   {
     "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
     "translation": "The flagged post has no reporting time recorded, so the exposure window cannot be determined.",
-    "description": ""
+    "description": "API error (500) shown to a content reviewer when the flagged post has no recorded flag/report timestamp, so the server cannot compute the end of the exposure window."
   },
   {
     "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
     "translation": "Exposure reports are not supported for direct and group messages.",
-    "description": ""
+    "description": "API error (400) shown to a content reviewer who requests an exposure report for a post in a direct or group message channel, where the report is not produced."
   },
   {
     "id": "app.data_spillage.exposure.value.never_viewed",
     "translation": "N/A",
-    "description": ""
+    "description": "Cell value in the \"last viewed\" column of the post exposure report CSV, used when the user is a channel member who never opened the channel. Rendered as the not-applicable abbreviation; keep it very short."
   },
   {
     "id": "app.data_spillage.exposure.value.no",
     "translation": "No",
-    "description": ""
+    "description": "Cell value for a false boolean in the post exposure report CSV (guest, remote, deactivated, was-channel-member columns). Single word."
   },
   {
     "id": "app.data_spillage.exposure.value.no_sessions",
     "translation": "No sessions found",
-    "description": ""
+    "description": "Cell value in the \"last activity\" column of the post exposure report CSV, used when no session records exist for that user so no activity time can be reported."
   },
   {
     "id": "app.data_spillage.exposure.value.unknown",
     "translation": "Unknown",
-    "description": ""
+    "description": "Cell value in the \"last viewed\" column of the post exposure report CSV, used when the user is no longer a channel member and therefore has no read state on record. Single word."
   },
   {
     "id": "app.data_spillage.exposure.value.yes",
     "translation": "Yes",
-    "description": ""
+    "description": "Cell value for a true boolean in the post exposure report CSV (guest, remote, deactivated, was-channel-member columns). Single word."
   },
   {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
@@ -8153,7 +8153,7 @@
   {
     "id": "app.data_spillage.report.write_exposure_csv.app_error",
     "translation": "Failed to write the exposure report to the flagged post report.",
-    "description": ""
+    "description": "API error (500) surfaced to a content reviewer when the exposure CSV could not be added to the downloadable ZIP archive generated for a flagged post."
   },
   {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
@@ -8408,32 +8408,32 @@
   {
     "id": "app.export.generate_presigned_url.config.app_error",
     "translation": "This actions requires the use of a dedicated export store.",
-    "description": ""
+    "description": "API error (500) shown to a system admin requesting a direct download link for an export, when the server is not configured with a dedicated export file store. Note the source text's \"This actions\" typo — translate it as correct grammar in the target language."
   },
   {
     "id": "app.export.generate_presigned_url.direct_download.app_error",
     "translation": "Direct download of exports is only available in Mattermost Cloud.",
-    "description": ""
+    "description": "API error (403) shown to a system admin on a self-hosted server who requests a presigned direct download link for an export; the feature is restricted to Mattermost Cloud."
   },
   {
     "id": "app.export.generate_presigned_url.driver.app_error",
     "translation": "Your export store driver does not support presign url generation.",
-    "description": ""
+    "description": "API error (500) shown to a system admin when the configured export file store backend cannot produce presigned URLs. \"driver\" refers to the storage backend implementation."
   },
   {
     "id": "app.export.generate_presigned_url.fileexist.app_error",
     "translation": "Unable to check if the file exists.",
-    "description": ""
+    "description": "API error (500) shown to a system admin when the server failed while checking whether the requested export file is present in the export store."
   },
   {
     "id": "app.export.generate_presigned_url.link.app_error",
     "translation": "Unable to generate the presigned url.",
-    "description": ""
+    "description": "API error (500) shown to a system admin when the storage backend failed to produce the presigned download URL for an export file."
   },
   {
     "id": "app.export.generate_presigned_url.notfound.app_error",
     "translation": "The export file was not found.",
-    "description": ""
+    "description": "API error shown to a system admin when the export file they asked to download does not exist in the export store."
   },
   {
     "id": "app.export.marshal.app_error",
@@ -9923,12 +9923,12 @@
   {
     "id": "app.pap.masking.ambiguous_sibling.app_error",
     "translation": "Multiple user attributes link the same template, so channel-attribute visibility cannot be determined unambiguously.",
-    "description": ""
+    "description": "API error (500) surfaced when resolving attribute-based access control masking: more than one user attribute field points at the same linked template, so the server cannot tell which one governs visibility of the channel attribute. Seen by a system admin editing access rules."
   },
   {
     "id": "app.pap.masking.unknown_object_type.app_error",
     "translation": "Cannot resolve attribute visibility for an unknown object type.",
-    "description": ""
+    "description": "API error (500) surfaced when the attribute-based access control masking logic is asked about an object type it has no visibility rules for. Seen by a system admin working with access rules."
   },
   {
     "id": "app.pap.merge_expression.app_error",
@@ -9988,7 +9988,7 @@
   {
     "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
     "translation": "This access rule uses channel attributes, which teams do not have. Remove the teams assigned to this policy before saving.",
-    "description": ""
+    "description": "API error (400) shown to a system admin saving a parent access policy that references channel attributes while one or more teams are still assigned to it. Teams have no attributes, so the assignments must be removed first."
   },
   {
     "id": "app.pap.save_policy.resolver_error",
@@ -9998,7 +9998,7 @@
   {
     "id": "app.pap.save_policy.resource_attributes_disabled",
     "translation": "Access rules cannot use channel attributes on this server. This capability is not enabled.",
-    "description": ""
+    "description": "API error (400) shown to a system admin saving an access rule that references channel (resource) attributes on a server where that capability is turned off."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -10013,7 +10013,7 @@
   {
     "id": "app.pap.save_policy.team_resource_attributes",
     "translation": "This access rule uses channel attributes, which teams do not have. Access rules with channel attributes can only be applied to channels.",
-    "description": ""
+    "description": "API error (400) shown to a system admin saving a team-scoped access policy whose expression references channel attributes, directly or via an imported parent policy. Explains that such rules apply only to channels."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
@@ -10028,7 +10028,7 @@
   {
     "id": "app.pap.simulate.channel_required_for_resource",
     "translation": "A channel is required to simulate a policy that references channel attributes.",
-    "description": ""
+    "description": "API error (400) shown to a system admin running the access-policy simulation/preview in the System Console when the policy references channel attributes but no channel was selected to simulate against."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -11424,7 +11424,7 @@
   {
     "id": "app.scheduled_post.recurring_disabled.app_error",
     "translation": "Recurring scheduled posts are disabled on this server.",
-    "description": ""
+    "description": "API error (400) returned to an end user who tries to create or manage a repeating scheduled post while the recurring scheduled posts feature is turned off on the server."
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
@@ -12984,7 +12984,7 @@
   {
     "id": "ent.elasticsearch.analysis_icu_required",
     "translation": "Mattermost requires the analysis-icu plugin on every {{.Backend}} node. Install it on all nodes, then restart {{.Backend}}.",
-    "description": ""
+    "description": "API/System Console error shown to a system admin when the search backend is missing the required analysis-icu plugin. {{.Backend}} is the product name of the backend, either \"Elasticsearch\" or \"OpenSearch\", and must be left as the placeholder so both cases render."
   },
   {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
@@ -14059,7 +14059,7 @@
   {
     "id": "model.access_policy.is_valid.plugin_type.app_error",
     "translation": "Invalid access control policy: type is not a valid plugin resource type.",
-    "description": ""
+    "description": "Validation error (400) returned when an access control policy is saved with a type that is not a recognized plugin resource type. Surfaced to an admin or to the plugin that submitted the policy."
   },
   {
     "id": "model.access_policy.is_valid.revision.app_error",
@@ -14764,12 +14764,12 @@
   {
     "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
     "translation": "Invalid access control attribute refresh interval. Must be greater than or equal to 0.",
-    "description": ""
+    "description": "Configuration validation error shown to a system admin when the access control attribute refresh interval setting is negative. Blocks saving the configuration."
   },
   {
     "id": "model.config.is_valid.access_control_sync_interval.app_error",
     "translation": "Invalid access control sync job interval. Must be at least 60 seconds.",
-    "description": ""
+    "description": "Configuration validation error shown to a system admin when the access control sync job interval setting is below the 60 second minimum. Blocks saving the configuration."
   },
   {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
@@ -14819,7 +14819,7 @@
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
     "translation": "The 'atmos/camo' image proxy type was removed in Mattermost v12.0. Set ImageProxySettings.ImageProxyType to 'local', or set ImageProxySettings.Enable to false to disable the image proxy.",
-    "description": ""
+    "description": "Configuration validation error shown to a system admin (and logged at startup) when the config still selects the removed 'atmos/camo' image proxy. The setting names, the value 'local', and 'false' are literal identifiers and must not be translated."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -15124,12 +15124,12 @@
   {
     "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
     "translation": "The AppsEnabled feature flag is no longer supported and must be disabled.",
-    "description": ""
+    "description": "Configuration validation error shown to a system admin when the retired AppsEnabled feature flag is still switched on. \"AppsEnabled\" is a literal flag name and must stay in English."
   },
   {
     "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
     "translation": "The MoveThreadsEnabled feature flag is no longer supported and must be disabled.",
-    "description": ""
+    "description": "Configuration validation error shown to a system admin when the retired MoveThreadsEnabled feature flag is still switched on. \"MoveThreadsEnabled\" is a literal flag name and must stay in English."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -15379,22 +15379,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
     "translation": "Message export GlobalRelaySettings.CustomHeaderName and CustomHeaderValue must both be set, or both left empty.",
-    "description": ""
+    "description": "Configuration validation error shown to a system admin configuring Global Relay message export: only one of the custom header name/value pair was provided. The setting names are literal config keys and must stay in English."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
     "translation": "Message export GlobalRelaySettings.CustomHeaderName must be a valid header name with no spaces, colons, separators, or line breaks.",
-    "description": ""
+    "description": "Configuration validation error shown to a system admin when the Global Relay export custom header name contains characters that are illegal in an HTTP header name. The setting name is a literal config key and must stay in English."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
     "translation": "Message export GlobalRelaySettings.CustomHeaderName must not reuse a header that the Global Relay export already writes.",
-    "description": ""
+    "description": "Configuration validation error shown to a system admin when the configured Global Relay custom header name collides with a header the export already sets itself. The setting name is a literal config key and must stay in English."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
     "translation": "Message export GlobalRelaySettings.CustomHeaderValue must not contain control characters or line breaks.",
-    "description": ""
+    "description": "Configuration validation error shown to a system admin when the Global Relay export custom header value contains control characters or newlines. The setting name is a literal config key and must stay in English."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -16074,12 +16074,12 @@
   {
     "id": "model.log_filter.is_valid.date_from.app_error",
     "translation": "Invalid date_from filter. Expected the format \"{{.Layout}}\".",
-    "description": ""
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console when the start-date filter is unparseable. {{.Layout}} is the expected date format pattern (a Go time layout string) and must not be translated."
   },
   {
     "id": "model.log_filter.is_valid.date_to.app_error",
     "translation": "Invalid date_to filter. Expected the format \"{{.Layout}}\".",
-    "description": ""
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console when the end-date filter is unparseable. {{.Layout}} is the expected date format pattern (a Go time layout string) and must not be translated."
   },
   {
     "id": "model.member.is_valid.channel.app_error",
@@ -16604,22 +16604,22 @@
   {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",
     "translation": "Recurring scheduled posts cannot have file attachments.",
-    "description": ""
+    "description": "Validation error (400) returned to an end user who tries to save a repeating scheduled post that has files attached; attachments are only allowed on one-off scheduled posts."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
     "translation": "Repeat weekly scheduled posts require a valid timezone.",
-    "description": ""
+    "description": "Validation error (400) returned to an end user saving a weekly repeating scheduled post without a timezone set, which is needed to pin the recurrence to a local time."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
     "translation": "Invalid timezone for recurring scheduled post.",
-    "description": ""
+    "description": "Validation error (400) returned to an end user when the timezone supplied for a recurring scheduled post is not a recognized IANA timezone name."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_type.app_error",
     "translation": "Invalid repeat type for scheduled post.",
-    "description": ""
+    "description": "Validation error (400) returned to an end user when the recurrence setting on a scheduled post is not one of the supported repeat options (for example daily or weekly)."
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
