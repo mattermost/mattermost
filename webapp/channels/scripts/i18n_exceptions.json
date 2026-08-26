@@ -1,0 +1,6 @@
+{
+  "admin.sidebar.restricted_indicator.tooltip.message.blocked": "The source interpolates an English indefinite article ({article} -> 'a'/'an'), which has no counterpart in the other languages, so translations drop the variable rather than render a stray English word.",
+  "admin.complianceExport.messagesExportedCount": "The source uses a bare {count}; locales with richer plural rules need to wrap it in a plural to make the surrounding noun agree.",
+  "admin.complianceExport.warningCount": "The source uses a bare {count}; locales with richer plural rules need to wrap it in a plural to make the surrounding noun agree.",
+  "admin.complianceExport.warningCount.globalrelay": "The source uses a bare {count}; locales with richer plural rules need to wrap it in a plural to make the surrounding noun agree."
+}
