@@ -1754,13 +1754,13 @@ func (a *App) SearchAccessControlPolicies(rctx request.CTX, opts model.AccessCon
 	return policies, total, nil
 }
 
-func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID string, action string) (map[string][]string, *model.AppError) {
+func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID string, action string) (map[string][]string, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return nil, model.NewAppError("GetChannelAccessControlAttributes", "app.pap.get_channel_access_control_attributes.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	attributes, appErr := acs.GetPolicyRuleAttributes(rctx, channelID, action)
+	attributes, appErr := acs.GetPolicyRuleAttributes(rctx, resourceID, action)
 	if appErr != nil {
 		return nil, appErr
 	}
