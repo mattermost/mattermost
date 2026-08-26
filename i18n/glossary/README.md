@@ -7,4 +7,4 @@ Key terminology for AI-assisted translation: core product terminology shared by 
 
 Targets were derived from the majority rendering in existing locale files, community translation rules (German/French/Dutch), and the retired Weblate glossaries, in that priority order. `doNotTranslate` terms keep their English form.
 
-Generated as part of the AI i18n overhaul (see PLAN.md / plan/glossary.md in the mattermost repo). Reference material for translation prompts — not wired into any build or runtime.
+Generated as part of the AI i18n overhaul. Reference material for translation prompts — not wired into any build or runtime.
