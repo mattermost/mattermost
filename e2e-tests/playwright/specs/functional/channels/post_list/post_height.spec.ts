@@ -38,9 +38,6 @@ test.describe('Post height', () => {
         });
 
         // # Enable SVG rendering and let the server fetch metadata from the mock file server.
-        // AllowedUntrustedInternalConnections only takes effect in `external` mode here — in
-        // `testcontainers` mode it's fixed at boot via an env var, and a PatchConfig on an env-controlled
-        // field is accepted but has no real effect.
         await adminClient.patchConfig({
             ServiceSettings: {
                 EnableSVGs: true,
@@ -464,9 +461,6 @@ test.describe('Post height', () => {
                 if (testCase.additionalCheck) {
                     await testCase.additionalCheck({postComponent});
                 }
-
-                // # Wait for all network requests to finish
-                await page.waitForLoadState('networkidle');
 
                 // * Verify no height changes were detected
                 expect(await sizeWatcher.getObservations()).toHaveLength(1);

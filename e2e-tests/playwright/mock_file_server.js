@@ -14,7 +14,8 @@ const {createServer} = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = Number(process.env.PORT) || 3011;
+// PORT=0 must request an ephemeral port — don't treat 0 as falsy and fall back to 3011.
+const PORT = process.env.PORT !== undefined && process.env.PORT !== '' ? Number(process.env.PORT) : 3011;
 const ASSET_DIR = process.env.ASSET_DIR || path.join(__dirname, 'asset');
 
 if (process.argv[2]) {
