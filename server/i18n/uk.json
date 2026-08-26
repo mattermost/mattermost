@@ -736,6 +736,10 @@
     "translation": "Некоректне оновлення учасника каналу: гостя не можна зробити учасником команди або адміністратором команди; будь ласка, спочатку підвищте його до користувача."
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Некоректне оновлення учасника каналу: користувач повинен бути гостем або адміністратором, але не обома."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "Некоректне оновлення учасника каналу: користувач повинен бути гостем або користувачем, але не обома."
   },
@@ -2166,6 +2170,10 @@
     "translation": "Функцію обробки витоку даних вимкнено."
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Обробка витоку даних недоступна для каналів приватних і групових повідомлень."
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "Поміщення на карантин допису типу '{{.PostType}}' не дозволено."
   },
@@ -2192,6 +2200,10 @@
   {
     "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "Цей користувач не є рецензентом вмісту."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Не вдалося записати звіт про розкриття допису."
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -3789,6 +3801,10 @@
     "translation": "Ваша ліцензія не підтримує гостьові облікові записи"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "Обліковий запис, пов'язаний з {{.Addresses}}, було деактивовано. Будь ласка, зверніться до вашого системного адміністратора за деталями."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Email-запрошення вимкнені."
   },
@@ -3943,6 +3959,10 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Недійсне оновлення учасника команди: гість не може стати учасником команди або адміністратором команди, спочатку підвищте його до користувача."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Некоректне оновлення учасника команди: користувач повинен бути гостем або адміністратором, але не обома."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -4941,6 +4961,10 @@
     "translation": "Не вдалося оновити пароль, оскільки user_id в контексті не відповідав наданому ідентифікатору користувача."
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Неможливо перейти на автентифікацію електронною поштою, використовуючи інтеграційну сесію."
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "Магічне посилання — єдиний доступний метод входу для цього облікового запису."
   },
@@ -5007,6 +5031,10 @@
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 не налаштовано або не підтримується на цьому сервері."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "Стан ретрансляції SAML занадто довгий."
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -5317,6 +5345,38 @@
     "translation": "Ви не маєте дозволу на керування цією політикою контролю доступу."
   },
   {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "Не вдалося оцінити контроль доступу для цього ресурсу."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "Користувач, який виконує дію, недійсний або не існує."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "Ця дія не є припустимою дією контролю доступу."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "До API контролю доступу передано недійсний ідентифікатор."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "Цей тип ресурсу не є припустимим типом ресурсу контролю доступу для плагінів."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "Політику контролю доступу не знайдено."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "Плагін, який здійснює виклик, не володіє цим типом ресурсу."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "Для цього ідентифікатора вже існує політика контролю доступу іншого типу."
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "Не вдалося зберегти пакет об'єктів підтвердження"
   },
@@ -5451,6 +5511,10 @@
   {
     "id": "app.bot.update.internal_error",
     "translation": "Не вдалося оновити бота."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "Неможливо вимкнути бота, що належить системі."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -6113,6 +6177,114 @@
     "translation": "Не вдалося зберегти значення властивостей для позначеного допису."
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "Електронна пошта"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Деактивовано"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Гість"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Віддалений користувач"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "Час останньої активності користувача (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Останній перегляд каналу (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "Ідентифікатор користувача"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Ім'я користувача"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "Був учасником каналу"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Неможливо створити звіт про розкриття для редакції з історії змін. Використовуйте ідентифікатор поточного допису."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "Не вдалося отримати історію членства в каналі для позначеного допису."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Не вдалося отримати активність сесій для позначеного допису."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "Не вдалося отримати стан прочитання каналу для позначеного допису."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Канал"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Час створення"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "Ідентифікатор допису"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Версія звіту"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Усього користувачів"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "Час позначення"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "Час створення допису"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "Для позначеного допису не записано час повідомлення, тому неможливо визначити вікно розкриття."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "Звіти про розкриття не підтримуються для приватних і групових повідомлень."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "Н/Д"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "Ні"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "Сесій не знайдено"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Невідомо"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Так"
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "Не вдалося серіалізувати коментар користувача, який позначив допис"
   },
@@ -6367,6 +6539,10 @@
     "translation": "Не вдалося записати запис історії редагувань до звіту про позначений допис."
   },
   {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Не вдалося додати звіт про розкриття до звіту про позначений допис."
+  },
+  {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
     "translation": "Не вдалося записати метадані до звіту про позначений допис."
   },
@@ -6565,6 +6741,30 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "Виникла помилка під час формування даних JSON для експорту."
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "Ця дія потребує використання виділеного сховища експорту."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Пряме завантаження експортів доступне лише в Mattermost Cloud."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Драйвер вашого сховища експорту не підтримує генерування підписаних URL-адрес."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Не вдалося перевірити, чи існує файл."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Не вдалося згенерувати підписану URL-адресу."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "Файл експорту не знайдено."
   },
   {
     "id": "app.export.marshal.app_error",
@@ -7755,6 +7955,14 @@
     "translation": "Не вдалося замаскувати вираз політики."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Кілька атрибутів користувача пов'язані з одним шаблоном, тому видимість атрибута каналу неможливо визначити однозначно."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Неможливо визначити видимість атрибута для невідомого типу об'єкта."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "Не вдалося об'єднати вираз політики зі збереженими замаскованими значеннями."
   },
@@ -7799,8 +8007,16 @@
     "translation": "Політика з такою назвою вже існує. Будь ласка, виберіть іншу назву."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "Це правило доступу використовує атрибути каналу, яких команди не мають. Перед збереженням вилучіть команди, призначені цій політиці."
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Не вдалося ініціалізувати обробник атрибутів для збереження політики."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "Правила доступу не можуть використовувати атрибути каналу на цьому сервері. Цю можливість не ввімкнено."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7811,12 +8027,20 @@
     "translation": "Ви не відповідаєте одній або кільком умовам цієї політики."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "Це правило доступу використовує атрибути каналу, яких команди не мають. Правила доступу з атрибутами каналу можна застосовувати лише до каналів."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Не вдалося виконати пошук політик контролю доступу."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "Не вдалося оновити атрибути для симуляції."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "Щоб змоделювати політику, яка посилається на атрибути каналу, потрібно вибрати канал."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8935,6 +9159,10 @@
   {
     "id": "app.scheduled_post.private_channel",
     "translation": "Приватний канал"
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "Повторювані заплановані дописи вимкнено на цьому сервері."
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
@@ -10181,6 +10409,10 @@
     "translation": "Обробник агрегації {{.Backend}} завершився з помилкою через невдале завдання індексації"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Mattermost потребує плагіна analysis-icu на кожному вузлі {{.Backend}}. Встановіть його на всіх вузлах, а потім перезапустіть {{.Backend}}."
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} не вдалося заповнити тип каналу в дописах"
   },
@@ -11037,6 +11269,10 @@
     "translation": "Недійсна назва політики."
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Некоректна політика контролю доступу: тип не є припустимим типом ресурсу плагіна."
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "Недійсна версія політики."
   },
@@ -11597,6 +11833,14 @@
     "translation": "Значення \"До\" повинно бути більшим за значення \"Від\"."
   },
   {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Некоректний інтервал оновлення атрибутів контролю доступу. Має бути більшим або рівним 0."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Некоректний інтервал завдання синхронізації контролю доступу. Має становити щонайменше 60 секунд."
+  },
+  {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
     "translation": "Недійсне значення хвилин очікування між підсумками ШІ. Має бути більшим або рівним 0."
   },
@@ -11631,6 +11875,10 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "Неправильне значення таймауту {{.Value}}. Має бути додатне число."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "Тип проксі зображень 'atmos/camo' було вилучено в Mattermost v12.0. Встановіть для ImageProxySettings.ImageProxyType значення 'local' або встановіть для ImageProxySettings.Enable значення false, щоб вимкнути проксі зображень."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -11873,6 +12121,14 @@
     "translation": "Недійсний таймаут вилучення вмісту для налаштувань файлів. Має бути цілим числом секунд, більшим або рівним нулю."
   },
   {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "Функціональний прапорець AppsEnabled більше не підтримується і має бути вимкнений."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "Функціональний прапорець MoveThreadsEnabled більше не підтримується і має бути вимкнений."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Неправильне ім'я драйвера для параметрів файлу. Має бути 'local', 'amazons3' або 'azureblob'."
   },
@@ -12067,6 +12323,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "Для завдання експорту повідомлень ExportFormat встановлено значення 'globalrelay', але відсутні GlobalRelaySettings."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "Для експорту повідомлень GlobalRelaySettings.CustomHeaderName і CustomHeaderValue мають бути задані обидва або обидва залишені порожніми."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "Для експорту повідомлень GlobalRelaySettings.CustomHeaderName має бути коректною назвою заголовка без пробілів, двокрапок, роздільників чи розривів рядків."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "Для експорту повідомлень GlobalRelaySettings.CustomHeaderName не повинна повторювати заголовок, який експорт Global Relay записує самостійно."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "Для експорту повідомлень GlobalRelaySettings.CustomHeaderValue не повинно містити керуючих символів або розривів рядків."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -12609,6 +12881,14 @@
     "translation": "Довжина URL-адреси метаданих посилання становить {{ .Length }} символів, що перевищує максимальне обмеження у {{ .MaxLength }} символів."
   },
   {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Некоректний фільтр date_from. Очікуваний формат \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Некоректний фільтр date_to. Очікуваний формат \"{{.Layout}}\"."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Назва каналу невірна"
   },
@@ -13023,6 +13303,22 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Недійсний час обробки."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "Повторювані заплановані дописи не можуть містити вкладених файлів."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "Заплановані дописи з щотижневим повторенням потребують коректного часового поясу."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Некоректний часовий пояс для повторюваного запланованого допису."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Некоректний тип повторення для запланованого допису."
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",

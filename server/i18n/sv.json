@@ -736,6 +736,10 @@
     "translation": "Ogiltig uppdatering av kanalmedlem: En gäst kan inte bli teammedlem eller teamadministratör, gör till användare först."
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Ogiltig uppdatering av kanalmedlem: En användare måste vara gäst eller administratör, inte både-och."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "Felaktig uppdatering av kanalmedlemskap: Användaren måste vara gäst eller användare, inte både-och."
   },
@@ -2162,6 +2166,10 @@
     "translation": "Funktionen Data Spillage Handling är inaktiverad."
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Data Spillage Handling är inte tillgängligt för direktmeddelanden och gruppmeddelanden."
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "Det är inte tillåtet att sätta ett meddelande av typen '{{.PostType}}' i karantän."
   },
@@ -2188,6 +2196,10 @@
   {
     "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "Användaren är inte en innehållsgranskare."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Misslyckades med att skriva exponeringsrapporten för meddelandet."
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -3779,6 +3791,10 @@
     "translation": "Din licens tillåter inte gäståtkomst"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "Kontot som är kopplat till {{.Addresses}} har avaktiverats. Kontakta din systemadministratör för mer information."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Inbjudningar via e-post är avaktiverade."
   },
@@ -3933,6 +3949,10 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Ogiltig uppdatering av teammedlem: En gäst kan inte bli teammedlem eller teamadministratör. Gör gästen till användare först."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Ogiltig uppdatering av teammedlem: En användare måste vara gäst eller administratör, inte både-och."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -4931,6 +4951,10 @@
     "translation": "Lösenordsuppdateringen misslyckades eftersom context user_id inte matchar angivet user_id."
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Det går inte att byta till e-postautentisering med en integrationssession."
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "Magisk länk är den enda inloggningsmetoden som är tillgänglig för detta konto."
   },
@@ -4997,6 +5021,10 @@
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 är inte konfigurerat eller stöds inte på den här servern."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "SAML-parametern relay state är för lång."
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -5307,6 +5335,38 @@
     "translation": "Du har inte behörighet att hantera denna åtkomstkontrollpolicy."
   },
   {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "Åtkomstkontrollen kunde inte utvärderas för den här resursen."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "Den agerande användaren är ogiltig eller finns inte."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "Åtgärden är inte en giltig åtgärd för åtkomstkontroll."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "Ogiltig identifierare angavs till API:et för åtkomstkontroll."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "Resurstypen är inte en giltig resurstyp för plugins åtkomstkontroll."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "Policyn för åtkomstkontroll hittades inte."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "Det anropande pluginet äger inte den här resurstypen."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "Det finns redan en policy för åtkomstkontroll av en annan typ med detta ID."
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "Misslyckades med att spara batchen med bekräftelseobjekt"
   },
@@ -5441,6 +5501,10 @@
   {
     "id": "app.bot.update.internal_error",
     "translation": "Kunde inte uppdatera botten."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "Det går inte att avaktivera en systemägd bot."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -6103,6 +6167,114 @@
     "translation": "Kunde inte spara egenskapsvärden för det flaggade meddelandet."
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "E-post"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Avaktiverad"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Gäst"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Fjärranvändare"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "Användarens senaste aktivitet (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Kanalen senast visad (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "Användar-ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Användarnamn"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "Var kanalmedlem"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Det går inte att generera en exponeringsrapport för en version i redigeringshistoriken. Använd det aktuella meddelande-ID:t."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "Misslyckades med att hämta kanalens medlemskapshistorik för det flaggade meddelandet."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Misslyckades med att hämta sessionsaktivitet för det flaggade meddelandet."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "Misslyckades med att hämta kanalens lässtatus för det flaggade meddelandet."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Kanal"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Genererad"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "Meddelande-ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Rapportversion"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Totalt antal användare"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "Flaggat"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "Meddelandet skapat"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "Det flaggade meddelandet har ingen registrerad rapporteringstid, så exponeringsfönstret kan inte fastställas."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "Exponeringsrapporter stöds inte för direktmeddelanden och gruppmeddelanden."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "E/T"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "Nej"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "Inga sessioner hittades"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Okänd"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Ja"
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "Misslyckades med att serialisera den flaggande användarens kommentar"
   },
@@ -6353,6 +6525,10 @@
     "translation": "Misslyckades med att skriva redigeringshistorikpost till rapporten om det flaggade meddelandet."
   },
   {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Misslyckades med att skriva exponeringsrapporten till rapporten om det flaggade meddelandet."
+  },
+  {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
     "translation": "Misslyckades med att skriva metadata till rapporten om det flaggade meddelandet."
   },
@@ -6551,6 +6727,30 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "Ett fel uppstod vid serialisering av JSON-data för export."
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "Den här åtgärden kräver att ett dedikerat exportlager används."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Direkt nedladdning av exporter är endast tillgängligt i Mattermost Cloud."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Drivrutinen för ditt exportlager har inte stöd för att generera förhandssignerade URL:er."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Det går inte att kontrollera om filen finns."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Det går inte att generera den förhandssignerade URL:en."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "Exportfilen hittades inte."
   },
   {
     "id": "app.export.marshal.app_error",
@@ -7741,6 +7941,14 @@
     "translation": "Kunde inte maskera policyuttrycket."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Flera användarattribut är kopplade till samma mall, så synligheten för kanalattribut kan inte fastställas entydigt."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Det går inte att fastställa attributsynlighet för en okänd objekttyp."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "Kunde inte slå samman policyuttrycket med lagrade maskerade värden."
   },
@@ -7785,8 +7993,16 @@
     "translation": "En policy med det här namnet finns redan. Välj ett annat namn."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "Den här åtkomstregeln använder kanalattribut, som team inte har. Ta bort de team som är tilldelade den här policyn innan du sparar."
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Kunde inte initiera attributupplösaren för att spara policyn."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "Åtkomstregler kan inte använda kanalattribut på den här servern. Den här funktionen är inte aktiverad."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7797,12 +8013,20 @@
     "translation": "Du uppfyller inte ett eller flera villkor i den här policyn."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "Den här åtkomstregeln använder kanalattribut, som team inte har. Åtkomstregler med kanalattribut kan endast tillämpas på kanaler."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Kunde inte söka efter policyer för åtkomstkontroll."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "Misslyckades med att uppdatera attribut för simuleringen."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "En kanal krävs för att simulera en policy som refererar till kanalattribut."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8917,6 +9141,10 @@
   {
     "id": "app.scheduled_post.private_channel",
     "translation": "Privat kanal"
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "Återkommande schemalagda meddelanden är avaktiverade på den här servern."
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
@@ -10163,6 +10391,10 @@
     "translation": "{{.Backend}} aggregator worker misslyckades eftersom indexeringsjobbet misslyckades"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Mattermost kräver pluginet analysis-icu på varje {{.Backend}}-nod. Installera det på alla noder och starta sedan om {{.Backend}}."
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} misslyckades med att fylla i kanaltyp på meddelanden i efterhand"
   },
@@ -11019,6 +11251,10 @@
     "translation": "Ogiltigt namn för policyn."
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Ogiltig policy för åtkomstkontroll: typen är inte en giltig resurstyp för plugins."
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "Ogiltig policyrevision."
   },
@@ -11579,6 +11815,14 @@
     "translation": "\"Till\" måste vara större än \"Från\"."
   },
   {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Ogiltigt uppdateringsintervall för åtkomstkontrollattribut. Måste vara större än eller lika med 0."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Ogiltigt intervall för synkroniseringsjobb för åtkomstkontroll. Måste vara minst 60 sekunder."
+  },
+  {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
     "translation": "Ogiltigt värde för AI-sammanfattningens vilotid i minuter. Måste vara större än eller lika med 0."
   },
@@ -11613,6 +11857,10 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "Felaktigt timeoutvärde {{.Value}}. Måste vara ett positivt tal."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "Bildproxytypen 'atmos/camo' togs bort i Mattermost v12.0. Sätt ImageProxySettings.ImageProxyType till 'local', eller sätt ImageProxySettings.Enable till false för att avaktivera bildproxyn."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -11855,6 +12103,14 @@
     "translation": "Ogiltig timeout för innehållsextrahering i filinställningarna. Måste vara ett helt antal sekunder som är större än eller lika med noll."
   },
   {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "Funktionsflaggan AppsEnabled stöds inte längre och måste avaktiveras."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "Funktionsflaggan MoveThreadsEnabled stöds inte längre och måste avaktiveras."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Ogiltigt drivrutinsnamn i filinställningar. Måste vara 'local', 'amazons3' eller 'azureblob'."
   },
@@ -12049,6 +12305,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "ExportFormat för meddelandeexport är satt till 'globalrelay', men GlobalRelaySettings saknas."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "För meddelandeexport måste både GlobalRelaySettings.CustomHeaderName och CustomHeaderValue anges, eller båda lämnas tomma."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "För meddelandeexport måste GlobalRelaySettings.CustomHeaderName vara ett giltigt huvudnamn utan mellanslag, kolon, avgränsare eller radbrytningar."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "För meddelandeexport får GlobalRelaySettings.CustomHeaderName inte återanvända ett huvud som Global Relay-exporten redan skriver."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "För meddelandeexport får GlobalRelaySettings.CustomHeaderValue inte innehålla kontrolltecken eller radbrytningar."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -12591,6 +12863,14 @@
     "translation": "Längden på länkens metadata URL är {{ .Length }} tecken lång, vilket överskrider den maximala gränsen på {{ .MaxLength }} tecken."
   },
   {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Ogiltigt filter för date_from. Förväntat format: \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Ogiltigt filter för date_to. Förväntat format: \"{{.Layout}}\"."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Kanalnamnet är inte giltigt"
   },
@@ -13005,6 +13285,22 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Tidpunkt för hantering är ogiltig."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "Återkommande schemalagda meddelanden kan inte ha filbilagor."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "Schemalagda meddelanden som upprepas varje vecka kräver en giltig tidszon."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Ogiltig tidszon för återkommande schemalagt meddelande."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Ogiltig upprepningstyp för schemalagt meddelande."
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",

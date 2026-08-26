@@ -736,6 +736,10 @@
     "translation": "Cập nhật thành viên kênh không hợp lệ: Khách không thể trở thành thành viên nhóm hoặc quản trị viên nhóm, vui lòng nâng cấp thành người dùng trước."
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Cập nhật thành viên kênh không hợp lệ: Người dùng phải là khách hoặc quản trị viên nhưng không phải cả hai."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "Cập nhật thành viên kênh không hợp lệ: Người dùng phải là khách hoặc người dùng nhưng không phải cả hai."
   },
@@ -2160,6 +2164,10 @@
     "translation": "Tính năng Xử lý rò rỉ dữ liệu đã bị tắt."
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Tính năng Xử lý rò rỉ dữ liệu không khả dụng cho các kênh tin nhắn trực tiếp và tin nhắn nhóm."
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "Không được phép cách ly bài đăng thuộc loại '{{.PostType}}'."
   },
@@ -2186,6 +2194,10 @@
   {
     "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "Người dùng này không phải là người xét duyệt nội dung."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Không thể ghi báo cáo mức độ lộ lọt của bài đăng."
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -3774,6 +3786,10 @@
     "translation": "Giấy phép của bạn không hỗ trợ tài khoản khách"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "Tài khoản liên kết với {{.Addresses}} đã bị hủy kích hoạt. Vui lòng liên hệ Quản trị viên hệ thống của bạn để biết chi tiết."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Lời mời email bị vô hiệu hóa."
   },
@@ -3928,6 +3944,10 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Cập nhật thành viên nhóm không hợp lệ: Không thể đặt khách làm thành viên nhóm hoặc quản trị viên nhóm, vui lòng nâng cấp thành người dùng trước."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Cập nhật thành viên nhóm không hợp lệ: Người dùng phải là khách hoặc quản trị viên nhưng không phải cả hai."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -4926,6 +4946,10 @@
     "translation": "Cập nhật mật khẩu không thành công vì user_id trong ngữ cảnh không khớp với id của người dùng được cung cấp."
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Không thể chuyển sang xác thực bằng email khi đang sử dụng phiên tích hợp."
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "Liên kết đăng nhập nhanh là phương thức đăng nhập duy nhất khả dụng cho tài khoản này."
   },
@@ -4992,6 +5016,10 @@
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 không được cấu hình hoặc không được hỗ trợ trên máy chủ này."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "Trạng thái chuyển tiếp (relay state) của SAML quá dài."
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -5302,6 +5330,38 @@
     "translation": "Bạn không có quyền quản lý chính sách kiểm soát truy cập này."
   },
   {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "Không thể đánh giá kiểm soát truy cập cho tài nguyên này."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "Người dùng thực hiện hành động không hợp lệ hoặc không tồn tại."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "Hành động này không phải là một hành động kiểm soát truy cập hợp lệ."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "Định danh được cung cấp cho API kiểm soát truy cập không hợp lệ."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "Loại tài nguyên này không phải là loại tài nguyên kiểm soát truy cập hợp lệ của plugin."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "Không tìm thấy chính sách kiểm soát truy cập."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "Plugin đang gọi không sở hữu loại tài nguyên này."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "Đã tồn tại một chính sách kiểm soát truy cập thuộc loại khác với ID này."
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "Không thể lưu lô đối tượng xác nhận"
   },
@@ -5436,6 +5496,10 @@
   {
     "id": "app.bot.update.internal_error",
     "translation": "Không thể cập nhật bot."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "Không thể tắt một bot thuộc sở hữu của hệ thống."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -6098,6 +6162,114 @@
     "translation": "Không thể lưu các giá trị thuộc tính cho bài đăng bị gắn cờ."
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "Email"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Đã hủy kích hoạt"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Khách"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Người dùng từ xa"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "Thời gian hoạt động cuối của người dùng (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Lần xem kênh gần nhất (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "ID người dùng"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Tên người dùng"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "Từng là thành viên kênh"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Không thể tạo báo cáo mức độ lộ lọt cho một bản sửa đổi trong lịch sử chỉnh sửa. Hãy dùng ID của bài đăng hiện tại."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "Không thể truy xuất lịch sử tư cách thành viên kênh cho bài đăng bị gắn cờ."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Không thể truy xuất hoạt động phiên cho bài đăng bị gắn cờ."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "Không thể truy xuất trạng thái đã đọc kênh cho bài đăng bị gắn cờ."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Kênh"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Thời điểm tạo"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "ID bài đăng"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Phiên bản báo cáo"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Tổng số người dùng"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "Thời điểm bị gắn cờ"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "Thời điểm tạo bài đăng"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "Bài đăng bị gắn cờ không có thời điểm báo cáo được ghi lại, nên không thể xác định khoảng thời gian lộ lọt."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "Báo cáo mức độ lộ lọt không được hỗ trợ cho tin nhắn trực tiếp và tin nhắn nhóm."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "Không áp dụng"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "Không"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "Không tìm thấy phiên nào"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Không xác định"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Có"
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "Không thể mã hóa nhận xét của người dùng gắn cờ"
   },
@@ -6346,6 +6518,10 @@
     "translation": "Không thể ghi mục lịch sử chỉnh sửa vào báo cáo bài đăng bị gắn cờ."
   },
   {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Không thể ghi báo cáo mức độ lộ lọt vào báo cáo bài đăng bị gắn cờ."
+  },
+  {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
     "translation": "Không thể ghi siêu dữ liệu vào báo cáo bài đăng bị gắn cờ."
   },
@@ -6544,6 +6720,30 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "Đã xảy ra lỗi khi mã hóa dữ liệu JSON để xuất."
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "Hành động này yêu cầu sử dụng một kho lưu trữ xuất dữ liệu chuyên dụng."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Việc tải xuống trực tiếp các bản xuất chỉ khả dụng trong Mattermost Cloud."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Trình điều khiển kho lưu trữ xuất dữ liệu của bạn không hỗ trợ việc tạo URL được ký trước."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Không thể kiểm tra xem tệp có tồn tại hay không."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Không thể tạo URL được ký trước."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "Không tìm thấy tệp xuất dữ liệu."
   },
   {
     "id": "app.export.marshal.app_error",
@@ -7734,6 +7934,14 @@
     "translation": "Không thể che biểu thức chính sách."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Nhiều thuộc tính người dùng cùng liên kết một mẫu, nên không thể xác định rõ ràng khả năng hiển thị của thuộc tính kênh."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Không thể xác định khả năng hiển thị thuộc tính cho một loại đối tượng không xác định."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "Không thể hợp nhất biểu thức chính sách với các giá trị bị che đã lưu."
   },
@@ -7778,8 +7986,16 @@
     "translation": "Đã tồn tại một chính sách có tên này. Vui lòng chọn tên khác."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "Quy tắc truy cập này sử dụng thuộc tính kênh, thứ mà nhóm không có. Hãy gỡ bỏ các nhóm được gán cho chính sách này trước khi lưu."
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Không thể khởi tạo trình phân giải thuộc tính để lưu chính sách."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "Quy tắc truy cập không thể sử dụng thuộc tính kênh trên máy chủ này. Tính năng này chưa được bật."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7790,12 +8006,20 @@
     "translation": "Bạn không thỏa mãn một hoặc nhiều điều kiện trong chính sách này."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "Quy tắc truy cập này sử dụng thuộc tính kênh, thứ mà nhóm không có. Quy tắc truy cập có thuộc tính kênh chỉ có thể được áp dụng cho các kênh."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Không thể tìm kiếm các chính sách kiểm soát truy cập."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "Không thể làm mới các thuộc tính cho mô phỏng."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "Cần có một kênh để mô phỏng chính sách tham chiếu đến thuộc tính kênh."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8908,6 +9132,10 @@
   {
     "id": "app.scheduled_post.private_channel",
     "translation": "Kênh riêng tư"
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "Tin nhắn đã lên lịch lặp lại đã bị tắt trên máy chủ này."
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
@@ -10154,6 +10382,10 @@
     "translation": "Tiến trình tổng hợp {{.Backend}} không thành công do công việc lập chỉ mục thất bại"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Mattermost yêu cầu plugin analysis-icu trên mọi nút {{.Backend}}. Hãy cài đặt plugin này trên tất cả các nút, sau đó khởi động lại {{.Backend}}."
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} không thể bổ sung loại kênh cho các bài đăng"
   },
@@ -11010,6 +11242,10 @@
     "translation": "Tên của chính sách không hợp lệ."
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Chính sách kiểm soát truy cập không hợp lệ: loại không phải là loại tài nguyên plugin hợp lệ."
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "Số phiên bản của chính sách không hợp lệ."
   },
@@ -11570,6 +11806,14 @@
     "translation": "\"Đến\" phải lớn hơn \"Từ\""
   },
   {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Khoảng thời gian làm mới thuộc tính kiểm soát truy cập không hợp lệ. Phải lớn hơn hoặc bằng 0."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Khoảng thời gian công việc đồng bộ kiểm soát truy cập không hợp lệ. Phải ít nhất 60 giây."
+  },
+  {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
     "translation": "Số phút chờ giữa các bản tóm tắt AI không hợp lệ. Phải lớn hơn hoặc bằng 0."
   },
@@ -11604,6 +11848,10 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "Giá trị thời gian chờ không hợp lệ {{.Value}}. Phải là một số dương."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "Loại proxy hình ảnh 'atmos/camo' đã bị loại bỏ trong Mattermost v12.0. Hãy đặt ImageProxySettings.ImageProxyType thành 'local', hoặc đặt ImageProxySettings.Enable thành false để tắt proxy hình ảnh."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -11846,6 +12094,14 @@
     "translation": "Thời gian chờ trích xuất nội dung không hợp lệ cho cài đặt tệp. Phải là một số nguyên giây lớn hơn hoặc bằng 0."
   },
   {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "Cờ tính năng AppsEnabled không còn được hỗ trợ và phải được tắt."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "Cờ tính năng MoveThreadsEnabled không còn được hỗ trợ và phải được tắt."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Tên trình điều khiển không hợp lệ cho cài đặt tệp. Phải là 'local', 'amazons3' hoặc 'azureblob'."
   },
@@ -12040,6 +12296,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "ExportFormat của công việc xuất tin nhắn được đặt thành 'globalrelay', nhưng GlobalRelaySettings bị thiếu."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "GlobalRelaySettings.CustomHeaderName và CustomHeaderValue của xuất tin nhắn phải được đặt cả hai, hoặc để trống cả hai."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "GlobalRelaySettings.CustomHeaderName của xuất tin nhắn phải là một tên tiêu đề hợp lệ, không có dấu cách, dấu hai chấm, ký tự phân tách hoặc ngắt dòng."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "GlobalRelaySettings.CustomHeaderName của xuất tin nhắn không được dùng lại một tiêu đề mà bản xuất Global Relay đã ghi."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "GlobalRelaySettings.CustomHeaderValue của xuất tin nhắn không được chứa ký tự điều khiển hoặc ngắt dòng."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -12582,6 +12854,14 @@
     "translation": "Độ dài URL của link metadata là {{ .Length }} ký tự, vượt quá giới hạn tối đa {{ .MaxLength }} ký tự."
   },
   {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Bộ lọc date_from không hợp lệ. Định dạng mong đợi là \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Bộ lọc date_to không hợp lệ. Định dạng mong đợi là \"{{.Layout}}\"."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Tên kênh không hợp lệ"
   },
@@ -12996,6 +13276,22 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Thời gian xử lý không hợp lệ."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "Tin nhắn đã lên lịch lặp lại không thể có tệp đính kèm."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "Tin nhắn đã lên lịch lặp lại hằng tuần yêu cầu một múi giờ hợp lệ."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Múi giờ không hợp lệ cho tin nhắn đã lên lịch lặp lại."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Loại lặp lại không hợp lệ cho tin nhắn đã lên lịch."
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",

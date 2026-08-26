@@ -736,6 +736,10 @@
     "translation": "Kanal üyesi güncellemesi geçersiz: Bir konuk, takım üyesi ya da takım yöneticisi yapılamaz. Lütfen önce kullanıcı rolüne yükseltin."
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Kanal üyesi güncellemesi geçersiz: Bir kullanıcı, bir konuk ya da yönetici olabilir ancak ikisi birden olamaz."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "Kanal üyesi güncellemesi geçersiz: Bir kullanıcı, bir konuk ya da kullanıcı olabilir ancak ikisi birden olamaz."
   },
@@ -2162,6 +2166,10 @@
     "translation": "Verilerin sızmasının işlenmesi özelliği kapalı."
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Doğrudan ileti ve grup iletisi kanallarında verilerin sızmasının işlenmesi özelliği kullanılamaz."
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "'{{.PostType}}' türündeki bir iletinin karantinaya alınmasına izin verilmiyor."
   },
@@ -2188,6 +2196,10 @@
   {
     "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "Bu kullanıcı bir içerik değerlendiricisi değil."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "İleti maruz kalma raporu yazılamadı."
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -3779,6 +3791,10 @@
     "translation": "Lisansınız konuk hesaplarının kullanılmasını desteklemiyor"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "{{.Addresses}} adresi ile ilişkili hesap etkisizleştirilmiş. Ayrıntılar için sistem yöneticiniz ile görüşün."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "E-posta davetleri özelliği kapalı."
   },
@@ -3933,6 +3949,10 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Takım üyesi güncellemesi geçersiz: Bir konuk, takım üyesi ya da takım yöneticisi yapılamaz. Lütfen önce kullanıcı rolüne yükseltin."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Takım üyesi güncellemesi geçersiz: Bir kullanıcı, bir konuk ya da yönetici olabilir ancak ikisi birden olamaz."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -4931,6 +4951,10 @@
     "translation": "Belirtilen kullanıcı kimliği ile kapsamdaki user_id değeri eşleşmediğinden parola güncellenemedi."
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Bir bütünleştirme oturumu kullanılarak e-posta ile kimlik doğrulamaya geçilemez."
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "Bu hesap için kullanılabilecek tek oturum açma yöntemi sihirli bağlantıdır."
   },
@@ -4997,6 +5021,10 @@
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 yapılandırılmamış ya da bu sunucu tarafından desteklenmiyor."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "SAML aktarma durumu (relay state) çok uzun."
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -5307,6 +5335,38 @@
     "translation": "Bu erişim denetimi ilkesini yönetme izniniz yok."
   },
   {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "Bu kaynak için erişim denetimi değerlendirilemedi."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "İşlemi yapan kullanıcı geçersiz ya da böyle bir kullanıcı yok."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "Eylem, geçerli bir erişim denetimi eylemi değil."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "Erişim denetimi API için geçersiz bir tanımlayıcı belirtilmiş."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "Kaynak türü, geçerli bir uygulama eki erişim denetimi kaynak türü değil."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "Erişim denetimi ilkesi bulunamadı."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "Çağıran uygulama eki bu kaynak türünün sahibi değil."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "Bu kimlik için farklı türde bir erişim denetimi ilkesi zaten var."
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "Onay nesneleri grubu kaydedilemedi"
   },
@@ -5441,6 +5501,10 @@
   {
     "id": "app.bot.update.internal_error",
     "translation": "Bot güncellenemedi."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "Sistemin sahibi olduğu bir bot kullanımdan kaldırılamaz."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -6103,6 +6167,114 @@
     "translation": "İşaretlenmiş ileti için özellik değerleri kaydedilemedi."
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "E-posta"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Etkisizleştirilmiş"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Konuk"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Uzak kullanıcı"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "Kullanıcının son etkinlik zamanı (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Kanalın son görüntülenme zamanı (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "Kullanıcı kimliği"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Kullanıcı adı"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "Kanal üyesiydi"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Düzenleme geçmişindeki bir sürüm için maruz kalma raporu oluşturulamaz. Geçerli ileti kimliğini kullanın."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "İşaretlenmiş ileti için kanal üyeliği geçmişi alınamadı."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "İşaretlenmiş ileti için oturum etkinliği alınamadı."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "İşaretlenmiş ileti için kanal okunma durumu alınamadı."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Kanal"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Oluşturulma zamanı"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "İleti kimliği"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Rapor sürümü"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Toplam kullanıcı"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "İşaretlenme zamanı"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "İletinin oluşturulma zamanı"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "İşaretlenmiş ileti için kayıtlı bir bildirim zamanı olmadığından maruz kalma aralığı belirlenemiyor."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "Doğrudan iletiler ve grup iletileri için maruz kalma raporları desteklenmiyor."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "Yok"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "Hayır"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "Oturum bulunamadı"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Bilinmiyor"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Evet"
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "İletiyi işaretleyen kullanıcının yorumu serileştirilemedi"
   },
@@ -6353,6 +6525,10 @@
     "translation": "Düzenleme geçmişi kaydı işaretlenmiş ileti raporuna yazılamadı."
   },
   {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Maruz kalma raporu, işaretlenmiş ileti raporuna yazılamadı."
+  },
+  {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
     "translation": "Üst veriler işaretlenmiş ileti raporuna yazılamadı."
   },
@@ -6551,6 +6727,30 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "JSON verileri dışa aktarma için serileştirilirken bir sorun çıktı."
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "Bu işlem için ayrılmış bir dışa aktarma deposu kullanılması gereklidir."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Dışa aktarmaların doğrudan indirilmesi yalnızca Mattermost Cloud üzerinde kullanılabilir."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Dışa aktarma deponuzun sürücüsü ön imzalı adres oluşturmayı desteklemiyor."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Dosyanın var olup olmadığı denetlenemedi."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Ön imzalı adres oluşturulamadı."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "Dışa aktarma dosyası bulunamadı."
   },
   {
     "id": "app.export.marshal.app_error",
@@ -7741,6 +7941,14 @@
     "translation": "İlke ifadesi maskelenemedi."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Birden çok kullanıcı özniteliği aynı kalıba bağlı olduğundan kanal özniteliği görünürlüğü kesin olarak belirlenemiyor."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Bilinmeyen bir nesne türü için öznitelik görünürlüğü çözümlenemiyor."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "İlke ifadesi, kayıtlı maskelenmiş değerlerle birleştirilemedi."
   },
@@ -7785,8 +7993,16 @@
     "translation": "Bu adla bir ilke zaten var. Lütfen başka bir ad seçin."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "Bu erişim kuralı, takımlarda bulunmayan kanal özniteliklerini kullanıyor. Kaydetmeden önce bu ilkeye atanmış takımları kaldırın."
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "İlke kaydı için öznitelik çözümleyici hazırlanamadı."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "Bu sunucuda erişim kuralları kanal özniteliklerini kullanamaz. Bu yetenek açılmamış."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7797,12 +8013,20 @@
     "translation": "Bu ilkedeki bir ya da daha fazla koşulu karşılamıyorsunuz."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "Bu erişim kuralı, takımlarda bulunmayan kanal özniteliklerini kullanıyor. Kanal özniteliği içeren erişim kuralları yalnızca kanallara uygulanabilir."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Erişim denetimi ilkeleri aranamadı."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "Benzetim için öznitelikler yenilenemedi."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "Kanal özniteliklerine başvuran bir ilkenin benzetimini yapmak için bir kanal seçilmelidir."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8917,6 +9141,10 @@
   {
     "id": "app.scheduled_post.private_channel",
     "translation": "Özel kanal"
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "Bu sunucuda yinelenen zamanlanmış iletiler kapalı."
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
@@ -10163,6 +10391,10 @@
     "translation": "{{.Backend}} toplayıcı işlemi dizin işlemi tamamlanamadığından yarım kaldı"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Mattermost, her {{.Backend}} düğümünde analysis-icu uygulama ekinin bulunmasını gerektirir. Bu eki tüm düğümlere kurun ve ardından {{.Backend}} sunucusunu yeniden başlatın."
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} iletilerdeki kanal türünü geriye dönük olarak dolduramadı"
   },
@@ -11019,6 +11251,10 @@
     "translation": "İlke adı geçersiz."
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Erişim denetimi ilkesi geçersiz: tür, geçerli bir uygulama eki kaynak türü değil."
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "İlke sürümü geçersiz."
   },
@@ -11579,6 +11815,14 @@
     "translation": "Bitiş zamanı başlangıç zamanından büyük olmalıdır."
   },
   {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Erişim denetimi öznitelik yenileme aralığı geçersiz. 0 ya da daha büyük olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Erişim denetimi eşitleme görevi aralığı geçersiz. En az 60 saniye olmalıdır."
+  },
+  {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
     "translation": "Yapay zeka özeti bekleme süresi dakika değeri geçersiz. 0 ya da daha büyük olmalıdır."
   },
@@ -11613,6 +11857,10 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "{{.Value}} zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "'atmos/camo' görsel vekil sunucu türü Mattermost v12.0 sürümünde kaldırıldı. ImageProxySettings.ImageProxyType ayarını 'local' olarak ayarlayın ya da görsel vekil sunucuyu kapatmak için ImageProxySettings.Enable ayarını false yapın."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -11855,6 +12103,14 @@
     "translation": "Dosya ayarları için içerik ayıklama zaman aşımı geçersiz. Saniye olarak sıfır ya da daha büyük bir tam sayı olmalıdır."
   },
   {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "AppsEnabled özellik bayrağı artık desteklenmiyor ve kapatılmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "MoveThreadsEnabled özellik bayrağı artık desteklenmiyor ve kapatılmalıdır."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Dosya ayarları için sürücü adı geçersiz. 'local', 'amazons3' ya da 'azureblob' olmalıdır."
   },
@@ -12049,6 +12305,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "İleti dışa aktarma görevinde ExportFormat 'globalrelay' olarak ayarlanmış ancak GlobalRelaySettings eksik."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "İleti dışa aktarma görevinde GlobalRelaySettings.CustomHeaderName ve CustomHeaderValue değerlerinin ikisi de ayarlanmalı ya da ikisi de boş bırakılmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "İleti dışa aktarma görevinde GlobalRelaySettings.CustomHeaderName değeri; boşluk, iki nokta, ayırıcı ya da satır sonu içermeyen geçerli bir üst bilgi adı olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "İleti dışa aktarma görevinde GlobalRelaySettings.CustomHeaderName değeri, Global Relay dışa aktarmasının zaten yazdığı bir üst bilgiyi yeniden kullanmamalıdır."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "İleti dışa aktarma görevinde GlobalRelaySettings.CustomHeaderValue değeri denetim karakterleri ya da satır sonu içermemelidir."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -12591,6 +12863,14 @@
     "translation": "Bağlantı üst veri adresinin uzunluğu {{ .Length }} karakter uzunluğunda ve olabilecek en fazla {{ .MaxLength }} karakter sınırını aşıyor."
   },
   {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "date_from süzgeci geçersiz. Beklenen biçim: \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "date_to süzgeci geçersiz. Beklenen biçim: \"{{.Layout}}\"."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Kanal adı geçersiz"
   },
@@ -13005,6 +13285,22 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "İşlenme zamanı geçersiz."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "Yinelenen zamanlanmış iletilerde ek dosya bulunamaz."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "Her hafta yinelenen zamanlanmış iletiler için geçerli bir saat dilimi gereklidir."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Yinelenen zamanlanmış ileti için saat dilimi geçersiz."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Zamanlanmış ileti için yineleme türü geçersiz."
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",

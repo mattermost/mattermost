@@ -736,6 +736,10 @@
     "translation": "Aggiornamento membro del canale non valido: un ospite non può essere reso membro di squadra o amministratore di squadra; prima promuovilo a utente."
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Aggiornamento del membro del canale non valido: un utente deve essere un ospite oppure un amministratore, ma non entrambi."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "Aggiornamento membro canale non valido: Un utente deve essere un ospite o un utente ma non entrambi."
   },
@@ -2162,6 +2166,10 @@
     "translation": "La funzionalità Data Spillage Handling è disabilitata."
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Data Spillage Handling non è disponibile per i canali di messaggi diretti e di gruppo."
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "La quarantena di una pubblicazione di tipo '{{.PostType}}' non è consentita."
   },
@@ -2188,6 +2196,10 @@
   {
     "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "L'utente non è un revisore dei contenuti."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Impossibile scrivere il report di esposizione della pubblicazione."
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -3779,6 +3791,10 @@
     "translation": "La tua licenza non supporta gli account ospite"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "L'account associato a {{.Addresses}} è stato disattivato. Contatta il tuo amministratore di sistema per maggiori dettagli."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Gli inviti per email sono disattivati."
   },
@@ -3933,6 +3949,10 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Aggiornamento del membro della squadra non valido: un ospite non può diventare membro o amministratore di squadra; promuovilo prima a utente."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Aggiornamento del membro della squadra non valido: un utente deve essere un ospite oppure un amministratore, ma non entrambi."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -4931,6 +4951,10 @@
     "translation": "Aggiornamento della password non riuscito perché lo user_id del contesto non corrisponde all'id dell'utente fornito."
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Impossibile passare all'autenticazione tramite email usando una sessione di integrazione."
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "Il link magico è l'unico metodo di accesso disponibile per questo account."
   },
@@ -4997,6 +5021,10 @@
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 non configurato o non supportato su questo server."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "Il relay state SAML è troppo lungo."
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -5307,6 +5335,38 @@
     "translation": "Non hai il permesso di gestire questa politica di controllo degli accessi."
   },
   {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "Non è stato possibile valutare il controllo degli accessi per questa risorsa."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "L'utente che esegue l'azione non è valido o non esiste."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "L'azione non è un'azione di controllo degli accessi valida."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "Identificatore non valido fornito all'API di controllo degli accessi."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "Il tipo di risorsa non è un tipo di risorsa di controllo degli accessi valido per i plugin."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "Politica di controllo degli accessi non trovata."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "Il plugin chiamante non è proprietario di questo tipo di risorsa."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "Esiste già una politica di controllo degli accessi di tipo diverso per questo ID."
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "Impossibile salvare il lotto di oggetti di conferma"
   },
@@ -5441,6 +5501,10 @@
   {
     "id": "app.bot.update.internal_error",
     "translation": "Impossibile aggiornare il bot."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "Non è possibile disattivare un bot di proprietà del sistema."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -6103,6 +6167,114 @@
     "translation": "Impossibile salvare i valori delle proprietà per la pubblicazione segnalata."
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "Email"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Disattivato"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Ospite"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Utente remoto"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "Ora dell'ultima attività dell'utente (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Ultima visualizzazione del canale (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "ID utente"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Nome utente"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "Era membro del canale"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Non è possibile generare un report di esposizione per una revisione della cronologia delle modifiche. Usa l'ID della pubblicazione corrente."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "Impossibile recuperare la cronologia delle appartenenze al canale per la pubblicazione segnalata."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Impossibile recuperare l'attività di sessione per la pubblicazione segnalata."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "Impossibile recuperare lo stato di lettura del canale per la pubblicazione segnalata."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Canale"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Generato il"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "ID pubblicazione"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Versione del report"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Utenti totali"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "Segnalata il"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "Pubblicazione creata il"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "Per la pubblicazione segnalata non risulta registrata alcuna ora di segnalazione, quindi non è possibile determinare la finestra di esposizione."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "I report di esposizione non sono supportati per i messaggi diretti e di gruppo."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "N/D"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "No"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "Nessuna sessione trovata"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Sconosciuto"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Sì"
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "Impossibile serializzare il commento dell'utente che ha effettuato la segnalazione"
   },
@@ -6353,6 +6525,10 @@
     "translation": "Impossibile scrivere la voce della cronologia delle modifiche nel report della pubblicazione segnalata."
   },
   {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Impossibile aggiungere il report di esposizione al report della pubblicazione segnalata."
+  },
+  {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
     "translation": "Impossibile scrivere i metadati nel report della pubblicazione segnalata."
   },
@@ -6551,6 +6727,30 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "Si è verificato un errore durante la serializzazione dei dati JSON per l'esportazione."
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "Questa azione richiede l'uso di un archivio dedicato per le esportazioni."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Il download diretto delle esportazioni è disponibile solo in Mattermost Cloud."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Il driver del tuo archivio delle esportazioni non supporta la generazione di URL prefirmati."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Impossibile verificare se il file esiste."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Impossibile generare l'URL prefirmato."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "Il file di esportazione non è stato trovato."
   },
   {
     "id": "app.export.marshal.app_error",
@@ -7741,6 +7941,14 @@
     "translation": "Impossibile mascherare l'espressione della politica."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Più attributi utente sono collegati allo stesso modello, quindi non è possibile determinare in modo univoco la visibilità dell'attributo del canale."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Non è possibile determinare la visibilità degli attributi per un tipo di oggetto sconosciuto."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "Impossibile unire l'espressione della politica con i valori mascherati memorizzati."
   },
@@ -7785,8 +7993,16 @@
     "translation": "Esiste già una politica con questo nome. Scegli un nome diverso."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "Questa regola di accesso usa attributi del canale, che le squadre non hanno. Rimuovi le squadre assegnate a questa politica prima di salvare."
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Impossibile inizializzare il resolver degli attributi per il salvataggio della politica."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "Le regole di accesso non possono usare attributi del canale su questo server. Questa funzionalità non è abilitata."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7797,12 +8013,20 @@
     "translation": "Non soddisfi una o più condizioni di questa politica."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "Questa regola di accesso usa attributi del canale, che le squadre non hanno. Le regole di accesso con attributi del canale possono essere applicate solo ai canali."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Impossibile cercare le politiche di controllo degli accessi."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "Impossibile aggiornare gli attributi per la simulazione."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "È necessario un canale per simulare una politica che fa riferimento ad attributi del canale."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8917,6 +9141,10 @@
   {
     "id": "app.scheduled_post.private_channel",
     "translation": "Canale privato"
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "I messaggi programmati ricorrenti sono disattivati su questo server."
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
@@ -10163,6 +10391,10 @@
     "translation": "Il worker di aggregazione di {{.Backend}} non è riuscito a causa del fallimento del lavoro di indicizzazione"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Mattermost richiede il plugin analysis-icu su ogni nodo {{.Backend}}. Installalo su tutti i nodi, quindi riavvia {{.Backend}}."
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} non è riuscito a compilare retroattivamente il tipo di canale sulle pubblicazioni"
   },
@@ -11019,6 +11251,10 @@
     "translation": "Nome non valido per la politica."
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Politica di controllo degli accessi non valida: il tipo non è un tipo di risorsa plugin valido."
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "Revisione della politica non valida."
   },
@@ -11579,6 +11815,14 @@
     "translation": "A deve essere maggiore di Da."
   },
   {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Intervallo di aggiornamento degli attributi di controllo degli accessi non valido. Deve essere maggiore o uguale a 0."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Intervallo del processo di sincronizzazione del controllo degli accessi non valido. Deve essere di almeno 60 secondi."
+  },
+  {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
     "translation": "Valore non valido per i minuti di attesa del riepilogo AI. Deve essere maggiore o uguale a 0."
   },
@@ -11613,6 +11857,10 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "Valore di timeout {{.Value}} non valido. Deve essere un numero positivo."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "Il tipo di proxy immagini 'atmos/camo' è stato rimosso in Mattermost v12.0. Imposta ImageProxySettings.ImageProxyType su 'local' oppure imposta ImageProxySettings.Enable su false per disattivare il proxy immagini."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -11855,6 +12103,14 @@
     "translation": "Timeout di estrazione dei contenuti non valido per le impostazioni file. Deve essere un numero intero di secondi maggiore o uguale a zero."
   },
   {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "Il feature flag AppsEnabled non è più supportato e deve essere disattivato."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "Il feature flag MoveThreadsEnabled non è più supportato e deve essere disattivato."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Nome driver non valido per le impostazioni file. Deve essere 'local', 'amazons3' o 'azureblob'."
   },
@@ -12049,6 +12305,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "La variabile ExportFormat del lavoro di esportazione messaggi è impostata su 'globalrelay', ma l'impostazione GlobalRelaySettings manca."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "GlobalRelaySettings.CustomHeaderName e CustomHeaderValue dell'esportazione messaggi devono essere entrambi impostati oppure entrambi lasciati vuoti."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "GlobalRelaySettings.CustomHeaderName dell'esportazione messaggi deve essere un nome di intestazione valido, senza spazi, due punti, separatori o interruzioni di riga."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "GlobalRelaySettings.CustomHeaderName dell'esportazione messaggi non deve riutilizzare un'intestazione già scritta dall'esportazione Global Relay."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "GlobalRelaySettings.CustomHeaderValue dell'esportazione messaggi non deve contenere caratteri di controllo o interruzioni di riga."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -12591,6 +12863,14 @@
     "translation": "La lunghezza dell'URL dei metadati del collegamento è di {{ .Length }} caratteri e supera il limite massimo di {{ .MaxLength }} caratteri."
   },
   {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Filtro date_from non valido. È previsto il formato \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Filtro date_to non valido. È previsto il formato \"{{.Layout}}\"."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Il nome del canale non è valido"
   },
@@ -13005,6 +13285,22 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Ora di elaborazione non valida."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "I messaggi programmati ricorrenti non possono avere file allegati."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "I messaggi programmati con ripetizione settimanale richiedono un fuso orario valido."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Fuso orario non valido per il messaggio programmato ricorrente."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Tipo di ripetizione non valido per il messaggio programmato."
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",

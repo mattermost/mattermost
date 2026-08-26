@@ -736,6 +736,10 @@
     "translation": "Ongeldige update kanaallid: Een gast kan geen teamlid of teambeheerder worden, promoveer eerst als gebruiker."
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Ongeldige wijziging van kanaallid: een gebruiker moet een gast of een beheerder zijn, maar niet allebei."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "Fout bij het wijzigen van lidmaatschap: Een gebruiker moet een gast of een gebruiker zijn, maar niet beide."
   },
@@ -2162,6 +2166,10 @@
     "translation": "Data Spillage Handling functie is uitgeschakeld."
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Data Spillage Handling is niet beschikbaar voor privé-berichten en groepsberichtkanalen."
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "Het in quarantaine plaatsen van een bericht van het type '{{.PostType}}' is niet toegestaan."
   },
@@ -2188,6 +2196,10 @@
   {
     "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "De gebruiker is geen inhoudsreviewer."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Kan het blootstellingsrapport voor het bericht niet schrijven."
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -3779,6 +3791,10 @@
     "translation": "Jouw licentie ondersteunt geen gastaccounts"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "Het account dat hoort bij {{.Addresses}} is gedeactiveerd. Neem contact op met je systeembeheerder voor meer informatie."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "E-mailuitnodigingen zijn uitgeschakeld."
   },
@@ -3933,6 +3949,10 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Ongeldige update teamlid: Een gast kan geen teamlid of teambeheerder worden. Maak van de gast eerst een gebruiker."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Ongeldige wijziging van teamlid: een gebruiker moet een gast of een beheerder zijn, maar niet allebei."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -4931,6 +4951,10 @@
     "translation": "Het bijwerken van het wachtwoord is mislukt omdat de context-user_id niet overeenkwam met de ID van de opgegeven gebruiker."
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Kan niet overschakelen naar e-mailauthenticatie vanuit een integratiesessie."
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "Magische link is de enige beschikbare aanmeldmethode voor dit account."
   },
@@ -4997,6 +5021,10 @@
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 is niet geconfigureerd of wordt niet ondersteund op deze server."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "De SAML-relaystatus is te lang."
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -5307,6 +5335,38 @@
     "translation": "Je hebt geen rechten om dit toegangscontrolebeleid te beheren."
   },
   {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "De toegangscontrole kon voor deze bron niet worden geëvalueerd."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "De handelende gebruiker is ongeldig of bestaat niet."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "De actie is geen geldige toegangscontroleactie."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "Ongeldige identifier opgegeven aan de toegangscontrole-API."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "Het brontype is geen geldig brontype voor plugin-toegangscontrole."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "Toegangscontrolebeleid niet gevonden."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "De aanroepende plugin is geen eigenaar van dit brontype."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "Er bestaat voor deze ID al een toegangscontrolebeleid van een ander type."
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "De batch met bevestigingsobjecten kon niet worden opgeslagen"
   },
@@ -5441,6 +5501,10 @@
   {
     "id": "app.bot.update.internal_error",
     "translation": "Kan de bot niet bijwerken."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "Een bot die eigendom is van het systeem kan niet worden uitgeschakeld."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -6103,6 +6167,114 @@
     "translation": "Kan de waarden van eigenschappen voor het gemarkeerde bericht niet opslaan."
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "E-mail"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Gedeactiveerd"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Gast"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Externe gebruiker"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "Tijd laatste activiteit gebruiker (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Kanaal laatst bekeken op (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "Gebruikers-ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Gebruikersnaam"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "Was kanaallid"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Kan geen blootstellingsrapport genereren voor een revisie uit de bewerkingsgeschiedenis. Gebruik de ID van het huidige bericht."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "Kan de geschiedenis van het kanaallidmaatschap voor het gemarkeerde bericht niet ophalen."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Kan de sessieactiviteit voor het gemarkeerde bericht niet ophalen."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "Kan de leesstatus van het kanaal voor het gemarkeerde bericht niet ophalen."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Kanaal"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Gegenereerd op"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "Bericht-ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Rapportversie"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Totaal aantal gebruikers"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "Gemarkeerd op"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "Bericht aangemaakt op"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "Voor het gemarkeerde bericht is geen meldingstijd vastgelegd, waardoor het blootstellingsvenster niet kan worden bepaald."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "Blootstellingsrapporten worden niet ondersteund voor privé-berichten en groepsberichten."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "N.v.t."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "Nee"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "Geen sessies gevonden"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Onbekend"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Ja"
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "Fout bij het verwerken van de opmerking van de gebruiker die het bericht markeerde"
   },
@@ -6353,6 +6525,10 @@
     "translation": "Fout bij het schrijven van een bewerkingsgeschiedenis-item naar het rapport van het gemarkeerde bericht."
   },
   {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Kan het blootstellingsrapport niet toevoegen aan het rapport van het gemarkeerde bericht."
+  },
+  {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
     "translation": "Fout bij het schrijven van metadata naar het rapport van het gemarkeerde bericht."
   },
@@ -6551,6 +6727,30 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "Er is een fout opgetreden bij het opstellen van de JSON-gegevens voor export."
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "Voor deze actie is een speciale exportopslag vereist."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Rechtstreeks downloaden van exports is alleen beschikbaar in Mattermost Cloud."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Het stuurprogramma van je exportopslag ondersteunt het genereren van presigned URL's niet."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Kan niet controleren of het bestand bestaat."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Kan de presigned URL niet genereren."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "Het exportbestand is niet gevonden."
   },
   {
     "id": "app.export.marshal.app_error",
@@ -7741,6 +7941,14 @@
     "translation": "Kon beleidsexpressie niet maskeren."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Meerdere gebruikersattributen verwijzen naar hetzelfde sjabloon, waardoor de zichtbaarheid van het kanaalattribuut niet eenduidig kan worden bepaald."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Kan de zichtbaarheid van attributen voor een onbekend objecttype niet bepalen."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "Kon beleidsexpressie niet samenvoegen met opgeslagen gemaskeerde waarden."
   },
@@ -7785,8 +7993,16 @@
     "translation": "Er bestaat al een beleid met deze naam. Kies een andere naam."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "Deze toegangsregel gebruikt kanaalattributen, die teams niet hebben. Verwijder de teams die aan dit beleid zijn toegewezen voordat je opslaat."
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Kon attribuutresolver niet initialiseren voor het opslaan van het beleid."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "Toegangsregels kunnen op deze server geen kanaalattributen gebruiken. Deze mogelijkheid is niet ingeschakeld."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7797,12 +8013,20 @@
     "translation": "Je voldoet niet aan een of meer voorwaarden in dit beleid."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "Deze toegangsregel gebruikt kanaalattributen, die teams niet hebben. Toegangsregels met kanaalattributen kunnen alleen op kanalen worden toegepast."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Kon het toegangscontrolebeleid niet doorzoeken."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "Vernieuwen van attributen voor de simulatie is mislukt."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "Er is een kanaal vereist om een beleid te simuleren dat naar kanaalattributen verwijst."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8917,6 +9141,10 @@
   {
     "id": "app.scheduled_post.private_channel",
     "translation": "Privé-kanaal"
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "Terugkerende geplande berichten zijn uitgeschakeld op deze server."
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
@@ -10163,6 +10391,10 @@
     "translation": "{{.Backend}}-aggregator is mislukt omdat de indexeertaak is mislukt"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Mattermost vereist de analysis-icu-plugin op elke {{.Backend}}-node. Installeer deze op alle nodes en start {{.Backend}} daarna opnieuw op."
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} kon het kanaaltype op berichten niet aanvullen"
   },
@@ -11019,6 +11251,10 @@
     "translation": "Ongeldige naam voor het beleid."
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Ongeldig toegangscontrolebeleid: het type is geen geldig plugin-brontype."
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "Ongeldige beleidsrevisie."
   },
@@ -11579,6 +11815,14 @@
     "translation": "To moet later zijn dan From."
   },
   {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Ongeldig vernieuwingsinterval voor toegangscontroleattributen. Moet groter dan of gelijk aan 0 zijn."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Ongeldig interval voor de synchronisatietaak van de toegangscontrole. Moet minstens 60 seconden zijn."
+  },
+  {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
     "translation": "Ongeldig aantal minuten afkoeltijd voor AI-samenvattingen. Moet groter dan of gelijk zijn aan 0."
   },
@@ -11613,6 +11857,10 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "Ongeldige time-out waarde {{.Value}}. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "Het afbeeldingsproxytype 'atmos/camo' is verwijderd in Mattermost v12.0. Stel ImageProxySettings.ImageProxyType in op 'local', of stel ImageProxySettings.Enable in op false om de afbeeldingsproxy uit te schakelen."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -11855,6 +12103,14 @@
     "translation": "Ongeldige time-out voor inhoudsextractie in de bestandsinstellingen. Moet een geheel aantal seconden groter dan of gelijk aan nul zijn."
   },
   {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "De functievlag AppsEnabled wordt niet langer ondersteund en moet worden uitgeschakeld."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "De functievlag MoveThreadsEnabled wordt niet langer ondersteund en moet worden uitgeschakeld."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Ongeldig stuurprogramma voor bestandsinstellingen. Moet 'local', 'amazons3' of 'azureblob' zijn."
   },
@@ -12049,6 +12305,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "Message export job ExportFormat is ingesteld op 'globalrelay', maar GlobalRelaySettings ontbreken."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "Bij het exporteren van berichten moeten GlobalRelaySettings.CustomHeaderName en CustomHeaderValue allebei zijn ingesteld, of allebei leeg blijven."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "Bij het exporteren van berichten moet GlobalRelaySettings.CustomHeaderName een geldige headernaam zijn zonder spaties, dubbele punten, scheidingstekens of regeleinden."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "Bij het exporteren van berichten mag GlobalRelaySettings.CustomHeaderName geen header hergebruiken die de Global Relay-export zelf al schrijft."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "Bij het exporteren van berichten mag GlobalRelaySettings.CustomHeaderValue geen stuurtekens of regeleinden bevatten."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -12591,6 +12863,14 @@
     "translation": "De lengte van de URL met linkmetagegevens is {{ .Length }} tekens lang, wat meer is dan de maximale limiet van {{ .MaxLength }} tekens."
   },
   {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Ongeldig date_from-filter. Verwachte indeling: \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Ongeldig date_to-filter. Verwachte indeling: \"{{.Layout}}\"."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Kanaalnaam is ongeldig"
   },
@@ -13005,6 +13285,22 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Ongeldig tijdstip van verwerking."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "Terugkerende geplande berichten kunnen geen bijlagen bevatten."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "Wekelijks terugkerende geplande berichten vereisen een geldige tijdzone."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Ongeldige tijdzone voor terugkerend gepland bericht."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Ongeldig herhalingstype voor gepland bericht."
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",

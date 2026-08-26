@@ -736,6 +736,10 @@
     "translation": "Érvénytelen csatorna tagság frissítés: Vendég nem tehető csapattaggá vagy csapat adminná; kérjük, először léptesse elő felhasználóvá."
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Érvénytelen csatorna tagság frissítés: A felhasználónak vendégnek vagy adminnak kell lennie, de nem lehet mindkettő."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "Érvénytelen csatorna tagság frissítés: A felhasználónak vendégnek vagy felhasználónak kell lennie, de nem lehet mindkettő."
   },
@@ -2162,6 +2166,10 @@
     "translation": "Az adatszivárgás-kezelés funkció le van tiltva."
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Az adatszivárgás-kezelés nem érhető el közvetlen és csoportos üzenetek csatornáinál."
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "A(z) '{{.PostType}}' típusú bejegyzés karanténba helyezése nem engedélyezett."
   },
@@ -2188,6 +2196,10 @@
   {
     "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "A felhasználó nem tartalom-felülvizsgáló."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Nem sikerült elkészíteni a bejegyzés érintettségi jelentését."
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -3779,6 +3791,10 @@
     "translation": "Az Ön licence nem támogatja a vendég fiókokat"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "A(z) {{.Addresses}} címhez tartozó fiók deaktiválva lett. A részletekért kérjük, forduljon a rendszergazdához."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Az e-mail meghívások le vannak tiltva."
   },
@@ -3933,6 +3949,10 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Érvénytelen csapattag frissítés: Egy vendég nem tehető csapattaggá vagy csapat adminná, kérjük, először léptesse elő felhasználóvá."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Érvénytelen csapattag frissítés: A felhasználónak vendégnek vagy adminnak kell lennie, de nem lehet mindkettő."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -4931,6 +4951,10 @@
     "translation": "A jelszó frissítése sikertelen, mert a context user_id nem egyezett a megadott felhasználó azonosítójával."
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Integrációs munkamenettel nem lehet e-mail hitelesítésre váltani."
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "Ehhez a fiókhoz a varázslink az egyetlen elérhető bejelentkezési módszer."
   },
@@ -4997,6 +5021,10 @@
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 nincs beállítva vagy támogatva ezen a szerveren."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "A SAML relay state túl hosszú."
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -5307,6 +5335,38 @@
     "translation": "Nincs jogosultsága a hozzáférés-vezérlési szabályzat kezeléséhez."
   },
   {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "A hozzáférés-vezérlést nem sikerült kiértékelni ehhez az erőforráshoz."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "A műveletet végző felhasználó érvénytelen, vagy nem létezik."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "A művelet nem érvényes hozzáférés-vezérlési művelet."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "Érvénytelen azonosítót kapott a hozzáférés-vezérlési API."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "Az erőforrástípus nem érvényes bővítmény-hozzáférésvezérlési erőforrástípus."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "A hozzáférés-vezérlési szabályzat nem található."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "A hívó bővítmény nem tulajdonosa ennek az erőforrástípusnak."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "Ehhez az azonosítóhoz már létezik egy másik típusú hozzáférés-vezérlési szabályzat."
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "Nem sikerült menteni a visszaigazolási objektumok kötegét"
   },
@@ -5441,6 +5501,10 @@
   {
     "id": "app.bot.update.internal_error",
     "translation": "Nem sikerült frissíteni a botot."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "A rendszer tulajdonában lévő bot nem tiltható le."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -6103,6 +6167,114 @@
     "translation": "Nem sikerült menteni a megjelölt bejegyzés tulajdonságértékeit."
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "E-mail"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Deaktiválva"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Vendég"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Távoli felhasználó"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "Felhasználó utolsó aktivitásának ideje (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Csatorna utolsó megtekintése (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "Felhasználó azonosítója"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Felhasználónév"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "Csatornatag volt"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Szerkesztési előzmény korábbi változatához nem hozható létre érintettségi jelentés. Használja az aktuális bejegyzés azonosítóját."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "Nem sikerült lekérni a megjelölt bejegyzéshez tartozó csatornatagsági előzményeket."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Nem sikerült lekérni a megjelölt bejegyzéshez tartozó munkamenet-aktivitást."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "Nem sikerült lekérni a megjelölt bejegyzéshez tartozó csatornaolvasottsági állapotot."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Csatorna"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Létrehozás ideje"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "Bejegyzés azonosítója"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Jelentés verziója"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Felhasználók száma összesen"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "Megjelölés ideje"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "Bejegyzés létrehozásának ideje"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "A megjelölt bejegyzéshez nincs rögzítve bejelentési időpont, ezért az érintettségi időablak nem határozható meg."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "Az érintettségi jelentések nem támogatottak közvetlen és csoportos üzeneteknél."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "N/A"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "Nem"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "Nem található munkamenet"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Ismeretlen"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Igen"
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "Nem sikerült szerializálni a megjelölő felhasználó megjegyzését"
   },
@@ -6353,6 +6525,10 @@
     "translation": "Nem sikerült beírni a szerkesztési előzmény bejegyzését a megjelölt bejegyzés jelentésébe."
   },
   {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Nem sikerült beírni az érintettségi jelentést a megjelölt bejegyzésről készült jelentésbe."
+  },
+  {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
     "translation": "Nem sikerült beírni a metaadatokat a megjelölt bejegyzés jelentésébe."
   },
@@ -6551,6 +6727,30 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "Hiba történt a JSON-adatok exportra konvertálása során."
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "Ehhez a művelethez dedikált exporttároló használata szükséges."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Az exportok közvetlen letöltése csak a Mattermost Cloud szolgáltatásban érhető el."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Az exporttároló illesztőprogramja nem támogatja az előre aláírt URL-ek létrehozását."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Nem sikerült ellenőrizni, hogy a fájl létezik-e."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Nem sikerült létrehozni az előre aláírt URL-t."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "Az exportfájl nem található."
   },
   {
     "id": "app.export.marshal.app_error",
@@ -7741,6 +7941,14 @@
     "translation": "Nem sikerült maszkolni a szabályzatkifejezést."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Több felhasználói attribútum is ugyanahhoz a sablonhoz kapcsolódik, ezért a csatornaattribútum láthatósága nem határozható meg egyértelműen."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Ismeretlen objektumtípus esetén nem határozható meg az attribútum láthatósága."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "Nem sikerült egyesíteni a szabályzatkifejezést a tárolt maszkolt értékekkel."
   },
@@ -7785,8 +7993,16 @@
     "translation": "Már létezik ilyen nevű szabályzat. Kérjük, válasszon másik nevet."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "Ez a hozzáférési szabály csatornaattribútumokat használ, amelyekkel a csapatok nem rendelkeznek. Mentés előtt távolítsa el a szabályzathoz rendelt csapatokat."
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Nem sikerült inicializálni az attribútumfeloldót a szabályzat mentéséhez."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "A hozzáférési szabályok ezen a szerveren nem használhatnak csatornaattribútumokat. Ez a képesség nincs engedélyezve."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7797,12 +8013,20 @@
     "translation": "Ön nem felel meg a szabályzat egy vagy több feltételének."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "Ez a hozzáférési szabály csatornaattribútumokat használ, amelyekkel a csapatok nem rendelkeznek. A csatornaattribútumokat használó hozzáférési szabályok csak csatornákra alkalmazhatók."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Nem sikerült keresni a hozzáférés-vezérlési szabályzatok között."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "Nem sikerült frissíteni az attribútumokat a szimulációhoz."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "Csatornaattribútumokra hivatkozó szabályzat szimulálásához meg kell adni egy csatornát."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8917,6 +9141,10 @@
   {
     "id": "app.scheduled_post.private_channel",
     "translation": "Privát csatorna"
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "Az ismétlődő időzített bejegyzések le vannak tiltva ezen a szerveren."
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
@@ -10163,6 +10391,10 @@
     "translation": "A(z) {{.Backend}} aggregátor worker sikertelen volt az indexelési munka meghiúsulása miatt"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "A Mattermosthoz minden {{.Backend}} csomóponton szükség van az analysis-icu bővítményre. Telepítse minden csomópontra, majd indítsa újra a következőt: {{.Backend}}."
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "A(z) {{.Backend}} nem tudta visszamenőleg kitölteni a csatornatípust a bejegyzéseken"
   },
@@ -11019,6 +11251,10 @@
     "translation": "Érvénytelen név a szabályzathoz."
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Érvénytelen hozzáférés-vezérlési szabályzat: a típus nem érvényes bővítmény-erőforrástípus."
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "Érvénytelen szabályzatrevízió."
   },
@@ -11579,6 +11815,14 @@
     "translation": "A To értékének nagyobbnak kell lennie a From értékénél."
   },
   {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Érvénytelen hozzáférés-vezérlési attribútumfrissítési időköz. Nagyobbnak vagy egyenlőnek kell lennie 0-val."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Érvénytelen hozzáférés-vezérlési szinkronizálási feladat időköz. Legalább 60 másodpercnek kell lennie."
+  },
+  {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
     "translation": "Érvénytelen AI-összefoglaló várakozási idő (perc). Az értéknek 0-nak vagy nagyobbnak kell lennie."
   },
@@ -11613,6 +11857,10 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "Érvénytelen az időtúllépés értéke {{.Value}}. Pozitív számnak kell lennie."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "Az 'atmos/camo' képproxy-típust eltávolították a Mattermost v12.0 verziójában. Állítsa az ImageProxySettings.ImageProxyType értékét 'local'-ra, vagy a képproxy kikapcsolásához állítsa az ImageProxySettings.Enable értékét false-ra."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -11855,6 +12103,14 @@
     "translation": "Érvénytelen tartalomkinyerési időtúllépés a fájlbeállításoknál. Nullánál nagyobb vagy azzal egyenlő egész másodpercértéknek kell lennie."
   },
   {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "Az AppsEnabled funkciójelölő már nem támogatott, ki kell kapcsolni."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "A MoveThreadsEnabled funkciójelölő már nem támogatott, ki kell kapcsolni."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Érvénytelen driver név a fájl beállításokhoz. Az értéknek 'local', 'amazons3' vagy 'azureblob' egyikének kell lennie."
   },
@@ -12049,6 +12305,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "Üzenet exportálási munka ExportFormat beállítása 'globalrelay', de a GlobalRelaySettings hiányzik."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "Az üzenetexportnál a GlobalRelaySettings.CustomHeaderName és a CustomHeaderValue értékét is meg kell adni, vagy mindkettőt üresen kell hagyni."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "Az üzenetexportnál a GlobalRelaySettings.CustomHeaderName értékének érvényes fejlécnévnek kell lennie, szóköz, kettőspont, elválasztó karakter és sortörés nélkül."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "Az üzenetexportnál a GlobalRelaySettings.CustomHeaderName nem használhat olyan fejlécet, amelyet a Global Relay export már beír."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "Az üzenetexportnál a GlobalRelaySettings.CustomHeaderValue nem tartalmazhat vezérlőkaraktereket vagy sortöréseket."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -12591,6 +12863,14 @@
     "translation": "A link metaadat URL hossza {{ .Length }} karakter, ami meghaladja a legfeljebb {{ .MaxLength }} karakteres korlátot."
   },
   {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Érvénytelen date_from szűrő. A várt formátum: \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Érvénytelen date_to szűrő. A várt formátum: \"{{.Layout}}\"."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Csatorna neve érvénytelen"
   },
@@ -13005,6 +13285,22 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Érvénytelen feldolgozási időpont."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "Az ismétlődő időzített bejegyzések nem tartalmazhatnak fájlmellékletet."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "A hetente ismétlődő időzített bejegyzésekhez érvényes időzóna szükséges."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Érvénytelen időzóna az ismétlődő időzített bejegyzéshez."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Érvénytelen ismétlődési típus az időzített bejegyzéshez."
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",

@@ -736,6 +736,10 @@
     "translation": "Невалидно обновяване на член на канала: Гост не може да бъде член или администратор на екип; моля, първо го повишете в потребител."
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Невалидно обновяване на члена на канала: Потребителят трябва да е гост или администратор, но не и двете."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "Невалидно обновяване на члена на канала: Потребителят трябва да е гост или потребител, но не и двете."
   },
@@ -2162,6 +2166,10 @@
     "translation": "Функцията Data Spillage Handling е забранена."
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Функцията Data Spillage Handling не е налична за канали с директни и групови съобщения."
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "Поставянето под карантина на публикация от тип '{{.PostType}}' не е разрешено."
   },
@@ -2188,6 +2196,10 @@
   {
     "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "Потребителят не е рецензент на съдържание."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Неуспешно записване на отчета за разкриване на публикацията."
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -3779,6 +3791,10 @@
     "translation": "Вашият лиценз не поддържа профили за гости"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "Профилът, свързан с {{.Addresses}}, е деактивиран. Моля, свържете се със системния си администратор за подробности."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Поканите по ел.поща са забранени."
   },
@@ -3933,6 +3949,10 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Невалидна актуализация на член на екипа: Гост не може да бъде направен член на екипа или администратор на екипа; моля, първо го повишете до потребител."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Невалидна актуализация на члена на екипа: Потребителят трябва да е гост или администратор, но не и двете."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -4931,6 +4951,10 @@
     "translation": "Актуализацията на паролата не бе успешна, защото контекстът user_id не съвпада с предоставения ID на потребител."
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Не може да се премине към удостоверяване с ел.поща чрез сесия на интеграция."
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "Магическата връзка е единственият наличен метод за влизане за този профил."
   },
@@ -4997,6 +5021,10 @@
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 не е конфигуриран или поддържан на този сървър."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "Параметърът RelayState на SAML е твърде дълъг."
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -5307,6 +5335,38 @@
     "translation": "Нямате право да управлявате тази политика за контрол на достъпа."
   },
   {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "Контролът на достъпа не можа да бъде оценен за този ресурс."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "Действащият потребител е невалиден или не съществува."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "Действието не е валидно действие за контрол на достъпа."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "Предоставен е невалиден идентификатор на API за контрол на достъпа."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "Типът на ресурса не е валиден тип ресурс за контрол на достъпа на приставка."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "Политиката за контрол на достъпа не е намерена."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "Извикващата приставка не притежава този тип ресурс."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "За този идентификатор вече съществува политика за контрол на достъпа от друг тип."
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "Неуспешно запазване на групата обекти за потвърждение"
   },
@@ -5441,6 +5501,10 @@
   {
     "id": "app.bot.update.internal_error",
     "translation": "Ботът не може да се актуализира."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "Бот, притежаван от системата, не може да бъде деактивиран."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -6103,6 +6167,114 @@
     "translation": "Стойностите на свойствата за сигнализираната публикация не могат да бъдат запазени."
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "Ел. поща"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Деактивиран"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Гост"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Отдалечен потребител"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "Време на последна активност на потребителя (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Последно преглеждане на канала (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "ID на потребителя"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Потребителско име"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "Беше член на канала"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Не може да се генерира отчет за разкриване за ревизия от историята на редакциите. Използвайте ID на текущата публикация."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "Неуспешно извличане на историята на членството в канала за сигнализираната публикация."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Неуспешно извличане на активността на сесиите за сигнализираната публикация."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "Неуспешно извличане на състоянието на прочитане на канала за сигнализираната публикация."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Канал"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Генериран на"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "ID на публикацията"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Версия на отчета"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Общо потребители"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "Сигнализирана на"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "Публикацията е създадена на"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "За сигнализираната публикация не е записано време на сигнализиране, така че периодът на разкриване не може да бъде определен."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "Отчетите за разкриване не се поддържат за директни и групови съобщения."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "Н/П"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "Не"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "Няма намерени сесии"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Неизвестно"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Да"
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "Неуспешно сериализиране на коментара на сигнализиращия потребител"
   },
@@ -6353,6 +6525,10 @@
     "translation": "Неуспешно записване на запис от историята на редакциите в отчета за сигнализираната публикация."
   },
   {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Неуспешно добавяне на отчета за разкриване към отчета за сигнализираната публикация."
+  },
+  {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
     "translation": "Неуспешно записване на метаданни в отчета за сигнализираната публикация."
   },
@@ -6551,6 +6727,30 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "Възникна грешка при сериализиране на JSON данните за износ."
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "Това действие изисква използването на специално хранилище за експорт."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Директното изтегляне на експорти е налично само в Mattermost Cloud."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Драйверът на вашето хранилище за експорт не поддържа генериране на предварително подписани URL адреси."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Не може да се провери дали файлът съществува."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Предварително подписаният URL адрес не може да бъде генериран."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "Файлът с експорта не беше намерен."
   },
   {
     "id": "app.export.marshal.app_error",
@@ -7741,6 +7941,14 @@
     "translation": "Изразът на политиката не можа да бъде маскиран."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Няколко потребителски атрибута сочат към един и същ шаблон, така че видимостта на атрибута на канала не може да бъде определена еднозначно."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Видимостта на атрибутите не може да бъде определена за неизвестен тип обект."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "Изразът на политиката не можа да бъде обединен със съхранените маскирани стойности."
   },
@@ -7785,8 +7993,16 @@
     "translation": "Политика с това име вече съществува. Моля, изберете друго име."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "Това правило за достъп използва атрибути на канала, каквито екипите нямат. Премахнете екипите, зададени на тази политика, преди да запазите."
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Инструментът за разрешаване на атрибути не можа да бъде инициализиран за запазването на политиката."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "Правилата за достъп не могат да използват атрибути на канала на този сървър. Тази възможност не е активирана."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7797,12 +8013,20 @@
     "translation": "Вие не отговаряте на едно или повече условия в тази политика."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "Това правило за достъп използва атрибути на канала, каквито екипите нямат. Правила за достъп с атрибути на канала могат да се прилагат само към канали."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Неуспешно търсене на политики за контрол на достъпа."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "Неуспешно опресняване на атрибутите за симулацията."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "За симулиране на политика, която реферира атрибути на канала, е необходим канал."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8917,6 +9141,10 @@
   {
     "id": "app.scheduled_post.private_channel",
     "translation": "Частен канал"
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "Повтарящите се планирани публикации са забранени на този сървър."
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
@@ -10163,6 +10391,10 @@
     "translation": "Работникът на агрегатора {{.Backend}} се провали поради неуспешна задача по индексиране"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Mattermost изисква приставката analysis-icu на всеки възел на {{.Backend}}. Инсталирайте я на всички възли и след това рестартирайте {{.Backend}}."
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} не успя да попълни типа на канала в публикациите"
   },
@@ -11019,6 +11251,10 @@
     "translation": "Невалидно име за политиката."
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Невалидна политика за контрол на достъпа: типът не е валиден тип ресурс на приставка."
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "Невалидна ревизия на политиката."
   },
@@ -11579,6 +11815,14 @@
     "translation": "'До' трябва да е по-голямо от 'От'."
   },
   {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Невалиден интервал за опресняване на атрибутите за контрол на достъпа. Трябва да бъде по-голям или равен на 0."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Невалиден интервал на задачата за синхронизация на контрола на достъпа. Трябва да бъде поне 60 секунди."
+  },
+  {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
     "translation": "Невалидна стойност за минутите на изчакване между AI обобщенията. Трябва да бъде по-голяма или равна на 0."
   },
@@ -11613,6 +11857,10 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "Невалидна стойност за времето на изчакване {{.Value}}. Трябва да бъде положително число."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "Типът прокси за изображения 'atmos/camo' беше премахнат в Mattermost v12.0. Задайте ImageProxySettings.ImageProxyType на 'local' или задайте ImageProxySettings.Enable на false, за да изключите проксито за изображения."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -11855,6 +12103,14 @@
     "translation": "Невалидно време на изчакване за извличане на съдържание в настройките за файлове. Трябва да бъде цяло число секунди, по-голямо или равно на нула."
   },
   {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "Флагът за функционалност AppsEnabled вече не се поддържа и трябва да бъде изключен."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "Флагът за функционалност MoveThreadsEnabled вече не се поддържа и трябва да бъде изключен."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Невалидно име на драйвер в настройките за файлове. Трябва да е 'local', 'amazons3' или 'azureblob'."
   },
@@ -12049,6 +12305,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "ExportFormat на задача за експортиране на съобщения е зададена на 'globalrelay', но GlobalRelaySettings липсват."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "При износа на съобщения GlobalRelaySettings.CustomHeaderName и CustomHeaderValue трябва да бъдат зададени и двете или и двете да останат празни."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "При износа на съобщения GlobalRelaySettings.CustomHeaderName трябва да бъде валидно име на заглавка без интервали, двоеточия, разделители или нови редове."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "При износа на съобщения GlobalRelaySettings.CustomHeaderName не трябва да повтаря заглавка, която експортът за Global Relay вече записва."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "При износа на съобщения GlobalRelaySettings.CustomHeaderValue не трябва да съдържа контролни знаци или нови редове."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -12591,6 +12863,14 @@
     "translation": "Дължината на URL адреса в метаданните на връзката е {{ .Length }} символа, което надвишава максималния лимит от {{ .MaxLength }} символа."
   },
   {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Невалиден филтър date_from. Очакван формат „{{.Layout}}“."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Невалиден филтър date_to. Очакван формат „{{.Layout}}“."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Името на канала не е валидно"
   },
@@ -13005,6 +13285,22 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Невалидно време на обработка."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "Повтарящите се планирани публикации не могат да имат прикачени файлове."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "Планираните публикации, които се повтарят всяка седмица, изискват валидна часова зона."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Невалидна часова зона за повтаряща се планирана публикация."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Невалиден тип повторение за планирана публикация."
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",

@@ -3357,15 +3357,15 @@
   },
   "admin.classification_markings.enforcement.clearance.checkbox": {
     "defaultMessage": "Enable clearance attribute",
-    "description": "Label next to the checkbox in System Console > Classification Markings that creates the ranked Clearance user attribute. 'Enable' is a verb."
+    "description": "Label next to the checkbox in System Console > Classification Markings that creates the ranked Clearance user attribute. 'Enable' is a verb. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
   },
   "admin.classification_markings.enforcement.clearance.help": {
     "defaultMessage": "Creates a ranked \"Clearance\" user attribute linked to these classification levels. Channel membership can then be managed with a corresponding <link>membership policy</link>.",
-    "description": "Help text under the clearance checkbox in System Console > Classification Markings. \"Clearance\" in quotes is the literal name given to the generated user attribute. <link>…</link> wraps the words that become a link to the Membership Policies page in the System Console."
+    "description": "Help text under the clearance checkbox in System Console > Classification Markings. \"Clearance\" in quotes is the literal name given to the generated user attribute. <link>…</link> wraps the words that become a link to the Membership Policies page in the System Console. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
   },
   "admin.classification_markings.enforcement.clearance.title": {
     "defaultMessage": "Clearance attribute",
-    "description": "Section heading above the clearance checkbox in System Console > Classification Markings. A noun phrase naming the feature, not an instruction."
+    "description": "Section heading above the clearance checkbox in System Console > Classification Markings. A noun phrase naming the feature, not an instruction. The attribute is created with the hardcoded English display name 'Clearance' (CLEARANCE_FIELD_DISPLAY_NAME in components/admin_console/classification_markings/utils/index.ts), so where the string quotes that name it must stay English even though the surrounding prose is translated."
   },
   "admin.classification_markings.error.delete_has_dependents": {
     "defaultMessage": "Cannot disable classification markings while channel classifications exist. Remove all channel classification markings first.",

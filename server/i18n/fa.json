@@ -736,6 +736,10 @@
     "translation": "به‌روزرسانی عضو کانال نامعتبر است: مهمان نمی‌تواند عضو تیم یا مدیر تیم شود؛ لطفاً ابتدا او را به کاربر ارتقا دهید."
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "به‌روزرسانی عضو کانال نامعتبر است: کاربر باید مهمان یا مدیر باشد، نه هر دو."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "به‌روزرسانی عضو کانال نامعتبر است: کاربر باید مهمان یا کاربر باشد، نه هر دو."
   },
@@ -2162,6 +2166,10 @@
     "translation": "قابلیت رسیدگی به نشت داده (Data Spillage Handling) غیرفعال است."
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "رسیدگی به نشت داده برای کانال‌های پیام مستقیم و پیام گروهی در دسترس نیست."
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "قرنطینه کردن پستی از نوع '{{.PostType}}' مجاز نیست."
   },
@@ -2188,6 +2196,10 @@
   {
     "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "این کاربر بازبین محتوا نیست."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "نوشتن گزارش افشای پست ناموفق بود."
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -3779,6 +3791,10 @@
     "translation": "مجوز شما از حساب‌های مهمان پشتیبانی نمی‌کند"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "حسابی که به {{.Addresses}} مرتبط است غیرفعال شده است. لطفاً برای جزئیات با مدیر سیستم خود تماس بگیرید."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "دعوت‌نامه‌های ایمیلی غیرفعال هستند."
   },
@@ -3933,6 +3949,10 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "به‌روزرسانی نامعتبر عضو تیم: مهمان را نمی‌توان عضو تیم یا مدیر تیم کرد؛ لطفاً ابتدا او را به کاربر ارتقا دهید."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "به‌روزرسانی عضو تیم نامعتبر است: کاربر باید مهمان یا مدیر باشد، نه هر دو."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -4931,6 +4951,10 @@
     "translation": "به‌روزرسانی رمز عبور ناموفق بود زیرا user_id زمینه با شناسه کاربر ارائه‌شده مطابقت نداشت."
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "تغییر به احراز هویت ایمیلی با استفاده از یک جلسه ادغام امکان‌پذیر نیست."
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "پیوند جادویی تنها روش ورود موجود برای این حساب است."
   },
@@ -4997,6 +5021,10 @@
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 در این سرور پیکربندی یا پشتیبانی نشده است."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "وضعیت رلهٔ SAML بیش از حد طولانی است."
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -5307,6 +5335,38 @@
     "translation": "شما مجوز مدیریت این سیاست کنترل دسترسی را ندارید."
   },
   {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "ارزیابی کنترل دسترسی برای این منبع ممکن نشد."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "کاربر عمل‌کننده نامعتبر است یا وجود ندارد."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "این اقدام یک اقدام معتبر کنترل دسترسی نیست."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "شناسه نامعتبری به API کنترل دسترسی داده شده است."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "نوع منبع، یک نوع منبع معتبر کنترل دسترسی افزونه نیست."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "سیاست کنترل دسترسی پیدا نشد."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "افزونه فراخوان، مالک این نوع منبع نیست."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "برای این شناسه، سیاست کنترل دسترسی‌ای از نوعی دیگر از قبل وجود دارد."
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "ذخیره دسته‌ای اشیاء تأییدیه ناموفق بود"
   },
@@ -5441,6 +5501,10 @@
   {
     "id": "app.bot.update.internal_error",
     "translation": "به‌روزرسانی ربات امکان‌پذیر نیست."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "غیرفعال کردن رباتی که متعلق به سیستم است امکان‌پذیر نیست."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -6103,6 +6167,114 @@
     "translation": "ذخیره مقادیر ویژگی برای پست پرچم‌گذاری‌شده امکان‌پذیر نیست."
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "ایمیل"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "غیرفعال‌شده"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "مهمان"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "کاربر راه دور"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "زمان آخرین فعالیت کاربر (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "آخرین مشاهده کانال در (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "شناسه کاربر"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "نام کاربری"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "عضو کانال بوده است"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "تولید گزارش افشا برای نسخه‌ای از سابقه ویرایش امکان‌پذیر نیست. از شناسه پست فعلی استفاده کنید."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "بازیابی سابقه عضویت کانال برای پست پرچم‌گذاری‌شده ناموفق بود."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "بازیابی فعالیت جلسه برای پست پرچم‌گذاری‌شده ناموفق بود."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "بازیابی وضعیت خواندن کانال برای پست پرچم‌گذاری‌شده ناموفق بود."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "کانال"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "زمان تولید"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "شناسه پست"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "نسخه گزارش"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "مجموع کاربران"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "زمان پرچم‌گذاری"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "زمان ایجاد پست"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "برای پست پرچم‌گذاری‌شده زمان گزارش ثبت نشده است، بنابراین بازه افشا قابل تعیین نیست."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "گزارش‌های افشا برای پیام‌های مستقیم و پیام‌های گروهی پشتیبانی نمی‌شوند."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "ندارد"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "خیر"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "جلسه‌ای یافت نشد"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "نامشخص"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "بله"
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "سریال‌سازی نظر کاربر پرچم‌گذارنده ناموفق بود"
   },
@@ -6353,6 +6525,10 @@
     "translation": "نوشتن ورودی سابقه ویرایش در گزارش پست پرچم‌گذاری‌شده ناموفق بود."
   },
   {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "نوشتن گزارش افشا در گزارش پست پرچم‌گذاری‌شده ناموفق بود."
+  },
+  {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
     "translation": "نوشتن فراداده در گزارش پست پرچم‌گذاری‌شده ناموفق بود."
   },
@@ -6551,6 +6727,30 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "هنگام سریال‌سازی داده‌های JSON برای برون‌بری خطایی رخ داد."
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "این اقدام نیازمند استفاده از یک انبار خروجی اختصاصی است."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "بارگیری مستقیم خروجی‌ها فقط در Mattermost Cloud در دسترس است."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "درایور انبار خروجی شما از تولید URL از پیش امضاشده پشتیبانی نمی‌کند."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "بررسی وجود فایل امکان‌پذیر نیست."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "تولید URL از پیش امضاشده امکان‌پذیر نیست."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "فایل خروجی پیدا نشد."
   },
   {
     "id": "app.export.marshal.app_error",
@@ -7741,6 +7941,14 @@
     "translation": "پوشاندن عبارت سیاست ممکن نشد."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "چند ویژگی کاربر به یک الگوی یکسان پیوند دارند، بنابراین قابلیت مشاهده ویژگی کانال را نمی‌توان به‌طور قطعی تعیین کرد."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "تعیین قابلیت مشاهده ویژگی برای نوع شیء ناشناخته امکان‌پذیر نیست."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "ادغام عبارت سیاست با مقادیر پوشانده‌شده ذخیره‌شده ممکن نشد."
   },
@@ -7785,8 +7993,16 @@
     "translation": "سیاستی با این نام از قبل وجود دارد. لطفاً نام دیگری انتخاب کنید."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "این قاعده دسترسی از ویژگی‌های کانال استفاده می‌کند که تیم‌ها آن‌ها را ندارند. پیش از ذخیره، تیم‌های اختصاص‌یافته به این سیاست را بردارید."
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "راه‌اندازی تفکیک‌کننده ویژگی برای ذخیره سیاست ممکن نشد."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "قواعد دسترسی روی این سرور نمی‌توانند از ویژگی‌های کانال استفاده کنند. این قابلیت فعال نیست."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7797,12 +8013,20 @@
     "translation": "شما یک یا چند شرط این سیاست را برآورده نمی‌کنید."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "این قاعده دسترسی از ویژگی‌های کانال استفاده می‌کند که تیم‌ها آن‌ها را ندارند. قواعد دسترسی دارای ویژگی‌های کانال را فقط می‌توان روی کانال‌ها اعمال کرد."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "جستجوی سیاست‌های کنترل دسترسی ممکن نشد."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "تازه‌سازی ویژگی‌ها برای شبیه‌سازی ناموفق بود."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "برای شبیه‌سازی سیاستی که به ویژگی‌های کانال ارجاع می‌دهد، یک کانال لازم است."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8917,6 +9141,10 @@
   {
     "id": "app.scheduled_post.private_channel",
     "translation": "کانال خصوصی"
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "پیام‌های زمان‌بندی‌شده تکرارشونده روی این سرور غیرفعال هستند."
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
@@ -10163,6 +10391,10 @@
     "translation": "پردازشگر تجمیع {{.Backend}} به دلیل شکست کار نمایه‌سازی ناموفق بود"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Mattermost به افزونه analysis-icu روی همه گره‌های {{.Backend}} نیاز دارد. آن را روی همه گره‌ها نصب کنید و سپس {{.Backend}} را دوباره راه‌اندازی کنید."
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} در تکمیل نوع کانال روی پست‌ها ناموفق بود"
   },
@@ -11019,6 +11251,10 @@
     "translation": "نام خط‌مشی نامعتبر است."
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "سیاست کنترل دسترسی نامعتبر است: نوع، یک نوع منبع معتبر افزونه نیست."
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "بازبینی خط‌مشی نامعتبر است."
   },
@@ -11579,6 +11815,14 @@
     "translation": "مقدار «تا» باید بزرگ‌تر از «از» باشد."
   },
   {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "بازه تازه‌سازی ویژگی کنترل دسترسی نامعتبر است. باید بزرگ‌تر یا مساوی 0 باشد."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "بازه کار همگام‌سازی کنترل دسترسی نامعتبر است. باید دست‌کم 60 ثانیه باشد."
+  },
+  {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
     "translation": "مقدار دقایق فاصله بین جمع‌بندی‌های هوش مصنوعی نامعتبر است. باید بزرگ‌تر یا مساوی 0 باشد."
   },
@@ -11613,6 +11857,10 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "مقدار مهلت زمانی {{.Value}} نامعتبر است. باید یک عدد مثبت باشد."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "نوع پروکسی تصویر 'atmos/camo' در Mattermost v12.0 حذف شد. ImageProxySettings.ImageProxyType را روی 'local' تنظیم کنید، یا برای غیرفعال کردن پروکسی تصویر، ImageProxySettings.Enable را روی false بگذارید."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -11855,6 +12103,14 @@
     "translation": "مهلت زمانی استخراج محتوا برای تنظیمات فایل نامعتبر است. باید یک عدد صحیح ثانیه، بزرگ‌تر یا مساوی صفر باشد."
   },
   {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "پرچم قابلیت AppsEnabled دیگر پشتیبانی نمی‌شود و باید غیرفعال شود."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "پرچم قابلیت MoveThreadsEnabled دیگر پشتیبانی نمی‌شود و باید غیرفعال شود."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "نام درایور برای تنظیمات فایل نامعتبر است. باید 'local'، 'amazons3' یا 'azureblob' باشد."
   },
@@ -12049,6 +12305,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "ExportFormat کار صادرات پیام روی 'globalrelay' تنظیم شده است، اما GlobalRelaySettings وجود ندارد."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "GlobalRelaySettings.CustomHeaderName و CustomHeaderValue در خروجی پیام باید هر دو تنظیم شوند، یا هر دو خالی بمانند."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "GlobalRelaySettings.CustomHeaderName در خروجی پیام باید یک نام هدر معتبر و بدون فاصله، دونقطه، جداکننده یا شکست خط باشد."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "GlobalRelaySettings.CustomHeaderName در خروجی پیام نباید هدری را که خروجی Global Relay از پیش می‌نویسد دوباره به کار ببرد."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "GlobalRelaySettings.CustomHeaderValue در خروجی پیام نباید حاوی نویسه‌های کنترلی یا شکست خط باشد."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -12591,6 +12863,14 @@
     "translation": "طول URL فراداده پیوند {{ .Length }} کاراکتر است که از حداکثر مجاز {{ .MaxLength }} کاراکتر بیشتر است."
   },
   {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "فیلتر date_from نامعتبر است. قالب مورد انتظار \"{{.Layout}}\" است."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "فیلتر date_to نامعتبر است. قالب مورد انتظار \"{{.Layout}}\" است."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "نام کانال معتبر نیست"
   },
@@ -13005,6 +13285,22 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "زمان پردازش نامعتبر است."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "پیام‌های زمان‌بندی‌شده تکرارشونده نمی‌توانند پیوست فایل داشته باشند."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "پیام‌های زمان‌بندی‌شده با تکرار هفتگی به یک منطقه زمانی معتبر نیاز دارند."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "منطقه زمانی برای پیام زمان‌بندی‌شده تکرارشونده نامعتبر است."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "نوع تکرار برای پیام زمان‌بندی‌شده نامعتبر است."
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",

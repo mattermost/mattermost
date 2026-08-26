@@ -736,6 +736,10 @@
     "translation": "チャンネルメンバーの不正な更新: ゲストをチームメンバーやチーム管理者にすることはできません。先にユーザーへ昇格してください。"
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "不正なチャンネルメンバー更新: ユーザーはゲストか管理者のどちらかでなければならず、両方であってはいけません。"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "不正なチャンネルメンバー更新: ユーザーはゲストかユーザーのどちらかでなければならず、両方であってはいけません。"
   },
@@ -2160,6 +2164,10 @@
     "translation": "データ漏えい対応機能は無効化されています。"
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "データ漏えい対応は、ダイレクトメッセージおよびグループメッセージのチャンネルでは利用できません。"
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "種別 '{{.PostType}}' の投稿を隔離することは許可されていません。"
   },
@@ -2186,6 +2194,10 @@
   {
     "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "このユーザーはコンテンツレビュアーではありません。"
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "投稿の閲覧範囲レポートを書き込めませんでした。"
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -3774,6 +3786,10 @@
     "translation": "現在のライセンス ではゲストアカウントはサポートされていません"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "{{.Addresses}} に関連付けられたアカウントは無効化されています。詳細についてはシステム管理者に問い合わせてください。"
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "招待メールは無効化されています。"
   },
@@ -3928,6 +3944,10 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "チームメンバーの不正な更新: ゲストをチームメンバーやチーム管理者にすることはできません。先にユーザーに昇格してください。"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "不正なチームメンバー更新: ユーザーはゲストか管理者のどちらかでなければならず、両方であってはいけません。"
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -4926,6 +4946,10 @@
     "translation": "user_idが一致しないためパスワードを更新できません。"
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "統合機能のセッションを使用して電子メール認証に切り替えることはできません。"
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "このアカウントで利用できるログイン方法はマジックリンクのみです。"
   },
@@ -4992,6 +5016,10 @@
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 は、このサーバーでは設定されていないかサポートされていません。"
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "SAMLのリレーステートが長すぎます。"
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -5302,6 +5330,38 @@
     "translation": "あなたにはこのアクセス制御ポリシーを管理する権限がありません。"
   },
   {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "このリソースに対するアクセス制御を評価できませんでした。"
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "操作を行うユーザーが不正であるか、存在しません。"
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "そのアクションは有効なアクセス制御アクションではありません。"
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "アクセス制御APIに不正な識別子が指定されました。"
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "そのリソース種別は、有効なプラグインのアクセス制御リソース種別ではありません。"
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "アクセス制御ポリシーが見つかりません。"
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "呼び出し元のプラグインは、このリソース種別を所有していません。"
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "このIDには、異なる種別のアクセス制御ポリシーが既に存在します。"
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "確認オブジェクトを一括保存できませんでした"
   },
@@ -5436,6 +5496,10 @@
   {
     "id": "app.bot.update.internal_error",
     "translation": "Botを更新できません。"
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "システムが所有するBotを無効にすることはできません。"
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -6098,6 +6162,114 @@
     "translation": "フラグが立てられた投稿のプロパティ値を保存できませんでした。"
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "電子メールアドレス"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "無効化済み"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "ゲスト"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "リモートユーザー"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "ユーザーの最終アクティビティー日時 (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "チャンネルの最終閲覧日時 (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "ユーザーID"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "ユーザー名"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "チャンネルメンバーだったか"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "編集履歴のリビジョンに対して閲覧範囲レポートを生成することはできません。現在の投稿IDを使用してください。"
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "フラグが立てられた投稿のチャンネルメンバーシップ履歴を取得できませんでした。"
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "フラグが立てられた投稿のセッションアクティビティーを取得できませんでした。"
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "フラグが立てられた投稿のチャンネルの既読状態を取得できませんでした。"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "チャンネル"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "生成日時"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "投稿ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "レポートのバージョン"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "ユーザー総数"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "フラグ付与日時"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "投稿作成日時"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "フラグが立てられた投稿に報告日時が記録されていないため、閲覧範囲の期間を特定できません。"
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "閲覧範囲レポートは、ダイレクトメッセージおよびグループメッセージには対応していません。"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "該当なし"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "いいえ"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "セッションが見つかりません"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "不明"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "はい"
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "フラグを立てたユーザーのコメントをマーシャリングできませんでした"
   },
@@ -6346,6 +6518,10 @@
     "translation": "フラグが立てられた投稿のレポートに編集履歴エントリを書き込めませんでした。"
   },
   {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "フラグが立てられた投稿のレポートに閲覧範囲レポートを書き込めませんでした。"
+  },
+  {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
     "translation": "フラグが立てられた投稿のレポートにメタデータを書き込めませんでした。"
   },
@@ -6544,6 +6720,30 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "エクスポートのためのJSONデータへの変換中にエラーが発生しました。"
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "この操作には専用のエクスポートストアの使用が必要です。"
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "エクスポートの直接ダウンロードはMattermost Cloudでのみ利用できます。"
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "使用中のエクスポートストアのドライバーは、署名付きURLの生成をサポートしていません。"
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "ファイルが存在するかどうかを確認できませんでした。"
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "署名付きURLを生成できませんでした。"
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "エクスポートファイルが見つかりませんでした。"
   },
   {
     "id": "app.export.marshal.app_error",
@@ -7734,6 +7934,14 @@
     "translation": "ポリシーの式をマスクできませんでした。"
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "複数のユーザー属性が同じテンプレートにリンクしているため、チャンネル属性の可視性を一意に判定できません。"
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "不明なオブジェクト種別に対する属性の可視性を解決できません。"
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "ポリシーの式を保存されたマスク値と統合できませんでした。"
   },
@@ -7778,8 +7986,16 @@
     "translation": "この名前のポリシーは既に存在します。別の名前を選択してください。"
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "このアクセスルールはチャンネル属性を使用していますが、チームにはチャンネル属性がありません。保存する前に、このポリシーに割り当てられたチームを削除してください。"
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "ポリシーの保存用の属性リゾルバーを初期化できませんでした。"
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "このサーバーでは、アクセスルールでチャンネル属性を使用できません。この機能は有効になっていません。"
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7790,12 +8006,20 @@
     "translation": "あなたはこのポリシーの1つ以上の条件を満たしていません。"
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "このアクセスルールはチャンネル属性を使用していますが、チームにはチャンネル属性がありません。チャンネル属性を使用するアクセスルールは、チャンネルにのみ適用できます。"
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "アクセス制御ポリシーを検索できませんでした。"
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "シミュレーション用の属性を更新できませんでした。"
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "チャンネル属性を参照するポリシーをシミュレーションするにはチャンネルが必要です。"
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8908,6 +9132,10 @@
   {
     "id": "app.scheduled_post.private_channel",
     "translation": "非公開チャンネル"
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "繰り返しのスケジュール済みの投稿は、このサーバーでは無効になっています。"
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
@@ -10154,6 +10382,10 @@
     "translation": "{{.Backend}} Aggregatorのワーカーがインデックス付与処理に失敗したため処理できませんでした"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Mattermostは全ての{{.Backend}}ノードでanalysis-icuプラグインを必要とします。全てのノードにインストールしてから、{{.Backend}}を再起動してください。"
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}}が投稿のチャンネルタイプをバックフィルできませんでした"
   },
@@ -11010,6 +11242,10 @@
     "translation": "ポリシーの名前が無効です。"
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "不正なアクセス制御ポリシー: 種別が有効なプラグインリソース種別ではありません。"
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "ポリシーのリビジョンが無効です。"
   },
@@ -11570,6 +11806,14 @@
     "translation": "有効終了は有効開始の後でなくてはいけません。"
   },
   {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "アクセス制御の属性更新間隔が不正です。0以上である必要があります。"
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "アクセス制御の同期ジョブの間隔が不正です。60秒以上である必要があります。"
+  },
+  {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
     "translation": "AIリキャップのクールダウン (分) が不正です。0以上でなければなりません。"
   },
@@ -11604,6 +11848,10 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "不正なタイムアウト値 {{.Value}} 。正の数にする必要があります。"
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "'atmos/camo' 画像プロキシの形式はMattermost v12.0で削除されました。ImageProxySettings.ImageProxyTypeに 'local' を設定するか、画像プロキシを無効にする場合はImageProxySettings.Enableをfalseに設定してください。"
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -11846,6 +12094,14 @@
     "translation": "ファイル設定のコンテンツ抽出タイムアウトが不正です。0以上の整数 (秒) でなければなりません。"
   },
   {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "AppsEnabled機能フラグは既にサポートされていないため、無効にする必要があります。"
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "MoveThreadsEnabled機能フラグは既にサポートされていないため、無効にする必要があります。"
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "ファイル設定のドライバー名が不正です。'local'、'amazons3'、'azureblob'のいずれかにしてください。"
   },
@@ -12040,6 +12296,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "メッセージエクスポート処理のExportFormatは 'globalrelay' に設定されていますが、GlobalRelaySettingsが見つかりません。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "メッセージエクスポートのGlobalRelaySettings.CustomHeaderNameとCustomHeaderValueは、両方を設定するか、両方を空にする必要があります。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "メッセージエクスポートのGlobalRelaySettings.CustomHeaderNameは、スペース、コロン、区切り文字、改行を含まない有効なヘッダー名である必要があります。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "メッセージエクスポートのGlobalRelaySettings.CustomHeaderNameには、Global Relayのエクスポートが既に書き込むヘッダーを再利用することはできません。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "メッセージエクスポートのGlobalRelaySettings.CustomHeaderValueには、制御文字や改行を含めることはできません。"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -12582,6 +12854,14 @@
     "translation": "リンクメタデータURLの長さが{{ .Length }}文字であり、上限の{{ .MaxLength }}文字を超えています。"
   },
   {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "date_fromフィルターが不正です。想定される形式は \"{{.Layout}}\" です。"
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "date_toフィルターが不正です。想定される形式は \"{{.Layout}}\" です。"
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "チャンネル名が有効ではありません"
   },
@@ -12996,6 +13276,22 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "ProcessedAt の時刻が不正です。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "繰り返しのスケジュール済みの投稿にファイルを添付することはできません。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "毎週繰り返すスケジュール済みの投稿には、有効なタイムゾーンが必要です。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "繰り返しのスケジュール済みの投稿に指定されたタイムゾーンが不正です。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "スケジュール済みの投稿の繰り返し種別が不正です。"
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",

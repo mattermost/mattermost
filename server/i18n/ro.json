@@ -736,6 +736,10 @@
     "translation": "Actualizare invalidă a membrului canalului: Un oaspete nu poate deveni membru sau administrator de echipă; promovați-l mai întâi ca utilizator."
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "Actualizare nevalidă a membrului canalului: un utilizator trebuie să fie fie oaspete, fie administrator, dar nu ambele."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "Actualizare invalidă a membrului canalului: Un utilizator trebuie să fie fie oaspete, fie utilizator, dar nu ambele."
   },
@@ -2164,6 +2168,10 @@
     "translation": "Funcția de gestionare a scurgerilor de date este dezactivată."
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "Gestionarea scurgerilor de date nu este disponibilă pentru canalele de mesaje directe și de grup."
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "Carantinarea unei postări de tipul '{{.PostType}}' nu este permisă."
   },
@@ -2190,6 +2198,10 @@
   {
     "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "Utilizatorul nu este un evaluator de conținut."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "Nu s-a putut scrie raportul de expunere a postării."
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -3784,6 +3796,10 @@
     "translation": "Licența dvs. nu acceptă conturile de oaspete"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "Contul asociat cu {{.Addresses}} a fost dezactivat. Vă rugăm să contactați administratorul de sistem pentru detalii."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Invitațiile prin e-mail sunt dezactivate."
   },
@@ -3938,6 +3954,10 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Actualizare invalidă a membrului echipei: Un oaspete nu poate deveni membru sau administrator de echipă; vă rugăm să îl promovați mai întâi la utilizator."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Actualizare nevalidă a membrului echipei: un utilizator trebuie să fie fie oaspete, fie administrator, dar nu ambele."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -4936,6 +4956,10 @@
     "translation": "Actualizarea parolei a eșuat deoarece user_id din context nu a corespuns cu ID-ul utilizatorului furnizat."
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "Nu se poate trece la autentificarea prin e-mail folosind o sesiune de integrare."
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "Linkul magic este singura metodă de conectare disponibilă pentru acest cont."
   },
@@ -5002,6 +5026,10 @@
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0 nu este configurat sau acceptat pe acest server."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "Starea de retransmisie SAML este prea lungă."
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -5312,6 +5340,38 @@
     "translation": "Nu aveți permisiunea de a gestiona această politică de control al accesului."
   },
   {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "Controlul accesului nu a putut fi evaluat pentru această resursă."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "Utilizatorul care efectuează acțiunea este nevalid sau nu există."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "Acțiunea nu este o acțiune validă de control al accesului."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "Identificator nevalid furnizat API-ului de control al accesului."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "Tipul de resursă nu este un tip de resursă valid pentru controlul accesului din plugin-uri."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "Politica de control al accesului nu a fost găsită."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "Plugin-ul apelant nu deține acest tip de resursă."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "Există deja o politică de control al accesului de alt tip pentru acest ID."
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "Nu s-a putut salva lotul de obiecte de confirmare"
   },
@@ -5446,6 +5506,10 @@
   {
     "id": "app.bot.update.internal_error",
     "translation": "Imposibil de actualizat botul."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "Un bot deținut de sistem nu poate fi dezactivat."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -6108,6 +6172,114 @@
     "translation": "Nu s-au putut salva valorile proprietăților pentru postarea semnalată."
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "E-mail"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "Dezactivat"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "Oaspete"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "Utilizator la distanță"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "Ora ultimei activități a utilizatorului (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "Ultima vizualizare a canalului la (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "ID utilizator"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "Nume de utilizator"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "A fost membru al canalului"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "Nu se poate genera un raport de expunere pentru o revizie din istoricul editărilor. Utilizați ID-ul postării curente."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "Nu s-a putut prelua istoricul apartenenței la canal pentru postarea semnalată."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "Nu s-a putut prelua activitatea sesiunilor pentru postarea semnalată."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "Nu s-a putut prelua starea de citire a canalului pentru postarea semnalată."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "Canal"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "Generat la"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "ID postare"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "Versiunea raportului"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "Total utilizatori"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "Semnalat la"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "Postare creată la"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "Postarea semnalată nu are înregistrată o oră a semnalării, deci intervalul de expunere nu poate fi determinat."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "Rapoartele de expunere nu sunt acceptate pentru mesajele directe și mesajele de grup."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "N/A"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "Nu"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "Nicio sesiune găsită"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "Necunoscut"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "Da"
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "Nu s-a putut serializa comentariul utilizatorului care a semnalat"
   },
@@ -6360,6 +6532,10 @@
     "translation": "Nu s-a putut scrie intrarea din istoricul editărilor în raportul postării semnalate."
   },
   {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "Nu s-a putut scrie raportul de expunere în raportul postării semnalate."
+  },
+  {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
     "translation": "Nu s-au putut scrie metadatele în raportul postării semnalate."
   },
@@ -6558,6 +6734,30 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "A apărut o eroare la serializarea datelor JSON pentru export."
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "Această acțiune necesită utilizarea unui depozit de export dedicat."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "Descărcarea directă a exporturilor este disponibilă numai în Mattermost Cloud."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "Driverul depozitului dvs. de export nu acceptă generarea de URL-uri presemnate."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "Nu se poate verifica dacă fișierul există."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "Nu se poate genera URL-ul presemnat."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "Fișierul de export nu a fost găsit."
   },
   {
     "id": "app.export.marshal.app_error",
@@ -7748,6 +7948,14 @@
     "translation": "Nu s-a putut masca expresia politicii."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "Mai multe atribute de utilizator sunt asociate cu același șablon, deci vizibilitatea atributelor de canal nu poate fi determinată fără ambiguitate."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "Nu se poate determina vizibilitatea atributelor pentru un tip de obiect necunoscut."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "Nu s-a putut îmbina expresia politicii cu valorile mascate stocate."
   },
@@ -7792,8 +8000,16 @@
     "translation": "O politică cu acest nume există deja. Vă rugăm să alegeți un alt nume."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "Această regulă de acces utilizează atribute de canal, pe care echipele nu le au. Eliminați echipele atribuite acestei politici înainte de salvare."
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Nu s-a putut inițializa rezolvatorul de atribute pentru salvarea politicii."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "Regulile de acces nu pot utiliza atribute de canal pe acest server. Această capabilitate nu este activată."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7804,12 +8020,20 @@
     "translation": "Nu îndepliniți una sau mai multe condiții din această politică."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "Această regulă de acces utilizează atribute de canal, pe care echipele nu le au. Regulile de acces cu atribute de canal pot fi aplicate numai canalelor."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Nu s-au putut căuta politicile de control al accesului."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "Nu s-au putut reîmprospăta atributele pentru simulare."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "Este necesar un canal pentru a simula o politică ce face referire la atribute de canal."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8926,6 +9150,10 @@
   {
     "id": "app.scheduled_post.private_channel",
     "translation": "Canal privat"
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "Postările programate recurente sunt dezactivate pe acest server."
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
@@ -10172,6 +10400,10 @@
     "translation": "Procesul de agregare {{.Backend}} a eșuat din cauza eșuării lucrării de indexare"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Mattermost necesită plugin-ul analysis-icu pe fiecare nod {{.Backend}}. Instalați-l pe toate nodurile, apoi reporniți {{.Backend}}."
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} nu a reușit să completeze retroactiv tipul de canal pentru postări"
   },
@@ -11028,6 +11260,10 @@
     "translation": "Nume nevalid pentru politică."
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "Politică de control al accesului nevalidă: tipul nu este un tip de resursă valid pentru plugin-uri."
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "Revizie de politică nevalidă."
   },
@@ -11588,6 +11824,14 @@
     "translation": "„Până la” trebuie să fie mai mare decât „De la”."
   },
   {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "Interval nevalid de reîmprospătare a atributelor de control al accesului. Trebuie să fie mai mare sau egal cu 0."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "Interval nevalid pentru sarcina de sincronizare a controlului accesului. Trebuie să fie de cel puțin 60 de secunde."
+  },
+  {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
     "translation": "Valoare invalidă pentru minutele de pauză între recapitulările AI. Trebuie să fie mai mare sau egală cu 0."
   },
@@ -11622,6 +11866,10 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "Valoare de timeout invalidă {{.Value}}. Trebuie să fie un număr pozitiv."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "Tipul de proxy de imagini 'atmos/camo' a fost eliminat în Mattermost v12.0. Setați ImageProxySettings.ImageProxyType la 'local' sau setați ImageProxySettings.Enable la false pentru a dezactiva proxy-ul de imagini."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -11864,6 +12112,14 @@
     "translation": "Timeout invalid pentru extragerea conținutului în setările de fișiere. Trebuie să fie un număr întreg de secunde mai mare sau egal cu zero."
   },
   {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "Indicatorul de funcționalitate AppsEnabled nu mai este acceptat și trebuie dezactivat."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "Indicatorul de funcționalitate MoveThreadsEnabled nu mai este acceptat și trebuie dezactivat."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "Nume de driver invalid pentru setările de fișiere. Trebuie să fie 'local', 'amazons3' sau 'azureblob'."
   },
@@ -12058,6 +12314,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "ExportFormat pentru jobul de export al mesajelor este setat la 'globalrelay', dar GlobalRelaySettings lipsesc."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "Pentru exportul de mesaje, GlobalRelaySettings.CustomHeaderName și CustomHeaderValue trebuie să fie ambele setate sau ambele lăsate goale."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "Pentru exportul de mesaje, GlobalRelaySettings.CustomHeaderName trebuie să fie un nume de antet valid, fără spații, două puncte, separatori sau întreruperi de linie."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "Pentru exportul de mesaje, GlobalRelaySettings.CustomHeaderName nu trebuie să reutilizeze un antet pe care exportul Global Relay îl scrie deja."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "Pentru exportul de mesaje, GlobalRelaySettings.CustomHeaderValue nu trebuie să conțină caractere de control sau întreruperi de linie."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -12600,6 +12872,14 @@
     "translation": "Lungimea URL-ului metadatelor de link este de {{ .Length }} caractere, ceea ce depășește limita maximă de {{ .MaxLength }} caractere."
   },
   {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "Filtrul date_from este nevalid. Se aștepta formatul \"{{.Layout}}\"."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "Filtrul date_to este nevalid. Se aștepta formatul \"{{.Layout}}\"."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "Numele canalului nu este valid"
   },
@@ -13014,6 +13294,22 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "Timp de procesare invalid."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "Postările programate recurente nu pot avea fișiere atașate."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "Postările programate cu repetare săptămânală necesită un fus orar valid."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "Fus orar nevalid pentru postarea programată recurentă."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "Tip de repetare nevalid pentru postarea programată."
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",

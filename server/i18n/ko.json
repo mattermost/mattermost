@@ -736,6 +736,10 @@
     "translation": "잘못된 채널 구성원 업데이트: 게스트는 팀 구성원이나 팀 관리자가 될 수 없으니 먼저 사용자로 승격해 주세요."
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "잘못된 채널 구성원 업데이트입니다. 사용자는 게스트이거나 관리자여야 하며, 둘 다일 수는 없습니다."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "잘못된 채널 구성원 수정: 사용자는 게스트 혹은 사용자여야하지만 동시에 될 수는 없습니다."
   },
@@ -2160,6 +2164,10 @@
     "translation": "데이터 유출 처리 기능이 비활성화되어 있습니다."
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "데이터 유출 처리는 쪽지 및 그룹 메시지 채널에서는 사용할 수 없습니다."
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "'{{.PostType}}' 유형의 게시물은 격리할 수 없습니다."
   },
@@ -2186,6 +2194,10 @@
   {
     "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "해당 사용자는 콘텐츠 검토자가 아닙니다."
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "게시물 노출 보고서를 작성하지 못했습니다."
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -3774,6 +3786,10 @@
     "translation": "게스트 계정을 지원하지 않는 라이선스입니다"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "{{.Addresses}}에 연결된 계정이 비활성화되었습니다. 자세한 내용은 시스템 관리자에게 문의하세요."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "이메일 초대가 비활성화되어 있습니다."
   },
@@ -3928,6 +3944,10 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "잘못된 팀 구성원 업데이트: 게스트는 팀 구성원이나 팀 관리자가 될 수 없습니다. 먼저 사용자로 승격해 주세요."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "잘못된 팀 구성원 업데이트입니다. 사용자는 게스트이거나 관리자여야 하며, 둘 다일 수는 없습니다."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -4926,6 +4946,10 @@
     "translation": "컨텍스트 user_id가 제공된 사용자의 ID와 일치하지 않아 비밀번호 업데이트에 실패했습니다."
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "통합 세션으로는 이메일 인증으로 전환할 수 없습니다."
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "매직 링크는 이 계정에서 사용할 수 있는 유일한 로그인 방법입니다."
   },
@@ -4992,6 +5016,10 @@
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "SAML 2.0이 설정되지 않았거나 서버에서 지원하지 않습니다."
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "SAML 릴레이 상태가 너무 깁니다."
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -5302,6 +5330,38 @@
     "translation": "이 액세스 제어 정책을 관리할 수 있는 권한이 없습니다."
   },
   {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "이 리소스에 대한 액세스 제어를 평가할 수 없습니다."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "행위 사용자가 유효하지 않거나 존재하지 않습니다."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "해당 작업은 유효한 액세스 제어 작업이 아닙니다."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "액세스 제어 API에 잘못된 식별자가 전달되었습니다."
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "해당 리소스 유형은 유효한 플러그인 액세스 제어 리소스 유형이 아닙니다."
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "액세스 제어 정책을 찾을 수 없습니다."
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "호출한 플러그인은 이 리소스 유형을 소유하고 있지 않습니다."
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "이 ID로 된 다른 유형의 액세스 제어 정책이 이미 존재합니다."
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "확인 개체 배치를 저장하지 못했습니다."
   },
@@ -5436,6 +5496,10 @@
   {
     "id": "app.bot.update.internal_error",
     "translation": "봇을 업데이트할 수 없습니다."
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "시스템 소유 봇은 비활성화할 수 없습니다."
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -6098,6 +6162,114 @@
     "translation": "신고된 게시물의 속성 값을 저장할 수 없습니다."
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "이메일"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "비활성화됨"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "게스트"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "원격 사용자"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "사용자 마지막 활동 시간 (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "채널 마지막 조회 시간 (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "사용자 ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "사용자 이름"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "채널 구성원 여부"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "편집 기록의 이전 버전에 대해서는 노출 보고서를 생성할 수 없습니다. 현재 게시물 ID를 사용하세요."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "신고된 게시물의 채널 멤버십 기록을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "신고된 게시물에 대한 세션 활동을 가져오지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "신고된 게시물의 채널 읽음 상태를 가져오지 못했습니다."
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "채널"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "생성 시간"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "게시물 ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "보고서 버전"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "전체 사용자 수"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "신고 시간"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "게시물 작성 시간"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "신고된 게시물에 신고 시간이 기록되어 있지 않아 노출 기간을 확인할 수 없습니다."
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "쪽지와 그룹 메시지에 대해서는 노출 보고서를 지원하지 않습니다."
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "해당 없음"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "아니요"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "세션을 찾을 수 없음"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "알 수 없음"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "예"
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "신고한 사용자의 의견을 직렬화하지 못했습니다"
   },
@@ -6346,6 +6518,10 @@
     "translation": "신고된 게시물 보고서에 편집 기록 항목을 작성하지 못했습니다."
   },
   {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "노출 보고서를 신고 게시물 보고서에 기록하지 못했습니다."
+  },
+  {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
     "translation": "신고된 게시물 보고서에 메타데이터를 작성하지 못했습니다."
   },
@@ -6544,6 +6720,30 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "내보내기용 JSON 데이터를 마샬링하는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "이 작업에는 전용 내보내기 저장소가 필요합니다."
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "내보내기 파일의 직접 다운로드는 Mattermost Cloud에서만 사용할 수 있습니다."
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "사용 중인 내보내기 저장소 드라이버는 서명된 URL 생성을 지원하지 않습니다."
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "파일이 존재하는지 확인할 수 없습니다."
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "서명된 URL을 생성할 수 없습니다."
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "내보내기 파일을 찾을 수 없습니다."
   },
   {
     "id": "app.export.marshal.app_error",
@@ -7734,6 +7934,14 @@
     "translation": "정책 표현식을 마스킹할 수 없습니다."
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "여러 사용자 속성이 동일한 템플릿에 연결되어 있어 채널 속성의 가시성을 명확하게 확인할 수 없습니다."
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "알 수 없는 객체 유형에 대해서는 속성 가시성을 확인할 수 없습니다."
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "정책 표현식을 저장된 마스킹 값과 병합할 수 없습니다."
   },
@@ -7778,8 +7986,16 @@
     "translation": "같은 이름의 정책이 이미 존재합니다. 다른 이름을 선택하세요."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "이 액세스 규칙은 팀에는 없는 채널 속성을 사용합니다. 저장하기 전에 이 정책에 할당된 팀을 제거하세요."
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "정책 저장을 위한 속성 리졸버를 초기화할 수 없습니다."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "이 서버에서는 액세스 규칙에 채널 속성을 사용할 수 없습니다. 이 기능이 활성화되어 있지 않습니다."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7790,12 +8006,20 @@
     "translation": "이 정책의 조건 중 하나 이상을 충족하지 않습니다."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "이 액세스 규칙은 팀에는 없는 채널 속성을 사용합니다. 채널 속성을 사용하는 액세스 규칙은 채널에만 적용할 수 있습니다."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "액세스 제어 정책을 검색할 수 없습니다."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "시뮬레이션을 위한 속성을 새로 고치지 못했습니다."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "채널 속성을 참조하는 정책을 시뮬레이션하려면 채널이 필요합니다."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8908,6 +9132,10 @@
   {
     "id": "app.scheduled_post.private_channel",
     "translation": "비공개 채널"
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "이 서버에서는 반복 예약 메시지가 비활성화되어 있습니다."
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
@@ -10154,6 +10382,10 @@
     "translation": "인덱싱 작업 실패로 인해 {{.Backend}} 집계 워커가 실패했습니다"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Mattermost는 모든 {{.Backend}} 노드에 analysis-icu 플러그인이 필요합니다. 모든 노드에 설치한 후 {{.Backend}}을(를) 재시작하세요."
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}}이(가) 게시물의 채널 유형을 채우지 못했습니다"
   },
@@ -11010,6 +11242,10 @@
     "translation": "정책의 이름이 잘못되었습니다."
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "잘못된 액세스 제어 정책입니다. 유형이 유효한 플러그인 리소스 유형이 아닙니다."
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "잘못된 정책 개정입니다."
   },
@@ -11570,6 +11806,14 @@
     "translation": "종료(To)는 시작(From)보다 커야 합니다."
   },
   {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "액세스 제어 속성 새로 고침 간격이 잘못되었습니다. 0 이상이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "액세스 제어 동기화 작업 간격이 잘못되었습니다. 최소 60초 이상이어야 합니다."
+  },
+  {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
     "translation": "잘못된 AI 리캡 대기 시간(분)입니다. 0 이상이어야 합니다."
   },
@@ -11604,6 +11848,10 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "{{.Value}} 시간 초과 값은 유효하지 않습니다. 시간 초과가 양수여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "'atmos/camo' 이미지 프록시 유형은 Mattermost v12.0에서 제거되었습니다. ImageProxySettings.ImageProxyType을 'local'로 설정하거나, 이미지 프록시를 사용하지 않으려면 ImageProxySettings.Enable을 false로 설정하세요."
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -11846,6 +12094,14 @@
     "translation": "파일 설정의 콘텐츠 추출 시간 초과 값이 잘못되었습니다. 0 이상의 정수(초)여야 합니다."
   },
   {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "AppsEnabled 기능 플래그는 더 이상 지원되지 않으므로 비활성화해야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "MoveThreadsEnabled 기능 플래그는 더 이상 지원되지 않으므로 비활성화해야 합니다."
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "파일 설정의 드라이버 이름이 유효하지 않습니다. 이 값은 'local', 'amazons3' 또는 'azureblob'이어야 합니다."
   },
@@ -12040,6 +12296,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "메시지 내보내기 작업 ExportFormat이 'globalrelay'로 설정되어 있지만 GlobalRelaySettings가 없습니다."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "메시지 내보내기의 GlobalRelaySettings.CustomHeaderName과 CustomHeaderValue는 둘 다 설정하거나 둘 다 비워 두어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "메시지 내보내기의 GlobalRelaySettings.CustomHeaderName은 공백, 콜론, 구분 기호, 줄바꿈이 없는 유효한 헤더 이름이어야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "메시지 내보내기의 GlobalRelaySettings.CustomHeaderName에는 Global Relay 내보내기가 이미 기록하는 헤더를 사용할 수 없습니다."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "메시지 내보내기의 GlobalRelaySettings.CustomHeaderValue에는 제어 문자나 줄바꿈이 포함될 수 없습니다."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -12582,6 +12854,14 @@
     "translation": "링크 메타데이터 URL의 길이가 {{ .Length }}자로, 최대 제한인 {{ .MaxLength }}자를 초과합니다."
   },
   {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "date_from 필터가 잘못되었습니다. \"{{.Layout}}\" 형식이어야 합니다."
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "date_to 필터가 잘못되었습니다. \"{{.Layout}}\" 형식이어야 합니다."
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "채널 이름이 유효하지 않습니다."
   },
@@ -12996,6 +13276,22 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "처리된 시간이 잘못되었습니다."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "반복 예약 메시지에는 파일을 첨부할 수 없습니다."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "매주 반복되는 예약 메시지에는 유효한 시간대가 필요합니다."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "반복 예약 메시지의 시간대가 잘못되었습니다."
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "예약 메시지의 반복 유형이 잘못되었습니다."
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",

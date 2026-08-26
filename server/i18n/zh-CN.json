@@ -736,6 +736,10 @@
     "translation": "频道成员更新无效：访客不能成为团队成员或团队管理员，请先提升为用户。"
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest_and_admin.app_error",
+    "translation": "频道成员更新无效：用户只能是访客或管理员，不能同时兼具两者。"
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "频道成员更新无效：用户不能同时作为访客和用户。"
   },
@@ -2160,6 +2164,10 @@
     "translation": "数据泄露处理功能已禁用。"
   },
   {
+    "id": "api.data_spillage.error.invalid_channel_type",
+    "translation": "私信和群组消息频道不支持数据泄露处理。"
+  },
+  {
     "id": "api.data_spillage.error.invalid_post_type",
     "translation": "不允许隔离类型为“{{.PostType}}”的消息。"
   },
@@ -2186,6 +2194,10 @@
   {
     "id": "api.data_spillage.error.user_not_reviewer",
     "translation": "该用户不是内容审核员。"
+  },
+  {
+    "id": "api.data_spillage.exposure.write.app_error",
+    "translation": "写入消息暴露范围报告失败。"
   },
   {
     "id": "api.data_spillage.report.open.app_error",
@@ -3774,6 +3786,10 @@
     "translation": "您的许可证不支持访客账号"
   },
   {
+    "id": "api.team.invite_members.account_deactivated.app_error",
+    "translation": "与 {{.Addresses}} 关联的账号已被停用。请联系您的系统管理员了解详情。"
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "邮件邀请已停用。"
   },
@@ -3928,6 +3944,10 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "团队成员更新无效：访客不能成为团队成员或团队管理员，请先将其提升为用户。"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "团队成员更新无效：用户只能是访客或管理员，不能同时兼具两者。"
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -4926,6 +4946,10 @@
     "translation": "更新密码失败，因为 user_id 与用户 ID 不匹配。"
   },
   {
+    "id": "api.user.oauth_to_email.integration_session.app_error",
+    "translation": "无法使用集成会话切换到邮箱身份验证。"
+  },
+  {
     "id": "api.user.oauth_to_email.magic_link.app_error",
     "translation": "登录链接是此账号唯一可用的登录方式。"
   },
@@ -4992,6 +5016,10 @@
   {
     "id": "api.user.saml.not_available.app_error",
     "translation": "此服务器没有正确配置或者不支持 SAML 2.0。"
+  },
+  {
+    "id": "api.user.saml.relay_state_too_long.app_error",
+    "translation": "SAML 中继状态过长。"
   },
   {
     "id": "api.user.send_cloud_welcome_email.error",
@@ -5302,6 +5330,38 @@
     "translation": "您没有权限管理此访问控制策略。"
   },
   {
+    "id": "app.access_control.plugin.evaluation_unavailable.app_error",
+    "translation": "无法对此资源进行访问控制评估。"
+  },
+  {
+    "id": "app.access_control.plugin.invalid_acting_user.app_error",
+    "translation": "操作用户无效或不存在。"
+  },
+  {
+    "id": "app.access_control.plugin.invalid_action.app_error",
+    "translation": "该操作不是有效的访问控制操作。"
+  },
+  {
+    "id": "app.access_control.plugin.invalid_id.app_error",
+    "translation": "提供给访问控制 API 的标识符无效。"
+  },
+  {
+    "id": "app.access_control.plugin.invalid_resource_type.app_error",
+    "translation": "该资源类型不是有效的插件访问控制资源类型。"
+  },
+  {
+    "id": "app.access_control.plugin.policy_not_found.app_error",
+    "translation": "未找到访问控制策略。"
+  },
+  {
+    "id": "app.access_control.plugin.resource_type_forbidden.app_error",
+    "translation": "调用方插件不拥有此资源类型。"
+  },
+  {
+    "id": "app.access_control.plugin.type_conflict.app_error",
+    "translation": "此 ID 已存在其他类型的访问控制策略。"
+  },
+  {
     "id": "app.acknowledgement.batch_save.app_error",
     "translation": "批量保存确认对象失败"
   },
@@ -5436,6 +5496,10 @@
   {
     "id": "app.bot.update.internal_error",
     "translation": "无法更新机器人。"
+  },
+  {
+    "id": "app.bot.update_bot_active.protected_bot.app_error",
+    "translation": "无法停用系统自有的机器人。"
   },
   {
     "id": "app.burn_post.not_burn_on_read.app_error",
@@ -6098,6 +6162,114 @@
     "translation": "无法保存被标记消息的属性值。"
   },
   {
+    "id": "app.data_spillage.exposure.column.email",
+    "translation": "邮箱"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_deactivated",
+    "translation": "已停用"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_guest",
+    "translation": "访客"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.is_remote",
+    "translation": "远程用户"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_activity_at",
+    "translation": "用户上次活动时间 (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.last_viewed_at",
+    "translation": "上次查看频道时间 (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.user_id",
+    "translation": "用户 ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.username",
+    "translation": "用户名"
+  },
+  {
+    "id": "app.data_spillage.exposure.column.was_channel_member",
+    "translation": "曾是频道成员"
+  },
+  {
+    "id": "app.data_spillage.exposure.edit_history_post.app_error",
+    "translation": "无法为编辑历史修订生成暴露范围报告。请使用当前的消息 ID。"
+  },
+  {
+    "id": "app.data_spillage.exposure.get_channel_members.app_error",
+    "translation": "获取被标记消息所在频道的成员历史失败。"
+  },
+  {
+    "id": "app.data_spillage.exposure.get_last_activity.app_error",
+    "translation": "获取被标记消息的会话活动数据失败。"
+  },
+  {
+    "id": "app.data_spillage.exposure.get_possible_viewers.app_error",
+    "translation": "获取被标记消息所在频道的已读状态失败。"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.channel",
+    "translation": "频道"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.generated_at",
+    "translation": "生成时间"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.post_id",
+    "translation": "消息 ID"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.report_version",
+    "translation": "报告版本"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.total_users",
+    "translation": "用户总数"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_end",
+    "translation": "标记时间"
+  },
+  {
+    "id": "app.data_spillage.exposure.meta.window_start",
+    "translation": "消息创建时间"
+  },
+  {
+    "id": "app.data_spillage.exposure.missing_reporting_time.app_error",
+    "translation": "被标记消息未记录举报时间，因此无法确定暴露时间窗口。"
+  },
+  {
+    "id": "app.data_spillage.exposure.unsupported_channel_type.app_error",
+    "translation": "私信和群组消息不支持暴露范围报告。"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.never_viewed",
+    "translation": "不适用"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no",
+    "translation": "否"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.no_sessions",
+    "translation": "未找到会话"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.unknown",
+    "translation": "未知"
+  },
+  {
+    "id": "app.data_spillage.exposure.value.yes",
+    "translation": "是"
+  },
+  {
     "id": "app.data_spillage.flag_post.marshal_comment.app_error",
     "translation": "无法序列化标记用户的评论"
   },
@@ -6346,6 +6518,10 @@
     "translation": "无法将编辑历史条目写入被标记消息报告。"
   },
   {
+    "id": "app.data_spillage.report.write_exposure_csv.app_error",
+    "translation": "无法将暴露范围报告写入被标记消息报告。"
+  },
+  {
     "id": "app.data_spillage.report.write_metadata_yaml.app_error",
     "translation": "无法将元数据写入被标记消息报告。"
   },
@@ -6544,6 +6720,30 @@
   {
     "id": "app.export.export_write_line.json_marshall.error",
     "translation": "导出 JSON 数据时发生错误。"
+  },
+  {
+    "id": "app.export.generate_presigned_url.config.app_error",
+    "translation": "此操作需要使用专用的导出存储。"
+  },
+  {
+    "id": "app.export.generate_presigned_url.direct_download.app_error",
+    "translation": "仅 Mattermost Cloud 支持直接下载导出文件。"
+  },
+  {
+    "id": "app.export.generate_presigned_url.driver.app_error",
+    "translation": "您的导出存储驱动不支持生成预签名 URL。"
+  },
+  {
+    "id": "app.export.generate_presigned_url.fileexist.app_error",
+    "translation": "无法检查该文件是否存在。"
+  },
+  {
+    "id": "app.export.generate_presigned_url.link.app_error",
+    "translation": "无法生成预签名 URL。"
+  },
+  {
+    "id": "app.export.generate_presigned_url.notfound.app_error",
+    "translation": "未找到该导出文件。"
   },
   {
     "id": "app.export.marshal.app_error",
@@ -7734,6 +7934,14 @@
     "translation": "无法遮蔽策略表达式。"
   },
   {
+    "id": "app.pap.masking.ambiguous_sibling.app_error",
+    "translation": "多个用户属性关联了同一个模板，因此无法明确判定频道属性的可见性。"
+  },
+  {
+    "id": "app.pap.masking.unknown_object_type.app_error",
+    "translation": "无法为未知的对象类型解析属性可见性。"
+  },
+  {
     "id": "app.pap.merge_expression.app_error",
     "translation": "无法将策略表达式与已存储的遮蔽值合并。"
   },
@@ -7778,8 +7986,16 @@
     "translation": "已存在同名策略。请选择其他名称。"
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": "此访问规则使用了频道属性，而团队不具备这些属性。请先移除分配给此策略的团队，然后再保存。"
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "保存策略时无法初始化属性解析器。"
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": "此服务器上的访问规则不能使用频道属性。该功能未启用。"
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -7790,12 +8006,20 @@
     "translation": "您不满足此策略中的一个或多个条件。"
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": "此访问规则使用了频道属性，而团队不具备这些属性。包含频道属性的访问规则只能应用于频道。"
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "无法搜索访问控制策略。"
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "无法刷新模拟的属性。"
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": "模拟引用了频道属性的策略时，必须指定一个频道。"
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8908,6 +9132,10 @@
   {
     "id": "app.scheduled_post.private_channel",
     "translation": "私有频道"
+  },
+  {
+    "id": "app.scheduled_post.recurring_disabled.app_error",
+    "translation": "此服务器已禁用重复计划消息。"
   },
   {
     "id": "app.scheduled_post.save.rejected_by_plugin",
@@ -10154,6 +10382,10 @@
     "translation": "{{.Backend}} 聚合器工作进程因索引作业失败而失败"
   },
   {
+    "id": "ent.elasticsearch.analysis_icu_required",
+    "translation": "Mattermost 要求每个 {{.Backend}} 节点都安装 analysis-icu 插件。请在所有节点上安装该插件，然后重启 {{.Backend}}。"
+  },
+  {
     "id": "ent.elasticsearch.backfill_posts_channel_type.error",
     "translation": "{{.Backend}} 回填消息中的频道类型失败"
   },
@@ -11010,6 +11242,10 @@
     "translation": "策略名称无效。"
   },
   {
+    "id": "model.access_policy.is_valid.plugin_type.app_error",
+    "translation": "访问控制策略无效：类型不是有效的插件资源类型。"
+  },
+  {
     "id": "model.access_policy.is_valid.revision.app_error",
     "translation": "策略版本无效。"
   },
@@ -11570,6 +11806,14 @@
     "translation": "To 必须大于 From。"
   },
   {
+    "id": "model.config.is_valid.access_control_attribute_refresh_interval.app_error",
+    "translation": "访问控制属性刷新间隔无效。必须大于或等于 0。"
+  },
+  {
+    "id": "model.config.is_valid.access_control_sync_interval.app_error",
+    "translation": "访问控制同步作业间隔无效。必须至少为 60 秒。"
+  },
+  {
     "id": "model.config.is_valid.ai_recap.cooldown_minutes.app_error",
     "translation": "AI 回顾冷却分钟数无效。必须大于或等于 0。"
   },
@@ -11604,6 +11848,10 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "超时值 {{.Value}} 无效。应为正数。"
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_removed.app_error",
+    "translation": "'atmos/camo' 图像代理类型已在 Mattermost v12.0 中移除。请将 ImageProxySettings.ImageProxyType 设置为 'local'，或将 ImageProxySettings.Enable 设置为 false 以禁用图像代理。"
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
@@ -11846,6 +12094,14 @@
     "translation": "文件设置中的内容提取超时无效。必须为大于或等于零的整数秒数。"
   },
   {
+    "id": "model.config.is_valid.feature_flags.apps_enabled.app_error",
+    "translation": "AppsEnabled 功能标志已不再受支持，必须将其禁用。"
+  },
+  {
+    "id": "model.config.is_valid.feature_flags.move_threads_enabled.app_error",
+    "translation": "MoveThreadsEnabled 功能标志已不再受支持，必须将其禁用。"
+  },
+  {
     "id": "model.config.is_valid.file_driver.app_error",
     "translation": "文件设置中的驱动名称无效。必须为 'local'、'amazons3' 或 'azureblob'。"
   },
@@ -12040,6 +12296,22 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
     "translation": "消息导出任务 ExportFormat 为 ‘globalrelay’，但缺少 GlobalRelaySettings。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+    "translation": "消息导出 GlobalRelaySettings.CustomHeaderName 和 CustomHeaderValue 必须同时设置，或同时留空。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+    "translation": "消息导出 GlobalRelaySettings.CustomHeaderName 必须是有效的标头名称，不能包含空格、冒号、分隔符或换行符。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+    "translation": "消息导出 GlobalRelaySettings.CustomHeaderName 不能重复使用 Global Relay 导出已写入的标头。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+    "translation": "消息导出 GlobalRelaySettings.CustomHeaderValue 不能包含控制字符或换行符。"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
@@ -12582,6 +12854,14 @@
     "translation": "链接元数据 URL 长度为 {{ .Length }} 字符，超过了 {{ .MaxLength }} 字符的最大限制。"
   },
   {
+    "id": "model.log_filter.is_valid.date_from.app_error",
+    "translation": "date_from 过滤器无效。应为格式“{{.Layout}}”。"
+  },
+  {
+    "id": "model.log_filter.is_valid.date_to.app_error",
+    "translation": "date_to 过滤器无效。应为格式“{{.Layout}}”。"
+  },
+  {
     "id": "model.member.is_valid.channel.app_error",
     "translation": "频道名无效"
   },
@@ -12996,6 +13276,22 @@
   {
     "id": "model.scheduled_post.is_valid.processed_at.app_error",
     "translation": "处理时间无效。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_files.app_error",
+    "translation": "重复计划消息不能包含文件附件。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone.app_error",
+    "translation": "每周重复的计划消息需要有效的时区。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error",
+    "translation": "重复计划消息的时区无效。"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_type.app_error",
+    "translation": "重复类型对计划消息无效。"
   },
   {
     "id": "model.scheduled_post.is_valid.scheduled_at.app_error",
