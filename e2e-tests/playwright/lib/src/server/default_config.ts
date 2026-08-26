@@ -91,7 +91,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v11.7 server
+// Based on v11.9 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -209,7 +209,7 @@ const defaultServerConfig: AdminConfig = {
         FeatureFlagSyncIntervalSeconds: 30,
         DebugSplit: false,
         ThreadAutoFollow: true,
-        CollapsedThreads: CollapsedThreads.ALWAYS_ON,
+        CollapsedThreads: 'always_on',
         ManagedResourcePaths: '',
         EnableCustomGroups: true,
         AllowSyncedDrafts: true,
@@ -238,14 +238,15 @@ const defaultServerConfig: AdminConfig = {
         EnableLastActiveTime: true,
         UserStatusAwayTimeout: 300,
         MaxChannelsPerTeam: 2000,
+        EnableChannelCategorySorting: true,
         MaxNotificationsPerChannel: 1000,
         EnableConfirmNotificationsToChannel: true,
         TeammateNameDisplay: 'username',
+        ExperimentalViewArchivedChannels: true,
         ExperimentalEnableAutomaticReplies: false,
         LockTeammateNameDisplay: false,
         ExperimentalPrimaryTeam: '',
         ExperimentalDefaultChannels: [],
-        EnableChannelCategorySorting: true,
     },
     ClientRequirements: {
         AndroidLatestVersion: '',
@@ -255,8 +256,7 @@ const defaultServerConfig: AdminConfig = {
     },
     SqlSettings: {
         DriverName: 'postgres',
-        DataSource:
-            'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes',
+        DataSource: 'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes',
         DataSourceReplicas: [],
         DataSourceSearchReplicas: [],
         MaxIdleConns: 50,
@@ -294,7 +294,7 @@ const defaultServerConfig: AdminConfig = {
         Certificate: '',
     },
     PasswordSettings: {
-        MinimumLength: 14,
+        MinimumLength: 8,
         Lowercase: false,
         Number: false,
         Uppercase: false,
@@ -329,6 +329,15 @@ const defaultServerConfig: AdminConfig = {
         AmazonS3RequestTimeoutMilliseconds: 30000,
         AmazonS3UploadPartSizeBytes: 5242880,
         AmazonS3StorageClass: '',
+        AzureStorageAccount: '',
+        AzureAuthMode: 'shared_key',
+        AzureAccessKey: '',
+        AzureContainer: '',
+        AzurePathPrefix: '',
+        AzureCloud: 'commercial',
+        AzureEndpoint: '',
+        AzureSSL: true,
+        AzureRequestTimeoutMilliseconds: 30000,
         DedicatedExportStore: false,
         ExportDriverName: 'local',
         ExportDirectory: './data/',
@@ -346,6 +355,16 @@ const defaultServerConfig: AdminConfig = {
         ExportAmazonS3PresignExpiresSeconds: 21600,
         ExportAmazonS3UploadPartSizeBytes: 104857600,
         ExportAmazonS3StorageClass: '',
+        ExportAzureStorageAccount: '',
+        ExportAzureAuthMode: 'shared_key',
+        ExportAzureAccessKey: '',
+        ExportAzureContainer: '',
+        ExportAzurePathPrefix: '',
+        ExportAzureCloud: 'commercial',
+        ExportAzureEndpoint: '',
+        ExportAzureSSL: true,
+        ExportAzureRequestTimeoutMilliseconds: 30000,
+        ExportAzurePresignExpiresSeconds: 21600,
     },
     EmailSettings: {
         EnableSignUpWithEmail: true,
@@ -354,7 +373,7 @@ const defaultServerConfig: AdminConfig = {
         SendEmailNotifications: true,
         UseChannelInEmailNotifications: false,
         RequireEmailVerification: false,
-        FeedbackName: 'Mattermost',
+        FeedbackName: '',
         FeedbackEmail: 'test@example.com',
         ReplyToAddress: 'test@example.com',
         FeedbackOrganization: '',
@@ -367,8 +386,6 @@ const defaultServerConfig: AdminConfig = {
         ConnectionSecurity: '',
         SendPushNotifications: true,
         PushNotificationServer: 'https://push-test.mattermost.com',
-        PushNotificationServerType: 'custom',
-        PushNotificationServerLocation: 'global',
         PushNotificationContents: 'full',
         PushNotificationBuffer: 1000,
         EnableEmailBatching: false,
@@ -448,8 +465,7 @@ const defaultServerConfig: AdminConfig = {
         Scope: 'profile email',
         AuthEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
         TokenEndpoint: 'https://www.googleapis.com/oauth2/v4/token',
-        UserAPIEndpoint:
-            'https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,nicknames,metadata',
+        UserAPIEndpoint: 'https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,nicknames,metadata',
         DiscoveryEndpoint: '',
         ButtonText: '',
         ButtonColor: '',
@@ -567,7 +583,10 @@ const defaultServerConfig: AdminConfig = {
         LoginButtonTextColor: '#ffffff',
     },
     NativeAppSettings: {
-        AppCustomURLSchemes: ['mmauth://', 'mmauthbeta://'],
+        AppCustomURLSchemes: [
+            'mmauth://',
+            'mmauthbeta://',
+        ],
         AppDownloadLink: 'https://mattermost.com/pl/download-apps',
         AndroidAppDownloadLink: 'https://mattermost.com/pl/android-app/',
         IosAppDownloadLink: 'https://mattermost.com/pl/ios-app/',
@@ -660,7 +679,7 @@ const defaultServerConfig: AdminConfig = {
         ClientKey: '',
         Trace: '',
         IgnoredPurgeIndexes: '',
-        EnableSearchPublicChannelsWithoutMembership: false,
+        EnableSearchPublicChannelsWithoutMembership: true,
     },
     DataRetentionSettings: {
         EnableMessageDeletion: false,
@@ -676,6 +695,12 @@ const defaultServerConfig: AdminConfig = {
         TimeBetweenBatchesMilliseconds: 100,
         RetentionIdsBatchSize: 100,
         PreservePinnedPosts: false,
+    },
+    MobileEphemeralModeSettings: {
+        Enable: false,
+        DisconnectionTimeoutSeconds: 60,
+        OfflinePersistenceTimerHours: 24,
+        AutoCacheCleanupDays: 7,
     },
     MessageExportSettings: {
         EnableExport: false,
@@ -784,20 +809,29 @@ const defaultServerConfig: AdminConfig = {
         ExperimentalAuditSettingsSystemConsoleUI: true,
         CustomProfileAttributes: true,
         AttributeBasedAccessControl: true,
+        AttributeValueMasking: true,
         PermissionPolicies: true,
+        ChannelPermissionPolicies: true,
+        PolicySimulation: true,
         ContentFlagging: true,
         EnableMattermostEntry: true,
         MobileSSOCodeExchange: false,
+        EnableShiftEscapeToMarkAllRead: false,
         AutoTranslation: true,
+        ClassificationMarkings: true,
         BurnOnRead: true,
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
-        ClassificationMarkings: true,
-        PropertyFieldRank: true,
         IntegratedBoards: false,
         CJKSearch: true,
+        AggregatePluginMetrics: false,
         ManagedChannelCategories: false,
-        MobileEphemeralMode: true,
+        SessionAttributes: false,
+        DiscoverableChannels: false,
+        MobileEphemeralMode: false,
+        PropertyFieldRank: true,
+        TeamMembershipAccessControl: false,
+        EnableMFIPluginSignaturePublicKey: true,
     },
     ImportSettings: {
         Directory: './import',
@@ -826,19 +860,30 @@ const defaultServerConfig: AdminConfig = {
         MemberSyncBatchSize: 20,
     },
     AccessControlSettings: {
-        EnableAttributeBasedAccessControl: true,
-        EnableUserManagedAttributes: true,
+        EnableAttributeBasedAccessControl: false,
+        EnableUserManagedAttributes: false,
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
     },
     ContentFlaggingSettings: {
-        EnableContentFlagging: true,
+        EnableContentFlagging: false,
         NotificationSettings: {
             EventTargetMapping: {
-                assigned: ['reviewers'],
-                dismissed: ['reviewers', 'reporter'],
-                flagged: ['reviewers'],
-                removed: ['reviewers', 'author', 'reporter'],
+                assigned: [
+                    'reviewers',
+                ],
+                dismissed: [
+                    'reviewers',
+                    'reporter',
+                ],
+                flagged: [
+                    'reviewers',
+                ],
+                removed: [
+                    'reviewers',
+                    'author',
+                    'reporter',
+                ],
             },
         },
         AdditionalSettings: {
@@ -857,9 +902,7 @@ const defaultServerConfig: AdminConfig = {
         },
         ReviewerSettings: {
             CommonReviewers: true,
-            CommonReviewerIds: [],
-            TeamReviewersSetting: {},
-            SystemAdminsAsReviewers: true,
+            SystemAdminsAsReviewers: false,
             TeamAdminsAsReviewers: true,
         },
     },
@@ -867,7 +910,9 @@ const defaultServerConfig: AdminConfig = {
         Enable: false,
         RestrictDMAndGM: false,
         Provider: '',
-        TargetLanguages: ['en'],
+        TargetLanguages: [
+            'en',
+        ],
         Workers: 6,
         TimeoutMs: 5000,
         LibreTranslate: {
@@ -877,11 +922,5 @@ const defaultServerConfig: AdminConfig = {
         Agents: {
             LLMServiceID: '',
         },
-    },
-    MobileEphemeralModeSettings: {
-        Enable: false,
-        DisconnectionTimeoutSeconds: 60,
-        OfflinePersistenceTimerHours: 24,
-        AutoCacheCleanupDays: 7,
     },
 };
