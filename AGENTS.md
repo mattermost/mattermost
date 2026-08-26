@@ -3,6 +3,13 @@
 Explicitly import subdirectory instruction files that must always be in context:
 @server/AGENTS.md
 
+## Translations
+
+Any change that adds or alters a user-facing string must ship its translations
+for all 21 non-English locales in the same pull request. There is no external
+translation service. See [`i18n/AGENTS.md`](./i18n/AGENTS.md) for the workflow,
+the rules CI enforces, and the per-locale plural categories.
+
 ## Pull Requests
 
 When creating a pull request, follow `.github/PULL_REQUEST_TEMPLATE.md` exactly:
