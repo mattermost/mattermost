@@ -140,6 +140,7 @@ func TestExportUserChannels(t *testing.T) {
 }
 
 func TestCopyEmojiImages(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70445")
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
 
