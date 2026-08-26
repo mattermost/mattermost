@@ -1309,6 +1309,22 @@ describe('AttributeDetails', () => {
             expect(screen.queryByTestId('attributeTypeLockWrap')).not.toBeInTheDocument();
         });
 
+        it('locks adding an external source while a pending Applies-to resource is on the form, so linking cannot silently change the type', async () => {
+            mockLoadedField(makeTemplate({type: 'select', attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]}}), [makeLinked('user', 'user-field')]);
+            renderEdit();
+            await waitForForm();
+
+            expect(screen.getByTestId('attributeExternalSourceTrigger')).toBeDisabled();
+            expect(screen.getByTestId('attributeExternalSourceTriggerLockWrap')).toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+
+            await waitFor(() => expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument());
+            expect(screen.getByTestId('attributeExternalSourceTrigger')).not.toBeDisabled();
+            expect(screen.queryByTestId('attributeExternalSourceTriggerLockWrap')).not.toBeInTheDocument();
+        });
+
         it('locks Name editing while the attribute is currently applied to a resource', async () => {
             mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
             renderEdit();

@@ -1129,6 +1129,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                         fieldType={fieldType}
                                         onLink={handleLink}
                                         disabled={saving || disabled}
+                                        disableAdding={typeLockedByAppliesTo}
                                     />
                                 </div>
                             </div>

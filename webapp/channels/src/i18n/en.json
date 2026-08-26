@@ -1468,6 +1468,7 @@
   "admin.global_attributes.attribute_details.display_name.placeholder": "Add a display name",
   "admin.global_attributes.attribute_details.edit_title": "Edit attribute",
   "admin.global_attributes.attribute_details.external_source.chip_label": "{source}: {value}",
+  "admin.global_attributes.attribute_details.external_source.disabled_applies_to_tooltip": "Cannot link an external source while this attribute applies to a resource.",
   "admin.global_attributes.attribute_details.external_source.edit_link": "Edit {source} link",
   "admin.global_attributes.attribute_details.external_source.ldap.help_text": "The attribute in your AD/LDAP directory to sync this value from.",
   "admin.global_attributes.attribute_details.external_source.ldap.modal_title": "Link to AD/LDAP",

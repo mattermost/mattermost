@@ -9,6 +9,7 @@ import {components} from 'react-select';
 
 import {PencilOutlineIcon, RefreshIcon, SyncIcon} from '@mattermost/compass-icons/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {openModal} from 'actions/views/modals';
 
@@ -34,13 +35,21 @@ type Props = {
     fieldType: AttributeFieldType;
     onLink: (source: ExternalSource, value: string) => void;
     disabled?: boolean;
+
+    // Linking a new source forces fieldType to 'text' (see attribute_details.tsx's
+    // handleLink) -- while this attribute is applied to a resource, that would
+    // change its type out from under the server's type_change_with_dependents
+    // guard the same way the Type menu itself is locked for. Only gates the
+    // "add" trigger below: editing or removing an already-linked source never
+    // touches fieldType, so those stay enabled.
+    disableAdding?: boolean;
 };
 
 function sourceValue(source: ExternalSource, ldapAttr: string, samlAttr: string): string {
     return source === 'ldap' ? ldapAttr : samlAttr;
 }
 
-function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disabled = false}: Props): JSX.Element {
+function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disabled = false, disableAdding = false}: Props): JSX.Element {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -156,41 +165,52 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disable
                 </div>
             )}
             {unlinkedSources.length > 0 && (
-                <Menu.Container
-                    menuButton={{
-                        id: TRIGGER_ID,
-                        class: classNames(buttonClassNames({emphasis: 'quaternary'}), 'AttributeExternalSource__trigger'),
-                        disabled,
-                        onMouseDown: handleTriggerMouseDown,
-                        children: (
-                            <>
-                                <RefreshIcon size={16}/>
-                                <FormattedMessage {...messages.triggerLabel}/>
-                                <i className='icon icon-chevron-down'/>
-                            </>
-                        ),
-                        dataTestId: 'attributeExternalSourceTrigger',
-                    }}
-                    menu={{
-                        id: 'attribute-external-source-menu',
-                        'aria-label': formatMessage(messages.triggerLabel),
-                    }}
-                >
-                    {unlinkedSources.map((source) => (
-                        <Menu.Item
-                            id={`attribute-external-source-${source}`}
-                            key={source}
-                            leadingElement={<SyncIcon size={18}/>}
-                            onClick={() => openLinkModal(source)}
-                            labels={(
-                                <>
-                                    <FormattedMessage {...sourceMessages[source].title}/>
-                                    <FormattedMessage {...sourceMessages[source].subtitle}/>
-                                </>
-                            )}
-                        />
-                    ))}
-                </Menu.Container>
+                (() => {
+                    const trigger = (
+                        <Menu.Container
+                            menuButton={{
+                                id: TRIGGER_ID,
+                                class: classNames(buttonClassNames({emphasis: 'quaternary'}), 'AttributeExternalSource__trigger'),
+                                disabled: disabled || disableAdding,
+                                onMouseDown: handleTriggerMouseDown,
+                                children: (
+                                    <>
+                                        <RefreshIcon size={16}/>
+                                        <FormattedMessage {...messages.triggerLabel}/>
+                                        <i className='icon icon-chevron-down'/>
+                                    </>
+                                ),
+                                dataTestId: 'attributeExternalSourceTrigger',
+                            }}
+                            menu={{
+                                id: 'attribute-external-source-menu',
+                                'aria-label': formatMessage(messages.triggerLabel),
+                            }}
+                        >
+                            {unlinkedSources.map((source) => (
+                                <Menu.Item
+                                    id={`attribute-external-source-${source}`}
+                                    key={source}
+                                    leadingElement={<SyncIcon size={18}/>}
+                                    onClick={() => openLinkModal(source)}
+                                    labels={(
+                                        <>
+                                            <FormattedMessage {...sourceMessages[source].title}/>
+                                            <FormattedMessage {...sourceMessages[source].subtitle}/>
+                                        </>
+                                    )}
+                                />
+                            ))}
+                        </Menu.Container>
+                    );
+                    return disableAdding ? (
+                        <WithTooltip title={formatMessage(messages.disabledWhileAppliesToTooltip)}>
+                            <span data-testid='attributeExternalSourceTriggerLockWrap'>
+                                {trigger}
+                            </span>
+                        </WithTooltip>
+                    ) : trigger;
+                })()
             )}
             <span
                 role='status'
@@ -262,6 +282,10 @@ const messages = defineMessages({
     linksRemoved: {
         id: 'admin.global_attributes.attribute_details.external_source.links_removed',
         defaultMessage: '{count, plural, one {External source link removed} other {External source links removed}}',
+    },
+    disabledWhileAppliesToTooltip: {
+        id: 'admin.global_attributes.attribute_details.external_source.disabled_applies_to_tooltip',
+        defaultMessage: 'Cannot link an external source while this attribute applies to a resource.',
     },
 });
 
