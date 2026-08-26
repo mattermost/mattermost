@@ -34,7 +34,7 @@ const holders = defineMessages({
     },
     userRemoved: {
         id: 'audit_table.userRemoved',
-        defaultMessage: 'Removed {username} to the {channelName} channel',
+        defaultMessage: 'Removed {username} from the {channelName} channel',
     },
     attemptedRegisterApp: {
         id: 'audit_table.attemptedRegisterApp',
