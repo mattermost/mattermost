@@ -253,26 +253,25 @@ func TestUserPreUpdate(t *testing.T) {
 }
 
 func TestUserPreUpdateMentionKeysCap(t *testing.T) {
-	// Oversized key count is silently truncated.
+	// An oversized key count survives PreUpdate intact, for IsValid to reject.
+	// Asserted against the stored value: GetMentionKeys caps on read, so it
+	// cannot distinguish a capped write from an uncapped one.
 	keys := make([]string, MentionKeysMaxCount+10)
 	for i := range keys {
 		keys[i] = fmt.Sprintf("key%d", i)
 	}
 	u := User{NotifyProps: map[string]string{MentionKeysNotifyProp: strings.Join(keys, ",")}}
 	u.PreUpdate()
-	got := u.GetMentionKeys()
-	assert.Len(t, got, MentionKeysMaxCount)
+	assert.Equal(t, strings.Join(keys, ","), u.NotifyProps[MentionKeysNotifyProp])
+	assert.True(t, MentionKeysExceedLimits(u.NotifyProps[MentionKeysNotifyProp]))
 
-	// Oversized byte length is silently truncated, never mid-keyword.
-	// Two keys that together exceed the limit: the second must be dropped entirely.
+	// An oversized byte length likewise survives PreUpdate intact.
 	keyA := strings.Repeat("a", MentionKeysMaxLength/2+1)
 	keyB := strings.Repeat("b", MentionKeysMaxLength/2+1)
 	u2 := User{NotifyProps: map[string]string{MentionKeysNotifyProp: keyA + "," + keyB}}
 	u2.PreUpdate()
-	got2 := u2.NotifyProps[MentionKeysNotifyProp]
-	assert.LessOrEqual(t, len(got2), MentionKeysMaxLength)
-	// keyA is wholly present; no fragment of keyB survives.
-	assert.Equal(t, keyA, got2)
+	assert.Equal(t, keyA+","+keyB, u2.NotifyProps[MentionKeysNotifyProp])
+	assert.True(t, MentionKeysExceedLimits(u2.NotifyProps[MentionKeysNotifyProp]))
 
 	// GetMentionKeys truncates at MentionKeysMaxCount without PreUpdate.
 	bigKeys := make([]string, MentionKeysMaxCount+5)

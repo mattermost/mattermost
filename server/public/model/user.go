@@ -585,7 +585,9 @@ func (u *User) PreUpdate() {
 	if len(u.NotifyProps) == 0 {
 		u.SetDefaultNotifications()
 	} else if _, ok := u.NotifyProps[MentionKeysNotifyProp]; ok {
-		u.NotifyProps[MentionKeysNotifyProp] = joinMentionKeys(capMentionKeys(parseMentionKeys(u.NotifyProps[MentionKeysNotifyProp])))
+		// Normalize only, never cap: IsValid runs after PreUpdate, so trimming an
+		// over-limit value here would swallow the error it is meant to raise.
+		u.NotifyProps[MentionKeysNotifyProp] = joinMentionKeys(parseMentionKeys(u.NotifyProps[MentionKeysNotifyProp]))
 	}
 
 	if u.Props != nil {
