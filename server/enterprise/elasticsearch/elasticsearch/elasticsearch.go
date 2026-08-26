@@ -171,14 +171,12 @@ func (es *ElasticsearchInterfaceImpl) fetchServerInfo(ctx context.Context, clien
 	es.plugins = nil
 	analysisICUInstalledOnEveryNode := true
 	for _, node := range resp.Nodes {
-		nodeHasAnalysisICU := false
+		nodePlugins := make([]string, 0, len(node.Plugins))
 		for _, plugin := range node.Plugins {
-			es.plugins = append(es.plugins, plugin.Name)
-			if plugin.Name == "analysis-icu" {
-				nodeHasAnalysisICU = true
-			}
+			nodePlugins = append(nodePlugins, plugin.Name)
 		}
-		analysisICUInstalledOnEveryNode = analysisICUInstalledOnEveryNode && nodeHasAnalysisICU
+		es.plugins = append(es.plugins, nodePlugins...)
+		analysisICUInstalledOnEveryNode = analysisICUInstalledOnEveryNode && common.HasAnalysisPlugin(nodePlugins, "analysis-icu")
 	}
 
 	if len(resp.Nodes) > 0 && !analysisICUInstalledOnEveryNode {
@@ -216,13 +214,13 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 	opts := []func(*types.IndexTemplateMapping){}
 	// Set up additional analyzers to use in the post index template if CJK analyzers are enabled
 	if *es.Platform.Config().ElasticsearchSettings.EnableCJKAnalyzers {
-		if slices.Contains(es.plugins, "analysis-nori") {
+		if common.HasAnalysisPlugin(es.plugins, "analysis-nori") {
 			opts = append(opts, common.WithNoriAnalyzer())
 		}
-		if slices.Contains(es.plugins, "analysis-kuromoji") {
+		if common.HasAnalysisPlugin(es.plugins, "analysis-kuromoji") {
 			opts = append(opts, common.WithKuromojiAnalyzer())
 		}
-		if slices.Contains(es.plugins, "analysis-smartcn") {
+		if common.HasAnalysisPlugin(es.plugins, "analysis-smartcn") {
 			opts = append(opts, common.WithSmartCNAnalyzer())
 		}
 
@@ -468,15 +466,15 @@ func (es *ElasticsearchInterfaceImpl) getFieldVariants(fieldName string, query s
 		return variants
 	}
 
-	if slices.Contains(es.plugins, "analysis-nori") {
+	if common.HasAnalysisPlugin(es.plugins, "analysis-nori") {
 		variants = append(variants, fieldName+".nori")
 	}
 
-	if slices.Contains(es.plugins, "analysis-kuromoji") {
+	if common.HasAnalysisPlugin(es.plugins, "analysis-kuromoji") {
 		variants = append(variants, fieldName+".kuromoji")
 	}
 
-	if slices.Contains(es.plugins, "analysis-smartcn") {
+	if common.HasAnalysisPlugin(es.plugins, "analysis-smartcn") {
 		variants = append(variants, fieldName+".smartcn")
 	}
 

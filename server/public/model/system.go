@@ -5,6 +5,8 @@ package model
 
 import (
 	"math/big"
+	"net/http"
+	"time"
 )
 
 const (
@@ -90,11 +92,37 @@ type AppliedMigration struct {
 	Name    string `json:"name"`
 }
 
+// LogFilterDateLayout is the timestamp layout expected for the DateFrom and
+// DateTo bounds of a LogFilter.
+const LogFilterDateLayout = "2006-01-02 15:04:05.999 -07:00"
+
 type LogFilter struct {
 	ServerNames []string `json:"server_names"`
 	LogLevels   []string `json:"log_levels"`
 	DateFrom    string   `json:"date_from"`
 	DateTo      string   `json:"date_to"`
+}
+
+// IsValid validates the log filter. Empty date bounds mean "unbounded", so only
+// a non-empty value that cannot be parsed with LogFilterDateLayout is rejected.
+func (f *LogFilter) IsValid() *AppError {
+	if f == nil {
+		return nil
+	}
+
+	if f.DateFrom != "" {
+		if _, err := time.Parse(LogFilterDateLayout, f.DateFrom); err != nil {
+			return NewAppError("LogFilter.IsValid", "model.log_filter.is_valid.date_from.app_error", map[string]any{"Layout": LogFilterDateLayout}, "", http.StatusBadRequest).Wrap(err)
+		}
+	}
+
+	if f.DateTo != "" {
+		if _, err := time.Parse(LogFilterDateLayout, f.DateTo); err != nil {
+			return NewAppError("LogFilter.IsValid", "model.log_filter.is_valid.date_to.app_error", map[string]any{"Layout": LogFilterDateLayout}, "", http.StatusBadRequest).Wrap(err)
+		}
+	}
+
+	return nil
 }
 
 type LogEntry struct {

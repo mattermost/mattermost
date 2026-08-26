@@ -7,6 +7,7 @@ import (
 	"bytes"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -53,9 +54,9 @@ func (s LocalCacheReactionStore) GetForPost(postId string, allowFromCache bool) 
 	return reaction, nil
 }
 
-func (s LocalCacheReactionStore) DeleteAllWithEmojiName(emojiName string) error {
+func (s LocalCacheReactionStore) DeleteAllWithEmojiName(rctx request.CTX, emojiName string) error {
 	// This could be improved. Right now we just clear the whole
 	// cache because we don't have a way find what post Ids have this emoji name.
 	defer s.rootStore.doClearCacheCluster(s.rootStore.reactionCache)
-	return s.ReactionStore.DeleteAllWithEmojiName(emojiName)
+	return s.ReactionStore.DeleteAllWithEmojiName(rctx, emojiName)
 }

@@ -383,7 +383,7 @@ jobs:
       - name: ci/run-summary
         id: summary
         continue-on-error: true
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@e2d5032cfa71a3ad11b0975b135cd221564f2787 # 2026-08-06
         with:
           use-staging: true # DEMO (AI triage verification): see dispatch-begin note
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
