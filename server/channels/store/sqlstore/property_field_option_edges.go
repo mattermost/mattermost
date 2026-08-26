@@ -430,16 +430,21 @@ func (s *SqlPropertyFieldStore) deletePropertyOptionEdgesForOptions(transaction 
 		return nil
 	}
 
-	builder := s.getQueryBuilder().
-		Delete("PropertyOptionEdges").
-		Where(sq.Eq{"FieldID": fieldID}).
-		Where(sq.Or{
-			sq.Eq{"ChildOptionID": optionIDs},
-			sq.Eq{"ParentOptionID": optionIDs},
-		})
+	// Each option ID is bound twice (child and parent) plus FieldID once, so the
+	// chunk has to stay under half of maxOptionIDsPerQuery.
+	chunkSize := (maxOptionIDsPerQuery - 1) / 2
+	for batch := range slices.Chunk(optionIDs, chunkSize) {
+		builder := s.getQueryBuilder().
+			Delete("PropertyOptionEdges").
+			Where(sq.Eq{"FieldID": fieldID}).
+			Where(sq.Or{
+				sq.Eq{"ChildOptionID": batch},
+				sq.Eq{"ParentOptionID": batch},
+			})
 
-	if _, err := transaction.ExecBuilder(builder); err != nil {
-		return errors.Wrap(err, "property_option_edges_delete_for_options_exec")
+		if _, err := transaction.ExecBuilder(builder); err != nil {
+			return errors.Wrap(err, "property_option_edges_delete_for_options_exec")
+		}
 	}
 	return nil
 }
