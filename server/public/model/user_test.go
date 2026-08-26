@@ -252,7 +252,7 @@ func TestUserPreUpdate(t *testing.T) {
 	}
 }
 
-func TestUserPreUpdateMentionKeysCap(t *testing.T) {
+func TestUserMentionKeysLimits(t *testing.T) {
 	// An oversized key count survives PreUpdate intact, for IsValid to reject.
 	// Asserted against the stored value: GetMentionKeys caps on read, so it
 	// cannot distinguish a capped write from an uncapped one.
