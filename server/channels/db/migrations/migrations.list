@@ -425,5 +425,7 @@ channels/db/migrations/postgres/000214_drop_channelmembers_autotranslation.down.
 channels/db/migrations/postgres/000214_drop_channelmembers_autotranslation.up.sql
 channels/db/migrations/postgres/000215_drop_channelmembers_autotranslation_column.down.sql
 channels/db/migrations/postgres/000215_drop_channelmembers_autotranslation_column.up.sql
-channels/db/migrations/postgres/000216_add_disable_join_leave_messages_to_channels.down.sql
-channels/db/migrations/postgres/000216_add_disable_join_leave_messages_to_channels.up.sql
+channels/db/migrations/postgres/000216_split_attribute_view_by_object_type.down.sql
+channels/db/migrations/postgres/000216_split_attribute_view_by_object_type.up.sql
+channels/db/migrations/postgres/000217_add_disable_join_leave_messages_to_channels.down.sql
+channels/db/migrations/postgres/000217_add_disable_join_leave_messages_to_channels.up.sql
