@@ -8018,7 +8018,7 @@
   },
   {
     "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
-    "translation": ""
+    "translation": "Cannot save a parent that references resource.attributes.* while a team policy imports it because a team has no attributes."
   },
   {
     "id": "app.pap.save_policy.resolver_error",
@@ -8026,7 +8026,7 @@
   },
   {
     "id": "app.pap.save_policy.resource_attributes_disabled",
-    "translation": ""
+    "translation": "Access rules cannot reference resource.attributes.* on this server because the feature is not enabled."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -8038,7 +8038,7 @@
   },
   {
     "id": "app.pap.save_policy.team_resource_attributes",
-    "translation": ""
+    "translation": "A team policy cannot reference or import resource.attributes.* because a team has no attributes."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
@@ -8050,7 +8050,7 @@
   },
   {
     "id": "app.pap.simulate.channel_required_for_resource",
-    "translation": ""
+    "translation": "A channel is required to simulate a policy that references channel attributes."
   },
   {
     "id": "app.pap.simulate.compile_failed",
