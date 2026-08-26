@@ -157,7 +157,9 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
             await secondChannelsPage.toBeVisible();
 
             // # Admin adds secondUser to the channel — this triggers a suppressed add-to-channel
-            // system post; IncrementMentionCount runs instead of SendNotifications
+            // system post; the server sends a targeted posted WS event only to secondUser so
+            // they receive a desktop notification and sidebar badge without the post appearing
+            // in the channel timeline for any member.
             await adminClient.addToChannel(secondUser.id, channel.id);
 
             // * secondUser's sidebar should show the new channel with a mention count badge

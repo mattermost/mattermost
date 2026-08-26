@@ -47,14 +47,23 @@ func (a *App) populateGetPostsSinceOptionsMembershipFilter(rctx request.CTX, opt
 	return nil
 }
 
-// shouldSuppressMembershipSystemPost reports whether all notifications (push,
-// email, WebSocket) for a membership system post should be dropped. It uses
-// the caller-supplied channel object, which may be milliseconds stale if an
-// admin toggled DisableJoinLeaveMessages concurrently. This is acceptable: the
-// feature is best-effort for notification delivery; the DB read-path always
-// reflects the current setting.
+// shouldSuppressMembershipSystemPost reports whether push and email notifications
+// for a membership system post should be dropped. It uses the caller-supplied
+// channel object, which may be milliseconds stale if an admin toggled
+// DisableJoinLeaveMessages concurrently. This is acceptable: the feature is
+// best-effort for notification delivery; the DB read-path always reflects the
+// current setting.
+//
+// Add-type posts (system_add_to_channel, system_add_guest_to_chan,
+// system_add_to_team) are excluded from suppression so that the added user
+// still receives push/email/desktop notifications even when join/leave messages
+// are hidden in the channel. The WS posted event always fires; the webapp
+// filters the post out of postsInChannel so it does not appear in the timeline.
 func (a *App) shouldSuppressMembershipSystemPost(rctx request.CTX, channel *model.Channel, post *model.Post) bool {
 	if !model.IsMembershipSystemPost(post) {
+		return false
+	}
+	if model.IsAddMembershipSystemPost(post) {
 		return false
 	}
 	return model.ShouldChannelExcludeMembershipSystemPosts(channel)

@@ -355,7 +355,6 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		for id := range mentions.Mentions {
 			mentionedUsersList = append(mentionedUsersList, id)
 		}
-
 		nErr := a.Srv().Store().Channel().IncrementMentionCount(post.ChannelId, mentionedUsersList, post.RootId == "", post.IsUrgent())
 
 		if nErr != nil {
@@ -575,7 +574,12 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 				isExplicitlyMentioned := mentions.Mentions[id] > GMMention
 				isGM := channel.Type == model.ChannelTypeGroup
-				if a.ShouldSendPushNotification(rctx, profileMap[id], channelMemberNotifyPropsMap[id], isExplicitlyMentioned, status, post, isGM) {
+				// For add-type posts in suppressed channels the post is hidden from the timeline
+				// but the added user should still receive a push notification. ShouldSendPushNotification
+				// normally returns false for system messages, so bypass that check here.
+				suppressedAddPost := model.IsAddMembershipSystemPost(post) && model.ShouldChannelExcludeMembershipSystemPosts(channel)
+				shouldPush := suppressedAddPost || a.ShouldSendPushNotification(rctx, profileMap[id], channelMemberNotifyPropsMap[id], isExplicitlyMentioned, status, post, isGM)
+				if shouldPush {
 					mentionType := mentions.Mentions[id]
 
 					replyToThreadType := ""
@@ -696,7 +700,16 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		mlog.String("post_id", post.Id),
 	)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
+	// For add-type posts in suppressed channels, scope the WS event to the added user only.
+	// The post appears temporarily in their timeline until the next fetch (server-side
+	// filtering removes it then). Other channel members receive no WS event and see nothing.
+	var message *model.WebSocketEvent
+	if model.IsAddMembershipSystemPost(post) && model.ShouldChannelExcludeMembershipSystemPosts(channel) {
+		addedUserId, _ := post.GetProp(model.PostPropsAddedUserId).(string)
+		message = model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", addedUserId, nil, "")
+	} else {
+		message = model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
+	}
 
 	message.Add("channel_type", channel.Type)
 	message.Add("channel_display_name", notification.GetChannelName(model.ShowUsername, ""))
@@ -743,8 +756,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	}
 	usePostedAckHook(message, post.UserId, channel.Type, usersToAck)
 
-	appErr := a.publishWebsocketEventForPost(rctx, post, message)
-	if appErr != nil {
+	if appErr := a.publishWebsocketEventForPost(rctx, post, message); appErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 		rctx.Logger().LogM(mlog.MlvlNotificationError, "Couldn't send websocket notification for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
@@ -1114,11 +1126,17 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 		// even if the user has set 'username mentions' to false in account settings.
 		if post.Type == model.PostTypeAddToChannel {
 			if addedUserId, ok := post.GetProp(model.PostPropsAddedUserId).(string); ok {
-				if _, ok := profileMap[addedUserId]; ok {
-					mentions.addMention(addedUserId, KeywordMention)
-				} else {
-					a.Log().Debug("missing profile: user added to channel not in profiles", mlog.String("user_id", addedUserId), mlog.String("channel_id", channel.Id))
+				if _, ok := profileMap[addedUserId]; !ok {
+					// The added user may have been missing from the cached profile map
+					// because they were just added to the channel. Load them directly so
+					// push/email notifications are sent even when the cache is stale.
+					if profile, err := a.Srv().Store().User().Get(rctx, addedUserId); err == nil {
+						profileMap[addedUserId] = profile
+					} else {
+						a.Log().Debug("missing profile: user added to channel not in profiles", mlog.String("user_id", addedUserId), mlog.String("channel_id", channel.Id))
+					}
 				}
+				mentions.addMention(addedUserId, KeywordMention)
 			}
 		}
 

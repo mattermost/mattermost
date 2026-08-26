@@ -2051,24 +2051,6 @@ func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.C
 			return nil, err
 		}
 	} else {
-		// When join/leave messages are suppressed, increment the added user's mention count
-		// synchronously before the HTTP response is sent. This ensures that getChannelAndMyMember
-		// REST calls (triggered by the user_added WS event) see mention_count=1.
-		if channel.DisableJoinLeaveMessages {
-			if incErr := a.Srv().Store().Channel().IncrementMentionCount(channel.Id, []string{userID}, true, false); incErr != nil {
-				rctx.Logger().Warn("Failed to increment mention count for add-to-channel with join/leave messages disabled",
-					mlog.String("channel_id", channel.Id),
-					mlog.String("user_id", userID),
-					mlog.Err(incErr))
-			} else if updatedMember, mErr := a.Srv().Store().Channel().GetMember(rctx, channel.Id, userID); mErr == nil {
-				a.Srv().Store().Channel().InvalidateAllChannelMembersForUser(userID)
-				evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", userID, nil, "")
-				if memberJSON, jsonErr := json.Marshal(updatedMember); jsonErr == nil {
-					evt.Add("channelMember", string(memberJSON))
-					a.Publish(evt)
-				}
-			}
-		}
 		a.Srv().Go(func() {
 			if err := a.PostAddToChannelMessage(rctx, userRequestor, user, channel, opts.PostRootID); err != nil {
 				rctx.Logger().Error("Failed to post AddToChannel message", mlog.Err(err))

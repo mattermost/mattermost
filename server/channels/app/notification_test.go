@@ -3521,6 +3521,61 @@ func TestRemoveNotifications(t *testing.T) {
 	})
 }
 
+// TestSendNotifications_SuppressedAddToChannel_TargetedWS verifies that when a
+// channel has DisableJoinLeaveMessages=true, SendNotifications scopes the posted
+// WS event to the added user only. The added user's connection receives the event
+// with UserId set and ChannelId empty; other channel members receive nothing.
+func TestSendNotifications_SuppressedAddToChannel_TargetedWS(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	disabled := true
+	channel, appErr := th.App.PatchChannel(th.Context, th.BasicChannel, &model.ChannelPatch{
+		DisableJoinLeaveMessages: &disabled,
+	}, th.SystemAdminUser.Id)
+	require.Nil(t, appErr)
+
+	eventFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
+
+	// addedUser (BasicUser) is the target; otherMember (BasicUser2) must not receive the event.
+	addedMsgs, closeAdded := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventFilter)
+	defer closeAdded()
+
+	otherMsgs, closeOther := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventFilter)
+	defer closeOther()
+
+	post := &model.Post{
+		UserId:    th.SystemAdminUser.Id,
+		ChannelId: channel.Id,
+		Type:      model.PostTypeAddToChannel,
+		Props: model.StringInterface{
+			model.PostPropsAddedUserId: th.BasicUser.Id,
+			"username":                th.BasicUser.Username,
+		},
+	}
+
+	_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, channel, th.SystemAdminUser, nil, false)
+	require.NoError(t, err)
+
+	// Added user receives a targeted posted event.
+	received := <-addedMsgs
+	require.Equal(t, model.WebsocketEventPosted, received.EventType())
+	assert.Equal(t, th.BasicUser.Id, received.GetBroadcast().UserId,
+		"posted event must be targeted to the added user's ID")
+	assert.Empty(t, received.GetBroadcast().ChannelId,
+		"targeted event must not carry a channel broadcast (other members must not receive it)")
+
+	// Other channel member must not receive the event.
+	select {
+	case <-otherMsgs:
+		require.Fail(t, "other channel member must not receive the posted event for a suppressed add-to-channel post")
+	case <-time.After(300 * time.Millisecond):
+		// correct: no event delivered to the other member
+	}
+}
+
 func TestShouldAckWebsocketNotification(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should return true if channel notify level is ALL", func(t *testing.T) {

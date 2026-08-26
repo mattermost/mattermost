@@ -180,6 +180,25 @@ func TestMembershipSystemPostNotificationSuppression(t *testing.T) {
 
 		require.False(t, th.App.shouldSuppressMembershipSystemPost(th.Context, ch, membershipPost))
 	})
+
+	t.Run("does not suppress add-type posts even when disabled", func(t *testing.T) {
+		setChannelDisableJoinLeaveMessages(t, th, channel, true)
+
+		ch, appErr := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, appErr)
+
+		addPost := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Type:      model.PostTypeAddToChannel,
+			Props: model.StringInterface{
+				model.PostPropsAddedUserId: th.BasicUser2.Id,
+				"username":                th.BasicUser2.Username,
+			},
+		}
+		require.False(t, th.App.shouldSuppressMembershipSystemPost(th.Context, ch, addPost),
+			"add-type posts must not be suppressed so the added user still receives notifications")
+	})
 }
 
 func TestFilterSuppressedMembershipPostsFromSlice(t *testing.T) {
