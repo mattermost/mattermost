@@ -53,14 +53,6 @@ CREATE TABLE IF NOT EXISTS PropertyOptions (
     PRIMARY KEY (FieldID, ID)
 );
 
--- Serves the only two access patterns: load a field's live options in display
--- order (also the keyset page key), and resolve a name within a field.
--- Deliberately no UNIQUE constraint on either: name uniqueness spans a field
--- and its link source, so it cannot be expressed as a single-table index, and
--- rank uniqueness is an application invariant that may be relaxed.
-CREATE INDEX IF NOT EXISTS idx_propertyoptions_fieldid_createat_id ON PropertyOptions (FieldID, CreateAt, ID) WHERE DeleteAt = 0;
-CREATE INDEX IF NOT EXISTS idx_propertyoptions_fieldid_name ON PropertyOptions (FieldID, Name) WHERE DeleteAt = 0;
-
 -- Backfill one row per option of every option-bearing field.
 --
 -- Options of fields whose type does not carry options are left in the blob

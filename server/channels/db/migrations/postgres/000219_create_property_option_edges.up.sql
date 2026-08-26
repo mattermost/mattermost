@@ -24,18 +24,6 @@ CREATE TABLE IF NOT EXISTS PropertyOptionEdges (
     PRIMARY KEY (FieldID, ChildOptionID, ParentOptionID)
 );
 
--- The downward walk, and the check that an option still has children (which is
--- what stops an interior option from being deleted).
---
--- FieldID leads for correctness, not just for selectivity: option IDs are not
--- unique across fields -- unlinking a field from its template deliberately
--- duplicates them, since the field takes over the options it was deriving under
--- the identifiers its property values already point at -- so a walk keyed on
--- ParentOptionID alone would pull in another field's edges. Every query here is
--- field-scoped, and the index has to lead with FieldID for that predicate to be
--- usable.
-CREATE INDEX IF NOT EXISTS idx_propertyoptionedges_fieldid_parent_child ON PropertyOptionEdges (FieldID, ParentOptionID, ChildOptionID);
-
 -- No DeleteAt column: an edge is a link between two options rather than an
 -- entity of its own, so re-parenting an option deletes rows outright, and
 -- deleting an option deletes every edge it appears in. There is nothing a

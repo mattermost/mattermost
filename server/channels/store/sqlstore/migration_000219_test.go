@@ -87,6 +87,10 @@ func TestMigration000219(t *testing.T) {
 
 		_, uErr := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000219_create_property_option_edges.up.sql"))
 		require.NoError(t, uErr)
+		// The secondary index lives in 000223 so CREATE INDEX CONCURRENTLY is
+		// its own non-transactional migration.
+		_, iErr := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000223_create_property_option_edges_parent_child_index.up.sql"))
+		require.NoError(t, iErr)
 		require.Len(t, indexDefs(t), 2)
 
 		var count int
