@@ -148,7 +148,7 @@ func getPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Request)
 	// Both halves or neither: the page continues after one particular option, and
 	// an option is placed in the order by its creation time as well as its ID. A
 	// cursor missing the time would silently start from the beginning.
-	if (cursorID == "") != (cursorCreateAt == 0) {
+	if cursorCreateAt < 0 || (cursorID == "") != (cursorCreateAt == 0) {
 		c.Err = model.NewAppError("getPropertyFieldOptions", "api.property_field.options.invalid_cursor.app_error", nil, "", http.StatusBadRequest)
 		return
 	}

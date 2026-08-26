@@ -786,6 +786,34 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt3']);
     });
 
+    test('should not let a graph field with omitted options be edited', async () => {
+        const graphAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'graph',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options_omitted: true,
+            },
+        };
+
+        const testUser = {...user, custom_profile_attributes: {field1: ['opt1', 'opt2']}};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [graphAttribute],
+            user: testUser,
+            activeSection: 'customAttribute_field1',
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+        expect(screen.queryByText('Select')).not.toBeInTheDocument();
+        expect(await screen.findByText('This field has too many options to be edited here.')).toBeInTheDocument();
+    });
+
     test('should show admin-managed graph Custom Attribute Field option names read-only', async () => {
         const graphAttribute: UserPropertyField = {
             ...customProfileAttribute,

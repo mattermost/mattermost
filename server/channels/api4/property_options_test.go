@@ -363,6 +363,16 @@ func TestPropertyFieldOptions(t *testing.T) {
 		CheckErrorID(t, err, "api.property_field.options.invalid_cursor.app_error")
 	})
 
+	t.Run("a negative cursor timestamp is refused", func(t *testing.T) {
+		fields := setupOptionFields(t, th, group.ID, graph, memberLevel, nil)
+
+		path := fmt.Sprintf("/properties/groups/%s/%s/fields/%s/options?cursor_id=%s&cursor_create_at=-1", group.Name, template, fields.template.ID, model.NewId())
+		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), path, "")
+		require.Error(t, err)
+		require.Equal(t, 400, resp.StatusCode)
+		CheckErrorID(t, err, "api.property_field.options.invalid_cursor.app_error")
+	})
+
 	t.Run("a page size above the bound is clamped, not refused", func(t *testing.T) {
 		fields := setupOptionFields(t, th, group.ID, graph, memberLevel, nil)
 

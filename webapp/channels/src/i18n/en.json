@@ -7796,6 +7796,7 @@
   "user.settings.general.field_managed_by_admin": "This field can only be changed by an administrator.",
   "user.settings.general.field_managed_by_plugin": "This field is managed by a plugin and cannot be edited.",
   "user.settings.general.field_managed_externally": "This field is managed by an external integration and cannot be edited here.",
+  "user.settings.general.field_options_omitted": "This field has too many options to be edited here.",
   "user.settings.general.firstName": "First Name",
   "user.settings.general.fullName": "Full Name",
   "user.settings.general.imageTooLarge": "Unable to upload profile image. File is too large.",

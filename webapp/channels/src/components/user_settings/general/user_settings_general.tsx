@@ -469,6 +469,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 }
             }
         }
+
         // Graph values are option-id arrays, same as multiselect. An empty string
         // is not a legal value and would fail server-side attribute validation.
         if ((attributeField.type === 'multiselect' || attributeField.type === 'graph') && !attributeValue) {
@@ -1498,7 +1499,11 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
                 if (valueRefersToOptions(attribute)) {
                     const attribOptions = attribute.attrs.options;
+                    const optionsOmitted = Boolean(attribute.attrs?.options_omitted);
                     if (!attribOptions) {
+                        if (optionsOmitted && Array.isArray(attributeValue)) {
+                            return attributeValue.map((value) => ({label: value, value}));
+                        }
                         return '';
                     }
                     if (Array.isArray(attributeValue)) {
@@ -1506,6 +1511,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             const option = attribOptions.find((o) => o.id === value);
                             if (option) {
                                 return {label: option?.name, value: option?.id};
+                            }
+                            if (optionsOmitted) {
+                                return {label: value, value};
                             }
                             return null;
                         }).filter((value) => value != null);
@@ -1515,6 +1523,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     const option = attribOptions.find((o) => o.id === attributeValue);
                     if (option) {
                         return {label: option?.name, value: option?.id};
+                    }
+                    if (optionsOmitted) {
+                        return {label: attributeValue, value: attributeValue};
                     }
                     return '';
                 }
@@ -1561,7 +1572,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 // by the owning integration; the server rejects human value
                 // writes, so render them read-only just like synced fields.
                 const isOwnerManaged = Boolean(attribute.attrs?.owners?.length);
-                const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected;
+                const optionsOmitted = Boolean(attribute.attrs?.options_omitted);
+                const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected || optionsOmitted;
 
                 if (isSynced) {
                     extraInfo = (
@@ -1598,6 +1610,15 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             <FormattedMessage
                                 id='user.settings.general.field_managed_by_admin'
                                 defaultMessage='This field can only be changed by an administrator.'
+                            />
+                        </span>
+                    );
+                } else if (optionsOmitted) {
+                    extraInfo = (
+                        <span>
+                            <FormattedMessage
+                                id='user.settings.general.field_options_omitted'
+                                defaultMessage='This field has too many options to be edited here.'
                             />
                         </span>
                     );
