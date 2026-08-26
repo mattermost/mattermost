@@ -117,8 +117,12 @@ test('limits grouped channel suggestions and preserves the selected channel', {t
     const suggestions = container.getByRole('option');
     await expect(suggestions).toHaveCount(10);
 
-    // # Select a result from the list and verify the term/item pairing updates the query correctly
-    const selectedChannel = channels[0];
+    // # Select a result that survived trimming and verify the term/item pairing updates the query correctly
+    const renderedText = (await suggestions.allInnerTexts()).join('\n');
+    const selectedChannel = channels.find((channel) => renderedText.includes(channel.display_name));
+    if (!selectedChannel) {
+        throw new Error('Expected at least one created channel to remain in the trimmed suggestions');
+    }
     await container.getByText(selectedChannel.display_name, {exact: true}).click();
     await expect(searchInput).toHaveValue(new RegExp(`In:${selectedChannel.name}\\s`));
 });
