@@ -77,10 +77,13 @@ jest.mock('@tiptap/react', () => {
     };
 });
 
-jest.mock('./wysiwyg_suggestion_list', () => ({
-    __esModule: true,
-    default: () => null,
-}));
+jest.mock('./wysiwyg_suggestion_list', () => {
+    const ReactMock = require('react') as typeof import('react');
+    return {
+        __esModule: true,
+        default: () => ReactMock.createElement('div', {'data-testid': 'suggestion-list'}),
+    };
+});
 
 import WysiwygEditor from './wysiwyg_editor';
 
@@ -477,6 +480,86 @@ describe('WysiwygEditor', () => {
         );
 
         expect(ref.current!.hasContentError()).toBe(false);
+    });
+
+    describe('readOnly', () => {
+        const domAttributes = () => mockCapturedConfig.current?.editorProps?.attributes?.();
+
+        test('an editable editor is a textbox that is not disabled', () => {
+            renderWithContext(<WysiwygEditor {...baseProps}/>);
+
+            expect(mockCapturedConfig.current?.editable).toBe(true);
+            expect(domAttributes()).toMatchObject({role: 'textbox', 'aria-disabled': 'false'});
+        });
+
+        test('disabled is a textbox the user is locked out of', () => {
+            const {container} = renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    disabled={true}
+                />,
+            );
+
+            expect(mockCapturedConfig.current?.editable).toBe(false);
+            expect(domAttributes()).toMatchObject({role: 'textbox', 'aria-disabled': 'true', 'data-disabled': 'true'});
+            expect(container.querySelector('.WysiwygEditor--disabled')).not.toBeNull();
+        });
+
+        test('readOnly is content: not editable, and not announced as a control', () => {
+            const {container} = renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    readOnly={true}
+                />,
+            );
+
+            expect(mockCapturedConfig.current?.editable).toBe(false);
+
+            const attributes = domAttributes();
+            expect(attributes).not.toHaveProperty('role');
+            expect(attributes).not.toHaveProperty('aria-disabled');
+            expect(attributes).not.toHaveProperty('data-disabled');
+            expect(container.querySelector('.WysiwygEditor--disabled')).toBeNull();
+        });
+
+        test('readOnly keeps an id addressable for callers that pass one', () => {
+            renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    readOnly={true}
+                    id='page-body'
+                />,
+            );
+
+            expect(domAttributes()).toMatchObject({id: 'page-body', 'data-testid': 'page-body'});
+        });
+
+        test('readOnly wins over disabled, so a caller passing both gets content', () => {
+            const {container} = renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    disabled={true}
+                    readOnly={true}
+                />,
+            );
+
+            expect(domAttributes()).not.toHaveProperty('aria-disabled');
+            expect(container.querySelector('.WysiwygEditor--disabled')).toBeNull();
+        });
+
+        test('readOnly leaves out the suggestion list, which has nothing to complete', () => {
+            const {queryByTestId, rerender} = renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    readOnly={true}
+                />,
+            );
+
+            expect(queryByTestId('suggestion-list')).toBeNull();
+
+            rerender(<WysiwygEditor {...baseProps}/>);
+            expect(queryByTestId('suggestion-list')).not.toBeNull();
+        });
     });
 
     describe('Enter inside a heading', () => {

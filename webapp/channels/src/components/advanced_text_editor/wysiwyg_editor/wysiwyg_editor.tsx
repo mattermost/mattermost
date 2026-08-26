@@ -110,6 +110,7 @@ type Props = {
     channelId: string;
     rootId?: string;
     disabled?: boolean;
+    readOnly?: boolean;
     id?: string;
     useCtrlSend?: boolean;
     sendCodeBlockOnCtrlEnter?: boolean;
@@ -146,6 +147,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     channelId,
     rootId,
     disabled = false,
+    readOnly = false,
     id,
     useCtrlSend = false,
     sendCodeBlockOnCtrlEnter = false,
@@ -165,6 +167,8 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     const onChangeRef = useLatest(onChange);
     const onFocusRef = useLatest(onFocus);
     const onBlurRef = useLatest(onBlur);
+    const disabledRef = useLatest(disabled);
+    const readOnlyRef = useLatest(readOnly);
     const useCtrlSendRef = useLatest(useCtrlSend);
     const sendCodeBlockOnCtrlEnterRef = useLatest(sendCodeBlockOnCtrlEnter);
     const placeholderRef = useLatest(placeholderText ?? '');
@@ -270,13 +274,18 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         // Tiptap emits this from the Editor constructor, which useEditor runs
         // during render — hence the buffering in captureContentError.
         onContentError: ({error}) => captureContentError(error),
-        editable: !disabled,
+        editable: !disabled && !readOnly,
         editorProps: {
-            attributes: {
+
+            // A function, not an object: the editor is built once, so a static map
+            // would freeze these at their value on mount.
+            attributes: () => ({
                 ...(id ? {id, 'data-testid': id} : {}),
-                role: 'textbox',
-                ...(disabled ? {'aria-disabled': 'true', 'data-disabled': 'true'} : {'aria-disabled': 'false'}),
-            },
+                ...(readOnlyRef.current ? {} : {
+                    role: 'textbox',
+                    ...(disabledRef.current ? {'aria-disabled': 'true', 'data-disabled': 'true'} : {'aria-disabled': 'false'}),
+                }),
+            }),
             handlePaste: (_view, event) => {
                 if (jsonMode) {
                     return false;
@@ -525,19 +534,21 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
     useEffect(() => {
         if (editor && !editor.isDestroyed) {
-            editor.setEditable(!disabled);
+            editor.setEditable(!disabled && !readOnly);
         }
-    }, [disabled, editor]);
+    }, [disabled, readOnly, editor]);
 
     return (
-        <div className={`WysiwygEditor${disabled ? ' WysiwygEditor--disabled' : ''}`}>
+        <div className={`WysiwygEditor${disabled && !readOnly ? ' WysiwygEditor--disabled' : ''}`}>
             <EditorContent editor={editor}/>
-            <WysiwygSuggestionList
-                editor={editor}
-                channelId={channelId}
-                rootId={rootId}
-                onSubmit={handleSuggestionSubmit}
-            />
+            {!readOnly && (
+                <WysiwygSuggestionList
+                    editor={editor}
+                    channelId={channelId}
+                    rootId={rootId}
+                    onSubmit={handleSuggestionSubmit}
+                />
+            )}
         </div>
     );
 });
