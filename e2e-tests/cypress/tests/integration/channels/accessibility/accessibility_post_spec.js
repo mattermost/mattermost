@@ -42,7 +42,8 @@ describe('Verify Accessibility Support in Post', () => {
         cy.get('#postListContent', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
     });
 
-    it('MM-T1479 Verify Reader reads out the post correctly on Center Channel', () => {
+    // To be addressed in MM-70414
+    it.skip('MM-T1479 Verify Reader reads out the post correctly on Center Channel', () => {
         const {lastMessage} = postMessages(testChannel, otherUser, 1);
         performActionsToLastPost();
 

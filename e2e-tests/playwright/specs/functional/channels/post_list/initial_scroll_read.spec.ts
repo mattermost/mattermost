@@ -176,7 +176,6 @@ test.describe('Post list initial scroll in read channel', () => {
 
     async function waitForScrollToSettle(watcher: PostListScrollWatcher) {
         await channelsPage.centerView.toBeVisible();
-        await page.waitForLoadState('networkidle');
 
         // # Wait until the post list hasn't scrolled for 500ms before returning results
         return watcher.waitForObservations(500);
