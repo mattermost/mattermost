@@ -7965,6 +7965,10 @@
     "translation": "Multiple user attributes link the same template, so channel-attribute visibility cannot be determined unambiguously."
   },
   {
+    "id": "app.pap.masking.graph_value_unmarshal.app_error",
+    "translation": "Could not read the caller's graph field value."
+  },
+  {
     "id": "app.pap.masking.unknown_object_type.app_error",
     "translation": "Cannot resolve attribute visibility for an unknown object type."
   },
