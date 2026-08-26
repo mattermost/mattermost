@@ -82,6 +82,8 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         EnableChannelPolicyIndicators: true,
         TrustProxyDeviceIdentityHeader: false,
         EnforceDeviceIDConsistency: false,
+        SyncJobIntervalSeconds: 3600,
+        AttributeRefreshIntervalSeconds: 30,
     };
 
     const baseProps = {

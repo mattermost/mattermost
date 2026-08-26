@@ -44,7 +44,7 @@ test.describe('Post height', () => {
             ServiceSettings: {
                 EnableSVGs: true,
                 EnableLinkPreviews: true,
-                AllowedUntrustedInternalConnections: `localhost 127.0.0.1 ${new URL(fileServerUrl).hostname}`,
+                AllowedUntrustedInternalConnections: new URL(fileServerUrl).hostname,
             },
         });
 
