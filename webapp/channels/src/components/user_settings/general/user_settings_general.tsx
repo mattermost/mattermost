@@ -1501,8 +1501,11 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     const attribOptions = attribute.attrs.options;
                     const optionsOmitted = Boolean(attribute.attrs?.options_omitted);
                     if (!attribOptions) {
-                        if (optionsOmitted && Array.isArray(attributeValue)) {
-                            return attributeValue.map((value) => ({label: value, value}));
+                        if (optionsOmitted) {
+                            if (Array.isArray(attributeValue)) {
+                                return attributeValue.map((value) => ({label: value, value}));
+                            }
+                            return {label: attributeValue, value: attributeValue};
                         }
                         return '';
                     }

@@ -786,6 +786,31 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt3']);
     });
 
+    test('should still show a select value when options are omitted', async () => {
+        const selectAttribute: UserPropertyField = {
+            ...customProfileAttribute,
+            type: 'select',
+            attrs: {
+                value_type: '',
+                visibility: 'when_set',
+                sort_order: 0,
+                options_omitted: true,
+            },
+        };
+
+        const testUser = {...user, custom_profile_attributes: {field1: 'opt1'}};
+        const props = {
+            ...requiredProps,
+            enableCustomProfileAttributes: true,
+            customProfileAttributeFields: [selectAttribute],
+            user: testUser,
+        };
+
+        renderWithContext(<UserSettingsGeneral {...props}/>);
+
+        expect(await screen.findByText('opt1')).toBeInTheDocument();
+    });
+
     test('should not let a graph field with omitted options be edited', async () => {
         const graphAttribute: UserPropertyField = {
             ...customProfileAttribute,
