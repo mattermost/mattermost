@@ -31,7 +31,12 @@ jest.mock('@tiptap/react', () => {
                     blur: () => undefined,
                     insertContent: () => undefined,
                 },
-                setEditable: () => undefined,
+                // Mirrors the real library: an update is emitted unless the caller opts out.
+                setEditable: (_editable: boolean, emitUpdate = true) => {
+                    if (emitUpdate) {
+                        config?.onUpdate?.({editor: base});
+                    }
+                },
                 getJSON: () => ({type: 'doc', content: [{type: 'paragraph', content: [{type: 'text', text: 'hi'}]}]}),
                 view: {dom: globalThis.document.createElement('div')},
 
@@ -559,6 +564,37 @@ describe('WysiwygEditor', () => {
 
             rerender(<WysiwygEditor {...baseProps}/>);
             expect(queryByTestId('suggestion-list')).not.toBeNull();
+        });
+
+        test('switching in and out of readOnly is not an edit', () => {
+            jest.useFakeTimers();
+            const onChange = jest.fn();
+
+            const {rerender} = renderWithContext(
+                <WysiwygEditor
+                    {...baseProps}
+                    onChange={onChange}
+                />,
+            );
+
+            rerender(
+                <WysiwygEditor
+                    {...baseProps}
+                    onChange={onChange}
+                    readOnly={true}
+                />,
+            );
+            rerender(
+                <WysiwygEditor
+                    {...baseProps}
+                    onChange={onChange}
+                />,
+            );
+            jest.runAllTimers();
+
+            expect(onChange).not.toHaveBeenCalled();
+
+            jest.useRealTimers();
         });
     });
 

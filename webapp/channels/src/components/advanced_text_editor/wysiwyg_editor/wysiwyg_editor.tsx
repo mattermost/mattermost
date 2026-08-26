@@ -534,7 +534,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
     useEffect(() => {
         if (editor && !editor.isDestroyed) {
-            editor.setEditable(!disabled && !readOnly);
+            editor.setEditable(!disabled && !readOnly, false);
         }
     }, [disabled, readOnly, editor]);
 
