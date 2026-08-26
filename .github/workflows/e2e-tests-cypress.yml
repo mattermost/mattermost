@@ -49,6 +49,8 @@ on:
     secrets:
       MM_LICENSE:
         required: false
+      ANTHROPIC_API_KEY:
+        required: false
       AUTOMATION_DASHBOARD_URL:
         required: false
       AUTOMATION_DASHBOARD_TOKEN:
@@ -205,6 +207,7 @@ jobs:
       context_name: "e2e-test/cypress-full/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
     secrets:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       PUSH_NOTIFICATION_SERVER: ${{ secrets.PUSH_NOTIFICATION_SERVER }}
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
       CWS_URL: ${{ secrets.CWS_URL }}

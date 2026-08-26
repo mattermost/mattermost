@@ -1,0 +1,51 @@
+---
+# `/e2e-triage-override <verdict> <reason>` on a PR.
+#
+# The human correction path for the E2E AI flake triage. The automated verdict
+# is a best-effort classification; corrections are the only ground truth the
+# system gets, and a waiver corrected to a real-bug verdict is what the
+# false-green count — the metric that decides whether triage is ever allowed to
+# gate anything — is computed from.
+#
+# Restricted to OWNER/MEMBER/COLLABORATOR. The command can turn a red check
+# green, so it carries the same authority as applying E2E/Override by hand and
+# needs the same trust level.
+name: E2E AI Triage Override
+
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: e2e-ai-triage-override-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  override:
+    permissions:
+      contents: read
+      statuses: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    if: >-
+      github.repository == 'mattermost/mattermost' &&
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/e2e-triage-override') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+    uses: mattermost/mattermost-test-automation-toolkit/.github/workflows/e2e-ai-triage-override.yml@22f9caa807d1040a3750560ab0730a19d597f3c3 # mattermost-test-automation-toolkit#3
+    with:
+      # Keep this aligned with the immutable `uses:` SHA above.
+      toolkit_ref: 22f9caa807d1040a3750560ab0730a19d597f3c3
+      target_repo: mattermost/mattermost
+      pr_number: ${{ github.event.issue.number }}
+      comment_body: ${{ github.event.comment.body }}
+      comment_id: ${{ github.event.comment.id }}
+      sender: ${{ github.event.comment.user.login }}
+      # Production, unconditionally. This workflow is triggered by a maintainer
+      # commenting on a real PR, so the verdict it corrects is a production
+      # ledger row.
+      tsio_url: "https://test-io.test.mattermost.com"
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
+      TSIO_API_KEY: ${{ secrets.TSIO_API_KEY }}

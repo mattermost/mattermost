@@ -22,7 +22,8 @@ All pipelines follow the **smoke-then-full** pattern: smoke tests run first, ful
 ├── e2e-tests-cypress.yml                  # Shared wrapper: calls the cypress template
 ├── e2e-tests-playwright.yml               # Shared wrapper: calls the playwright template
 ├── e2e-tests-cypress-template.yml         # cypress + test-system-io dispatch
-└── e2e-tests-playwright-template.yml      # playwright + test-system-io dispatch
+├── e2e-tests-playwright-template.yml      # playwright + test-system-io dispatch
+└── e2e-ai-triage-override.yml             # /e2e-triage-override human correction path
 ```
 
 ### Call hierarchy
@@ -296,6 +297,24 @@ Where `<phase>` is `cypress-smoke`, `cypress-full`, `playwright-smoke`, or `play
 4. **No PR found** (PR pipeline only): Workflow fails immediately
 
 ---
+
+## AI Flake Triage
+
+After every full-suite run, an `ai-triage` job (both templates) classifies each failed check via [Test System IO](https://github.com/mattermost/mattermost-test-system-io) (`test-system-io-ai-triage` action). It answers "is this failure ours, or is it flaky / already broken on master?" from per-test history, a "failing elsewhere right now" lookup, failure screenshots, and the PR diff — without rerunning tests. Cost scales with distinct error signatures, not failure count.
+
+Behavior (fail closed — anything it cannot safely classify stays red):
+
+- **Every failure cluster waived as flaky/pre-existing** → the `e2e-test/*` check is rewritten to `success` with the original counts and a `waived as flaky` note. The Actions run stays red; the check is the merge signal.
+- **Real regression**: the check stays red, annotated `product bug` vs `test bug`; single-commit regressions are attributed to the introducing commit/author.
+- Every verdict is written to the TSIO ledger (`/api/v1/triage/verdicts`) and shown in the job's step summary.
+
+Human corrections: comment `/e2e-triage-override <verdict> <reason>` on a PR (maintainer+). `e2e-ai-triage-override.yml` calls the reusable workflow in [mattermost-test-automation-toolkit#3](https://github.com/mattermost/mattermost-test-automation-toolkit/pull/3), which records the correction for the accuracy metrics and brings the check in line.
+
+Setup switches (all optional, safe defaults):
+
+- Repo variable `E2E_AI_TRIAGE=false` disables the triage job entirely.
+- `ANTHROPIC_API_KEY` secret enables AI adjudication of clusters the deterministic rules cannot settle; without it triage stays on deterministic history rules and fails closed.
+- Repo variable `E2E_TRIAGE_DEMO=fail` arms the synthetic demo failure in `e2e-tests/playwright/specs/functional/ai_triage_demo.spec.ts` (skipped otherwise).
 
 ## Smoke-then-Full Pattern
 

@@ -49,6 +49,8 @@ on:
     secrets:
       MM_LICENSE:
         required: false
+      ANTHROPIC_API_KEY:
+        required: false
       REPORT_WEBHOOK_URL:
         required: false
 
@@ -194,4 +196,5 @@ jobs:
       context_name: "e2e-test/playwright-full/${{ inputs.server_edition || 'enterprise' }}${{ needs.generate-build-variables.outputs.context_suffix }}"
     secrets:
       MM_LICENSE: ${{ secrets.MM_LICENSE }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
