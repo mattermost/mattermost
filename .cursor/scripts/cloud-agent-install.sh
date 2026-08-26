@@ -201,49 +201,18 @@ can_clone_into() {
 publish_enterprise_checkout() {
   local source="$1"
   local dest="$2"
-  local lock="${dest}.clone-lock"
-  local acquired=false
 
-  local _
-  for _ in {1..50}; do
-    if mkdir "$lock" 2>/dev/null; then
-      acquired=true
-      break
-    fi
-    if is_git_work_tree "$dest"; then
-      rm -rf "$source"
-      log "Another process populated Enterprise checkout at $dest; reusing it."
-      return 0
-    fi
-    sleep 0.1
-  done
-
-  if [ "$acquired" != true ]; then
-    rm -rf "$source"
-    log "Could not acquire Enterprise checkout lock at $lock."
-    return 1
+  if mv -T -n "$source" "$dest" && [ ! -e "$source" ]; then
+    return 0
   fi
 
+  rm -rf "$source"
   if is_git_work_tree "$dest"; then
-    rmdir "$lock"
-    rm -rf "$source"
     log "Another process populated Enterprise checkout at $dest; reusing it."
     return 0
   fi
-  if [ -e "$dest" ] || [ -L "$dest" ]; then
-    rmdir "$lock"
-    rm -rf "$source"
-    log "Could not publish Enterprise checkout because $dest appeared concurrently."
-    return 1
-  fi
 
-  if mv "$source" "$dest"; then
-    rmdir "$lock"
-    return 0
-  fi
-
-  rmdir "$lock"
-  rm -rf "$source"
+  log "Could not publish Enterprise checkout at $dest."
   return 1
 }
 
