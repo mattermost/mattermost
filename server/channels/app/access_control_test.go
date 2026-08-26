@@ -5,15 +5,17 @@ package app
 
 import (
 	"errors"
+	"maps"
 	"net/http"
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -4828,8 +4830,34 @@ func TestGetAccessControlPolicyAttributes_PublicFieldsPassThrough(t *testing.T) 
 
 	mockACS := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().ch.AccessControl = mockACS
+	// Be sure to clone the rawAttributes map so it isn't modified during the test - we are comparing it later
 	mockACS.On("GetPolicyRuleAttributes", mock.Anything, channelID, model.AccessControlPolicyActionMembership).
-		Return(rawAttributes, nil).Once()
+		Return(maps.Clone(rawAttributes), nil).Once()
+
+	result, appErr := th.App.GetAccessControlPolicyAttributes(th.Context, channelID, model.AccessControlPolicyActionMembership)
+	require.Nil(t, appErr)
+	assert.Equal(t, rawAttributes, result)
+	mockACS.AssertExpectations(t)
+}
+
+// TestGetAccessControlPolicyAttributes_NativeFieldsPassThrough verifies that
+// native attribute fields are returned unchanged.
+func TestGetAccessControlPolicyAttributes_NativeFieldsPassThrough(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	// No need to create a native property for this test; native properties are generated in the codebase.
+	// The requirement is the field name must be one of the defined native attribute properties that represent
+	// columns in the user database (they live outside the property system).
+
+	channelID := model.NewId()
+	rawAttributes := map[string][]string{model.NativeAttributePropertyFieldEmail: {"@sample.mattermost.com"}}
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	// Be sure to clone the rawAttributes map so it isn't modified during the test - we are comparing it later
+	mockACS.On("GetPolicyRuleAttributes", mock.Anything, channelID, model.AccessControlPolicyActionMembership).
+		Return(maps.Clone(rawAttributes), nil).Once()
 
 	result, appErr := th.App.GetAccessControlPolicyAttributes(th.Context, channelID, model.AccessControlPolicyActionMembership)
 	require.Nil(t, appErr)

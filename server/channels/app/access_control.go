@@ -1778,14 +1778,29 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 		return map[string][]string{}, nil
 	}
 
+	// We will be looking up field names by the store, but first we need to check for any synthetic
+	// native fields.  At the time of writing this comment, all native fields are public, so
+	// we could just check for each name and give it a pass without building the array, but this
+	// approach will make sure any potential future native fields can also support different AccessModes.
+	nativeFieldsByName := make(map[string]*model.PropertyField)
+	for _, f := range model.NativeUserAttributeFields(cpaGroup.ID) {
+		nativeFieldsByName[f.Name] = f
+	}
+
 	for fieldName := range attributes {
-		// Read directly from the store so this security filter sees the raw
-		// access_mode, unaffected by property read hooks for the request caller.
-		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx, cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
-		if fieldErr != nil {
-			delete(attributes, fieldName)
-			continue
+		// Check if this is a (synthetic) native field before reading from the store
+		field, ok := nativeFieldsByName[fieldName]
+		if !ok {
+			// Read directly from the store so this security filter sees the raw
+			// access_mode, unaffected by property read hooks for the request caller.
+			var fieldErr error
+			field, fieldErr = a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx, cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
+			if fieldErr != nil {
+				delete(attributes, fieldName)
+				continue
+			}
 		}
+
 		switch field.GetAccessMode() {
 		case model.PropertyAccessModeSourceOnly, model.PropertyAccessModeSharedOnly:
 			delete(attributes, fieldName)
