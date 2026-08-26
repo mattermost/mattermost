@@ -589,7 +589,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 	t.Run("should fail on wrong subtype and long dialog title", func(t *testing.T) {
 		request := getBaseOpenDialogRequest()
 		request.Dialog.Elements[0].SubType = "wrong SubType"
-		request.Dialog.Title = "Very very long Dialog Name"
+		request.Dialog.Title = strings.Repeat("Very very long Dialog Name ", 5)
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "invalid subtype")
 		assert.ErrorContains(t, err, "invalid dialog title")
