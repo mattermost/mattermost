@@ -8017,8 +8017,16 @@
     "translation": "A policy with this name already exists. Please choose a different name."
   },
   {
+    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
+    "translation": ""
+  },
+  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Could not initialise attribute resolver for policy save."
+  },
+  {
+    "id": "app.pap.save_policy.resource_attributes_disabled",
+    "translation": ""
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -8029,12 +8037,20 @@
     "translation": "You do not satisfy one or more conditions in this policy."
   },
   {
+    "id": "app.pap.save_policy.team_resource_attributes",
+    "translation": ""
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Could not search access control policies."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "Failed to refresh attributes for the simulation."
+  },
+  {
+    "id": "app.pap.simulate.channel_required_for_resource",
+    "translation": ""
   },
   {
     "id": "app.pap.simulate.compile_failed",

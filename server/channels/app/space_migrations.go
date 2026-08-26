@@ -191,7 +191,7 @@ func (s *Server) doSpaceSchemesCreationMigration() error {
 		user := model.PermissionIDs(preset.userPerms)
 		admin := model.PermissionIDs(model.SpaceAdminRolePermissions)
 		guest := model.PermissionIDs(model.SpaceDefaultReadOnlyPermissions)
-		scheme, err := s.Store().Scheme().SaveChannelSchemeWithRoles(&model.Scheme{
+		_, err := s.Store().Scheme().SaveChannelSchemeWithRoles(&model.Scheme{
 			Name:        preset.name,
 			DisplayName: preset.displayName,
 			Scope:       model.SchemeScopeChannel,
