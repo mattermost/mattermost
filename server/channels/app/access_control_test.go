@@ -4790,7 +4790,7 @@ func TestGetAccessControlPolicyAttributes_MaskedFieldsFiltered(t *testing.T) {
 	mockACS := &mocks.AccessControlServiceInterface{}
 	th.App.Srv().ch.AccessControl = mockACS
 	mockACS.On("GetPolicyRuleAttributes", mock.Anything, channelID, model.AccessControlPolicyActionMembership).
-		Return(rawAttributes, nil).Once()
+		Return(maps.Clone(rawAttributes), nil).Once()
 
 	result, appErr := th.App.GetAccessControlPolicyAttributes(th.Context, channelID, model.AccessControlPolicyActionMembership)
 	require.Nil(t, appErr)
@@ -4862,6 +4862,74 @@ func TestGetAccessControlPolicyAttributes_NativeFieldsPassThrough(t *testing.T) 
 	result, appErr := th.App.GetAccessControlPolicyAttributes(th.Context, channelID, model.AccessControlPolicyActionMembership)
 	require.Nil(t, appErr)
 	assert.Equal(t, rawAttributes, result)
+	mockACS.AssertExpectations(t)
+}
+
+// TestGetAccessControlPolicyAttributes_MaskedFieldsWithNameCollisionAreFiltered checks that
+// a masked field that happens to share the same name as a native filed stil gets filtered.
+func TestGetAccessControlPolicyAttributes_MaskedFieldsWithNameCollisionAreFiltered(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	rctx := request.TestContext(t)
+
+	cpaGroup, cErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, cErr)
+
+	permNone := model.PermissionLevelNone
+
+	makeField := func(name, accessMode string) {
+		protected := accessMode == model.PropertyAccessModeSourceOnly || accessMode == model.PropertyAccessModeSharedOnly
+		f := &model.PropertyField{
+			GroupID:    cpaGroup.ID,
+			Name:       name,
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Protected:  protected,
+			Attrs:      model.StringInterface{model.PropertyAttrsAccessMode: accessMode},
+		}
+		if protected {
+			f.PermissionField = &permNone
+			f.Attrs[model.PropertyAttrsProtected] = true
+			_, err := th.App.Srv().Store().PropertyField().Create(f)
+			require.NoError(t, err)
+		} else {
+			_, appErr := th.App.CreatePropertyField(rctx, f, false, "")
+			require.Nil(t, appErr)
+		}
+	}
+
+	makeField("PublicField", model.PropertyAccessModePublic)
+	makeField("SourceField", model.PropertyAccessModeSourceOnly)
+	// This is the field with a native name that we are testing to make sure it is still masked.
+	makeField(model.NativeAttributePropertyFieldIsBot, model.PropertyAccessModeSharedOnly)
+
+	channelID := model.NewId()
+	rawAttributes := map[string][]string{
+		"PublicField":                           {"Engineering"},
+		"SourceField":                           {"TopSecret"},
+		model.NativeAttributePropertyFieldIsBot: {"false"},
+		// This is a real native attribute that is not in the property store -it should pass through.
+		model.NativeAttributePropertyFieldVerified: {"true"},
+	}
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	th.App.Srv().ch.AccessControl = mockACS
+	mockACS.On("GetPolicyRuleAttributes", mock.Anything, channelID, model.AccessControlPolicyActionMembership).
+		Return(rawAttributes, nil).Once()
+
+	result, appErr := th.App.GetAccessControlPolicyAttributes(th.Context, channelID, model.AccessControlPolicyActionMembership)
+	require.Nil(t, appErr)
+
+	// Only the public field should survive.
+	expectedAttributes := map[string][]string{
+		"PublicField": {"Engineering"},
+		model.NativeAttributePropertyFieldVerified: {"true"},
+	}
+	assert.Equal(t, expectedAttributes, result)
+	assert.NotContains(t, result, "SourceField")
+	assert.NotContains(t, result, model.NativeAttributePropertyFieldIsBot)
 	mockACS.AssertExpectations(t)
 }
 

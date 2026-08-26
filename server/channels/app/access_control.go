@@ -1778,24 +1778,38 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, resourceID stri
 		return map[string][]string{}, nil
 	}
 
-	// We will be looking up field names by the store, but first we need to check for any synthetic
-	// native fields.  At the time of writing this comment, all native fields are public, so
+	// Native fields won't show up in the Property Store, since they are synthetic (generated in code).
+	// At the time of writing this comment, all native fields are public, so
 	// we could just check for each name and give it a pass without building the array, but this
 	// approach will make sure any potential future native fields can also support different AccessModes.
+
+	// We will check for attributes in the store first because there is a known potential for name collision
+	// (i.e. if an admin makes an access control property with the same name as a native attribute).
+	// The collision doesn't happen during storage since there are unqiue prefixes, but the attributes
+	// returned by GetPolicyRuleAttributes are stripped of those prefixes, leaving it ambiguous.
+	// While that should be addressed, for now we check for real properties first and then fall back to native fields.
 	nativeFieldsByName := make(map[string]*model.PropertyField)
 	for _, f := range model.NativeUserAttributeFields(cpaGroup.ID) {
 		nativeFieldsByName[f.Name] = f
 	}
 
 	for fieldName := range attributes {
-		// Check if this is a (synthetic) native field before reading from the store
-		field, ok := nativeFieldsByName[fieldName]
-		if !ok {
-			// Read directly from the store so this security filter sees the raw
-			// access_mode, unaffected by property read hooks for the request caller.
-			var fieldErr error
-			field, fieldErr = a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx, cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
-			if fieldErr != nil {
+		// Read directly from the store so this security filter sees the raw
+		// access_mode, unaffected by property read hooks for the request caller.
+		field, fieldErr := a.Srv().Store().PropertyField().GetFieldByNameForObjectType(rctx, cpaGroup.ID, "", model.PropertyFieldObjectTypeUser, fieldName)
+		if fieldErr != nil {
+			// If the error is due to not being found, we won't skip to the next field just yet
+			// in case it is a native field
+			var nfErr *store.ErrNotFound
+			notFound := errors.As(fieldErr, &nfErr)
+			if !notFound {
+				delete(attributes, fieldName)
+				continue
+			}
+
+			//If property wasn't found, check if this is a native field.
+			field = nativeFieldsByName[fieldName]
+			if field == nil {
 				delete(attributes, fieldName)
 				continue
 			}
