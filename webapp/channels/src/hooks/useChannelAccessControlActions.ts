@@ -26,9 +26,9 @@ import {createJob} from 'mattermost-redux/actions/jobs';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 export interface ChannelAccessControlActions {
-    getAccessControlFields: (after: string, limit: number) => Promise<ActionResult<UserPropertyField[]>>;
+    getAccessControlFields: (after: string, limit: number, includeResourceFields?: boolean) => Promise<ActionResult<UserPropertyField[]>>;
     getVisualAST: (expression: string) => Promise<ActionResult<AccessControlVisualAST>>;
-    searchUsers: (expression: string, term: string, after: string, limit: number) => Promise<ActionResult<AccessControlTestResult>>;
+    searchUsers: (expression: string, term: string, after: string, limit: number, channelIdOverride?: string) => Promise<ActionResult<AccessControlTestResult>>;
     getChannelPolicy: (channelId: string) => Promise<ActionResult<AccessControlPolicy>>;
     saveChannelPolicy: (policy: AccessControlPolicy) => Promise<ActionResult<AccessControlPolicy>>;
     deleteChannelPolicy: (policyId: string) => Promise<ActionResult>;
@@ -57,16 +57,19 @@ export const useChannelAccessControlActions = (channelId?: string, teamId?: stri
     const dispatch = useDispatch();
 
     return useMemo(() => ({
-        getAccessControlFields: (after: string, limit: number) => {
-            return dispatch(getAccessControlFields(after, limit, channelId, teamId));
+        getAccessControlFields: (after: string, limit: number, includeResourceFields?: boolean) => {
+            return dispatch(getAccessControlFields(after, limit, channelId, teamId, includeResourceFields));
         },
 
         getVisualAST: (expression: string) => {
             return dispatch(getVisualAST(expression, channelId, teamId));
         },
 
-        searchUsers: (expression: string, term: string, after: string, limit: number) => {
-            return dispatch(searchUsersForExpression(expression, term, after, limit, channelId, teamId));
+        searchUsers: (expression: string, term: string, after: string, limit: number, channelIdOverride?: string) => {
+            // A channel picked in the test modal (for a resource.attributes.* rule
+            // in an editor with no channel scope of its own) takes precedence over
+            // the hook's scoped channel.
+            return dispatch(searchUsersForExpression(expression, term, after, limit, channelIdOverride ?? channelId, teamId));
         },
 
         getChannelPolicy: (channelId: string) => {

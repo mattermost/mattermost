@@ -4,16 +4,27 @@
 package sqlstore
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+func matviewExists(t *testing.T, s *SqlStore, name string) bool {
+	t.Helper()
+	var count int
+	err := s.GetMaster().Get(&count,
+		"SELECT COUNT(*) FROM pg_matviews WHERE lower(matviewname) = lower($1)", name)
+	require.NoError(t, err)
+	return count > 0
+}
+
+// TestMigration000216 verifies the split of AttributeView into per-object-type
+// views: after the migration both UserAttributeView and ChannelAttributeView
+// exist (and the combined AttributeView is gone), each filtering to its own
+// ObjectType. The down migration restores the single combined view.
 func TestMigration000216(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
@@ -26,96 +37,80 @@ func TestMigration000216(t *testing.T) {
 	require.NoError(t, err)
 	defer store.Close()
 
-	master := store.GetMaster()
+	// New() applies all migrations, so 000216 is already in effect.
+	require.True(t, matviewExists(t, store, "UserAttributeView"), "UserAttributeView should exist after migration")
+	require.True(t, matviewExists(t, store, "ChannelAttributeView"), "ChannelAttributeView should exist after migration")
+	require.False(t, matviewExists(t, store, "AttributeView"), "combined AttributeView should be gone after migration")
 
-	upSQL := readMigrationSQL(t, "000216_resize_message_columns.up.sql")
-	downSQL := readMigrationSQL(t, "000216_resize_message_columns.down.sql")
+	// Seed one user-scoped and one channel-scoped attribute in the same group.
+	group, err := store.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
+	require.NoError(t, err)
+	groupID := group.ID
 
-	type tableCol struct {
-		table  string
-		column string
-	}
-	targets := []tableCol{
-		{"posts", "message"},
-		{"drafts", "message"},
-		{"scheduledposts", "message"},
-		{"temporaryposts", "message"},
-	}
+	userField, err := store.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       "user_prop",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	require.NoError(t, err)
+	channelField, err := store.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       "channel_prop",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	require.NoError(t, err)
 
-	colLength := func(t *testing.T, table, column string) int {
-		t.Helper()
-		var length int
-		require.NoError(t, master.Get(&length, fmt.Sprintf(`
-			SELECT COALESCE(character_maximum_length, 0)
-			FROM information_schema.columns
-			WHERE table_name = '%s' AND column_name = '%s'
-		`, table, column)))
-		return length
-	}
+	userTarget := model.NewId()
+	channelTarget := model.NewId()
+	userVal, err := store.PropertyValue().Create(&model.PropertyValue{
+		TargetID: userTarget, TargetType: model.PropertyValueTargetTypeUser,
+		GroupID: groupID, FieldID: userField.ID, Value: []byte(`"u"`),
+	})
+	require.NoError(t, err)
+	channelVal, err := store.PropertyValue().Create(&model.PropertyValue{
+		TargetID: channelTarget, TargetType: model.PropertyValueTargetTypeChannel,
+		GroupID: groupID, FieldID: channelField.ID, Value: []byte(`"c"`),
+	})
+	require.NoError(t, err)
 
-	setColLength := func(t *testing.T, table, column string, size int) {
-		t.Helper()
-		_, alterErr := master.ExecNoTimeout(fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s TYPE VARCHAR(%d)", table, column, size))
-		require.NoError(t, alterErr)
-	}
-
-	restoreTo := func(t *testing.T, size int) {
-		t.Helper()
-		for _, tc := range targets {
-			_, alterErr := master.ExecNoTimeout(fmt.Sprintf("ALTER TABLE %s ALTER COLUMN %s TYPE VARCHAR(%d)", tc.table, tc.column, size))
-			require.NoError(t, alterErr)
-		}
-	}
-
-	t.Run("NormalUpThenDown", func(t *testing.T) {
-		t.Cleanup(func() { restoreTo(t, 1048576) })
-
-		for _, tc := range targets {
-			setColLength(t, tc.table, tc.column, 65535)
-		}
-
-		_, err := master.ExecNoTimeout(upSQL)
-		require.NoError(t, err, "up migration should succeed")
-
-		for _, tc := range targets {
-			assert.Equal(t, 1048576, colLength(t, tc.table, tc.column), "%s.%s after up migration", tc.table, tc.column)
-		}
-
-		_, err = master.ExecNoTimeout(downSQL)
-		require.NoError(t, err, "down migration should succeed")
-
-		for _, tc := range targets {
-			assert.Equal(t, 65535, colLength(t, tc.table, tc.column), "%s.%s after down migration", tc.table, tc.column)
-		}
+	t.Cleanup(func() {
+		store.PropertyValue().Delete(groupID, userVal.ID)      //nolint:errcheck
+		store.PropertyValue().Delete(groupID, channelVal.ID)   //nolint:errcheck
+		store.PropertyField().Delete(groupID, userField.ID)    //nolint:errcheck
+		store.PropertyField().Delete(groupID, channelField.ID) //nolint:errcheck
 	})
 
-	t.Run("UpSkipsWhenAlreadyLarger", func(t *testing.T) {
-		t.Cleanup(func() { restoreTo(t, 1048576) })
+	require.NoError(t, store.Attributes().RefreshAttributes())
 
-		for _, tc := range targets {
-			setColLength(t, tc.table, tc.column, 2097152)
-		}
+	countInView := func(view, targetID string) int {
+		var c int
+		gErr := store.GetMaster().Get(&c, "SELECT COUNT(*) FROM "+view+" WHERE TargetID = $1", targetID)
+		require.NoError(t, gErr)
+		return c
+	}
 
-		_, err := master.ExecNoTimeout(upSQL)
-		require.NoError(t, err, "up migration should succeed even when columns are already larger")
+	require.Equal(t, 1, countInView("UserAttributeView", userTarget), "user row should be in UserAttributeView")
+	require.Equal(t, 0, countInView("UserAttributeView", channelTarget), "channel row should not be in UserAttributeView")
+	require.Equal(t, 1, countInView("ChannelAttributeView", channelTarget), "channel row should be in ChannelAttributeView")
+	require.Equal(t, 0, countInView("ChannelAttributeView", userTarget), "user row should not be in ChannelAttributeView")
 
-		for _, tc := range targets {
-			assert.Equal(t, 2097152, colLength(t, tc.table, tc.column), "%s.%s should be unchanged by up migration", tc.table, tc.column)
-		}
-	})
+	// Down then up round-trips the view topology.
+	downSQL := readMigrationSQL(t, "000216_split_attribute_view_by_object_type.down.sql")
+	upSQL := readMigrationSQL(t, "000216_split_attribute_view_by_object_type.up.sql")
 
-	t.Run("DownSkipsWhenLargerThanTarget", func(t *testing.T) {
-		t.Cleanup(func() { restoreTo(t, 1048576) })
+	_, err = store.GetMaster().Exec(downSQL)
+	require.NoError(t, err)
+	require.True(t, matviewExists(t, store, "AttributeView"), "down should recreate AttributeView")
+	require.False(t, matviewExists(t, store, "UserAttributeView"), "down should drop UserAttributeView")
+	require.False(t, matviewExists(t, store, "ChannelAttributeView"), "down should drop ChannelAttributeView")
 
-		for _, tc := range targets {
-			setColLength(t, tc.table, tc.column, 2097152)
-		}
-
-		_, err := master.ExecNoTimeout(downSQL)
-		require.NoError(t, err, "down migration should succeed even when columns exceed the target size")
-
-		for _, tc := range targets {
-			assert.Equal(t, 2097152, colLength(t, tc.table, tc.column), "%s.%s should be unchanged by down migration", tc.table, tc.column)
-		}
-	})
+	_, err = store.GetMaster().Exec(upSQL)
+	require.NoError(t, err)
+	require.True(t, matviewExists(t, store, "UserAttributeView"), "up should recreate UserAttributeView")
+	require.True(t, matviewExists(t, store, "ChannelAttributeView"), "up should recreate ChannelAttributeView")
+	require.False(t, matviewExists(t, store, "AttributeView"), "up should drop AttributeView")
 }
