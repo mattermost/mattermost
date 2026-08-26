@@ -368,14 +368,13 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, userCreated, err := c.App.CompleteOAuth(c.AppContext, service, body, props, tokenUser)
+	auditRec.AddMeta("user_created", userCreated)
 	if err != nil {
 		err.Translate(c.AppContext.T)
 		c.LogErrorByCode(err)
 		renderError(err)
 		return
 	}
-
-	auditRec.AddMeta("user_created", userCreated)
 
 	if action == model.OAuthActionEmailToSSO {
 		redirectURL = c.GetSiteURLHeader() + "/login?extra=signin_change"

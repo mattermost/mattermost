@@ -773,7 +773,6 @@ func (a *App) getSSOProvider(service string) (einterfaces.OAuthProvider, *model.
 	return provider, nil
 }
 
-// TODO: merge conflict, needs teamID string
 func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (user *model.User, userWasCreated bool, err *model.AppError) {
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
@@ -822,8 +821,8 @@ func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader,
 			return nil, false, appErr
 		}
 
-		if appErr = a.AddUserToTeamByInviteIfNeeded(rctx, user, inviteToken, inviteId); appErr != nil {
-			rctx.Logger().Warn("Failed to add user to team", mlog.Err(appErr))
+		if inviteErr := a.AddUserToTeamByInviteIfNeeded(rctx, user, inviteToken, inviteId); inviteErr != nil {
+			rctx.Logger().Warn("Failed to add user to team", mlog.Err(inviteErr))
 		}
 	}
 
