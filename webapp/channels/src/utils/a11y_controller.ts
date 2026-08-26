@@ -629,7 +629,6 @@ export default class A11yController {
         this.tabKeyIsPressed = false;
         this.tildeKeyIsPressed = false;
         this.enterKeyIsPressed = false;
-        this.spaceKeyClickTriggered = false;
         this.escKeyIsPressed = false;
         this.lKeyIsPressed = false;
         this.lastInputEventIsKeyDown = false;
