@@ -75,7 +75,7 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
               <img
                 alt="bot image"
                 class="bot-img"
-                src=""
+                src="bot_default_icon.png"
               />
             </div>
             <div

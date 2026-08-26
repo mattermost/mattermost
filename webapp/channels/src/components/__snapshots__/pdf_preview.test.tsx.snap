@@ -33,7 +33,7 @@ exports[`component/PDFPreview should match snapshot, not successful 1`] = `
       />
       <img
         alt="file preview"
-        src=""
+        src="pdf.svg"
       />
     </a>
     <div

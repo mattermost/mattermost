@@ -171,7 +171,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f600"
                 data-testid="grinning"
                 id="emoji-1f600"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -187,7 +187,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f603"
                 data-testid="smiley"
                 id="emoji-1f603"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -203,7 +203,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f604"
                 data-testid="smile"
                 id="emoji-1f604"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -219,7 +219,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f601"
                 data-testid="grin"
                 id="emoji-1f601"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -235,7 +235,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f606"
                 data-testid="laughing,satisfied"
                 id="emoji-1f606"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -251,7 +251,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f605"
                 data-testid="sweat_smile"
                 id="emoji-1f605"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -267,7 +267,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f923"
                 data-testid="rolling_on_the_floor_laughing,rofl"
                 id="emoji-1f923"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -283,7 +283,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f602"
                 data-testid="joy"
                 id="emoji-1f602"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -299,7 +299,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f642"
                 data-testid="slightly_smiling_face"
                 id="emoji-1f642"
-                src=""
+                src="img_trans.gif"
               />
             </button>
           </div>
@@ -321,7 +321,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f643"
                 data-testid="upside_down_face"
                 id="emoji-1f643"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -337,7 +337,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f609"
                 data-testid="wink"
                 id="emoji-1f609"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -353,7 +353,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f60a"
                 data-testid="blush"
                 id="emoji-1f60a"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -369,7 +369,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f607"
                 data-testid="innocent"
                 id="emoji-1f607"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -385,7 +385,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f970"
                 data-testid="smiling_face_with_3_hearts"
                 id="emoji-1f970"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -401,7 +401,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f60d"
                 data-testid="heart_eyes"
                 id="emoji-1f60d"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -417,7 +417,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f929"
                 data-testid="star-struck,grinning_face_with_star_eyes"
                 id="emoji-1f929"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -433,7 +433,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f618"
                 data-testid="kissing_heart"
                 id="emoji-1f618"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -449,7 +449,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f617"
                 data-testid="kissing"
                 id="emoji-1f617"
-                src=""
+                src="img_trans.gif"
               />
             </button>
           </div>
@@ -471,7 +471,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-263a-fe0f"
                 data-testid="relaxed"
                 id="emoji-263a-fe0f"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -487,7 +487,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f61a"
                 data-testid="kissing_closed_eyes"
                 id="emoji-1f61a"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -503,7 +503,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f619"
                 data-testid="kissing_smiling_eyes"
                 id="emoji-1f619"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -519,7 +519,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f972"
                 data-testid="smiling_face_with_tear"
                 id="emoji-1f972"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -535,7 +535,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f60b"
                 data-testid="yum"
                 id="emoji-1f60b"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -551,7 +551,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f61b"
                 data-testid="stuck_out_tongue"
                 id="emoji-1f61b"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -567,7 +567,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f61c"
                 data-testid="stuck_out_tongue_winking_eye"
                 id="emoji-1f61c"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -583,7 +583,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f92a"
                 data-testid="zany_face,grinning_face_with_one_large_and_one_small_eye"
                 id="emoji-1f92a"
-                src=""
+                src="img_trans.gif"
               />
             </button>
             <button
@@ -599,7 +599,7 @@ exports[`components/emoji_picker/EmojiPicker should match snapshot 1`] = `
                 class="emojisprite emoji-category-smileys-emotion emoji-1f61d"
                 data-testid="stuck_out_tongue_closed_eyes"
                 id="emoji-1f61d"
-                src=""
+                src="img_trans.gif"
               />
             </button>
           </div>
