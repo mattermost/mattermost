@@ -5,6 +5,7 @@ package localcachelayer
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
@@ -94,6 +95,17 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockEmojiStore.On("GetByName", mock.Anything, "name123", false).Return(&fakeEmoji, nil)
 	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"name123"}).Return([]*model.Emoji{&fakeEmoji}, nil)
 	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"name123", "name321"}).Return([]*model.Emoji{&fakeEmoji, &fakeEmoji2}, nil)
+	missingEmoji := model.Emoji{Id: "456", Name: "missing"}
+	// Master-routed lookups find the emoji, replica ones don't; registered
+	// first so it wins over the IsType matcher below.
+	mockEmojiStore.On("GetMultipleByName", mock.MatchedBy(func(rctx request.CTX) bool {
+		return sqlstore.HasMaster(rctx.Context())
+	}), []string{"missing"}).Return([]*model.Emoji{&missingEmoji}, nil)
+	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"missing"}).Return([]*model.Emoji{}, nil)
+	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{"name123", "missing"}).Return([]*model.Emoji{&fakeEmoji}, nil)
+	mockEmojiStore.On("GetMultipleByName", mock.IsType(&request.Context{}), []string{strings.Repeat("z", model.EmojiNameMaxLength+1)}).Return([]*model.Emoji{}, nil)
+	mockEmojiStore.On("GetByName", mock.Anything, "missing", true).Return(&missingEmoji, nil)
+	mockEmojiStore.On("Save", &missingEmoji).Return(&missingEmoji, nil)
 	mockEmojiStore.On("GetByName", mock.IsType(&request.Context{}), "master", true).Return(&ctxEmoji, nil)
 	mockEmojiStore.On("GetByName", sqlstore.RequestContextWithMaster(request.TestContext(t)), "master", false).Return(&ctxEmoji, nil)
 	mockEmojiStore.On("Delete", &fakeEmoji, int64(0)).Return(nil)
