@@ -105,10 +105,6 @@ jobs:
           CHANGELOG_PATH: docs/main/product-overview/mattermost-v11-changelog.mdx
         run: python .github/scripts/generate_changelog.py
 
-      # Dispatch inputs and repo variables are bound to environment variables rather than
-      # interpolated directly into the script body. Interpolated ${{ }} expressions are
-      # substituted before bash runs, so a value containing shell metacharacters would be
-      # executed as code alongside the write-scoped app token.
       - name: Create Pull Request
         env:
           GH_TOKEN: ${{ steps.writeToken.outputs.token }}
