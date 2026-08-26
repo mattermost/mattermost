@@ -1,0 +1,444 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition"
+  },
+  "Team Edition": {
+    "target": "Team Edition"
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels"
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls"
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "کنسول سیستم"
+  },
+  "marketplace": {
+    "target": "بازار",
+    "note": "Existing fa uses بازار for lowercase marketplace; the proper name Marketplace is sometimes left in English in admin strings."
+  },
+  "channel": {
+    "target": "کانال"
+  },
+  "team": {
+    "target": "تیم"
+  },
+  "post": {
+    "target": "پست",
+    "note": "Existing fa mixes پست (majority) and نوشته; prefer پست. In most UI strings 'post' and 'message' are interchangeable — پیام is fine where it reads more naturally."
+  },
+  "message": {
+    "target": "پیام"
+  },
+  "thread": {
+    "target": "موضوع",
+    "note": "Existing fa is very inconsistent (موضوع، گفت‌وگو، رشته، نخ، تاپیک). The Threads view is موضوعات in both webapp and mobile, so standardize on موضوع. Plural: موضوعات."
+  },
+  "reply": {
+    "target": "پاسخ",
+    "note": "Verb: پاسخ دادن."
+  },
+  "direct message": {
+    "target": "پیام مستقیم",
+    "note": "Majority rendering in webapp/server. Mobile sometimes uses گفت‌وگوی شخصی — standardize on پیام مستقیم."
+  },
+  "group message": {
+    "target": "پیام گروهی"
+  },
+  "mention": {
+    "target": "اشاره",
+    "note": "Verb: اشاره کردن. Established across webapp and mobile; do not use the transliteration منشن."
+  },
+  "notification": {
+    "target": "اعلان",
+    "note": "Plural: اعلان‌ها. Majority rendering; some older webapp strings use اطلاعیه — prefer اعلان."
+  },
+  "pin": {
+    "target": "پین کردن",
+    "note": "Majority rendering (پین شده، پین کردن به کانال). سنجاق کردن (Telegram convention) also appears; standardize on پین."
+  },
+  "bookmark": {
+    "target": "نشانک",
+    "note": "Verb: نشانک‌گذاری کردن. Matches the one existing server string and standard Persian (Firefox) usage."
+  },
+  "saved messages": {
+    "target": "پیام‌های ذخیره‌شده",
+    "note": "save (verb) = ذخیره کردن، unsave = حذف از ذخیره‌شده‌ها. Avoid the mistranslation صرفه جویی seen in some webapp strings."
+  },
+  "draft": {
+    "target": "پیش‌نویس",
+    "note": "Plural: پیش‌نویس‌ها (with ZWNJ)."
+  },
+  "scheduled post": {
+    "target": "پیام زمان‌بندی‌شده",
+    "note": "No existing fa signal; follows standard Persian UI convention (زمان‌بندی for scheduling)."
+  },
+  "emoji": {
+    "target": "ایموجی",
+    "note": "Webapp (user-facing) uses ایموجی; server strings use شکلک. Standardize on ایموجی."
+  },
+  "custom emoji": {
+    "target": "ایموجی سفارشی"
+  },
+  "reaction": {
+    "target": "واکنش",
+    "note": "Verb (react): واکنش نشان دادن."
+  },
+  "status": {
+    "target": "وضعیت"
+  },
+  "custom status": {
+    "target": "وضعیت سفارشی"
+  },
+  "do not disturb": {
+    "target": "مزاحم نشوید"
+  },
+  "away": {
+    "target": "دور",
+    "note": "Majority rendering; mobile once uses غایب — prefer دور."
+  },
+  "online": {
+    "target": "آنلاین",
+    "note": "Majority rendering; mobile sometimes uses برخط — prefer آنلاین."
+  },
+  "offline": {
+    "target": "آفلاین",
+    "note": "Majority rendering; mobile sometimes uses برون‌خط — prefer آفلاین."
+  },
+  "out of office": {
+    "target": "خارج از دفتر"
+  },
+  "guest": {
+    "target": "مهمان",
+    "note": "Plural: مهمانان. Spelling مهمان (not میهمان) is the strong majority."
+  },
+  "member": {
+    "target": "عضو",
+    "note": "Plural: اعضا."
+  },
+  "user": {
+    "target": "کاربر",
+    "note": "Plural: کاربران."
+  },
+  "system admin": {
+    "target": "مدیر سیستم",
+    "note": "مدیر is the strong majority for admin (مدیران سیستم); some webapp role labels use ادمین سیستم — prefer مدیر سیستم."
+  },
+  "team admin": {
+    "target": "مدیر تیم"
+  },
+  "channel admin": {
+    "target": "مدیر کانال"
+  },
+  "session": {
+    "target": "جلسه",
+    "note": "Existing fa consistently uses جلسه/جلسات for login sessions; نشست would be more precise Persian but keep جلسه for consistency."
+  },
+  "sign in": {
+    "target": "ورود",
+    "note": "Full verb: وارد شدن. Translate 'log in' identically."
+  },
+  "sign out": {
+    "target": "خروج",
+    "note": "Full verb: خارج شدن. خروج از حساب also used for Log out — plain خروج is fine as a button label."
+  },
+  "join": {
+    "target": "پیوستن",
+    "note": "e.g. پیوستن به کانال. Avoid the misspelling محلق شوید present in some existing strings (should be ملحق)."
+  },
+  "leave": {
+    "target": "ترک کردن",
+    "note": "e.g. ترک کانال، ترک تیم."
+  },
+  "archive": {
+    "target": "بایگانی کردن",
+    "note": "Adjective: بایگانی‌شده. Majority rendering; آرشیو also appears — prefer بایگانی."
+  },
+  "unarchive": {
+    "target": "خارج کردن از بایگانی",
+    "note": "Existing fa mixes لغو بایگانی and از بایگانی خارج کردن; the latter is clearer Persian."
+  },
+  "mute": {
+    "target": "بی‌صدا کردن",
+    "note": "For channels this silences notifications; existing webapp uses نادیده گرفتن کانال but بی‌صدا کردن is the majority and matches Calls usage. Unmute: باصدا کردن."
+  },
+  "follow": {
+    "target": "دنبال کردن"
+  },
+  "unfollow": {
+    "target": "لغو دنبال کردن",
+    "note": "Majority rendering (لغو دنبال کردن پیام/موضوع)."
+  },
+  "favorite": {
+    "target": "برگزیده",
+    "note": "Verb: برگزیده کردن; Favorites category: برگزیده‌ها."
+  },
+  "search": {
+    "target": "جستجو",
+    "note": "Verb: جستجو کردن. Use the closed spelling جستجو (majority), not جست‌وجو."
+  },
+  "integration": {
+    "target": "ادغام",
+    "note": "Plural: ادغام‌ها. Existing majority; یکپارچه‌سازی is arguably a better Persian rendering of 'integration' but keep ادغام for consistency."
+  },
+  "slash command": {
+    "target": "دستور اسلش",
+    "note": "Plural: دستورات اسلش."
+  },
+  "webhook": {
+    "target": "وب‌هوک",
+    "note": "Established transliteration; existing files write it with a space (وب هوک) — prefer ZWNJ (وب‌هوک). Plural: وب‌هوک‌ها."
+  },
+  "incoming webhook": {
+    "target": "وب‌هوک ورودی"
+  },
+  "outgoing webhook": {
+    "target": "وب‌هوک خروجی"
+  },
+  "trigger word": {
+    "target": "کلمه محرک",
+    "note": "Plural: کلمات محرک (existing rendering)."
+  },
+  "plugin": {
+    "target": "افزونه",
+    "note": "Majority rendering; پلاگین also appears — prefer افزونه."
+  },
+  "bot": {
+    "target": "ربات",
+    "note": "ربات and بات both appear in roughly equal numbers; standardize on ربات (Telegram convention). Bot account: حساب ربات."
+  },
+  "role": {
+    "target": "نقش"
+  },
+  "permission": {
+    "target": "مجوز",
+    "note": "Plural: مجوزها. Note: existing fa also uses مجوز for 'license'; where both occur together, use اجازه/دسترسی for permission to disambiguate."
+  },
+  "scheme": {
+    "target": "طرح",
+    "note": "Permission scheme: طرح مجوز."
+  },
+  "license": {
+    "target": "مجوز",
+    "note": "Existing fa consistently uses مجوز for license, colliding with permission = مجوز. Use لایسنس only if a string needs both concepts distinguished."
+  },
+  "seat": {
+    "target": "صندلی",
+    "note": "No existing fa usage. صندلی = licensed user slot; in running text «به ازای هر کاربر» may read more naturally."
+  },
+  "trial": {
+    "target": "دوره آزمایشی",
+    "note": "Free trial: دوره آزمایشی رایگان."
+  },
+  "workspace": {
+    "target": "فضای کاری",
+    "note": "Majority rendering; محیط‌کار also appears — prefer فضای کاری."
+  },
+  "subscription": {
+    "target": "اشتراک"
+  },
+  "deactivate": {
+    "target": "غیرفعال کردن",
+    "note": "Deactivated: غیرفعال‌شده."
+  },
+  "invite": {
+    "target": "دعوت کردن",
+    "note": "Noun: دعوت."
+  },
+  "invitation": {
+    "target": "دعوت‌نامه",
+    "note": "Write with ZWNJ; existing files often use دعوت نامه with a space."
+  },
+  "sidebar": {
+    "target": "نوار کناری"
+  },
+  "unread": {
+    "target": "خوانده‌نشده",
+    "note": "Unreads (view): خوانده‌نشده‌ها."
+  },
+  "attachment": {
+    "target": "پیوست",
+    "note": "Strong majority; ضمیمه also appears rarely."
+  },
+  "public channel": {
+    "target": "کانال عمومی"
+  },
+  "private channel": {
+    "target": "کانال خصوصی"
+  },
+  "shared channel": {
+    "target": "کانال مشترک",
+    "note": "Plural: کانال‌های مشترک."
+  },
+  "channel header": {
+    "target": "هدر کانال",
+    "note": "Majority uses the transliteration هدر; mobile uses سربرگ and some webapp strings use سرصفحه — standardize on هدر."
+  },
+  "channel purpose": {
+    "target": "هدف کانال"
+  },
+  "system message": {
+    "target": "پیام سیستم",
+    "note": "Plural: پیام‌های سیستم."
+  },
+  "persistent notification": {
+    "target": "اعلان مداوم",
+    "note": "No existing fa; coined consistently with اعلان for notification."
+  },
+  "message priority": {
+    "target": "اولویت پیام"
+  },
+  "urgent": {
+    "target": "فوری",
+    "note": "Webapp uses فوری, mobile uses ضروری — standardize on فوری."
+  },
+  "recap": {
+    "target": "جمع‌بندی",
+    "note": "No existing fa; جمع‌بندی conveys an activity summary better than plain خلاصه (used for 'summary')."
+  },
+  "agent": {
+    "target": "عامل",
+    "note": "No existing fa. عامل is the standard Persian AI term; in marketing contexts the English 'Agent' may also be left as-is."
+  },
+  "burn-on-read": {
+    "target": "حذف پس از خواندن",
+    "note": "No existing fa. As an adjective/label: پیام حذف‌شونده پس از خواندن; all-caps label BURN ON READ → حذف پس از خواندن."
+  },
+  "magic link": {
+    "target": "پیوند جادویی",
+    "note": "پیوند is the majority rendering for 'link'; لینک جادویی is a common colloquial alternative."
+  },
+  "personal access token": {
+    "target": "توکن دسترسی شخصی",
+    "note": "توکن is the majority rendering; نشانه and رمز also appear — prefer توکن."
+  },
+  "announcement banner": {
+    "target": "بنر اعلامیه",
+    "note": "Existing fa mixes بنر اعلامیه and بنر اطلاعیه; prefer اعلامیه for announcement (اعلان is reserved for notification)."
+  },
+  "channel banner": {
+    "target": "بنر کانال"
+  },
+  "keyword": {
+    "target": "کلیدواژه",
+    "note": "Plural: کلیدواژه‌ها. Write closed with ZWNJ, not کلید واژه."
+  },
+  "user group": {
+    "target": "گروه کاربری",
+    "note": "Plain group: گروه."
+  },
+  "permalink": {
+    "target": "پیوند ثابت"
+  },
+  "profile": {
+    "target": "نمایه",
+    "note": "Majority rendering; مشخصات and پروفایل also appear — prefer نمایه."
+  },
+  "username": {
+    "target": "نام کاربری"
+  },
+  "nickname": {
+    "target": "نام مستعار",
+    "note": "Existing fa is inconsistent (کنیه، لقب); کنیه is archaic — نام مستعار is the standard Persian UI term."
+  },
+  "display name": {
+    "target": "نام نمایشی"
+  },
+  "collapsed reply threads": {
+    "target": "موضوعات پاسخ جمع‌شده",
+    "note": "Mobile's existing rendering (پاسخ گفت‌وگوهای جمع‌شده) is garbled; this follows thread = موضوع."
+  },
+  "auto-translation": {
+    "target": "ترجمه خودکار",
+    "note": "AUTO-TRANSLATED label: ترجمه‌شده به‌صورت خودکار."
+  },
+  "data retention": {
+    "target": "حفظ داده‌ها",
+    "note": "Existing fa mixes حفظ داده‌ها and نگهداری داده‌ها; حفظ has a slight majority. Policy: سیاست حفظ داده‌ها."
+  },
+  "compliance export": {
+    "target": "خروجی انطباق",
+    "note": "Existing fa uses صادرات انطباق, but صادرات implies trade exports; خروجی is the standard Persian for file/data export."
+  },
+  "access control": {
+    "target": "کنترل دسترسی",
+    "note": "One existing webapp string mistranslates this as مدیریت کانال — do not follow it."
+  },
+  "attribute": {
+    "target": "ویژگی",
+    "note": "Custom profile attribute: ویژگی سفارشی نمایه."
+  },
+  "onboarding": {
+    "target": "آشناسازی اولیه",
+    "note": "Existing fa leaves Onboarding in English; آشناسازی اولیه is a natural Persian rendering for the guided first-run experience."
+  },
+  "Town Square": {
+    "target": "میدان شهر",
+    "note": "The existing server rendering دانشگاه (university) is a mistranslation; use میدان شهر consistently as the default channel name."
+  },
+  "Off-Topic": {
+    "target": "بحث آزاد",
+    "note": "Existing server rendering; keep it."
+  },
+  "read-only": {
+    "target": "فقط خواندنی"
+  },
+  "server": {
+    "target": "سرور"
+  }
+}

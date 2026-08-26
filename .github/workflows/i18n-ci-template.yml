@@ -7,29 +7,65 @@ on:
 permissions:
   contents: read
 
+# Translations used to arrive exclusively through Weblate, so this workflow's
+# only job was to reject any PR that touched a non-English file. They are now
+# authored in-repo and land in the same PR as the English string, so the job
+# is to check them instead of to block them.
+#
+# Key parity is a hard failure, like everything else here. That is only fair
+# because i18n/AGENTS.md documents how to produce the other 21 locales for a
+# string you are adding; a PR that adds a string without them will fail, and
+# the guide is the way to fix it.
 jobs:
-  check-files:
-    name: Check only English translation files changed
-    runs-on: ubuntu-22.04
-    if: github.event.pull_request.user.login != 'weblate' # Allow weblate to modify non-English
+  verify-webapp:
+    name: Verify webapp translation files
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: webapp
     steps:
-      - name: Checkout code
+      - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
 
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@22103cc46bda19c2b464ffe86db46df6922fd323 # v47.0.5
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
         with:
-          files: |
-            server/i18n/*.json
-            webapp/channels/src/i18n/*.json
-            !server/i18n/en.json
-            !webapp/channels/src/i18n/en.json
+          read-only: "true"
 
-      - name: Check changed files
-        if: steps.changed-files.outputs.any_changed == 'true'
+      - name: ci/i18n-verify-translations
+        working-directory: webapp/channels
         run: |
-          echo "::error title=Non-English i18n files changed::Only PRs from weblate should modify non-English translation files."
-          exit 1
+          npm run i18n-verify-translations
+
+      # en.json lives under the paths that trigger this workflow, so an edit
+      # that puts the authoring catalog out of lockstep is caught here.
+      - name: ci/i18n-extract-authoring
+        working-directory: webapp/channels
+        run: |
+          npm run i18n-extract-authoring:check
+
+  verify-server:
+    name: Verify server translation files
+    runs-on: ubuntu-24.04
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: ci/setup-go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: tools/mmgotool/go.mod
+
+      - name: ci/i18n-verify
+        working-directory: tools/mmgotool
+        run: |
+          go run . i18n verify --server-dir=../../server
+
+      - name: ci/i18n-extract-authoring
+        working-directory: tools/mmgotool
+        run: |
+          go run . i18n extract-authoring --server-dir=../../server --check

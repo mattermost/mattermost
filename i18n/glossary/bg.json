@@ -1,0 +1,469 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition"
+  },
+  "Team Edition": {
+    "target": "Team Edition"
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels"
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls"
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "Системна конзола",
+    "note": "Established in existing bg.json ('Системна конзола > Дневници'). Lowercase 'системната конзола' in running text with definite article."
+  },
+  "marketplace": {
+    "target": "пазар",
+    "note": "User-facing strings use 'Пазар' / 'пазар на приложения'; several admin System Console strings keep English 'Marketplace'. Prefer 'пазар' for user-facing text."
+  },
+  "channel": {
+    "target": "канал",
+    "note": "Plural: канали. Established everywhere."
+  },
+  "team": {
+    "target": "екип",
+    "note": "Plural: екипи. Established everywhere."
+  },
+  "post": {
+    "target": "публикация",
+    "note": "Established. Distinct from 'message' = съобщение."
+  },
+  "message": {
+    "target": "съобщение",
+    "note": "Plural: съобщения."
+  },
+  "thread": {
+    "target": "разговор",
+    "note": "Established majority ('Разговор', 'непрочетени разговори'). A few strings use 'тема'; avoid the calque 'нишка'."
+  },
+  "reply": {
+    "target": "отговор",
+    "note": "Noun. Verb/button: 'Отговори'; the act: 'отговаряне'."
+  },
+  "direct message": {
+    "target": "директно съобщение",
+    "note": "Majority rendering; a few strings use 'лично съобщение'. Keep 'директно съобщение' for consistency."
+  },
+  "group message": {
+    "target": "групово съобщение"
+  },
+  "mention": {
+    "target": "споменаване",
+    "note": "Noun. Verb: 'споменавам/спомени'. @mention = '@споменаване'."
+  },
+  "notification": {
+    "target": "известие",
+    "note": "Established. Plural: известия. A few older strings use 'уведомление' — prefer 'известие'."
+  },
+  "pin": {
+    "target": "закачане",
+    "note": "Verb; button 'Закачи', state 'Закачено' (established), unpin 'Откачи', pinned messages 'закачени съобщения'."
+  },
+  "bookmark": {
+    "target": "отметка",
+    "note": "Established in server strings ('отметки на канала'). Verb: 'добавяне на отметка'."
+  },
+  "saved messages": {
+    "target": "запазени съобщения",
+    "note": "Existing strings are inconsistent ('запазени публикации' vs 'запазени съобщения'); prefer 'запазени съобщения' to match message = съобщение. Save = 'запази', unsave = 'премахни от запазени'."
+  },
+  "draft": {
+    "target": "чернова",
+    "note": "Established. Plural: чернови."
+  },
+  "scheduled post": {
+    "target": "планирана публикация",
+    "note": "Established: 'Планирани публикации'."
+  },
+  "emoji": {
+    "target": "емотикон",
+    "note": "Established. Plural: емотикони."
+  },
+  "custom emoji": {
+    "target": "персонализиран емотикон",
+    "note": "Established: 'персонализирани емотикони'."
+  },
+  "reaction": {
+    "target": "реакция",
+    "note": "Established. Verb react: 'реагирай'."
+  },
+  "status": {
+    "target": "състояние",
+    "note": "For user availability the majority uses 'състояние'; 'статус' appears in some billing/job strings. Prefer 'състояние'."
+  },
+  "custom status": {
+    "target": "персонализирано състояние",
+    "note": "Existing strings mix 'персонализирано състояние' and 'потребителски статус'; prefer the former."
+  },
+  "do not disturb": {
+    "target": "Не безпокой",
+    "note": "Mobile uses 'Не безпокой', webapp has 'Не безпокойте'. 'Не безпокой' is the majority; keep it as the status name."
+  },
+  "away": {
+    "target": "отсъстващ",
+    "note": "Established status name ('Отсъстващ')."
+  },
+  "online": {
+    "target": "на линия",
+    "note": "Established status name ('На линия')."
+  },
+  "offline": {
+    "target": "извън линия",
+    "note": "Established status name ('Извън линия')."
+  },
+  "out of office": {
+    "target": "извън офиса",
+    "note": "Established: 'Извън офиса'."
+  },
+  "guest": {
+    "target": "гост",
+    "note": "Plural: гости. Guest access = 'достъп за гости'."
+  },
+  "member": {
+    "target": "член",
+    "note": "Plural: членове."
+  },
+  "user": {
+    "target": "потребител",
+    "note": "Plural: потребители."
+  },
+  "system admin": {
+    "target": "системен администратор",
+    "note": "Established."
+  },
+  "team admin": {
+    "target": "администратор на екипа",
+    "note": "Follows established pattern 'администратор на екип'."
+  },
+  "channel admin": {
+    "target": "администратор на канала"
+  },
+  "session": {
+    "target": "сесия",
+    "note": "Established. Plural: сесии."
+  },
+  "sign in": {
+    "target": "влизане",
+    "note": "Verb prose: 'влезте' (formal plural, per repo register). Button: 'Влез' or 'Вход'. Translate 'log in' identically."
+  },
+  "sign out": {
+    "target": "излизане",
+    "note": "Button: 'Излез' (established). Translate 'log out' identically."
+  },
+  "join": {
+    "target": "присъединяване",
+    "note": "Button: 'Присъедини се' / 'Присъедини' (established)."
+  },
+  "leave": {
+    "target": "напускане",
+    "note": "Button: 'Напусни' (established)."
+  },
+  "archive": {
+    "target": "архивиране",
+    "note": "Button: 'Архивирай'; state: 'Архивиран' (established)."
+  },
+  "unarchive": {
+    "target": "разархивиране",
+    "note": "Button: 'Разархивирай' (established)."
+  },
+  "mute": {
+    "target": "заглушаване",
+    "note": "Channel-notification sense; button 'Заглуши' (established). Unmute a channel: 'Включи звука'."
+  },
+  "follow": {
+    "target": "следване",
+    "note": "Button: 'Следвай' (established)."
+  },
+  "unfollow": {
+    "target": "спиране на следването",
+    "note": "No existing bg string; button form 'Спри да следваш' per common Bulgarian social-app convention."
+  },
+  "favorite": {
+    "target": "любим",
+    "note": "Sidebar category: 'Любими' (established). Verb: 'Добави в любими'; unfavorite: 'Премахни от любими'."
+  },
+  "search": {
+    "target": "търсене",
+    "note": "Established. Verb/command: 'търси'."
+  },
+  "integration": {
+    "target": "интеграция",
+    "note": "Established: 'Интеграции'."
+  },
+  "slash command": {
+    "target": "команда с наклонена черта",
+    "note": "Existing strings are inconsistent: '/ команда' (frequent in webapp) vs 'команда с наклонена черта'. The latter reads better in running text; use it consistently."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Consistently kept in English in existing bg.json; inflected with a hyphen ('webhook-а') when a definite article is needed."
+  },
+  "incoming webhook": {
+    "target": "входящ webhook",
+    "note": "Established."
+  },
+  "outgoing webhook": {
+    "target": "изходящ webhook",
+    "note": "Established."
+  },
+  "trigger word": {
+    "target": "задействаща дума",
+    "note": "Established."
+  },
+  "plugin": {
+    "target": "приставка",
+    "note": "Established. Plural: приставки."
+  },
+  "bot": {
+    "target": "бот",
+    "note": "Bot account = 'бот акаунт' (established in server strings)."
+  },
+  "role": {
+    "target": "роля",
+    "note": "Established. Plural: роли."
+  },
+  "permission": {
+    "target": "право",
+    "note": "Established: 'Права' (plural) for the Permissions section."
+  },
+  "scheme": {
+    "target": "схема",
+    "note": "Established: 'екипна схема', 'схема за канал'."
+  },
+  "license": {
+    "target": "лиценз",
+    "note": "Established: 'Вашият лиценз не поддържа...'."
+  },
+  "seat": {
+    "target": "потребителско място",
+    "note": "No existing bg rendering; 'място' alone works in licensing context ('10 места')."
+  },
+  "trial": {
+    "target": "пробен период",
+    "note": "Established: 'пробен период'; adjective form 'пробна' for the license label."
+  },
+  "workspace": {
+    "target": "работно пространство",
+    "note": "Established throughout billing/cloud strings."
+  },
+  "subscription": {
+    "target": "абонамент",
+    "note": "Established."
+  },
+  "deactivate": {
+    "target": "деактивиране",
+    "note": "Button: 'Деактивирай' (established)."
+  },
+  "invite": {
+    "target": "покана",
+    "note": "Noun; verb/button: 'покани' (established slash command name)."
+  },
+  "invitation": {
+    "target": "покана",
+    "note": "Same word as 'invite' noun; plural 'покани'."
+  },
+  "sidebar": {
+    "target": "странична лента",
+    "note": "Established: 'лява/дясна странична лента'."
+  },
+  "unread": {
+    "target": "непрочетен",
+    "note": "Inflects: 'непрочетено' (neuter), 'непрочетени' (plural, used for the Unreads filter)."
+  },
+  "attachment": {
+    "target": "прикачен файл",
+    "note": "Established. Plural: прикачени файлове."
+  },
+  "public channel": {
+    "target": "публичен канал",
+    "note": "Majority; a few older strings use 'обществен канал' — prefer 'публичен'."
+  },
+  "private channel": {
+    "target": "частен канал",
+    "note": "Established."
+  },
+  "shared channel": {
+    "target": "споделен канал",
+    "note": "Established."
+  },
+  "channel header": {
+    "target": "заглавка на канала",
+    "note": "Existing strings mix 'заглавка' (webapp majority) and 'заглавие' (server); use 'заглавка' consistently."
+  },
+  "channel purpose": {
+    "target": "цел на канала",
+    "note": "Established majority; a couple of strings use 'предназначение'."
+  },
+  "system message": {
+    "target": "системно съобщение",
+    "note": "Established."
+  },
+  "persistent notification": {
+    "target": "постоянно известие",
+    "note": "Established: 'постоянни известия'."
+  },
+  "message priority": {
+    "target": "приоритет на съобщението",
+    "note": "Established."
+  },
+  "urgent": {
+    "target": "спешно",
+    "note": "Established: 'спешни съобщения'. Label form: 'СПЕШНО'."
+  },
+  "recap": {
+    "target": "обобщение",
+    "note": "No existing bg string; 'обобщение' is the natural term for an AI-generated activity summary."
+  },
+  "agent": {
+    "target": "агент",
+    "note": "Plural: агенти."
+  },
+  "burn-on-read": {
+    "target": "изтриване след прочитане",
+    "note": "No existing bg string. Adjective usage: 'съобщение с изтриване след прочитане'; label form 'ИЗТРИВА СЕ СЛЕД ПРОЧИТАНЕ'."
+  },
+  "magic link": {
+    "target": "магическа връзка",
+    "note": "No existing bg string; 'връзка' is the established word for link."
+  },
+  "personal access token": {
+    "target": "личен маркер за достъп",
+    "note": "Established; token = 'маркер' throughout existing translations."
+  },
+  "announcement banner": {
+    "target": "банер за съобщения",
+    "note": "Established in webapp admin strings. 'банер за обявления' would avoid collision with message = съобщение, but keep the existing majority."
+  },
+  "channel banner": {
+    "target": "банер на канала"
+  },
+  "keyword": {
+    "target": "ключова дума",
+    "note": "Established: 'Ключови думи'."
+  },
+  "user group": {
+    "target": "потребителска група",
+    "note": "Group = 'група' established; plural 'потребителски групи'."
+  },
+  "permalink": {
+    "target": "постоянна връзка",
+    "note": "Established."
+  },
+  "profile": {
+    "target": "профил",
+    "note": "Established."
+  },
+  "username": {
+    "target": "потребителско име",
+    "note": "Established."
+  },
+  "nickname": {
+    "target": "псевдоним",
+    "note": "Established."
+  },
+  "display name": {
+    "target": "показвано име",
+    "note": "Established."
+  },
+  "collapsed reply threads": {
+    "target": "свити разговори",
+    "note": "No existing bg string; follows thread = 'разговор'. Feature name, capitalize as 'Свити разговори'."
+  },
+  "auto-translation": {
+    "target": "автоматичен превод",
+    "note": "Label form: 'АВТОМАТИЧНО ПРЕВЕДЕНО'."
+  },
+  "data retention": {
+    "target": "съхранение на данни",
+    "note": "Established: 'Политика за съхранение на данни'."
+  },
+  "compliance export": {
+    "target": "експорт на съответствие",
+    "note": "Established majority; some strings use 'износ на съответствие' — prefer 'експорт'."
+  },
+  "access control": {
+    "target": "контрол на достъпа",
+    "note": "Established: 'Разширен контрол на достъпа'. Policy: 'политика за контрол на достъпа'."
+  },
+  "attribute": {
+    "target": "атрибут",
+    "note": "Established (LDAP/SAML strings). Plural: атрибути."
+  },
+  "onboarding": {
+    "target": "въвеждане",
+    "note": "No existing bg string; 'въвеждане' (initial guided setup). Avoid transliterating 'онбординг' in UI text."
+  },
+  "Town Square": {
+    "target": "Площада",
+    "note": "Established default channel name in server bg.json."
+  },
+  "Off-Topic": {
+    "target": "Извън темата",
+    "note": "Established default channel name in server bg.json."
+  },
+  "read-only": {
+    "target": "само за четене",
+    "note": "Established."
+  },
+  "server": {
+    "target": "сървър",
+    "note": "Established. Plural: сървъри."
+  }
+}

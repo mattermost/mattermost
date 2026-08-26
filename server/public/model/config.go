@@ -2905,10 +2905,9 @@ func (s *ComplianceSettings) SetDefaults() {
 }
 
 type LocalizationSettings struct {
-	DefaultServerLocale       *string `access:"site_localization"`
-	DefaultClientLocale       *string `access:"site_localization"`
-	AvailableLocales          *string `access:"site_localization"`
-	EnableExperimentalLocales *bool   `access:"site_localization"`
+	DefaultServerLocale *string `access:"site_localization"`
+	DefaultClientLocale *string `access:"site_localization"`
+	AvailableLocales    *string `access:"site_localization"`
 }
 
 func (s *LocalizationSettings) SetDefaults() {
@@ -2922,10 +2921,6 @@ func (s *LocalizationSettings) SetDefaults() {
 
 	if s.AvailableLocales == nil {
 		s.AvailableLocales = new("")
-	}
-
-	if s.EnableExperimentalLocales == nil {
-		s.EnableExperimentalLocales = new(false)
 	}
 }
 

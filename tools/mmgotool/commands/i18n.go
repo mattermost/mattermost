@@ -15,10 +15,13 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 
+	goi18n "github.com/mattermost/go-i18n/i18n"
+	"github.com/mattermost/go-i18n/i18n/language"
 	"github.com/spf13/cobra"
 )
 
@@ -33,6 +36,15 @@ type Translation struct {
 type Item struct {
 	ID          string          `json:"id"`
 	Translation json.RawMessage `json:"translation"`
+}
+
+// AuthoringTranslation is an en.json entry paired with the translator-facing
+// description held in i18n-authoring/en-with-description.json. The description
+// is authoring-tier metadata and is never loaded by the server.
+type AuthoringTranslation struct {
+	Id          string `json:"id"`
+	Translation any    `json:"translation"`
+	Description string `json:"description"`
 }
 
 var I18nCmd = &cobra.Command{
@@ -64,6 +76,26 @@ var CheckEmptySrcCmd = &cobra.Command{
 	RunE:    checkEmptySrcCmdF,
 }
 
+var VerifyCmd = &cobra.Command{
+	Use:     "verify",
+	Short:   "Verify the non-English translation files against en.json",
+	Long:    "Checks every non-English file in i18n/ against i18n/en.json: it must load through the same go-i18n loader the server runs at startup, hold exactly the ids en.json holds, interpolate exactly the {{.Fields}} the source interpolates, and define exactly the CLDR plural categories its locale uses.",
+	Example: "  i18n verify",
+	// A verification failure is a normal outcome, not a usage error.
+	SilenceUsage: true,
+	RunE:         verifyCmdF,
+}
+
+var ExtractAuthoringCmd = &cobra.Command{
+	Use:     "extract-authoring",
+	Short:   "Sync the authoring-tier description file with en.json",
+	Long:    "Rewrites i18n-authoring/en-with-description.json so its ids and translations match i18n/en.json, preserving the description already recorded for each id. Ids added to en.json get an empty description to fill in; ids removed from en.json are dropped.",
+	Example: "  i18n extract-authoring",
+	// The --check failure is a normal outcome, not a usage error.
+	SilenceUsage: true,
+	RunE:         extractAuthoringCmdF,
+}
+
 var CleanEmptyCmd = &cobra.Command{
 	Use:     "clean-empty",
 	Short:   "Clean empty translations",
@@ -92,6 +124,12 @@ func init() {
 	CheckEmptySrcCmd.Flags().String("enterprise-dir", "../../enterprise", "Path to folder with the Mattermost enterprise source code")
 	CheckEmptySrcCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
 
+	VerifyCmd.Flags().Bool("warn-missing-ids", false, "Report ids missing from a locale as warnings instead of errors")
+	VerifyCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
+
+	ExtractAuthoringCmd.Flags().Bool("check", false, "Throw exit code if the authoring file is out of date instead of rewriting it")
+	ExtractAuthoringCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
+
 	CleanEmptyCmd.Flags().Bool("dry-run", false, "Run without applying changes")
 	CleanEmptyCmd.Flags().Bool("check", false, "Throw exit code on empty translation strings")
 	CleanEmptyCmd.Flags().String("portal-dir", "../customer-web-server", "Path to folder with the Mattermost Customer Portal source code")
@@ -103,6 +141,8 @@ func init() {
 		CheckCmd,
 		CheckEmptySrcCmd,
 		CleanEmptyCmd,
+		ExtractAuthoringCmd,
+		VerifyCmd,
 	)
 	RootCmd.AddCommand(I18nCmd)
 }
@@ -758,4 +798,282 @@ func JSONMarshal(t any) ([]byte, error) {
 	encoder.SetIndent("", "    ")
 	err := encoder.Encode(t)
 	return buffer.Bytes(), err
+}
+
+const authoringDir = "i18n-authoring"
+const authoringFile = "en-with-description.json"
+
+func marshalAuthoring(translations []AuthoringTranslation) ([]byte, error) {
+	buf := &bytes.Buffer{}
+	encoder := json.NewEncoder(buf)
+	encoder.SetIndent("", "  ")
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(translations); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func extractAuthoringCmdF(command *cobra.Command, args []string) error {
+	check, err := command.Flags().GetBool("check")
+	if err != nil {
+		return errors.New("invalid check parameter")
+	}
+	mattermostDir, err := command.Flags().GetString("server-dir")
+	if err != nil {
+		return errors.New("invalid server-dir parameter")
+	}
+
+	sourceStrings, err := getBaseFileSrcStrings(mattermostDir)
+	if err != nil {
+		return err
+	}
+
+	authoringPath := path.Join(mattermostDir, authoringDir, authoringFile)
+	descriptions := map[string]string{}
+	existing, err := os.ReadFile(authoringPath)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	if err == nil {
+		var previous []AuthoringTranslation
+		if err = json.Unmarshal(existing, &previous); err != nil {
+			return fmt.Errorf("%s: %w", authoringPath, err)
+		}
+		for _, t := range previous {
+			descriptions[t.Id] = t.Description
+		}
+	}
+
+	// en.json is already sorted by extract; keeping its order means the two
+	// files stay diffable side by side.
+	result := make([]AuthoringTranslation, 0, len(sourceStrings))
+	for _, t := range sourceStrings {
+		result = append(result, AuthoringTranslation{
+			Id:          t.Id,
+			Translation: t.Translation,
+			Description: descriptions[t.Id],
+		})
+	}
+
+	updated, err := marshalAuthoring(result)
+	if err != nil {
+		return err
+	}
+
+	if bytes.Equal(existing, updated) {
+		return nil
+	}
+
+	if check {
+		return fmt.Errorf("%s is out of sync with i18n/en.json\nTo update: make i18n-extract-authoring", authoringPath)
+	}
+
+	if err = os.MkdirAll(path.Join(mattermostDir, authoringDir), 0755); err != nil {
+		return err
+	}
+
+	return os.WriteFile(authoringPath, updated, 0644)
+}
+
+var templateTokenRe = regexp.MustCompile(`\{\{\s*\.([A-Za-z0-9_]+)\s*\}\}`)
+
+// templateTokens returns the {{.Field}} names a translation interpolates. A
+// translation is either a plain string or a map of plural category to string.
+func templateTokens(raw json.RawMessage) map[string]bool {
+	out := map[string]bool{}
+
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		for _, m := range templateTokenRe.FindAllStringSubmatch(s, -1) {
+			out[m[1]] = true
+		}
+		return out
+	}
+
+	var plural map[string]string
+	if err := json.Unmarshal(raw, &plural); err == nil {
+		for _, v := range plural {
+			for _, m := range templateTokenRe.FindAllStringSubmatch(v, -1) {
+				out[m[1]] = true
+			}
+		}
+	}
+
+	return out
+}
+
+func loadItems(filename string) (map[string]Item, error) {
+	raw, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []Item
+	if err = json.Unmarshal(raw, &list); err != nil {
+		return nil, err
+	}
+
+	items := make(map[string]Item, len(list))
+	for _, item := range list {
+		items[item.ID] = item
+	}
+
+	return items, nil
+}
+
+// pluralCategories returns the CLDR plural categories go-i18n uses for a
+// locale, or nil if it has no plural spec.
+func pluralCategories(locale string) map[language.Plural]bool {
+	spec := language.GetPluralSpec(locale)
+	if spec == nil {
+		return nil
+	}
+
+	categories := map[language.Plural]bool{}
+	for c := range spec.Plurals {
+		categories[c] = true
+	}
+
+	return categories
+}
+
+func verifyLocaleFile(filename string, en map[string]Item, warnMissingIDs bool) (problems, warnings []string) {
+	name := filepath.Base(filename)
+	locale := strings.TrimSuffix(name, ".json")
+
+	// The strongest check available: the loader the server actually runs at
+	// startup. It rejects invalid JSON, plural categories the locale does not
+	// have, and any translation that fails to parse as a text/template.
+	if err := goi18n.LoadTranslationFile(filename); err != nil {
+		return []string{fmt.Sprintf("%s: rejected by the runtime translation loader: %v", name, err)}, nil
+	}
+
+	items, err := loadItems(filename)
+	if err != nil {
+		return []string{fmt.Sprintf("%s: %v", name, err)}, nil
+	}
+
+	categories := pluralCategories(locale)
+	if categories == nil {
+		problems = append(problems, fmt.Sprintf("%s: no CLDR plural spec for locale %q", name, locale))
+	}
+
+	for id := range en {
+		if _, ok := items[id]; !ok {
+			msg := fmt.Sprintf("%s: %s: missing id", name, id)
+			if warnMissingIDs {
+				warnings = append(warnings, msg)
+			} else {
+				problems = append(problems, msg)
+			}
+		}
+	}
+
+	for id, item := range items {
+		source, ok := en[id]
+		if !ok {
+			problems = append(problems, fmt.Sprintf("%s: %s: extra id not in en.json", name, id))
+			continue
+		}
+
+		// An unknown token renders as "<no value>" to the user; a dropped
+		// one quietly loses the value it was meant to show.
+		sourceTokens := templateTokens(source.Translation)
+		itemTokens := templateTokens(item.Translation)
+		for token := range itemTokens {
+			if !sourceTokens[token] {
+				problems = append(problems, fmt.Sprintf("%s: %s: unknown template token {{.%s}} not present in source", name, id, token))
+			}
+		}
+		for token := range sourceTokens {
+			if !itemTokens[token] {
+				problems = append(problems, fmt.Sprintf("%s: %s: source template token {{.%s}} is missing from the translation", name, id, token))
+			}
+		}
+
+		if categories == nil {
+			continue
+		}
+
+		var plural map[string]string
+		if json.Unmarshal(item.Translation, &plural) != nil {
+			continue
+		}
+
+		var sourcePlural map[string]string
+		if json.Unmarshal(source.Translation, &sourcePlural) != nil {
+			continue
+		}
+
+		for c := range categories {
+			if _, ok := plural[string(c)]; !ok {
+				problems = append(problems, fmt.Sprintf("%s: %s: missing plural category %q required for this locale", name, id, c))
+			}
+		}
+		for c := range plural {
+			if !categories[language.Plural(c)] {
+				problems = append(problems, fmt.Sprintf("%s: %s: plural category %q is not used by this locale", name, id, c))
+			}
+		}
+	}
+
+	return problems, warnings
+}
+
+func verifyCmdF(command *cobra.Command, args []string) error {
+	warnMissingIDs, err := command.Flags().GetBool("warn-missing-ids")
+	if err != nil {
+		return errors.New("invalid warn-missing-ids parameter")
+	}
+	mattermostDir, err := command.Flags().GetString("server-dir")
+	if err != nil {
+		return errors.New("invalid server-dir parameter")
+	}
+
+	translationDir := path.Join(mattermostDir, "i18n")
+	en, err := loadItems(path.Join(translationDir, "en.json"))
+	if err != nil {
+		return err
+	}
+
+	dirEntries, err := os.ReadDir(translationDir)
+	if err != nil {
+		return err
+	}
+
+	var problems, warnings []string
+	checked := 0
+	for _, dirEntry := range dirEntries {
+		if dirEntry.IsDir() || filepath.Ext(dirEntry.Name()) != ".json" || dirEntry.Name() == "en.json" {
+			continue
+		}
+
+		checked++
+		fileProblems, fileWarnings := verifyLocaleFile(path.Join(translationDir, dirEntry.Name()), en, warnMissingIDs)
+		problems = append(problems, fileProblems...)
+		warnings = append(warnings, fileWarnings...)
+	}
+
+	// Map iteration order is random, so sort for a stable, diffable report.
+	sort.Strings(warnings)
+	sort.Strings(problems)
+
+	for _, w := range warnings {
+		fmt.Println(w)
+	}
+	if len(warnings) > 0 {
+		fmt.Printf("\n%d warning(s)\n", len(warnings))
+	}
+
+	for _, p := range problems {
+		fmt.Println(p)
+	}
+	if len(problems) > 0 {
+		return fmt.Errorf("%d error(s) across %d locale files", len(problems), checked)
+	}
+
+	fmt.Printf("OK: %d locale files checked against %s\n", checked, path.Join(translationDir, "en.json"))
+
+	return nil
 }

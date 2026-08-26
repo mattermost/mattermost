@@ -1,0 +1,460 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Legacy webapp string 'Edizione squadra' exists for Team Edition, but edition names are product names; keep in English."
+  },
+  "Team Edition": {
+    "target": "Team Edition",
+    "note": "Legacy strings render this as 'Edizione squadra'/'Edizione Team'; as a product name it should stay in English."
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name; do not confuse with the common noun 'canali'."
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls",
+    "note": "Product name; the common noun 'call' is 'chiamata'."
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "Console di Sistema",
+    "note": "Established rendering in webapp it.json; keep capitalized as a named UI area."
+  },
+  "marketplace": {
+    "target": "Marketplace",
+    "note": "Kept in English in existing translations ('Attiva marketplace', 'URL marketplace'); masculine: 'il Marketplace'."
+  },
+  "channel": {
+    "target": "canale",
+    "note": "Masculine; plural 'canali'."
+  },
+  "team": {
+    "target": "squadra",
+    "note": "Majority rendering in webapp/server (285 occurrences vs 35 for kept 'team'); mobile occasionally keeps 'team' — prefer 'squadra' for consistency. Feminine; plural 'squadre'."
+  },
+  "post": {
+    "target": "pubblicazione",
+    "note": "Established webapp/server rendering (~148 occurrences); mobile often renders 'post' as 'messaggio' since the UI treats them interchangeably. Feminine. Verb 'to post' = 'pubblicare'."
+  },
+  "message": {
+    "target": "messaggio",
+    "note": "Masculine; plural 'messaggi'."
+  },
+  "thread": {
+    "target": "thread",
+    "note": "Kept in English (majority across webapp/mobile/calls); masculine, invariable: 'il thread', 'i thread'. Some older strings use 'discussione' or 'conversazione' — avoid mixing."
+  },
+  "reply": {
+    "target": "risposta",
+    "note": "Noun 'risposta' (feminine); verb 'rispondere', button 'Rispondi'."
+  },
+  "direct message": {
+    "target": "messaggio diretto",
+    "note": "Majority rendering; a few legacy strings use 'Messaggio Privato' — avoid. Sidebar heading 'Messaggi diretti'."
+  },
+  "group message": {
+    "target": "messaggio di gruppo"
+  },
+  "mention": {
+    "target": "citazione",
+    "note": "Majority in webapp/server (42+ occurrences, zero 'menzione' there); newer mobile strings use 'menzione', which is the more standard modern Italian UI term (Slack/Teams) — flagged for possible future unification. Verb: 'citare'."
+  },
+  "notification": {
+    "target": "notifica",
+    "note": "Feminine; plural 'notifiche'."
+  },
+  "pin": {
+    "target": "bloccare",
+    "note": "Existing majority: 'Blocca al canale', 'Pubblicazioni bloccate', 'Sblocca dal canale' (unpin). Newer mobile strings use 'appuntare' ('Messaggi appuntati'), arguably clearer, but 'bloccare' is the established rendering."
+  },
+  "bookmark": {
+    "target": "segnalibro",
+    "note": "No existing signal (channel bookmarks untranslated in it.json); standard Italian UI term. Masculine; verb: 'aggiungere un segnalibro'."
+  },
+  "saved messages": {
+    "target": "messaggi salvati",
+    "note": "Majority rendering; legacy webapp strings use 'contrassegnato' ('Pubblicazioni contrassegnate') — avoid. Verb save = 'salvare', unsave = 'rimuovi dai salvati'."
+  },
+  "draft": {
+    "target": "bozza",
+    "note": "Untranslated in current it.json files; standard Italian term. Feminine; plural 'bozze'."
+  },
+  "scheduled post": {
+    "target": "messaggio programmato",
+    "note": "Untranslated in current it.json; 'programmato' matches standard Italian UI convention (e.g. Slack/Gmail 'invio programmato')."
+  },
+  "emoji": {
+    "target": "emoji",
+    "note": "Invariable. Existing strings treat it as feminine ('un'emoji personalizzata') — use feminine consistently."
+  },
+  "custom emoji": {
+    "target": "emoji personalizzata",
+    "note": "Feminine per existing usage; plural 'emoji personalizzate'."
+  },
+  "reaction": {
+    "target": "reazione",
+    "note": "Verb react = 'reagire' ('reagire alla pubblicazione' in existing strings)."
+  },
+  "status": {
+    "target": "stato"
+  },
+  "custom status": {
+    "target": "stato personalizzato"
+  },
+  "do not disturb": {
+    "target": "Non disturbare",
+    "note": "Consistent existing rendering across webapp and mobile."
+  },
+  "away": {
+    "target": "Assente",
+    "note": "Majority rendering; scattered mobile variants ('Via', 'In trasferta', 'non al computer') should be avoided."
+  },
+  "online": {
+    "target": "In linea",
+    "note": "Webapp uses 'In Linea'; mobile sometimes keeps 'Online'. 'In linea' pairs with 'Non in linea' for offline."
+  },
+  "offline": {
+    "target": "Non in linea",
+    "note": "Webapp rendering, pairs with 'In linea'; mobile sometimes keeps 'Offline'."
+  },
+  "out of office": {
+    "target": "Fuori sede",
+    "note": "Webapp majority; mobile uses 'Fuori ufficio' — prefer 'Fuori sede'."
+  },
+  "guest": {
+    "target": "ospite",
+    "note": "Majority rendering; one legacy string uses 'Visitatori'. Beware collision with Calls 'host' mistranslated as 'ospite' in some Calls strings."
+  },
+  "member": {
+    "target": "membro",
+    "note": "Masculine; plural 'membri'."
+  },
+  "user": {
+    "target": "utente",
+    "note": "Masculine/feminine; plural 'utenti'."
+  },
+  "system admin": {
+    "target": "amministratore di sistema",
+    "note": "Existing: 'Amministratore di Sistema' (capitalized as a role name in admin UI)."
+  },
+  "team admin": {
+    "target": "amministratore di squadra",
+    "note": "Consistent with team = 'squadra'."
+  },
+  "channel admin": {
+    "target": "amministratore del canale"
+  },
+  "session": {
+    "target": "sessione",
+    "note": "Feminine; 'Sessioni attive' = Active Sessions."
+  },
+  "sign in": {
+    "target": "accedere",
+    "note": "Button/imperative: 'Accedi'. Use for both 'sign in' and 'log in' per existing usage ('Accedi ad un altro Server')."
+  },
+  "sign out": {
+    "target": "uscire",
+    "note": "Existing consistent rendering: 'Esci' for both Log Out and Sign Out. Alternative 'disconnettersi' appears rarely."
+  },
+  "join": {
+    "target": "unirsi (a)",
+    "note": "Existing: 'Unirsi', 'Ti sei unito alla squadra'; button form 'Unisciti'. Calls uses 'partecipare' for joining a call — keep that distinction."
+  },
+  "leave": {
+    "target": "abbandonare",
+    "note": "Existing majority: 'Abbandona canale', 'Abbandona la squadra'."
+  },
+  "archive": {
+    "target": "archiviare",
+    "note": "'Archivia Canale', 'Archiviato' in existing strings."
+  },
+  "unarchive": {
+    "target": "disarchiviare",
+    "note": "Existing: 'Disarchivia'."
+  },
+  "mute": {
+    "target": "silenziare",
+    "note": "For channels: 'Silenzia canale', 'canale silenziato'. Avoid mobile variants 'Muto'/'disattivato'. Unmute = 'riattiva le notifiche' or 'rimuovi silenziamento' (existing mobile)."
+  },
+  "follow": {
+    "target": "seguire",
+    "note": "'Segui il thread', 'Stai seguendo' in existing strings."
+  },
+  "unfollow": {
+    "target": "smettere di seguire",
+    "note": "Button: 'Non seguire più'. Existing mobile renderings are inconsistent ('Thread da non seguire', 'Messaggio di esclusione') — avoid."
+  },
+  "favorite": {
+    "target": "preferito",
+    "note": "Noun/adjective 'preferito'; verb: 'aggiungere ai preferiti', unfavorite: 'rimuovi dai preferiti' (existing)."
+  },
+  "search": {
+    "target": "ricerca",
+    "note": "Noun 'ricerca' (feminine); verb 'cercare', button 'Cerca'."
+  },
+  "integration": {
+    "target": "integrazione"
+  },
+  "slash command": {
+    "target": "comando slash",
+    "note": "Existing: 'Comandi Slash', 'comandi slash integrati'."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Kept in English per existing usage; masculine, invariable: 'il webhook', 'i webhook' (avoid legacy plural 'webhooks' in Italian text)."
+  },
+  "incoming webhook": {
+    "target": "webhook in ingresso"
+  },
+  "outgoing webhook": {
+    "target": "webhook in uscita"
+  },
+  "trigger word": {
+    "target": "parola di attivazione",
+    "note": "Existing strings are inconsistent ('parole di innesco', 'parola chiave', 'parola di esecuzione'); 'parola di attivazione' avoids collision with keyword = 'parola chiave'."
+  },
+  "plugin": {
+    "target": "plugin",
+    "note": "Kept in English; masculine, invariable: 'il plugin', 'i plugin' (avoid legacy 'plugins' plural in Italian text)."
+  },
+  "bot": {
+    "target": "bot",
+    "note": "Kept in English; masculine, invariable. 'Account bot' = bot account (existing)."
+  },
+  "role": {
+    "target": "ruolo",
+    "note": "Masculine; plural 'ruoli'."
+  },
+  "permission": {
+    "target": "permesso",
+    "note": "Existing consistent: 'Permessi', 'Schemi di Permesso'. The alternative 'autorizzazione' is not used in this product."
+  },
+  "scheme": {
+    "target": "schema",
+    "note": "Masculine: 'lo schema', 'gli schemi'; 'Schema di Sistema' = System Scheme (existing)."
+  },
+  "license": {
+    "target": "licenza"
+  },
+  "seat": {
+    "target": "postazione",
+    "note": "No existing signal; standard Italian licensing term for per-user seats. Feminine; plural 'postazioni'."
+  },
+  "trial": {
+    "target": "periodo di prova",
+    "note": "Majority rendering ('prova gratuita' for free trial); a couple of legacy strings keep 'trial' — avoid."
+  },
+  "workspace": {
+    "target": "spazio di lavoro",
+    "note": "Majority rendering; one legacy string uses 'area di lavoro' — avoid."
+  },
+  "subscription": {
+    "target": "abbonamento",
+    "note": "Standard Italian SaaS term; the single existing string uses 'sottoscrizione', which is less idiomatic for recurring plans."
+  },
+  "deactivate": {
+    "target": "disattivare",
+    "note": "Existing: 'Disattiva', 'disattivato'."
+  },
+  "invite": {
+    "target": "invitare",
+    "note": "Verb 'invitare' ('Invita ospiti'); noun (an invite) = 'invito'."
+  },
+  "invitation": {
+    "target": "invito",
+    "note": "Masculine; plural 'inviti'."
+  },
+  "sidebar": {
+    "target": "barra laterale"
+  },
+  "unread": {
+    "target": "non letto",
+    "note": "'Segna come non letto'; plural noun usage (unreads) = 'non letti' ('Filtra non letti')."
+  },
+  "attachment": {
+    "target": "allegato"
+  },
+  "public channel": {
+    "target": "canale pubblico"
+  },
+  "private channel": {
+    "target": "canale privato"
+  },
+  "shared channel": {
+    "target": "canale condiviso"
+  },
+  "channel header": {
+    "target": "intestazione del canale",
+    "note": "Existing consistent: 'intestazione'."
+  },
+  "channel purpose": {
+    "target": "scopo del canale",
+    "note": "Existing consistent: 'scopo' ('Modifica Scopo')."
+  },
+  "system message": {
+    "target": "messaggio di sistema"
+  },
+  "persistent notification": {
+    "target": "notifica persistente"
+  },
+  "message priority": {
+    "target": "priorità del messaggio",
+    "note": "Existing mobile rendering."
+  },
+  "urgent": {
+    "target": "urgente",
+    "note": "Label form: 'URGENTE' (existing mobile)."
+  },
+  "recap": {
+    "target": "riepilogo",
+    "note": "New AI feature, untranslated in it.json; 'riepilogo' aligns with Calls meeting summary = 'riepilogo della riunione'."
+  },
+  "agent": {
+    "target": "agente",
+    "note": "Masculine; plural 'agenti'. The Agents product/feature name may stay 'Agents' when used as a proper name."
+  },
+  "burn-on-read": {
+    "target": "con distruzione alla lettura",
+    "note": "New feature, no existing signal. Adjective use: 'messaggio con distruzione alla lettura'; label: 'DISTRUZIONE ALLA LETTURA'."
+  },
+  "magic link": {
+    "target": "link magico",
+    "note": "Slack's Italian rendering; 'magic link' kept in English is also common in Italian products — use one form consistently."
+  },
+  "personal access token": {
+    "target": "token di accesso personale",
+    "note": "Existing consistent rendering; 'token' is kept in English (masculine, invariable)."
+  },
+  "announcement banner": {
+    "target": "banner di annunci",
+    "note": "'banner' kept in English (masculine, invariable) per existing usage ('Testo Banner', 'Colore Banner')."
+  },
+  "channel banner": {
+    "target": "banner del canale"
+  },
+  "keyword": {
+    "target": "parola chiave",
+    "note": "Existing consistent: 'Parole chiave che attivano le menzioni'."
+  },
+  "user group": {
+    "target": "gruppo di utenti",
+    "note": "Plain 'gruppo' when context is clear (existing: 'Citazione gruppo')."
+  },
+  "permalink": {
+    "target": "link permanente",
+    "note": "No existing signal; standard Italian rendering."
+  },
+  "profile": {
+    "target": "profilo",
+    "note": "One legacy string maps Profile to 'Impostazioni Account' — avoid; use 'profilo'."
+  },
+  "username": {
+    "target": "nome utente",
+    "note": "Existing consistent rendering."
+  },
+  "nickname": {
+    "target": "soprannome",
+    "note": "Existing consistent rendering."
+  },
+  "display name": {
+    "target": "nome visualizzato",
+    "note": "Majority across desktop/mobile/webapp-notifications; a couple of legacy webapp strings use 'Nome visibile' — prefer 'nome visualizzato'."
+  },
+  "collapsed reply threads": {
+    "target": "thread di risposta compressi",
+    "note": "Existing mobile rendering; a duplicate string uses 'collassati' — prefer 'compressi'."
+  },
+  "auto-translation": {
+    "target": "traduzione automatica",
+    "note": "Label form for auto-translated messages: 'TRADOTTO AUTOMATICAMENTE'."
+  },
+  "data retention": {
+    "target": "ritenzione dei dati",
+    "note": "Existing consistent rendering in webapp/server ('Politica Ritenzione dei Dati'); 'conservazione dei dati' is the standard Italian/GDPR term and arguably better — kept 'ritenzione' for consistency."
+  },
+  "compliance export": {
+    "target": "esportazione di conformità",
+    "note": "Legacy strings use 'Esportazione Conforme (Beta)', which misreads the English ('compliant export'); 'esportazione di conformità' is more accurate."
+  },
+  "access control": {
+    "target": "controllo degli accessi",
+    "note": "No reliable existing signal (one legacy string relabels it 'Moderazione canale'); standard Italian security term. Policy: 'politica di controllo degli accessi'."
+  },
+  "attribute": {
+    "target": "attributo",
+    "note": "Masculine; plural 'attributi'. Existing: 'Attributo Nome Gruppo Visualizzato'."
+  },
+  "onboarding": {
+    "target": "onboarding",
+    "note": "Commonly kept in English in Italian software; masculine: 'l'onboarding'."
+  },
+  "Town Square": {
+    "target": "Piazza",
+    "note": "Existing server rendering of the default channel name."
+  },
+  "Off-Topic": {
+    "target": "Senza-Argomento",
+    "note": "Existing server rendering of the default channel name (hyphenated to remain a valid channel name)."
+  },
+  "read-only": {
+    "target": "in sola lettura",
+    "note": "Existing: 'Questo canale è in sola lettura' (webapp); mobile uses 'di sola lettura' — either preposition works, prefer 'in sola lettura'."
+  },
+  "server": {
+    "target": "server",
+    "note": "Kept in English; masculine, invariable: 'il server', 'i server' (avoid legacy plural 'servers' in Italian text)."
+  }
+}

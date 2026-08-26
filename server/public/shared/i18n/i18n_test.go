@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/go-i18n/i18n/bundle"
@@ -234,5 +236,63 @@ func TestGetTranslationFuncForDir(t *testing.T) {
 
 		require.Equal(t, "Décembre", translationFunc("fr")("December"))
 		require.Equal(t, "December", translationFunc("en")("December"))
+	})
+}
+
+// localeFilesIn returns the locale codes of the *.json catalogs in dir.
+func localeFilesIn(t *testing.T, dir string) []string {
+	t.Helper()
+
+	entries, err := os.ReadDir(dir)
+	require.NoError(t, err)
+
+	var locales []string
+	for _, entry := range entries {
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".json" {
+			continue
+		}
+		locales = append(locales, strings.TrimSuffix(entry.Name(), ".json"))
+	}
+
+	return locales
+}
+
+// webappLanguageValues returns the locale codes in the webapp's languages map.
+func webappLanguageValues(t *testing.T, path string) []string {
+	t.Helper()
+
+	contents, err := os.ReadFile(path)
+	require.NoError(t, err)
+
+	block := regexp.MustCompile(`(?s)export const languages = \{.*?\n\};`).Find(contents)
+	require.NotNil(t, block, "could not locate the languages map in %s", path)
+
+	var locales []string
+	for _, match := range regexp.MustCompile(`value: '([^']+)'`).FindAllSubmatch(block, -1) {
+		locales = append(locales, string(match[1]))
+	}
+
+	return locales
+}
+
+// supportedLocales is hand-maintained in three other places: the catalogs
+// shipped by the server, the catalogs shipped by the webapp, and the webapp's
+// own languages map. Nothing but this test keeps the four in step, and when
+// they drift the symptom is a language that is offered but cannot load, or a
+// catalog that is translated but never reachable.
+func TestSupportedLocalesAreInSync(t *testing.T) {
+	t.Run("server translation files", func(t *testing.T) {
+		assert.ElementsMatch(t, supportedLocales, localeFilesIn(t, "../../../i18n"),
+			"supportedLocales and server/i18n/*.json disagree")
+	})
+
+	t.Run("webapp translation files", func(t *testing.T) {
+		assert.ElementsMatch(t, supportedLocales, localeFilesIn(t, "../../../../webapp/channels/src/i18n"),
+			"supportedLocales and webapp/channels/src/i18n/*.json disagree")
+	})
+
+	t.Run("webapp languages map", func(t *testing.T) {
+		assert.ElementsMatch(t, supportedLocales, webappLanguageValues(t, "../../../../webapp/channels/src/i18n/i18n.ts"),
+			"supportedLocales and the webapp languages map disagree")
 	})
 }

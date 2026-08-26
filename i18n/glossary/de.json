@@ -1,0 +1,458 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition"
+  },
+  "Team Edition": {
+    "target": "Team Edition"
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "As a product name keep English (Weblate glossary marks this explicitly). The common noun 'channels' is 'Kanäle'."
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls"
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP",
+    "note": "'AD/LDAP' stays as-is."
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip",
+    "note": "Protocol name; never render literally. The Weblate glossary row 'Klatsch und Tratsch' is a literal mistranslation and must not be used."
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay",
+    "note": "Export format written 'Global-Relay-EML' in the Weblate glossary when compounded."
+  },
+  "System Console": {
+    "target": "Systemkonsole",
+    "note": "Feminine: die Systemkonsole. Consistent across webapp and mobile."
+  },
+  "marketplace": {
+    "target": "Marktplatz",
+    "note": "Weblate glossary row contains the typo 'Martkplatz'; correct form is Marktplatz. Beware: the default channel 'Town Square' is also 'Marktplatz' in existing translations — disambiguate via context (Plugin-Marktplatz vs. channel name)."
+  },
+  "channel": {
+    "target": "Kanal",
+    "note": "Masculine: der Kanal, Plural Kanäle. Mandated by the German community rules."
+  },
+  "team": {
+    "target": "Team",
+    "note": "Neuter: das Team. Mandated by the German community rules."
+  },
+  "post": {
+    "target": "Nachricht",
+    "note": "German community rules mandate 'Nachricht' for post (same as message). A few newer server strings use 'Beitrag'; prefer Nachricht."
+  },
+  "message": {
+    "target": "Nachricht",
+    "note": "Feminine: die Nachricht."
+  },
+  "thread": {
+    "target": "Unterhaltung",
+    "note": "Consistently 'Unterhaltung' (not 'Thread') across webapp, server, and mobile; the Threads view is 'Unterhaltungen'."
+  },
+  "reply": {
+    "target": "Antwort",
+    "note": "Verb: antworten. Plural: Antworten."
+  },
+  "direct message": {
+    "target": "Direktnachricht",
+    "note": "Mandated by the German community rules. Abbreviation DM is not expanded in German UI; a few strings use 'direkte Nachricht' — prefer the compound."
+  },
+  "group message": {
+    "target": "Gruppennachricht"
+  },
+  "mention": {
+    "target": "Erwähnung",
+    "note": "Verb: erwähnen. Mandated by the German community rules. '@mention' stays '@Erwähnung' or keeps the @username literal."
+  },
+  "notification": {
+    "target": "Benachrichtigung",
+    "note": "Mandated by the German community rules."
+  },
+  "pin": {
+    "target": "anheften",
+    "note": "Pinned messages = 'Angeheftete Nachrichten'; unpin = 'Loslösen' / 'nicht mehr anheften'. Avoid the variant 'anpinnen' that appears in one webapp string."
+  },
+  "bookmark": {
+    "target": "Lesezeichen",
+    "note": "Neuter: das Lesezeichen. Verb usage: 'Lesezeichen hinzufügen'. Matches Weblate glossary."
+  },
+  "saved messages": {
+    "target": "Gespeicherte Nachrichten",
+    "note": "save = speichern, unsave = 'nicht mehr speichern' / 'Speichern rückgängig'."
+  },
+  "draft": {
+    "target": "Entwurf",
+    "note": "Masculine: der Entwurf, Plural Entwürfe."
+  },
+  "scheduled post": {
+    "target": "Geplante Nachricht",
+    "note": "Existing UI uses 'Geplante Nachrichten' / 'geplanter Versand'."
+  },
+  "emoji": {
+    "target": "Emoji",
+    "note": "Neuter: das Emoji, Plural Emojis."
+  },
+  "custom emoji": {
+    "target": "Benutzerdefiniertes Emoji"
+  },
+  "reaction": {
+    "target": "Reaktion",
+    "note": "Verb 'react' = reagieren."
+  },
+  "status": {
+    "target": "Status",
+    "note": "Masculine: der Status; plural also Status."
+  },
+  "custom status": {
+    "target": "Benutzerdefinierter Status",
+    "note": "Majority rendering; a few mobile strings shorten to 'eigener Status' — prefer 'benutzerdefinierter Status'."
+  },
+  "do not disturb": {
+    "target": "Nicht stören",
+    "note": "Status label; keep without 'Bitte'. Abbreviation DND is not used in German UI."
+  },
+  "away": {
+    "target": "Abwesend",
+    "note": "Lowercase 'abwesend' inside sentences."
+  },
+  "online": {
+    "target": "Online"
+  },
+  "offline": {
+    "target": "Offline"
+  },
+  "out of office": {
+    "target": "Nicht im Büro",
+    "note": "Existing status label is '\"Nicht im Büro\"'. In prose about absence, 'abwesend' also appears."
+  },
+  "guest": {
+    "target": "Gast",
+    "note": "Masculine: der Gast, Plural Gäste. Guest access = Gastzugang."
+  },
+  "member": {
+    "target": "Mitglied",
+    "note": "Neuter: das Mitglied, Plural Mitglieder. Mandated by the German community rules."
+  },
+  "user": {
+    "target": "Benutzer",
+    "note": "Mandated by the German community rules (not 'Nutzer', which appears sporadically)."
+  },
+  "system admin": {
+    "target": "Systemadministrator",
+    "note": "Also 'Systemadmin' in short labels; prefer the full compound."
+  },
+  "team admin": {
+    "target": "Teamadministrator"
+  },
+  "channel admin": {
+    "target": "Kanaladministrator"
+  },
+  "session": {
+    "target": "Sitzung",
+    "note": "Mandated by the German community rules."
+  },
+  "sign in": {
+    "target": "anmelden",
+    "note": "Both 'sign in' and 'log in' = anmelden (noun: Anmeldung). Formal register: 'Melden Sie sich an'."
+  },
+  "sign out": {
+    "target": "abmelden",
+    "note": "Both 'sign out' and 'log out' = abmelden (button: 'Abmelden'). Matches Weblate glossary."
+  },
+  "join": {
+    "target": "beitreten",
+    "note": "Mandated by the German community rules. Takes dative: 'dem Kanal beitreten'."
+  },
+  "leave": {
+    "target": "verlassen",
+    "note": "'Kanal verlassen', 'Team verlassen'."
+  },
+  "archive": {
+    "target": "archivieren",
+    "note": "Adjective 'archived' = archiviert."
+  },
+  "unarchive": {
+    "target": "wiederherstellen",
+    "note": "Existing UI and Weblate glossary use 'wiederherstellen' (Kanal wiederherstellen), not 'dearchivieren'."
+  },
+  "mute": {
+    "target": "stummschalten",
+    "note": "'Kanal stummschalten'; unmute a channel = 'Stummschaltung aufheben'. Same verb is used for microphone mute in Calls."
+  },
+  "follow": {
+    "target": "folgen",
+    "note": "Takes dative: 'einer Unterhaltung folgen'."
+  },
+  "unfollow": {
+    "target": "nicht mehr folgen",
+    "note": "'Nicht mehr folgen' is the established button label."
+  },
+  "favorite": {
+    "target": "Favorit",
+    "note": "Masculine: der Favorit, Plural Favoriten (sidebar category 'Favoriten'). Verb: 'zu Favoriten hinzufügen'; unfavorite: 'aus Favoriten entfernen'."
+  },
+  "search": {
+    "target": "Suche",
+    "note": "Verb: suchen; 'browse' = durchsuchen per Weblate glossary."
+  },
+  "integration": {
+    "target": "Integration"
+  },
+  "slash command": {
+    "target": "Slash-Befehl",
+    "note": "Consistent existing rendering; keep the hyphenated half-English compound."
+  },
+  "webhook": {
+    "target": "Webhook",
+    "note": "Masculine: der Webhook. Kept in English per Weblate glossary."
+  },
+  "incoming webhook": {
+    "target": "Eingehender Webhook"
+  },
+  "outgoing webhook": {
+    "target": "Ausgehender Webhook"
+  },
+  "trigger word": {
+    "target": "Auslösewort",
+    "note": "Plural: Auslösewörter (per Weblate glossary). Command trigger word = Befehlsauslösewort."
+  },
+  "plugin": {
+    "target": "Plugin",
+    "note": "Neuter: das Plugin. Kept in English per Weblate glossary."
+  },
+  "bot": {
+    "target": "Bot",
+    "note": "Masculine: der Bot. Bot account = Bot-Konto."
+  },
+  "role": {
+    "target": "Rolle"
+  },
+  "permission": {
+    "target": "Berechtigung",
+    "note": "Consistent existing rendering (not 'Erlaubnis'/'Recht')."
+  },
+  "scheme": {
+    "target": "Schema",
+    "note": "Neuter: das Schema, Plural Schemas/Schemata. Permission scheme = Berechtigungsschema."
+  },
+  "license": {
+    "target": "Lizenz"
+  },
+  "seat": {
+    "target": "Sitz",
+    "note": "Majority rendering in licensing strings (Plural Sitze); 'Lizenzplatz' also appears once and is arguably clearer, but keep 'Sitz' for consistency."
+  },
+  "trial": {
+    "target": "Testversion",
+    "note": "Majority rendering; 'Testphase'/'Testzeitraum' appear when a period is meant. Free trial = 'kostenlose Testversion'."
+  },
+  "workspace": {
+    "target": "Arbeitsbereich",
+    "note": "Strong majority (56 vs 2 occurrences of untranslated 'Workspace')."
+  },
+  "subscription": {
+    "target": "Abonnement",
+    "note": "Per Weblate glossary; informal 'Abo' appears in a few strings but prefer Abonnement."
+  },
+  "deactivate": {
+    "target": "deaktivieren",
+    "note": "Deactivated account = deaktiviertes Konto."
+  },
+  "invite": {
+    "target": "einladen",
+    "note": "Verb per Weblate glossary; as a noun use 'Einladung'."
+  },
+  "invitation": {
+    "target": "Einladung"
+  },
+  "sidebar": {
+    "target": "Seitenleiste"
+  },
+  "unread": {
+    "target": "ungelesen",
+    "note": "'Unreads' view = 'Ungelesene Nachrichten' / 'Ungelesenes'."
+  },
+  "attachment": {
+    "target": "Anhang",
+    "note": "Masculine: der Anhang, Plural Anhänge."
+  },
+  "public channel": {
+    "target": "Öffentlicher Kanal"
+  },
+  "private channel": {
+    "target": "Privater Kanal"
+  },
+  "shared channel": {
+    "target": "Gemeinsamer Kanal",
+    "note": "Majority rendering ('gemeinsamer Kanal'); 'geteilter Kanal' also occurs and the admin role name stays English ('Shared Channel Manager'). Keep 'gemeinsam' for consistency."
+  },
+  "channel header": {
+    "target": "Kanal-Kopfzeile",
+    "note": "UI labels use 'Kanal-Kopfzeile'; body text is inconsistent ('Kanalüberschrift', 'Kopfzeile des Kanals'). Prefer Kanal-Kopfzeile; bare 'Header' = Kopfzeile."
+  },
+  "channel purpose": {
+    "target": "Kanalzweck",
+    "note": "Bare 'purpose' = Zweck."
+  },
+  "system message": {
+    "target": "Systemnachricht",
+    "note": "Write as one compound; an existing string has the incorrect spaced form 'System Nachricht'."
+  },
+  "persistent notification": {
+    "target": "Dauerhafte Benachrichtigung",
+    "note": "Consistent existing rendering."
+  },
+  "message priority": {
+    "target": "Nachrichtenpriorität",
+    "note": "Existing strings vary between 'Nachrichtenpriorität' and 'Nachrichten-Priorität'; prefer the solid compound."
+  },
+  "urgent": {
+    "target": "Dringend",
+    "note": "Priority label; lowercase 'dringend' in sentences. 'Important' = Wichtig."
+  },
+  "recap": {
+    "target": "Rückblick",
+    "note": "Webapp UI uses 'Rückblick'; server error strings use 'Zusammenfassung' (inconsistent). Prefer Rückblick to avoid clashing with summary = Zusammenfassung."
+  },
+  "agent": {
+    "target": "Agent",
+    "note": "Masculine: der Agent, Plural Agenten. 'AI agent' is rendered inconsistently as 'KI-Agent' and 'AI-Agent'; prefer 'KI-Agent'."
+  },
+  "burn-on-read": {
+    "target": "Löschen-nach-Lesen",
+    "note": "Majority rendering ('Löschen-nach-Lesen-Nachricht'); some admin strings keep English 'Burn-on-Read'. Uppercase label: 'LÖSCHEN NACH LESEN'."
+  },
+  "magic link": {
+    "target": "Magic Link",
+    "note": "Webapp majority keeps English 'Magic Link' (10 vs 4); server strings use 'magischer Link'. Keep Magic Link for consistency with the user-facing webapp."
+  },
+  "personal access token": {
+    "target": "Persönlicher Zugriffs-Token",
+    "note": "Webapp majority uses 'Zugriffs-Token' (14 vs 1); the Weblate glossary row says 'Persönliches Zugangs-Token' — prefer the repo majority. Token is used masculine ('den Token')."
+  },
+  "announcement banner": {
+    "target": "Ankündigungs-Banner",
+    "note": "Existing strings mix 'Ankündigungs-Banner' and 'Ankündigungsbanner'; prefer the hyphenated majority. Bare 'banner' = Banner (per Weblate glossary)."
+  },
+  "channel banner": {
+    "target": "Kanal-Banner",
+    "note": "Existing strings mix 'Kanal-Banner' and 'Kanalbanner'."
+  },
+  "keyword": {
+    "target": "Schlüsselwort",
+    "note": "Notification settings use 'Schlüsselwörter'; compliance UI uses 'Stichworte' (inconsistent). For mention keywords use Schlüsselwort."
+  },
+  "user group": {
+    "target": "Benutzergruppe",
+    "note": "Bare 'group' = Gruppe."
+  },
+  "permalink": {
+    "target": "Permalink",
+    "note": "Majority keeps 'Permalink'; one string paraphrases 'dauerhafter Link'."
+  },
+  "profile": {
+    "target": "Profil"
+  },
+  "username": {
+    "target": "Benutzername",
+    "note": "Per Weblate glossary."
+  },
+  "nickname": {
+    "target": "Spitzname"
+  },
+  "display name": {
+    "target": "Anzeigename"
+  },
+  "collapsed reply threads": {
+    "target": "Unterhaltungen",
+    "note": "Existing UI renders the feature name simply as 'Unterhaltungen' (mobile display settings). If a literal rendering is required, use 'Eingeklappte Unterhaltungen' — but prefer the established short form."
+  },
+  "auto-translation": {
+    "target": "Automatische Übersetzung",
+    "note": "'auto-translated' = automatisch übersetzt; label 'AUTO-TRANSLATED' = 'AUTOMATISCH ÜBERSETZT'."
+  },
+  "data retention": {
+    "target": "Datenaufbewahrung",
+    "note": "Policy = 'Datenaufbewahrungsrichtlinie' / 'Richtlinie zur Datenaufbewahrung'."
+  },
+  "compliance export": {
+    "target": "Compliance-Export",
+    "note": "Keep 'Compliance' English; consistent existing rendering."
+  },
+  "access control": {
+    "target": "Zugriffskontrolle",
+    "note": "Attribute-based access control = 'attributbasierte Zugriffskontrolle'; policy = Richtlinie."
+  },
+  "attribute": {
+    "target": "Attribut",
+    "note": "Neuter: das Attribut, Plural Attribute. Custom profile attribute = 'benutzerdefiniertes Profilattribut'."
+  },
+  "onboarding": {
+    "target": "Onboarding",
+    "note": "Kept in English per Weblate glossary."
+  },
+  "Town Square": {
+    "target": "Marktplatz",
+    "note": "Established default-channel name in server i18n. Caution: 'marketplace' (plugin store) is also 'Marktplatz' — rely on context; consider 'Plugin-Marktplatz' when ambiguity is possible."
+  },
+  "Off-Topic": {
+    "target": "Sonstiges",
+    "note": "Established default-channel name in server i18n."
+  },
+  "read-only": {
+    "target": "schreibgeschützt",
+    "note": "Channel context uses 'Dieser Kanal ist schreibgeschützt'; admin strings also use 'Nur Lesen'/'Nur-Lese-…'. Prefer schreibgeschützt for channels."
+  },
+  "server": {
+    "target": "Server",
+    "note": "Masculine: der Server; plural Server."
+  }
+}

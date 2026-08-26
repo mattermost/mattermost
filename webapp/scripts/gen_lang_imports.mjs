@@ -2,12 +2,9 @@
 
 import * as fs from 'fs';
 
-import langmap from './langmap.mjs';
-
 let lines = '';
 const langIDs = [];
 const langFiles = {};
-const langLabels = {};
 
 fs.readdirSync('./channels/src/i18n').forEach(file => {
   if (file.endsWith('.json')) {
@@ -21,28 +18,8 @@ fs.readdirSync('./channels/src/i18n').forEach(file => {
     langIDs.push(langID);
     lines += `import ${langID.replace('-', '')} from './${file}';\n`;
     langFiles[langID] = langID.replace('-', '');
-
-    let m = langmap[langID]
-    if (!m) {
-      // We fallback to the language code prefix if we can't find a map.
-      const id = langID.includes('-') ? langID.substr(0, langID.indexOf('-')) : langID;
-      for (const k of Object.keys(langmap)) {
-        if (k.startsWith(id)) {
-          m = langmap[k];
-          break;
-        }
-      }
-    }
-
-    langLabels[langID] = m ? m["nativeName"] : langID;
   }
 });
-
-lines += `
-export const langIDs = ${JSON.stringify(langIDs)};
-
-export const langLabels = ${JSON.stringify(langLabels)};
-`;
 
 // To generate the file exports we need to do a bit more work to handle ids with dashes and also output a map of literals rather than strings.
 lines += `

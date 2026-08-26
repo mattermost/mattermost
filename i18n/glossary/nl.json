@@ -1,0 +1,456 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition",
+    "note": "Product name; existing strings occasionally show 'Enterprise editie' but keep the English edition name."
+  },
+  "Team Edition": {
+    "target": "Team Edition"
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels",
+    "note": "Product name, stays English; the common noun 'channel' is 'kanaal'."
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls"
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP",
+    "note": "Also AD/LDAP; never translate, per dutch-rules.md (product/protocol name)."
+  },
+  "SSO": {
+    "target": "SSO",
+    "note": "Per dutch-rules.md render spelled-out form as 'Single Sign-On (SSO)'; 'vereenvoudigde authenticatie' is not allowed."
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip",
+    "note": "Protocol name; the Weblate glossary row 'Praatjes' is a mistranslation — keep English."
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "systeemconsole",
+    "note": "Majority rendering (28 vs 18 for 'Systeem console'); capitalize 'Systeemconsole' when used as a menu/UI-area name per dutch-rules.md capitalization rule."
+  },
+  "marketplace": {
+    "target": "marktplaats",
+    "note": "Per dutch-rules.md and Weblate glossary; 'Plugin Marketplace' = 'Plugin marktplaats'."
+  },
+  "channel": {
+    "target": "kanaal",
+    "note": "Plural: kanalen."
+  },
+  "team": {
+    "target": "team",
+    "note": "Plural: teams."
+  },
+  "post": {
+    "target": "bericht",
+    "note": "Per dutch-rules.md 'post' is an anglicism; use 'bericht'. Use 'publiceren' only for system/integration posts, 'versturen' for user messages."
+  },
+  "message": {
+    "target": "bericht",
+    "note": "Plural: berichten."
+  },
+  "thread": {
+    "target": "draadje",
+    "note": "Consistently 'draadje' (89 of 92 occurrences); plural 'draadjes'. Do not use 'discussie' or keep English."
+  },
+  "reply": {
+    "target": "antwoord",
+    "note": "Noun 'antwoord'; verb 'antwoorden'. Per dutch-rules.md you 'verzendt' (send) a reply."
+  },
+  "direct message": {
+    "target": "privé-bericht",
+    "note": "Existing usage is split between 'privé-bericht' (majority, matches dutch-rules.md) and 'direct bericht'/'rechtstreeks bericht'; keep 'privé-bericht' and the derived 'privé-berichtkanaal'."
+  },
+  "group message": {
+    "target": "groepsbericht",
+    "note": "Plural: groepsberichten."
+  },
+  "mention": {
+    "target": "vermelding",
+    "note": "Noun 'vermelding' (plural 'vermeldingen'); verb 'vermelden'. Per dutch-rules.md."
+  },
+  "notification": {
+    "target": "melding",
+    "note": "Per dutch-rules.md; put 'melding' last in compounds: e-mailmelding, pushmelding, bureaubladmelding. Avoid 'notificatie' (legacy inconsistency)."
+  },
+  "pin": {
+    "target": "vastmaken",
+    "note": "Majority 'vastgemaakt(e)' (14 vs 5 for 'vastgezet'); 'pinned messages' = 'vastgemaakte berichten', 'unpin' = 'losmaken'."
+  },
+  "bookmark": {
+    "target": "bladwijzer",
+    "note": "Noun; verb phrase 'een bladwijzer toevoegen'. 'Channel bookmark' = 'kanaalbladwijzer'."
+  },
+  "saved messages": {
+    "target": "bewaarde berichten",
+    "note": "Verb 'save' in this feature = 'bewaren' (exception to the general 'Opslaan' preference, matches existing UI)."
+  },
+  "draft": {
+    "target": "concept",
+    "note": "Majority rendering (19 vs 2 for 'ontwerp'); plural 'concepten'."
+  },
+  "scheduled post": {
+    "target": "gepland bericht",
+    "note": "Tab label 'Scheduled' = 'Gepland'; plural 'geplande berichten'."
+  },
+  "emoji": {
+    "target": "emoticon",
+    "note": "Per dutch-rules.md and majority usage (63 vs 33); 'emoji' also occurs — prefer 'emoticon' for consistency. Plural 'emoticons'."
+  },
+  "custom emoji": {
+    "target": "aangepaste emoticon"
+  },
+  "reaction": {
+    "target": "reactie",
+    "note": "Plural 'reacties'; verb 'reageren'. Distinct from a reply ('antwoord') per dutch-rules.md."
+  },
+  "status": {
+    "target": "status"
+  },
+  "custom status": {
+    "target": "aangepaste status"
+  },
+  "do not disturb": {
+    "target": "niet storen",
+    "note": "Capitalized 'Niet storen' as a menu item; keep 'DND' abbreviation only in technical contexts."
+  },
+  "away": {
+    "target": "afwezig"
+  },
+  "online": {
+    "target": "online"
+  },
+  "offline": {
+    "target": "offline"
+  },
+  "out of office": {
+    "target": "out of office",
+    "note": "Existing UI keeps the English phrase ('Out of office' in webapp/mobile status menus); keep for consistency. 'Afwezig van kantoor' would be the translated alternative."
+  },
+  "guest": {
+    "target": "gast",
+    "note": "Majority in-product rendering; dutch-rules.md prefers 'gastgebruiker', which also appears in admin screens — both are in use, prefer 'gast' in short UI labels and 'gastgebruiker' when disambiguation from a visitor is needed."
+  },
+  "member": {
+    "target": "lid",
+    "note": "Plural 'leden'; 'channel member' = 'kanaallid', 'team member' = 'teamlid'."
+  },
+  "user": {
+    "target": "gebruiker",
+    "note": "Plural 'gebruikers'."
+  },
+  "system admin": {
+    "target": "systeembeheerder",
+    "note": "Per dutch-rules.md; plural 'systeembeheerders'."
+  },
+  "team admin": {
+    "target": "teambeheerder"
+  },
+  "channel admin": {
+    "target": "kanaalbeheerder"
+  },
+  "session": {
+    "target": "sessie",
+    "note": "Plural 'sessies'."
+  },
+  "sign in": {
+    "target": "aanmelden",
+    "note": "Use for both 'sign in' and 'log in' (majority; 'inloggen' occurs occasionally). Imperative button: 'Aanmelden'."
+  },
+  "sign out": {
+    "target": "afmelden",
+    "note": "Use for both 'sign out' and 'log out', per Weblate glossary ('Log Out' = 'Afmelden')."
+  },
+  "join": {
+    "target": "lid worden",
+    "note": "For channels/teams: 'lid worden (van)'. For calls use 'deelnemen (aan)'."
+  },
+  "leave": {
+    "target": "verlaten"
+  },
+  "archive": {
+    "target": "archiveren",
+    "note": "Past participle 'gearchiveerd'."
+  },
+  "unarchive": {
+    "target": "dearchiveren",
+    "note": "Existing UI buttons use 'Dearchiveren'; the system message uses 'haalde het kanaal terug uit het archief' — both acceptable, prefer 'dearchiveren' in labels."
+  },
+  "mute": {
+    "target": "dempen",
+    "note": "For channel notifications; 'unmute' = 'niet langer dempen' (webapp) / 'dempen uitschakelen' (calls)."
+  },
+  "follow": {
+    "target": "volgen",
+    "note": "'Following' state label = 'Volgend'."
+  },
+  "unfollow": {
+    "target": "niet langer volgen"
+  },
+  "favorite": {
+    "target": "favoriet",
+    "note": "Noun/adjective 'favoriet' (plural 'Favorieten' for the sidebar category); verb 'markeren als favoriet', 'unfavorite' = 'verwijderen uit favorieten'."
+  },
+  "search": {
+    "target": "zoeken",
+    "note": "Verb/label 'zoeken'; noun (a search) 'zoekopdracht'."
+  },
+  "integration": {
+    "target": "integratie",
+    "note": "Plural 'integraties'."
+  },
+  "slash command": {
+    "target": "slash-opdracht",
+    "note": "Majority rendering (15 vs 9); dutch-rules.md prefers 'slash-commando'. Existing usage is inconsistent (slashopdracht, slash-opdracht, slash-commando) — standardize on 'slash-opdracht'."
+  },
+  "webhook": {
+    "target": "webhook",
+    "note": "Kept in English per Weblate glossary; plural 'webhooks'."
+  },
+  "incoming webhook": {
+    "target": "inkomende webhook"
+  },
+  "outgoing webhook": {
+    "target": "uitgaande webhook"
+  },
+  "trigger word": {
+    "target": "triggerwoord",
+    "note": "Per dutch-rules.md; existing usage is inconsistent ('activeer-woord', 'trigger woord') — standardize on 'triggerwoord'."
+  },
+  "plugin": {
+    "target": "plugin",
+    "note": "Kept in English (majority usage); plural 'plugins'."
+  },
+  "bot": {
+    "target": "bot",
+    "note": "Per dutch-rules.md keep 'bot'/'BOT'; 'bot account' = 'botaccount'."
+  },
+  "role": {
+    "target": "rol",
+    "note": "Plural 'rollen'."
+  },
+  "permission": {
+    "target": "recht",
+    "note": "Plural 'rechten', per dutch-rules.md ('Rechten heeft de voorkeur'); avoid 'machtigingen'/'permissies'/'toestemmingen' which appear inconsistently in older strings."
+  },
+  "scheme": {
+    "target": "schema",
+    "note": "Permission scheme = '(toestemmings)schema'; existing strings mostly use plain 'schema'. For URL scheme use 'URL-protocol' per dutch-rules.md."
+  },
+  "license": {
+    "target": "licentie"
+  },
+  "seat": {
+    "target": "gebruiker",
+    "note": "Billing strings translate 'seats' as 'gebruikers' (e.g. '{num} seats' = '{num} gebruikers'); use 'gebruikerslicentie' only if disambiguation is required."
+  },
+  "trial": {
+    "target": "proefperiode",
+    "note": "'Free trial' = 'gratis proefperiode'. Avoid 'probeerversie'/'proefversie' which appear sporadically."
+  },
+  "workspace": {
+    "target": "werkruimte",
+    "note": "Majority rendering (78 vs 8 English); plural 'werkruimten'."
+  },
+  "subscription": {
+    "target": "abonnement"
+  },
+  "deactivate": {
+    "target": "deactiveren",
+    "note": "Past participle 'gedeactiveerd'."
+  },
+  "invite": {
+    "target": "uitnodigen",
+    "note": "Verb 'uitnodigen'; noun 'uitnodiging'."
+  },
+  "invitation": {
+    "target": "uitnodiging",
+    "note": "Plural 'uitnodigingen'; e-mail invitations = 'e-mailuitnodigingen' (note 'e-mail' spelling per dutch-rules.md)."
+  },
+  "sidebar": {
+    "target": "zijbalk"
+  },
+  "unread": {
+    "target": "ongelezen"
+  },
+  "attachment": {
+    "target": "bijlage",
+    "note": "Plural 'bijlagen'; verb 'attach' for files = 'toevoegen'/'bijvoegen' per dutch-rules.md, 'koppelen' otherwise."
+  },
+  "public channel": {
+    "target": "publiek kanaal",
+    "note": "Usage is split between 'publiek kanaal' (majority, 12) and 'openbaar kanaal' (9); standardize on 'publiek kanaal'."
+  },
+  "private channel": {
+    "target": "privé-kanaal",
+    "note": "Majority spelling (37 vs 15 for 'privékanaal'); keep the hyphenated form for consistency."
+  },
+  "shared channel": {
+    "target": "gedeeld kanaal",
+    "note": "Plural 'gedeelde kanalen'."
+  },
+  "channel header": {
+    "target": "kanaalkoptekst",
+    "note": "Existing usage is inconsistent (kanaalkoptekst, hoofding, koptekst, kop); server strings mostly use 'kanaalkoptekst' — standardize on that; avoid the Flemish 'hoofding'."
+  },
+  "channel purpose": {
+    "target": "kanaaldoel",
+    "note": "Existing strings consistently use 'doel'/'kanaaldoel'; dutch-rules.md suggests 'beschrijving' in this context but repo usage wins."
+  },
+  "system message": {
+    "target": "systeembericht"
+  },
+  "persistent notification": {
+    "target": "blijvende melding",
+    "note": "Plural 'blijvende meldingen'."
+  },
+  "message priority": {
+    "target": "berichtprioriteit",
+    "note": "Also rendered 'prioriteit van het bericht' in picker headers; use 'berichtprioriteit' as compound term."
+  },
+  "urgent": {
+    "target": "dringend",
+    "note": "Label 'DRINGEND' in caps context; 'urgente meldingen' also occurs but prefer 'dringend' (majority)."
+  },
+  "recap": {
+    "target": "samenvatting",
+    "note": "Existing recap feature strings use 'samenvatting'; disambiguate as 'AI-samenvatting' only if plain 'samenvatting' is ambiguous in context."
+  },
+  "agent": {
+    "target": "agent",
+    "note": "AI feature; 'AI agent' = 'AI-agent', plural 'AI-agenten'. Keep product name 'Agents' in English where used as a product."
+  },
+  "burn-on-read": {
+    "target": "verbrand-na-lezen",
+    "note": "Webapp UI uses 'verbrand-na-lezen berichten'; some server strings keep English 'burn-on-read' — prefer the Dutch form in user-facing text."
+  },
+  "magic link": {
+    "target": "magische link",
+    "note": "Majority rendering; 'Magic Link' kept in English in a few strings — prefer 'magische link'."
+  },
+  "personal access token": {
+    "target": "persoonlijk toegangstoken",
+    "note": "'Token' stays untranslated per dutch-rules.md; avoid Weblate glossary's 'toegangsbewijs' (not used in product strings)."
+  },
+  "announcement banner": {
+    "target": "aankondigingsbanner"
+  },
+  "channel banner": {
+    "target": "kanaalbanner"
+  },
+  "keyword": {
+    "target": "trefwoord",
+    "note": "Plural 'trefwoorden'."
+  },
+  "user group": {
+    "target": "gebruikersgroep",
+    "note": "Plural 'gebruikersgroepen'; plain 'group' = 'groep'."
+  },
+  "permalink": {
+    "target": "permalink",
+    "note": "Kept in English (existing usage)."
+  },
+  "profile": {
+    "target": "profiel",
+    "note": "'Profile picture' = 'profielafbeelding' or 'profielfoto'."
+  },
+  "username": {
+    "target": "gebruikersnaam"
+  },
+  "nickname": {
+    "target": "roepnaam",
+    "note": "Existing UI uses 'roepnaam'; keep 'Nickname' in AD/LDAP-attribute admin contexts where the technical attribute name is meant."
+  },
+  "display name": {
+    "target": "weergavenaam"
+  },
+  "collapsed reply threads": {
+    "target": "ingeklapte draadjes",
+    "note": "Majority mobile rendering; 'ingeklapte antwoorddraadjes' also occurs — prefer the shorter form."
+  },
+  "auto-translation": {
+    "target": "automatische vertaling",
+    "note": "Consistent existing rendering; 'AUTO-TRANSLATED' label = 'AUTOMATISCH VERTAALD'."
+  },
+  "data retention": {
+    "target": "gegevensbewaring",
+    "note": "'Data retention policy' = 'gegevensbewaarbeleid' (majority); avoid 'dataretentie' which appears sporadically."
+  },
+  "compliance export": {
+    "target": "nalevingsexport",
+    "note": "Majority webapp rendering; 'compliance export' also kept English in some strings. Dutch-rules.md renders 'Beta' contexts as 'Experimenteel'."
+  },
+  "access control": {
+    "target": "toegangscontrole",
+    "note": "'Attribute-based access control (ABAC)' = 'attribuutgebaseerde toegangscontrole (ABAC)'."
+  },
+  "attribute": {
+    "target": "attribuut",
+    "note": "Plural 'attributen'; 'kenmerk' also occurs in ABAC strings — prefer 'attribuut' for the profile/access-control field."
+  },
+  "onboarding": {
+    "target": "verwelkoming",
+    "note": "Per Weblate glossary; existing strings are inconsistent (verwelkoming, onboarding, introductie) — standardize on 'verwelkoming'."
+  },
+  "Town Square": {
+    "target": "Dorpsplein",
+    "note": "Established default-channel name in server i18n."
+  },
+  "Off-Topic": {
+    "target": "Off-Topic",
+    "note": "Existing server translation keeps the English channel name."
+  },
+  "read-only": {
+    "target": "alleen-lezen",
+    "note": "Predicative use: 'alleen lezen' ('Kanaal is alleen lezen')."
+  },
+  "server": {
+    "target": "server",
+    "note": "Plural 'servers'."
+  }
+}

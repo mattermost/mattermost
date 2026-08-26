@@ -1,0 +1,406 @@
+{
+  "Mattermost": {
+    "target": "Mattermost"
+  },
+  "Enterprise Edition": {
+    "target": "Enterprise Edition"
+  },
+  "Team Edition": {
+    "target": "Team Edition"
+  },
+  "Mattermost Cloud": {
+    "target": "Mattermost Cloud"
+  },
+  "Channels": {
+    "target": "Channels"
+  },
+  "Playbooks": {
+    "target": "Playbooks"
+  },
+  "Boards": {
+    "target": "Boards"
+  },
+  "Calls": {
+    "target": "Calls"
+  },
+  "Markdown": {
+    "target": "Markdown"
+  },
+  "OAuth": {
+    "target": "OAuth"
+  },
+  "SAML": {
+    "target": "SAML"
+  },
+  "LDAP": {
+    "target": "LDAP"
+  },
+  "SSO": {
+    "target": "SSO"
+  },
+  "MFA": {
+    "target": "MFA"
+  },
+  "OpenID Connect": {
+    "target": "OpenID Connect"
+  },
+  "Entra ID": {
+    "target": "Entra ID"
+  },
+  "GitLab": {
+    "target": "GitLab"
+  },
+  "Elasticsearch": {
+    "target": "Elasticsearch"
+  },
+  "Bleve": {
+    "target": "Bleve"
+  },
+  "Gossip": {
+    "target": "Gossip"
+  },
+  "Actiance XML": {
+    "target": "Actiance XML"
+  },
+  "Global Relay": {
+    "target": "Global Relay"
+  },
+  "System Console": {
+    "target": "システムコンソール"
+  },
+  "marketplace": {
+    "target": "マーケットプレース",
+    "note": "Existing translations consistently use マーケットプレース (not マーケットプレイス); keep this spelling."
+  },
+  "channel": {
+    "target": "チャンネル"
+  },
+  "team": {
+    "target": "チーム"
+  },
+  "post": {
+    "target": "投稿",
+    "note": "Verb: 投稿する."
+  },
+  "message": {
+    "target": "メッセージ"
+  },
+  "thread": {
+    "target": "スレッド"
+  },
+  "reply": {
+    "target": "返信",
+    "note": "Verb (button): 返信する."
+  },
+  "direct message": {
+    "target": "ダイレクトメッセージ",
+    "note": "Do not abbreviate to DM in translated text unless the English source uses 'DM'."
+  },
+  "group message": {
+    "target": "グループメッセージ"
+  },
+  "mention": {
+    "target": "メンション",
+    "note": "Verb: メンションする."
+  },
+  "notification": {
+    "target": "通知"
+  },
+  "pin": {
+    "target": "ピン留めする",
+    "note": "Noun/past participle: ピン留め / ピン留めされた. Unpin: ピン留めをやめる (existing 'Unpin from Channel' → チャンネルへのピン留めをやめる)."
+  },
+  "bookmark": {
+    "target": "ブックマーク",
+    "note": "Verb: ブックマークする (add: ブックマークを追加)."
+  },
+  "saved messages": {
+    "target": "保存されたメッセージ",
+    "note": "Existing usage is inconsistent: 保存されたメッセージ and 保存済みのメッセージ both occur. Prefer 保存されたメッセージ for the feature name; 保存済み for the short 'Saved' badge."
+  },
+  "draft": {
+    "target": "下書き"
+  },
+  "scheduled post": {
+    "target": "スケジュール済みの投稿"
+  },
+  "emoji": {
+    "target": "絵文字"
+  },
+  "custom emoji": {
+    "target": "カスタム絵文字"
+  },
+  "reaction": {
+    "target": "リアクション",
+    "note": "Verb 'react': リアクションする."
+  },
+  "status": {
+    "target": "ステータス",
+    "note": "In-context sentences use ステータス; a few standalone labels use 状態. Prefer ステータス for availability."
+  },
+  "custom status": {
+    "target": "カスタムステータス"
+  },
+  "do not disturb": {
+    "target": "取り込み中"
+  },
+  "away": {
+    "target": "離席中"
+  },
+  "online": {
+    "target": "オンライン"
+  },
+  "offline": {
+    "target": "オフライン"
+  },
+  "out of office": {
+    "target": "外出中"
+  },
+  "guest": {
+    "target": "ゲスト"
+  },
+  "member": {
+    "target": "メンバー"
+  },
+  "user": {
+    "target": "ユーザー"
+  },
+  "system admin": {
+    "target": "システム管理者"
+  },
+  "team admin": {
+    "target": "チーム管理者"
+  },
+  "channel admin": {
+    "target": "チャンネル管理者"
+  },
+  "session": {
+    "target": "セッション"
+  },
+  "sign in": {
+    "target": "ログインする",
+    "note": "Login screen consistently uses ログイン; some admin-console strings use サインイン. Prefer ログイン for both 'log in' and 'sign in' per majority."
+  },
+  "sign out": {
+    "target": "ログアウトする"
+  },
+  "join": {
+    "target": "参加する"
+  },
+  "leave": {
+    "target": "脱退する",
+    "note": "Existing: チームを脱退する, チャンネルから脱退する. One string uses 離脱する for groups; prefer 脱退する."
+  },
+  "archive": {
+    "target": "アーカイブする",
+    "note": "Adjective 'archived': アーカイブ済み / アーカイブされた."
+  },
+  "unarchive": {
+    "target": "アーカイブから復元する"
+  },
+  "mute": {
+    "target": "ミュートする",
+    "note": "Channel-notification muting; unmute: ミュートを解除する."
+  },
+  "follow": {
+    "target": "フォローする",
+    "note": "Following (state): フォロー中."
+  },
+  "unfollow": {
+    "target": "フォローをやめる",
+    "note": "Menu items use フォローをやめる; past-tense confirmation uses フォローを解除しました. Either is acceptable, prefer フォローをやめる for actions."
+  },
+  "favorite": {
+    "target": "お気に入り",
+    "note": "Verb: お気に入りに追加する; remove: お気に入りから削除する."
+  },
+  "search": {
+    "target": "検索",
+    "note": "Verb: 検索する."
+  },
+  "integration": {
+    "target": "統合機能"
+  },
+  "slash command": {
+    "target": "スラッシュコマンド"
+  },
+  "webhook": {
+    "target": "ウェブフック",
+    "note": "Katakana ウェブフック is established in existing translations; do not keep as English 'Webhook'."
+  },
+  "incoming webhook": {
+    "target": "内向きのウェブフック"
+  },
+  "outgoing webhook": {
+    "target": "外向きのウェブフック"
+  },
+  "trigger word": {
+    "target": "トリガーワード"
+  },
+  "plugin": {
+    "target": "プラグイン"
+  },
+  "bot": {
+    "target": "Bot",
+    "note": "Existing translations keep 'Bot' in Latin script (Botアカウント, Botアイコン, BOT tag); do not use ボット."
+  },
+  "role": {
+    "target": "ロール"
+  },
+  "permission": {
+    "target": "権限"
+  },
+  "scheme": {
+    "target": "スキーム"
+  },
+  "license": {
+    "target": "ライセンス"
+  },
+  "seat": {
+    "target": "シート"
+  },
+  "trial": {
+    "target": "トライアル"
+  },
+  "workspace": {
+    "target": "ワークスペース"
+  },
+  "subscription": {
+    "target": "サブスクリプション"
+  },
+  "deactivate": {
+    "target": "無効化する",
+    "note": "Deactivated: 無効化済み. Existing also uses 無効にする; prefer 無効化する for accounts."
+  },
+  "invite": {
+    "target": "招待する",
+    "note": "Noun: 招待."
+  },
+  "invitation": {
+    "target": "招待"
+  },
+  "sidebar": {
+    "target": "サイドバー"
+  },
+  "unread": {
+    "target": "未読"
+  },
+  "attachment": {
+    "target": "添付ファイル",
+    "note": "Short label sometimes just 添付."
+  },
+  "public channel": {
+    "target": "公開チャンネル"
+  },
+  "private channel": {
+    "target": "非公開チャンネル",
+    "note": "Existing convention is 非公開チャンネル, not プライベートチャンネル."
+  },
+  "shared channel": {
+    "target": "共有チャンネル"
+  },
+  "channel header": {
+    "target": "チャンネルヘッダー"
+  },
+  "channel purpose": {
+    "target": "チャンネルの目的"
+  },
+  "system message": {
+    "target": "システムメッセージ"
+  },
+  "persistent notification": {
+    "target": "永続的な通知"
+  },
+  "message priority": {
+    "target": "メッセージの優先度",
+    "note": "Existing usage varies between メッセージの優先度 and メッセージ優先度; prefer メッセージの優先度."
+  },
+  "urgent": {
+    "target": "緊急"
+  },
+  "recap": {
+    "target": "リキャップ",
+    "note": "No existing translation (new feature). リキャップ follows established Japanese Microsoft Teams terminology for AI recaps; alternative 要約 would collide with 'summary'."
+  },
+  "agent": {
+    "target": "エージェント",
+    "note": "No existing translation (new feature); エージェント is the standard Japanese term for AI agents."
+  },
+  "burn-on-read": {
+    "target": "閲覧後消去",
+    "note": "No existing translation (new feature). Label form: 閲覧後消去メッセージ. Alternative phrasing 閲覧後に自動削除される may suit descriptions."
+  },
+  "magic link": {
+    "target": "マジックリンク"
+  },
+  "personal access token": {
+    "target": "パーソナルアクセストークン"
+  },
+  "announcement banner": {
+    "target": "アナウンスバナー",
+    "note": "Majority rendering; one legacy string uses 通知バナー — prefer アナウンスバナー."
+  },
+  "channel banner": {
+    "target": "チャンネルバナー"
+  },
+  "keyword": {
+    "target": "キーワード"
+  },
+  "user group": {
+    "target": "ユーザーグループ"
+  },
+  "permalink": {
+    "target": "パーマリンク"
+  },
+  "profile": {
+    "target": "プロフィール"
+  },
+  "username": {
+    "target": "ユーザー名"
+  },
+  "nickname": {
+    "target": "ニックネーム"
+  },
+  "display name": {
+    "target": "表示名"
+  },
+  "collapsed reply threads": {
+    "target": "スレッド形式の議論",
+    "note": "Existing admin-console title for this feature ('Threaded Discussions'). Use it for the feature name rather than a literal 折りたたみ返信スレッド."
+  },
+  "auto-translation": {
+    "target": "自動翻訳",
+    "note": "Auto-translated (label): 自動翻訳済み."
+  },
+  "data retention": {
+    "target": "データ保持",
+    "note": "Policy: データ保持ポリシー."
+  },
+  "compliance export": {
+    "target": "コンプライアンスエクスポート"
+  },
+  "access control": {
+    "target": "アクセス制御",
+    "note": "Majority rendering; アクセスコントロール appears once (アクセスコントロールポリシー) — prefer アクセス制御."
+  },
+  "attribute": {
+    "target": "属性"
+  },
+  "onboarding": {
+    "target": "オンボーディング"
+  },
+  "Town Square": {
+    "target": "タウンスクウェア",
+    "note": "Server default-channel name uses タウンスクウェア; a couple of webapp admin descriptions use タウンスクエア. Follow the server rendering (what users see as the channel name)."
+  },
+  "Off-Topic": {
+    "target": "オフトピック",
+    "note": "One webapp string contains the typo オフトピッック; correct form is オフトピック."
+  },
+  "read-only": {
+    "target": "読み取り専用"
+  },
+  "server": {
+    "target": "サーバー"
+  }
+}

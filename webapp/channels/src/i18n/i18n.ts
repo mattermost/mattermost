@@ -9,7 +9,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import type {GlobalState} from 'types/store';
 
-import {langFiles, langIDs, langLabels} from './imports';
+import {langFiles} from './imports';
 
 export interface Language {
     value: string;
@@ -40,25 +40,25 @@ export const languages = {
     },
     es: {
         value: 'es',
-        name: 'Español (Alpha)',
+        name: 'Español',
         order: 3,
         url: langFiles.es,
     },
     fr: {
         value: 'fr',
-        name: 'Français (Alpha)',
+        name: 'Français',
         order: 4,
         url: langFiles.fr,
     },
     it: {
         value: 'it',
-        name: 'Italiano (Alpha)',
+        name: 'Italiano',
         order: 5,
         url: langFiles.it,
     },
     hu: {
         value: 'hu',
-        name: 'Magyar (Alpha)',
+        name: 'Magyar',
         order: 6,
         url: langFiles.hu,
     },
@@ -76,13 +76,13 @@ export const languages = {
     },
     'pt-BR': {
         value: 'pt-BR',
-        name: 'Português (Brasil) (Alpha)',
+        name: 'Português (Brasil)',
         order: 9,
         url: langFiles['pt-BR'],
     },
     ro: {
         value: 'ro',
-        name: 'Română (Alpha)',
+        name: 'Română',
         order: 10,
         url: langFiles.ro,
     },
@@ -94,7 +94,7 @@ export const languages = {
     },
     vi: {
         value: 'vi',
-        name: 'Tiếng Việt (Beta)',
+        name: 'Tiếng Việt',
         order: 12,
         url: langFiles.vi,
     },
@@ -106,7 +106,7 @@ export const languages = {
     },
     bg: {
         value: 'bg',
-        name: 'Български (Alpha)',
+        name: 'Български',
         order: 14,
         url: langFiles.bg,
     },
@@ -124,7 +124,7 @@ export const languages = {
     },
     fa: {
         value: 'fa',
-        name: 'فارسی (Alpha)',
+        name: 'فارسی',
         order: 17,
         url: langFiles.fa,
     },
@@ -136,13 +136,13 @@ export const languages = {
     },
     'zh-CN': {
         value: 'zh-CN',
-        name: '中文 (简体) (Beta)',
+        name: '中文 (简体)',
         order: 19,
         url: langFiles['zh-CN'],
     },
     'zh-TW': {
         value: 'zh-TW',
-        name: '中文 (繁體) (Beta)',
+        name: '中文 (繁體)',
         order: 20,
         url: langFiles['zh-TW'],
     },
@@ -154,29 +154,14 @@ export const languages = {
     },
 };
 
-export function getAllLanguages(includeExperimental = false): Record<string, Language> {
-    if (includeExperimental) {
-        let order = Object.keys(languages).length;
-        return {
-            ...langIDs.reduce<Record<string, Language>>((out, id) => {
-                out[id] = {
-                    value: id,
-                    name: langLabels[id as keyof typeof langLabels] + ' (Experimental)',
-                    url: langFiles[id],
-                    order: order++,
-                };
-                return out;
-            }, {}),
-            ...languages,
-        };
-    }
+export function getAllLanguages(): Record<string, Language> {
     return languages;
 }
 
 export function getLanguages(state: GlobalState) {
     const config = getConfig(state);
     if (!config.AvailableLocales) {
-        return getAllLanguages(config.EnableExperimentalLocales === 'true');
+        return getAllLanguages();
     }
     return config.AvailableLocales.split(',').reduce<Record<string, Language>>((result, l) => {
         if (Object.hasOwn(languages, l)) {
@@ -187,7 +172,7 @@ export function getLanguages(state: GlobalState) {
 }
 
 export function getLanguageInfo(locale: string) {
-    return getAllLanguages(true)[locale];
+    return languages[locale as keyof typeof languages];
 }
 
 export function isLanguageAvailable(state: GlobalState, locale: string) {
