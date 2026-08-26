@@ -123,6 +123,6 @@ test('limits grouped channel suggestions and preserves the selected channel', {t
     if (!selectedChannel) {
         throw new Error('Expected at least one created channel to remain in the trimmed suggestions');
     }
-    await container.getByText(selectedChannel.display_name, {exact: true}).click();
+    await suggestions.filter({hasText: selectedChannel.display_name}).first().click();
     await expect(searchInput).toHaveValue(new RegExp(`In:${selectedChannel.name}\\s`));
 });
