@@ -147,32 +147,15 @@ func TestCopyEmojiImages(t *testing.T) {
 		Id: model.NewId(),
 	}
 
-	// Creating a dir named `exported_emoji_test` in the root of the repo
-	pathToDir := "../exported_emoji_test"
-
-	err := os.Mkdir(pathToDir, 0777)
-	require.NoError(t, err)
-	defer os.RemoveAll(pathToDir)
-
-	filePath := "../data/emoji/" + emoji.Id
-	emojiImagePath := filePath + "/image"
-
-	_, err = os.Stat(filePath)
-	if os.IsNotExist(err) {
-		err = os.MkdirAll(filePath, 0777)
-		require.NoError(t, err)
-	}
-
-	// Creating a file with the name `image` to copy it to `exported_emoji_test`
-	_, err = os.OpenFile(filePath+"/image", os.O_RDONLY|os.O_CREATE, 0777)
-	require.NoError(t, err)
-	defer os.RemoveAll(filePath)
+	pathToDir := t.TempDir()
+	emojiImagePath := filepath.Join(t.TempDir(), "image")
+	require.NoError(t, os.WriteFile(emojiImagePath, nil, 0600))
 
 	copyError := th.App.copyEmojiImages(th.Context, emoji.Id, emojiImagePath, pathToDir)
 	require.NoError(t, copyError)
 
-	_, err = os.Stat(pathToDir + "/" + emoji.Id + "/image")
-	require.False(t, os.IsNotExist(err), "File should exist ")
+	_, err := os.Stat(filepath.Join(pathToDir, emoji.Id, "image"))
+	require.NoError(t, err)
 }
 
 func TestExportCustomEmoji(t *testing.T) {
