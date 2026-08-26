@@ -2365,6 +2365,106 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.False(t, channelMember.SchemeAdmin)
 		assert.True(t, channelMember.SchemeGuest)
 	})
+
+	// Must strip a space capability role held as an explicit member role.
+	// Demoting a user only resets the member's scheme flags; a capability role
+	// left in ExplicitRoles would keep granting page access to the new guest.
+	t.Run("Must strip a space capability role from an explicit space membership", func(t *testing.T) {
+		user := th.CreateUser(t)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+
+		space := saveSpaceChannelWithScheme(t, th, "")
+		_, err := th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+			ChannelId:     space.Id,
+			UserId:        user.Id,
+			NotifyProps:   model.GetDefaultChannelNotifyProps(),
+			SchemeUser:    true,
+			ExplicitRoles: model.SpacePageEditorRoleId,
+		})
+		require.NoError(t, err)
+		th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(user.Id)
+
+		appErr := th.App.DemoteUserToGuest(th.Context, user)
+		require.Nil(t, appErr)
+
+		member, appErr := th.App.GetChannelMember(th.Context, space.Id, user.Id)
+		require.Nil(t, appErr)
+		assert.NotContains(t, member.ExplicitRoles, model.SpacePageEditorRoleId)
+		assert.False(t, member.SchemeUser)
+		assert.True(t, member.SchemeGuest)
+	})
+}
+
+// The revocation runs ahead of the demotion, so a failure to reach a space
+// membership must both report an error and leave the user un-demoted: a guest who
+// kept a capability role cannot be demoted again to clear it.
+func TestDemoteUserToGuestSpaceRevocationFailure(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	setupDemoteMocks := func(t *testing.T) (*TestHelper, *storemocks.TeamStore, *storemocks.ChannelStore, *storemocks.UserStore) {
+		th := SetupWithStoreMock(t)
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("DemoteUserToGuest", mock.Anything, "userID").Return(&model.User{Id: "userID", Roles: model.SystemGuestRoleId}, nil)
+		mockUserStore.On("InvalidateProfileCacheForUser", "userID").Return()
+		mockUserStore.On("InvalidateProfilesInChannelCacheByUser", "userID").Return()
+
+		mockSessionStore := storemocks.SessionStore{}
+		mockSessionStore.On("GetSessions", mock.Anything, "userID").Return(nil, errors.New("session listing failed"))
+
+		mockTeamStore := storemocks.TeamStore{}
+		mockChannelStore := storemocks.ChannelStore{}
+		mockChannelStore.On("InvalidateAllChannelMembersForUser", "userID").Return()
+
+		mockStore.On("User").Return(&mockUserStore)
+		mockStore.On("Session").Return(&mockSessionStore)
+		mockStore.On("Team").Return(&mockTeamStore)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		var err error
+		th.App.ch.srv.userService, err = users.New(users.ServiceConfig{
+			UserStore:    &mockUserStore,
+			SessionStore: &mockSessionStore,
+			OAuthStore:   &storemocks.OAuthStore{},
+			ConfigFn:     th.App.ch.srv.platform.Config,
+			LicenseFn:    th.App.ch.srv.License,
+		})
+		require.NoError(t, err)
+
+		return th, &mockTeamStore, &mockChannelStore, &mockUserStore
+	}
+
+	t.Run("space channel listing failure fails the demotion", func(t *testing.T) {
+		th, mockTeamStore, mockChannelStore, mockUserStore := setupDemoteMocks(t)
+
+		mockTeamStore.On("GetTeamsForUser", mock.Anything, "userID", "", true).Return([]*model.TeamMember{{TeamId: "teamID", UserId: "userID"}}, nil)
+		mockChannelStore.On("GetTeamSpaceChannelsForUser", "teamID", "userID").Return(nil, errors.New("space listing failed"))
+
+		appErr := th.App.DemoteUserToGuest(th.Context, &model.User{Id: "userID"})
+		require.NotNil(t, appErr, "an unrevoked space capability role must not be reported as a completed demotion")
+		require.Equal(t, "app.user.revoke_space_capability_roles.app_error", appErr.Id)
+		mockTeamStore.AssertCalled(t, "GetTeamsForUser", mock.Anything, "userID", "", true)
+		mockChannelStore.AssertCalled(t, "GetTeamSpaceChannelsForUser", "teamID", "userID")
+
+		// The user must be left demotable, so the guest conversion never runs.
+		mockUserStore.AssertNotCalled(t, "DemoteUserToGuest", mock.Anything, "userID")
+	})
+
+	t.Run("team listing failure fails the demotion", func(t *testing.T) {
+		th, mockTeamStore, mockChannelStore, mockUserStore := setupDemoteMocks(t)
+
+		mockTeamStore.On("GetTeamsForUser", mock.Anything, "userID", "", true).Return(nil, errors.New("team listing failed"))
+
+		appErr := th.App.DemoteUserToGuest(th.Context, &model.User{Id: "userID"})
+		require.NotNil(t, appErr, "space capability roles are stripped per team, so an unlisted team leaves them attached")
+		require.Equal(t, "app.user.revoke_space_capability_roles.app_error", appErr.Id)
+		mockTeamStore.AssertCalled(t, "GetTeamsForUser", mock.Anything, "userID", "", true)
+
+		// The revocation is reached through the team listing, so nothing downstream of it runs.
+		mockChannelStore.AssertNotCalled(t, "GetTeamSpaceChannelsForUser", mock.Anything, "userID")
+		mockUserStore.AssertNotCalled(t, "DemoteUserToGuest", mock.Anything, "userID")
+	})
 }
 
 func TestDeactivateGuests(t *testing.T) {

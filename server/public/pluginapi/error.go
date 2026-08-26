@@ -11,6 +11,9 @@ import (
 // ErrNotFound is returned by the plugin API when an object is not found.
 var ErrNotFound = errors.New("not found")
 
+// ErrNotSupported is returned when a plugin calls an API unavailable on the connected server.
+var ErrNotSupported = errors.New("not supported")
+
 // normalizeAppErr returns a truly nil error if appErr is nil as well as normalizing a class
 // of non-nil AppErrors to simplify use within plugins.
 //

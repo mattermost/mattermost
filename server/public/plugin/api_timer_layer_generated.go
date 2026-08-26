@@ -1104,6 +1104,27 @@ func (api *apiTimerLayer) RolesGrantPermission(roleNames []string, permissionId 
 	return _returnsA
 }
 
+func (api *apiTimerLayer) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetSchemeByName(name)
+	api.recordTime(startTime, "GetSchemeByName", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetOrCreatePluginChannelScheme(user, admin, guest)
+	api.recordTime(startTime, "GetOrCreatePluginChannelScheme", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) GetSchemeForChannel(channelID string) (scheme *model.Scheme, guestRole *model.Role, userRole *model.Role, adminRole *model.Role, err *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsC, _returnsD, _returnsE := api.apiImpl.GetSchemeForChannel(channelID)
+	api.recordTime(startTime, "GetSchemeForChannel", _returnsE == nil)
+	return _returnsA, _returnsB, _returnsC, _returnsD, _returnsE
+}
+
 func (api *apiTimerLayer) LogDebug(msg string, keyValuePairs ...any) {
 	startTime := timePkg.Now()
 	api.apiImpl.LogDebug(msg, keyValuePairs...)

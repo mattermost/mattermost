@@ -30,11 +30,27 @@ func (a *App) GetScheme(id string) (*model.Scheme, *model.AppError) {
 }
 
 func (a *App) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
+	return a.getSchemeByName(name, false)
+}
+
+// getSchemeByNameFromMaster is the strongly consistent lookup used at the
+// plugin boundary. A plugin can resolve a preset immediately after startup
+// migrations seed it, before a replica has caught up.
+func (a *App) getSchemeByNameFromMaster(name string) (*model.Scheme, *model.AppError) {
+	return a.getSchemeByName(name, true)
+}
+
+func (a *App) getSchemeByName(name string, fromMaster bool) (*model.Scheme, *model.AppError) {
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
 	}
 
-	scheme, err := a.Srv().Store().Scheme().GetByName(name)
+	schemeStore := a.Srv().Store().Scheme()
+	get := schemeStore.GetByName
+	if fromMaster {
+		get = schemeStore.GetByNameFromMaster
+	}
+	scheme, err := get(name)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -74,6 +90,10 @@ func (a *App) GetSchemes(scope string, offset int, limit int) ([]*model.Scheme, 
 func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError) {
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
+	}
+
+	if appErr := a.checkSpaceSchemeName("CreateScheme", scheme.Name); appErr != nil {
+		return nil, appErr
 	}
 
 	// Clear any user-provided values for trusted properties.
@@ -126,6 +146,10 @@ func (a *App) UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 		return nil, err
 	}
 
+	if appErr := a.checkSpaceSchemeUpdate(scheme); appErr != nil {
+		return nil, appErr
+	}
+
 	scheme, err := a.Srv().Store().Scheme().Save(scheme)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -145,6 +169,10 @@ func (a *App) UpdateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 func (a *App) DeleteScheme(schemeId string) (*model.Scheme, *model.AppError) {
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
+	}
+
+	if appErr := a.checkSpaceSchemeDelete(schemeId); appErr != nil {
+		return nil, appErr
 	}
 
 	scheme, err := a.Srv().Store().Scheme().Delete(schemeId)

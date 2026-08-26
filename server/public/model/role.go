@@ -62,6 +62,11 @@ func init() {
 		builtInRoleSet[id] = true
 	}
 
+	spaceCapabilityRoleSet = make(map[string]bool, len(SpaceCapabilityRoles))
+	for _, id := range SpaceCapabilityRoles {
+		spaceCapabilityRoleSet[id] = true
+	}
+
 	// When updating the values here, the values in mattermost-redux must also be updated.
 	SysconsoleAncillaryPermissions = map[string][]*Permission{
 		PermissionSysconsoleReadAboutEditionAndLicense.Id: {
@@ -399,6 +404,16 @@ const (
 	ChannelUserRoleId  = "channel_user"
 	ChannelAdminRoleId = "channel_admin"
 
+	// Space capability roles, assigned per-member via ExplicitRoles on a space's
+	// backing channel in any subset. Deliberately NOT listed in
+	// BuiltInSchemeManagedRoleIDs: membership there would make
+	// UpdateChannelMemberRoles reject every ExplicitRoles assignment of them.
+	SpacePageCreatorRoleId    = "docs_pg_create"
+	SpacePageCommenterRoleId  = "docs_pg_cmt"
+	SpacePageEditorRoleId     = "docs_pg_edit"
+	SpacePageDeleterOwnRoleId = "docs_pg_del_own"
+	SpacePageDeleterRoleId    = "docs_pg_del"
+
 	CustomGroupUserRoleId = "custom_group_user"
 
 	PlaybookAdminRoleId  = "playbook_admin"
@@ -592,6 +607,20 @@ func (r *Role) MergeChannelHigherScopedPermissions(higherScopedPermissions *Role
 		}
 
 		_, presentOnHigherScope := higherScopedPermissionsMap[cp.Id]
+
+		// The channel-scoped space permissions are exempt from the rules below.
+		// The higher-scoped built-in roles never contain space permissions; those
+		// permissions come from space schemes. Deciding these the usual
+		// way would drop every grant a space preset scheme makes and leave its
+		// members with no page access. A space permission stored on the role
+		// itself is carried through instead.
+		if IsSpaceChannelScopedPermissionID(cp.Id) {
+			_, presentOnRole := rolePermissionsMap[cp.Id]
+			if presentOnRole || presentOnHigherScope {
+				mergedPermissions = append(mergedPermissions, cp.Id)
+			}
+			continue
+		}
 
 		// For the channel admin role always look to the higher scope to determine if the role has their permission.
 		// The channel admin is a special case because they're not part of the UI to be "channel moderated", only
@@ -899,6 +928,25 @@ func IsChannelScopedBuiltInRole(roleName string) bool {
 	return roleName == ChannelGuestRoleId || roleName == ChannelUserRoleId || roleName == ChannelAdminRoleId
 }
 
+// SpaceCapabilityRoles enumerates the space capability roles in a stable order,
+// which the seeding migration depends on.
+var SpaceCapabilityRoles = []string{
+	SpacePageCreatorRoleId,
+	SpacePageCommenterRoleId,
+	SpacePageEditorRoleId,
+	SpacePageDeleterOwnRoleId,
+	SpacePageDeleterRoleId,
+}
+
+var spaceCapabilityRoleSet map[string]bool
+
+// IsSpaceCapabilityRole reports whether roleName is a space capability role.
+// These roles contain space permissions, so they only apply to a space's backing
+// channel.
+func IsSpaceCapabilityRole(roleName string) bool {
+	return spaceCapabilityRoleSet[roleName]
+}
+
 // IsValidChannelMemberRoles reports whether roles are valid for a channel member.
 // IsValidUserRoles is format validation only; this additionally rejects any built-in
 // role (per IsBuiltInRole) that is not channel-scoped.
@@ -1007,12 +1055,26 @@ func MakeDefaultRoles() map[string]*Role {
 		BuiltIn:       true,
 	}
 
+	for roleID, permissions := range SpaceCapabilityRolePermissions {
+		roles[roleID] = &Role{
+			Name:        roleID,
+			DisplayName: fmt.Sprintf("authentication.roles.%s.name", roleID),
+			Description: fmt.Sprintf("authentication.roles.%s.description", roleID),
+			Permissions: PermissionIDs(permissions),
+			// Not scheme-managed: these ride in a member's ExplicitRoles on a
+			// space's backing channel rather than being resolved from a scheme.
+			SchemeManaged: false,
+			BuiltIn:       true,
+		}
+	}
+
 	roles[TeamGuestRoleId] = &Role{
 		Name:        "team_guest",
 		DisplayName: "authentication.roles.team_guest.name",
 		Description: "authentication.roles.team_guest.description",
 		Permissions: []string{
 			PermissionViewTeam.Id,
+			PermissionReadSpace.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -1031,6 +1093,8 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionCreatePrivateChannel.Id,
 			PermissionInviteUser.Id,
 			PermissionAddUserToTeam.Id,
+			PermissionReadSpace.Id,
+			PermissionCreateSpace.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -1092,6 +1156,8 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionManagePublicChannelBanner.Id,
 			PermissionManagePrivateChannelBanner.Id,
 			PermissionManageChannelAccessRules.Id,
+			PermissionManageSpace.Id,
+			PermissionDeleteSpace.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,

@@ -2720,6 +2720,38 @@ func (_m *API) GetOAuthApp(appID string) (*model.OAuthApp, *model.AppError) {
 	return r0, r1
 }
 
+// GetOrCreatePluginChannelScheme provides a mock function with given fields: user, admin, guest
+func (_m *API) GetOrCreatePluginChannelScheme(user []string, admin []string, guest []string) (*model.Scheme, *model.AppError) {
+	ret := _m.Called(user, admin, guest)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOrCreatePluginChannelScheme")
+	}
+
+	var r0 *model.Scheme
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func([]string, []string, []string) (*model.Scheme, *model.AppError)); ok {
+		return rf(user, admin, guest)
+	}
+	if rf, ok := ret.Get(0).(func([]string, []string, []string) *model.Scheme); ok {
+		r0 = rf(user, admin, guest)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Scheme)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string, []string, []string) *model.AppError); ok {
+		r1 = rf(user, admin, guest)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetPluginConfig provides a mock function with no fields
 func (_m *API) GetPluginConfig() map[string]interface{} {
 	ret := _m.Called()
@@ -3350,6 +3382,97 @@ func (_m *API) GetReactions(postId string) ([]*model.Reaction, *model.AppError) 
 	}
 
 	return r0, r1
+}
+
+// GetSchemeByName provides a mock function with given fields: name
+func (_m *API) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
+	ret := _m.Called(name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSchemeByName")
+	}
+
+	var r0 *model.Scheme
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) (*model.Scheme, *model.AppError)); ok {
+		return rf(name)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Scheme); ok {
+		r0 = rf(name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Scheme)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(name)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetSchemeForChannel provides a mock function with given fields: channelID
+func (_m *API) GetSchemeForChannel(channelID string) (*model.Scheme, *model.Role, *model.Role, *model.Role, *model.AppError) {
+	ret := _m.Called(channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSchemeForChannel")
+	}
+
+	var r0 *model.Scheme
+	var r1 *model.Role
+	var r2 *model.Role
+	var r3 *model.Role
+	var r4 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) (*model.Scheme, *model.Role, *model.Role, *model.Role, *model.AppError)); ok {
+		return rf(channelID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Scheme); ok {
+		r0 = rf(channelID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Scheme)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.Role); ok {
+		r1 = rf(channelID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.Role)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(string) *model.Role); ok {
+		r2 = rf(channelID)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.Role)
+		}
+	}
+
+	if rf, ok := ret.Get(3).(func(string) *model.Role); ok {
+		r3 = rf(channelID)
+	} else {
+		if ret.Get(3) != nil {
+			r3 = ret.Get(3).(*model.Role)
+		}
+	}
+
+	if rf, ok := ret.Get(4).(func(string) *model.AppError); ok {
+		r4 = rf(channelID)
+	} else {
+		if ret.Get(4) != nil {
+			r4 = ret.Get(4).(*model.AppError)
+		}
+	}
+
+	return r0, r1, r2, r3, r4
 }
 
 // GetServerVersion provides a mock function with no fields

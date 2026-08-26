@@ -244,6 +244,12 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.spaces_not_enabled.app_error", nil, "", http.StatusForbidden)
 	}
 
+	// CreateChannel takes SchemeId straight from the caller; this guard applies
+	// the same check UpdateChannelScheme enforces.
+	if appErr := a.checkChannelSchemeAssignment("CreateChannel", channel.Type, channel.SchemeId); appErr != nil {
+		return nil, appErr
+	}
+
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
 	channel.DefaultCategoryName = strings.TrimSpace(channel.DefaultCategoryName)
 	channel.ManagedCategoryName = strings.TrimSpace(channel.ManagedCategoryName)
@@ -748,11 +754,8 @@ func (a *App) GetGroupChannel(rctx request.CTX, userIDs []string) (*model.Channe
 
 // UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
-	// The generic Get excludes spaces, so fetch a space by its exact type instead; otherwise
-	// UpdateChannel can't load the existing channel and a rename or header edit would fail with
-	// a not-found before it reaches the store.
-	// Read from master: spaces are uncached, so an update right after create would otherwise
-	// miss against a lagging replica.
+	// The generic Get excludes spaces, so fetch a space by its exact type instead.
+	// Spaces are uncached, so read from master.
 	var oldChannel *model.Channel
 	var getErr error
 	if channel.IsSpace() {
@@ -768,6 +771,17 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 			return nil, model.NewAppError("UpdateChannel", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(getErr)
 		default:
 			return nil, model.NewAppError("UpdateChannel", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(getErr)
+		}
+	}
+
+	// UpdateChannel takes SchemeId straight from the caller, and both bulk import
+	// and the plugin API reach it without passing UpdateChannelScheme, so the
+	// guard has to sit here rather than on that narrower entry point. The
+	// SchemeId comparison keeps an ordinary edit from being refused over a scheme
+	// the channel already carries.
+	if model.SafeDereference(oldChannel.SchemeId) != model.SafeDereference(channel.SchemeId) {
+		if appErr := a.checkChannelSchemeAssignment("UpdateChannel", oldChannel.Type, channel.SchemeId); appErr != nil {
+			return nil, appErr
 		}
 	}
 
@@ -821,6 +835,22 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
+
+	// Switching a space's default capability preset repoints its backing
+	// channel's SchemeId, which changes the generated roles every member
+	// resolves to. The member-roles cache holds the role names from when the
+	// entry was built and is only invalidated per user when a member row is
+	// written, so purge it here to make the switch apply on the next request
+	// instead of when the entry expires.
+	if channel.IsSpace() && model.SafeDereference(oldChannel.SchemeId) != model.SafeDereference(channel.SchemeId) {
+		// The cache is keyed by user, so there is no per-channel key to evict;
+		// enumerating members one by one would page the member list and emit two
+		// cluster messages per member inside this request. A preset switch is a
+		// rare admin action, so purge the cache once. Logged because the purge
+		// is cluster-wide: every user's member-roles entry refills on next use.
+		rctx.Logger().Info("Purging the member-roles cache for a space capability preset switch", mlog.String("channel_id", channel.Id))
+		a.Srv().Store().Channel().ClearMembersForUserCache()
+	}
 
 	// Space backing channels are internal: skip the channel_updated broadcast.
 	if channel.IsSpace() {
@@ -1115,18 +1145,100 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 	return channel, nil
 }
 
+// GetSchemeForChannel returns the channel's directly assigned scheme and its generated channel
+// roles. It does not fall back to a team scheme when the channel has no scheme of its own.
+func (a *App) GetSchemeForChannel(rctx request.CTX, channelID string) (scheme *model.Scheme, guestRole, userRole, adminRole *model.Role, err *model.AppError) {
+	channel, err := a.GetChannel(rctx, channelID)
+	if err != nil {
+		if err.StatusCode != http.StatusNotFound {
+			return
+		}
+		// Generic channel lookup excludes opaque backing channels. Spaces are uncached, so resolve
+		// them by their exact type on the primary.
+		channel, err = a.GetChannelOfType(RequestContextWithMaster(rctx), channelID, model.ChannelTypeSpace)
+		if err != nil {
+			return
+		}
+	}
+
+	if channel.SchemeId == nil || *channel.SchemeId == "" {
+		err = model.NewAppError("GetSchemeForChannel", "app.scheme.get.app_error", nil, "channel has no directly assigned scheme", http.StatusNotFound)
+		return
+	}
+
+	scheme, err = a.getSchemeFromMaster("GetSchemeForChannel", *channel.SchemeId)
+	if err != nil {
+		return
+	}
+	if scheme == nil {
+		err = model.NewAppError("GetSchemeForChannel", "app.scheme.get.app_error", nil, "channel scheme not found", http.StatusNotFound)
+		return
+	}
+
+	roleNames := []string{
+		scheme.DefaultChannelGuestRole,
+		scheme.DefaultChannelUserRole,
+		scheme.DefaultChannelAdminRole,
+	}
+	roles, nErr := a.Srv().Store().Role().GetByNamesFromMaster(roleNames)
+	if nErr != nil {
+		err = model.NewAppError("GetSchemeForChannel", "app.role.get_by_names.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		return
+	}
+	if err = a.mergeChannelHigherScopedPermissions(roles); err != nil {
+		return
+	}
+
+	rolesByName := make(map[string]*model.Role, len(roles))
+	for _, role := range roles {
+		rolesByName[role.Name] = role
+	}
+	guestRole = rolesByName[scheme.DefaultChannelGuestRole]
+	userRole = rolesByName[scheme.DefaultChannelUserRole]
+	adminRole = rolesByName[scheme.DefaultChannelAdminRole]
+	if guestRole == nil || userRole == nil || adminRole == nil {
+		scheme, guestRole, userRole, adminRole = nil, nil, nil, nil
+		err = model.NewAppError("GetSchemeForChannel", "app.role.get_by_names.app_error", nil, "one or more channel scheme roles were not found", http.StatusNotFound)
+	}
+
+	return
+}
+
 // GetSchemeRolesForChannel Checks if a channel or its team has an override scheme for channel roles and returns the scheme roles or default channel roles.
 func (a *App) GetSchemeRolesForChannel(rctx request.CTX, channelID string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
 	channel, err := a.GetChannel(rctx, channelID)
 	if err != nil {
-		return
+		if err.StatusCode != http.StatusNotFound {
+			return
+		}
+		// The generic get excludes space backing channels, so fetch one by its exact
+		// type instead. Spaces are uncached, so read from master.
+		if channel, err = a.GetChannelOfType(RequestContextWithMaster(rctx), channelID, model.ChannelTypeSpace); err != nil {
+			return
+		}
 	}
 
 	if channel.SchemeId != nil && *channel.SchemeId != "" {
 		var scheme *model.Scheme
 		scheme, err = a.GetScheme(*channel.SchemeId)
 		if err != nil {
-			return
+			if err.StatusCode != http.StatusNotFound || !channel.IsSpace() {
+				return
+			}
+			// A space's scheme is typically created moments earlier by the same
+			// caller, so a not-found here is most likely replica lag rather than
+			// a real absence.
+			var fallbackErr *model.AppError
+			scheme, fallbackErr = a.getSchemeWithMasterFallback("GetSchemeRolesForChannel", *channel.SchemeId)
+			if fallbackErr != nil {
+				err = fallbackErr
+				return
+			}
+			if scheme == nil {
+				// Absent on the primary too: keep the not-found from the read above.
+				return
+			}
+			err = nil
 		}
 
 		guestRoleName = scheme.DefaultChannelGuestRole
@@ -1432,6 +1544,21 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 	member.SchemeUser = false
 	member.SchemeAdmin = false
 
+	// channelID is the same for every role in the loop, so the lookup is made at
+	// most once, and only when a check below actually needs it.
+	var isSpace *bool
+	channelIsSpace := func() (bool, *model.AppError) {
+		if isSpace == nil {
+			resolved, appErr := a.IsSpaceChannelByID(rctx, channelID)
+			if appErr != nil {
+				return false, appErr
+			}
+			isSpace = &resolved
+		}
+		return *isSpace, nil
+	}
+	var capabilityRoleName string
+
 	for roleName := range strings.FieldsSeq(newRoles) {
 		var role *model.Role
 		role, err = a.GetRoleByName(rctx, roleName)
@@ -1444,6 +1571,21 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 			if model.IsBuiltInRole(roleName) && !model.IsChannelScopedBuiltInRole(roleName) {
 				err = model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 				return nil, err
+			}
+			// The space capability roles sit outside the built-in check above, so
+			// they reach here as explicit roles. They are the per-member capability
+			// grants on a space's backing channel; on any other channel they would
+			// give the member space permissions.
+			if model.IsSpaceCapabilityRole(roleName) {
+				inSpace, appErr := channelIsSpace()
+				if appErr != nil {
+					return nil, appErr
+				}
+				if !inSpace {
+					logRefusedSpaceCapabilityRole(rctx, "UpdateChannelMemberRoles", roleName)
+					return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+				}
+				capabilityRoleName = roleName
 			}
 			newExplicitRoles = append(newExplicitRoles, roleName)
 		} else {
@@ -1466,7 +1608,22 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// A guest reads a space and nothing more, so no capability role may be
+	// granted to one. Checked after the loop rather than beside the capability
+	// role itself: SchemeGuest is settled by the scheme-managed branch of the
+	// same loop, which the roles reach in whatever order the caller sent them.
+	if member.SchemeGuest && capabilityRoleName != "" {
+		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_guest_role.app_error", nil, "role_name="+capabilityRoleName, http.StatusBadRequest)
+	}
+
 	if member.SchemeGuest && member.SchemeAdmin {
+		inSpace, appErr := channelIsSpace()
+		if appErr != nil {
+			return nil, appErr
+		}
+		if inSpace {
+			return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.space_guest_admin.app_error", nil, "", http.StatusBadRequest)
+		}
 		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.guest_and_admin.app_error", nil, "", http.StatusBadRequest)
 	}
 

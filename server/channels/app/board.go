@@ -24,6 +24,14 @@ func (a *App) CreateBoardChannel(rctx request.CTX, channel *model.Channel) (*mod
 		return nil, appErr
 	}
 
+	// A board is never a space, and SchemeId comes straight from the request body
+	// here just as it does in CreateChannel, so run the same check: without it, a
+	// scheme that grants space permissions would grant them to this channel's
+	// members.
+	if appErr := a.checkChannelSchemeAssignment("CreateBoardChannel", channel.Type, channel.SchemeId); appErr != nil {
+		return nil, appErr
+	}
+
 	// Look up boards property fields by name
 	boardsGroup, appErr := a.GetPropertyGroup(rctx, model.BoardsPropertyGroupName)
 	if appErr != nil {

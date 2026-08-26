@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -7053,8 +7054,10 @@ func TestPatchChannelModerations(t *testing.T) {
 
 		mockSchemeStore := mocks.SchemeStore{}
 		mockSchemeStore.On("Get", mock.Anything).Return(scheme, nil)
+		mockSchemeStore.On("GetFromMaster", mock.AnythingOfType("string")).Return(scheme, nil)
 		mockSchemeStore.On("Save", mock.Anything).Return(scheme, nil)
 		mockSchemeStore.On("Delete", mock.Anything).Return(scheme, nil)
+		mockSchemeStore.On("GetByName", mock.AnythingOfType("string")).Return(nil, store.NewErrNotFound("Scheme", ""))
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 		mockStore.On("Team").Return(th.App.Srv().Store().Team())
 		mockStore.On("Channel").Return(th.App.Srv().Store().Channel())
@@ -8154,7 +8157,7 @@ func TestChannelEndpointsExcludeSpaces(t *testing.T) {
 
 		resp, err := th.SystemAdminClient.UpdateChannelScheme(ctx, space.Id, channelScheme.Id)
 		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
+		CheckBadRequestStatus(t, resp)
 	})
 
 	// --- Generic member/view-state mutation endpoints reject or no-op spaces (managed by the spaces feature) ---
@@ -8201,10 +8204,21 @@ func TestChannelEndpointsExcludeSpaces(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("addChannelMember 404s a space", func(t *testing.T) {
+	t.Run("addChannelMember rejects a space with the explicit guard 400", func(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.AddChannelMember(ctx, space.Id, th.BasicUser2.Id)
 		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("patchChannelModerations rejects a space with the explicit guard 400", func(t *testing.T) {
+		// The handler's license check runs before the guard.
+		originalLicense := th.App.Srv().License()
+		th.App.Srv().SetLicense(model.NewTestLicense())
+		defer th.App.Srv().SetLicense(originalLicense)
+
+		_, resp, err := th.SystemAdminClient.PatchChannelModerations(ctx, space.Id, []*model.ChannelModerationPatch{})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("setChannelMembers 404s a space", func(t *testing.T) {

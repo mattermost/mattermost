@@ -2068,6 +2068,18 @@ func (a *App) UpdateUserRolesWithUser(rctx request.CTX, user *model.User, newRol
 		return nil, err
 	}
 
+	// The space capability roles are excluded from
+	// BuiltInSchemeManagedRoleIDs so they can ride in ExplicitRoles on a space's
+	// backing channel, which also means CheckRolesExist accepts them here. A
+	// system role is consulted as the fallback for every channel on the server,
+	// so one assigned here would resolve its page permissions everywhere.
+	for roleName := range strings.FieldsSeq(newRoles) {
+		if model.IsSpaceCapabilityRole(roleName) {
+			logRefusedSpaceCapabilityRole(rctx, "UpdateUserRoles", roleName)
+			return nil, model.NewAppError("UpdateUserRoles", "api.user.update_user_roles.space_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
+		}
+	}
+
 	if user.IsSystemAdmin() && !strings.Contains(newRoles, model.SystemAdminRoleId) {
 		// if user being updated is SysAdmin, make sure its not the last one.
 		options := model.UserCountOptions{
@@ -2080,6 +2092,17 @@ func (a *App) UpdateUserRolesWithUser(rctx request.CTX, user *model.User, newRol
 		}
 		if count <= 1 {
 			return nil, model.NewAppError("UpdateUserRoles", "app.user.update.lastAdmin.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	// Turning a user into a guest here skips DemoteUserToGuest, which is what
+	// normally revokes the space capability roles held in a membership's explicit
+	// roles on a space backing channel. Nothing on this path resets those, so the
+	// new guest would keep resolving page permissions there. Revoked before the
+	// user row is written, so a failure leaves the user as they were.
+	if !user.IsGuest() && model.IsInRole(newRoles, model.SystemGuestRoleId) {
+		if appErr := a.revokeSpaceCapabilityRolesForUser(rctx, user.Id); appErr != nil {
+			return nil, appErr
 		}
 	}
 
@@ -2850,6 +2873,16 @@ func (a *App) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId
 func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppError {
 	if user.IsBot {
 		return model.NewAppError("DemoteUserToGuest", "api.user.demote_user_to_guest.bot_not_allowed.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// A space capability role rides in the membership's explicit roles on a space
+	// backing channel, which the demotion below leaves untouched. Revoke it before
+	// the user becomes a guest: a failure here leaves a regular user who has lost
+	// space capabilities, while a failure after the demotion would leave a guest
+	// still holding them and no way to retry, since demoting a user who is already
+	// a guest is refused.
+	if appErr := a.revokeSpaceCapabilityRolesForUser(rctx, user.Id); appErr != nil {
+		return appErr
 	}
 
 	demotedUser, nErr := a.ch.srv.userService.DemoteUserToGuest(rctx, user)

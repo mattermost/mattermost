@@ -199,6 +199,20 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                     Permissions.RESTORE_CUSTOM_GROUP,
                 ],
             },
+
+            // Appended rather than placed next to the channel groups: updateGroups
+            // reaches the groups above by array index, so inserting ahead of them
+            // would rewire those lookups.
+            {
+                id: 'spaces',
+                permissions: [
+                    Permissions.READ_SPACE,
+                    Permissions.CREATE_SPACE,
+                    Permissions.MANAGE_SPACE,
+                    Permissions.DELETE_SPACE,
+                ],
+                isVisible: (license, config) => config?.FeatureFlagEnableDocs === 'true',
+            },
         ];
         this.updateGroups();
     }
@@ -337,10 +351,16 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
             privateChannelsGroup.permissions.push(Permissions.MANAGE_CHANNEL_ACCESS_RULES);
             teamsGroup.permissions.push(Permissions.MANAGE_TEAM_ACCESS_RULES);
         }
+    };
 
-        this.groups = this.groups.filter((group) => {
+    // Filtered on the way to render rather than in updateGroups, which reads the
+    // groups above by array index and would mis-address them once entries are
+    // dropped. Keeping the full list also lets a group come back when the config
+    // or license that hides it changes.
+    visibleGroups = () => {
+        return this.groups.filter((group) => {
             if (group.isVisible) {
-                return group.isVisible(this.props.license);
+                return group.isVisible(this.props.license, this.props.config);
             }
 
             return true;
@@ -393,7 +413,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                         selected={this.props.selected}
                         selectRow={this.props.selectRow}
                         readOnly={this.props.readOnly}
-                        permissions={this.groups}
+                        permissions={this.visibleGroups()}
                         additionalValues={this.ADDITIONAL_VALUES}
                         role={this.props.role}
                         parentRole={this.props.parentRole}

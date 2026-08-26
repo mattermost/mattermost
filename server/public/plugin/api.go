@@ -1040,6 +1040,36 @@ type API interface {
 	// Minimum server version: 6.3
 	RolesGrantPermission(roleNames []string, permissionId string) bool
 
+	// GetSchemeByName gets a scheme by its unique name.
+	//
+	// @tag Scheme
+	// Minimum server version: 11.11
+	GetSchemeByName(name string) (*model.Scheme, *model.AppError)
+
+	// GetOrCreatePluginChannelScheme resolves the channel scheme whose generated
+	// user, admin and guest roles grant exactly the given permission sets,
+	// creating it on first use. Identical normalized sets share a deterministic
+	// pool entry instead of creating one scheme per channel.
+	//
+	// The scheme is complete when returned: its roles are written in the creation
+	// transaction. Normal role-write APIs reject later changes; request another
+	// permission set to resolve a different scheme.
+	//
+	// The pool namespace derives from the calling plugin identity carried by the request, not from
+	// an argument. Only channel-scoped permissions are accepted.
+	//
+	// @tag Scheme
+	// Minimum server version: 11.11
+	GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError)
+
+	// GetSchemeForChannel returns the channel's directly assigned scheme and its generated guest,
+	// user and admin roles. It returns not found when the channel has no scheme of its own.
+	//
+	// @tag Scheme
+	// @tag Channel
+	// Minimum server version: 11.11
+	GetSchemeForChannel(channelID string) (scheme *model.Scheme, guestRole *model.Role, userRole *model.Role, adminRole *model.Role, err *model.AppError)
+
 	// LogDebug writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins
 	// do not need to add that info.

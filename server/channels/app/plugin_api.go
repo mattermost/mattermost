@@ -39,6 +39,31 @@ func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI
 	}
 }
 
+// checkCustomPermissionsSchemesLicense applies the same entitlement as the scheme
+// REST handlers, so reaching a scheme through a plugin does not skip it: a license
+// covers a capability, not the transport that reaches it.
+func (api *PluginAPI) checkCustomPermissionsSchemesLicense() error {
+	if !api.GetLicense().HasCustomPermissionsSchemes() {
+		return errors.New("license does not support custom permissions schemes")
+	}
+	return nil
+}
+
+// checkPluginChannelSchemeGuestPermissionsLicense requires the guest-permissions
+// entitlement when the requested guest role grants any permission. The scheme's
+// roles are written directly in the creation transaction, so this check must run
+// before they are stored.
+func checkPluginChannelSchemeGuestPermissionsLicense(license *model.License, guest []string) *model.AppError {
+	if len(guest) == 0 {
+		return nil
+	}
+
+	if license == nil || license.Features == nil || license.Features.GuestAccountsPermissions == nil || !*license.Features.GuestAccountsPermissions {
+		return model.NewAppError("PluginAPI.GetOrCreatePluginChannelScheme", "app.scheme.plugin_scheme.guest_license.app_error", nil, "", http.StatusNotImplemented)
+	}
+	return nil
+}
+
 func (api *PluginAPI) checkLDAPLicense() error {
 	license := api.GetLicense()
 	if license == nil || !*license.Features.LDAPGroups {
@@ -518,11 +543,8 @@ func (api *PluginAPI) GetChannelOfType(channelID string, channelType model.Chann
 	return api.app.GetChannelOfType(ctx, channelID, channelType)
 }
 
-// resolveChannel fetches a channel by ID for plugin API mutation methods. Generic channel
-// lookups exclude opaque backing channel types (e.g. space); on 404 this retries the ID
-// against each known backing type so plugins can manage backing channels through the standard
-// API without a separate resolution step. The retry uses master context to avoid
-// read-after-write misses on lagging replicas.
+// resolveChannel fetches a channel for plugin mutations. Generic lookup excludes opaque space
+// backing channels, so a miss is retried as that exact type on the primary.
 func (api *PluginAPI) resolveChannel(channelID string) (*model.Channel, *model.AppError) {
 	return resolveChannelByID(
 		api.ctx,
@@ -733,7 +755,17 @@ func (api *PluginAPI) GetChannelMembersForUser(_, userID string, page, perPage i
 }
 
 func (api *PluginAPI) UpdateChannelMemberRoles(channelID, userID, newRoles string) (*model.ChannelMember, *model.AppError) {
-	return api.app.UpdateChannelMemberRoles(api.ctx, channelID, userID, newRoles)
+	channel, err := api.resolveChannel(channelID)
+	if err != nil {
+		return nil, err
+	}
+	ctx := api.ctx
+	if channel.IsSpace() {
+		// The role update re-reads the member before writing, and the space flows
+		// promote a member added an instant earlier.
+		ctx = RequestContextWithMaster(api.ctx)
+	}
+	return api.app.UpdateChannelMemberRoles(ctx, channelID, userID, newRoles)
 }
 
 func (api *PluginAPI) UpdateChannelMemberNotifications(channelID, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
@@ -756,14 +788,14 @@ func (api *PluginAPI) PatchChannelMembersNotifications(members []*model.ChannelM
 // rejectSpaceChannel returns a bad-request AppError when channelID is a space backing channel.
 // Notify-prop mutations carry chat semantics (they emit a channel_member_updated event) that do
 // not belong on an internal space backing channel, so they are rejected here. It fails closed by
-// propagating any error other than not-found, so a lookup failure cannot let a space through.
+// propagating the lookup error, so a lookup failure cannot let a space through.
 func (api *PluginAPI) rejectSpaceChannel(channelID string) *model.AppError {
-	_, err := api.app.GetChannelOfType(RequestContextWithMaster(api.ctx), channelID, model.ChannelTypeSpace)
-	if err == nil {
-		return model.NewAppError("PluginAPI.rejectSpaceChannel", "plugin_api.channel.space_notify_props.app_error", nil, "", http.StatusBadRequest)
-	}
-	if err.StatusCode != http.StatusNotFound {
+	isSpace, err := api.app.IsSpaceChannelByID(api.ctx, channelID)
+	if err != nil {
 		return err
+	}
+	if isSpace {
+		return model.NewAppError("PluginAPI.rejectSpaceChannel", "plugin_api.channel.space_notify_props.app_error", nil, "", http.StatusBadRequest)
 	}
 	return nil
 }
@@ -1262,6 +1294,28 @@ func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permissio
 
 func (api *PluginAPI) RolesGrantPermission(roleNames []string, permissionId string) bool {
 	return api.app.RolesGrantPermission(roleNames, permissionId)
+}
+
+func (api *PluginAPI) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
+	return api.app.getSchemeByNameFromMaster(name)
+}
+
+func (api *PluginAPI) GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError) {
+	// This creates or reuses a custom channel scheme, so it carries the same custom
+	// permissions schemes entitlement as the REST scheme handlers. A non-empty guest
+	// role also requires the guest-permissions entitlement. The plugin id comes from
+	// this API instance rather than from caller input.
+	if err := api.checkCustomPermissionsSchemesLicense(); err != nil {
+		return nil, model.NewAppError("PluginAPI.GetOrCreatePluginChannelScheme", "app.scheme.plugin_scheme.scheme_license.app_error", nil, "", http.StatusNotImplemented).Wrap(err)
+	}
+	if appErr := checkPluginChannelSchemeGuestPermissionsLicense(api.GetLicense(), guest); appErr != nil {
+		return nil, appErr
+	}
+	return api.app.GetOrCreatePluginChannelScheme(api.manifest.Id, user, admin, guest)
+}
+
+func (api *PluginAPI) GetSchemeForChannel(channelID string) (scheme *model.Scheme, guestRole, userRole, adminRole *model.Role, err *model.AppError) {
+	return api.app.GetSchemeForChannel(api.ctx, channelID)
 }
 
 func (api *PluginAPI) UpdateUserRoles(userID string, newRoles string) (*model.User, *model.AppError) {

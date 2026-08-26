@@ -1241,6 +1241,10 @@ export const PermissionsScope = {
     [Permissions.RUN_MANAGE_MEMBERS]: 'run_scope',
     [Permissions.RUN_MANAGE_PROPERTIES]: 'run_scope',
     [Permissions.RUN_VIEW]: 'run_scope',
+    [Permissions.READ_SPACE]: 'team_scope',
+    [Permissions.CREATE_SPACE]: 'team_scope',
+    [Permissions.MANAGE_SPACE]: 'team_scope',
+    [Permissions.DELETE_SPACE]: 'team_scope',
     [Permissions.CREATE_CUSTOM_GROUP]: 'system_scope',
     [Permissions.EDIT_CUSTOM_GROUP]: 'system_scope',
     [Permissions.DELETE_CUSTOM_GROUP]: 'system_scope',
@@ -1322,6 +1326,8 @@ export const DefaultRolePermissions = {
         Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
+        Permissions.READ_SPACE,
+        Permissions.CREATE_SPACE,
     ],
     channel_admin: [
         Permissions.MANAGE_CHANNEL_ROLES,
@@ -1386,6 +1392,8 @@ export const DefaultRolePermissions = {
         Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
         Permissions.MANAGE_CHANNEL_ACCESS_RULES,
         Permissions.MANAGE_TEAM_ACCESS_RULES,
+        Permissions.MANAGE_SPACE,
+        Permissions.DELETE_SPACE,
     ],
     guests: [
         Permissions.EDIT_POST,
@@ -1396,6 +1404,7 @@ export const DefaultRolePermissions = {
         Permissions.READ_CHANNEL,
         Permissions.UPLOAD_FILE,
         Permissions.CREATE_POST,
+        Permissions.READ_SPACE,
     ],
 };
 

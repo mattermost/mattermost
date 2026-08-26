@@ -748,6 +748,18 @@
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member."
   },
   {
+    "id": "api.channel.update_channel_member_roles.space_guest_admin.app_error",
+    "translation": "A guest cannot be made an administrator of a space, and has read-only access to every space."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.space_guest_role.app_error",
+    "translation": "The provided role grants space permissions and cannot be applied to a guest, who has read-only access to every space."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.space_role.app_error",
+    "translation": "The provided role grants space permissions and can only be applied to a member of a space."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
     "translation": "Invalid channel member update: A channel member always has a user scheme."
   },
@@ -3959,6 +3971,10 @@
     "translation": "Invalid team member update: A user must be a guest or a user but not both."
   },
   {
+    "id": "api.team.update_team_member_roles.space_role.app_error",
+    "translation": "The provided role grants space permissions and can only be applied to a member of a space."
+  },
+  {
     "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
     "translation": "Invalid team member update: A team member always has a user scheme."
   },
@@ -5143,6 +5159,10 @@
     "translation": "Custom Permission Schemes not supported by current license"
   },
   {
+    "id": "api.user.update_user_roles.space_role.app_error",
+    "translation": "The provided role grants space permissions and can only be applied to a member of a space."
+  },
+  {
     "id": "api.user.upload_profile_user.array.app_error",
     "translation": "Empty array under 'image' in request."
   },
@@ -5575,8 +5595,16 @@
     "translation": "Failed to retrieve the channel members."
   },
   {
+    "id": "app.channel.count_non_space_channels_by_scheme.app_error",
+    "translation": "Unable to count the channels using this scheme."
+  },
+  {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "Unable to count messages since given date."
+  },
+  {
+    "id": "app.channel.count_space_channels_by_scheme.app_error",
+    "translation": "Unable to count the spaces using this scheme."
   },
   {
     "id": "app.channel.count_urgent_posts_since.app_error",
@@ -5945,6 +5973,14 @@
   {
     "id": "app.channel.update_channel_privacy.space.app_error",
     "translation": "Spaces cannot have their privacy changed through this endpoint."
+  },
+  {
+    "id": "app.channel.update_channel_scheme.space_scheme.app_error",
+    "translation": "This scheme is reserved for spaces and cannot be applied to a channel."
+  },
+  {
+    "id": "app.channel.update_channel_scheme.space_scheme_unusable.app_error",
+    "translation": "This scheme cannot be applied to a space. Use one of the space presets, or a channel scheme that is not already in use by other channels."
   },
   {
     "id": "app.channel.update_last_viewed_at.app_error",
@@ -9045,6 +9081,26 @@
     "translation": "The role was not valid."
   },
   {
+    "id": "app.role.save.plugin_scheme_role.app_error",
+    "translation": "The roles of a plugin-managed scheme cannot be changed. They are set when the scheme is created and shared by every channel using it."
+  },
+  {
+    "id": "app.role.save.space_capability_role.app_error",
+    "translation": "The role \"{{.RoleName}}\" is a space capability role and cannot be changed. Its permissions are fixed by the server."
+  },
+  {
+    "id": "app.role.save.space_permission_scope.app_error",
+    "translation": "Space permissions cannot be added to the role \"{{.RoleName}}\": they may only be carried by the roles of a scheme that governs a space. If this scheme is meant to govern one, attach it to the space before patching its roles."
+  },
+  {
+    "id": "app.role.save.space_preset_role.app_error",
+    "translation": "The role \"{{.RoleName}}\" belongs to a preset space scheme and cannot be changed. Its permissions are fixed by the server."
+  },
+  {
+    "id": "app.role.save.space_role_scheme_managed.app_error",
+    "translation": "The role \"{{.RoleName}}\" carries space permissions and must remain managed by its scheme. Remove the space permissions before making it a standalone role."
+  },
+  {
     "id": "app.role.send_updated_role_event.app_error",
     "translation": "An error occurred while broadcasting the role update."
   },
@@ -9215,6 +9271,14 @@
     "translation": "Unable to delete this scheme."
   },
   {
+    "id": "app.scheme.delete.plugin_scheme.app_error",
+    "translation": "This scheme was created on a plugin's behalf and cannot be deleted."
+  },
+  {
+    "id": "app.scheme.delete.space_scheme.app_error",
+    "translation": "This scheme is used by spaces and cannot be deleted."
+  },
+  {
     "id": "app.scheme.get.app_error",
     "translation": "Unable to get the scheme."
   },
@@ -9227,12 +9291,52 @@
     "translation": "We could not permanently delete the schemes."
   },
   {
+    "id": "app.scheme.plugin_scheme.conflict.app_error",
+    "translation": "A scheme already exists under the name reserved for this plugin scheme, and it does not grant what that name implies. Rename or remove the conflicting scheme to proceed."
+  },
+  {
+    "id": "app.scheme.plugin_scheme.guest_license.app_error",
+    "translation": "Your license does not support custom guest permissions."
+  },
+  {
+    "id": "app.scheme.plugin_scheme.no_plugin_id.app_error",
+    "translation": "Unable to determine which plugin requested the scheme."
+  },
+  {
+    "id": "app.scheme.plugin_scheme.permission_scope.app_error",
+    "translation": "A plugin channel scheme may only grant channel-scoped permissions."
+  },
+  {
+    "id": "app.scheme.plugin_scheme.scheme_license.app_error",
+    "translation": "Your license does not support custom permissions schemes, which are required to grant permissions beyond the space permissions."
+  },
+  {
     "id": "app.scheme.save.app_error",
     "translation": "Unable to create the scheme."
   },
   {
     "id": "app.scheme.save.invalid_scheme.app_error",
     "translation": "The provided scheme is invalid."
+  },
+  {
+    "id": "app.scheme.save.plugin_scheme_name.app_error",
+    "translation": "The scheme name \"{{.SchemeName}}\" is reserved for schemes created on a plugin's behalf."
+  },
+  {
+    "id": "app.scheme.save.plugin_scheme_rename.app_error",
+    "translation": "The plugin scheme \"{{.SchemeName}}\" cannot be renamed."
+  },
+  {
+    "id": "app.scheme.save.space_scheme_name.app_error",
+    "translation": "The scheme name \"{{.SchemeName}}\" is reserved for spaces."
+  },
+  {
+    "id": "app.scheme.save.space_scheme_rename.app_error",
+    "translation": "The space scheme \"{{.SchemeName}}\" cannot be renamed."
+  },
+  {
+    "id": "app.scheme.save.space_scheme_roles.app_error",
+    "translation": "The roles of the space scheme \"{{.SchemeName}}\" cannot be changed."
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -9837,6 +9941,10 @@
   {
     "id": "app.user.reset_password_failed_attempts.app_error",
     "translation": "Failed to reset login attempts."
+  },
+  {
+    "id": "app.user.revoke_space_capability_roles.app_error",
+    "translation": "Failed to revoke the user's space permissions. No changes were made."
   },
   {
     "id": "app.user.save.app_error",

@@ -144,6 +144,13 @@ func (a *App) mergeChannelHigherScopedPermissions(roles []*model.Role) *model.Ap
 }
 
 func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
+	// Reject capability roles before the no-op return. UpdateRole rejects them on
+	// the normal path, but an unchanged permissions patch never reaches UpdateRole.
+	if model.IsSpaceCapabilityRole(role.Name) {
+		return nil, model.NewAppError("PatchRole", "app.role.save.space_capability_role.app_error",
+			map[string]any{"RoleName": role.Name}, "", http.StatusBadRequest)
+	}
+
 	// If patch is a no-op then short-circuit the store.
 	if patch.Permissions != nil && reflect.DeepEqual(*patch.Permissions, role.Permissions) {
 		return role, nil
@@ -169,6 +176,16 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 	role.DeleteAt = 0
 	role.BuiltIn = false
 	role.SchemeManaged = false
+	// Resetting SchemeId closes the guard's scheme-based bypass: a
+	// caller-supplied id pointing at a space preset would otherwise let a
+	// created role borrow that scheme's scope and pass unrejected.
+	role.SchemeId = nil
+
+	// On the create path there is no stored role, so every guarded permission
+	// in the incoming set counts as an add.
+	if appErr := a.checkSpacePermissionScope(role, nil); appErr != nil {
+		return nil, appErr
+	}
 
 	var err error
 	role, err = a.Srv().Store().Role().Save(role)
@@ -186,6 +203,22 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 }
 
 func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
+	// Mutable roles may remove an existing space permission but may not add one, so writes carrying
+	// such permissions need the stored set as a diff baseline. Frozen-role checks are independent.
+	var storedPermissions []string
+	if hasSpaceChannelScopedPermission(role.Permissions) {
+		storedRole, appErr := a.storedRoleForSpaceGuard(role)
+		if appErr != nil {
+			return nil, appErr
+		}
+		if storedRole != nil {
+			storedPermissions = storedRole.Permissions
+		}
+	}
+	if appErr := a.checkSpacePermissionScope(role, storedPermissions); appErr != nil {
+		return nil, appErr
+	}
+
 	savedRole, err := a.Srv().Store().Role().Save(role)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -336,6 +369,19 @@ func (a *App) sendUpdatedRoleEvent(role *model.Role) *model.AppError {
 			offset += pageSize
 		}
 	case model.SchemeScopeChannel:
+		// Space backing channels are excluded from GetChannelsByScheme, so a scheme
+		// that governs one has no channel to address and the loop below would
+		// broadcast to nobody, leaving every client's cached permissions stale.
+		// Broadcast globally instead, the way the playbook and run scopes do.
+		spaceCount, sErr := a.Srv().Store().Channel().CountSpaceChannelsByScheme(scheme.Id)
+		if sErr != nil {
+			return model.NewAppError("sendUpdatedRoleEvent", "app.channel.count_space_channels_by_scheme.app_error", nil, "", http.StatusInternalServerError).Wrap(sErr)
+		}
+		if spaceCount > 0 {
+			publishEvent("", "")
+			return nil
+		}
+
 		totalBroadcasts := 0
 		offset := 0
 		for {
