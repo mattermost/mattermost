@@ -4,8 +4,9 @@
 import React, {memo, useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui';
 import {GenericModal} from '@mattermost/components';
-import {Button, type ButtonVariant} from '@mattermost/shared/components/button';
+import type {ButtonVariant} from '@mattermost/shared/components/button';
 
 import {focusElement} from 'utils/a11y_utils';
 
@@ -198,7 +199,7 @@ const ConfirmModal = ({
             <Button
                 type='button'
                 data-testid='cancel-button'
-                emphasis='tertiary'
+                emphasis='Tertiary'
                 onClick={handleCancel}
                 id='cancelModalButton'
             >
@@ -234,7 +235,8 @@ const ConfirmModal = ({
                     {!hideConfirm && (
                         <Button
                             type='button'
-                            variant={confirmButtonVariant}
+                            emphasis='Primary'
+                            destructive={confirmButtonVariant === 'destructive'}
                             onClick={handleConfirm}
                             id='confirmModalButton'
                             autoFocus={true}
