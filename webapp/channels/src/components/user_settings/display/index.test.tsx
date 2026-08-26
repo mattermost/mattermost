@@ -66,6 +66,7 @@ describe('components/user_settings/display/index', () => {
         });
 
         const userLocale = userLocaleFor(state, 'de');
+        expect(userLocale).toBe('en');
         expect(getLanguageInfo(userLocale)).toBeDefined();
     });
 });
