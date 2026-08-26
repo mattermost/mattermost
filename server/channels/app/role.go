@@ -203,10 +203,8 @@ func (a *App) CreateRole(role *model.Role) (*model.Role, *model.AppError) {
 }
 
 func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
-	// UpdateRole receives no prior permission set, so re-read the stored role to diff
-	// against before saving: only an *add* of a guarded permission is rejected, never
-	// a removal. Only a write carrying one of them needs a baseline at all, which
-	// keeps every ordinary role write at its previous cost.
+	// Mutable roles may remove an existing space permission but may not add one, so writes carrying
+	// such permissions need the stored set as a diff baseline. Frozen-role checks are independent.
 	var storedPermissions []string
 	if hasSpaceChannelScopedPermission(role.Permissions) {
 		storedRole, appErr := a.storedRoleForSpaceGuard(role)

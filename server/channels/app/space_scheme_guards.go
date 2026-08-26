@@ -31,9 +31,8 @@ func (a *App) getSchemeFromMaster(where, schemeId string) (*model.Scheme, *model
 	return scheme, nil
 }
 
-// getSchemeWithMasterFallback resolves a scheme on the replica, re-reading on the
-// primary when it has no row: nothing populates the scheme cache on create, so a
-// scheme created moments earlier is absent from the replica.
+// getSchemeWithMasterFallback resolves on the replica and retries a miss on the primary for
+// immediate post-create reads.
 func (a *App) getSchemeWithMasterFallback(where, schemeId string) (*model.Scheme, *model.AppError) {
 	scheme, err := a.Srv().Store().Scheme().Get(schemeId)
 	if err == nil {
@@ -47,9 +46,8 @@ func (a *App) getSchemeWithMasterFallback(where, schemeId string) (*model.Scheme
 	return a.getSchemeFromMaster(where, schemeId)
 }
 
-// isSeededSpaceScheme reports whether schemeId is one of the seeded space preset
-// schemes. Identity is the pair (channel scope, one of the reserved names), not the
-// id. A lookup failure other than not-found fails closed.
+// isSeededSpaceScheme reports whether schemeId is a live seeded space preset. Identity is channel
+// scope plus a reserved name, not the id. A lookup failure other than not-found fails closed.
 func (a *App) isSeededSpaceScheme(schemeId string) (bool, *model.AppError) {
 	scheme, appErr := a.getSchemeFromMaster("isSeededSpaceScheme", schemeId)
 	if appErr != nil {
@@ -64,9 +62,8 @@ func (a *App) isSeededSpaceScheme(schemeId string) (bool, *model.AppError) {
 	return scheme.DeleteAt == 0 && scheme.Scope == model.SchemeScopeChannel && model.IsSpaceSchemeName(scheme.Name), nil
 }
 
-// isPluginChannelScheme reports whether schemeId identifies a plugin channel scheme
-// created by GetOrCreatePluginChannelScheme. Identity is the pair (channel scope,
-// plugin channel scheme name shape), the same shape the role-write freeze tests.
+// isPluginChannelScheme reports whether schemeId has the channel scope and reserved name shape
+// used by GetOrCreatePluginChannelScheme. It identifies protected shape, not provenance.
 func (a *App) isPluginChannelScheme(schemeId string) (bool, *model.AppError) {
 	scheme, appErr := a.getSchemeFromMaster("isPluginChannelScheme", schemeId)
 	if appErr != nil {
@@ -108,9 +105,8 @@ func (a *App) schemeHoldsSpaceGrants(schemeId string) (bool, *model.AppError) {
 
 // checkSpaceSchemeName rejects creating or renaming a scheme into a reserved name:
 // a seeded space preset, or a name of the shape GetOrCreatePluginChannelScheme
-// creates. A preset squat would be adopted by the seeding's get-or-create; a squat
-// on a plugin channel scheme name permanently denies that permission set to the
-// plugin deriving it, since the name is a pure function of the set. Not gated on
+// creates. An incompatible preset row blocks seeding, while a plugin-shaped row blocks its
+// deterministic pool key until operator repair. Not gated on
 // the docs feature flag, for the same reason as checkSpacePermissionScope.
 func (a *App) checkSpaceSchemeName(where, name string) *model.AppError {
 	if model.IsSpaceSchemeName(name) {

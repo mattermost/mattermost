@@ -9272,11 +9272,7 @@
   },
   {
     "id": "app.scheme.plugin_scheme.guest_license.app_error",
-    "translation": "Your license does not support granting guests more than read access."
-  },
-  {
-    "id": "app.scheme.plugin_scheme.guest_permission_scope.app_error",
-    "translation": "A guest may only read pages, so the permission {{.PermissionId}} cannot be granted to the guest role of a space scheme."
+    "translation": "Your license does not support custom guest permissions."
   },
   {
     "id": "app.scheme.plugin_scheme.no_plugin_id.app_error",

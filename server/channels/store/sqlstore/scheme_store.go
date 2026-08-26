@@ -99,10 +99,8 @@ func (s *SqlSchemeStore) Save(scheme *model.Scheme) (_ *model.Scheme, err error)
 	return scheme, nil
 }
 
-// channelSchemeRolePermissions carries the final permission sets for a channel
-// scheme's three generated roles. Supplying it makes the scheme complete at
-// insert, so no caller has to patch the roles afterwards and the scheme is never
-// readable in a partially configured state.
+// channelSchemeRolePermissions carries the permission sets committed with a new channel scheme,
+// preventing a partially configured scheme from becoming visible.
 type channelSchemeRolePermissions struct {
 	User  []string
 	Admin []string
@@ -115,8 +113,7 @@ type channelSchemeRolePermissions struct {
 // which the scheme resolves with the wrong permissions, and leaves residue behind
 // when it fails partway.
 //
-// Only for creation: the scheme must carry no Id, and its roles are never
-// rewritten afterwards.
+// This path only creates: the scheme must carry no Id.
 func (s *SqlSchemeStore) SaveChannelSchemeWithRoles(scheme *model.Scheme, user, admin, guest []string) (_ *model.Scheme, err error) {
 	if scheme.Id != "" {
 		return nil, store.NewErrInvalidInput("Scheme", "Id", scheme.Id)

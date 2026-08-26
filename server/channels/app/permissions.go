@@ -78,7 +78,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 	// unlike the roles, they are not rebuilt from MakeDefaultRoles. The presets
 	// return with new ids but the spaces pointing at them do not, so every space
 	// falls back to the page-perm-less global channel roles. Access is lost rather
-	// than widened, and this function has no production caller.
+	// than widened.
 	if _, err := a.Srv().Store().System().PermanentDeleteByName(SpaceSchemesCreationMigrationKey); err != nil {
 		return model.NewAppError("ResetPermissionSystem", "app.system.permanent_delete_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

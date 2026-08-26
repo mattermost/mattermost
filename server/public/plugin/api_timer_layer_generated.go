@@ -1118,18 +1118,11 @@ func (api *apiTimerLayer) GetOrCreatePluginChannelScheme(user, admin, guest []st
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetSchemeRolesForChannel(channelID string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError) {
+func (api *apiTimerLayer) GetSchemeForChannel(channelID string) (scheme *model.Scheme, guestRole *model.Role, userRole *model.Role, adminRole *model.Role, err *model.AppError) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB, _returnsC, _returnsD := api.apiImpl.GetSchemeRolesForChannel(channelID)
-	api.recordTime(startTime, "GetSchemeRolesForChannel", _returnsD == nil)
-	return _returnsA, _returnsB, _returnsC, _returnsD
-}
-
-func (api *apiTimerLayer) GetRoleByName(name string) (*model.Role, *model.AppError) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.GetRoleByName(name)
-	api.recordTime(startTime, "GetRoleByName", _returnsB == nil)
-	return _returnsA, _returnsB
+	_returnsA, _returnsB, _returnsC, _returnsD, _returnsE := api.apiImpl.GetSchemeForChannel(channelID)
+	api.recordTime(startTime, "GetSchemeForChannel", _returnsE == nil)
+	return _returnsA, _returnsB, _returnsC, _returnsD, _returnsE
 }
 
 func (api *apiTimerLayer) LogDebug(msg string, keyValuePairs ...any) {

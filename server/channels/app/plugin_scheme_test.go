@@ -5,6 +5,7 @@ package app
 
 import (
 	"errors"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -108,59 +109,26 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 		}
 	})
 
-	// The default space guest permissions are read-only, and the roles below are
-	// written store-direct inside the scheme's own transaction, so no later guard
-	// would catch additional grants. UpdateChannelMemberRoles refuses the same grants
-	// on the member-assignment side; scheme creation must refuse them too or the
-	// ceiling holds on only one of the two paths.
-	t.Run("a space write permission on the guest role is refused before any store read", func(t *testing.T) {
-		mainHelper.Parallel(t)
-
-		for _, permission := range []string{
-			model.PermissionEditPage.Id,
-			model.PermissionCreatePage.Id,
-			model.PermissionCommentPage.Id,
-			model.PermissionDeleteOwnPage.Id,
-			model.PermissionDeletePage.Id,
-			model.PermissionAdminSpace.Id,
-		} {
-			t.Run(permission, func(t *testing.T) {
-				th := setupPluginSchemeMock(t)
-
-				mockStore := th.App.Srv().Store().(*mocks.Store)
-				mockSchemeStore := mocks.SchemeStore{}
-				mockStore.On("Scheme").Return(&mockSchemeStore)
-
-				_, appErr := th.App.GetOrCreatePluginChannelScheme(testPluginID, user, admin,
-					[]string{model.PermissionReadPage.Id, permission})
-				require.NotNil(t, appErr, "a guest must never hold %q on a space", permission)
-				assert.Equal(t, "app.scheme.plugin_scheme.guest_permission_scope.app_error", appErr.Id)
-				mockSchemeStore.AssertNotCalled(t, "GetByNameFromMaster", mock.Anything)
-			})
-		}
-	})
-
-	// The cap is scoped to the space permissions: a plugin channel scheme for
-	// ordinary channels keeps whatever guest permissions its entitlement allows, so
-	// a non-space channel permission on the guest role reaches the store.
-	t.Run("a non-space channel permission on the guest role is not capped", func(t *testing.T) {
+	// The scheme pool is generic: it accepts any channel-scoped permission without
+	// applying policy for a particular channel type or plugin.
+	t.Run("channel-scoped guest permissions reach the store unchanged", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupPluginSchemeMock(t)
 
-		wideGuest := []string{model.PermissionReadPage.Id, model.PermissionCreatePost.Id}
-		name := model.PluginChannelSchemeName(testPluginID, user, admin, wideGuest)
+		requestedGuest := []string{model.PermissionReadPage.Id, model.PermissionEditPage.Id, model.PermissionCreatePost.Id}
+		name := model.PluginChannelSchemeName(testPluginID, user, admin, requestedGuest)
 
 		mockStore := th.App.Srv().Store().(*mocks.Store)
 		mockSchemeStore := mocks.SchemeStore{}
 		mockSchemeStore.On("GetByNameFromMaster", name).Return(nil, store.NewErrNotFound("Scheme", name))
-		mockSchemeStore.On("SaveChannelSchemeWithRoles", mock.Anything, user, admin, wideGuest).
+		mockSchemeStore.On("SaveChannelSchemeWithRoles", mock.Anything, user, admin, requestedGuest).
 			Return(pluginScheme(name), nil)
 		mockStore.On("Scheme").Return(&mockSchemeStore)
 
-		scheme, appErr := th.App.GetOrCreatePluginChannelScheme(testPluginID, user, admin, wideGuest)
+		scheme, appErr := th.App.GetOrCreatePluginChannelScheme(testPluginID, user, admin, requestedGuest)
 		require.Nil(t, appErr)
 		require.NotNil(t, scheme)
-		mockSchemeStore.AssertCalled(t, "SaveChannelSchemeWithRoles", mock.Anything, user, admin, wideGuest)
+		mockSchemeStore.AssertCalled(t, "SaveChannelSchemeWithRoles", mock.Anything, user, admin, requestedGuest)
 	})
 
 	// The second caller asking for the same sets gets the first caller's scheme.
@@ -377,6 +345,47 @@ func TestGetOrCreatePluginChannelScheme(t *testing.T) {
 		_, appErr := th.App.GetOrCreatePluginChannelScheme(testPluginID, user, admin, guest)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.scheme.save.app_error", appErr.Id)
+	})
+
+	t.Run("a failed adoption re-read is reported", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupPluginSchemeMock(t)
+
+		name := model.PluginChannelSchemeName(testPluginID, user, admin, guest)
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("GetByNameFromMaster", name).
+			Return(nil, store.NewErrNotFound("Scheme", name)).Once()
+		mockSchemeStore.On("SaveChannelSchemeWithRoles", mock.Anything, user, admin, guest).
+			Return(nil, errors.New("duplicate key"))
+		mockSchemeStore.On("GetByNameFromMaster", name).
+			Return(nil, errors.New("primary unavailable")).Once()
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
+		_, appErr := th.App.GetOrCreatePluginChannelScheme(testPluginID, user, admin, guest)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.scheme.get.app_error", appErr.Id)
+		require.EqualError(t, appErr.Unwrap(), "primary unavailable")
+	})
+
+	t.Run("an AppError returned by the store is preserved", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupPluginSchemeMock(t)
+
+		name := model.PluginChannelSchemeName(testPluginID, user, admin, guest)
+		storeAppErr := model.NewAppError("SaveChannelSchemeWithRoles", "store.scheme.save.app_error", nil, "", http.StatusConflict)
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("GetByNameFromMaster", name).
+			Return(nil, store.NewErrNotFound("Scheme", name)).Twice()
+		mockSchemeStore.On("SaveChannelSchemeWithRoles", mock.Anything, user, admin, guest).
+			Return(nil, storeAppErr)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
+		_, appErr := th.App.GetOrCreatePluginChannelScheme(testPluginID, user, admin, guest)
+		require.Same(t, storeAppErr, appErr)
 	})
 
 	t.Run("an invalid scheme rejected by the store is reported as a bad request", func(t *testing.T) {

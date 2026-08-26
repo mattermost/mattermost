@@ -14,15 +14,14 @@ import (
 
 // GetOrCreatePluginChannelScheme resolves the channel scheme whose three generated
 // roles grant exactly user, admin and guest for pluginID, creating it on first use.
-// The scheme name is a pure function of its inputs, so every caller asking for the
-// same sets resolves to one scheme rather than each owning an identical copy.
+// Equal normalized inputs select one deterministic pool name; an existing row is
+// reused only after its scope and role contents are validated.
 //
-// pluginID is the calling plugin's manifest id, taken at the RPC boundary rather
-// than from an argument, so no plugin can create a scheme in another's namespace.
+// pluginID is the calling plugin's manifest id, taken at the RPC boundary rather than caller input;
+// it contributes the namespace portion of the deterministic name.
 //
-// The returned scheme is complete and never written again: its roles are created
-// with their final permissions in one transaction, and the role-write guard refuses
-// every later change.
+// The returned scheme is complete when committed. Application role-write paths treat its generated
+// roles as immutable; callers request a different scheme instead of reconfiguring this one.
 func (a *App) GetOrCreatePluginChannelScheme(pluginID string, user, admin, guest []string) (*model.Scheme, *model.AppError) {
 	if err := a.IsPhase2MigrationCompleted(); err != nil {
 		return nil, err
@@ -39,19 +38,6 @@ func (a *App) GetOrCreatePluginChannelScheme(pluginID string, user, admin, guest
 				return nil, model.NewAppError("GetOrCreatePluginChannelScheme", "app.scheme.plugin_scheme.permission_scope.app_error",
 					map[string]any{"PermissionId": id}, "", http.StatusBadRequest)
 			}
-		}
-	}
-
-	// A guest reads a space and nothing more. UpdateChannelMemberRoles enforces that
-	// ceiling on the member-assignment side, and the roles below are written
-	// store-direct inside the scheme's own transaction, so nothing downstream would
-	// catch a wider guest set: it has to be refused here. Scoped to the space
-	// permissions, so a plugin channel scheme for ordinary channels keeps whatever
-	// guest permissions its entitlement allows.
-	for _, id := range guest {
-		if model.IsSpaceChannelScopedPermissionID(id) && id != model.PermissionReadPage.Id {
-			return nil, model.NewAppError("GetOrCreatePluginChannelScheme", "app.scheme.plugin_scheme.guest_permission_scope.app_error",
-				map[string]any{"PermissionId": id}, "", http.StatusBadRequest)
 		}
 	}
 

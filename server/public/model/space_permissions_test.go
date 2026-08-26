@@ -267,8 +267,7 @@ func TestPluginChannelSchemeName(t *testing.T) {
 		assert.False(t, IsPluginChannelSchemeName(SchemeNameSpaceContribute))
 	})
 
-	// The guards read a true answer as "no write may ever touch this", so a name
-	// this claims becomes permanently uneditable. The prefix alone is a plain
+	// The guards protect every matching name from ordinary role and scheme writes. The prefix is a plain
 	// string a customer may already have used, so only a name a digest pair could
 	// have produced is claimed.
 	t.Run("the prefix alone does not put a name in the namespace", func(t *testing.T) {

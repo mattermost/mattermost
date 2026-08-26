@@ -83,19 +83,24 @@ func TestSchemeGetByName(t *testing.T) {
 	})
 }
 
-func TestSchemeGetRolesForChannel(t *testing.T) {
+func TestSchemeGetForChannel(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		api := &plugintest.API{}
 		defer api.AssertExpectations(t)
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
-		api.On("GetSchemeRolesForChannel", "chan").Return("guest", "user", "admin", (*model.AppError)(nil))
+		scheme := &model.Scheme{Id: "scheme"}
+		guest := &model.Role{Name: "guest"}
+		user := &model.Role{Name: "user"}
+		admin := &model.Role{Name: "admin"}
+		api.On("GetSchemeForChannel", "chan").Return(scheme, guest, user, admin, (*model.AppError)(nil))
 
-		guest, user, admin, err := client.Scheme.GetRolesForChannel("chan")
+		got, err := client.Scheme.GetForChannel("chan")
 		require.NoError(t, err)
-		require.Equal(t, "guest", guest)
-		require.Equal(t, "user", user)
-		require.Equal(t, "admin", admin)
+		require.Equal(t, scheme, got.Scheme)
+		require.Equal(t, guest, got.GuestRole)
+		require.Equal(t, user, got.UserRole)
+		require.Equal(t, admin, got.AdminRole)
 	})
 
 	t.Run("failure", func(t *testing.T) {
@@ -104,12 +109,22 @@ func TestSchemeGetRolesForChannel(t *testing.T) {
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 
 		appErr := model.NewAppError("here", "id", nil, "boom", http.StatusInternalServerError)
-		api.On("GetSchemeRolesForChannel", "chan").Return("", "", "", appErr)
+		api.On("GetSchemeForChannel", "chan").Return(nil, nil, nil, nil, appErr)
 
-		guest, user, admin, err := client.Scheme.GetRolesForChannel("chan")
+		got, err := client.Scheme.GetForChannel("chan")
 		require.Equal(t, appErr, err)
-		require.Empty(t, guest)
-		require.Empty(t, user)
-		require.Empty(t, admin)
+		require.Nil(t, got)
+	})
+
+	t.Run("unsupported server", func(t *testing.T) {
+		api := &plugintest.API{}
+		defer api.AssertExpectations(t)
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+
+		api.On("GetSchemeForChannel", "chan").Return(nil, nil, nil, nil, (*model.AppError)(nil))
+
+		got, err := client.Scheme.GetForChannel("chan")
+		require.NoError(t, err)
+		require.Nil(t, got)
 	})
 }

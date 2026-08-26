@@ -10,12 +10,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// checkChannelSchemeAssignment routes a channel's SchemeId to the guard for its
-// type. The two halves enforce opposite rules and together keep a scheme
-// exclusively a space's or exclusively ordinary channels', never both. Creation
-// paths pass the new channel's type; update paths pass the type read from
-// the stored channel, never the caller-supplied one, which could falsely claim to
-// be a space.
+// checkChannelSchemeAssignment routes a channel's SchemeId to the guard for its type. The guards
+// reject an already-observable mixed space/ordinary assignment. Creation paths use the new type;
+// updates use the stored type rather than trusting the caller.
 //
 // The counts both guards read are point-in-time, not serialized with the channel
 // save that follows: two writes racing each other — one attaching the scheme to an

@@ -269,8 +269,7 @@ func TestCheckSpacePermissionScope(t *testing.T) {
 	})
 
 	// The freeze tests the whole plugin channel scheme name shape, not the prefix. A
-	// customer scheme that merely starts with it is theirs to edit, and misreading
-	// one as a plugin channel scheme would leave it permanently uneditable.
+	// customer scheme that merely starts with it remains editable through normal APIs.
 	t.Run("a scheme merely prefixed plugin_ is not frozen", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
@@ -637,6 +636,18 @@ func TestValidateAdoptableSpaceScheme(t *testing.T) {
 			"governs non-space channels")
 	})
 
+	t.Run("ordinary-channel count failure is reported", func(t *testing.T) {
+		th := setupSpaceRBACMock(t)
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("CountNonSpaceChannelsByScheme", canonical.Id).Return(int64(0), errors.New("db down"))
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		err := th.App.Srv().validateAdoptableSpaceScheme(canonical)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "db down")
+	})
+
 	t.Run("duplicate generated roles rejected", func(t *testing.T) {
 		// Two references converging on one row would merge that row's seeded
 		// permission sets, giving the user or guest role the admin grants.
@@ -753,6 +764,31 @@ func TestValidateAdoptedSpaceSchemeRoles(t *testing.T) {
 	}
 
 	userTarget := model.SpaceDefaultContributePermissions
+
+	t.Run("generated-role read failure is reported", func(t *testing.T) {
+		th := setupSpaceRBACMock(t)
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockRoleStore := mocks.RoleStore{}
+		mockRoleStore.On("GetByNamesFromMaster", []string{scheme.DefaultChannelUserRole}).
+			Return(nil, errors.New("db down"))
+		mockStore.On("Role").Return(&mockRoleStore)
+
+		err := th.App.Srv().validateAdoptedSpaceSchemeRoles(scheme, userTarget)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "db down")
+	})
+
+	t.Run("a missing generated-role row is reported", func(t *testing.T) {
+		th := setupSpaceRBACMock(t)
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockRoleStore := mocks.RoleStore{}
+		mockRoleStore.On("GetByNamesFromMaster", []string{scheme.DefaultChannelUserRole}).
+			Return([]*model.Role{}, nil)
+		mockStore.On("Role").Return(&mockRoleStore)
+
+		err := th.App.Srv().validateAdoptedSpaceSchemeRoles(scheme, userTarget)
+		require.ErrorContains(t, err, "has no row on the primary")
+	})
 
 	t.Run("canonical generated roles accepted", func(t *testing.T) {
 		th := setup(t, nil)
@@ -1301,7 +1337,17 @@ func TestUpdateUserRolesToGuestRevokesSpaceCapabilityRoles(t *testing.T) {
 		UserId:        user.Id,
 		NotifyProps:   model.GetDefaultChannelNotifyProps(),
 		SchemeUser:    true,
-		ExplicitRoles: model.SpacePageEditorRoleId,
+		ExplicitRoles: "custom_role " + model.SpacePageEditorRoleId + " other_role",
+	})
+	require.NoError(t, err)
+
+	spaceWithoutCapability := saveSpaceChannelWithScheme(t, th, "")
+	_, err = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:     spaceWithoutCapability.Id,
+		UserId:        user.Id,
+		NotifyProps:   model.GetDefaultChannelNotifyProps(),
+		SchemeUser:    true,
+		ExplicitRoles: "custom_role other_role",
 	})
 	require.NoError(t, err)
 	th.App.Srv().Store().Channel().InvalidateAllChannelMembersForUser(user.Id)
@@ -1313,6 +1359,13 @@ func TestUpdateUserRolesToGuestRevokesSpaceCapabilityRoles(t *testing.T) {
 	member, appErr := th.App.GetChannelMember(th.Context, space.Id, user.Id)
 	require.Nil(t, appErr)
 	assert.NotContains(t, member.ExplicitRoles, model.SpacePageEditorRoleId)
+	assert.Equal(t, "custom_role other_role", member.ExplicitRoles,
+		"demotion must preserve explicit roles unrelated to space capabilities")
+
+	unmodifiedMember, appErr := th.App.GetChannelMember(th.Context, spaceWithoutCapability.Id, user.Id)
+	require.Nil(t, appErr)
+	assert.Equal(t, "custom_role other_role", unmodifiedMember.ExplicitRoles,
+		"a membership with no space capability role must be left unchanged")
 }
 
 // TestImportSchemeRejectsSpacePresetNames pins that bulk import cannot write
@@ -1645,9 +1698,8 @@ func TestUpdateSchemeSpaceGuards(t *testing.T) {
 		mockSchemeStore.AssertNotCalled(t, "Save", mock.Anything)
 	})
 
-	// A squat on a plugin channel scheme name cannot be adopted — the get-or-create
-	// verifies the roles grant what the name says — but it permanently denies that
-	// permission set to the plugin that derives it.
+	// A squat on a plugin channel scheme name cannot be adopted: get-or-create verifies the roles
+	// grant what the name says, and the occupied pool key requires operator repair.
 	t.Run("renaming another scheme into the plugin channel scheme namespace is rejected", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, mockSchemeStore, schemeID := setup(t, "ordinary_scheme")
@@ -1844,6 +1896,63 @@ func TestIsSeededSpaceScheme(t *testing.T) {
 	})
 }
 
+func TestSpaceSchemeGuardHelperFailures(t *testing.T) {
+	t.Run("missing plugin scheme", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+		schemeID := model.NewId()
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID))
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
+		isPlugin, appErr := th.App.isPluginChannelScheme(schemeID)
+		require.Nil(t, appErr)
+		assert.False(t, isPlugin)
+	})
+
+	t.Run("plugin scheme read failure", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+		schemeID := model.NewId()
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(nil, errors.New("db down"))
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
+		isPlugin, appErr := th.App.isPluginChannelScheme(schemeID)
+		require.NotNil(t, appErr)
+		assert.False(t, isPlugin)
+	})
+
+	t.Run("scheme-role read failure", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+		schemeID := model.NewId()
+		scheme := &model.Scheme{
+			Id:                      schemeID,
+			Scope:                   model.SchemeScopeChannel,
+			DefaultChannelUserRole:  model.NewId(),
+			DefaultChannelAdminRole: model.NewId(),
+			DefaultChannelGuestRole: model.NewId(),
+		}
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(scheme, nil)
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+		mockRoleStore := mocks.RoleStore{}
+		mockRoleStore.On("GetByNamesFromMaster", mock.Anything).Return(nil, errors.New("db down"))
+		mockStore.On("Role").Return(&mockRoleStore)
+
+		holdsGrants, appErr := th.App.schemeHoldsSpaceGrants(schemeID)
+		require.NotNil(t, appErr)
+		assert.False(t, holdsGrants)
+	})
+}
+
 // IsSpaceChannelByID must distinguish "not a space" from "could not tell". A
 // lookup failure that returned (false, nil) would silently downgrade every
 // caller's guard to "ordinary channel", which is the permissive answer.
@@ -1908,6 +2017,23 @@ func TestSpaceChannelGuardsPropagateSchemeLookupErrors(t *testing.T) {
 	t.Run("checkSchemeAssignmentToSpace", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, schemeID := setup(t)
+		appErr := th.App.checkSchemeAssignmentToSpace("CreateChannel", &schemeID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+	})
+
+	t.Run("checkSchemeAssignmentToSpace second primary read", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+		schemeID := model.NewId()
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("GetFromMaster", schemeID).
+			Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil).Once()
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(nil, errors.New("db down")).Once()
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
 		appErr := th.App.checkSchemeAssignmentToSpace("CreateChannel", &schemeID)
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
@@ -2186,6 +2312,25 @@ func TestDeleteSchemeFailsClosedOnStoreErrors(t *testing.T) {
 		mockSchemeStore.AssertNotCalled(t, "Delete", mock.Anything)
 	})
 
+	t.Run("plugin-scheme lookup error refuses the delete", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+		require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+		schemeID := model.NewId()
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("GetFromMaster", schemeID).
+			Return(&model.Scheme{Id: schemeID, Name: model.NewId(), Scope: model.SchemeScopeChannel}, nil).Once()
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(nil, errors.New("connection reset")).Once()
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
+		_, appErr := th.App.DeleteScheme(schemeID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		mockSchemeStore.AssertNotCalled(t, "Delete", mock.Anything)
+	})
+
 	t.Run("space-channel count error refuses the delete", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := setupSpaceRBACMock(t)
@@ -2291,6 +2436,59 @@ func TestSpaceRolesMigrationRecoversFromLostInsertRace(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "disk full", "the save failure is the root cause, not the re-read miss")
 	})
+
+	t.Run("re-read failure is reported", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		th.App.Srv().SetStore(spaceRolesMigrationStore(t, errors.New("duplicate key"),
+			func(string) (*model.Role, error) { return nil, errors.New("primary unavailable") }))
+
+		err := th.Server.doSpaceRolesCreationMigration()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "primary unavailable")
+	})
+}
+
+func TestSpaceRolesMigrationMarkerStoreErrors(t *testing.T) {
+	t.Run("marker read", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		mockStore := mocks.Store{}
+		mockSystemStore := mocks.SystemStore{}
+		mockSystemStore.On("GetByName", SpaceRolesCreationMigrationKey).Return(nil, errors.New("db down"))
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("Close").Return(nil)
+		th.App.Srv().SetStore(&mockStore)
+
+		err := th.Server.doSpaceRolesCreationMigration()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "db down")
+	})
+
+	t.Run("marker write", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+		canonical := model.MakeDefaultRoles()
+
+		mockStore := mocks.Store{}
+		mockSystemStore := mocks.SystemStore{}
+		mockSystemStore.On("GetByName", SpaceRolesCreationMigrationKey).
+			Return(nil, store.NewErrNotFound("System", SpaceRolesCreationMigrationKey))
+		mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(errors.New("db down"))
+		mockStore.On("System").Return(&mockSystemStore)
+		mockRoleStore := mocks.RoleStore{}
+		mockRoleStore.On("GetByName", mock.Anything, mock.Anything).Return(
+			func(_ request.CTX, name string) (*model.Role, error) { return canonical[name].Clone(), nil })
+		mockStore.On("Role").Return(&mockRoleStore)
+		mockStore.On("Close").Return(nil)
+		th.App.Srv().SetStore(&mockStore)
+
+		err := th.Server.doSpaceRolesCreationMigration()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "db down")
+	})
 }
 
 // TestSpaceRolesMigrationRefusesPreexistingForeignRole covers the first-pass
@@ -2362,12 +2560,17 @@ func spaceSchemesMigrationStore(t *testing.T, reread func(name string) (*model.S
 // carries a preset name but grants more than a seeded preset ever would.
 func spaceSchemesMigrationStoreGranting(t *testing.T, reread func(name string) (*model.Scheme, error), extraRolePermissions []string) *mocks.Store {
 	t.Helper()
+	return spaceSchemesMigrationStoreConfigured(t, reread, extraRolePermissions, "", nil)
+}
+
+func spaceSchemesMigrationStoreConfigured(t *testing.T, reread func(name string) (*model.Scheme, error), extraRolePermissions []string, failingRoleSuffix string, markerSaveErr error) *mocks.Store {
+	t.Helper()
 	mockStore := mocks.Store{}
 
 	mockSystemStore := mocks.SystemStore{}
 	mockSystemStore.On("GetByName", SpaceSchemesCreationMigrationKey).
 		Return(nil, store.NewErrNotFound("System", SpaceSchemesCreationMigrationKey))
-	mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(nil)
+	mockSystemStore.On("SaveOrUpdate", mock.Anything).Return(markerSaveErr)
 	mockStore.On("System").Return(&mockSystemStore)
 
 	// The adopted scheme's generated roles must read back as its own: the
@@ -2447,7 +2650,12 @@ func spaceSchemesMigrationStoreGranting(t *testing.T, reread func(name string) (
 	// applySpaceSchemeRolePermissions writes through the unknown-permission
 	// preserving save, not the plain one.
 	mockRoleStore.On("SavePreservingUnknownPermissions", mock.Anything).Return(
-		func(role *model.Role) (*model.Role, error) { return role, nil })
+		func(role *model.Role) (*model.Role, error) {
+			if failingRoleSuffix != "" && strings.HasSuffix(role.Name, failingRoleSuffix) {
+				return nil, errors.New("role save failed")
+			}
+			return role, nil
+		})
 	mockStore.On("Role").Return(&mockRoleStore)
 
 	// The adoption check asks whether the scheme governs any ordinary channel.
@@ -2546,6 +2754,50 @@ func TestSpaceSchemesMigrationRecoversFromLostInsertRace(t *testing.T) {
 	})
 }
 
+func TestSpaceSchemesMigrationStoreErrors(t *testing.T) {
+	reread := func(name string) (*model.Scheme, error) {
+		return adoptableSpaceScheme(name), nil
+	}
+
+	t.Run("marker read", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		mockStore := mocks.Store{}
+		mockSystemStore := mocks.SystemStore{}
+		mockSystemStore.On("GetByName", SpaceSchemesCreationMigrationKey).Return(nil, errors.New("db down"))
+		mockStore.On("System").Return(&mockSystemStore)
+		mockStore.On("Close").Return(nil)
+		th.App.Srv().SetStore(&mockStore)
+
+		err := th.Server.doSpaceSchemesCreationMigration()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "db down")
+	})
+
+	for _, roleID := range []string{model.ChannelUserRoleId, model.ChannelAdminRoleId, model.ChannelGuestRoleId} {
+		t.Run(roleID+" write", func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th := setupSpaceRBACMock(t)
+			th.App.Srv().SetStore(spaceSchemesMigrationStoreConfigured(t, reread, nil, "_"+roleID, nil))
+
+			err := th.Server.doSpaceSchemesCreationMigration()
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "role save failed")
+		})
+	}
+
+	t.Run("marker write", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+		th.App.Srv().SetStore(spaceSchemesMigrationStoreConfigured(t, reread, nil, "", errors.New("db down")))
+
+		err := th.Server.doSpaceSchemesCreationMigration()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "db down")
+	})
+}
+
 // TestUpdateChannelMemberRolesOnSpace covers promoting a member of a space backing channel.
 // Spaces are not returned by an ordinary channel-by-id lookup, so scheme-role lookup has to
 // fetch them by their exact channel type; otherwise every role assignment on a freshly created
@@ -2570,6 +2822,203 @@ func TestUpdateChannelMemberRolesOnSpace(t *testing.T) {
 	assert.Equal(t, scheme.DefaultChannelGuestRole, guest)
 	assert.Equal(t, scheme.DefaultChannelUserRole, user)
 	assert.Equal(t, scheme.DefaultChannelAdminRole, admin)
+}
+
+func TestGetSchemeRolesForSpaceMasterFallback(t *testing.T) {
+	newTestApp := func(t *testing.T, primaryScheme *model.Scheme, primaryErr error) (*TestHelper, string, *mocks.SchemeStore) {
+		th := setupSpaceRBACMock(t)
+		require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+		channelID := model.NewId()
+		schemeID := model.NewId()
+		space := &model.Channel{Id: channelID, Type: model.ChannelTypeSpace, SchemeId: &schemeID}
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("Get", channelID, true).Return(nil, store.NewErrNotFound("Channel", channelID)).Once()
+		mockChannelStore.On("GetChannelOfType", mock.Anything, channelID, model.ChannelTypeSpace).Return(space, nil).Once()
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		mockSchemeStore := mocks.SchemeStore{}
+		mockSchemeStore.On("Get", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID)).Twice()
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(primaryScheme, primaryErr).Once()
+		mockStore.On("Scheme").Return(&mockSchemeStore)
+
+		return th, channelID, &mockSchemeStore
+	}
+
+	t.Run("replica miss is resolved on the primary", func(t *testing.T) {
+		mainHelper.Parallel(t)
+
+		scheme := &model.Scheme{
+			DefaultChannelGuestRole: model.NewId(),
+			DefaultChannelUserRole:  model.NewId(),
+			DefaultChannelAdminRole: model.NewId(),
+		}
+		th, channelID, mockSchemeStore := newTestApp(t, scheme, nil)
+
+		guest, user, admin, appErr := th.App.GetSchemeRolesForChannel(th.Context, channelID)
+		require.Nil(t, appErr)
+		assert.Equal(t, scheme.DefaultChannelGuestRole, guest)
+		assert.Equal(t, scheme.DefaultChannelUserRole, user)
+		assert.Equal(t, scheme.DefaultChannelAdminRole, admin)
+		mockSchemeStore.AssertExpectations(t)
+	})
+
+	t.Run("primary read error is returned", func(t *testing.T) {
+		mainHelper.Parallel(t)
+
+		th, channelID, mockSchemeStore := newTestApp(t, nil, errors.New("primary unavailable"))
+
+		_, _, _, appErr := th.App.GetSchemeRolesForChannel(th.Context, channelID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.scheme.get.app_error", appErr.Id)
+		assert.ErrorContains(t, appErr, "primary unavailable")
+		mockSchemeStore.AssertExpectations(t)
+	})
+}
+
+func TestGetSchemeForChannelFailures(t *testing.T) {
+	newFixture := func(t *testing.T) (*TestHelper, string, string, *mocks.Store, *mocks.ChannelStore, *mocks.SchemeStore, *mocks.RoleStore) {
+		th := setupSpaceRBACMock(t)
+		require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockChannelStore := &mocks.ChannelStore{}
+		mockSchemeStore := &mocks.SchemeStore{}
+		mockRoleStore := &mocks.RoleStore{}
+
+		return th, model.NewId(), model.NewId(), mockStore, mockChannelStore, mockSchemeStore, mockRoleStore
+	}
+
+	newSchemeAndRoles := func(schemeID string) (*model.Scheme, []*model.Role) {
+		scheme := &model.Scheme{
+			Id:                      schemeID,
+			DefaultChannelGuestRole: model.NewId(),
+			DefaultChannelUserRole:  model.NewId(),
+			DefaultChannelAdminRole: model.NewId(),
+		}
+		return scheme, []*model.Role{
+			{Name: scheme.DefaultChannelGuestRole, SchemeManaged: true},
+			{Name: scheme.DefaultChannelUserRole, SchemeManaged: true},
+			{Name: scheme.DefaultChannelAdminRole, SchemeManaged: true},
+		}
+	}
+
+	t.Run("generic channel lookup error", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, channelID, _, mockStore, mockChannelStore, _, _ := newFixture(t)
+		lookupErr := errors.New("channel store unavailable")
+		mockChannelStore.On("Get", channelID, true).Return(nil, lookupErr).Once()
+		mockStore.On("Channel").Return(mockChannelStore)
+
+		_, _, _, _, appErr := th.App.GetSchemeForChannel(th.Context, channelID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.get.find.app_error", appErr.Id)
+		assert.ErrorIs(t, appErr, lookupErr)
+	})
+
+	t.Run("space lookup error", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, channelID, _, mockStore, mockChannelStore, _, _ := newFixture(t)
+		lookupErr := errors.New("space store unavailable")
+		mockChannelStore.On("Get", channelID, true).Return(nil, store.NewErrNotFound("Channel", channelID)).Once()
+		mockChannelStore.On("GetChannelOfType", mock.Anything, channelID, model.ChannelTypeSpace).Return(nil, lookupErr).Once()
+		mockStore.On("Channel").Return(mockChannelStore)
+
+		_, _, _, _, appErr := th.App.GetSchemeForChannel(th.Context, channelID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.channel.get.find.app_error", appErr.Id)
+		assert.ErrorIs(t, appErr, lookupErr)
+	})
+
+	t.Run("scheme lookup error", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, channelID, schemeID, mockStore, mockChannelStore, mockSchemeStore, _ := newFixture(t)
+		lookupErr := errors.New("scheme store unavailable")
+		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, SchemeId: &schemeID}, nil).Once()
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(nil, lookupErr).Once()
+		mockStore.On("Channel").Return(mockChannelStore)
+		mockStore.On("Scheme").Return(mockSchemeStore)
+
+		_, _, _, _, appErr := th.App.GetSchemeForChannel(th.Context, channelID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.scheme.get.app_error", appErr.Id)
+		assert.ErrorIs(t, appErr, lookupErr)
+	})
+
+	t.Run("scheme not found", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, channelID, schemeID, mockStore, mockChannelStore, mockSchemeStore, _ := newFixture(t)
+		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, SchemeId: &schemeID}, nil).Once()
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(nil, store.NewErrNotFound("Scheme", schemeID)).Once()
+		mockStore.On("Channel").Return(mockChannelStore)
+		mockStore.On("Scheme").Return(mockSchemeStore)
+
+		_, _, _, _, appErr := th.App.GetSchemeForChannel(th.Context, channelID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		assert.Contains(t, appErr.DetailedError, "channel scheme not found")
+	})
+
+	t.Run("generated role lookup error", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, channelID, schemeID, mockStore, mockChannelStore, mockSchemeStore, mockRoleStore := newFixture(t)
+		scheme, _ := newSchemeAndRoles(schemeID)
+		lookupErr := errors.New("role store unavailable")
+		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, SchemeId: &schemeID}, nil).Once()
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(scheme, nil).Once()
+		mockRoleStore.On("GetByNamesFromMaster", mock.Anything).Return(nil, lookupErr).Once()
+		mockStore.On("Channel").Return(mockChannelStore)
+		mockStore.On("Scheme").Return(mockSchemeStore)
+		mockStore.On("Role").Return(mockRoleStore)
+
+		_, _, _, _, appErr := th.App.GetSchemeForChannel(th.Context, channelID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.role.get_by_names.app_error", appErr.Id)
+		assert.ErrorIs(t, appErr, lookupErr)
+	})
+
+	t.Run("higher scoped permission merge error", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, channelID, schemeID, mockStore, mockChannelStore, mockSchemeStore, mockRoleStore := newFixture(t)
+		scheme, roles := newSchemeAndRoles(schemeID)
+		mergeErr := errors.New("higher scoped permissions unavailable")
+		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, SchemeId: &schemeID}, nil).Once()
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(scheme, nil).Once()
+		mockRoleStore.On("GetByNamesFromMaster", mock.Anything).Return(roles, nil).Once()
+		mockRoleStore.On("ChannelHigherScopedPermissions", mock.Anything).Return(nil, mergeErr).Once()
+		mockStore.On("Channel").Return(mockChannelStore)
+		mockStore.On("Scheme").Return(mockSchemeStore)
+		mockStore.On("Role").Return(mockRoleStore)
+
+		_, _, _, _, appErr := th.App.GetSchemeForChannel(th.Context, channelID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.role.get_by_names.app_error", appErr.Id)
+		assert.ErrorIs(t, appErr, mergeErr)
+	})
+
+	t.Run("incomplete generated roles", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th, channelID, schemeID, mockStore, mockChannelStore, mockSchemeStore, mockRoleStore := newFixture(t)
+		scheme, roles := newSchemeAndRoles(schemeID)
+		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, SchemeId: &schemeID}, nil).Once()
+		mockSchemeStore.On("GetFromMaster", schemeID).Return(scheme, nil).Once()
+		mockRoleStore.On("GetByNamesFromMaster", mock.Anything).Return(roles[:2], nil).Once()
+		mockRoleStore.On("ChannelHigherScopedPermissions", mock.Anything).Return(map[string]*model.RolePermissions{}, nil).Once()
+		mockStore.On("Channel").Return(mockChannelStore)
+		mockStore.On("Scheme").Return(mockSchemeStore)
+		mockStore.On("Role").Return(mockRoleStore)
+
+		gotScheme, guest, user, admin, appErr := th.App.GetSchemeForChannel(th.Context, channelID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		assert.Contains(t, appErr.DetailedError, "one or more channel scheme roles were not found")
+		assert.Nil(t, gotScheme)
+		assert.Nil(t, guest)
+		assert.Nil(t, user)
+		assert.Nil(t, admin)
+	})
 }
 
 // TestUpdateChannelMemberRolesRefusesCapabilityRoleForGuest pins the read-only
@@ -2810,6 +3259,106 @@ func TestUpdateRoleBaselineNameFallbackStoreError(t *testing.T) {
 	mockRoleStore.AssertNotCalled(t, "Save", mock.Anything)
 }
 
+func TestStoredRoleForSpaceGuardMissingBaselines(t *testing.T) {
+	t.Run("missing id", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+		roleID := model.NewId()
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockRoleStore := mocks.RoleStore{}
+		mockRoleStore.On("GetFromMaster", roleID).Return(nil, store.NewErrNotFound("Role", roleID))
+		mockStore.On("Role").Return(&mockRoleStore)
+
+		stored, appErr := th.App.storedRoleForSpaceGuard(&model.Role{Id: roleID})
+		require.Nil(t, appErr)
+		assert.Nil(t, stored)
+	})
+
+	t.Run("no id or name", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		stored, appErr := th.App.storedRoleForSpaceGuard(&model.Role{})
+		require.Nil(t, appErr)
+		assert.Nil(t, stored)
+	})
+
+	t.Run("missing name", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+		roleName := model.NewId()
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockRoleStore := mocks.RoleStore{}
+		mockRoleStore.On("GetByName", mock.Anything, roleName).Return(nil, store.NewErrNotFound("Role", roleName))
+		mockStore.On("Role").Return(&mockRoleStore)
+
+		stored, appErr := th.App.storedRoleForSpaceGuard(&model.Role{Name: roleName})
+		require.Nil(t, appErr)
+		assert.Nil(t, stored)
+	})
+}
+
+func TestRevokeSpaceCapabilityRolesForUserStoreErrors(t *testing.T) {
+	userID := model.NewId()
+
+	t.Run("team membership read", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockTeamStore := mocks.TeamStore{}
+		mockTeamStore.On("GetTeamsForUser", mock.Anything, userID, "", true).Return(nil, errors.New("db down"))
+		mockStore.On("Team").Return(&mockTeamStore)
+
+		appErr := th.App.revokeSpaceCapabilityRolesForUser(th.Context, userID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+	})
+
+	t.Run("space membership list", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+		teamID := model.NewId()
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockTeamStore := mocks.TeamStore{}
+		mockTeamStore.On("GetTeamsForUser", mock.Anything, userID, "", true).
+			Return([]*model.TeamMember{{TeamId: teamID, UserId: userID}}, nil)
+		mockStore.On("Team").Return(&mockTeamStore)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("GetTeamSpaceChannelsForUser", teamID, userID).Return(nil, errors.New("db down"))
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		appErr := th.App.revokeSpaceCapabilityRolesForUser(th.Context, userID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+	})
+
+	t.Run("space member read", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+		teamID := model.NewId()
+		channelID := model.NewId()
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockTeamStore := mocks.TeamStore{}
+		mockTeamStore.On("GetTeamsForUser", mock.Anything, userID, "", true).
+			Return([]*model.TeamMember{{TeamId: teamID, UserId: userID}}, nil)
+		mockStore.On("Team").Return(&mockTeamStore)
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("GetTeamSpaceChannelsForUser", teamID, userID).
+			Return(model.ChannelList{{Id: channelID, TeamId: teamID, Type: model.ChannelTypeSpace}}, nil)
+		mockChannelStore.On("GetMember", mock.Anything, channelID, userID).Return(nil, errors.New("db down"))
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		appErr := th.App.revokeSpaceCapabilityRolesForUser(th.Context, userID)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+	})
+}
+
 // TestSpaceRolesMigrationExistenceCheckStoreError pins the existence-check
 // branch inside doSpaceRolesCreationMigration's per-role loop: a store failure
 // reading a role by name must abort the migration rather than be treated as a
@@ -2883,6 +3432,21 @@ func TestApplySpaceSchemeRolePermissionsStoreErrors(t *testing.T) {
 		err := th.Server.applySpaceSchemeRolePermissions(model.NewId(), model.SpaceAdminRolePermissions, false)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "connection reset")
+	})
+
+	t.Run("missing role row", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := setupSpaceRBACMock(t)
+
+		mockStore := th.App.Srv().Store().(*mocks.Store)
+		mockRoleStore := mocks.RoleStore{}
+		roleName := model.NewId()
+		mockRoleStore.On("GetByNamesFromMaster", []string{roleName}).Return([]*model.Role{}, nil)
+		mockStore.On("Role").Return(&mockRoleStore)
+
+		err := th.Server.applySpaceSchemeRolePermissions(roleName, model.SpaceAdminRolePermissions, false)
+		require.ErrorContains(t, err, "has no row on the primary")
+		mockRoleStore.AssertNotCalled(t, "SavePreservingUnknownPermissions", mock.Anything)
 	})
 
 	t.Run("SavePreservingUnknownPermissions failure", func(t *testing.T) {

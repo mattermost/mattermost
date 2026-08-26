@@ -27,7 +27,6 @@ type Client struct {
 	Plugin        PluginService
 	Post          PostService
 	Property      PropertyService
-	Role          RoleService
 	Scheme        SchemeService
 	Session       SessionService
 	Store         *StoreService
@@ -61,7 +60,6 @@ func NewClient(api plugin.API, driver plugin.Driver) *Client {
 		Plugin:        PluginService{api: api},
 		Post:          PostService{api: api},
 		Property:      PropertyService{api: api},
-		Role:          RoleService{api: api},
 		Scheme:        SchemeService{api: api},
 		Session:       SessionService{api: api},
 		Store: &StoreService{

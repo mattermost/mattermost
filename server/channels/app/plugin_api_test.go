@@ -32,6 +32,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
@@ -4081,6 +4082,31 @@ func TestPluginAPIChannelMemberNotificationsRejectSpaceStoreError(t *testing.T) 
 	mockChannelStore.AssertNotCalled(t, "UpdateMemberNotifyProps", mock.Anything, mock.Anything, mock.Anything)
 }
 
+func TestPluginAPIUpdateSpaceChannelMemberRolesUsesPrimary(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupWithStoreMock(t)
+	api := th.SetupPluginAPI()
+
+	channelID, userID := model.NewId(), model.NewId()
+	space := &model.Channel{Id: channelID, Type: model.ChannelTypeSpace}
+	contextCheckedErr := errors.New("stop after checking the request context")
+
+	mockStore := th.App.Srv().Store().(*storemocks.Store)
+	mockChannelStore := storemocks.ChannelStore{}
+	mockChannelStore.On("Get", channelID, true).Return(space, nil).Once()
+	mockChannelStore.On("GetMember", mock.MatchedBy(func(rctx request.CTX) bool {
+		return store.HasMaster(rctx.Context())
+	}), channelID, userID).Return(nil, contextCheckedErr).Once()
+	mockStore.On("Channel").Return(&mockChannelStore)
+
+	_, appErr := api.UpdateChannelMemberRoles(channelID, userID, model.ChannelUserRoleId)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "app.channel.get_member.app_error", appErr.Id)
+	assert.ErrorIs(t, appErr, contextCheckedErr)
+	mockChannelStore.AssertExpectations(t)
+}
+
 func TestPluginAPIUpdateSpaceBackingChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -4551,45 +4577,50 @@ func TestPluginAPIGetSchemeByNameUsesPrimaryWithoutChangingAppLookup(t *testing.
 	mockSchemeStore.AssertExpectations(t)
 }
 
+func TestPluginAPIGetSchemeForChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	scheme := getSeededSpaceScheme(t, th, model.SchemeNameSpaceContribute)
+	space := saveSpaceChannelWithScheme(t, th, scheme.Id)
+
+	gotScheme, guestRole, userRole, adminRole, appErr := api.GetSchemeForChannel(space.Id)
+	require.Nil(t, appErr)
+	require.Equal(t, scheme.Id, gotScheme.Id)
+	require.Equal(t, scheme.DefaultChannelGuestRole, guestRole.Name)
+	require.Equal(t, scheme.DefaultChannelUserRole, userRole.Name)
+	require.Equal(t, scheme.DefaultChannelAdminRole, adminRole.Name)
+	assert.Subset(t, userRole.Permissions, model.PermissionIDs(model.SpaceDefaultContributePermissions))
+}
+
+func TestPluginAPIGetSchemeForChannelRequiresDirectScheme(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	scheme, guestRole, userRole, adminRole, appErr := th.SetupPluginAPI().GetSchemeForChannel(th.BasicChannel.Id)
+	require.NotNil(t, appErr)
+	assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	assert.Nil(t, scheme)
+	assert.Nil(t, guestRole)
+	assert.Nil(t, userRole)
+	assert.Nil(t, adminRole)
+}
+
 func TestPluginAPIGetOrCreatePluginChannelSchemeGuestLicenseGate(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	// A plugin channel scheme's three roles are written inside the scheme's own
 	// transaction without calling the role-update guards, so the guest entitlement
-	// has to be applied to the requested set before creation rather than to the stored
-	// role afterward. The core-defined default read-only space permission set passes
-	// unlicensed; any other guest permission does not.
-	user := []string{model.PermissionReadPage.Id}
-	admin := []string{model.PermissionAdminSpace.Id}
+	// has to be applied to a non-empty requested set before creation rather than to
+	// the stored role afterward.
+	user := []string{model.PermissionReadChannel.Id}
+	admin := []string{model.PermissionManagePublicChannelMembers.Id}
 
-	guestPermissionsRequiringLicense := []struct {
-		name  string
-		guest []string
-	}{
-		{"a page write", []string{model.PermissionReadPage.Id, model.PermissionEditPage.Id}},
-		{"space administration", []string{model.PermissionAdminSpace.Id}},
-		{"an ordinary channel permission", []string{model.PermissionCreatePost.Id}},
-		{"membership management", []string{model.PermissionManagePublicChannelMembers.Id}},
-	}
-
-	t.Run("guest permissions outside the default read-only space set require a license", func(t *testing.T) {
-		for _, tc := range guestPermissionsRequiringLicense {
-			t.Run(tc.name, func(t *testing.T) {
-				th := Setup(t).InitBasic(t)
-				api := th.SetupPluginAPI()
-
-				scheme, appErr := api.GetOrCreatePluginChannelScheme(user, admin, tc.guest)
-				require.NotNil(t, appErr)
-				assert.Nil(t, scheme)
-				assert.Equal(t, "app.scheme.plugin_scheme.guest_license.app_error", appErr.Id)
-				assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
-			})
-		}
-	})
-
-	t.Run("licensed without GuestAccountsPermissions is refused too", func(t *testing.T) {
+	t.Run("a non-empty guest role requires GuestAccountsPermissions", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		api := th.SetupPluginAPI()
+		markPhase2MigrationComplete(t, th)
 
 		th.App.Srv().SetLicense(model.NewTestLicenseWithFalseDefaults("guest_accounts_permissions"))
 		defer func() {
@@ -4597,104 +4628,73 @@ func TestPluginAPIGetOrCreatePluginChannelSchemeGuestLicenseGate(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		scheme, appErr := api.GetOrCreatePluginChannelScheme(user, admin, []string{model.PermissionEditPage.Id})
-		require.NotNil(t, appErr)
-		assert.Nil(t, scheme)
-		assert.Equal(t, "app.scheme.plugin_scheme.guest_license.app_error", appErr.Id)
+		for _, permissionID := range []string{model.PermissionCreatePost.Id, model.PermissionReadPage.Id} {
+			scheme, appErr := api.GetOrCreatePluginChannelScheme(user, admin, []string{permissionID})
+			require.NotNil(t, appErr, "permission %q", permissionID)
+			assert.Nil(t, scheme, "permission %q", permissionID)
+			assert.Equal(t, "app.scheme.plugin_scheme.guest_license.app_error", appErr.Id, "permission %q", permissionID)
+			assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode, "permission %q", permissionID)
+		}
 	})
 
-	t.Run("GuestAccountsPermissions permits an ordinary channel guest permission", func(t *testing.T) {
+	t.Run("GuestAccountsPermissions permits a non-empty guest role", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		api := th.SetupPluginAPI()
 		markPhase2MigrationComplete(t, th)
 
-		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts_permissions"))
+		th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes", "guest_accounts_permissions"))
 		defer func() {
 			appErr := th.App.Srv().RemoveLicense()
 			require.Nil(t, appErr)
 		}()
 
-		// The license permits ordinary channel guest permissions, while space guest
-		// permissions remain limited to the default read-only set.
-		guest := []string{model.PermissionReadPage.Id, model.PermissionCreatePost.Id}
+		guest := []string{model.PermissionCreatePost.Id}
 		scheme, appErr := api.GetOrCreatePluginChannelScheme(user, admin, guest)
 		require.Nil(t, appErr)
 		require.NotNil(t, scheme)
 
-		role, appErr := api.GetRoleByName(scheme.DefaultChannelGuestRole)
+		role, appErr := th.App.GetRoleByName(th.Context, scheme.DefaultChannelGuestRole)
 		require.Nil(t, appErr)
 		assert.ElementsMatch(t, guest, role.Permissions)
 	})
 
-	// The guest entitlement permits ordinary channel permissions, never space write
-	// or administration permissions. UpdateChannelMemberRoles rejects these grants
-	// on the member-assignment side, so admitting them here would enforce the limit
-	// on only one path.
-	t.Run("a space write on the guest role is refused even when licensed", func(t *testing.T) {
-		for _, permission := range []string{model.PermissionEditPage.Id, model.PermissionAdminSpace.Id} {
-			t.Run(permission, func(t *testing.T) {
-				th := Setup(t).InitBasic(t)
-				api := th.SetupPluginAPI()
-				markPhase2MigrationComplete(t, th)
+	t.Run("an empty guest role does not require GuestAccountsPermissions", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		api := th.SetupPluginAPI()
+		markPhase2MigrationComplete(t, th)
 
-				th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts_permissions"))
-				defer func() {
-					appErr := th.App.Srv().RemoveLicense()
-					require.Nil(t, appErr)
-				}()
+		th.App.Srv().SetLicense(model.NewTestLicenseWithFalseDefaults("guest_accounts_permissions"))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
 
-				scheme, appErr := api.GetOrCreatePluginChannelScheme(user, admin,
-					[]string{model.PermissionReadPage.Id, permission})
-				require.NotNil(t, appErr)
-				assert.Nil(t, scheme)
-				assert.Equal(t, "app.scheme.plugin_scheme.guest_permission_scope.app_error", appErr.Id)
-				assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-			})
-		}
-	})
+		scheme, appErr := api.GetOrCreatePluginChannelScheme(user, admin, nil)
+		require.Nil(t, appErr)
+		require.NotNil(t, scheme)
 
-	t.Run("the default read-only space permissions and an empty guest set need no license", func(t *testing.T) {
-		for _, tc := range []struct {
-			name  string
-			guest []string
-		}{
-			{"the default read-only space permissions", []string{model.PermissionReadPage.Id}},
-			{"nothing at all", nil},
-		} {
-			t.Run(tc.name, func(t *testing.T) {
-				th := Setup(t).InitBasic(t)
-				api := th.SetupPluginAPI()
-				markPhase2MigrationComplete(t, th)
-
-				scheme, appErr := api.GetOrCreatePluginChannelScheme(user, admin, tc.guest)
-				require.Nil(t, appErr)
-				require.NotNil(t, scheme)
-
-				role, appErr := api.GetRoleByName(scheme.DefaultChannelGuestRole)
-				require.Nil(t, appErr)
-				assert.ElementsMatch(t, tc.guest, role.Permissions)
-			})
-		}
+		role, appErr := th.App.GetRoleByName(th.Context, scheme.DefaultChannelGuestRole)
+		require.Nil(t, appErr)
+		assert.Empty(t, role.Permissions)
 	})
 }
 
-// Plugin-created schemes can be assigned to ordinary channels unless their roles
-// contain space permissions. Space permissions are core-defined and seeded on
-// every edition; a role containing any other permission requires the custom-schemes
-// entitlement enforced by CreateScheme.
+// GetOrCreatePluginChannelScheme is a custom-scheme entry point regardless of the
+// permission ids supplied, so it carries the same entitlement as CreateScheme.
 func TestPluginAPIGetOrCreatePluginChannelSchemeSchemeLicenseGate(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	spaceUser := []string{model.PermissionReadPage.Id}
 	spaceAdmin := []string{model.PermissionAdminSpace.Id}
 
-	t.Run("an unlicensed set past the space permissions is refused", func(t *testing.T) {
+	t.Run("an unlicensed custom scheme is refused regardless of its permissions", func(t *testing.T) {
 		for _, tc := range []struct {
 			name               string
 			user, admin, guest []string
 		}{
-			{"an ordinary channel permission in the user set", []string{model.PermissionCreatePost.Id}, spaceAdmin, nil},
-			{"membership management in the admin set", spaceUser, []string{model.PermissionManagePublicChannelMembers.Id}, nil},
+			{"only space permissions", spaceUser, spaceAdmin, nil},
+			{"only ordinary channel permissions", []string{model.PermissionCreatePost.Id}, []string{model.PermissionManagePublicChannelMembers.Id}, nil},
+			{"a space permission on the guest role", nil, nil, spaceUser},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				th := Setup(t).InitBasic(t)
@@ -4721,23 +4721,30 @@ func TestPluginAPIGetOrCreatePluginChannelSchemeSchemeLicenseGate(t *testing.T) 
 			require.Nil(t, appErr)
 		}()
 
-		user := []string{model.PermissionCreatePost.Id}
-		scheme, appErr := api.GetOrCreatePluginChannelScheme(user, spaceAdmin, nil)
+		scheme, appErr := api.GetOrCreatePluginChannelScheme(spaceUser, spaceAdmin, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, scheme)
 
-		role, appErr := api.GetRoleByName(scheme.DefaultChannelUserRole)
+		role, appErr := th.App.GetRoleByName(th.Context, scheme.DefaultChannelUserRole)
 		require.Nil(t, appErr)
-		assert.ElementsMatch(t, user, role.Permissions)
+		assert.ElementsMatch(t, spaceUser, role.Permissions)
 	})
 
-	t.Run("a space permission set needs no license", func(t *testing.T) {
+	t.Run("an existing pooled scheme still requires the license", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		api := th.SetupPluginAPI()
 		markPhase2MigrationComplete(t, th)
 
-		scheme, appErr := api.GetOrCreatePluginChannelScheme(spaceUser, spaceAdmin, spaceUser)
+		th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+		scheme, appErr := api.GetOrCreatePluginChannelScheme(spaceUser, spaceAdmin, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, scheme)
+
+		th.App.Srv().SetLicense(nil)
+		scheme, appErr = api.GetOrCreatePluginChannelScheme(spaceUser, spaceAdmin, nil)
+		require.NotNil(t, appErr)
+		assert.Nil(t, scheme)
+		assert.Equal(t, "app.scheme.plugin_scheme.scheme_license.app_error", appErr.Id)
+		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
 	})
 }

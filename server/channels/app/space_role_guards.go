@@ -102,11 +102,9 @@ func logRefusedSpaceCapabilityRole(rctx request.CTX, where, roleName string) {
 
 // checkSpacePermissionScope rejects any runtime role write that adds a
 // channel-scoped space permission; system_admin is the single exception. The space
-// capability roles and the roles generated for the seeded presets and for plugin
-// schemes are frozen outright, in both directions — changing one is a code plus
-// migration change. The guard runs on CreateRole and UpdateRole, and so on
-// PatchRole, which routes through UpdateRole; migration seeding writes to the store
-// directly, below it.
+// capability roles are name-frozen; generated preset and plugin roles are frozen by
+// their scheme association. The guard runs on CreateRole and UpdateRole, including
+// PatchRole; migration seeding writes below it through the store.
 //
 // Deliberately not gated on the docs feature flag: the permissions, roles and preset
 // schemes are seeded unconditionally at boot, so a grant planted while the flag was
@@ -158,9 +156,8 @@ func (a *App) checkSpacePermissionScope(role *model.Role, stored []string) *mode
 // only removes a grant, or one that changes nothing the diff watches, such as
 // clearing SchemeManaged.
 //
-// The lookup cannot be gated on the incoming role's own fields: a write that
-// strips both the grants and SchemeManaged from a preset role would then skip it.
-// Every role write carrying a SchemeId pays the read.
+// PatchRole starts from the stored role and preserves SchemeId, so generated-role updates reach
+// this lookup. Direct UpdateRole callers must likewise supply the role's scheme association.
 func (a *App) checkFrozenSchemeRole(role *model.Role) *model.AppError {
 	if role.SchemeId == nil || *role.SchemeId == "" {
 		return nil

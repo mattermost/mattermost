@@ -3384,38 +3384,6 @@ func (_m *API) GetReactions(postId string) ([]*model.Reaction, *model.AppError) 
 	return r0, r1
 }
 
-// GetRoleByName provides a mock function with given fields: name
-func (_m *API) GetRoleByName(name string) (*model.Role, *model.AppError) {
-	ret := _m.Called(name)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetRoleByName")
-	}
-
-	var r0 *model.Role
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) (*model.Role, *model.AppError)); ok {
-		return rf(name)
-	}
-	if rf, ok := ret.Get(0).(func(string) *model.Role); ok {
-		r0 = rf(name)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Role)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(name)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
 // GetSchemeByName provides a mock function with given fields: name
 func (_m *API) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
 	ret := _m.Called(name)
@@ -3448,48 +3416,63 @@ func (_m *API) GetSchemeByName(name string) (*model.Scheme, *model.AppError) {
 	return r0, r1
 }
 
-// GetSchemeRolesForChannel provides a mock function with given fields: channelID
-func (_m *API) GetSchemeRolesForChannel(channelID string) (string, string, string, *model.AppError) {
+// GetSchemeForChannel provides a mock function with given fields: channelID
+func (_m *API) GetSchemeForChannel(channelID string) (*model.Scheme, *model.Role, *model.Role, *model.Role, *model.AppError) {
 	ret := _m.Called(channelID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetSchemeRolesForChannel")
+		panic("no return value specified for GetSchemeForChannel")
 	}
 
-	var r0 string
-	var r1 string
-	var r2 string
-	var r3 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) (string, string, string, *model.AppError)); ok {
+	var r0 *model.Scheme
+	var r1 *model.Role
+	var r2 *model.Role
+	var r3 *model.Role
+	var r4 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) (*model.Scheme, *model.Role, *model.Role, *model.Role, *model.AppError)); ok {
 		return rf(channelID)
 	}
-	if rf, ok := ret.Get(0).(func(string) string); ok {
+	if rf, ok := ret.Get(0).(func(string) *model.Scheme); ok {
 		r0 = rf(channelID)
 	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	if rf, ok := ret.Get(1).(func(string) string); ok {
-		r1 = rf(channelID)
-	} else {
-		r1 = ret.Get(1).(string)
-	}
-
-	if rf, ok := ret.Get(2).(func(string) string); ok {
-		r2 = rf(channelID)
-	} else {
-		r2 = ret.Get(2).(string)
-	}
-
-	if rf, ok := ret.Get(3).(func(string) *model.AppError); ok {
-		r3 = rf(channelID)
-	} else {
-		if ret.Get(3) != nil {
-			r3 = ret.Get(3).(*model.AppError)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Scheme)
 		}
 	}
 
-	return r0, r1, r2, r3
+	if rf, ok := ret.Get(1).(func(string) *model.Role); ok {
+		r1 = rf(channelID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.Role)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(string) *model.Role); ok {
+		r2 = rf(channelID)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.Role)
+		}
+	}
+
+	if rf, ok := ret.Get(3).(func(string) *model.Role); ok {
+		r3 = rf(channelID)
+	} else {
+		if ret.Get(3) != nil {
+			r3 = ret.Get(3).(*model.Role)
+		}
+	}
+
+	if rf, ok := ret.Get(4).(func(string) *model.AppError); ok {
+		r4 = rf(channelID)
+	} else {
+		if ret.Get(4) != nil {
+			r4 = ret.Get(4).(*model.AppError)
+		}
+	}
+
+	return r0, r1, r2, r3, r4
 }
 
 // GetServerVersion provides a mock function with no fields

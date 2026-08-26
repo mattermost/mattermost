@@ -10,6 +10,14 @@ type SchemeService struct {
 	api plugin.API
 }
 
+// ChannelScheme contains a channel's directly assigned scheme and generated roles.
+type ChannelScheme struct {
+	Scheme    *model.Scheme
+	GuestRole *model.Role
+	UserRole  *model.Role
+	AdminRole *model.Role
+}
+
 // GetByName gets a scheme by its unique name.
 //
 // Minimum server version: 11.11
@@ -21,21 +29,20 @@ func (s *SchemeService) GetByName(name string) (*model.Scheme, error) {
 
 // GetOrCreateChannelScheme resolves the channel scheme whose generated user,
 // admin and guest roles grant exactly the given permission sets, creating it on
-// first use. Asking twice for the same sets returns the same scheme, so
-// configuring many channels the same way creates one scheme rather than one per
-// channel.
+// first use. Identical normalized sets share a deterministic pool entry instead
+// of creating one scheme per channel.
 //
-// The scheme is complete when returned and immutable afterwards: its roles are
-// written with their final permissions in the transaction that creates it, and
-// no later role write may change what it grants. Attach it to a channel and read
-// it back; there is nothing to configure.
+// The scheme is complete when returned: its roles are written in the creation
+// transaction. Normal role-write APIs reject later changes; request another
+// permission set to resolve a different scheme.
 //
-// The scheme belongs to the calling plugin, identified from the request rather
-// than from an argument. Only channel-scoped permissions are accepted.
+// The pool namespace derives from the calling plugin identity carried by the request, not from an
+// argument. Only channel-scoped permissions are accepted.
 //
-// A scheme containing only predefined space permissions needs no license. Any
-// generated role containing other permissions requires the custom permissions
-// schemes entitlement.
+// Calling this method requires the custom permissions schemes entitlement,
+// regardless of which permissions the scheme contains. Core-provided schemes can
+// be resolved by name without creating a custom scheme. A non-empty guest role
+// also requires the guest permissions entitlement.
 //
 // Minimum server version: 11.11
 func (s *SchemeService) GetOrCreateChannelScheme(user, admin, guest []string) (*model.Scheme, error) {
@@ -44,12 +51,25 @@ func (s *SchemeService) GetOrCreateChannelScheme(user, admin, guest []string) (*
 	return scheme, normalizeAppErr(appErr)
 }
 
-// GetRolesForChannel returns the generated role names of the scheme governing
-// the given channel, in guest, user, admin order.
+// GetForChannel gets the channel's directly assigned scheme and generated roles.
+// It returns ErrNotFound when the channel has no scheme of its own.
 //
 // Minimum server version: 11.11
-func (s *SchemeService) GetRolesForChannel(channelID string) (guestRoleName, userRoleName, adminRoleName string, err error) {
-	guest, user, admin, appErr := s.api.GetSchemeRolesForChannel(channelID)
+func (s *SchemeService) GetForChannel(channelID string) (*ChannelScheme, error) {
+	scheme, guestRole, userRole, adminRole, appErr := s.api.GetSchemeForChannel(channelID)
+	if appErr != nil {
+		return nil, normalizeAppErr(appErr)
+	}
+	// A server predating this method returns only zero values after the generated RPC client logs
+	// the unsupported call. Preserve nil so plugins can report that compatibility failure.
+	if scheme == nil && guestRole == nil && userRole == nil && adminRole == nil {
+		return nil, nil
+	}
 
-	return guest, user, admin, normalizeAppErr(appErr)
+	return &ChannelScheme{
+		Scheme:    scheme,
+		GuestRole: guestRole,
+		UserRole:  userRole,
+		AdminRole: adminRole,
+	}, nil
 }

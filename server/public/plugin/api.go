@@ -1048,37 +1048,27 @@ type API interface {
 
 	// GetOrCreatePluginChannelScheme resolves the channel scheme whose generated
 	// user, admin and guest roles grant exactly the given permission sets,
-	// creating it on first use. Asking twice for the same sets returns the same
-	// scheme, so a plugin configuring many channels the same way creates one
-	// scheme rather than one per channel.
+	// creating it on first use. Identical normalized sets share a deterministic
+	// pool entry instead of creating one scheme per channel.
 	//
-	// The scheme is complete when returned — its roles are written with their
-	// final permissions in the transaction that creates it — and immutable
-	// afterwards: no later role write may change what it grants, by this plugin
-	// or anyone else. Attach it to a channel and read it back; there is nothing
-	// to configure.
+	// The scheme is complete when returned: its roles are written in the creation
+	// transaction. Normal role-write APIs reject later changes; request another
+	// permission set to resolve a different scheme.
 	//
-	// The scheme belongs to the calling plugin, which is identified from the
-	// request rather than from an argument, so one plugin cannot resolve or
-	// displace another's. Only channel-scoped permissions are accepted.
+	// The pool namespace derives from the calling plugin identity carried by the request, not from
+	// an argument. Only channel-scoped permissions are accepted.
 	//
 	// @tag Scheme
 	// Minimum server version: 11.11
 	GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError)
 
-	// GetSchemeRolesForChannel returns the generated role names of the scheme
-	// governing the given channel, in guest, user, admin order.
+	// GetSchemeForChannel returns the channel's directly assigned scheme and its generated guest,
+	// user and admin roles. It returns not found when the channel has no scheme of its own.
 	//
 	// @tag Scheme
 	// @tag Channel
 	// Minimum server version: 11.11
-	GetSchemeRolesForChannel(channelID string) (guestRoleName string, userRoleName string, adminRoleName string, err *model.AppError)
-
-	// GetRoleByName gets a role by its unique name.
-	//
-	// @tag Role
-	// Minimum server version: 11.11
-	GetRoleByName(name string) (*model.Role, *model.AppError)
+	GetSchemeForChannel(channelID string) (scheme *model.Scheme, guestRole *model.Role, userRole *model.Role, adminRole *model.Role, err *model.AppError)
 
 	// LogDebug writes a log message to the Mattermost server log file.
 	// Appropriate context such as the plugin name will already be added as fields so plugins

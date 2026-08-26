@@ -1145,6 +1145,65 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 	return channel, nil
 }
 
+// GetSchemeForChannel returns the channel's directly assigned scheme and its generated channel
+// roles. It does not fall back to a team scheme when the channel has no scheme of its own.
+func (a *App) GetSchemeForChannel(rctx request.CTX, channelID string) (scheme *model.Scheme, guestRole, userRole, adminRole *model.Role, err *model.AppError) {
+	channel, err := a.GetChannel(rctx, channelID)
+	if err != nil {
+		if err.StatusCode != http.StatusNotFound {
+			return
+		}
+		// Generic channel lookup excludes opaque backing channels. Spaces are uncached, so resolve
+		// them by their exact type on the primary.
+		channel, err = a.GetChannelOfType(RequestContextWithMaster(rctx), channelID, model.ChannelTypeSpace)
+		if err != nil {
+			return
+		}
+	}
+
+	if channel.SchemeId == nil || *channel.SchemeId == "" {
+		err = model.NewAppError("GetSchemeForChannel", "app.scheme.get.app_error", nil, "channel has no directly assigned scheme", http.StatusNotFound)
+		return
+	}
+
+	scheme, err = a.getSchemeFromMaster("GetSchemeForChannel", *channel.SchemeId)
+	if err != nil {
+		return
+	}
+	if scheme == nil {
+		err = model.NewAppError("GetSchemeForChannel", "app.scheme.get.app_error", nil, "channel scheme not found", http.StatusNotFound)
+		return
+	}
+
+	roleNames := []string{
+		scheme.DefaultChannelGuestRole,
+		scheme.DefaultChannelUserRole,
+		scheme.DefaultChannelAdminRole,
+	}
+	roles, nErr := a.Srv().Store().Role().GetByNamesFromMaster(roleNames)
+	if nErr != nil {
+		err = model.NewAppError("GetSchemeForChannel", "app.role.get_by_names.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		return
+	}
+	if err = a.mergeChannelHigherScopedPermissions(roles); err != nil {
+		return
+	}
+
+	rolesByName := make(map[string]*model.Role, len(roles))
+	for _, role := range roles {
+		rolesByName[role.Name] = role
+	}
+	guestRole = rolesByName[scheme.DefaultChannelGuestRole]
+	userRole = rolesByName[scheme.DefaultChannelUserRole]
+	adminRole = rolesByName[scheme.DefaultChannelAdminRole]
+	if guestRole == nil || userRole == nil || adminRole == nil {
+		scheme, guestRole, userRole, adminRole = nil, nil, nil, nil
+		err = model.NewAppError("GetSchemeForChannel", "app.role.get_by_names.app_error", nil, "one or more channel scheme roles were not found", http.StatusNotFound)
+	}
+
+	return
+}
+
 // GetSchemeRolesForChannel Checks if a channel or its team has an override scheme for channel roles and returns the scheme roles or default channel roles.
 func (a *App) GetSchemeRolesForChannel(rctx request.CTX, channelID string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
 	channel, err := a.GetChannel(rctx, channelID)
@@ -1163,8 +1222,6 @@ func (a *App) GetSchemeRolesForChannel(rctx request.CTX, channelID string) (gues
 		var scheme *model.Scheme
 		scheme, err = a.GetScheme(*channel.SchemeId)
 		if err != nil {
-			// An ordinary channel keeps the replica's answer: its scheme is not
-			// created moments before the roles are read.
 			if err.StatusCode != http.StatusNotFound || !channel.IsSpace() {
 				return
 			}

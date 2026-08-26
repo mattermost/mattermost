@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -50,40 +49,12 @@ func (api *PluginAPI) checkCustomPermissionsSchemesLicense() error {
 	return nil
 }
 
-// checkPluginChannelSchemeScopeLicense applies the custom permissions schemes
-// entitlement when a plugin channel scheme contains permissions outside the space
-// permission set. These schemes can be assigned to ordinary channels, so allowing
-// non-space permissions here without the license would bypass the entitlement
-// enforced by the REST scheme handlers.
-//
-// Schemes containing only space permissions are exempt because those permissions
-// and their preset schemes are predefined and available on every edition.
-func (api *PluginAPI) checkPluginChannelSchemeScopeLicense(sets ...[]string) *model.AppError {
-	containsNonSpacePermission := slices.ContainsFunc(sets, func(set []string) bool {
-		return slices.ContainsFunc(set, func(id string) bool {
-			return !model.IsSpaceChannelScopedPermissionID(id)
-		})
-	})
-	if !containsNonSpacePermission {
-		return nil
-	}
-	if err := api.checkCustomPermissionsSchemesLicense(); err != nil {
-		return model.NewAppError("PluginAPI.GetOrCreatePluginChannelScheme", "app.scheme.plugin_scheme.scheme_license.app_error", nil, "", http.StatusNotImplemented).Wrap(err)
-	}
-	return nil
-}
-
 // checkPluginChannelSchemeGuestPermissionsLicense requires the guest-permissions
-// entitlement when the requested guest role contains anything outside the default
-// read-only space permissions. Those default permissions are predefined on every
-// edition. The scheme's roles are written directly in the creation transaction, so
-// this check must run before they are stored.
+// entitlement when the requested guest role grants any permission. The scheme's
+// roles are written directly in the creation transaction, so this check must run
+// before they are stored.
 func (api *PluginAPI) checkPluginChannelSchemeGuestPermissionsLicense(guest []string) *model.AppError {
-	spaceReadOnlyPermissions := model.PermissionIDs(model.SpaceDefaultReadOnlyPermissions)
-	containsPermissionOutsideReadOnlySet := slices.ContainsFunc(guest, func(id string) bool {
-		return !slices.Contains(spaceReadOnlyPermissions, id)
-	})
-	if !containsPermissionOutsideReadOnlySet {
+	if len(guest) == 0 {
 		return nil
 	}
 
@@ -573,11 +544,8 @@ func (api *PluginAPI) GetChannelOfType(channelID string, channelType model.Chann
 	return api.app.GetChannelOfType(ctx, channelID, channelType)
 }
 
-// resolveChannel fetches a channel by ID for plugin API mutation methods. Generic channel
-// lookups exclude opaque backing channel types (e.g. space); on 404 this retries the ID
-// against each known backing type so plugins can manage backing channels through the standard
-// API without a separate resolution step. The retry uses master context to avoid
-// read-after-write misses on lagging replicas.
+// resolveChannel fetches a channel for plugin mutations. Generic lookup excludes opaque space
+// backing channels, so a miss is retried as that exact type on the primary.
 func (api *PluginAPI) resolveChannel(channelID string) (*model.Channel, *model.AppError) {
 	return resolveChannelByID(
 		api.ctx,
@@ -1334,27 +1302,21 @@ func (api *PluginAPI) GetSchemeByName(name string) (*model.Scheme, *model.AppErr
 }
 
 func (api *PluginAPI) GetOrCreatePluginChannelScheme(user, admin, guest []string) (*model.Scheme, *model.AppError) {
-	// Predefined space permissions do not require the custom permissions schemes
-	// entitlement. Other permissions do, and guest permissions outside the default
-	// read-only set also require the guest-permissions entitlement. The plugin id
-	// comes from this API instance rather than from caller input.
-	if appErr := api.checkPluginChannelSchemeGuestPermissionsLicense(guest); appErr != nil {
-		return nil, appErr
+	// This creates or reuses a custom channel scheme, so it carries the same custom
+	// permissions schemes entitlement as the REST scheme handlers. A non-empty guest
+	// role also requires the guest-permissions entitlement. The plugin id comes from
+	// this API instance rather than from caller input.
+	if err := api.checkCustomPermissionsSchemesLicense(); err != nil {
+		return nil, model.NewAppError("PluginAPI.GetOrCreatePluginChannelScheme", "app.scheme.plugin_scheme.scheme_license.app_error", nil, "", http.StatusNotImplemented).Wrap(err)
 	}
-	if appErr := api.checkPluginChannelSchemeScopeLicense(user, admin, guest); appErr != nil {
+	if appErr := api.checkPluginChannelSchemeGuestPermissionsLicense(guest); appErr != nil {
 		return nil, appErr
 	}
 	return api.app.GetOrCreatePluginChannelScheme(api.manifest.Id, user, admin, guest)
 }
 
-func (api *PluginAPI) GetSchemeRolesForChannel(channelID string) (guestRoleName, userRoleName, adminRoleName string, err *model.AppError) {
-	return api.app.GetSchemeRolesForChannel(api.ctx, channelID)
-}
-
-// Read from master because the plugin may immediately inspect roles returned by
-// GetOrCreatePluginChannelScheme before they are visible on a replica.
-func (api *PluginAPI) GetRoleByName(name string) (*model.Role, *model.AppError) {
-	return api.app.GetRoleByName(RequestContextWithMaster(api.ctx), name)
+func (api *PluginAPI) GetSchemeForChannel(channelID string) (scheme *model.Scheme, guestRole, userRole, adminRole *model.Role, err *model.AppError) {
+	return api.app.GetSchemeForChannel(api.ctx, channelID)
 }
 
 func (api *PluginAPI) UpdateUserRoles(userID string, newRoles string) (*model.User, *model.AppError) {
